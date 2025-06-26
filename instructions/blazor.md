@@ -1,6 +1,6 @@
 ---
 description: Blazor component and application patterns
-appliesTo: "**/*.razor, **/*.cs"
+applyTo: "**/*.razor, **/*.razor.cs, **/*.razor.css"
 ---
 
 ## Blazor Code Style and Structure
