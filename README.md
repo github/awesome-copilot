@@ -58,6 +58,15 @@ Ready-to-use prompt templates for specific development scenarios and tasks. Thes
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat or run `Chat: Run Prompt` command. Prompt files support variables like `${input:name}` for dynamic content.
 
+## 🎭 Custom Chat Modes
+
+Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows. These `.chatmode.md` files can be loaded by selecting "Chat with Custom Mode" from the Copilot menu.
+
+- [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
+
+
+> 💡 **Usage**: Create a `.chatmode.md` file in your workspace or repository, then select "Chat with Custom Mode" from the Copilot Chat menu and select your chat mode file.
+
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation

@@ -8,7 +8,7 @@ function extractTitle(filePath) {
     const content = fs.readFileSync(filePath, "utf8");
 
     // For prompt files, look for the main heading after frontmatter
-    if (filePath.includes(".prompt.md")) {
+    if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md")) {
       const lines = content.split("\n");
       let inFrontmatter = false;
       let frontmatterEnded = false;
@@ -29,7 +29,10 @@ function extractTitle(filePath) {
       }
 
       // For prompt files without heading, clean up filename
-      const basename = path.basename(filePath, ".prompt.md");
+      const basename = path.basename(
+        filePath,
+        filePath.includes(".prompt.md") ? ".prompt.md" : ".chatmode.md"
+      );
       return basename
         .replace(/[-_]/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase());
@@ -129,6 +132,7 @@ function extractDescription(filePath) {
 function generateReadme() {
   const instructionsDir = path.join(__dirname, "instructions");
   const promptsDir = path.join(__dirname, "prompts");
+  const chatmodesDir = path.join(__dirname, "chatmodes");
   const readmePath = path.join(__dirname, "README.md");
 
   // Check if README file exists
@@ -153,6 +157,14 @@ function generateReadme() {
     .readdirSync(promptsDir)
     .filter((file) => file.endsWith(".prompt.md"))
     .sort();
+
+  // Get all chat mode files - we'll use this to update the chat modes section
+  const chatmodeFiles = fs.existsSync(chatmodesDir)
+    ? fs
+        .readdirSync(chatmodesDir)
+        .filter((file) => file.endsWith(".chatmode.md"))
+        .sort()
+    : [];
 
   // Update instructions section - rebuild the whole list
   const instructionsSection = currentReadme.match(
@@ -204,132 +216,205 @@ function generateReadme() {
     (file) => !existingPromptLinks.includes(file)
   );
 
-  if (newPromptFiles.length === 0) {
-    console.log("No new prompts to add.");
-    return currentReadme; // No changes needed
-  }
+  if (newPromptFiles.length > 0) {
+    console.log(`Found ${newPromptFiles.length} new prompts to add.`);
 
-  console.log(`Found ${newPromptFiles.length} new prompts to add.`);
+    // Create content for new prompts (in Uncategorised section)
+    let newPromptsContent = "";
 
-  // Create content for new prompts (in Uncategorised section)
-  let newPromptsContent = "";
+    // Check if we already have an Uncategorised section
+    const uncategorisedSectionRegex = /### Uncategorised\n/;
+    const hasUncategorisedSection =
+      uncategorisedSectionRegex.test(currentReadme);
 
-  // Check if we already have an Uncategorised section
-  const uncategorisedSectionRegex = /### Uncategorised\n/;
-  const hasUncategorisedSection = uncategorisedSectionRegex.test(currentReadme);
-
-  // If we need to add the section header
-  if (!hasUncategorisedSection) {
-    newPromptsContent += "### Uncategorised\n";
-  }
-
-  // Add each new prompt
-  for (const file of newPromptFiles) {
-    const filePath = path.join(promptsDir, file);
-    const title = extractTitle(filePath);
-    const description = extractDescription(filePath);
-    const link = `prompts/${file}`;
-
-    if (description) {
-      newPromptsContent += `- [${title}](${link}) - ${description}\n`;
-    } else {
-      newPromptsContent += `- [${title}](${link})\n`;
-    }
-  }
-
-  // Add a newline if we created a new section
-  if (!hasUncategorisedSection) {
-    newPromptsContent += "\n";
-  }
-
-  // Update the README content - insert new content in the right place
-  if (hasUncategorisedSection) {
-    // Add to existing Uncategorised section
-    const uncategorisedSectionPos = currentReadme.match(
-      uncategorisedSectionRegex
-    ).index;
-    const sectionEndRegex = /\n\n/;
-    let sectionEndMatch = sectionEndRegex.exec(
-      currentReadme.slice(uncategorisedSectionPos + 16)
-    ); // 16 is length of "### Uncategorised\n"
-
-    let insertPos;
-    if (sectionEndMatch) {
-      insertPos = uncategorisedSectionPos + 16 + sectionEndMatch.index;
-    } else {
-      // If we can't find the end of the section, just insert at the end of the section header
-      insertPos = uncategorisedSectionPos + 16;
+    // If we need to add the section header
+    if (!hasUncategorisedSection) {
+      newPromptsContent += "### Uncategorised\n";
     }
 
-    currentReadme =
-      currentReadme.slice(0, insertPos) +
-      newPromptsContent +
-      currentReadme.slice(insertPos);
-  } else {
-    // No Uncategorised section exists yet - find where to add it
-    // Look for the "Ready-to-use prompt templates" section and the next section after it
-    const promptSectionRegex =
-      /## 🎯 Reusable Prompts\n\nReady-to-use prompt templates/;
-    const promptSectionMatch = currentReadme.match(promptSectionRegex);
+    // Add each new prompt
+    for (const file of newPromptFiles) {
+      const filePath = path.join(promptsDir, file);
+      const title = extractTitle(filePath);
+      const description = extractDescription(filePath);
+      const link = `prompts/${file}`;
 
-    if (promptSectionMatch) {
-      // Find where to insert the new section - after any existing categories
+      if (description) {
+        newPromptsContent += `- [${title}](${link}) - ${description}\n`;
+      } else {
+        newPromptsContent += `- [${title}](${link})\n`;
+      }
+    }
+
+    // Add a newline if we created a new section
+    if (!hasUncategorisedSection) {
+      newPromptsContent += "\n";
+    }
+
+    // Update the README content - insert new content in the right place
+    if (hasUncategorisedSection) {
+      // Add to existing Uncategorised section
+      const uncategorisedSectionPos = currentReadme.match(
+        uncategorisedSectionRegex
+      ).index;
+      const sectionEndRegex = /\n\n/;
+      let sectionEndMatch = sectionEndRegex.exec(
+        currentReadme.slice(uncategorisedSectionPos + 16)
+      ); // 16 is length of "### Uncategorised\n"
+
       let insertPos;
-      // First check if there are any existing categories
-      const existingCategoriesRegex = /### [^\n]+\n/g;
-      let lastCategoryMatch = null;
-      while ((match = existingCategoriesRegex.exec(currentReadme)) !== null) {
-        lastCategoryMatch = match;
+      if (sectionEndMatch) {
+        insertPos = uncategorisedSectionPos + 16 + sectionEndMatch.index;
+      } else {
+        // If we can't find the end of the section, just insert at the end of the section header
+        insertPos = uncategorisedSectionPos + 16;
       }
 
-      if (lastCategoryMatch) {
-        // Find the end of the last category section
-        const afterLastCategory = currentReadme.slice(
-          lastCategoryMatch.index + lastCategoryMatch[0].length
-        );
-        const nextSectionRegex = /\n\n>/;
-        const nextSectionMatch = afterLastCategory.match(nextSectionRegex);
+      currentReadme =
+        currentReadme.slice(0, insertPos) +
+        newPromptsContent +
+        currentReadme.slice(insertPos);
+    } else {
+      // No Uncategorised section exists yet - find where to add it
+      // Look for the "Ready-to-use prompt templates" section and the next section after it
+      const promptSectionRegex =
+        /## 🎯 Reusable Prompts\n\nReady-to-use prompt templates/;
+      const promptSectionMatch = currentReadme.match(promptSectionRegex);
 
-        if (nextSectionMatch) {
-          insertPos =
-            lastCategoryMatch.index +
-            lastCategoryMatch[0].length +
-            nextSectionMatch.index;
-        } else {
-          // If we can't find the next section, add at the end of the prompt section
-          insertPos = currentReadme.indexOf(
-            "> 💡 **Usage**: Use `/prompt-name`"
+      if (promptSectionMatch) {
+        // Find where to insert the new section - after any existing categories
+        let insertPos;
+        // First check if there are any existing categories
+        const existingCategoriesRegex = /### [^\n]+\n/g;
+        let lastCategoryMatch = null;
+        while ((match = existingCategoriesRegex.exec(currentReadme)) !== null) {
+          lastCategoryMatch = match;
+        }
+
+        if (lastCategoryMatch) {
+          // Find the end of the last category section
+          const afterLastCategory = currentReadme.slice(
+            lastCategoryMatch.index + lastCategoryMatch[0].length
           );
-          if (insertPos === -1) {
+          const nextSectionRegex = /\n\n>/;
+          const nextSectionMatch = afterLastCategory.match(nextSectionRegex);
+
+          if (nextSectionMatch) {
+            insertPos =
+              lastCategoryMatch.index +
+              lastCategoryMatch[0].length +
+              nextSectionMatch.index;
+          } else {
+            // If we can't find the next section, add at the end of the prompt section
+            insertPos = currentReadme.indexOf(
+              "> 💡 **Usage**: Use `/prompt-name`"
+            );
+            if (insertPos === -1) {
+              // Fallback position - before Additional Resources
+              insertPos = currentReadme.indexOf("## 📚 Additional Resources");
+            }
+          }
+        } else {
+          // No categories yet, add right after the intro text
+          const afterIntroRegex = /prompt\` command\.\n\n/;
+          const afterIntroMatch = currentReadme.match(afterIntroRegex);
+
+          if (afterIntroMatch) {
+            insertPos = afterIntroMatch.index + afterIntroMatch[0].length;
+          } else {
             // Fallback position - before Additional Resources
             insertPos = currentReadme.indexOf("## 📚 Additional Resources");
           }
         }
-      } else {
-        // No categories yet, add right after the intro text
-        const afterIntroRegex = /prompt\` command\.\n\n/;
-        const afterIntroMatch = currentReadme.match(afterIntroRegex);
 
-        if (afterIntroMatch) {
-          insertPos = afterIntroMatch.index + afterIntroMatch[0].length;
+        if (insertPos !== -1) {
+          currentReadme =
+            currentReadme.slice(0, insertPos) +
+            newPromptsContent +
+            currentReadme.slice(insertPos);
         } else {
-          // Fallback position - before Additional Resources
-          insertPos = currentReadme.indexOf("## 📚 Additional Resources");
+          console.error(
+            "Could not find a suitable place to insert new prompts."
+          );
         }
-      }
-
-      if (insertPos !== -1) {
-        currentReadme =
-          currentReadme.slice(0, insertPos) +
-          newPromptsContent +
-          currentReadme.slice(insertPos);
       } else {
-        console.error("Could not find a suitable place to insert new prompts.");
+        console.error(
+          "Could not find the Reusable Prompts section in the README."
+        );
       }
-    } else {
-      console.error(
-        "Could not find the Reusable Prompts section in the README."
-      );
+    }
+  } else {
+    console.log("No new prompts to add.");
+  }
+
+  // Update chat modes section
+  const chatmodesSection = currentReadme.match(
+    /## 🎭 Custom Chat Modes\n\nCustom chat modes define.+?(?=\n\n>)/s
+  );
+
+  if (chatmodesSection && chatmodeFiles.length > 0) {
+    let chatmodesListContent = "\n\n";
+
+    // Generate list of chat mode links
+    for (const file of chatmodeFiles) {
+      const filePath = path.join(chatmodesDir, file);
+      const title = extractTitle(filePath);
+      const link = `chatmodes/${file}`;
+
+      // Check if there's a description in the frontmatter
+      const customDescription = extractDescription(filePath);
+
+      if (customDescription) {
+        // Use the description from frontmatter
+        chatmodesListContent += `- [${title}](${link}) - ${customDescription}\n`;
+      } else {
+        // Just add a link without description
+        chatmodesListContent += `- [${title}](${link})\n`;
+      }
+    }
+
+    // Replace the current chat modes section with the updated one
+    const newChatmodesSection =
+      '## 🎭 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows. These `.chatmode.md` files can be loaded by selecting "Chat with Custom Mode" from the Copilot menu.' +
+      chatmodesListContent;
+
+    currentReadme = currentReadme.replace(
+      chatmodesSection[0],
+      newChatmodesSection
+    );
+  } else if (!chatmodesSection && chatmodeFiles.length > 0) {
+    // Chat modes section doesn't exist yet but we have chat mode files
+    const chatmodesListContent = chatmodeFiles
+      .map((file) => {
+        const filePath = path.join(chatmodesDir, file);
+        const title = extractTitle(filePath);
+        const link = `chatmodes/${file}`;
+        const customDescription = extractDescription(filePath);
+
+        if (customDescription) {
+          return `- [${title}](${link}) - ${customDescription}`;
+        } else {
+          return `- [${title}](${link})`;
+        }
+      })
+      .join("\n");
+
+    const newChatmodesSection =
+      "## 🎭 Custom Chat Modes\n\n" +
+      'Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows. These `.chatmode.md` files can be loaded by selecting "Chat with Custom Mode" from the Copilot menu.\n\n' +
+      chatmodesListContent +
+      '\n\n> 💡 **Usage**: Create a `.chatmode.md` file in your workspace or repository, then select "Chat with Custom Mode" from the Copilot Chat menu and select your chat mode file.\n';
+
+    // Insert before Additional Resources section
+    const additionalResourcesPos = currentReadme.indexOf(
+      "## 📚 Additional Resources"
+    );
+    if (additionalResourcesPos !== -1) {
+      currentReadme =
+        currentReadme.slice(0, additionalResourcesPos) +
+        newChatmodesSection +
+        "\n" +
+        currentReadme.slice(additionalResourcesPos);
     }
   }
 
