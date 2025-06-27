@@ -220,7 +220,7 @@ function generateReadme() {
 
   // If we need to add the section header
   if (!hasUncategorisedSection) {
-    newPromptsContent += "### Uncategorised\n";
+    newPromptsContent += "\n### Uncategorised\n";
   }
 
   // Add each new prompt

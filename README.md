@@ -55,6 +55,10 @@ Ready-to-use prompt templates for specific development scenarios and tasks. Thes
 ### Documentation & Project Management
 - [Comment Code Generate Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md) - Transform code into educational content
 - [Generate Specs as Issues](prompts/gen-specs-as-issues.prompt.md) - Convert requirements into GitHub issues
+- [My Issues](prompts/my-issues.prompt.md)
+- [My Pull Requests](prompts/my-pull-requests.prompt.md)
+
+
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat or run `Chat: Run Prompt` command. Prompt files support variables like `${input:name}` for dynamic content.
 
