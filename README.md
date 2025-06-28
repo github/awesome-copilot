@@ -58,12 +58,21 @@ Ready-to-use prompt templates for specific development scenarios and tasks. Thes
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat or run `Chat: Run Prompt` command. Prompt files support variables like `${input:name}` for dynamic content.
 
+
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+
+## 🧩 Modes
+
+You can define your own chat modes for specific scenarios, such as planning a new feature or getting the AI to behave a certain way when in a particular mode. Custom chat modes are defined in Markdown files with the `.chatmode.md` suffix and can be stored in the `.github` folder of your workspace or placed in your user profile. They should up in the "Ask/Edit/Agent" dropdown in the chat view.
+
+- [4.1 Beast Mode](modes/4.1-Beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
+
+Use `Chat > Configure Chat Modes` from the Command Palette to add/edit custom modes.
 
 ## 📄 License
 
