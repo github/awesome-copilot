@@ -78,6 +78,8 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Database Administrator Chat Mode](chatmodes/postgresql-dba.chatmode.md)
 - [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md)
 
+> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
+
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
