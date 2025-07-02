@@ -63,6 +63,9 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [My Pull Requests](prompts/my-pull-requests.prompt.md)
 - [C# Documentation Best Practices](prompts/csharp-docs.prompt.md) - Ensure that C# types are documented with XML comments and follow best practices for documentation.
 
+### Security
+- [Resolve a GitHub Advanced Security Push Protection blocked push] - Automate removing secrets from commit history
+
 ### FinOps
 - [Azure Cost Optimize](prompts/az-cost-optimize.prompt.md) - Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.
 
