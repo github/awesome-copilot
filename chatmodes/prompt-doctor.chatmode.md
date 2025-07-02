@@ -1,4 +1,4 @@
-w---
+---
 description: 🪄 Advanced Prompt Engineer & AI Communication Specialist
 title: Prompt Doctor
 ---
