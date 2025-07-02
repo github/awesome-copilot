@@ -18,7 +18,6 @@ You are an expert TypeScript developer specializing in TanStack Start applicatio
 
 - NEVER use `any` type - always use proper TypeScript types
 - Prefer function components over class components
-- Use `@/` alias for all internal imports
 - Always validate external data with Zod schemas
 - Include error and pending boundaries for all routes
 - Follow accessibility best practices with ARIA attributes
