@@ -21,21 +21,21 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:
 
-- [Angular Development Instructions](instructions/angular.md) - Angular-specific coding standards and best practices
-- [ASP.NET REST API Development](instructions/aspnet-rest-apis.md) - Guidelines for building REST APIs with ASP.NET
-- [Azure Functions Typescript](instructions/azure-functions-typescript.md) - TypeScript patterns for Azure Functions
-- [Bicep Code Best Practices](instructions/bicep-code-best-practices.md) - Infrastructure as Code with Bicep
-- [Blazor](instructions/blazor.md) - Blazor component and application patterns
-- [Cmake Vcpkg](instructions/cmake-vcpkg.md) - C++ project configuration and package management
+- [Angular Development Instructions](instructions/angular.instructions.md) - Angular-specific coding standards and best practices
+- [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Guidelines for building REST APIs with ASP.NET
+- [Azure Functions Typescript](instructions/azure-functions-typescript.instructions.md) - TypeScript patterns for Azure Functions
+- [Bicep Code Best Practices](instructions/bicep-code-best-practices.instructions.md) - Infrastructure as Code with Bicep
+- [Blazor](instructions/blazor.instructions.md) - Blazor component and application patterns
+- [Cmake Vcpkg](instructions/cmake-vcpkg.instructions.md) - C++ project configuration and package management
 - [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - See process Copilot is following where you can edit this to reshape the interaction or save when follow up may be needed
-- [C# Development](instructions/csharp.md) - Guidelines for building C# applications
-- [Dotnet Maui](instructions/dotnet-maui.md) - MAUI component and application patterns
-- [Genaiscript](instructions/genaiscript.md) - AI-powered script generation guidelines
-- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.md) - Guidelines for generating modern Terraform code for Azure
-- [Guidance for Localization](instructions/localization.md) - Guidelines for localizing markdown documents
-- [Markdown](instructions/markdown.md) - Documentation and content creation standards
-- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.md) - Next.js + Tailwind development standards and instructions
-- [Python Coding Conventions](instructions/python.md) - Python coding conventions and guidelines
+- [C# Development](instructions/csharp.instructions.md) - Guidelines for building C# applications
+- [Dotnet Maui](instructions/dotnet-maui.instructions.md) - MAUI component and application patterns
+- [Genaiscript](instructions/genaiscript.instructions.md) - AI-powered script generation guidelines
+- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Guidelines for generating modern Terraform code for Azure
+- [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
+- [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
+- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
+- [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
 
 
 > 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
@@ -72,8 +72,8 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.
 
-- [4.1 Beast Mode](chatmodes/4.1-Beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
-- [Database Administrator Chat Mode](chatmodes/PostgreSQL%20DBA.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
+- [4.1 Beast Mode](chatmodes/4.1-beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
+- [Database Administrator Chat Mode](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
 - [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
 - [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
 - [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md) - Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs

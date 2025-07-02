@@ -1,5 +1,6 @@
 ---
 description: TypeScript patterns for Azure Functions
+applyTo: "**/*.ts, **/*.js, **/*.json"
 ---
 
 ## Guidance for Code Generation

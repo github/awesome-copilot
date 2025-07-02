@@ -1,47 +1,49 @@
 ---
-description: Guidelines for building REST APIs with ASP.NET
+description: Guidelines for building C# applications
+applyTo: "**/*.cs"
 ---
 
-# ASP.NET REST API Development
+# C# Development
 
-## Instruction
-- Guide users through building their first REST API using ASP.NET Core 9.
-- Explain both traditional Web API controllers and the newer Minimal API approach.
-- Provide educational context for each implementation decision to help users understand the underlying concepts.
-- Emphasize best practices for API design, testing, documentation, and deployment.
-- Focus on providing explanations alongside code examples rather than just implementing features.
+## C# Instructions
+- Always use the latest version C#, currently C# 13 features.
+- Write clear and concise comments for each function.
 
-## API Design Fundamentals
+## General Instructions
+- Make only high confidence suggestions when reviewing code changes.
+- Write code with good maintainability practices, including comments on why certain design decisions were made.
+- Handle edge cases and write clear exception handling.
+- For libraries or external dependencies, mention their usage and purpose in comments.
 
-- Explain REST architectural principles and how they apply to ASP.NET Core APIs.
-- Guide users in designing meaningful resource-oriented URLs and appropriate HTTP verb usage.
-- Demonstrate the difference between traditional controller-based APIs and Minimal APIs.
-- Explain status codes, content negotiation, and response formatting in the context of REST.
-- Help users understand when to choose Controllers vs. Minimal APIs based on project requirements.
+## Naming Conventions
+
+- Follow PascalCase for component names, method names, and public members.
+- Use camelCase for private fields and local variables.
+- Prefix interface names with "I" (e.g., IUserService).
+
+## Formatting
+
+- Apply code-formatting style defined in `.editorconfig`.
+- Prefer file-scoped namespace declarations and single-line using directives.
+- Insert a newline before the opening curly brace of any code block (e.g., after `if`, `for`, `while`, `foreach`, `using`, `try`, etc.).
+- Ensure that the final return statement of a method is on its own line.
+- Use pattern matching and switch expressions wherever possible.
+- Use `nameof` instead of string literals when referring to member names.
+- Ensure that XML doc comments are created for any public APIs. When applicable, include `<example>` and `<code>` documentation in the comments.
 
 ## Project Setup and Structure
 
-- Guide users through creating a new ASP.NET Core 9 Web API project with the appropriate templates.
+- Guide users through creating a new .NET project with the appropriate templates.
 - Explain the purpose of each generated file and folder to build understanding of the project structure.
 - Demonstrate how to organize code using feature folders or domain-driven design principles.
 - Show proper separation of concerns with models, services, and data access layers.
 - Explain the Program.cs and configuration system in ASP.NET Core 9 including environment-specific settings.
 
-## Building Controller-Based APIs
+## Nullable Reference Types
 
-- Guide the creation of RESTful controllers with proper resource naming and HTTP verb implementation.
-- Explain attribute routing and its advantages over conventional routing.
-- Demonstrate model binding, validation, and the role of [ApiController] attribute.
-- Show how dependency injection works within controllers.
-- Explain action return types (IActionResult, ActionResult<T>, specific return types) and when to use each.
-
-## Implementing Minimal APIs
-
-- Guide users through implementing the same endpoints using the Minimal API syntax.
-- Explain the endpoint routing system and how to organize route groups.
-- Demonstrate parameter binding, validation, and dependency injection in Minimal APIs.
-- Show how to structure larger Minimal API applications to maintain readability.
-- Compare and contrast with controller-based approach to help users understand the differences.
+- Declare variables non-nullable, and check for `null` at entry points.
+- Always use `is null` or `is not null` instead of `== null` or `!= null`.
+- Trust the C# null annotations and don't add null checks when the type system says a value cannot be null.
 
 ## Data Access Patterns
 
@@ -83,9 +85,12 @@ description: Guidelines for building REST APIs with ASP.NET
 - Show how to implement custom telemetry and correlation IDs for request tracking.
 - Explain how to monitor API performance, errors, and usage patterns.
 
-## Testing REST APIs
+## Testing
 
-- Guide users through creating unit tests for controllers, Minimal API endpoints, and services.
+- Always include test cases for critical paths of the application.
+- Guide users through creating unit tests.
+- Do not emit "Act", "Arrange" or "Assert" comments.
+- Copy existing style in nearby files for test method names and capitalization.
 - Explain integration testing approaches for API endpoints.
 - Demonstrate how to mock dependencies for effective testing.
 - Show how to test authentication and authorization logic.
@@ -103,7 +108,7 @@ description: Guidelines for building REST APIs with ASP.NET
 
 - Guide users through containerizing their API using .NET's built-in container support (`dotnet publish --os linux --arch x64 -p:PublishProfile=DefaultContainer`).
 - Explain the differences between manual Dockerfile creation and .NET's container publishing features.
-- Explain CI/CD pipelines for ASP.NET Core applications.
+- Explain CI/CD pipelines for NET applications.
 - Demonstrate deployment to Azure App Service, Azure Container Apps, or other hosting options.
 - Show how to implement health checks and readiness probes.
 - Explain environment-specific configurations for different deployment stages.
