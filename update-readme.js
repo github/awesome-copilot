@@ -173,7 +173,7 @@ function updateInstructionsSection(
   instructionsDir
 ) {
   const instructionsSection = currentReadme.match(
-    /## 📋 Custom Instructions\n\nTeam and project-specific instructions.+?(?=\n\n>)/s
+    /## 📋 Custom Instructions[\s\S]*?(?=\n\n> 💡 \*\*Usage\*\*)/s
   );
 
   if (!instructionsSection) {
@@ -434,7 +434,8 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
     // Replace the current chat modes section with the updated one
     const newChatmodesSection =
       "## 🎭 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
-      chatmodesListContent;
+      chatmodesListContent +
+      "\n> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.";
 
     return currentReadme.replace(chatmodesSection[0], newChatmodesSection);
   } else {
@@ -540,10 +541,21 @@ function generateReadme() {
 }
 
 // Generate and write the README
+const readmePath = path.join(__dirname, "README.md");
+const originalReadme = fs.readFileSync(readmePath, "utf8");
 const updatedReadme = generateReadme();
 
 // Only write file if we have content to write
 if (updatedReadme) {
-  fs.writeFileSync(path.join(__dirname, "README.md"), updatedReadme);
-  console.log("README.md updated successfully!");
+  // Check if there are changes
+  const hasChanges = originalReadme !== updatedReadme;
+  
+  if (hasChanges) {
+    fs.writeFileSync(readmePath, updatedReadme);
+    console.log("README.md updated successfully!");
+    console.log("Changes detected in README.md after running update script.");
+  } else {
+    console.log("README.md is already up to date.");
+    console.log("No changes to README.md after running update script.");
+  }
 }

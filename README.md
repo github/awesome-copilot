@@ -21,52 +21,24 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:
 
-- [Angular Development Instructions](instructions/angular.instructions.md) - Angular-specific coding standards and best practices
-- [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Guidelines for building REST APIs with ASP.NET
-- [Azure Functions Typescript](instructions/azure-functions-typescript.instructions.md) - TypeScript patterns for Azure Functions
-- [Bicep Code Best Practices](instructions/bicep-code-best-practices.instructions.md) - Infrastructure as Code with Bicep
-- [Blazor](instructions/blazor.instructions.md) - Blazor component and application patterns
-- [Cmake Vcpkg](instructions/cmake-vcpkg.instructions.md) - C++ project configuration and package management
-- [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - See process Copilot is following where you can edit this to reshape the interaction or save when follow up may be needed
-- [C# Development](instructions/csharp.instructions.md) - Guidelines for building C# applications
-- [Dotnet Maui](instructions/dotnet-maui.instructions.md) - MAUI component and application patterns
-- [Genaiscript](instructions/genaiscript.instructions.md) - AI-powered script generation guidelines
-- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Guidelines for generating modern Terraform code for Azure
-- [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
-- [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
-- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
-- [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
+- [Angular Development Instructions](instructions/angular.instructions.md) - Instruction specific coding standards and best practices
+- [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Development specific coding standards and best practices
+- [Azure Functions Typescript.Instructions](instructions/azure-functions-typescript.instructions.md) - Typescript.Instruction specific coding standards and best practices
+- [Bicep Code Best Practices.Instructions](instructions/bicep-code-best-practices.instructions.md) - Practices.Instruction specific coding standards and best practices
+- [Blazor.Instructions](instructions/blazor.instructions.md) - Blazor.Instruction specific coding standards and best practices
+- [Cmake Vcpkg.Instructions](instructions/cmake-vcpkg.instructions.md) - Vcpkg.Instruction specific coding standards and best practices
+- [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - Instruction specific coding standards and best practices
+- [C# Development](instructions/csharp.instructions.md) - Development specific coding standards and best practices
+- [.NET MAUI](instructions/dotnet-maui.instructions.md) - MAUI specific coding standards and best practices
+- [Genaiscript.Instructions](instructions/genaiscript.instructions.md) - Genaiscript.Instruction specific coding standards and best practices
+- [Generate Modern Terraform Code For Azure.Instructions](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Azure.Instruction specific coding standards and best practices
+- [Guidance for Localization](instructions/localization.instructions.md) - Localization specific coding standards and best practices
+- [Markdown.Instructions](instructions/markdown.instructions.md) - Markdown.Instruction specific coding standards and best practices
+- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Instruction specific coding standards and best practices
+- [Python Coding Conventions](instructions/python.instructions.md) - Convention specific coding standards and best practices
 
 
-> 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
-
-## 🎯 Reusable Prompts
-
-Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.
-
-### Backend Development
-- [ASP.NET Minimal API with OpenAPI](prompts/aspnet-minimal-api-openapi.prompt.md) - Generate API endpoints with proper documentation
-- [Entity Framework Core Best Practices](prompts/ef-core.prompt.md) - Database operations and ORM patterns
-- [Multi-Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Optimized container builds for any technology
-
-### Testing & Quality
-- [C# Async Programming](prompts/csharp-async.prompt.md) - Asynchronous programming best practices
-- [MSTest Best Practices](prompts/csharp-mstest.prompt.md) - MSTest unit testing with data-driven tests
-- [NUnit Best Practices](prompts/csharp-nunit.prompt.md) - NUnit testing patterns and assertions
-- [XUnit Best Practices](prompts/csharp-xunit.prompt.md) - XUnit testing with modern C# features
-- [JavaScript/TypeScript Jest](prompts/javascript-typescript-jest.prompt.md) - Jest testing patterns, mocking, and structure
-
-### Documentation & Project Management
-- [Comment Code Generate Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md) - Transform code into educational content
-- [Generate Specs as Issues](prompts/gen-specs-as-issues.prompt.md) - Convert requirements into GitHub issues
-- [My Issues](prompts/my-issues.prompt.md)
-- [My Pull Requests](prompts/my-pull-requests.prompt.md)
-- [C# Documentation Best Practices](prompts/csharp-docs.prompt.md) - Ensure that C# types are documented with XML comments and follow best practices for documentation.
-
-### FinOps
-- [Azure Cost Optimize](prompts/az-cost-optimize.prompt.md) - Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.
-
-> 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
+> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
 
 ## 🎭 Custom Chat Modes
 
