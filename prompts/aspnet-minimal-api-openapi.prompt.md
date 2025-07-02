@@ -25,7 +25,6 @@ Your goal is to help me create well-structured ASP.NET Minimal API endpoints wit
 ## Type Handling
 
 - Use strongly-typed route parameters with explicit type binding
-- Apply proper parameter binding with `[FromBody]`, `[FromRoute]`, `[FromQuery]`
 - Use `Results<T1, T2>` to represent multiple response types
 - Return `TypedResults` instead of `Results` for strongly-typed responses
 - Leverage C# 10+ features like nullable annotations and init-only properties
