@@ -3,153 +3,168 @@
 const fs = require("fs");
 const path = require("path");
 
-function extractTitle(filePath) {
+// Add error handling utility
+function safeFileOperation(operation, filePath, defaultValue = null) {
   try {
-    const content = fs.readFileSync(filePath, "utf8");
-    const lines = content.split("\n");
+    return operation();
+  } catch (error) {
+    console.error(`Error processing file ${filePath}: ${error.message}`);
+    return defaultValue;
+  }
+}
 
-    // Step 1: Look for title in frontmatter for all file types
-    let inFrontmatter = false;
-    let frontmatterEnded = false;
+function extractTitle(filePath) {
+  return safeFileOperation(
+    () => {
+      const content = fs.readFileSync(filePath, "utf8");
+      const lines = content.split("\n");
 
-    for (const line of lines) {
-      if (line.trim() === "---") {
-        if (!inFrontmatter) {
-          inFrontmatter = true;
-        } else if (!frontmatterEnded) {
-          frontmatterEnded = true;
-        }
-        continue;
-      }
+      // Step 1: Look for title in frontmatter for all file types
+      let inFrontmatter = false;
+      let frontmatterEnded = false;
 
-      if (inFrontmatter && !frontmatterEnded) {
-        // Look for title field in frontmatter
-        const titleMatch = line.match(/^title:\s*['"]?(.+?)['"]?$/);
-        if (titleMatch) {
-          return titleMatch[1].trim();
-        }
-      }
-    }
-
-    // Reset for second pass
-    inFrontmatter = false;
-    frontmatterEnded = false;
-
-    // Step 2: For prompt/chatmode files, look for heading after frontmatter
-    if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md")) {
       for (const line of lines) {
         if (line.trim() === "---") {
           if (!inFrontmatter) {
             inFrontmatter = true;
-          } else if (inFrontmatter && !frontmatterEnded) {
+          } else if (!frontmatterEnded) {
             frontmatterEnded = true;
           }
           continue;
         }
 
-        if (frontmatterEnded && line.startsWith("# ")) {
+        if (inFrontmatter && !frontmatterEnded) {
+          // Look for title field in frontmatter
+          if (line.includes('title:')) {
+            // Extract everything after 'title:'
+            const afterTitle = line.substring(line.indexOf('title:') + 6).trim();
+            // Remove quotes if present
+            const cleanTitle = afterTitle.replace(/^['"]|['"]$/g, '');
+            return cleanTitle;
+          }
+        }
+      }
+
+      // Reset for second pass
+      inFrontmatter = false;
+      frontmatterEnded = false;
+
+      // Step 2: For prompt/chatmode files, look for heading after frontmatter
+      if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md")) {
+        for (const line of lines) {
+          if (line.trim() === "---") {
+            if (!inFrontmatter) {
+              inFrontmatter = true;
+            } else if (inFrontmatter && !frontmatterEnded) {
+              frontmatterEnded = true;
+            }
+            continue;
+          }
+
+          if (frontmatterEnded && line.startsWith("# ")) {
+            return line.substring(2).trim();
+          }
+        }
+
+        // Step 3: Format filename for prompt/chatmode files if no heading found
+        const basename = path.basename(
+          filePath,
+          filePath.includes(".prompt.md") ? ".prompt.md" : ".chatmode.md"
+        );
+        return basename
+          .replace(/[-_]/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+      }
+
+      // Step 4: For instruction files, look for the first heading
+      for (const line of lines) {
+        if (line.startsWith("# ")) {
           return line.substring(2).trim();
         }
       }
 
-      // Step 3: Format filename for prompt/chatmode files if no heading found
-      const basename = path.basename(
-        filePath,
-        filePath.includes(".prompt.md") ? ".prompt.md" : ".chatmode.md"
-      );
+      // Step 5: Fallback to filename
+      const basename = path.basename(filePath, path.extname(filePath));
       return basename
         .replace(/[-_]/g, " ")
         .replace(/\b\w/g, (l) => l.toUpperCase());
-    }
-
-    // Step 4: For instruction files, look for the first heading
-    for (const line of lines) {
-      if (line.startsWith("# ")) {
-        return line.substring(2).trim();
-      }
-    }
-
-    // Step 5: Fallback to filename
-    const basename = path.basename(filePath, path.extname(filePath));
-    return basename
+    },
+    filePath,
+    path.basename(filePath, path.extname(filePath))
       .replace(/[-_]/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  } catch (error) {
-    // Fallback to filename
-    const basename = path.basename(filePath, path.extname(filePath));
-    return basename
-      .replace(/[-_]/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-  }
+      .replace(/\b\w/g, (l) => l.toUpperCase())
+  );
 }
 
 function extractDescription(filePath) {
-  try {
-    const content = fs.readFileSync(filePath, "utf8");
+  return safeFileOperation(
+    () => {
+      const content = fs.readFileSync(filePath, "utf8");
 
-    // Parse frontmatter for description (for both prompts and instructions)
-    const lines = content.split("\n");
-    let inFrontmatter = false;
-    let frontmatterEnded = false;
+      // Parse frontmatter for description (for both prompts and instructions)
+      const lines = content.split("\n");
+      let inFrontmatter = false;
+      let frontmatterEnded = false;
 
-    // For multi-line descriptions
-    let isMultilineDescription = false;
-    let multilineDescription = [];
+      // For multi-line descriptions
+      let isMultilineDescription = false;
+      let multilineDescription = [];
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
 
-      if (line.trim() === "---") {
-        if (!inFrontmatter) {
-          inFrontmatter = true;
-        } else if (inFrontmatter && !frontmatterEnded) {
-          frontmatterEnded = true;
-          break;
-        }
-        continue;
-      }
-
-      if (inFrontmatter && !frontmatterEnded) {
-        // Check for multi-line description with pipe syntax (|)
-        const multilineMatch = line.match(/^description:\s*\|(\s*)$/);
-        if (multilineMatch) {
-          isMultilineDescription = true;
-          // Continue to next line to start collecting the multi-line content
+        if (line.trim() === "---") {
+          if (!inFrontmatter) {
+            inFrontmatter = true;
+          } else if (inFrontmatter && !frontmatterEnded) {
+            frontmatterEnded = true;
+            break;
+          }
           continue;
         }
 
-        // If we're collecting a multi-line description
-        if (isMultilineDescription) {
-          // If the line has no indentation or has another frontmatter key, stop collecting
-          if (!line.startsWith("  ") || line.match(/^[a-zA-Z0-9_-]+:/)) {
-            isMultilineDescription = false;
-            // Join the collected lines and return
-            return multilineDescription.join(" ").trim();
+        if (inFrontmatter && !frontmatterEnded) {
+          // Check for multi-line description with pipe syntax (|)
+          const multilineMatch = line.match(/^description:\s*\|(\s*)$/);
+          if (multilineMatch) {
+            isMultilineDescription = true;
+            // Continue to next line to start collecting the multi-line content
+            continue;
           }
 
-          // Add the line to our multi-line collection (removing the 2-space indentation)
-          multilineDescription.push(line.substring(2));
-        } else {
-          // Look for single-line description field in frontmatter
-          const descriptionMatch = line.match(
-            /^description:\s*['"]?(.+?)['"]?$/
-          );
-          if (descriptionMatch) {
-            return descriptionMatch[1];
+          // If we're collecting a multi-line description
+          if (isMultilineDescription) {
+            // If the line has no indentation or has another frontmatter key, stop collecting
+            if (!line.startsWith("  ") || line.match(/^[a-zA-Z0-9_-]+:/)) {
+              isMultilineDescription = false;
+              // Join the collected lines and return
+              return multilineDescription.join(" ").trim();
+            }
+
+            // Add the line to our multi-line collection (removing the 2-space indentation)
+            multilineDescription.push(line.substring(2));
+          } else {
+            // Look for single-line description field in frontmatter
+            const descriptionMatch = line.match(
+              /^description:\s*['"]?(.+?)['"]?$/
+            );
+            if (descriptionMatch) {
+              return descriptionMatch[1];
+            }
           }
         }
       }
-    }
 
-    // If we've collected multi-line description but the frontmatter ended
-    if (multilineDescription.length > 0) {
-      return multilineDescription.join(" ").trim();
-    }
+      // If we've collected multi-line description but the frontmatter ended
+      if (multilineDescription.length > 0) {
+        return multilineDescription.join(" ").trim();
+      }
 
-    return null;
-  } catch (error) {
-    return null;
-  }
+      return null;
+    },
+    filePath,
+    null
+  );
 }
 
 function updateInstructionsSection(
@@ -391,15 +406,15 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
     console.log(`Found ${newChatModeFiles.length} new chat modes to add.`);
   }
 
-  const chatmodesSection = currentReadme.match(
-    /## 🧩 Custom Chat Modes\n\nCustom chat modes define.+?(?=\n\n>)/s
-  );
+  // Look for ANY existing chat modes section (with any emoji)
+  const chatmodesSectionRegex = /## [🧩🎭].*Custom Chat Modes[\s\S]*?(?=\n## |\n\n## |$)/;
+  const chatmodesSection = currentReadme.match(chatmodesSectionRegex);
 
   if (chatmodesSection) {
     let chatmodesListContent = "\n\n";
 
-    // Generate list of chat mode links
-    for (const file of chatmodeFiles) {
+    // Generate list of chat mode links (sorted alphabetically)
+    for (const file of chatmodeFiles.sort()) {
       const filePath = path.join(chatmodesDir, file);
       const title = extractTitle(filePath);
       const link = encodeURI(`chatmodes/${file}`);
@@ -418,7 +433,7 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
 
     // Replace the current chat modes section with the updated one
     const newChatmodesSection =
-      "## 🧩 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
+      "## 🎭 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
       chatmodesListContent;
 
     return currentReadme.replace(chatmodesSection[0], newChatmodesSection);
@@ -429,6 +444,7 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
     );
 
     const chatmodesListContent = chatmodeFiles
+      .sort()
       .map((file) => {
         const filePath = path.join(chatmodesDir, file);
         const title = extractTitle(filePath);

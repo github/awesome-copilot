@@ -1,7 +1,9 @@
 ---
-description: .NET MAUI component and application patterns
-applyTo: "**/*.xaml, **/*.cs"
+description: '.NET MAUI component and application patterns'
+applyTo: '**/*.xaml, **/*.cs'
 ---
+
+# .NET MAUI
 
 ## .NET MAUI Code Style and Structure
 
