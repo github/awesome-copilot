@@ -49,8 +49,8 @@ function extractTitle(filePath) {
       inFrontmatter = false;
       frontmatterEnded = false;
 
-      // Step 2: For prompt/chatmode files, look for heading after frontmatter
-      if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md")) {
+      // Step 2: For prompt/chatmode/instructions files, look for heading after frontmatter
+      if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md") || filePath.includes(".instructions.md")) {
         for (const line of lines) {
           if (line.trim() === "---") {
             if (!inFrontmatter) {
@@ -66,10 +66,11 @@ function extractTitle(filePath) {
           }
         }
 
-        // Step 3: Format filename for prompt/chatmode files if no heading found
+        // Step 3: Format filename for prompt/chatmode/instructions files if no heading found
         const basename = path.basename(
           filePath,
-          filePath.includes(".prompt.md") ? ".prompt.md" : ".chatmode.md"
+          filePath.includes(".prompt.md") ? ".prompt.md" : 
+          filePath.includes(".chatmode.md") ? ".chatmode.md" : ".instructions.md"
         );
         return basename
           .replace(/[-_]/g, " ")
@@ -433,7 +434,7 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
 
     // Replace the current chat modes section with the updated one
     const newChatmodesSection =
-      "## 🎭 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
+      "## 🧩 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
       chatmodesListContent +
       "\n> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.";
 

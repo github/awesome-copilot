@@ -23,24 +23,24 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 
 - [Angular Development Instructions](instructions/angular.instructions.md) - Instruction specific coding standards and best practices
 - [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Development specific coding standards and best practices
-- [Azure Functions Typescript.Instructions](instructions/azure-functions-typescript.instructions.md) - Typescript.Instruction specific coding standards and best practices
-- [Bicep Code Best Practices.Instructions](instructions/bicep-code-best-practices.instructions.md) - Practices.Instruction specific coding standards and best practices
-- [Blazor.Instructions](instructions/blazor.instructions.md) - Blazor.Instruction specific coding standards and best practices
-- [Cmake Vcpkg.Instructions](instructions/cmake-vcpkg.instructions.md) - Vcpkg.Instruction specific coding standards and best practices
+- [Azure Functions Typescript](instructions/azure-functions-typescript.instructions.md) - Typescript specific coding standards and best practices
+- [Bicep Code Best Practices](instructions/bicep-code-best-practices.instructions.md) - Practice specific coding standards and best practices
+- [Blazor](instructions/blazor.instructions.md) - Blazor specific coding standards and best practices
+- [Cmake Vcpkg](instructions/cmake-vcpkg.instructions.md) - Vcpkg specific coding standards and best practices
 - [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - Instruction specific coding standards and best practices
 - [C# Development](instructions/csharp.instructions.md) - Development specific coding standards and best practices
 - [.NET MAUI](instructions/dotnet-maui.instructions.md) - MAUI specific coding standards and best practices
-- [Genaiscript.Instructions](instructions/genaiscript.instructions.md) - Genaiscript.Instruction specific coding standards and best practices
-- [Generate Modern Terraform Code For Azure.Instructions](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Azure.Instruction specific coding standards and best practices
+- [Genaiscript](instructions/genaiscript.instructions.md) - Genaiscript specific coding standards and best practices
+- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Azure specific coding standards and best practices
 - [Guidance for Localization](instructions/localization.instructions.md) - Localization specific coding standards and best practices
-- [Markdown.Instructions](instructions/markdown.instructions.md) - Markdown.Instruction specific coding standards and best practices
+- [Markdown](instructions/markdown.instructions.md) - Markdown specific coding standards and best practices
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Instruction specific coding standards and best practices
 - [Python Coding Conventions](instructions/python.instructions.md) - Convention specific coding standards and best practices
 
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
 
-## 🎭 Custom Chat Modes
+## 🧩 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.
 
