@@ -43,8 +43,17 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
+      - name: Output diff to logs for non-write users
+        if: steps.check-diff.outputs.status == 'failure' && github.event.pull_request.head.repo.permissions.push != true
+        run: |
+          echo "::group::README.md diff (changes needed)"
+          echo "The following changes need to be made to README.md:"
+          echo ""
+          git diff README.md
+          echo "::endgroup::"
+
       - name: Comment on PR if README.md needs updating
-        if: steps.check-diff.outputs.status == 'failure'
+        if: steps.check-diff.outputs.status == 'failure' && github.event.pull_request.head.repo.permissions.push == true
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: readme-validation
