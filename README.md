@@ -74,6 +74,7 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 
 - [4.1 Beast Mode](chatmodes/4.1-Beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
 - [Database Administrator Chat Mode](chatmodes/PostgreSQL%20DBA.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
+- [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
 - [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
 
 
