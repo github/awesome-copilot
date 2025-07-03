@@ -36,6 +36,7 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
 - [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
+- [Secure Coding and OWASP Guidelines](instructions/security-and-owasp.instructions.md) - Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices.
 
 > 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
 
@@ -55,8 +56,8 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [Product Manager Assistant: Feature Identification and Specification](prompts/gen-specs-as-issues.prompt.md) - This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.
 - [Javascript Typescript Jest](prompts/javascript-typescript-jest.prompt.md) - Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns.
 - [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Create optimized multi-stage Dockerfiles for any language or framework
-- [My Issues](prompts/my-issues.prompt.md)
-- [My Pull Requests](prompts/my-pull-requests.prompt.md)
+- [My Issues](prompts/my-issues.prompt.md) - List my issues in the current repository
+- [My Pull Requests](prompts/my-pull-requests.prompt.md) - List my pull requests in the current repository
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
 
@@ -79,6 +80,16 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
 
+## 🛠️ Development Configuration
+
+This repository uses various configuration files to ensure consistent code style and avoid issues with line endings:
+
+- [`.editorconfig`](.editorconfig) - Defines coding styles across different editors and IDEs
+- [`.gitattributes`](.gitattributes) - Ensures consistent line endings in text files
+- [`.vscode/settings.json`](.vscode/settings.json) - VS Code-specific settings for this repository
+- [`.vscode/extensions.json`](.vscode/extensions.json) - Recommended VS Code extensions
+
+> 💡 **Note**: All markdown files in this repository use LF line endings (Unix-style) to avoid mixed line endings issues. The repository is configured to automatically handle line endings conversion.
 
 ## 📄 License
 
@@ -90,8 +101,8 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## ™️ Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.

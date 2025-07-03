@@ -1,0 +1,29 @@
+name: Check Line Endings
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-line-endings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check for CRLF line endings in markdown files
+        run: |
+          ! grep -l $'\r' $(find . -name "*.md")
+          if [ $? -eq 0 ]; then
+            echo "✅ No CRLF line endings found in markdown files"
+            exit 0
+          else
+            echo "❌ CRLF line endings found in markdown files"
+            echo "Files with CRLF line endings:"
+            grep -l $'\r' $(find . -name "*.md")
+            exit 1
+          fi

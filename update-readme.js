@@ -49,6 +49,16 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
 
+## 🛠️ Development Configuration
+
+This repository uses various configuration files to ensure consistent code style and avoid issues with line endings:
+
+- [\`.editorconfig\`](.editorconfig) - Defines coding styles across different editors and IDEs
+- [\`.gitattributes\`](.gitattributes) - Ensures consistent line endings in text files
+- [\`.vscode/settings.json\`](.vscode/settings.json) - VS Code-specific settings for this repository
+- [\`.vscode/extensions.json\`](.vscode/extensions.json) - Recommended VS Code extensions
+
+> 💡 **Note**: All markdown files in this repository use LF line endings (Unix-style) to avoid mixed line endings issues. The repository is configured to automatically handle line endings conversion.
 
 ## 📄 License
 
@@ -60,8 +70,8 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## ™️ Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.`,
@@ -353,78 +363,6 @@ function generateChatModesSection(chatmodesDir) {
   }
 
   return `${TEMPLATES.chatmodesSection}\n\n${chatmodesContent}\n${TEMPLATES.chatmodesUsage}`;
-
-  if (chatmodesSection) {
-    let chatmodesListContent = "\n\n";
-
-    // Always regenerate the entire list to ensure descriptions are included
-    for (const file of chatmodeFiles.sort()) {
-      const filePath = path.join(chatmodesDir, file);
-      const title = extractTitle(filePath);
-      const link = encodeURI(`chatmodes/${file}`);
-
-      // Check if there's a description in the frontmatter
-      const customDescription = extractDescription(filePath);
-
-      if (customDescription && customDescription !== "null") {
-        // Use the description from frontmatter
-        chatmodesListContent += `- [${title}](${link}) - ${customDescription}\n`;
-      } else {
-        // Just add a link without description
-        chatmodesListContent += `- [${title}](${link})\n`;
-      }
-    }
-
-    // Replace the current chat modes section with the updated one
-    const newChatmodesSection =
-      "## 🧩 Custom Chat Modes\n\nCustom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows." +
-      chatmodesListContent +
-      "\n> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.";
-
-    return currentReadme.replace(chatmodesSection[0], newChatmodesSection);
-  } else {
-    // Chat modes section doesn't exist yet but we have chat mode files
-    console.log(
-      "Creating new chat modes section with all available chat modes."
-    );
-
-    const chatmodesListContent = chatmodeFiles
-      .sort()
-      .map((file) => {
-        const filePath = path.join(chatmodesDir, file);
-        const title = extractTitle(filePath);
-        const link = `chatmodes/${file}`;
-        const customDescription = extractDescription(filePath);
-
-        if (customDescription) {
-          return `- [${title}](${link}) - ${customDescription}`;
-        } else {
-          return `- [${title}](${link})`;
-        }
-      })
-      .join("\n");
-
-    const newChatmodesSection =
-      "## 🧩 Custom Chat Modes\n\n" +
-      "Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.\n\n" +
-      chatmodesListContent +
-      "\n\n> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.\n";
-
-    // Insert before Additional Resources section
-    const additionalResourcesPos = currentReadme.indexOf(
-      "## 📚 Additional Resources"
-    );
-    if (additionalResourcesPos !== -1) {
-      return (
-        currentReadme.slice(0, additionalResourcesPos) +
-        newChatmodesSection +
-        "\n" +
-        currentReadme.slice(additionalResourcesPos)
-      );
-    }
-
-    return currentReadme;
-  }
 }
 
 /**

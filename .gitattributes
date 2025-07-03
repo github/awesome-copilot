@@ -1,0 +1,28 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto eol=lf
+
+# Explicitly declare text files to be normalized and converted to native line endings on checkout.
+*.md text eol=lf
+*.txt text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.ts text eol=lf
+*.sh text eol=lf
+
+# Windows-specific files that should retain CRLF line endings
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files that should not be modified
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.pdf binary
