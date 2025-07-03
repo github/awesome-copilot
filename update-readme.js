@@ -253,6 +253,15 @@ function extractDescription(filePath) {
 }
 
 /**
+ * Generate badges for installation links in VS Code and VS Code Insiders.
+ * @param {string} link - The relative link to the instructions or prompts file.
+ * @returns {string} - Markdown formatted badges for installation.
+ */
+function makeBadges(link) {
+  return `[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:chat-prompt/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link}) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode-insiders:chat-prompt/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link})`;
+}
+
+/**
  * Generate the instructions section with an alphabetical list of all instructions
  */
 function generateInstructionsSection(instructionsDir) {
@@ -277,11 +286,15 @@ function generateInstructionsSection(instructionsDir) {
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsContent += `- [${title}](${link}) - ${customDescription}\n`;
+      instructionsContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
+        link
+      )}\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices\n`;
+      instructionsContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices ${makeBadges(
+        link
+      )}\n`;
     }
   }
 
@@ -312,9 +325,11 @@ function generatePromptsSection(promptsDir) {
     const customDescription = extractDescription(filePath);
 
     if (customDescription && customDescription !== "null") {
-      promptsContent += `- [${title}](${link}) - ${customDescription}\n`;
+      promptsContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
+        link
+      )}\n`;
     } else {
-      promptsContent += `- [${title}](${link})\n`;
+      promptsContent += `- [${title}](${link}) ${makeBadges(link)}\n`;
     }
   }
 
@@ -356,9 +371,11 @@ function generateChatModesSection(chatmodesDir) {
     const customDescription = extractDescription(filePath);
 
     if (customDescription && customDescription !== "null") {
-      chatmodesContent += `- [${title}](${link}) - ${customDescription}\n`;
+      chatmodesContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
+        link
+      )}\n`;
     } else {
-      chatmodesContent += `- [${title}](${link})\n`;
+      chatmodesContent += `- [${title}](${link}) ${makeBadges(link)}\n`;
     }
   }
 
