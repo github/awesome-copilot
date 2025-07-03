@@ -1,0 +1,225 @@
+{
+  "generated": "2025-07-03T11:41:40.051Z",
+  "instructions": [
+    {
+      "filename": "angular.instructions.md",
+      "title": "Angular Development Instructions",
+      "description": "Angular-specific coding standards and best practices",
+      "link": "instructions/angular.instructions.md"
+    },
+    {
+      "filename": "aspnet-rest-apis.instructions.md",
+      "title": "ASP.NET REST API Development",
+      "description": "Guidelines for building REST APIs with ASP.NET",
+      "link": "instructions/aspnet-rest-apis.instructions.md"
+    },
+    {
+      "filename": "azure-functions-typescript.instructions.md",
+      "title": "Azure Functions Typescript",
+      "description": "TypeScript patterns for Azure Functions",
+      "link": "instructions/azure-functions-typescript.instructions.md"
+    },
+    {
+      "filename": "bicep-code-best-practices.instructions.md",
+      "title": "Bicep Code Best Practices",
+      "description": "Infrastructure as Code with Bicep",
+      "link": "instructions/bicep-code-best-practices.instructions.md"
+    },
+    {
+      "filename": "blazor.instructions.md",
+      "title": "Blazor",
+      "description": "Blazor component and application patterns",
+      "link": "instructions/blazor.instructions.md"
+    },
+    {
+      "filename": "cmake-vcpkg.instructions.md",
+      "title": "Cmake Vcpkg",
+      "description": "C++ project configuration and package management",
+      "link": "instructions/cmake-vcpkg.instructions.md"
+    },
+    {
+      "filename": "copilot-thought-logging.instructions.md",
+      "title": "Copilot Process tracking Instructions",
+      "description": "See process Copilot is following where you can edit this to reshape the interaction or save when follow up may be needed",
+      "link": "instructions/copilot-thought-logging.instructions.md"
+    },
+    {
+      "filename": "csharp.instructions.md",
+      "title": "C# Development",
+      "description": "Guidelines for building C# applications",
+      "link": "instructions/csharp.instructions.md"
+    },
+    {
+      "filename": "dotnet-maui.instructions.md",
+      "title": ".NET MAUI",
+      "description": ".NET MAUI component and application patterns",
+      "link": "instructions/dotnet-maui.instructions.md"
+    },
+    {
+      "filename": "genaiscript.instructions.md",
+      "title": "Genaiscript",
+      "description": "AI-powered script generation guidelines",
+      "link": "instructions/genaiscript.instructions.md"
+    },
+    {
+      "filename": "generate-modern-terraform-code-for-azure.instructions.md",
+      "title": "Generate Modern Terraform Code For Azure",
+      "description": "Guidelines for generating modern Terraform code for Azure",
+      "link": "instructions/generate-modern-terraform-code-for-azure.instructions.md"
+    },
+    {
+      "filename": "localization.instructions.md",
+      "title": "Guidance for Localization",
+      "description": "Guidelines for localizing markdown documents",
+      "link": "instructions/localization.instructions.md"
+    },
+    {
+      "filename": "markdown.instructions.md",
+      "title": "Markdown",
+      "description": "Documentation and content creation standards",
+      "link": "instructions/markdown.instructions.md"
+    },
+    {
+      "filename": "nextjs-tailwind.instructions.md",
+      "title": "Next.js + Tailwind Development Instructions",
+      "description": "Next.js + Tailwind development standards and instructions",
+      "link": "instructions/nextjs-tailwind.instructions.md"
+    },
+    {
+      "filename": "python.instructions.md",
+      "title": "Python Coding Conventions",
+      "description": "Python coding conventions and guidelines",
+      "link": "instructions/python.instructions.md"
+    },
+    {
+      "filename": "security-and-owasp.instructions.md",
+      "title": "Secure Coding and OWASP Guidelines",
+      "description": "Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices.",
+      "link": "instructions/security-and-owasp.instructions.md"
+    }
+  ],
+  "prompts": [
+    {
+      "filename": "aspnet-minimal-api-openapi.prompt.md",
+      "title": "ASP.NET Minimal API with OpenAPI",
+      "description": "Create ASP.NET Minimal API endpoints with proper OpenAPI documentation",
+      "link": "prompts/aspnet-minimal-api-openapi.prompt.md"
+    },
+    {
+      "filename": "az-cost-optimize.prompt.md",
+      "title": "Azure Cost Optimize",
+      "description": "Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.",
+      "link": "prompts/az-cost-optimize.prompt.md"
+    },
+    {
+      "filename": "comment-code-generate-a-tutorial.prompt.md",
+      "title": "Comment Code Generate A Tutorial",
+      "description": "Transform this Python script into a polished, beginner-friendly project by refactoring the code, adding clear instructional comments, and generating a complete markdown tutorial.",
+      "link": "prompts/comment-code-generate-a-tutorial.prompt.md"
+    },
+    {
+      "filename": "csharp-async.prompt.md",
+      "title": "C# Async Programming Best Practices",
+      "description": "Get best practices for C# async programming",
+      "link": "prompts/csharp-async.prompt.md"
+    },
+    {
+      "filename": "csharp-docs.prompt.md",
+      "title": "C# Documentation Best Practices",
+      "description": "Ensure that C# types are documented with XML comments and follow best practices for documentation.",
+      "link": "prompts/csharp-docs.prompt.md"
+    },
+    {
+      "filename": "csharp-mstest.prompt.md",
+      "title": "MSTest Best Practices",
+      "description": "Get best practices for MSTest unit testing, including data-driven tests",
+      "link": "prompts/csharp-mstest.prompt.md"
+    },
+    {
+      "filename": "csharp-nunit.prompt.md",
+      "title": "NUnit Best Practices",
+      "description": "Get best practices for NUnit unit testing, including data-driven tests",
+      "link": "prompts/csharp-nunit.prompt.md"
+    },
+    {
+      "filename": "csharp-xunit.prompt.md",
+      "title": "XUnit Best Practices",
+      "description": "Get best practices for XUnit unit testing, including data-driven tests",
+      "link": "prompts/csharp-xunit.prompt.md"
+    },
+    {
+      "filename": "ef-core.prompt.md",
+      "title": "Entity Framework Core Best Practices",
+      "description": "Get best practices for Entity Framework Core",
+      "link": "prompts/ef-core.prompt.md"
+    },
+    {
+      "filename": "gen-specs-as-issues.prompt.md",
+      "title": "Product Manager Assistant: Feature Identification and Specification",
+      "description": "This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.",
+      "link": "prompts/gen-specs-as-issues.prompt.md"
+    },
+    {
+      "filename": "javascript-typescript-jest.prompt.md",
+      "title": "Javascript Typescript Jest",
+      "description": "Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns.",
+      "link": "prompts/javascript-typescript-jest.prompt.md"
+    },
+    {
+      "filename": "multi-stage-dockerfile.prompt.md",
+      "title": "Multi Stage Dockerfile",
+      "description": "Create optimized multi-stage Dockerfiles for any language or framework",
+      "link": "prompts/multi-stage-dockerfile.prompt.md"
+    },
+    {
+      "filename": "my-issues.prompt.md",
+      "title": "My Issues",
+      "description": "List my issues in the current repository",
+      "link": "prompts/my-issues.prompt.md"
+    },
+    {
+      "filename": "my-pull-requests.prompt.md",
+      "title": "My Pull Requests",
+      "description": "List my pull requests in the current repository",
+      "link": "prompts/my-pull-requests.prompt.md"
+    }
+  ],
+  "chatmodes": [
+    {
+      "filename": "4.1-Beast.chatmode.md",
+      "title": "4.1 Beast Mode",
+      "description": "A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.",
+      "link": "chatmodes/4.1-Beast.chatmode.md"
+    },
+    {
+      "filename": "debug.chatmode.md",
+      "title": "Debug Mode Instructions",
+      "description": "Debug your application to find and fix a bug",
+      "link": "chatmodes/debug.chatmode.md"
+    },
+    {
+      "filename": "planner.chatmode.md",
+      "title": "Planning mode instructions",
+      "description": "Generate an implementation plan for new features or refactoring existing code.",
+      "link": "chatmodes/planner.chatmode.md"
+    },
+    {
+      "filename": "postgresql-dba.chatmode.md",
+      "title": "PostgreSQL Database Administrator",
+      "description": "Work with PostgreSQL databases using the PostgreSQL extension.",
+      "link": "chatmodes/postgresql-dba.chatmode.md"
+    },
+    {
+      "filename": "refine-issue.chatmode.md",
+      "title": "Refine Requirement or Issue Chat Mode",
+      "description": "Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs",
+      "link": "chatmodes/refine-issue.chatmode.md"
+    }
+  ],
+  "counts": {
+    "instructions": 16,
+    "prompts": 14,
+    "chatmodes": 5,
+    "total": 35
+  }
+}
