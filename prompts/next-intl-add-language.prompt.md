@@ -1,9 +1,10 @@
 ---
-mode: "agent"
-description: "Add new language to a NextJS with next-intl application"
+mode: 'agent'
+tools: ['changes','codebase', 'editFiles', 'findTestFiles', 'search', 'writeTest']
+description: 'Add new language to a Next.js + next-intl application'
 ---
 
-This is a guide to add a new language to a Next.js project using next-intl for internationalization, following steps from https://next-intl.dev/docs/getting-started/app-router/with-i18n-routing.
+This is a guide to add a new language to a Next.js project using next-intl for internationalization,
 
 - For i18n, the application uses next-intl.
 - All translations are in the directory `./messages`.
