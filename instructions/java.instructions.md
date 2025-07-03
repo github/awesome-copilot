@@ -37,16 +37,13 @@ applyTo: '**/*.java'
 
 | Rule ID | Description                                                 | Example / Notes                                                                                  |
 | ------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `S2259` | Null pointers should not be dereferenced                    | Avoid calling methods on objects that may be null. Use `Objects.requireNonNull()` or `Optional`. |
 | `S2095` | Resources should be closed                                  | Use try-with-resources when working with streams, files, sockets, etc.                           |
 | `S1698` | Objects should be compared with `.equals()` instead of `==` | Especially important for Strings and boxed primitives.                                           |
 | `S1905` | Redundant casts should be removed                           | Clean up unnecessary or unsafe casts.                                                            |
 | `S3518` | Conditions should not always evaluate to true or false      | Watch for infinite loops or if-conditions that never change.                                     |
 | `S108`  | Unreachable code should be removed                          | Code after `return`, `throw`, etc., must be cleaned up.                                          |
 
----
-
-### Code Smells
+## Code Smells
 
 | Rule ID | Description                                            | Example / Notes                                                               |
 | ------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
@@ -57,9 +54,7 @@ applyTo: '**/*.java'
 | `S1192` | String literals should not be duplicated               | Replace with constants or enums.                                              |
 | `S1854` | Unused assignments should be removed                   | Avoid dead variables—remove or refactor.                                      |
 | `S109`  | Magic numbers should be replaced with constants        | Improves readability and maintainability.                                     |
-| `S100`  | Naming conventions should be consistent                | Use `lowerCamelCase`, `UpperCamelCase`, or `UPPER_SNAKE_CASE` as appropriate. |
 | `S1188` | Catch blocks should not be empty                       | Always log or handle exceptions meaningfully.                                 |
-| `S2629` | Logging statements should not use string concatenation | Use parameterized logging (e.g., `logger.info("Result: {}", result)`).        |
 
 ## Build and Verification
 
