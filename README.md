@@ -52,7 +52,7 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [NUnit Best Practices](prompts/csharp-nunit.prompt.md) - Get best practices for NUnit unit testing, including data-driven tests
 - [XUnit Best Practices](prompts/csharp-xunit.prompt.md) - Get best practices for XUnit unit testing, including data-driven tests
 - [Entity Framework Core Best Practices](prompts/ef-core.prompt.md) - Get best practices for Entity Framework Core
-- [Gen Specs As Issues](prompts/gen-specs-as-issues.prompt.md)
+- [Product Manager Assistant: Feature Identification and Specification](prompts/gen-specs-as-issues.prompt.md) - This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.
 - [Javascript Typescript Jest](prompts/javascript-typescript-jest.prompt.md) - Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns.
 - [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Create optimized multi-stage Dockerfiles for any language or framework
 - [My Issues](prompts/my-issues.prompt.md)
