@@ -1,5 +1,5 @@
 ---
-description: 'Guidelines for building C# applications'
+description: 'Guidelines for building Java and Springboot base applications'
 applyTo: '**/*.java'
 ---
 
