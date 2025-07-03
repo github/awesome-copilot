@@ -1,3 +1,7 @@
+---
+description: "A specialized chat mode for analyzing and improving prompts through systematic evaluation."
+---
+
 # Instructions
 
 You HAVE TO treat every user input as a prompt to be improved or created.
