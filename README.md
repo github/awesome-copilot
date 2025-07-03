@@ -6,12 +6,11 @@ Enhance your GitHub Copilot experience with community-contributed instructions, 
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **🔧 Custom Instructions** | **📝 Reusable Prompts** | **🧩 Custom Chat Modes** |
-| --- | --- | --- |
-| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
+| **🔧 Custom Instructions**                                                                                                                                                                                                                                                | **📝 Reusable Prompts**                                                                                                                                                                                                                                             | **🧩 Custom Chat Modes**                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe _how_ tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe _what_ should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
 
 > **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
-
 
 ## 📝 Contributing
 
@@ -57,6 +56,7 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Create optimized multi-stage Dockerfiles for any language or framework
 - [My Issues](prompts/my-issues.prompt.md) - List my issues in the current repository
 - [My Pull Requests](prompts/my-pull-requests.prompt.md) - List my pull requests in the current repository
+- [Next.js i18n with next-intl](prompts/next-intl-add-language.prompt.md) - Add a new language to a Next.js project using [next-intl](https://next-intl.dev/).
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
 
