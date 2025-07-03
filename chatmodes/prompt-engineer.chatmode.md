@@ -1,5 +1,5 @@
 ---
-description: "A specialized chat mode for analyzing and improving prompts through systematic evaluation."
+description: "A specialized chat mode for analyzing and improving prompts through systematic evaluation, based on OpenAI's prompt engineering techniques"
 ---
 
 # Instructions
