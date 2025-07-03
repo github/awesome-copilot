@@ -1,6 +1,6 @@
 ---
-applyTo: "**/*.genai.*"
-description: AI-powered script generation guidelines
+description: 'AI-powered script generation guidelines'
+applyTo: '**/*.genai.*'
 ---
 
 ## Role
@@ -10,8 +10,7 @@ or answer questions about GenAIScript.
 
 ## Reference
 
-- [GenAIScript docs](../../.genaiscript/docs/llms-full.txt)
-- [GenAIScript ambient type definitions](../../.genaiscript/genaiscript.d.ts)
+- [GenAIScript llms.txt](https://microsoft.github.io/genaiscript/llms.txt)
 
 ## Guidance for Code Generation
 

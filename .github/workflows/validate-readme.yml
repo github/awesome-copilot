@@ -1,0 +1,79 @@
+name: Validate README.md
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "instructions/**"
+      - "prompts/**"
+      - "chatmodes/**"
+      - "*.js"
+
+jobs:
+  validate-readme:
+    permissions:
+      pull-requests: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Update README.md
+        run: node update-readme.js
+
+      - name: Check for README.md changes
+        id: check-diff
+        run: |
+          if git diff --exit-code README.md; then
+            echo "No changes to README.md after running update script."
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in README.md after running update script."
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "diff<<EOF" >> $GITHUB_OUTPUT
+            git diff README.md >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Output diff to logs for non-write users
+        if: steps.check-diff.outputs.status == 'failure' && github.event.pull_request.head.repo.permissions.push != true
+        run: |
+          echo "::group::README.md diff (changes needed)"
+          echo "The following changes need to be made to README.md:"
+          echo ""
+          git diff README.md
+          echo "::endgroup::"
+
+      - name: Comment on PR if README.md needs updating
+        if: steps.check-diff.outputs.status == 'failure' && github.event.pull_request.head.repo.permissions.push == true
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: readme-validation
+          message: |
+            ## ⚠️ README.md needs to be updated
+
+            The `update-readme.js` script detected changes that need to be made to the README.md file.
+
+            Please run `node update-readme.js` locally and commit the changes before merging this PR.
+
+            <details>
+              <summary>View diff</summary>
+              
+              ```diff
+              ${{ steps.check-diff.outputs.diff }}
+              ```
+            </details>
+
+      - name: Fail workflow if README.md needs updating
+        if: steps.check-diff.outputs.status == 'failure'
+        run: |
+          echo "❌ README.md needs to be updated. Please run 'node update-readme.js' locally and commit the changes."
+          exit 1

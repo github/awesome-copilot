@@ -1,6 +1,6 @@
 ---
-description: Blazor component and application patterns
-appliesTo: "**/*.razor, **/*.cs"
+description: 'Blazor component and application patterns'
+applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 ---
 
 ## Blazor Code Style and Structure
@@ -23,7 +23,7 @@ appliesTo: "**/*.razor, **/*.cs"
 - Use data binding effectively with @bind.
 - Leverage Dependency Injection for services in Blazor.
 - Structure Blazor components and services following Separation of Concerns.
-- Use C# 10+ features like record types, pattern matching, and global usings.
+- Always use the latest version C#, currently C# 13 features like record types, pattern matching, and global usings.
 
 ## Error Handling and Validation
 
