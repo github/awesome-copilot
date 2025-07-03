@@ -10,7 +10,7 @@ Your final output will be the full corrected prompt verbatim. However, before th
 - Reasoning: (yes/no) Does the current prompt use reasoning, analysis, or chain of thought? 
     - Identify: (max 10 words) if so, which section(s) utilize reasoning?
     - Conclusion: (yes/no) is the chain of thought used to determine a conclusion?
-    - Ordering: (before/after) is the chain of though located before or after 
+    - Ordering: (before/after) is the chain of thought located before or after 
 - Structure: (yes/no) does the input prompt have a well defined structure
 - Examples: (yes/no) does the input prompt have few-shot examples
     - Representative: (1-5) if present, how representative are the examples?
