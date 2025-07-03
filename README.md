@@ -45,7 +45,7 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 
 - [ASP.NET Minimal API with OpenAPI](prompts/aspnet-minimal-api-openapi.prompt.md) - Create ASP.NET Minimal API endpoints with proper OpenAPI documentation
 - [Azure Cost Optimize](prompts/az-cost-optimize.prompt.md) - Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.
-- [Comment Code Generate A Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md)
+- [Comment Code Generate A Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md) - Transform this Python script into a polished, beginner-friendly project by refactoring the code, adding clear instructional comments, and generating a complete markdown tutorial.
 - [C# Async Programming Best Practices](prompts/csharp-async.prompt.md) - Get best practices for C# async programming
 - [C# Documentation Best Practices](prompts/csharp-docs.prompt.md) - Ensure that C# types are documented with XML comments and follow best practices for documentation.
 - [MSTest Best Practices](prompts/csharp-mstest.prompt.md) - Get best practices for MSTest unit testing, including data-driven tests
