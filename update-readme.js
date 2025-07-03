@@ -253,35 +253,104 @@ function extractDescription(filePath) {
 }
 
 /**
- * Generate the instructions section with an alphabetical list of all instructions
+ * Collect metadata for all files in a directory
  */
-function generateInstructionsSection(instructionsDir) {
-  // Get all instruction files
-  const instructionFiles = fs
-    .readdirSync(instructionsDir)
-    .filter((file) => file.endsWith(".md"))
+function collectFileMetadata(dirPath, fileExtension, urlPrefix) {
+  if (!fs.existsSync(dirPath)) {
+    return [];
+  }
+
+  const files = fs
+    .readdirSync(dirPath)
+    .filter((file) => file.endsWith(fileExtension))
     .sort();
 
-  console.log(`Found ${instructionFiles.length} instruction files`);
+  return files.map((file) => {
+    const filePath = path.join(dirPath, file);
+    const title = extractTitle(filePath);
+    const description = extractDescription(filePath);
+    const link = encodeURI(`${urlPrefix}/${file}`);
+
+    return {
+      filename: file,
+      title,
+      description,
+      link
+    };
+  });
+}
+
+/**
+ * Helper function to deduce file path from filename and type
+ */
+function getFilePath(filename, type) {
+  const typeToDir = {
+    'instructions': 'instructions',
+    'prompts': 'prompts',
+    'chatmodes': 'chatmodes'
+  };
+
+  const dirName = typeToDir[type];
+  return dirName ? path.join(__dirname, dirName, filename) : null;
+}
+
+/**
+ * Generate fallback description for instructions
+ */
+function generateFallbackDescription(title, type) {
+  if (type === 'instructions') {
+    const topic = title.split(" ").pop().replace(/s$/, "");
+    return `${topic} specific coding standards and best practices`;
+  }
+  return null;
+}
+
+/**
+ * Create comprehensive index of all copilot customizations
+ */
+function createIndex() {
+  const instructionsDir = path.join(__dirname, "instructions");
+  const promptsDir = path.join(__dirname, "prompts");
+  const chatmodesDir = path.join(__dirname, "chatmodes");
+
+  const instructions = collectFileMetadata(instructionsDir, ".md", "instructions");
+  const prompts = collectFileMetadata(promptsDir, ".prompt.md", "prompts");
+  const chatmodes = collectFileMetadata(chatmodesDir, ".chatmode.md", "chatmodes");
+
+  console.log(`Found ${instructions.length} instruction files`);
+  console.log(`Found ${prompts.length} prompt files`);
+  console.log(`Found ${chatmodes.length} chat mode files`);
+
+  return {
+    generated: new Date().toISOString(),
+    instructions,
+    prompts,
+    chatmodes,
+    counts: {
+      instructions: instructions.length,
+      prompts: prompts.length,
+      chatmodes: chatmodes.length,
+      total: instructions.length + prompts.length + chatmodes.length
+    }
+  };
+}
+
+/**
+ * Generate the instructions section from index data
+ */
+function generateInstructionsSection(indexData) {
+  const { instructions } = indexData;
 
   let instructionsContent = "";
 
-  // Generate list items for each instruction file
-  for (const file of instructionFiles) {
-    const filePath = path.join(instructionsDir, file);
-    const title = extractTitle(filePath);
-    const link = encodeURI(`instructions/${file}`);
+  for (const item of instructions) {
+    const { title, link, description } = item;
 
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    if (customDescription && customDescription !== "null") {
-      // Use the description from frontmatter
-      instructionsContent += `- [${title}](${link}) - ${customDescription}\n`;
+    if (description && description !== "null") {
+      instructionsContent += `- [${title}](${link}) - ${description}\n`;
     } else {
-      // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
-      const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices\n`;
+      const fallbackDesc = generateFallbackDescription(title, 'instructions');
+      instructionsContent += `- [${title}](${link}) - ${fallbackDesc}\n`;
     }
   }
 
@@ -289,30 +358,18 @@ function generateInstructionsSection(instructionsDir) {
 }
 
 /**
- * Generate the prompts section with an alphabetical list of all prompts
+ * Generate the prompts section from index data
  */
-function generatePromptsSection(promptsDir) {
-  // Get all prompt files
-  const promptFiles = fs
-    .readdirSync(promptsDir)
-    .filter((file) => file.endsWith(".prompt.md"))
-    .sort();
-
-  console.log(`Found ${promptFiles.length} prompt files`);
+function generatePromptsSection(indexData) {
+  const { prompts } = indexData;
 
   let promptsContent = "";
 
-  // Generate list items for each prompt file
-  for (const file of promptFiles) {
-    const filePath = path.join(promptsDir, file);
-    const title = extractTitle(filePath);
-    const link = encodeURI(`prompts/${file}`);
+  for (const item of prompts) {
+    const { title, link, description } = item;
 
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    if (customDescription && customDescription !== "null") {
-      promptsContent += `- [${title}](${link}) - ${customDescription}\n`;
+    if (description && description !== "null") {
+      promptsContent += `- [${title}](${link}) - ${description}\n`;
     } else {
       promptsContent += `- [${title}](${link})\n`;
     }
@@ -322,41 +379,23 @@ function generatePromptsSection(promptsDir) {
 }
 
 /**
- * Generate the chat modes section with an alphabetical list of all chat modes
+ * Generate the chat modes section from index data
  */
-function generateChatModesSection(chatmodesDir) {
-  // Check if chatmodes directory exists
-  if (!fs.existsSync(chatmodesDir)) {
-    console.log("Chat modes directory does not exist");
-    return "";
-  }
-
-  // Get all chat mode files
-  const chatmodeFiles = fs
-    .readdirSync(chatmodesDir)
-    .filter((file) => file.endsWith(".chatmode.md"))
-    .sort();
-
-  console.log(`Found ${chatmodeFiles.length} chat mode files`);
+function generateChatModesSection(indexData) {
+  const { chatmodes } = indexData;
 
   // If no chat modes, return empty string
-  if (chatmodeFiles.length === 0) {
+  if (chatmodes.length === 0) {
     return "";
   }
 
   let chatmodesContent = "";
 
-  // Generate list items for each chat mode file
-  for (const file of chatmodeFiles) {
-    const filePath = path.join(chatmodesDir, file);
-    const title = extractTitle(filePath);
-    const link = encodeURI(`chatmodes/${file}`);
+  for (const item of chatmodes) {
+    const { title, link, description } = item;
 
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    if (customDescription && customDescription !== "null") {
-      chatmodesContent += `- [${title}](${link}) - ${customDescription}\n`;
+    if (description && description !== "null") {
+      chatmodesContent += `- [${title}](${link}) - ${description}\n`;
     } else {
       chatmodesContent += `- [${title}](${link})\n`;
     }
@@ -366,17 +405,13 @@ function generateChatModesSection(chatmodesDir) {
 }
 
 /**
- * Generate the complete README.md content from scratch
+ * Generate the complete README.md content from index data
  */
-function generateReadme() {
-  const instructionsDir = path.join(__dirname, "instructions");
-  const promptsDir = path.join(__dirname, "prompts");
-  const chatmodesDir = path.join(__dirname, "chatmodes");
-
+function generateReadme(indexData) {
   // Generate each section
-  const instructionsSection = generateInstructionsSection(instructionsDir);
-  const promptsSection = generatePromptsSection(promptsDir);
-  const chatmodesSection = generateChatModesSection(chatmodesDir);
+  const instructionsSection = generateInstructionsSection(indexData);
+  const promptsSection = generatePromptsSection(indexData);
+  const chatmodesSection = generateChatModesSection(indexData);
 
   // Build the complete README content with template sections
   let readmeContent = [TEMPLATES.header, instructionsSection, promptsSection];
@@ -394,10 +429,19 @@ function generateReadme() {
 
 // Main execution
 try {
-  console.log("Generating README.md from scratch...");
+  console.log("Creating index.json and generating README.md...");
 
+  // Step 1: Create the comprehensive index
+  const indexData = createIndex();
+
+  // Step 2: Write index.json
+  const indexPath = path.join(__dirname, "index.json");
+  fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2));
+  console.log("index.json created successfully!");
+
+  // Step 3: Generate README from index data
   const readmePath = path.join(__dirname, "README.md");
-  const newReadmeContent = generateReadme();
+  const newReadmeContent = generateReadme(indexData);
 
   // Check if the README file already exists
   if (fs.existsSync(readmePath)) {
@@ -416,6 +460,6 @@ try {
     console.log("README.md created successfully!");
   }
 } catch (error) {
-  console.error(`Error generating README.md: ${error.message}`);
+  console.error(`Error generating files: ${error.message}`);
   process.exit(1);
 }
