@@ -3,6 +3,70 @@
 const fs = require("fs");
 const path = require("path");
 
+// Template sections for the README
+const TEMPLATES = {
+  header: `# 🤖 Awesome GitHub Copilot Customizations
+
+Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and configurations. Get consistent AI assistance that follows your team's coding standards and project requirements.
+
+## 🎯 GitHub Copilot Customization Features
+
+GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
+
+| **🔧 Custom Instructions** | **📝 Reusable Prompts** | **🧩 Custom Chat Modes** |
+| --- | --- | --- |
+| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
+
+> **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
+
+
+## 📝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.`,
+
+  instructionsSection: `## 📋 Custom Instructions
+
+Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:`,
+
+  instructionsUsage: `> 💡 **Usage**: Copy these instructions to your \`.github/copilot-instructions.md\` file or create task-specific \`.github/.instructions.md\` files in your workspace's \`.github/instructions\` folder.`,
+
+  promptsSection: `## 🎯 Reusable Prompts
+
+Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.`,
+
+  promptsUsage: `> 💡 **Usage**: Use \`/prompt-name\` in VS Code chat, run \`Chat: Run Prompt\` command, or hit the run button while you have a prompt open.`,
+
+  chatmodesSection: `## 🧩 Custom Chat Modes
+
+Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.`,
+
+  chatmodesUsage: `> 💡 **Usage**: Create new chat modes using the command \`Chat: Configure Chat Modes...\`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.`,
+
+  footer: `## 📚 Additional Resources
+
+- [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
+- [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
+- [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
+- [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Code of Conduct
+
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
+## ™️ Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
+trademarks or logos is subject to and must follow 
+[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
+Any use of third-party trademarks or logos are subject to those third-party's policies.`,
+};
+
 // Add error handling utility
 function safeFileOperation(operation, filePath, defaultValue = null) {
   try {
@@ -35,11 +99,13 @@ function extractTitle(filePath) {
 
         if (inFrontmatter && !frontmatterEnded) {
           // Look for title field in frontmatter
-          if (line.includes('title:')) {
+          if (line.includes("title:")) {
             // Extract everything after 'title:'
-            const afterTitle = line.substring(line.indexOf('title:') + 6).trim();
+            const afterTitle = line
+              .substring(line.indexOf("title:") + 6)
+              .trim();
             // Remove quotes if present
-            const cleanTitle = afterTitle.replace(/^['"]|['"]$/g, '');
+            const cleanTitle = afterTitle.replace(/^['"]|['"]$/g, "");
             return cleanTitle;
           }
         }
@@ -50,7 +116,11 @@ function extractTitle(filePath) {
       frontmatterEnded = false;
 
       // Step 2: For prompt/chatmode/instructions files, look for heading after frontmatter
-      if (filePath.includes(".prompt.md") || filePath.includes(".chatmode.md") || filePath.includes(".instructions.md")) {
+      if (
+        filePath.includes(".prompt.md") ||
+        filePath.includes(".chatmode.md") ||
+        filePath.includes(".instructions.md")
+      ) {
         for (const line of lines) {
           if (line.trim() === "---") {
             if (!inFrontmatter) {
@@ -69,8 +139,11 @@ function extractTitle(filePath) {
         // Step 3: Format filename for prompt/chatmode/instructions files if no heading found
         const basename = path.basename(
           filePath,
-          filePath.includes(".prompt.md") ? ".prompt.md" : 
-          filePath.includes(".chatmode.md") ? ".chatmode.md" : ".instructions.md"
+          filePath.includes(".prompt.md")
+            ? ".prompt.md"
+            : filePath.includes(".chatmode.md")
+            ? ".chatmode.md"
+            : ".instructions.md"
         );
         return basename
           .replace(/[-_]/g, " ")
@@ -91,7 +164,8 @@ function extractTitle(filePath) {
         .replace(/\b\w/g, (l) => l.toUpperCase());
     },
     filePath,
-    path.basename(filePath, path.extname(filePath))
+    path
+      .basename(filePath, path.extname(filePath))
       .replace(/[-_]/g, " ")
       .replace(/\b\w/g, (l) => l.toUpperCase())
   );
@@ -168,44 +242,22 @@ function extractDescription(filePath) {
   );
 }
 
-function updateInstructionsSection(
-  currentReadme,
-  instructionFiles,
-  instructionsDir
-) {
-  // Look for the instructions section in the README
-  const instructionsSectionRegex = /## 📋 Custom Instructions[\s\S]*?(?=\n## |\n\n## |$)/;
-  const instructionsSection = currentReadme.match(instructionsSectionRegex);
+/**
+ * Generate the instructions section with an alphabetical list of all instructions
+ */
+function generateInstructionsSection(instructionsDir) {
+  // Get all instruction files
+  const instructionFiles = fs
+    .readdirSync(instructionsDir)
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
-  if (!instructionsSection && instructionFiles.length === 0) {
-    console.log("No instructions section found in README and no instruction files to add.");
-    return currentReadme;
-  }
+  console.log(`Found ${instructionFiles.length} instruction files`);
 
-  // Extract existing instruction links from README (for reporting purposes)
-  const existingInstructionLinks = [];
-  const instructionLinkRegex = /\[.*?\]\(instructions\/(.+?)\)/g;
-  let match;
+  let instructionsContent = "";
 
-  while ((match = instructionLinkRegex.exec(currentReadme)) !== null) {
-    existingInstructionLinks.push(match[1]);
-  }
-
-  // Find new instructions that aren't already in the README
-  const newInstructionFiles = instructionFiles.filter(
-    (file) => !existingInstructionLinks.includes(file)
-  );
-
-  if (newInstructionFiles.length === 0) {
-    console.log("No new instructions to add.");
-  } else {
-    console.log(`Found ${newInstructionFiles.length} new instructions to add.`);
-  }
-
-  let instructionsListContent = "\n\n";
-
-  // Always regenerate the entire list to ensure descriptions are included
-  for (const file of instructionFiles.sort()) {
+  // Generate list items for each instruction file
+  for (const file of instructionFiles) {
     const filePath = path.join(instructionsDir, file);
     const title = extractTitle(filePath);
     const link = encodeURI(`instructions/${file}`);
@@ -215,157 +267,92 @@ function updateInstructionsSection(
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsListContent += `- [${title}](${link}) - ${customDescription}\n`;
+      instructionsContent += `- [${title}](${link}) - ${customDescription}\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsListContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices\n`;
+      instructionsContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices\n`;
     }
   }
 
-  // Replace the current instructions section with the updated one
-  const newInstructionsSection =
-    "## 📋 Custom Instructions\n\nTeam and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:" +
-    instructionsListContent +
-    "\n> 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.";
-
-  if (instructionsSection) {
-    return currentReadme.replace(instructionsSection[0], newInstructionsSection);
-  } else {
-    // Instructions section doesn't exist, insert it before Prompts section
-    const promptsPos = currentReadme.indexOf("## 🎯 Reusable Prompts");
-    if (promptsPos !== -1) {
-      return (
-        currentReadme.slice(0, promptsPos) +
-        newInstructionsSection +
-        "\n\n" +
-        currentReadme.slice(promptsPos)
-      );
-    } else {
-      // Insert before Additional Resources section as fallback
-      const additionalResourcesPos = currentReadme.indexOf("## 📚 Additional Resources");
-      if (additionalResourcesPos !== -1) {
-        return (
-          currentReadme.slice(0, additionalResourcesPos) +
-          newInstructionsSection +
-          "\n\n" +
-          currentReadme.slice(additionalResourcesPos)
-        );
-      }
-    }
-    return currentReadme;
-  }
+  return `${TEMPLATES.instructionsSection}\n\n${instructionsContent}\n${TEMPLATES.instructionsUsage}`;
 }
 
-function updatePromptsSection(currentReadme, promptFiles, promptsDir) {
-  // Look for the prompts section in the README
-  const promptsSectionRegex = /## 🎯 Reusable Prompts[\s\S]*?(?=\n## |\n\n## |$)/;
-  const promptsSection = currentReadme.match(promptsSectionRegex);
+/**
+ * Generate the prompts section with an alphabetical list of all prompts
+ */
+function generatePromptsSection(promptsDir) {
+  // Get all prompt files
+  const promptFiles = fs
+    .readdirSync(promptsDir)
+    .filter((file) => file.endsWith(".prompt.md"))
+    .sort();
 
-  if (!promptsSection && promptFiles.length === 0) {
-    console.log("No prompts section found in README and no prompt files to add.");
-    return currentReadme;
-  }
+  console.log(`Found ${promptFiles.length} prompt files`);
 
-  // Extract existing prompt links from README (for reporting purposes)
-  const existingPromptLinks = [];
-  const promptLinkRegex = /\[.*?\]\(prompts\/(.+?)\)/g;
-  let match;
+  let promptsContent = "";
 
-  while ((match = promptLinkRegex.exec(currentReadme)) !== null) {
-    existingPromptLinks.push(match[1]);
-  }
-
-  // Find new prompts that aren't already in the README
-  const newPromptFiles = promptFiles.filter(
-    (file) => !existingPromptLinks.includes(file)
-  );
-
-  if (newPromptFiles.length === 0) {
-    console.log("No new prompts to add.");
-  } else {
-    console.log(`Found ${newPromptFiles.length} new prompts to add.`);
-  }
-
-  let promptsListContent = "\n\n";
-
-  // Always regenerate the entire list to ensure descriptions are included
-  for (const file of promptFiles.sort()) {
+  // Generate list items for each prompt file
+  for (const file of promptFiles) {
     const filePath = path.join(promptsDir, file);
     const title = extractTitle(filePath);
-    const description = extractDescription(filePath);
     const link = encodeURI(`prompts/${file}`);
 
-    if (description && description !== "null") {
-      promptsListContent += `- [${title}](${link}) - ${description}\n`;
+    // Check if there's a description in the frontmatter
+    const customDescription = extractDescription(filePath);
+
+    if (customDescription && customDescription !== "null") {
+      promptsContent += `- [${title}](${link}) - ${customDescription}\n`;
     } else {
-      promptsListContent += `- [${title}](${link})\n`;
+      promptsContent += `- [${title}](${link})\n`;
     }
   }
 
-  // Replace the current prompts section with the updated one
-  const newPromptsSection =
-    "## 🎯 Reusable Prompts\n\nReady-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools." +
-    promptsListContent +
-    "\n> 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.";
-
-  if (promptsSection) {
-    return currentReadme.replace(promptsSection[0], newPromptsSection);
-  } else {
-    // Prompts section doesn't exist, insert it before Chat Modes section
-    const chatModesPos = currentReadme.indexOf("## 🧩 Custom Chat Modes");
-    if (chatModesPos !== -1) {
-      return (
-        currentReadme.slice(0, chatModesPos) +
-        newPromptsSection +
-        "\n\n" +
-        currentReadme.slice(chatModesPos)
-      );
-    } else {
-      // Insert before Additional Resources section as fallback
-      const additionalResourcesPos = currentReadme.indexOf("## 📚 Additional Resources");
-      if (additionalResourcesPos !== -1) {
-        return (
-          currentReadme.slice(0, additionalResourcesPos) +
-          newPromptsSection +
-          "\n\n" +
-          currentReadme.slice(additionalResourcesPos)
-        );
-      }
-    }
-    return currentReadme;
-  }
+  return `${TEMPLATES.promptsSection}\n\n${promptsContent}\n${TEMPLATES.promptsUsage}`;
 }
 
-function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
-  // No chat mode files, nothing to do
+/**
+ * Generate the chat modes section with an alphabetical list of all chat modes
+ */
+function generateChatModesSection(chatmodesDir) {
+  // Check if chatmodes directory exists
+  if (!fs.existsSync(chatmodesDir)) {
+    console.log("Chat modes directory does not exist");
+    return "";
+  }
+
+  // Get all chat mode files
+  const chatmodeFiles = fs
+    .readdirSync(chatmodesDir)
+    .filter((file) => file.endsWith(".chatmode.md"))
+    .sort();
+
+  console.log(`Found ${chatmodeFiles.length} chat mode files`);
+
+  // If no chat modes, return empty string
   if (chatmodeFiles.length === 0) {
-    return currentReadme;
+    return "";
   }
 
-  // Extract existing chat mode links from README (for reporting purposes)
-  const existingChatModeLinks = [];
-  const chatModeLinkRegex = /\[.*?\]\(chatmodes\/(.+?)\)/g;
-  let match;
+  let chatmodesContent = "";
 
-  while ((match = chatModeLinkRegex.exec(currentReadme)) !== null) {
-    existingChatModeLinks.push(match[1]);
+  // Generate list items for each chat mode file
+  for (const file of chatmodeFiles) {
+    const filePath = path.join(chatmodesDir, file);
+    const title = extractTitle(filePath);
+    const link = encodeURI(`chatmodes/${file}`);
+
+    // Check if there's a description in the frontmatter
+    const customDescription = extractDescription(filePath);
+
+    if (customDescription && customDescription !== "null") {
+      chatmodesContent += `- [${title}](${link}) - ${customDescription}\n`;
+    } else {
+      chatmodesContent += `- [${title}](${link})\n`;
+    }
   }
 
-  // Find new chat modes that aren't already in the README
-  const newChatModeFiles = chatmodeFiles.filter(
-    (file) => !existingChatModeLinks.includes(file)
-  );
-
-  if (newChatModeFiles.length === 0) {
-    console.log("No new chat modes to add.");
-  } else {
-    console.log(`Found ${newChatModeFiles.length} new chat modes to add.`);
-  }
-
-  // Look for ANY existing chat modes section (with any emoji)
-  const chatmodesSectionRegex = /## [🧩🎭].*Custom Chat Modes[\s\S]*?(?=\n## |\n\n## |$)/;
-  const chatmodesSection = currentReadme.match(chatmodesSectionRegex);
+  return `${TEMPLATES.chatmodesSection}\n\n${chatmodesContent}\n${TEMPLATES.chatmodesUsage}`;
 
   if (chatmodesSection) {
     let chatmodesListContent = "\n\n";
@@ -440,79 +427,57 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
   }
 }
 
+/**
+ * Generate the complete README.md content from scratch
+ */
 function generateReadme() {
   const instructionsDir = path.join(__dirname, "instructions");
   const promptsDir = path.join(__dirname, "prompts");
   const chatmodesDir = path.join(__dirname, "chatmodes");
-  const readmePath = path.join(__dirname, "README.md");
 
-  // Check if README file exists
-  if (!fs.existsSync(readmePath)) {
-    console.error(
-      "README.md not found! Please create a base README.md file first."
-    );
-    process.exit(1);
+  // Generate each section
+  const instructionsSection = generateInstructionsSection(instructionsDir);
+  const promptsSection = generatePromptsSection(promptsDir);
+  const chatmodesSection = generateChatModesSection(chatmodesDir);
+
+  // Build the complete README content with template sections
+  let readmeContent = [TEMPLATES.header, instructionsSection, promptsSection];
+
+  // Only include chat modes section if we have any chat modes
+  if (chatmodesSection) {
+    readmeContent.push(chatmodesSection);
   }
 
-  // Read the current README content
-  let currentReadme = fs.readFileSync(readmePath, "utf8");
+  // Add footer
+  readmeContent.push(TEMPLATES.footer);
 
-  // Get all instruction files
-  const instructionFiles = fs
-    .readdirSync(instructionsDir)
-    .filter((file) => file.endsWith(".md"))
-    .sort();
-
-  // Get all prompt files - we'll use this to find new prompts
-  const promptFiles = fs
-    .readdirSync(promptsDir)
-    .filter((file) => file.endsWith(".prompt.md"))
-    .sort();
-
-  // Get all chat mode files - we'll use this to update the chat modes section
-  const chatmodeFiles = fs.existsSync(chatmodesDir)
-    ? fs
-        .readdirSync(chatmodesDir)
-        .filter((file) => file.endsWith(".chatmode.md"))
-        .sort()
-    : [];
-
-  // Update instructions section
-  currentReadme = updateInstructionsSection(
-    currentReadme,
-    instructionFiles,
-    instructionsDir
-  );
-
-  // Update prompts section
-  currentReadme = updatePromptsSection(currentReadme, promptFiles, promptsDir);
-
-  // Update chat modes section
-  currentReadme = updateChatModesSection(
-    currentReadme,
-    chatmodeFiles,
-    chatmodesDir
-  );
-
-  return currentReadme;
+  return readmeContent.join("\n\n");
 }
 
-// Generate and write the README
-const readmePath = path.join(__dirname, "README.md");
-const originalReadme = fs.readFileSync(readmePath, "utf8");
-const updatedReadme = generateReadme();
+// Main execution
+try {
+  console.log("Generating README.md from scratch...");
 
-// Only write file if we have content to write
-if (updatedReadme) {
-  // Check if there are changes
-  const hasChanges = originalReadme !== updatedReadme;
-  
-  if (hasChanges) {
-    fs.writeFileSync(readmePath, updatedReadme);
-    console.log("README.md updated successfully!");
-    console.log("Changes detected in README.md after running update script.");
+  const readmePath = path.join(__dirname, "README.md");
+  const newReadmeContent = generateReadme();
+
+  // Check if the README file already exists
+  if (fs.existsSync(readmePath)) {
+    const originalContent = fs.readFileSync(readmePath, "utf8");
+    const hasChanges = originalContent !== newReadmeContent;
+
+    if (hasChanges) {
+      fs.writeFileSync(readmePath, newReadmeContent);
+      console.log("README.md updated successfully!");
+    } else {
+      console.log("README.md is already up to date. No changes needed.");
+    }
   } else {
-    console.log("README.md is already up to date.");
-    console.log("No changes to README.md after running update script.");
+    // Create the README file if it doesn't exist
+    fs.writeFileSync(readmePath, newReadmeContent);
+    console.log("README.md created successfully!");
   }
+} catch (error) {
+  console.error(`Error generating README.md: ${error.message}`);
+  process.exit(1);
 }
