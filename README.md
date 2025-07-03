@@ -6,7 +6,7 @@ Enhance your GitHub Copilot experience with community-contributed instructions, 
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **🔧 Custom Instructions** | **📝 Reusable Prompts** | **🎭 Custom Chat Modes** |
+| **🔧 Custom Instructions** | **📝 Reusable Prompts** | **🧩 Custom Chat Modes** |
 | --- | --- | --- |
 | Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
 
@@ -21,37 +21,54 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:
 
-- [Angular Development Instructions](instructions/angular.instructions.md) - Angular-specific coding standards and best practices
-- [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Guidelines for building REST APIs with ASP.NET
-- [Azure Functions Typescript](instructions/azure-functions-typescript.instructions.md) - TypeScript patterns for Azure Functions
-- [Bicep Code Best Practices](instructions/bicep-code-best-practices.instructions.md) - Infrastructure as Code with Bicep
-- [Blazor](instructions/blazor.instructions.md) - Blazor component and application patterns
-- [Cmake Vcpkg](instructions/cmake-vcpkg.instructions.md) - C++ project configuration and package management
-- [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - See process Copilot is following where you can edit this to reshape the interaction or save when follow up may be needed
-- [C# Development](instructions/csharp.instructions.md) - Guidelines for building C# applications
-- [.NET MAUI](instructions/dotnet-maui.instructions.md) - .NET MAUI component and application patterns
-- [Genaiscript](instructions/genaiscript.instructions.md) - AI-powered script generation guidelines
-- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Guidelines for generating modern Terraform code for Azure
-- [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
-- [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
-- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
-- [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
+- [Angular Development Instructions](instructions/angular.instructions.md) - Instruction specific coding standards and best practices
+- [ASP.NET REST API Development](instructions/aspnet-rest-apis.instructions.md) - Development specific coding standards and best practices
+- [Azure Functions Typescript](instructions/azure-functions-typescript.instructions.md) - Typescript specific coding standards and best practices
+- [Bicep Code Best Practices](instructions/bicep-code-best-practices.instructions.md) - Practice specific coding standards and best practices
+- [Blazor](instructions/blazor.instructions.md) - Blazor specific coding standards and best practices
+- [Cmake Vcpkg](instructions/cmake-vcpkg.instructions.md) - Vcpkg specific coding standards and best practices
+- [Copilot Process tracking Instructions](instructions/copilot-thought-logging.instructions.md) - Instruction specific coding standards and best practices
+- [C# Development](instructions/csharp.instructions.md) - Development specific coding standards and best practices
+- [.NET MAUI](instructions/dotnet-maui.instructions.md) - MAUI specific coding standards and best practices
+- [Genaiscript](instructions/genaiscript.instructions.md) - Genaiscript specific coding standards and best practices
+- [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Azure specific coding standards and best practices
+- [Guidance for Localization](instructions/localization.instructions.md) - Localization specific coding standards and best practices
+- [Markdown](instructions/markdown.instructions.md) - Markdown specific coding standards and best practices
+- [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Instruction specific coding standards and best practices
+- [Python Coding Conventions](instructions/python.instructions.md) - Convention specific coding standards and best practices
 
+> 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
+## 🎯 Reusable Prompts
 
-> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
+Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.
 
+- [Aspnet Minimal Api Openapi](prompts/aspnet-minimal-api-openapi.prompt.md)
+- [Az Cost Optimize](prompts/az-cost-optimize.prompt.md)
+- [Comment Code Generate A Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md)
+- [C# Async Programming Best Practices](prompts/csharp-async.prompt.md)
+- [C# Documentation Best Practices](prompts/csharp-docs.prompt.md)
+- [MSTest Best Practices](prompts/csharp-mstest.prompt.md)
+- [NUnit Best Practices](prompts/csharp-nunit.prompt.md)
+- [XUnit Best Practices](prompts/csharp-xunit.prompt.md)
+- [Entity Framework Core Best Practices](prompts/ef-core.prompt.md)
+- [Gen Specs As Issues](prompts/gen-specs-as-issues.prompt.md)
+- [Javascript Typescript Jest](prompts/javascript-typescript-jest.prompt.md)
+- [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md)
+- [My Issues](prompts/my-issues.prompt.md)
+- [My Pull Requests](prompts/my-pull-requests.prompt.md)
+
+> 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
 ## 🧩 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.
 
-- [4.1 Beast Mode](chatmodes/4.1-beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
-- [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
-- [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
-- [Database Administrator Chat Mode](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
-- [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md) - Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs
+- [4.1 Beast Mode](chatmodes/4.1-beast.chatmode.md)
+- [Debug Mode Instructions](chatmodes/debug.chatmode.md)
+- [Planning mode instructions](chatmodes/planner.chatmode.md)
+- [Database Administrator Chat Mode](chatmodes/postgresql-dba.chatmode.md)
+- [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md)
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
-
 ## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
