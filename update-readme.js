@@ -49,6 +49,16 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
 
+## 🛠️ Development Configuration
+
+This repository uses various configuration files to ensure consistent code style and avoid issues with line endings:
+
+- [\`.editorconfig\`](.editorconfig) - Defines coding styles across different editors and IDEs
+- [\`.gitattributes\`](.gitattributes) - Ensures consistent line endings in text files
+- [\`.vscode/settings.json\`](.vscode/settings.json) - VS Code-specific settings for this repository
+- [\`.vscode/extensions.json\`](.vscode/extensions.json) - Recommended VS Code extensions
+
+> 💡 **Note**: All markdown files in this repository use LF line endings (Unix-style) to avoid mixed line endings issues. The repository is configured to automatically handle line endings conversion.
 
 ## 📄 License
 
@@ -60,8 +70,8 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## ™️ Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.`,
