@@ -36,6 +36,7 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
 - [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
+- [Security And Owasp](instructions/security-and-owasp.instructions.md) - Owasp specific coding standards and best practices
 
 > 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
 
