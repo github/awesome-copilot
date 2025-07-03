@@ -55,8 +55,8 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [Product Manager Assistant: Feature Identification and Specification](prompts/gen-specs-as-issues.prompt.md) - This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.
 - [Javascript Typescript Jest](prompts/javascript-typescript-jest.prompt.md) - Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns.
 - [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Create optimized multi-stage Dockerfiles for any language or framework
-- [My Issues](prompts/my-issues.prompt.md)
-- [My Pull Requests](prompts/my-pull-requests.prompt.md)
+- [My Issues](prompts/my-issues.prompt.md) - List my issues in the current repository
+- [My Pull Requests](prompts/my-pull-requests.prompt.md) - List my pull requests in the current repository
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
 
