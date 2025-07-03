@@ -4,6 +4,8 @@ tools: ['changes', 'codebase', 'editFiles', 'problems']
 description: 'Create ASP.NET Minimal API endpoints with proper OpenAPI documentation'
 ---
 
+# ASP.NET Minimal API with OpenAPI
+
 Your goal is to help me create well-structured ASP.NET Minimal API endpoints with correct types and comprehensive OpenAPI/Swagger documentation.
 
 ## API Organization

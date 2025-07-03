@@ -43,8 +43,8 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 
 Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.
 
-- [Aspnet Minimal Api Openapi](prompts/aspnet-minimal-api-openapi.prompt.md) - Create ASP.NET Minimal API endpoints with proper OpenAPI documentation
-- [Az Cost Optimize](prompts/az-cost-optimize.prompt.md) - Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.
+- [ASP.NET Minimal API with OpenAPI](prompts/aspnet-minimal-api-openapi.prompt.md) - Create ASP.NET Minimal API endpoints with proper OpenAPI documentation
+- [Azure Cost Optimize](prompts/az-cost-optimize.prompt.md) - Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations.
 - [Comment Code Generate A Tutorial](prompts/comment-code-generate-a-tutorial.prompt.md)
 - [C# Async Programming Best Practices](prompts/csharp-async.prompt.md) - Get best practices for C# async programming
 - [C# Documentation Best Practices](prompts/csharp-docs.prompt.md) - Ensure that C# types are documented with XML comments and follow best practices for documentation.
@@ -67,7 +67,7 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [4.1 Beast Mode](chatmodes/4.1-Beast.chatmode.md) - A custom prompt to get GPT 4.1 to behave like a top-notch coding agent.
 - [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
 - [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
-- [Database Administrator Chat Mode](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
+- [PostgreSQL Database Administrator](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
 - [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md) - Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
