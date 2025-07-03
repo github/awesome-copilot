@@ -1,5 +1,6 @@
 ---
-description: Guidelines for building Java and Spring Boot applications
+description: 'Guidelines for building C# applications'
+applyTo: '**/*.java'
 ---
 
 # Java and Spring Boot Development
