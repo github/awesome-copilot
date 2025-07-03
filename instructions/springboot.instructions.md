@@ -1,9 +1,9 @@
 ---
-description: 'Guidelines for building Java and Springboot base applications'
-applyTo: '**/*.java'
+description: "Guidelines for building Springboot base applications"
+applyTo: "**/*.java, **/*.kt,"
 ---
 
-# Java and Spring Boot Development
+# Spring Boot Development
 
 ## General Instructions
 
@@ -11,25 +11,6 @@ applyTo: '**/*.java'
 - Write code with good maintainability practices, including comments on why certain design decisions were made.
 - Handle edge cases and write clear exception handling.
 - For libraries or external dependencies, mention their usage and purpose in comments.
-
-## Java Instructions
-
-- **Records**: For classes primarily intended to store data (e.g., DTOs, immutable data structures), **Java Records should be used instead of traditional classes**.
-- **Pattern Matching**: Utilize pattern matching for `instanceof` and `switch` expression to simplify conditional logic and type casting.
-- **Type Inference**: Use `var` for local variable declarations to improve readability, but only when the type is explicitly clear from the right-hand side of the expression.
-- **Immutability**: Favor immutable objects. Make classes and fields `final` where possible. Use collections from `List.of()`/`Map.of()` for fixed data. Use `Stream.toList()` to create immutable lists.
-- **Streams and Lambdas**: Use the Streams API and lambda expressions for collection processing. Employ method references (e.g., `stream.map(Foo::toBar)`).
-- **Null Handling**: Avoid returning or accepting `null`. Use `Optional<T>` for possibly-absent values and `Objects` utility methods like `equals()` and `requireNonNull()`.
-
-## Naming Conventions
-
-- Follow Google's Java style guide:
-  - `UpperCamelCase` for class and interface names.
-  - `lowerCamelCase` for method and variable names.
-  - `UPPER_SNAKE_CASE` for constants.
-  - `lowercase` for package names.
-- Use nouns for classes (`UserService`) and verbs for methods (`getUserById`).
-- Avoid abbreviations and Hungarian notation.
 
 ## Spring Boot Instructions
 
@@ -63,6 +44,11 @@ applyTo: '**/*.java'
 - Use SLF4J for all logging (`private static final Logger logger = LoggerFactory.getLogger(MyClass.class);`).
 - Do not use concrete implementations (Logback, Log4j2) or `System.out.println()` directly.
 - Use parameterized logging: `logger.info("User {} logged in", userId);`.
+
+### Security & Input Handling
+
+- Use parameterized queries | Always use Spring Data JPA or `NamedParameterJdbcTemplate` to prevent SQL injection.
+- Validate request bodies and parameters using JSR-380 (`@NotNull`, `@Size`, etc.) annotations and `BindingResult`
 
 ## Build and Verification
 
