@@ -1,5 +1,5 @@
 ---
-description: Guidelines for building TanStack Start applications
+description: 'Guidelines for building TanStack Start applications'
 ---
 
 # TanStack Start with Shadcn/ui Development Guide
