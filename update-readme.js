@@ -257,8 +257,8 @@ function extractDescription(filePath) {
  * @param {string} link - The relative link to the instructions or prompts file.
  * @returns {string} - Markdown formatted badges for installation.
  */
-function makeBadges(link) {
-  return `[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:chat-prompt/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link}) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode-insiders:chat-prompt/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link})`;
+function makeBadges(link, type) {
+  return `[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:chat-${type}/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link}) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode-insiders:chat-${type}/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link})`;
 }
 
 /**
@@ -287,7 +287,7 @@ function generateInstructionsSection(instructionsDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link);
+    const badges = makeBadges(link, "instruction");
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
@@ -328,7 +328,7 @@ function generatePromptsSection(promptsDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link);
+    const badges = makeBadges(link, "prompt");
 
     if (customDescription && customDescription !== "null") {
       promptsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
@@ -377,7 +377,7 @@ function generateChatModesSection(chatmodesDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link);
+    const badges = makeBadges(link, "chatmode");
 
     if (customDescription && customDescription !== "null") {
       chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
