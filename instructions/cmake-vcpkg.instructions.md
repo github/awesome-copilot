@@ -1,5 +1,6 @@
 ---
-description: C++ project configuration and package management
+description: 'C++ project configuration and package management'
+applyTo: '**/*.cmake, **/CMakeLists.txt, **/*.cpp, **/*.h, **/*.hpp'
 ---
 
 This project uses vcpkg in manifest mode. Please keep this in mind when giving vcpkg suggestions. Do not provide suggestions like vcpkg install library, as they will not work as expected.

@@ -1,0 +1,11 @@
+{
+    "chat.modeFilesLocations": {
+        "chatmodes": true
+    },
+    "chat.promptFilesLocations": {
+        "prompts": true
+    },
+    "chat.instructionsFilesLocations": {
+        "instructions": true
+    }
+}

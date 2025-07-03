@@ -1,5 +1,5 @@
 ---
-description: Generate an implementation plan for new features or refactoring existing code.
+description: 'Generate an implementation plan for new features or refactoring existing code.'
 tools: ['codebase', 'fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
 ---
 # Planning mode instructions
