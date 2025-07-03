@@ -1,5 +1,5 @@
 {
-  "generated": "2025-07-03T11:41:40.051Z",
+  "generated": "2025-07-03T12:26:57.019Z",
   "instructions": [
     {
       "filename": "angular.instructions.md",
@@ -215,11 +215,5 @@
       "description": "Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs",
       "link": "chatmodes/refine-issue.chatmode.md"
     }
-  ],
-  "counts": {
-    "instructions": 16,
-    "prompts": 14,
-    "chatmodes": 5,
-    "total": 35
-  }
+  ]
 }

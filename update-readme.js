@@ -325,13 +325,7 @@ function createIndex() {
     generated: new Date().toISOString(),
     instructions,
     prompts,
-    chatmodes,
-    counts: {
-      instructions: instructions.length,
-      prompts: prompts.length,
-      chatmodes: chatmodes.length,
-      total: instructions.length + prompts.length + chatmodes.length
-    }
+    chatmodes
   };
 }
 
