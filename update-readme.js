@@ -126,7 +126,7 @@ function extractDescription(filePath) {
 
         if (inFrontmatter && !frontmatterEnded) {
           // Check for multi-line description with pipe syntax (|)
-          const multilineMatch = line.match(/^description:\s*\|(\s*)$/);
+          const multilineMatch = line.trim().match(/^description:\s*\|(\s*)$/);
           if (multilineMatch) {
             isMultilineDescription = true;
             // Continue to next line to start collecting the multi-line content
@@ -136,7 +136,7 @@ function extractDescription(filePath) {
           // If we're collecting a multi-line description
           if (isMultilineDescription) {
             // If the line has no indentation or has another frontmatter key, stop collecting
-            if (!line.startsWith("  ") || line.match(/^[a-zA-Z0-9_-]+:/)) {
+            if (!line.startsWith("  ") || line.trim().match(/^[a-zA-Z0-9_-]+:/)) {
               isMultilineDescription = false;
               // Join the collected lines and return
               return multilineDescription.join(" ").trim();
@@ -146,7 +146,7 @@ function extractDescription(filePath) {
             multilineDescription.push(line.substring(2));
           } else {
             // Look for single-line description field in frontmatter
-            const descriptionMatch = line.match(
+            const descriptionMatch = line.trim().match(
               /^description:\s*['"]?(.+?)['"]?$/
             );
             if (descriptionMatch) {
@@ -414,7 +414,7 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
   if (chatmodesSection) {
     let chatmodesListContent = "\n\n";
 
-    // Generate list of chat mode links (sorted alphabetically)
+    // Always regenerate the entire list to ensure descriptions are included
     for (const file of chatmodeFiles.sort()) {
       const filePath = path.join(chatmodesDir, file);
       const title = extractTitle(filePath);
@@ -423,7 +423,7 @@ function updateChatModesSection(currentReadme, chatmodeFiles, chatmodesDir) {
       // Check if there's a description in the frontmatter
       const customDescription = extractDescription(filePath);
 
-      if (customDescription) {
+      if (customDescription && customDescription !== "null") {
         // Use the description from frontmatter
         chatmodesListContent += `- [${title}](${link}) - ${customDescription}\n`;
       } else {
