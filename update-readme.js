@@ -262,7 +262,7 @@ function makeBadges(link) {
 }
 
 /**
- * Generate the instructions section with an alphabetical list of all instructions
+ * Generate the instructions section with a table of all instructions
  */
 function generateInstructionsSection(instructionsDir) {
   // Get all instruction files
@@ -273,9 +273,11 @@ function generateInstructionsSection(instructionsDir) {
 
   console.log(`Found ${instructionFiles.length} instruction files`);
 
-  let instructionsContent = "";
+  // Create table header
+  let instructionsContent =
+    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
 
-  // Generate list items for each instruction file
+  // Generate table rows for each instruction file
   for (const file of instructionFiles) {
     const filePath = path.join(instructionsDir, file);
     const title = extractTitle(filePath);
@@ -284,17 +286,16 @@ function generateInstructionsSection(instructionsDir) {
     // Check if there's a description in the frontmatter
     const customDescription = extractDescription(filePath);
 
+    // Create badges for installation links
+    const badges = makeBadges(link);
+
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
-        link
-      )}\n`;
+      instructionsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `- [${title}](${link}) - ${topic} specific coding standards and best practices ${makeBadges(
-        link
-      )}\n`;
+      instructionsContent += `| [${title}](${link}) | ${topic} specific coding standards and best practices | ${badges} |\n`;
     }
   }
 
@@ -302,7 +303,7 @@ function generateInstructionsSection(instructionsDir) {
 }
 
 /**
- * Generate the prompts section with an alphabetical list of all prompts
+ * Generate the prompts section with a table of all prompts
  */
 function generatePromptsSection(promptsDir) {
   // Get all prompt files
@@ -313,9 +314,11 @@ function generatePromptsSection(promptsDir) {
 
   console.log(`Found ${promptFiles.length} prompt files`);
 
-  let promptsContent = "";
+  // Create table header
+  let promptsContent =
+    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
 
-  // Generate list items for each prompt file
+  // Generate table rows for each prompt file
   for (const file of promptFiles) {
     const filePath = path.join(promptsDir, file);
     const title = extractTitle(filePath);
@@ -324,12 +327,13 @@ function generatePromptsSection(promptsDir) {
     // Check if there's a description in the frontmatter
     const customDescription = extractDescription(filePath);
 
+    // Create badges for installation links
+    const badges = makeBadges(link);
+
     if (customDescription && customDescription !== "null") {
-      promptsContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
-        link
-      )}\n`;
+      promptsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
     } else {
-      promptsContent += `- [${title}](${link}) ${makeBadges(link)}\n`;
+      promptsContent += `| [${title}](${link}) | | ${badges} |\n`;
     }
   }
 
@@ -337,7 +341,7 @@ function generatePromptsSection(promptsDir) {
 }
 
 /**
- * Generate the chat modes section with an alphabetical list of all chat modes
+ * Generate the chat modes section with a table of all chat modes
  */
 function generateChatModesSection(chatmodesDir) {
   // Check if chatmodes directory exists
@@ -359,9 +363,11 @@ function generateChatModesSection(chatmodesDir) {
     return "";
   }
 
-  let chatmodesContent = "";
+  // Create table header
+  let chatmodesContent =
+    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
 
-  // Generate list items for each chat mode file
+  // Generate table rows for each chat mode file
   for (const file of chatmodeFiles) {
     const filePath = path.join(chatmodesDir, file);
     const title = extractTitle(filePath);
@@ -370,12 +376,13 @@ function generateChatModesSection(chatmodesDir) {
     // Check if there's a description in the frontmatter
     const customDescription = extractDescription(filePath);
 
+    // Create badges for installation links
+    const badges = makeBadges(link);
+
     if (customDescription && customDescription !== "null") {
-      chatmodesContent += `- [${title}](${link}) - ${customDescription} ${makeBadges(
-        link
-      )}\n`;
+      chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
     } else {
-      chatmodesContent += `- [${title}](${link}) ${makeBadges(link)}\n`;
+      chatmodesContent += `| [${title}](${link}) | | ${badges} |\n`;
     }
   }
 
