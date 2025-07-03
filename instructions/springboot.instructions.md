@@ -1,6 +1,6 @@
 ---
-description: "Guidelines for building Springboot base applications"
-applyTo: "**/*.java, **/*.kt,"
+description: 'Guidelines for building Springboot base applications'
+applyTo: '**/*.java, **/*.kt,'
 ---
 
 # Spring Boot Development
