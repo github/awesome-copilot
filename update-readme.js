@@ -264,7 +264,7 @@ const vscodeInsidersInstallImage =
 const repoBaseUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
 const vscodeBaseUrl = "https://vscode.dev/redirect?url=";
-const vscodeInsidersBaseUrl = "https://vscode-insiders.dev/redirect?url=";
+const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
 function makeBadges(link, type) {
   return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
     `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
