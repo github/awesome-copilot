@@ -32,11 +32,13 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - [.NET MAUI](instructions/dotnet-maui.instructions.md) - .NET MAUI component and application patterns
 - [Genaiscript](instructions/genaiscript.instructions.md) - AI-powered script generation guidelines
 - [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Guidelines for generating modern Terraform code for Azure
+- [Java Development](instructions/java.instructions.md) - Guidelines for building Java base applications
 - [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
 - [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
 - [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
 - [Secure Coding and OWASP Guidelines](instructions/security-and-owasp.instructions.md) - Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices.
+- [Spring Boot Development](instructions/springboot.instructions.md) - Guidelines for building Springboot base applications
 
 > 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
 
