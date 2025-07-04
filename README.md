@@ -69,7 +69,7 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
 - [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
 - [PostgreSQL Database Administrator](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
-- [Instructions](chatmodes/prompt-engineer.chatmode.md) - A specialized chat mode for analyzing and improving prompts through systematic evaluation, based on OpenAI's prompt engineering techniques
+- [Prompt Engineer](chatmodes/prompt-engineer.chatmode.md) - A specialized chat mode for analyzing and improving prompts. Every user input is treated as a propt to be improved. It first provides a detailed analysis of the original prompt within a <reasoning> tag, evaluating it against a systematic framework based on OpenAI's prompt engineering best practices. Following the analysis, it generates a new, improved prompt.
 - [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md) - Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
