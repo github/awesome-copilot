@@ -1,3 +1,11 @@
+---
+title: Power Platform Connectors Schema Development Instructions
+description: |
+  Comprehensive development guidelines for Power Platform Custom Connectors using JSON Schema definitions.
+  Covers API definitions (Swagger 2.0), API properties, and settings configuration with Microsoft extensions.
+applyTo: '**/*.{json,md}'
+---
+
 # Power Platform Connectors Schema Development Instructions
 
 ## Project Overview
