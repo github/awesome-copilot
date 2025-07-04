@@ -11,7 +11,7 @@ Your goal is to help me write effective unit tests with MSTest, covering both st
 ## Project Setup
 
 - Use a separate test project with naming convention `[ProjectName].Tests`
-- Reference Microsoft.NET.Test.Sdk, MSTest.TestAdapter, and MSTest.TestFramework packages
+- Reference MSTest package
 - Create test classes that match the classes being tested (e.g., `CalculatorTests` for `Calculator`)
 - Use .NET SDK test commands: `dotnet test` for running tests
 
@@ -36,7 +36,7 @@ Your goal is to help me write effective unit tests with MSTest, covering both st
 
 ## Data-Driven Tests
 
-- Use `[DataTestMethod]` combined with data source attributes
+- Use `[TestMethod]` combined with data source attributes
 - Use `[DataRow]` for inline test data
 - Use `[DynamicData]` for programmatically generated test data
 - Use `[TestProperty]` to add metadata to tests
@@ -50,7 +50,7 @@ Your goal is to help me write effective unit tests with MSTest, covering both st
 * Use `Assert.IsTrue`/`Assert.IsFalse` for boolean conditions
 * Use `CollectionAssert` for collection comparisons
 * Use `StringAssert` for string-specific assertions
-* Use `Assert.ThrowsException<T>` to test exceptions
+* Use `Assert.Throws<T>` to test exceptions
 * Ensure assertions are simple in nature and have a message provided for clarity on failure
 
 ## Mocking and Isolation
