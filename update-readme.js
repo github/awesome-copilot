@@ -257,8 +257,20 @@ function extractDescription(filePath) {
  * @param {string} link - The relative link to the instructions or prompts file.
  * @returns {string} - Markdown formatted badges for installation.
  */
+const vscodeInstallImage =
+  "https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white";
+const vscodeInsidersInstallImage =
+  "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
+const repoBaseUrl =
+  "https://raw.githubusercontent.com/github/awesome-copilot/main";
+const vscodeBaseUrl = "https://vscode.dev/redirect?url=";
+const vscodeInsidersBaseUrl = "https://vscode-insiders.dev/redirect?url=";
 function makeBadges(link, type) {
-  return `[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode:chat-${type}/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link}) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](vscode-insiders:chat-${type}/install?url=https://raw.githubusercontent.com/github/awesome-copilot/main/${link})`;
+  return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
+    `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
+  )} [![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
+    `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
+  )}`;
 }
 
 /**
