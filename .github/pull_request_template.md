@@ -1,11 +1,3 @@
----
-name: Pull Request
-about: Submit a contribution to the awesome-copilot repository
-title: ''
-labels: needs-review
-assignees: ''
----
-
 ## Pull Request Checklist
 
 - [ ] I have read and followed the [CONTRIBUTING.md](../CONTRIBUTING.md) guidelines.

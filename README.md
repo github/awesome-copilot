@@ -32,6 +32,7 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - [.NET MAUI](instructions/dotnet-maui.instructions.md) - .NET MAUI component and application patterns
 - [Genaiscript](instructions/genaiscript.instructions.md) - AI-powered script generation guidelines
 - [Generate Modern Terraform Code For Azure](instructions/generate-modern-terraform-code-for-azure.instructions.md) - Guidelines for generating modern Terraform code for Azure
+- [Go Development Instructions](instructions/go.instructions.md) - Instructions for writing Go code following idiomatic Go practices and community standards
 - [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
 - [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
@@ -59,6 +60,7 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - [Multi Stage Dockerfile](prompts/multi-stage-dockerfile.prompt.md) - Create optimized multi-stage Dockerfiles for any language or framework
 - [My Issues](prompts/my-issues.prompt.md) - List my issues in the current repository
 - [My Pull Requests](prompts/my-pull-requests.prompt.md) - List my pull requests in the current repository
+- [Next Intl Add Language](prompts/next-intl-add-language.prompt.md) - Add new language to a Next.js + next-intl application
 
 > 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
 
@@ -70,6 +72,7 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - [Debug Mode Instructions](chatmodes/debug.chatmode.md) - Debug your application to find and fix a bug
 - [Planning mode instructions](chatmodes/planner.chatmode.md) - Generate an implementation plan for new features or refactoring existing code.
 - [PostgreSQL Database Administrator](chatmodes/postgresql-dba.chatmode.md) - Work with PostgreSQL databases using the PostgreSQL extension.
+- [Create PRD Chat Mode](chatmodes/prd.chatmode.md) - Generate a comprehensive Product Requirements Document (PRD) in Markdown, detailing user stories, acceptance criteria, technical considerations, and metrics. Optionally create GitHub issues upon user confirmation.
 - [Refine Requirement or Issue Chat Mode](chatmodes/refine-issue.chatmode.md) - Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
