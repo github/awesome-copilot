@@ -17,8 +17,8 @@ This workspace contains JSON Schema definitions for Power Platform Custom Connec
 
 ## File Structure Understanding
 
-### 1. apiDefinition.swagger.schema.json
-- **Purpose**: This file validates Swagger 2.0 API definitions with Power Platform extensions.
+### 1. apiDefinition.swagger.json
+- **Purpose**: This file contains Swagger 2.0 API definitions with Power Platform extensions.
 - **Key Features**:
   - Standard Swagger 2.0 properties including info, paths, definitions, and more.
   - Microsoft-specific extensions that begin with `x-ms-*` prefixes.
@@ -26,14 +26,14 @@ This workspace contains JSON Schema definitions for Power Platform Custom Connec
   - Dynamic schema support that provides runtime flexibility.
   - Security definitions that support OAuth2, API Key, and Basic Auth authentication methods.
 
-### 2. paconn-apiProperties.schema.json
+### 2. apiProperties.json
 - **Purpose**: This file defines connector metadata, authentication configurations, and policy configurations.
 - **Key Components**:
   - **Connection Parameters**: These support various authentication types including OAuth, API Key, and Gateway configurations.
   - **Policy Template Instances**: These handle data transformation and routing policies for the connector.
   - **Connector Metadata**: This includes publisher information, capabilities, and branding elements.
 
-### 3. paconn-settings.schema.json
+### 3. settings.json
 - **Purpose**: This file provides environment and deployment configuration settings for the paconn tool.
 - **Configuration Options**:
   - Environment GUID targeting for specific Power Platform environments.
