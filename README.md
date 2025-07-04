@@ -35,6 +35,7 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - [Guidance for Localization](instructions/localization.instructions.md) - Guidelines for localizing markdown documents
 - [Markdown](instructions/markdown.instructions.md) - Documentation and content creation standards
 - [Next.js + Tailwind Development Instructions](instructions/nextjs-tailwind.instructions.md) - Next.js + Tailwind development standards and instructions
+- [Performance Optimization Best Practices](instructions/performance-optimization.instructions.md) - The most comprehensive, practical, and engineer-authored performance optimization instructions for all languages, frameworks, and stacks. Covers frontend, backend, and database best practices with actionable guidance, scenario-based checklists, troubleshooting, and pro tips.
 - [Python Coding Conventions](instructions/python.instructions.md) - Python coding conventions and guidelines
 - [Secure Coding and OWASP Guidelines](instructions/security-and-owasp.instructions.md) - Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices.
 
