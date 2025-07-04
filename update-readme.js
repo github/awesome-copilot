@@ -299,7 +299,7 @@ function generateInstructionsSection(instructionsDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "instruction");
+    const badges = makeBadges(link, "instructions");
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
