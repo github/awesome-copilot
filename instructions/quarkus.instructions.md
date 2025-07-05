@@ -1,4 +1,5 @@
 ---
+applyTo: '*'
 description: 'Quarkus development standards and instructions'
 ---
 
