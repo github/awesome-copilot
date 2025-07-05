@@ -1,7 +1,7 @@
 ---
-mode: agent
+mode: 'agent'
 tools: ['githubRepo', 'github', 'get_me', 'get_pull_request', 'get_pull_request_comments', 'get_pull_request_diff', 'get_pull_request_files', 'get_pull_request_reviews', 'get_pull_request_status', 'list_pull_requests', 'request_copilot_review']
-description: "List my pull requests in the current repository"
+description: 'List my pull requests in the current repository'
 ---
 
 Search the current repo (using #githubRepo for the repo info) and list any pull requests you find (using #list_pull_requests) that are assigned to me.
