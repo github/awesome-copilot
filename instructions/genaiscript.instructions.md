@@ -1,6 +1,6 @@
 ---
-applyTo: "**/*.genai.*"
-description: AI-powered script generation guidelines
+description: 'AI-powered script generation guidelines'
+applyTo: '**/*.genai.*'
 ---
 
 ## Role
