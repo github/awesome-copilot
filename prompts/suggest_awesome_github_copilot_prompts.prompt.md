@@ -10,7 +10,7 @@ Analyze current repository context and suggest relevant prompt files from the [G
 ## Process
 
 1. **Fetch Available Prompts**: Extract prompt list and descriptions from [awesome-copilot README](https://github.com/github/awesome-copilot/blob/main/README.md)
-2. **Scan Local Prompts**: Discover existing prompt files in both `prompts/` and `.github/prompts/` folders
+2. **Scan Local Prompts**: Discover existing prompt files in `.github/prompts/` folder
 3. **Extract Descriptions**: Read front matter from local prompt files to get descriptions
 4. **Analyze Context**: Review chat history, repository files, and current project needs
 5. **Compare Existing**: Check against prompts already available in this repository
@@ -46,7 +46,7 @@ Display analysis results in structured table comparing awesome-copilot prompts w
 
 ## Local Prompts Discovery Process
 
-1. List all `.prompt.md` files directory `.github/prompts/` for any `*.prompt.md` files.
+1. List all `*.prompt.md` files directory `.github/prompts/`.
 2. For each discovered file, read front matter to extract `description`
 3. Build comprehensive inventory of existing prompts
 4. Use this inventory to avoid suggesting duplicates
@@ -54,7 +54,7 @@ Display analysis results in structured table comparing awesome-copilot prompts w
 ## Requirements
 
 - Use `githubRepo` tool to get content from awesome-copilot repository
-- Scan local file system for existing prompts in `prompts/` and `.github/prompts/` directories
+- Scan local file system for existing prompts in `.github/prompts/` directory
 - Read YAML front matter from local prompt files to extract descriptions
 - Compare against existing prompts in this repository to avoid duplicates
 - Focus on gaps in current prompt library coverage

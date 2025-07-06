@@ -11,7 +11,7 @@ Analyze current repository context and suggest relevant chatmode files from the 
 ## Process
 
 1. **Fetch Available Chatmodes**: Extract chatmode list and descriptions from [awesome-copilot chatmodes folder](https://github.com/github/awesome-copilot/tree/main/chatmodes)
-2. **Scan Local Chatmodes**: Discover existing chatmode files in both `chatmodes/` and `.github/chatmodes/` folders
+2. **Scan Local Chatmodes**: Discover existing chatmode files in `.github/chatmodes/` folder
 3. **Extract Descriptions**: Read front matter from local chatmode files to get descriptions
 4. **Analyze Context**: Review chat history, repository files, and current project needs
 5. **Compare Existing**: Check against chatmodes already available in this repository
@@ -47,16 +47,15 @@ Display analysis results in structured table comparing awesome-copilot chatmodes
 
 ## Local Chatmodes Discovery Process
 
-1. List all `.chatmode.md` files in `chatmodes/` directory
-2. Check `.github/chatmodes/` directory for any `*.chatmode.md` files
-3. For each discovered file, read front matter to extract `description`
-4. Build comprehensive inventory of existing chatmodes
-5. Use this inventory to avoid suggesting duplicates
+1. List all `*.chatmode.md` files in `.github/chatmodes/` directory
+2. For each discovered file, read front matter to extract `description`
+3. Build comprehensive inventory of existing chatmodes
+4. Use this inventory to avoid suggesting duplicates
 
 ## Requirements
 
 - Use `githubRepo` tool to get content from awesome-copilot repository chatmodes folder
-- Scan local file system for existing chatmodes in `chatmodes/` and `.github/chatmodes/` directories
+- Scan local file system for existing chatmodes in `.github/chatmodes/` directory
 - Read YAML front matter from local chatmode files to extract descriptions
 - Compare against existing chatmodes in this repository to avoid duplicates
 - Focus on gaps in current chatmode library coverage
