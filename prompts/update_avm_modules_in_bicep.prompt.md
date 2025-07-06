@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-description: 'Update Azure Verified Modules to latest versions in Bicep files.'
+description: Update Azure Verified Modules (AVM) to latest versions in Bicep files.
 tools: ['changes', 'codebase', 'editFiles', 'fetch', 'runCommands', 'azure_get_deployment_best_practices', 'azure_get_schema_for_Bicep']
 ---
 # Update Azure Verified Modules in Bicep Files
@@ -19,6 +19,7 @@ Update Bicep file `${file}` to use latest Azure Verified Module (AVM) versions.
 ## Breaking Change Policy
 
 ⚠️ **PAUSE for approval** if updates involve:
+
 - Incompatible parameter changes
 - Security/compliance modifications  
 - Behavioral changes

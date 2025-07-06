@@ -5,28 +5,30 @@ tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo',
 ---
 # Implementation Plan Update Prompt
 
-**PRIMARY DIRECTIVE**: Your goal is to create a new implementation plan file for `${input:PlanPurpose}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
+## Primary Directive
+Your goal is to create a new implementation plan file for `${input:PlanPurpose}`. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
 
-**EXECUTION CONTEXT**: This prompt is designed for AI-to-AI communication and automated processing. All instructions must be interpreted literally and executed systematically without human interpretation or clarification.
+## Execution Context
+This prompt is designed for AI-to-AI communication and automated processing. All instructions must be interpreted literally and executed systematically without human interpretation or clarification.
 
-**CORE REQUIREMENTS**:
+## Core Requirements
 
 - Generate implementation plans that are fully executable by AI agents or humans
 - Use deterministic language with zero ambiguity
 - Structure all content for automated parsing and execution
-- Ensure complete self-containment with no external dependencies for understanding 
+- Ensure complete self-containment with no external dependencies for understanding
 
-**PLAN STRUCTURE REQUIREMENTS**:
+## Plan Structure Requirements
 Plans must consist of discrete, atomic phases containing executable tasks. Each phase must be independently processable by AI agents or humans without cross-phase dependencies unless explicitly declared.
 
-**PHASE ARCHITECTURE**:
+## Phase Architecture
 
 - Each phase must have measurable completion criteria
 - Tasks within phases must be executable in parallel unless dependencies are specified
 - All task descriptions must include specific file paths, function names, and exact implementation details
 - No task should require human interpretation or decision-making
 
-**AI-OPTIMIZED IMPLEMENTATION STANDARDS**:
+## AI-Optimized Implementation Standards
 
 - Use explicit, unambiguous language with zero interpretation required
 - Structure all content as machine-parseable formats (tables, lists, structured data)
@@ -36,7 +38,7 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - Use standardized prefixes for all identifiers (REQ-, TASK-, etc.)
 - Include validation criteria that can be automatically verified
 
-**OUTPUT FILE SPECIFICATIONS**:
+## Output File Specifications
 
 - Save implementation plan files in `/plan/` directory
 - Use naming convention: `[purpose]-[component]-[version].md`
@@ -44,10 +46,10 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - Example: `upgrade-system-command-4.md`, `feature-auth-module-1.md`
 - File must be valid Markdown with proper front matter structure
 
-**MANDATORY TEMPLATE STRUCTURE**:
+## Mandatory Template Structure
 All implementation plans must strictly adhere to the following template. Each section is required and must be populated with specific, actionable content. AI agents must validate template compliance before execution.
 
-**TEMPLATE VALIDATION RULES**:
+## Template Validation Rules
 
 - All front matter fields must be present and properly formatted
 - All section headers must match exactly (case-sensitive)
@@ -59,8 +61,8 @@ All implementation plans must strictly adhere to the following template. Each se
 ---
 goal: [Concise Title Describing the Package Implementation Plan's Goal]
 version: [Optional: e.g., 1.0, Date]
-date_created: [YYYY-MM-DD]  
-last_updated: [Optional: YYYY-MM-DD]  
+date_created: [YYYY-MM-DD]
+last_updated: [Optional: YYYY-MM-DD]
 owner: [Optional: Team/Individual responsible for this spec]
 tags: [Optional: List of relevant tags or categories, e.g., `feature`, `upgrade`, `chore`, `architecture`, `migration`, `bug` etc]
 ---
@@ -139,6 +141,6 @@ tags: [Optional: List of relevant tags or categories, e.g., `feature`, `upgrade`
 
 ## 8. Related Specifications / Further Reading
 
-[Link to related spec 1]  
+[Link to related spec 1]
 [Link to relevant external documentation]
 ```

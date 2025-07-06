@@ -9,7 +9,7 @@ Your goal is to update the existing specification file `${file}` based on new re
 
 The specification file must define the requirements, constraints, and interfaces for the solution components in a manner that is clear, unambiguous, and structured for effective use by Generative AIs. Follow established documentation standards and ensure the content is machine-readable and self-contained.
 
-**Best Practices for AI-Ready Specifications:**
+## Best Practices for AI-Ready Specifications
 
 - Use precise, explicit, and unambiguous language.
 - Clearly distinguish between requirements, constraints, and recommendations.
@@ -28,9 +28,9 @@ Specification files must follow the template below, ensuring that all sections a
 ```md
 ---
 title: [Concise Title Describing the Specification's Focus]
-version: [Optional: e.g., 1.0, Date]  
-date_created: [YYYY-MM-DD]  
-last_updated: [Optional: YYYY-MM-DD]  
+version: [Optional: e.g., 1.0, Date]
+date_created: [YYYY-MM-DD]
+last_updated: [Optional: YYYY-MM-DD]
 owner: [Optional: Team/Individual responsible for this spec]
 tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `process`, `design`, `app` etc]
 ---
@@ -121,7 +121,7 @@ tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `p
 
 ## 11. Related Specifications / Further Reading
 
-[Link to related spec 1]  
+[Link to related spec 1]
 [Link to relevant external documentation]
 
 ```

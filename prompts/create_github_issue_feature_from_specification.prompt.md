@@ -1,27 +1,27 @@
 ---
 mode: 'agent'
-description: 'Create GitHub Issue for feature request from specification file using feature_request.yml template.'
+description: Create GitHub Issue for feature request from specification file using feature_request.yml template.
 tools: ['codebase', 'search', 'github', 'create_issue', 'search_issues', 'update_issue']
 ---
 # Create GitHub Issue from Specification
 
 Create GitHub Issue for the specification at `${file}`.
 
-**Process:**
+## Process
 
 1. Analyze specification file to extract requirements
-2. Check existing issues using `search_issues` 
+2. Check existing issues using `search_issues`
 3. Create new issue using `create_issue` or update existing with `update_issue`
 4. Use `feature_request.yml` template (fallback to default)
 
-**Requirements:**
+## Requirements
 
 - Single issue for the complete specification
 - Clear title identifying the specification
 - Include only changes required by the specification
 - Verify against existing issues before creation
 
-**Issue Content:**
+## Issue Content
 
 - Title: Feature name from specification
 - Description: Problem statement, proposed solution, and context

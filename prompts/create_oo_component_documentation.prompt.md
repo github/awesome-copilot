@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-description: 'Create comprehensive, standardized documentation for object-oriented components following industry best practices and architectural documentation standards.'
+description: Create comprehensive, standardized documentation for object-oriented components following industry best practices and architectural documentation standards.
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo', 'openSimpleBrowser', 'problems', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
 # Generate Standard OO Component Documentation
@@ -9,15 +9,15 @@ Create comprehensive documentation for the object-oriented component(s) at: `${i
 
 Analyze the component by examining code in the provided path. If folder, analyze all source files. If single file, treat as main component and analyze related files in same directory.
 
-**Documentation Standards:**
+## Documentation Standards
 
 - DOC-001: Follow C4 Model documentation levels (Context, Containers, Components, Code)
-- DOC-002: Align with Arc42 software architecture documentation template  
+- DOC-002: Align with Arc42 software architecture documentation template
 - DOC-003: Comply with IEEE 1016 Software Design Description standard
 - DOC-004: Use Agile Documentation principles (just enough documentation that adds value)
 - DOC-005: Target developers and maintainers as primary audience
 
-**Analysis Instructions:**
+## Analysis Instructions
 
 - ANA-001: Determine path type (folder vs single file) and identify primary component
 - ANA-002: Examine source code files for class structures and inheritance
@@ -28,14 +28,14 @@ Analyze the component by examining code in the provided path. If folder, analyze
 - ANA-007: Assess performance, security, reliability, maintainability
 - ANA-008: Infer integration patterns and data flow
 
-**Language-Specific Optimizations:**
+## Language-Specific Optimizations
 
 - LNG-001: **C#/.NET** - async/await, dependency injection, configuration, disposal
-- LNG-002: **Java** - Spring framework, annotations, exception handling, packaging  
+- LNG-002: **Java** - Spring framework, annotations, exception handling, packaging
 - LNG-003: **TypeScript/JavaScript** - modules, async patterns, types, npm
 - LNG-004: **Python** - packages, virtual environments, type hints, testing
 
-**Error Handling:**
+## Error Handling
 
 - ERR-001: Path doesn't exist - provide correct format guidance
 - ERR-002: No source files found - suggest alternative locations
@@ -43,15 +43,15 @@ Analyze the component by examining code in the provided path. If folder, analyze
 - ERR-004: Non-standard patterns - document custom approaches
 - ERR-005: Insufficient code - focus on available information, highlight gaps
 
-**Output Format:**
+## Output Format
 
 Generate well-structured Markdown with clear heading hierarchy, code blocks, tables, bullet points, and proper formatting for readability and maintainability.
 
-**File Location:**
+## File Location
 
 The documentation should be saved in the `/docs/components/` directory and named according to the convention: `[component-name]-documentation.md`.
 
-**Required Documentation Structure:**
+## Required Documentation Structure
 
 The documentation file must follow the template below, ensuring that all sections are filled out appropriately. The front matter for the markdown should be structured correctly as per the example following:
 
@@ -59,9 +59,9 @@ The documentation file must follow the template below, ensuring that all section
 ---
 title: [Component Name] - Technical Documentation
 component_path: `${input:ComponentPath}`
-version: [Optional: e.g., 1.0, Date]  
-date_created: [YYYY-MM-DD]  
-last_updated: [Optional: YYYY-MM-DD]  
+version: [Optional: e.g., 1.0, Date]
+date_created: [YYYY-MM-DD]
+last_updated: [Optional: YYYY-MM-DD]
 owner: [Optional: Team/Individual responsible for this component]
 tags: [Optional: List of relevant tags or categories, e.g., `component`,`service`,`tool`,`infrastructure`,`documentation`,`architecture` etc]
 ---
@@ -74,7 +74,7 @@ tags: [Optional: List of relevant tags or categories, e.g., `component`,`service
 
 ### Purpose/Responsibility
 - OVR-001: State component's primary responsibility
-- OVR-002: Define scope (included/excluded functionality)  
+- OVR-002: Define scope (included/excluded functionality)
 - OVR-003: Describe system context and relationships
 
 ## 2. Architecture Section
@@ -102,19 +102,19 @@ graph TD
         B --> D[Business Logic]
         C --> E[Data Access Layer]
     end
-    
+
     subgraph "External Dependencies"
         F[External API]
         G[Database]
         H[Third-party Library]
         I[Configuration Service]
     end
-    
+
     A --> F
     E --> G
     B --> H
     A --> I
-    
+
     classDiagram
         class MainComponent {
             +property: Type
@@ -128,7 +128,7 @@ graph TD
             <<external>>
             +apiCall(): Data
         }
-        
+
         MainComponent --> InternalService
         MainComponent --> ExternalAPI
 ```

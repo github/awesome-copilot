@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-description: 'Update existing object-oriented component documentation following industry best practices and architectural documentation standards.'
+description: Update existing object-oriented component documentation following industry best practices and architectural documentation standards.
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo', 'openSimpleBrowser', 'problems', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
 # Update Standard OO Component Documentation
@@ -12,7 +12,7 @@ Extract the component path from the existing documentation's front matter (`comp
 **Documentation Standards:**
 
 - DOC-001: Follow C4 Model documentation levels (Context, Containers, Components, Code)
-- DOC-002: Align with Arc42 software architecture documentation template  
+- DOC-002: Align with Arc42 software architecture documentation template
 - DOC-003: Comply with IEEE 1016 Software Design Description standard
 - DOC-004: Use Agile Documentation principles (just enough documentation that adds value)
 - DOC-005: Target developers and maintainers as primary audience
@@ -33,7 +33,7 @@ Extract the component path from the existing documentation's front matter (`comp
 **Language-Specific Optimizations:**
 
 - LNG-001: **C#/.NET** - async/await, dependency injection, configuration, disposal
-- LNG-002: **Java** - Spring framework, annotations, exception handling, packaging  
+- LNG-002: **Java** - Spring framework, annotations, exception handling, packaging
 - LNG-003: **TypeScript/JavaScript** - modules, async patterns, types, npm
 - LNG-004: **Python** - packages, virtual environments, type hints, testing
 
@@ -68,9 +68,9 @@ Update the existing documentation following the same template structure, ensurin
 ---
 title: [Component Name] - Technical Documentation
 component_path: [Current component path]
-version: [Updated version if applicable]  
-date_created: [Original creation date - preserve]  
-last_updated: [YYYY-MM-DD - update to current date]  
+version: [Updated version if applicable]
+date_created: [Original creation date - preserve]
+last_updated: [YYYY-MM-DD - update to current date]
 owner: [Preserve existing or update if changed]
 tags: [Update tags as needed based on current functionality]
 ---
@@ -83,7 +83,7 @@ tags: [Update tags as needed based on current functionality]
 
 ### Purpose/Responsibility
 - OVR-001: Update component's primary responsibility
-- OVR-002: Refresh scope (included/excluded functionality)  
+- OVR-002: Refresh scope (included/excluded functionality)
 - OVR-003: Update system context and relationships
 
 ## 2. Architecture Section

@@ -7,17 +7,17 @@ tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo',
 
 Create an ADR document for `${input:DecisionTitle}` using structured formatting optimized for AI consumption and human readability.
 
-**Inputs:**
+## Inputs
 
 - **Context**: `${input:Context}`
 - **Decision**: `${input:Decision}`
 - **Alternatives**: `${input:Alternatives}`
 - **Stakeholders**: `${input:Stakeholders}`
 
-**Input Validation:**
+## Input Validation
 If any of the required inputs are not provided or cannot be determined from the conversation history, ask the user to provide the missing information before proceeding with ADR generation.
 
-**Requirements:**
+## Requirements
 
 - Use precise, unambiguous language
 - Follow standardized ADR format with front matter
@@ -28,7 +28,7 @@ If any of the required inputs are not provided or cannot be determined from the 
 
 The ADR must be saved in the `/docs/adr/` directory using the naming convention: `adr-NNNN-[title-slug].md`, where NNNN is the next sequential 4-digit number (e.g., `adr-0001-database-selection.md`).
 
-**Required Documentation Structure:**
+## Required Documentation Structure
 
 The documentation file must follow the template below, ensuring that all sections are filled out appropriately. The front matter for the markdown should be structured correctly as per the example following:
 
