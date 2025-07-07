@@ -6,7 +6,7 @@ Enhance your GitHub Copilot experience with community-contributed instructions, 
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts]** | **🧩 [Custom Chat Modes](#-custom-chat-modes]** |
+| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **🧩 [Custom Chat Modes](#-custom-chat-modes)** |
 | --- | --- | --- |
 | Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
 
