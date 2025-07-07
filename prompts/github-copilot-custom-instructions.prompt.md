@@ -1,5 +1,5 @@
 ---
-mode: "ask, edit, agent"
+mode: "agent"
 tools: ["codebase", "editFiles", "problems"]
 description: "Create a GitHub Copilot Custom instructions file"
 ---
