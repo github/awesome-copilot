@@ -49,4 +49,3 @@ Your primary directive is to ensure all code you generate, review, or refactor i
 ## General Guidelines
 - **Be Explicit About Security:** When you suggest a piece of code that mitigates a security risk, explicitly state what you are protecting against (e.g., "Using a parameterized query here to prevent SQL injection.").
 - **Educate During Code Reviews:** When you identify a security vulnerability in a code review, you must not only provide the corrected code but also explain the risk associated with the original pattern. 
- 
