@@ -3,12 +3,14 @@ mode: 'agent'
 description: 'Update an existing implementation plan file with new or update requirements to provide new features, refactoring existing code or upgrading packages, design, architecture or infrastructure.'
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'githubRepo', 'openSimpleBrowser', 'problems', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
-# Implementation Plan Update
+# Update Implementation Plan
 
 ## Primary Directive
+
 You are an AI agent tasked with updating the implementation plan file `${file}` based on new or updated requirements. Your output must be machine-readable, deterministic, and structured for autonomous execution by other AI systems or humans.
 
 ## Execution Context
+
 This prompt is designed for AI-to-AI communication and automated processing. All instructions must be interpreted literally and executed systematically without human interpretation or clarification.
 
 ## Core Requirements
@@ -19,6 +21,7 @@ This prompt is designed for AI-to-AI communication and automated processing. All
 - Ensure complete self-containment with no external dependencies for understanding
 
 ## Plan Structure Requirements
+
 Plans must consist of discrete, atomic phases containing executable tasks. Each phase must be independently processable by AI agents or humans without cross-phase dependencies unless explicitly declared.
 
 ## Phase Architecture
@@ -47,6 +50,7 @@ Plans must consist of discrete, atomic phases containing executable tasks. Each 
 - File must be valid Markdown with proper front matter structure
 
 ## Mandatory Template Structure
+
 All implementation plans must strictly adhere to the following template. Each section is required and must be populated with specific, actionable content. AI agents must validate template compliance before execution.
 
 ## Template Validation Rules
