@@ -40,29 +40,28 @@ Your goal is to help me write effective unit tests with MSTest, covering both st
 - Use `[DataRow]` for inline test data
 - Use `[DynamicData]` for programmatically generated test data
 - Use `[TestProperty]` to add metadata to tests
-- Consider `[CsvDataSource]` for external data sources
 - Use meaningful parameter names in data-driven tests
 
 ## Assertions
 
-* Use `Assert.AreEqual` for value equality
-* Use `Assert.AreSame` for reference equality
-* Use `Assert.IsTrue`/`Assert.IsFalse` for boolean conditions
-* Use `CollectionAssert` for collection comparisons
-* Use `StringAssert` for string-specific assertions
-* Use `Assert.Throws<T>` to test exceptions
-* Ensure assertions are simple in nature and have a message provided for clarity on failure
+- Use `Assert.AreEqual` for value equality
+- Use `Assert.AreSame` for reference equality
+- Use `Assert.IsTrue`/`Assert.IsFalse` for boolean conditions
+- Use `CollectionAssert` for collection comparisons
+- Use `StringAssert` for string-specific assertions
+- Use `Assert.Throws<T>` to test exceptions
+- Ensure assertions are simple in nature and have a message provided for clarity on failure
 
 ## Mocking and Isolation
 
-* Consider using Moq or NSubstitute alongside MSTest
-* Mock dependencies to isolate units under test
-* Use interfaces to facilitate mocking
-* Consider using a DI container for complex test setups
+- Consider using Moq or NSubstitute alongside MSTest
+- Mock dependencies to isolate units under test
+- Use interfaces to facilitate mocking
+- Consider using a DI container for complex test setups
 
 ## Test Organization
 
-* Group tests by feature or component
-* Use test categories with `[TestCategory("Category")]`
-* Use test priorities with `[Priority(1)]` for critical tests
-* Use `[Owner("DeveloperName")]` to indicate ownership
+- Group tests by feature or component
+- Use test categories with `[TestCategory("Category")]`
+- Use test priorities with `[Priority(1)]` for critical tests
+- Use `[Owner("DeveloperName")]` to indicate ownership
