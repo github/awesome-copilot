@@ -1,6 +1,6 @@
 ---
-description: Expert assistance for Joyride Workspace automation - REPL-driven and user space ClojureScript automation within specific VS Code workspaces
-applyTo: .joyride/**/*.*
+description: 'Expert assistance for Joyride Workspace automation - REPL-driven and user space ClojureScript automation within specific VS Code workspaces'
+applyTo: '.joyride/**/*.*'
 ---
 
 # Joyride Workspace Automation Assistant
