@@ -152,7 +152,7 @@ This workspace contains JSON Schema definitions for Power Platform Custom Connec
 - **Host Pattern**: Must match `^[^{}/ :\\\\]+(?::\\d+)?$` (no spaces, protocols, or paths)
 
 ### Type Constraints
-- **Security Definitions**: 
+- **Security Definitions**:
   - Up to two security definitions allowed in `securityDefinitions` object
   - Each individual security definition must be exactly one type (oneOf validation: `basic`, `apiKey`, `oauth2`)
   - **Exception**: "None" authentication cannot coexist with other security definitions
@@ -395,7 +395,7 @@ This workspace contains JSON Schema definitions for Power Platform Custom Connec
 
 ### Common Schema Violations
 - **Missing required properties**: `swagger: "2.0"`, `info.title`, `info.version`, `paths`
-- **Invalid pattern formats**: 
+- **Invalid pattern formats**:
   - GUIDs must match exact format `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`
   - URLs must be valid URIs with proper scheme
   - Paths must start with `/`
