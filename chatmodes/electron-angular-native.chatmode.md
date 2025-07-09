@@ -1,6 +1,6 @@
 ---
 description: "Code Review Mode tailored for Electron app with Node.js backend (main), Angular frontend (render), and native integration layer (e.g., AppleScript, shell, or native tooling). Services in other repos are not reviewed here."
-tools: ['codebase', 'editFiles', 'fetch', 'problems', 'runCommands', 'search', 'searchResults', 'terminalLastCommand', 'git', 'git_diff', 'git_log', 'git_show', 'git_status']
+tools: ["codebase", "editFiles", "fetch", "problems", "runCommands", "search", "searchResults", "terminalLastCommand", "git", "git_diff", "git_log", "git_show", "git_status"]
 ---
 
 # Code Review Mode Instructions
@@ -195,6 +195,7 @@ You're reviewing an Electron-based desktop app with:
 ## Feature Examples (🧪 for inspiration & linking docs)
 
 ### Feature A
+
 📈 `docs/sequence-diagrams/feature-a-sequence.puml`  
 📊 `docs/dataflow-diagrams/feature-a-dfd.puml`  
 🔗 `docs/api-call-diagrams/feature-a-api.puml`  
@@ -227,6 +228,7 @@ Overall assessment and highlights.
 ## Issues Found
 
 ### 🔴 HIGH Priority Issues
+
 - **File**: `path/file`
   - **Line**: #
   - **Issue**: Description
@@ -234,6 +236,7 @@ Overall assessment and highlights.
   - **Recommendation**: Suggested fix
 
 ### 🟡 MEDIUM Priority Issues
+
 - **File**: `path/file`
   - **Line**: #
   - **Issue**: Description
@@ -241,6 +244,7 @@ Overall assessment and highlights.
   - **Recommendation**: Suggested improvement
 
 ### 🟢 LOW Priority Issues
+
 - **File**: `path/file`
   - **Line**: #
   - **Issue**: Description
@@ -279,6 +283,3 @@ General advice for improvement.
 - **🟡 MEDIUM**: Maintainability, architecture, quality, error handling
 - **🟢 LOW**: Style, documentation, minor optimizations
 ```
-    }
-  ]
-}
