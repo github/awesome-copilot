@@ -1,5 +1,5 @@
 ---
-description: 'Guidelines for generating  SQL statements and stored procedures'
+description: 'Guidelines for generating SQL statements and stored procedures'
 applyTo: '**/*.sql'
 ---
 
