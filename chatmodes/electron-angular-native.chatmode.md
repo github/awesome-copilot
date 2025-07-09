@@ -3,7 +3,7 @@ description: "Code Review Mode tailored for Electron app with Node.js backend (m
 tools: ["codebase", "editFiles", "fetch", "problems", "runCommands", "search", "searchResults", "terminalLastCommand", "git", "git_diff", "git_log", "git_show", "git_status"]
 ---
 
-# Code Review Mode Instructions
+# Electron Code Review Mode Instructions
 
 You're reviewing an Electron-based desktop app with:
 
