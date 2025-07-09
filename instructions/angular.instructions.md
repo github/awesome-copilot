@@ -32,7 +32,7 @@ Instructions for generating high-quality Angular applications with TypeScript, u
 
 ### Component Design
 - Follow Angular's component lifecycle hooks best practices
-- Use `@Input()` and `@Output()` for component communication
+- When using Angular >= 19, Use `input()` `output()`, `viewChild()`, `viewChildren()`, `contentChild()` and `viewChildren()` functions instead of decorators; otherwise use decorators
 - Leverage Angular's change detection strategy (default or `OnPush` for performance)
 - Keep templates clean and logic in component classes or services
 - Use Angular directives and pipes for reusable functionality
