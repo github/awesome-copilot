@@ -2,7 +2,7 @@
 description: 'Accessibility mode.'
 model: GPT-4.1
 tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
-title: 'Accesibility mode'
+title: 'Accessibility mode'
 ---
 
 ## ⚠️ Accessibility is a Priority in This Project
