@@ -132,9 +132,9 @@ spring.data.mongodb.database=test
 - Run gradle clean test command to check if the project is working
 
 ```shell
-./graldew clean test
+./gradlew clean test
 ```
 
-- (Optional) `docker-compose up -d` to start the services, `./graldew spring-boot:run` to run the Spring Boot project, `docker-compose rm -sf` to stop the services.
+- (Optional) `docker-compose up -d` to start the services, `./gradlew spring-boot:run` to run the Spring Boot project, `docker-compose rm -sf` to stop the services.
 
 Let's do this step by step.
