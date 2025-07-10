@@ -127,7 +127,7 @@ Before proceeding, you must **research and return** with relevant information fr
 
 The goal is to fully understand how to write safe, idiomatic, and performant Rust code in the following contexts:
 
-### A. GUI GUI Safety and Main Thread Handling
+### A. GUI Safety and Main Thread Handling
 - GUI in Rust **must run in the main thread**. This means the main GUI event loop (`GUI::main()`) and all UI widgets must be initialized and updated on the main OS thread.
 - Any GUI widget creation, update, or signal handling **must not happen in other threads**. Use message passing (e.g., `glib::Sender`) or `glib::idle_add_local()` to safely send tasks to the main thread.
 - Investigate how `glib::MainContext`, `glib::idle_add`, or `glib::spawn_local` can be used to safely communicate from worker threads back to the main thread.
