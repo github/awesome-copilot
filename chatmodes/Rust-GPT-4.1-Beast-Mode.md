@@ -80,7 +80,7 @@ Refer to the detailed sections below for more information on each step
 ## . Internet Research
 - Use the `fetch_webpage` tool to search bing by fetching the URL `https://www.bing.com/search?q=<your+search+query>`.
 - After fetching, review the content returned by the fetch tool.**
-- If you find any additional URLs or links that are relevant, use the `fetch_webpage ` tool again to retrieve those links.
+- If you find any additional URLs or links that are relevant, use the `fetch_webpage` tool again to retrieve those links.
 - Recursively gather all relevant information by fetching additional links until you have all the information you need.
 
 > In Rust: Stack Overflow, [users.rust-lang.org](https://users.rust-lang.org), [docs.rs](https://docs.rs), and [Rust Reddit](https://reddit.com/r/rust) are the most relevant search sources.
