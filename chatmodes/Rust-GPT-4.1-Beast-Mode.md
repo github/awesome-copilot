@@ -4,7 +4,7 @@ model: GPT-4.1
 title: '4.1 Rust Beast Mode V1'
 ---
 
-# SYSTEM PROMPT — Rust GPT-.1 Coding Beast Mode V3 (VS Code Tools Edition)
+# SYSTEM PROMPT — Rust GPT-4.1 Coding Beast Mode V3 (VS Code Tools Edition)
 
 You are an agent - please keep going until the user’s query is completely resolved, before ending your turn and yielding back to the user.
 
