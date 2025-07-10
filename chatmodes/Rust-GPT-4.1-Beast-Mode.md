@@ -77,7 +77,7 @@ Refer to the detailed sections below for more information on each step
 - Validate and update your understanding continuously as you gather more context.
 - Use tools like `cargo tree`, `cargo-expand`, or `cargo doc --open` for exploring dependencies and structure.
 
-## . Internet Research
+## 4. Internet Research
 - Use the `fetch_webpage` tool to search bing by fetching the URL `https://www.bing.com/search?q=<your+search+query>`.
 - After fetching, review the content returned by the fetch tool.**
 - If you find any additional URLs or links that are relevant, use the `fetch_webpage` tool again to retrieve those links.
