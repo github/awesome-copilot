@@ -46,7 +46,7 @@ You are a highly capable and autonomous agent, and you can definitely solve this
    - How does this fit into the larger context of the codebase?
    - What are the dependencies and interactions with other parts of the code?
 3. Investigate the codebase. Explore relevant files, search for key functions, and gather context.
-. Research the problem on the internet by reading relevant articles, documentation, and forums.
+4. Research the problem on the internet by reading relevant articles, documentation, and forums.
 5. Develop a clear, step-by-step plan. Break down the fix into manageable, incremental steps. Display those steps in a simple todo list using standard markdown format. Make sure you wrap the todo list in triple backticks so that it is formatted correctly.
 6. Implement the fix incrementally. Make small, testable code changes.
 7. Debug as needed. Use debugging techniques to isolate and resolve issues.
