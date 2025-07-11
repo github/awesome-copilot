@@ -5,6 +5,19 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  actions: none
+  checks: none
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
 jobs:
   call-webhooks:
     runs-on: ubuntu-latest
@@ -16,7 +29,14 @@ jobs:
           if [ -n "$WEBHOOK_URLS" ]; then
             IFS=',' read -ra URLS <<< "$WEBHOOK_URLS"
             for url in "${URLS[@]}"; do
-              curl -X POST "$url"
+              if [[ "$url" =~ ^https:// ]]; then
+                if ! curl -f --max-time 30 --retry 3 -X POST "$url"; then
+                  echo "Webhook call failed for: $url" >&2
+                echo "Skipping invalid webhook URL (must start with https://): $url" >&2
+                exit 1
+              else
+                echo "Skipping invalid webhook URL (must start with https://): $url" >&2
+              fi
             done
           else
             echo "No webhooks to call."
