@@ -1,0 +1,23 @@
+name: Call Webhooks on Main Push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  call-webhooks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check and call webhooks
+        env:
+          WEBHOOK_URLS: ${{ secrets.WEBHOOK_URLS }}
+        run: |
+          if [ -n "$WEBHOOK_URLS" ]; then
+            IFS=',' read -ra URLS <<< "$WEBHOOK_URLS"
+            for url in "${URLS[@]}"; do
+              curl -X POST "$url"
+            done
+          else
+            echo "No webhooks to call."
+          fi
