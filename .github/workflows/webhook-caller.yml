@@ -35,7 +35,7 @@ jobs:
                   echo "Webhook call failed for URL '$url' at index $idx" >&2
                 fi
               else
-                echo "Skipping invalid webhook URL (must start with https://): failed on url at index $idx" >&2
+                echo "Skipping invalid webhook URL (must start with https://): '$url' at index $idx" >&2
               fi
               idx=$((idx+1))
             done
