@@ -28,15 +28,16 @@ jobs:
         run: |
           if [ -n "$WEBHOOK_URLS" ]; then
             IFS=',' read -ra URLS <<< "$WEBHOOK_URLS"
+            idx=1
             for url in "${URLS[@]}"; do
               if [[ "$url" =~ ^https:// ]]; then
                 if ! curl -f --max-time 30 --retry 3 -X POST "$url"; then
-                  echo "Webhook call failed for: $url" >&2
-                echo "Skipping invalid webhook URL (must start with https://): $url" >&2
-                exit 1
+                  echo "Webhook call failed on url $idx" >&2
+                fi
               else
-                echo "Skipping invalid webhook URL (must start with https://): $url" >&2
+                echo "Skipping invalid webhook URL (must start with https://): failed on url $idx" >&2
               fi
+              idx=$((idx+1))
             done
           else
             echo "No webhooks to call."
