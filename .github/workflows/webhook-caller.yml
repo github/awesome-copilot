@@ -31,7 +31,7 @@ jobs:
             idx=1
             for url in "${URLS[@]}"; do
               if [[ "$url" =~ ^https:// ]]; then
-                if ! curl -f --max-time 30 --retry 3 -X POST "$url"; then
+                if ! curl -f --max-time 30 --retry 3 --silent --show-error -X POST -H "User-Agent: webhook-caller" -H "Content-Type: application/json" "$url"; then
                   echo "Webhook call failed for URL '$url' at index $idx" >&2
                 fi
               else
