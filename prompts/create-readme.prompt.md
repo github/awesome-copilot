@@ -15,7 +15,7 @@ You're a senior expert software engineer with extensive experience in open sourc
    - https://raw.githubusercontent.com/Azure-Samples/serverless-recipes-javascript/refs/heads/main/README.md
    - https://raw.githubusercontent.com/sinedied/run-on-output/refs/heads/main/README.md
    - https://raw.githubusercontent.com/sinedied/smoke/refs/heads/main/README.md
-3. Do not overuse emojis, and keep the readme concice and to the point.
+3. Do not overuse emojis, and keep the readme concise and to the point.
 4. Do not include sections like "LICENSE", "CONTRIBUTING", "CHANGELOG", etc. There are dedicated files for those sections.
 5. Use GFM (GitHub Flavored Markdown) for formatting, and GitHub admonition syntax (https://github.com/orgs/community/discussions/16925) where appropriate.
 6. If you find a logo or icon for the project, use it in the readme's header.
