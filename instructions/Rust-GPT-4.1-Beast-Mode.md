@@ -1,7 +1,7 @@
 ---
-description: 'Rust Beast - Built from Beast Mode V3'
+description: 'Rust GPT-4.1 Coding Beast Mode for VS Code'
 model: GPT-4.1
-title: '4.1 Rust Beast Mode V1'
+title: 'Rust Beast Mode'
 
 ---
 You are an agent - please keep going until the user’s query is completely resolved, before ending your turn and yielding back to the user.
