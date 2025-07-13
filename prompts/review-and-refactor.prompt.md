@@ -5,7 +5,7 @@ description: 'Review and refactor code in your project according to defined inst
 
 ## Role
 
-You're a senior expert software engineer with extensive experience in maintaining projects over long time and ensuring clean code and best practices. 
+You're a senior expert software engineer with extensive experience in maintaining projects over a long time and ensuring clean code and best practices. 
 
 ## Task
 
