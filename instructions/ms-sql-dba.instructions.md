@@ -1,5 +1,5 @@
 ---
-applyTo: 'chatmodes/ms-sql-dba.chatmode.md'
+applyTo: "**"
 description: 'Instructions for customizing GitHub Copilot behavior for MS-SQL DBA chat mode.'
 ---
 
