@@ -189,7 +189,6 @@ function extractDescription(filePath) {
       // Parse frontmatter for description (for both prompts and instructions)
       const lines = content.split("\n");
       let inFrontmatter = false;
-      let frontmatterEnded = false;
 
       // For multi-line descriptions
       let isMultilineDescription = false;
@@ -201,14 +200,12 @@ function extractDescription(filePath) {
         if (line.trim() === "---") {
           if (!inFrontmatter) {
             inFrontmatter = true;
-          } else if (inFrontmatter && !frontmatterEnded) {
-            frontmatterEnded = true;
-            break;
+            continue;
           }
-          continue;
+          break;
         }
 
-        if (inFrontmatter && !frontmatterEnded) {
+        if (inFrontmatter) {
           // Check for multi-line description with pipe syntax (|)
           const multilineMatch = line.match(/^description:\s*\|(\s*)$/);
           if (multilineMatch) {
@@ -221,7 +218,6 @@ function extractDescription(filePath) {
           if (isMultilineDescription) {
             // If the line has no indentation or has another frontmatter key, stop collecting
             if (!line.startsWith("  ") || line.match(/^[a-zA-Z0-9_-]+:/)) {
-              isMultilineDescription = false;
               // Join the collected lines and return
               return multilineDescription.join(" ").trim();
             }
