@@ -1,0 +1,1647 @@
+{
+  "chatmodes": [
+    {
+      "filename": "4.1-Beast.chatmode.md",
+      "description": "GPT 4.1 as a top-notch coding agent.",
+      "model": "GPT-4.1",
+      "title": "4.1 Beast Mode (VS Code v1.102)"
+    },
+    {
+      "filename": "accesibility.chatmode.md",
+      "description": "Accessibility mode.",
+      "model": "GPT-4.1",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ],
+      "title": "Accessibility mode"
+    },
+    {
+      "filename": "api-architect.chatmode.md",
+      "description": "Your role is that of an API architect. Help mentor the engineer by providing guidance, support, and working code."
+    },
+    {
+      "filename": "azure-principal-architect.chatmode.md",
+      "description": "Provide expert Azure Principal Architect guidance using Azure Well-Architected Framework principles and Microsoft best practices.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "azure_design_architecture",
+        "azure_get_code_gen_best_practices",
+        "azure_get_deployment_best_practices",
+        "azure_get_swa_best_practices",
+        "azure_query_learn"
+      ]
+    },
+    {
+      "filename": "azure-saas-architect.chatmode.md",
+      "description": "Provide expert Azure SaaS Architect guidance focusing on multitenant applications using Azure Well-Architected SaaS principles and Microsoft best practices.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "azure_design_architecture",
+        "azure_get_code_gen_best_practices",
+        "azure_get_deployment_best_practices",
+        "azure_get_swa_best_practices",
+        "azure_query_learn"
+      ]
+    },
+    {
+      "filename": "azure-verified-modules-bicep.chatmode.md",
+      "description": "Create, update, or review Azure IaC in Bicep using Azure Verified Modules (AVM).",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "azure_get_deployment_best_practices",
+        "azure_get_schema_for_Bicep"
+      ]
+    },
+    {
+      "filename": "azure-verified-modules-terraform.chatmode.md",
+      "description": "Create, update, or review Azure IaC in Terraform using Azure Verified Modules (AVM).",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "azure_get_deployment_best_practices",
+        "azure_get_schema_for_Bicep"
+      ]
+    },
+    {
+      "filename": "clojure-interactive-programming.chatmode.md",
+      "description": "Expert Clojure pair programmer with REPL-first methodology, architectural oversight, and interactive problem-solving. Enforces quality standards, prevents workarounds, and develops solutions incrementally through live REPL evaluation before file modifications.",
+      "title": "Clojure Interactive Programming with Backseat Driver"
+    },
+    {
+      "filename": "critical-thinking.chatmode.md",
+      "description": "Challenge assumptions and encourage critical thinking to ensure the best possible solution and outcomes.",
+      "tools": [
+        "codebase",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "problems",
+        "search",
+        "searchResults",
+        "usages"
+      ]
+    },
+    {
+      "filename": "csharp-dotnet-janitor.chatmode.md",
+      "description": "Perform janitorial tasks on C#/.NET code including cleanup, modernization, and tech debt remediation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "github"
+      ]
+    },
+    {
+      "filename": "debug.chatmode.md",
+      "description": "Debug your application to find and fix a bug",
+      "tools": [
+        "codebase",
+        "readFiles",
+        "editFiles",
+        "githubRepo",
+        "runCommands",
+        "fetch",
+        "search",
+        "usages",
+        "findTestFiles",
+        "get_errors",
+        "test_failure",
+        "run_in_terminal",
+        "get_terminal_output"
+      ]
+    },
+    {
+      "filename": "demonstrate-understanding.chatmode.md",
+      "description": "Validate user understanding of code, design patterns, and implementation details through guided questioning.",
+      "tools": [
+        "codebase",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "search",
+        "usages"
+      ]
+    },
+    {
+      "filename": "electron-angular-native.chatmode.md",
+      "description": "Code Review Mode tailored for Electron app with Node.js backend (main), Angular frontend (render), and native integration layer (e.g., AppleScript, shell, or native tooling). Services in other repos are not reviewed here.",
+      "tools": [
+        "codebase",
+        "editFiles",
+        "fetch",
+        "problems",
+        "runCommands",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "git",
+        "git_diff",
+        "git_log",
+        "git_show",
+        "git_status"
+      ]
+    },
+    {
+      "filename": "expert-dotnet-software-engineer.chatmode.md",
+      "description": "Provide expert .NET software engineering guidance using modern software design patterns.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp"
+      ]
+    },
+    {
+      "filename": "expert-react-frontend-engineer.chatmode.md",
+      "description": "Provide expert React frontend engineering guidance using modern TypeScript and design patterns.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp"
+      ]
+    },
+    {
+      "filename": "gilfoyle.chatmode.md",
+      "description": "Code review and analysis with the sardonic wit and technical elitism of Bertram Gilfoyle from Silicon Valley. Prepare for brutal honesty about your code.",
+      "tools": [
+        "changes",
+        "codebase",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "implementation-plan.chatmode.md",
+      "description": "Generate an implementation plan for new features or refactoring existing code.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "github"
+      ]
+    },
+    {
+      "filename": "janitor.chatmode.md",
+      "description": "Perform janitorial tasks on any codebase including cleanup, simplification, and tech debt remediation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "github"
+      ]
+    },
+    {
+      "filename": "mentor.chatmode.md",
+      "description": "Help mentor the engineer by providing guidance and support.",
+      "tools": [
+        "codebase",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "search",
+        "usages"
+      ]
+    },
+    {
+      "filename": "meta-agentic-project-scaffold.chatmode.md",
+      "description": "Meta agentic project creation assistant to help users create and manage project workflows effectively.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "readCellOutput",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "updateUserPreferences",
+        "usages",
+        "vscodeAPI",
+        "activePullRequest",
+        "copilotCodingAgent"
+      ],
+      "model": "GPT-4.1"
+    },
+    {
+      "filename": "microsoft_learn_contributor.chatmode.md",
+      "description": "Microsoft Learn Contributor chatmode for editing and writing Microsoft Learn documentation following Microsoft Writing Style Guide and authoring best practices.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "search",
+        "searchResults",
+        "microsoft.docs.mcp"
+      ]
+    },
+    {
+      "filename": "ms-sql-dba.chatmode.md",
+      "description": "Work with Microsoft SQL Server databases using the MS SQL extension.",
+      "tools": [
+        "codebase",
+        "editFiles",
+        "githubRepo",
+        "extensions",
+        "runCommands",
+        "database",
+        "mssql_connect",
+        "mssql_query",
+        "mssql_listServers",
+        "mssql_listDatabases",
+        "mssql_disconnect",
+        "mssql_visualizeSchema"
+      ]
+    },
+    {
+      "filename": "plan.chatmode.md",
+      "description": "Strategic planning and architecture assistant focused on thoughtful analysis before implementation. Helps developers understand codebases, clarify requirements, and develop comprehensive implementation strategies.",
+      "tools": [
+        "codebase",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "problems",
+        "search",
+        "searchResults",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "planner.chatmode.md",
+      "description": "Generate an implementation plan for new features or refactoring existing code.",
+      "tools": [
+        "codebase",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "search",
+        "usages"
+      ]
+    },
+    {
+      "filename": "postgresql-dba.chatmode.md",
+      "description": "Work with PostgreSQL databases using the PostgreSQL extension.",
+      "tools": [
+        "codebase",
+        "editFiles",
+        "githubRepo",
+        "extensions",
+        "runCommands",
+        "database",
+        "pgsql_bulkLoadCsv",
+        "pgsql_connect",
+        "pgsql_describeCsv",
+        "pgsql_disconnect",
+        "pgsql_listDatabases",
+        "pgsql_listServers",
+        "pgsql_modifyDatabase",
+        "pgsql_open_script",
+        "pgsql_query",
+        "pgsql_visualizeSchema"
+      ]
+    },
+    {
+      "filename": "prd.chatmode.md",
+      "description": "Generate a comprehensive Product Requirements Document (PRD) in Markdown, detailing user stories, acceptance criteria, technical considerations, and metrics. Optionally create GitHub issues upon user confirmation.",
+      "tools": [
+        "codebase",
+        "editFiles",
+        "fetch",
+        "findTestFiles",
+        "list_issues",
+        "githubRepo",
+        "search",
+        "add_issue_comment",
+        "create_issue",
+        "update_issue",
+        "get_issue",
+        "search_issues"
+      ]
+    },
+    {
+      "filename": "principal-software-engineer.chatmode.md",
+      "description": "Provide principal-level software engineering guidance with focus on engineering excellence, technical leadership, and pragmatic implementation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "github"
+      ]
+    },
+    {
+      "filename": "prompt-engineer.chatmode.md",
+      "description": "A specialized chat mode for analyzing and improving prompts. Every user input is treated as a propt to be improved. It first provides a detailed analysis of the original prompt within a <reasoning> tag, evaluating it against a systematic framework based on OpenAI's prompt engineering best practices. Following the analysis, it generates a new, improved prompt."
+    },
+    {
+      "filename": "refine-issue.chatmode.md",
+      "description": "Refine the requirement or issue with Acceptance Criteria, Technical Considerations, Edge Cases, and NFRs",
+      "tools": [
+        "list_issues",
+        "githubRepo",
+        "search",
+        "add_issue_comment",
+        "create_issue",
+        "create_issue_comment",
+        "update_issue",
+        "delete_issue",
+        "get_issue",
+        "search_issues"
+      ]
+    },
+    {
+      "filename": "rust-gpt-4.1-beast-mode.chatmode.md",
+      "description": "Rust GPT-4.1 Coding Beast Mode for VS Code",
+      "model": "GPT-4.1",
+      "title": "Rust Beast Mode"
+    },
+    {
+      "filename": "semantic-kernel-dotnet.chatmode.md",
+      "description": "Create, update, refactor, explain or work with code using the .NET version of Semantic Kernel.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "github"
+      ]
+    },
+    {
+      "filename": "semantic-kernel-python.chatmode.md",
+      "description": "Create, update, refactor, explain or work with code using the Python version of Semantic Kernel.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "github",
+        "configurePythonEnvironment",
+        "getPythonEnvironmentInfo",
+        "getPythonExecutableCommand",
+        "installPythonPackage"
+      ]
+    },
+    {
+      "filename": "simple-app-idea-generator.chatmode.md",
+      "description": "Brainstorm and develop new application ideas through fun, interactive questioning until ready for specification creation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "search",
+        "searchResults",
+        "usages",
+        "microsoft.docs.mcp",
+        "websearch"
+      ]
+    },
+    {
+      "filename": "specification.chatmode.md",
+      "description": "Generate or update specification documents for new or existing functionality.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "microsoft.docs.mcp",
+        "github"
+      ]
+    },
+    {
+      "filename": "tech-debt-remediation-plan.chatmode.md",
+      "description": "Generate technical debt remediation plans for code, tests, and documentation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "github"
+      ]
+    },
+    {
+      "filename": "voidbeast-gpt41enhanced.chatmode.md",
+      "description": "'4.1 voidBeast_GPT41Enhanced 1.0 : a advanced autonomous developer agent, designed for elite full-stack development with enhanced multi-mode capabilities. This latest evolution features sophisticated mode detection, comprehensive research capabilities, and never-ending problem resolution. Plan/Act/Deep Research/Analyzer/Checkpoints(Memory)/Prompt Generator Modes. '",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "readCellOutput",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "updateUserPreferences",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "wg-code-alchemist.chatmode.md",
+      "description": "Ask WG Code Alchemist to transform your code with Clean Code principles and SOLID design",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "wg-code-sentinel.chatmode.md",
+      "description": "Ask WG Code Sentinel to review your code for security issues.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runNotebooks",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    }
+  ],
+  "instructions": [
+    {
+      "filename": "ai-prompt-engineering-safety-best-practices.instructions.md",
+      "applyTo": [
+        "*"
+      ],
+      "description": "Comprehensive best practices for AI prompt engineering, safety frameworks, bias mitigation, and responsible AI usage for Copilot and LLMs."
+    },
+    {
+      "filename": "angular.instructions.md",
+      "description": "Angular-specific coding standards and best practices",
+      "applyTo": "**/*.ts, **/*.html, **/*.scss, **/*.css"
+    },
+    {
+      "filename": "aspnet-rest-apis.instructions.md",
+      "description": "Guidelines for building REST APIs with ASP.NET",
+      "applyTo": "**/*.cs, **/*.json"
+    },
+    {
+      "filename": "azure-functions-typescript.instructions.md",
+      "description": "TypeScript patterns for Azure Functions",
+      "applyTo": "**/*.ts, **/*.js, **/*.json"
+    },
+    {
+      "filename": "bicep-code-best-practices.instructions.md",
+      "description": "Infrastructure as Code with Bicep",
+      "applyTo": "**/*.bicep"
+    },
+    {
+      "filename": "blazor.instructions.md",
+      "description": "Blazor component and application patterns",
+      "applyTo": "**/*.razor, **/*.razor.cs, **/*.razor.css"
+    },
+    {
+      "filename": "cmake-vcpkg.instructions.md",
+      "description": "C++ project configuration and package management",
+      "applyTo": "**/*.cmake, **/CMakeLists.txt, **/*.cpp, **/*.h, **/*.hpp"
+    },
+    {
+      "filename": "containerization-docker-best-practices.instructions.md",
+      "applyTo": "*",
+      "description": "Comprehensive best practices for creating optimized, secure, and efficient Docker images and managing containers. Covers multi-stage builds, image layer optimization, security scanning, and runtime best practices."
+    },
+    {
+      "filename": "copilot-thought-logging.instructions.md",
+      "applyTo": "**",
+      "description": "See process Copilot is following where you can edit this to reshape the interaction or save when follow up may be needed"
+    },
+    {
+      "filename": "csharp.instructions.md",
+      "description": "Guidelines for building C# applications",
+      "applyTo": "**/*.cs"
+    },
+    {
+      "filename": "devops-core-principles.instructions.md",
+      "applyTo": "*",
+      "description": "Foundational instructions covering core DevOps principles, culture (CALMS), and key metrics (DORA) to guide GitHub Copilot in understanding and promoting effective software delivery."
+    },
+    {
+      "filename": "dotnet-architecture-good-practices.instructions.md",
+      "description": "\"DDD and .NET architecture guidelines'",
+      "applyTo": "**/*.cs,**/*.csproj,**/Program.cs,**/*.razor"
+    },
+    {
+      "filename": "dotnet-maui.instructions.md",
+      "description": ".NET MAUI component and application patterns",
+      "applyTo": "**/*.xaml, **/*.cs"
+    },
+    {
+      "filename": "genaiscript.instructions.md",
+      "description": "AI-powered script generation guidelines",
+      "applyTo": "**/*.genai.*"
+    },
+    {
+      "filename": "generate-modern-terraform-code-for-azure.instructions.md",
+      "description": "Guidelines for generating modern Terraform code for Azure",
+      "applyTo": "**/*.tf"
+    },
+    {
+      "filename": "gilfoyle-code-review.instructions.md",
+      "applyTo": "**",
+      "description": "Gilfoyle-style code review instructions that channel the sardonic technical supremacy of Silicon Valley''s most arrogant systems architect."
+    },
+    {
+      "filename": "github-actions-ci-cd-best-practices.instructions.md",
+      "applyTo": ".github/workflows/*.yml",
+      "description": "Comprehensive guide for building robust, secure, and efficient CI/CD pipelines using GitHub Actions. Covers workflow structure, jobs, steps, environment variables, secret management, caching, matrix strategies, testing, and deployment strategies."
+    },
+    {
+      "filename": "go.instructions.md",
+      "description": "Instructions for writing Go code following idiomatic Go practices and community standards",
+      "applyTo": "**/*.go,**/go.mod,**/go.sum"
+    },
+    {
+      "filename": "java.instructions.md",
+      "description": "Guidelines for building Java base applications",
+      "applyTo": "**/*.java"
+    },
+    {
+      "filename": "joyride-user-project.instructions.md",
+      "description": "Expert assistance for Joyride User Script projects - REPL-driven ClojureScript and user space automation of VS Code",
+      "applyTo": "scripts/**/*.cljs,src/**/*.cljs,deps.edn,.joyride/**/*.cljs"
+    },
+    {
+      "filename": "joyride-workspace-automation.instructions.md",
+      "description": "Expert assistance for Joyride Workspace automation - REPL-driven and user space ClojureScript automation within specific VS Code workspaces",
+      "applyTo": ".joyride/**/*.*"
+    },
+    {
+      "filename": "kubernetes-deployment-best-practices.instructions.md",
+      "applyTo": "*",
+      "description": "Comprehensive best practices for deploying and managing applications on Kubernetes. Covers Pods, Deployments, Services, Ingress, ConfigMaps, Secrets, health checks, resource limits, scaling, and security contexts."
+    },
+    {
+      "filename": "localization.instructions.md",
+      "description": "Guidelines for localizing markdown documents",
+      "applyTo": "**/*.md"
+    },
+    {
+      "filename": "markdown.instructions.md",
+      "description": "Documentation and content creation standards",
+      "applyTo": "**/*.md"
+    },
+    {
+      "filename": "memory-bank.instructions.md",
+      "applyTo": "**",
+      "description": "No description provided"
+    },
+    {
+      "filename": "ms-sql-dba.instructions.md",
+      "applyTo": "**",
+      "description": "Instructions for customizing GitHub Copilot behavior for MS-SQL DBA chat mode."
+    },
+    {
+      "filename": "nextjs-tailwind.instructions.md",
+      "description": "Next.js + Tailwind development standards and instructions",
+      "applyTo": "**/*.tsx, **/*.ts, **/*.jsx, **/*.js, **/*.css"
+    },
+    {
+      "filename": "nodejs-javascript-vitest.instructions.md",
+      "description": "Guidelines for writing Node.js and JavaScript code with Vitest testing",
+      "applyTo": "**/*.js, **/*.mjs, **/*.cjs"
+    },
+    {
+      "filename": "performance-optimization.instructions.md",
+      "applyTo": "*",
+      "description": "The most comprehensive, practical, and engineer-authored performance optimization instructions for all languages, frameworks, and stacks. Covers frontend, backend, and database best practices with actionable guidance, scenario-based checklists, troubleshooting, and pro tips."
+    },
+    {
+      "filename": "playwright-typescript.instructions.md",
+      "description": "Playwright test generation instructions",
+      "applyTo": "**"
+    },
+    {
+      "filename": "power-platform-connector.instructions.md",
+      "title": "Power Platform Connectors Schema Development Instructions",
+      "description": "Comprehensive development guidelines for Power Platform Custom Connectors using JSON Schema definitions. Covers API definitions (Swagger 2.0), API properties, and settings configuration with Microsoft extensions.",
+      "applyTo": "**/*.{json,md}"
+    },
+    {
+      "filename": "powershell.instructions.md",
+      "applyTo": "**/*.ps1,**/*.psm1",
+      "description": "PowerShell cmdlet and scripting best practices based on Microsoft guidelines"
+    },
+    {
+      "filename": "python.instructions.md",
+      "description": "Python coding conventions and guidelines",
+      "applyTo": "**/*.py"
+    },
+    {
+      "filename": "quarkus-mcp-server-sse.instructions.md",
+      "applyTo": "*",
+      "description": "Quarkus and MCP Server with HTTP SSE transport development standards and instructions"
+    },
+    {
+      "filename": "quarkus.instructions.md",
+      "applyTo": "*",
+      "description": "Quarkus development standards and instructions"
+    },
+    {
+      "filename": "reactjs.instructions.md",
+      "description": "ReactJS development standards and best practices",
+      "applyTo": "**/*.jsx, **/*.tsx, **/*.js, **/*.ts, **/*.css, **/*.scss"
+    },
+    {
+      "filename": "ruby-on-rails.instructions.md",
+      "description": "Ruby on Rails coding conventions and guidelines",
+      "applyTo": "**/*.rb"
+    },
+    {
+      "filename": "security-and-owasp.instructions.md",
+      "applyTo": "*",
+      "description": "Comprehensive secure coding instructions for all languages and frameworks, based on OWASP Top 10 and industry best practices."
+    },
+    {
+      "filename": "self-explanatory-code-commenting.instructions.md",
+      "description": "Guidelines for GitHub Copilot to write comments to achieve self-explanatory code with less comments. Examples are in JavaScript but it should work on any language that has comments.",
+      "applyTo": "**"
+    },
+    {
+      "filename": "springboot.instructions.md",
+      "description": "Guidelines for building Spring Boot base applications",
+      "applyTo": "**/*.java, **/*.kt"
+    },
+    {
+      "filename": "sql-sp-generation.instructions.md",
+      "description": "Guidelines for generating SQL statements and stored procedures",
+      "applyTo": "**/*.sql"
+    },
+    {
+      "filename": "taming-copilot.instructions.md",
+      "applyTo": "**",
+      "description": "Prevent Copilot from wreaking havoc across your codebase, keeping it under control."
+    },
+    {
+      "filename": "tanstack-start-shadcn-tailwind.instructions.md",
+      "description": "Guidelines for building TanStack Start applications",
+      "applyTo": "**/*.ts, **/*.tsx, **/*.js, **/*.jsx, **/*.css, **/*.scss, **/*.json"
+    },
+    {
+      "filename": "vuejs3.instructions.md",
+      "description": "VueJS 3 development standards and best practices with Composition API and TypeScript",
+      "applyTo": "**/*.vue, **/*.ts, **/*.js, **/*.scss"
+    }
+  ],
+  "prompts": [
+    {
+      "filename": "ai-prompt-engineering-safety-review.prompt.md",
+      "description": "Comprehensive AI prompt engineering safety review and improvement prompt. Analyzes prompts for safety, bias, security vulnerabilities, and effectiveness while providing detailed improvement recommendations with extensive frameworks, testing methodologies, and educational content."
+    },
+    {
+      "filename": "aspnet-minimal-api-openapi.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems"
+      ],
+      "description": "Create ASP.NET Minimal API endpoints with proper OpenAPI documentation"
+    },
+    {
+      "filename": "az-cost-optimize.prompt.md",
+      "mode": "agent",
+      "description": "Analyze Azure resources used in the app (IaC files and/or resources in a target rg) and optimize costs - creating GitHub issues for identified optimizations."
+    },
+    {
+      "filename": "azure-resource-health-diagnose.prompt.md",
+      "mode": "agent",
+      "description": "Analyze Azure resource health, diagnose issues from logs and telemetry, and create a remediation plan for identified problems."
+    },
+    {
+      "filename": "comment-code-generate-a-tutorial.prompt.md",
+      "description": "Transform this Python script into a polished, beginner-friendly project by refactoring the code, adding clear instructional comments, and generating a complete markdown tutorial."
+    },
+    {
+      "filename": "create-architectural-decision-record.prompt.md",
+      "mode": "agent",
+      "description": "Create an Architectural Decision Record (ADR) document for AI-optimized decision documentation.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "create-github-issue-feature-from-specification.prompt.md",
+      "mode": "agent",
+      "description": "Create GitHub Issue for feature request from specification file using feature_request.yml template.",
+      "tools": [
+        "codebase",
+        "search",
+        "github",
+        "create_issue",
+        "search_issues",
+        "update_issue"
+      ]
+    },
+    {
+      "filename": "create-github-issues-feature-from-implementation-plan.prompt.md",
+      "mode": "agent",
+      "description": "Create GitHub Issues from implementation plan phases using feature_request.yml or chore_request.yml templates.",
+      "tools": [
+        "codebase",
+        "search",
+        "github",
+        "create_issue",
+        "search_issues",
+        "update_issue"
+      ]
+    },
+    {
+      "filename": "create-github-issues-for-unmet-specification-requirements.prompt.md",
+      "mode": "agent",
+      "description": "Create GitHub Issues for unimplemented requirements from specification files using feature_request.yml template.",
+      "tools": [
+        "codebase",
+        "search",
+        "github",
+        "create_issue",
+        "search_issues",
+        "update_issue"
+      ]
+    },
+    {
+      "filename": "create-implementation-plan.prompt.md",
+      "mode": "agent",
+      "description": "Create a new implementation plan file for new features, refactoring existing code or upgrading packages, design, architecture or infrastructure.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "create-llms.prompt.md",
+      "mode": "agent",
+      "description": "Create an llms.txt file from scratch based on repository structure following the llms.txt specification at https://llmstxt.org/",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "create-oo-component-documentation.prompt.md",
+      "mode": "agent",
+      "description": "Create comprehensive, standardized documentation for object-oriented components following industry best practices and architectural documentation standards.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "create-readme.prompt.md",
+      "mode": "agent",
+      "description": "Create a README.md file for the project"
+    },
+    {
+      "filename": "create-specification.prompt.md",
+      "mode": "agent",
+      "description": "Create a new specification file for the solution, optimized for Generative AI consumption.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "create-spring-boot-java-project.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "findTestFiles",
+        "problems",
+        "runCommands",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "testFailure",
+        "usages"
+      ],
+      "description": "Create Spring Boot Java project skeleton"
+    },
+    {
+      "filename": "create-spring-boot-kotlin-project.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "findTestFiles",
+        "problems",
+        "runCommands",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "testFailure",
+        "usages"
+      ],
+      "description": "Create Spring Boot Kotlin project skeleton"
+    },
+    {
+      "filename": "csharp-async.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems"
+      ],
+      "description": "Get best practices for C# async programming"
+    },
+    {
+      "filename": "csharp-docs.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems"
+      ],
+      "description": "Ensure that C# types are documented with XML comments and follow best practices for documentation."
+    },
+    {
+      "filename": "csharp-mstest.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for MSTest unit testing, including data-driven tests"
+    },
+    {
+      "filename": "csharp-nunit.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for NUnit unit testing, including data-driven tests"
+    },
+    {
+      "filename": "csharp-tunit.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for TUnit unit testing, including data-driven tests"
+    },
+    {
+      "filename": "csharp-xunit.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for XUnit unit testing, including data-driven tests"
+    },
+    {
+      "filename": "dotnet-best-practices.prompt.md",
+      "mode": "agent",
+      "description": "Ensure .NET/C# code meets best practices for the solution/project."
+    },
+    {
+      "filename": "dotnet-design-pattern-review.prompt.md",
+      "mode": "agent",
+      "description": "Review the C#/.NET code for design pattern implementation and suggest improvements."
+    },
+    {
+      "filename": "ef-core.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "runCommands"
+      ],
+      "description": "Get best practices for Entity Framework Core"
+    },
+    {
+      "filename": "gen-specs-as-issues.prompt.md",
+      "description": "This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation."
+    },
+    {
+      "filename": "java-docs.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems"
+      ],
+      "description": "Ensure that Java types are documented with Javadoc comments and follow best practices for documentation."
+    },
+    {
+      "filename": "java-junit.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for JUnit 5 unit testing, including data-driven tests"
+    },
+    {
+      "filename": "java-springboot.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for developing applications with Spring Boot."
+    },
+    {
+      "filename": "javascript-typescript-jest.prompt.md",
+      "description": "Best practices for writing JavaScript/TypeScript tests using Jest, including mocking strategies, test structure, and common patterns."
+    },
+    {
+      "filename": "kotlin-springboot.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "problems",
+        "search"
+      ],
+      "description": "Get best practices for developing applications with Spring Boot and Kotlin."
+    },
+    {
+      "filename": "multi-stage-dockerfile.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "codebase"
+      ],
+      "description": "Create optimized multi-stage Dockerfiles for any language or framework"
+    },
+    {
+      "filename": "my-issues.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "githubRepo",
+        "github",
+        "get_issue",
+        "get_issue_comments",
+        "get_me",
+        "list_issues"
+      ],
+      "description": "List my issues in the current repository"
+    },
+    {
+      "filename": "my-pull-requests.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "githubRepo",
+        "github",
+        "get_me",
+        "get_pull_request",
+        "get_pull_request_comments",
+        "get_pull_request_diff",
+        "get_pull_request_files",
+        "get_pull_request_reviews",
+        "get_pull_request_status",
+        "list_pull_requests",
+        "request_copilot_review"
+      ],
+      "description": "List my pull requests in the current repository"
+    },
+    {
+      "filename": "next-intl-add-language.prompt.md",
+      "mode": "agent",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "findTestFiles",
+        "search",
+        "writeTest"
+      ],
+      "description": "Add new language to a Next.js + next-intl application"
+    },
+    {
+      "filename": "review-and-refactor.prompt.md",
+      "mode": "agent",
+      "description": "Review and refactor code in your project according to defined instructions"
+    },
+    {
+      "filename": "suggest-awesome-github-copilot-chatmodes.prompt.md",
+      "mode": "agent",
+      "description": "Suggest relevant GitHub Copilot chatmode files from the awesome-copilot repository based on current repository context and chat history, avoiding duplicates with existing chatmodes in this repository.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "github"
+      ]
+    },
+    {
+      "filename": "suggest-awesome-github-copilot-prompts.prompt.md",
+      "mode": "agent",
+      "description": "Suggest relevant GitHub Copilot prompt files from the awesome-copilot repository based on current repository context and chat history, avoiding duplicates with existing prompts in this repository.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "new",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI",
+        "github"
+      ]
+    },
+    {
+      "filename": "update-avm-modules-in-bicep.prompt.md",
+      "mode": "agent",
+      "description": "Update Azure Verified Modules (AVM) to latest versions in Bicep files.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "fetch",
+        "runCommands",
+        "azure_get_deployment_best_practices",
+        "azure_get_schema_for_Bicep"
+      ]
+    },
+    {
+      "filename": "update-implementation-plan.prompt.md",
+      "mode": "agent",
+      "description": "Update an existing implementation plan file with new or update requirements to provide new features, refactoring existing code or upgrading packages, design, architecture or infrastructure.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "update-llms.prompt.md",
+      "mode": "agent",
+      "description": "Update the llms.txt file in the root folder to reflect changes in documentation or specifications following the llms.txt specification at https://llmstxt.org/",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "update-markdown-file-index.prompt.md",
+      "mode": "agent",
+      "description": "Update a markdown file section with an index/table of files from a specified folder.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "findTestFiles",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runCommands",
+        "runTasks",
+        "runTests",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "update-oo-component-documentation.prompt.md",
+      "mode": "agent",
+      "description": "Update existing object-oriented component documentation following industry best practices and architectural documentation standards.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    },
+    {
+      "filename": "update-specification.prompt.md",
+      "mode": "agent",
+      "description": "Update an existing specification file for the solution, optimized for Generative AI consumption based on new requirements or updates to any existing code.",
+      "tools": [
+        "changes",
+        "codebase",
+        "editFiles",
+        "extensions",
+        "fetch",
+        "githubRepo",
+        "openSimpleBrowser",
+        "problems",
+        "runTasks",
+        "search",
+        "searchResults",
+        "terminalLastCommand",
+        "terminalSelection",
+        "testFailure",
+        "usages",
+        "vscodeAPI"
+      ]
+    }
+  ]
+}
