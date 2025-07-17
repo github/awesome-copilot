@@ -60,10 +60,13 @@ Your goal is to...
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
 3. **Add your instruction or prompt file** following the guidelines above
-4. **Run the update script** (optional): `node update-readme.js` to update the README with your new file
+4. **Run the update script** (optional): `node update-readme.js` to update the `README` with your new file
    - A GitHub Actions workflow will verify that this step was performed correctly
-   - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
-5. **Submit a pull request** with:
+   - If the `README.md` would be modified by running the script, the PR check will fail with a comment showing the required changes
+5. **Run the update script** (optional): `node update-metadata.js` to update the `metadata.json` with your new file
+   - A GitHub Actions workflow will verify that this step was performed correctly
+   - If the `metadata.json` would be modified by running the script, the PR check will fail with a comment showing the required changes
+6. **Submit a pull request** with:
    - A clear title describing your contribution
    - A brief description of what your instruction/prompt does
    - Any relevant context or usage notes
