@@ -1,7 +1,7 @@
 ---
 applyTo: '**'
 ---
-# Spec-Driven Workflow
+# Spec Driven Workflow v1
 
 **Specification-Driven Workflow:**
 Bridge the gap between requirements and implementation.
