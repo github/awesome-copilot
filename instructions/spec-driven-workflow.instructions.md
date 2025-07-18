@@ -1,11 +1,10 @@
 ---
+title: 'Spec Driven Workflow v2'
 description: 'Specification-Driven Workflow v2 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.'
 applyTo: '**'
 ---
-# Spec Driven Workflow v2
 
-**Specification-Driven Workflow:**
-An interactive process to bridge the gap between requirements and implementation safely and transparently, with proactive edge case anticipation to enhance system reliability.
+Specification-Driven Workflow v2 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.
 
 ## Core Principle: Ambiguity Resolution Protocol
 
