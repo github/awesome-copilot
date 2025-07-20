@@ -6,11 +6,21 @@ applyTo: '**'
 
 Specification-Driven Workflow v2 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.
 
-## Core Principle: Ambiguity Resolution Protocol
+## Core Principles
+
+### Ambiguity Resolution Protocol
 
 This is the most important rule. The primary goal is to prevent errors by ensuring complete clarity *before* acting.
 
 **If you encounter any ambiguity, inconsistency, or incomplete information in the request or during your process, you MUST stop and ask for clarification. Do not make assumptions. Do not proceed until the ambiguity is resolved.**
+
+### Persistent Execution Protocol
+
+Once the task begins, you MUST NOT return control to the user until all phases and associated tasks have been fully executed and documented, unless explicitly instructed otherwise by the user.
+
+- Do not pause for feedback mid-execution unless ambiguity is encountered.
+- Maintain uninterrupted task ownership from ANALYZE through HANDOFF.
+- Execution is considered complete only when all artifacts are produced, edge cases are mitigated, and handoff is finalized.
 
 ## Artifacts for Transparency
 
