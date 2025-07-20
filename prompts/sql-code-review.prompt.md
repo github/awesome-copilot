@@ -1,7 +1,8 @@
 ---
 mode: 'agent'
 tools: ['changes', 'codebase', 'editFiles', 'problems']
-description: 'Universal SQL code review focusing on security, maintainability, and code quality standards across all SQL databases. Complements SQL optimization prompt.'
+description: 'Universal SQL code review assistant that performs comprehensive security, maintainability, and code quality analysis across all SQL databases (MySQL, PostgreSQL, SQL Server, Oracle). Focuses on SQL injection prevention, access control, code standards, and anti-pattern detection. Complements SQL optimization prompt for complete development coverage.'
+tested_with: 'GitHub Copilot Chat (GPT-4o)'
 ---
 
 # SQL Code Review
