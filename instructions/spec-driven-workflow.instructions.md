@@ -1,8 +1,9 @@
 ---
-title: 'Spec Driven Workflow v2'
-description: 'Specification-Driven Workflow v2 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.'
+description: 'Specification-Driven Workflow v3 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.'
 applyTo: '**'
 ---
+
+# Spec Driven Workflow v3
 
 Specification-Driven Workflow v2 provides a robust, interactive approach to software development, ensuring requirements are clarified before implementation. It prioritizes safety and transparency through structured artifacts and clear protocols, with a proactive approach to edge case handling.
 
@@ -10,30 +11,42 @@ Specification-Driven Workflow v2 provides a robust, interactive approach to soft
 
 ### Ambiguity Resolution Protocol
 
-This is the most important rule. The primary goal is to prevent errors by ensuring complete clarity *before* acting.
+The primary goal is to prevent errors by ensuring complete clarity *before* acting.
 
-**If you encounter any ambiguity, inconsistency, or incomplete information in the request or during your process, you MUST stop and ask for clarification. Do not make assumptions. Do not proceed until the ambiguity is resolved.**
+**If any ambiguity, inconsistency, or incomplete information is encountered in the request or during the process, you MUST stop and ask for clarification. Do not make assumptions or proceed until resolved.**
 
 ### Persistent Execution Protocol
 
-Once the task begins, you MUST NOT return control to the user until all phases and associated tasks have been fully executed and documented, unless explicitly instructed otherwise by the user.
+Once a task begins, maintain ownership through all phases until completion, unless explicitly instructed otherwise.
 
-- Do not pause for feedback mid-execution unless ambiguity is encountered.
-- Maintain uninterrupted task ownership from ANALYZE through HANDOFF.
-- Execution is considered complete only when all artifacts are produced, edge cases are mitigated, and handoff is finalized.
+- Do not pause for feedback unless ambiguity is encountered.
+- Execution is complete only when all artifacts are produced, edge cases are mitigated, and handoff is finalized.
 
 ## Artifacts for Transparency
 
-**Maintain these artifacts at all times.** They serve to make your reasoning process transparent and auditable. They must be reviewed and approved by the user before implementation begins.
+These artifacts ensure transparency and auditability for LLM-driven development.
 
-- **`requirements.md`**: User stories, acceptance criteria, and edge case matrix in structured EARS notation.
-- **`design.md`**: Technical architecture, sequence diagrams, implementation considerations, and edge case mitigations.
-- **`tasks.md`**: A detailed, trackable implementation plan, including edge case handling tasks.
-- **`decision_records.md`**: A record of all significant decisions, their context, options considered, and rationale.
-- **`action_log.md`**: A comprehensive log of all actions taken, their outcomes, logs, test results, console outputs, etc.
-- **`diagrams/`**: Directory for all relevant diagrams (e.g., sequence diagrams, data flow diagrams) if needed.
+### Required Artifacts
 
-### Recommended File Structure
+1. **`requirements.md`**  
+   User stories, acceptance criteria, and edge case matrix in **EARS** notation.
+
+2. **`design.md`**  
+   Technical architecture, sequence diagrams, and edge case mitigations.
+
+3. **`tasks.md`**  
+   Detailed implementation plan with edge case handling tasks.
+
+4. **`decision_records.md`**  
+   Log of decisions with context, options, and rationale.
+
+5. **`action_log.md`**  
+   Activity log with actions, outcomes, logs, test results, and console outputs.
+
+6. **`diagrams/`**  
+   Directory for diagrams (e.g., sequence, data flow) if needed.
+
+#### File Structure
 
 ```markdown
 /spec/
@@ -45,345 +58,228 @@ Once the task begins, you MUST NOT return control to the user until all phases a
   └── diagrams/
 ```
 
+### Maintenance Rules
+
+- Update all relevant artifacts for any **new**, **updated**, or **obsolete** task.
+- Do not create or modify other documentation unless explicitly instructed.
+
+### Purpose
+
+Artifacts ensure changes are transparent, traceable, and reviewable.
+
 ## Execution Workflow (6-Phase Loop)
 
-**Never skip any step. Use consistent terminology. Reduce ambiguity.**
+**Never skip steps. Use consistent terminology. Minimize ambiguity.**
 
-### **Phase 1: ANALYZE**
+### Phase 1: ANALYZE
 
-**Objective:**
-
-- Understand the problem, analyze the existing system, produce clear, testable requirements, and proactively identify edge cases to anticipate potential failures before design begins.
+**Objective:** Understand the problem, produce testable requirements, and identify edge cases.
 
 **Checklist:**
 
-- [ ] Read all provided code, documentation, tests, and logs.
-  - Document file inventory, summaries, and initial analysis results.
-- [ ] Define requirements in **EARS Notation**:
-  - Transform feature requests into structured, testable requirements.
-  - Format: `WHEN [a condition or event], THE SYSTEM SHALL [expected behavior]`
-- [ ] Identify dependencies and constraints.
-  - Document a dependency graph with risks and mitigation strategies.
-- [ ] Map data flows and interactions.
-  - Document system interaction diagrams and data models.
-- [ ] **Proactively catalog edge cases and potential failures**:
-  - **Edge Case Brainstorming**: Use a structured framework (e.g., input-output analysis, boundary value analysis, or failure mode analysis) to anticipate edge cases.
-    - **Input Analysis**: Identify extreme, invalid, or unexpected inputs (e.g., null values, oversized data, malformed data).
-    - **State Analysis**: Consider system states (e.g., offline, maintenance mode, high load) and transitions.
-    - **User Behavior**: Anticipate unexpected user actions (e.g., rapid clicks, partial form submissions).
-    - **Environmental Factors**: Account for external factors (e.g., network failures, low memory, time zone issues).
-  - **Edge Case Prioritization**: Assign a **Risk Score (0-100)** to each edge case based on:
-    - **Likelihood**: Probability of occurrence (e.g., rare, occasional, frequent).
-    - **Impact**: Severity of failure (e.g., minor UI glitch, data loss, system crash).
-    - **Mitigation Complexity**: Effort required to address the edge case.
-  - Document prioritized edge cases in an **Edge Case Matrix** in `requirements.md`:
-    - Format: `[Edge Case Description], [Likelihood], [Impact], [Risk Score], [Preliminary Mitigation Strategy]`
-- [ ] Assess confidence.
-  - Generate a **Confidence Score (0-100%)** based on clarity of requirements, complexity, problem scope, and coverage of edge cases.
-  - Document the score and its rationale, including how edge case identification impacts confidence.
+- Read provided code, documentation, tests, and logs; summarize findings.
+- Define requirements in **EARS Notation** (e.g., `WHEN [condition], THE SYSTEM SHALL [behavior]`).
+- Identify dependencies, constraints, and data flows.
+- **Catalog edge cases** using input, state, user behavior, and environmental analysis.
+  - **Edge Case Matrix** in `requirements.md`: `[Description], [Likelihood], [Impact], [Risk Score], [Mitigation]`.
+- Assess **Confidence Score (0-100%)** based on requirement clarity and edge case coverage.
 
-**Critical Constraint:**
+**Constraint:** Halt and request clarification if requirements or edge cases are ambiguous.
 
-- **Do not proceed if requirements or edge cases are ambiguous.** You must halt and request clarification.
-- **Do not proceed until all requirements and prioritized edge cases are clear and documented.**
+### Phase 2: DESIGN
 
-### **Phase 2: DESIGN**
-
-**Objective:**
-
-- Create a comprehensive technical design and implementation plan that proactively addresses prioritized edge cases to ensure robustness and reliability.
+**Objective:** Create a technical design and plan addressing edge cases.
 
 **Checklist:**
 
-- [ ] **Define adaptive execution strategy based on Confidence Score:**
-  - **High Confidence (>85%)**
-    - Draft a comprehensive, step-by-step implementation plan, including edge case mitigations.
-    - Skip proof-of-concept steps unless edge cases introduce significant risk.
-    - Proceed with full, automated implementation.
-    - Maintain standard comprehensive documentation.
-  - **Medium Confidence (66–85%)**
-    - Prioritize a **Proof-of-Concept (PoC)** or **Minimum Viable Product (MVP)** to validate edge case handling.
-    - Define clear success criteria for PoC/MVP, including edge case scenarios.
-    - Build and validate PoC/MVP first, then expand plan incrementally.
-    - Document PoC/MVP goals, execution, and validation results.
-  - **Low Confidence (<66%)**
-    - Dedicate first phase to research and knowledge-building, including simulation of high-risk edge cases.
-    - Use semantic search and analyze similar implementations for edge case patterns.
-    - Synthesize findings into a research document.
-    - Re-run ANALYZE phase after research, updating the Edge Case Matrix.
-    - Escalate only if confidence remains low.
-- [ ] **Document technical design in `design.md`:**
-  - **Architecture:** High-level overview of components and interactions, including edge case handling mechanisms.
-  - **Data Flow:** Diagrams and descriptions, highlighting edge case paths.
-  - **Interfaces:** API contracts, schemas, public-facing function signatures, with validation for edge case inputs.
-  - **Data Models:** Data structures and database schemas, accounting for edge case data scenarios.
-- [ ] **Document error handling and edge case mitigation:**
-  - Update the error matrix to include procedures for handling prioritized edge cases from the Edge Case Matrix.
-  - Specify fallback behaviors, retry mechanisms, or user notifications for each edge case.
-- [ ] **Define unit testing strategy for edge cases:**
-  - Create test cases specifically targeting each prioritized edge case in the Edge Case Matrix.
-  - Include boundary tests, invalid input tests, and stress tests.
-- [ ] **Create implementation plan in `tasks.md`:**
-  - For each task, include description, expected outcome, dependencies, and specific edge case mitigations.
+- Define strategy based on Confidence Score:
+  - **High (>85%)**: Comprehensive plan with edge case mitigations.
+  - **Medium (66–85%)**: Build PoC/MVP to validate edge cases.
+  - **Low (<66%)**: Research, simulate edge cases, and re-analyze.
+- Document in `design.md`: architecture, data flow, interfaces, and edge case mitigations.
+- Define unit tests for edge cases.
+- Create implementation plan in `tasks.md` with edge case tasks.
 
-**Critical Constraint:**
+**Constraint:** Do not implement until design and mitigations are complete.
 
-- **Do not proceed to implementation until the design, implementation plan, and edge case mitigations are complete and validated.**
+### Phase 3: IMPLEMENT
 
-### **Phase 3: IMPLEMENT**
-
-**Objective:**
-
-- Write production-quality code according to the design and plan, incorporating edge case mitigations.
+**Objective:** Write production-quality code with edge case mitigations.
 
 **Checklist:**
 
-- [ ] Code in small, testable increments.
-  - Document each increment with code changes, results, and test links.
-- [ ] Implement from dependencies upward.
-  - Document resolution order, justification, and verification.
-- [ ] Follow conventions.
-  - Document adherence and any deviations with a Decision Record.
-- [ ] Add meaningful comments.
-  - Focus on intent ("why"), not mechanics ("what").
-- [ ] Create files as planned.
-  - Document file creation log.
-- [ ] Update task status in real time, including edge case mitigation implementation.
+- Code in small, testable increments; document changes and tests.
+- Implement from dependencies upward.
+- Follow conventions, document deviations in `decision_records.md`.
+- Add comments explaining intent.
+- Update `tasks.md` with status and edge case outcomes.
 
-**Critical Constraint:**
+**Constraint:** Do not merge/deploy until implementation and edge case mitigations are tested.
 
-- **Do not merge or deploy code until all implementation steps, including edge case mitigations, are documented and tested.**
+### Phase 4: VALIDATE
 
-### **Phase 4: VALIDATE**
-
-**Objective:**
-
-- Verify that implementation meets all requirements, quality standards, and edge case mitigations.
+**Objective:** Verify implementation meets requirements, quality standards, and edge case mitigations.
 
 **Checklist:**
 
-- [ ] Execute automated tests.
-  - Document outputs, logs, and coverage reports, including edge case test results.
-  - For failures, document root cause analysis and remediation.
-- [ ] Perform manual verification if necessary.
-  - Document procedures, checklists, and results.
-- [ ] Test edge cases and errors.
-  - Document results and evidence of correct edge case handling.
-- [ ] Verify performance.
-  - Document metrics and profile critical sections.
-- [ ] Log execution traces.
-  - Document path analysis and runtime behavior.
+- Run automated tests; document results, including edge case tests.
+- Perform **linting** to enforce code style, quality, and security rules; document findings in `action_log.md`.
+- Perform **type checking** (e.g., TypeScript, mypy) to ensure type safety; log type errors in `action_log.md`.
+- Perform manual verification if needed; document results.
+- Verify performance and log execution traces.
 
-**Critical Constraint:**
+**Constraint:** Resolve all issues, including edge case failures, linting errors, and type errors, before proceeding.
 
-- **Do not proceed until all validation steps are complete and all issues, including edge case-related issues, are resolved.**
+### Phase 5: REFLECT
 
-### **Phase 5: REFLECT**
-
-**Objective:**
-
-- Improve codebase, update documentation, analyze performance, and evaluate edge case mitigation effectiveness.
+**Objective:** Improve code, update documentation, and evaluate edge case handling.
 
 **Checklist:**
 
-- [ ] Refactor for maintainability.
-  - Document decisions, before/after comparisons, and impact.
-- [ ] Update all project documentation.
-  - Ensure all READMEs, diagrams, and comments are current, including edge case documentation.
-- [ ] Identify potential improvements.
-  - Document backlog with prioritization, including missed edge cases or over-engineered mitigations.
-- [ ] Validate success criteria.
-  - Document final verification matrix, including edge case outcomes.
-- [ ] Perform meta-analysis.
-  - Reflect on efficiency, tool usage, protocol adherence, and edge case handling effectiveness.
-- [ ] Auto-create technical debt issues.
-  - Document inventory and remediation plans, including missed edge cases.
+- Refactor for maintainability; document changes.
+- Update all artifacts, including edge case documentation.
+- Identify improvements and technical debt, including missed edge cases.
+- Validate success criteria and edge case outcomes.
 
-**Critical Constraint:**
+**Constraint:** Complete all documentation and improvements before closing.
 
-- **Do not close the phase until all documentation and improvement actions are logged.**
+### Phase 6: HANDOFF
 
-### **Phase 6: HANDOFF**
-
-**Objective:**
-
-- Package work for review and deployment, including edge case outcomes, and transition to next task.
+**Objective:** Package work for review/deployment and transition to the next task.
 
 **Checklist:**
 
-- [ ] Generate executive summary.
-  - Use **Compressed Decision Record** format, including edge case mitigation outcomes.
-- [ ] Prepare pull request (if applicable):
-  1. Executive summary.
-  2. Changelog from **Streamlined Action Log**.
-  3. Links to validation artifacts, Decision Records, and edge case test results.
-  4. Links to final `requirements.md`, `design.md`, and `tasks.md`.
-- [ ] Finalize workspace.
-  - Archive intermediate files, logs, and temporary artifacts to `.agent_work/`.
-- [ ] Continue to next task.
-  - Document transition or completion.
+- Generate **Executive Summary** (1-2 paragraphs):
+  - Summarize task outcomes, key decisions, and edge case mitigations.
+  - Highlight validation results and any unresolved issues.
+- Prepare **Pull Request** (if applicable):
+  - Include summary, changelog, validation links, and artifact links.
+- Archive intermediate files to `.agent_work/`.
+- Document transition or completion in `action_log.md`.
 
-**Critical Constraint:**
-
-- **Do not consider the task complete until all handoff steps are finished and documented.**
+**Constraint:** Task is not complete until all handoff steps are documented.
 
 ## Troubleshooting & Retry Protocol
 
-**If you encounter errors, ambiguities, or blockers:**
+**If errors or ambiguities occur:**
 
-**Checklist:**
+1. Re-analyze requirements and edge cases.
+2. Update design and tasks for new mitigations.
+3. Retry execution with updated logic.
+4. Escalate persistent issues, documenting in `decision_records.md`.
 
-1. **Re-analyze**:
-   - Revisit the ANALYZE phase, focusing on missed edge cases or ambiguities in the Edge Case Matrix.
-   - Confirm all requirements, constraints, and edge cases are clear and complete.
-2. **Re-design**:
-   - Update the technical design and Edge Case Matrix to address newly identified edge cases or failures.
-3. **Re-plan**:
-   - Adjust the implementation plan in `tasks.md` to include tasks for new edge case mitigations.
-4. **Retry execution**:
-   - Re-execute failed steps with updated edge case handling logic.
-5. **Escalate**:
-   - If edge case issues persist after retries, follow the escalation protocol, documenting findings in `decision_records.md`.
+**Constraint:** Never proceed with unresolved issues; document all steps.
 
-**Critical Constraint:**
+## Technical Debt Management
 
-- **Never proceed with unresolved errors or ambiguities. Always document troubleshooting steps and outcomes.**
+- **Identify**: Log code quality issues, shortcuts, and missed edge cases in `decision_records.md`.
+- **Document**: Use template: `[Title], [Priority], [Location], [Reason], [Impact], [Remediation], [Effort]`.
+- **Prioritize**: Based on risk and effort for remediation.
 
-## Technical Debt Management (Automated)
-
-### Identification & Documentation
-
-- **Code Quality**: Continuously assess code quality during implementation using static analysis.
-- **Shortcuts**: Explicitly record all speed-over-quality decisions with their consequences in a Decision Record.
-- **Workspace**: Monitor for organizational drift and naming inconsistencies.
-- **Documentation**: Track incomplete, outdated, or missing documentation.
-- **Missed Edge Cases**: Identify and document any edge cases missed during the ANALYZE phase.
-- **Over-Engineered Mitigations**: Record edge case mitigations that are overly complex or inefficient.
-
-### Auto-Issue Creation Template
-
-```text
-**Title**: [Technical Debt] - [Brief Description]
-**Priority**: [High/Medium/Low based on business impact and remediation cost]
-**Location**: [File paths and line numbers]
-**Reason**: [Why the debt was incurred, linking to a Decision Record if available]
-**Impact**: [Current and future consequences (e.g., slows development, increases bug risk)]
-**Remediation**: [Specific, actionable resolution steps]
-**Effort**: [Estimate for resolution (e.g., T-shirt size: S, M, L)]
-```
-
-### Remediation (Auto-Prioritized)
-
-- Risk-based prioritization with dependency analysis.
-- Effort estimation to aid in future planning.
-- Propose migration strategies for large refactoring efforts.
-
-## Quality Assurance (Automated)
+## Quality Assurance
 
 ### Continuous Monitoring
 
-- **Static Analysis**: Linting for code style, quality, security vulnerabilities, and architectural rule adherence.
+- **Static Analysis**: Monitor codebase for architectural rule adherence and potential vulnerabilities.
 - **Dynamic Analysis**: Monitor runtime behavior and performance in a staging environment.
-- **Documentation**: Automated checks for documentation completeness and accuracy (e.g., linking, format).
-- **Edge Case Coverage**: Track the percentage of edge cases in the Edge Case Matrix with corresponding tests and mitigations.
-- **Edge Case Risk Reduction**: Measure the reduction in Risk Scores post-mitigation via validation results.
+- **Documentation**: Check for documentation completeness and accuracy (e.g., linking, format).
+- **Edge Case Coverage**: Track percentage of edge cases in the Edge Case Matrix with tests and mitigations.
+- **Edge Case Risk Reduction**: Measure reduction in Risk Scores post-mitigation via validation results.
 
 ### Quality Metrics (Auto-Tracked)
 
 - Code coverage percentage and gap analysis.
 - Cyclomatic complexity score per function/method.
 - Maintainability index assessment.
-- Technical debt ratio (e.g., estimated remediation time vs. development time).
+- Technical debt ratio (e.g., remediation time vs. development time).
 - Documentation coverage percentage (e.g., public methods with comments).
 - Edge case coverage percentage (e.g., edge cases with implemented mitigations).
+- Linting error rate trend across the project.
+- Type checking error rate trend across the project.
 
 ## Concrete "Few-Shot" Examples
 
-Use these examples to guide the format and quality of your generated artifacts.
+These simplified examples guide artifact creation for LLMs and agents.
 
-### Example: EARS Requirement (`requirements.md`)
+### EARS Requirement (`requirements.md`)
 
 ```markdown
 ### Requirements
-- **Event-driven**: `WHEN the user clicks the "Export PDF" button, THE SYSTEM SHALL generate a PDF of the current report.`
-- **Unwanted behavior**: `IF the user attempts to run an export while another export is in progress, THEN THE SYSTEM SHALL display the error message "An export is already in progress. Please wait."`
-- **State-driven**: `WHILE the system is in "maintenance mode", THE SYSTEM SHALL disable the "Run Analysis" button.`
+- **Event-driven**: `WHEN the user submits a form, THE SYSTEM SHALL validate all fields and save the data.`
+- **Unwanted behavior**: `IF the form is submitted with empty required fields, THEN THE SYSTEM SHALL display "Please fill all required fields."`
+- **State-driven**: `WHILE the system is offline, THE SYSTEM SHALL queue form submissions for later processing.`
 
 ### Edge Case Matrix
-| Edge Case Description                                    | Likelihood | Impact | Risk Score | Preliminary Mitigation Strategy                                        |
-| -------------------------------------------------------- | ---------- | ------ | ---------- | ---------------------------------------------------------------------- |
-| Report data is null or empty                             | Occasional | High   | 75         | Validate input data before processing; throw `InvalidReportDataError`. |
-| User initiates multiple exports simultaneously           | Frequent   | Medium | 70         | Lock export button during processing; queue subsequent requests.       |
-| System runs out of memory during large report generation | Rare       | High   | 80         | Stream data processing to minimize memory usage.                       |
+| Description                           | Likelihood | Impact | Risk Score | Mitigation Strategy                                |
+| ------------------------------------- | ---------- | ------ | ---------- | -------------------------------------------------- |
+| Empty required fields                 | Frequent   | Medium | 70         | Validate fields; show error message.               |
+| Offline submission                    | Rare       | High   | 80         | Queue submissions and sync when online.            |
+| Malformed input (e.g., invalid email) | Occasional | Medium | 65         | Validate input format; reject with specific error. |
 ```
 
-### Example: Design Document Snippet (`design.md`)
+### Design Document Snippet (`design.md`)
 
 ```markdown
-**Component**: `ReportGeneratorService`
-**Function**: `generatePdf(reportData)`
+**Component**: `FormHandler`
+**Function**: `submitForm(formData)`
 **Logic**:
-
-1. Validate `reportData` for null or empty values.
-2. Uses the `PDF-lib` library to construct the document.
-3. Serializes charts using `Chart.js` canvas export.
-4. Fetches header and footer templates.
-5. Assembles the final PDF and returns it as a byte stream.
+1. Validate `formData` for required fields and format.
+2. Save valid data to local storage or queue if offline.
+3. Return success or error message.
 
 **Edge Case Handling**:
-- **Null or Empty Report Data (Risk Score: 75)**:
-  - **Mitigation**: Check for null/empty data; throw `InvalidReportDataError` with message "Report data cannot be empty."
-  - **Test Plan**: Unit tests with null and empty inputs to verify error handling.
-- **Multiple Simultaneous Exports (Risk Score: 70)**:
-  - **Mitigation**: Implement a locking mechanism to disable the export button during processing.
-  - **Test Plan**: Simulate concurrent export requests to verify queuing behavior.
+- **Empty Required Fields (Risk Score: 70)**:
+  - **Mitigation**: Check for empty fields; return error message.
+  - **Test Plan**: Test with empty and partial form submissions.
+- **Offline Submission (Risk Score: 80)**:
+  - **Mitigation**: Queue data in IndexedDB; sync on reconnect.
+  - **Test Plan**: Simulate offline mode and verify queuing.
 
-**Error Handling**: Throws `InvalidReportDataError` for invalid inputs; logs concurrent export attempts.
+**Error Handling**: Return specific error messages for each validation failure.
 ```
 
-### Example: Task Entry (`tasks.md`)
+### Task Entry (`tasks.md`)
 
 ```markdown
-- **Task**: Implement `generatePdf` function in `ReportGeneratorService`.
+- **Task**: Implement `submitForm` in `FormHandler`.
   - **ID**: task-001
-  - **Depends on**: `ReportData` model definition.
+  - **Depends on**: `FormData` model.
   - **Status**: To Do
-  - **Outcome**: A function that correctly generates a PDF byte stream from a valid data object.
-  - **Edge Case Mitigation**: Validates input data to handle null/empty edge case.
+  - **Outcome**: Validates and saves form data or queues if offline.
+  - **Edge Case Mitigation**: Handles empty fields and offline scenarios.
 
-- **Task**: Implement client-side form validation for `FormSubmissionService`.
+- **Task**: Add form validation UI feedback.
   - **ID**: task-002
-  - **Depends on**: `FormSubmissionService` component definition.
+  - **Depends on**: `FormHandler`.
   - **Status**: To Do
-  - **Outcome**: Submit button is disabled until all required fields are filled, addressing empty form edge case.
-  - **Edge Case Mitigation**: Validates inputs in real-time using JavaScript event listeners.
+  - **Outcome**: Displays error messages for invalid inputs.
+  - **Edge Case Mitigation**: Real-time validation for malformed inputs.
 ```
 
-### Example: Decision Record (`decision_records.md`)
+### Decision Record (`decision_records.md`)
 
 ```markdown
-### Decision - 2025-07-18T15:20:00Z
-
-**Decision**: Use `PDF-lib` over `jsPDF` for PDF generation.
-**Context**: The project requires client-side PDF generation with support for modifying existing PDFs in the future.
+### Decision - 2025-07-21T15:00:00Z
+**Decision**: Use IndexedDB for offline form storage.
+**Context**: Need to store form submissions during offline mode.
 **Options**:
-
-1. **`PDF-lib`**: Pro: Modern API, good support for document manipulation. Con: Slightly smaller community.
-2. **`jsPDF`**: Pro: Mature, large community, extensive plugins. Con: API is older and can be less intuitive for complex modifications.
-
-**Rationale**: `PDF-lib`'s focus on document manipulation aligns better with the long-term project roadmap, which includes features for merging and annotating PDFs. The modern API is also expected to reduce development time.
-**Impact**: Implementation will rely on a slightly less common library, requiring careful dependency management.
-**Review**: Re-evaluate this choice in 12 months or if significant performance issues arise.
+1. **IndexedDB**: Pro: Native, efficient. Con: Browser compatibility.
+2. **LocalStorage**: Pro: Simple. Con: Limited capacity.
+**Rationale**: IndexedDB supports larger datasets and is widely supported.
+**Impact**: Requires compatibility checks for older browsers.
+**Review**: Reassess in 6 months.
 ```
 
-### Example: Action Log Record (`action_log.md`)
+### Action Log Record (`action_log.md`)
 
 ```markdown
-- **Action**: Implemented `generatePdf` function.
-  - **Outcome**: Function successfully generates a PDF from provided report data.
+- **Action**: Implemented `submitForm` function.
+  - **Outcome**: Successfully validates and saves form data.
   - **Logs**: [Link to console output]
   - **Tests**: [Link to unit tests]
-  - **Issues**: No issues encountered.
-  - **Edge Case Outcome**: Successfully handled null/empty input with `InvalidReportDataError`.
-- **Next Steps**: Validate PDF generation with various report data inputs, including edge cases.
+  - **Linting**: Ran ESLint; resolved 2 warnings (trailing commas, unused variables).
+  - **Type Checking**: Ran TypeScript; fixed 1 type mismatch in `formData`.
+  - **Issues**: None.
+  - **Edge Case Outcome**: Handled empty fields and offline queuing.
+- **Next Steps**: Test with malformed inputs and verify offline sync.
 ```
