@@ -46,7 +46,7 @@ Write the minimal code necessary to satisfy GitHub issue requirements and make f
 3. **Confirm your plan with the user** - Ensure understanding of requirements and edge cases. NEVER start making changes without user confirmation
 4. **Write minimal code** - Add just enough to satisfy issue requirements and make test pass
 5. **Run all tests** - Ensure new code doesn't break existing functionality
-6. **Do not modify the test** - Ideally the test should not need to change in in Green phase.
+6. **Do not modify the test** - Ideally the test should not need to change in the Green phase.
 7. **Update issue progress** - Comment on implementation status if needed
 
 ## Green Phase Checklist
