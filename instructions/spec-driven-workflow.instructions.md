@@ -17,25 +17,32 @@ The primary goal is to prevent errors by ensuring complete clarity *before* acti
 
 ### 2. Persistent Execution Protocol
 
-Once a task begins, maintain ownership through all phases until completion, unless explicitly instructed otherwise.
+You MUST not return control to the user or stop or exit or pause the task or ask for permission you are stopped by critical ambiguity.
 
-- Do not pause for feedback unless ambiguity is encountered
-- Execution is complete only when all artifacts are produced, edge cases are mitigated, and handoff is finalized
+**Critical Constraint**: You MUST maintain continuous ownership of a task from initiation to completion, producing all required artifacts, mitigating edge cases, and finalizing handoff, unless explicitly instructed to pause or transfer ownership by the user.
+
+### 3. Concise Communication Protocol
+
+To ensure efficiency and clarity, you SHALL provide responses and documentation that are concise and to the point, avoiding unnecessary detail or verbosity. Explanations or elaborations SHALL only be included if explicitly requested by the user or required to resolve ambiguity.
+
+**Critical Constraint**: Responses and artifacts must prioritize brevity while maintaining completeness and clarity, ensuring all required information is conveyed without extraneous content.
 
 ## Artifacts for Transparency
 
 These artifacts ensure transparency and auditability for LLM-driven development.
 
+**Critical Constraint**: Use clear, minimal, concise language unless elaboration is explicitly requested.
+
 ### Required Artifacts
 
-| Artifact | Purpose | Content |
-|----------|---------|---------|
-| `requirements.md` | User stories, acceptance criteria, and edge case matrix | EARS notation |
-| `design.md` | Technical architecture, sequence diagrams, and edge case mitigations | Architecture docs |
-| `tasks.md` | Detailed implementation plan with edge case handling tasks | Implementation tasks |
-| `decision_records.md` | Log of decisions with context, options, and rationale | Decision history |
-| `action_log.md` | Activity log with actions, outcomes, logs, test results, and console outputs | Execution records |
-| `diagrams/` | Directory for diagrams (e.g., sequence, data flow) if needed | Visual documentation |
+| Artifact              | Purpose                                                                      | Content              |
+| --------------------- | ---------------------------------------------------------------------------- | -------------------- |
+| `requirements.md`     | User stories, acceptance criteria, and edge case matrix                      | EARS notation        |
+| `design.md`           | Technical architecture, sequence diagrams, and edge case mitigations         | Architecture docs    |
+| `tasks.md`            | Detailed implementation plan with edge case handling tasks                   | Implementation tasks |
+| `decision_records.md` | Log of decisions with context, options, and rationale                        | Decision history     |
+| `action_log.md`       | Activity log with actions, outcomes, logs, test results, and console outputs | Execution records    |
+| `diagrams/`           | Directory for diagrams (e.g., sequence, data flow) if needed                 | Visual documentation |
 
 ### File Structure
 
@@ -51,8 +58,9 @@ These artifacts ensure transparency and auditability for LLM-driven development.
 
 ### Maintenance Rules
 
-1. Update all relevant artifacts for any **new**, **updated**, or **obsolete** task
-2. Do not create or modify other documentation unless explicitly instructed
+1. Update all relevant artifacts for any **new**, **updated**, or **obsolete** task.
+2. Do not create or modify other documentation unless explicitly instructed.
+3. Use clear, minimal, concise language for all artifacts and documentation unless elaboration is explicitly requested.
 
 ### Purpose
 
@@ -71,11 +79,11 @@ These simplified examples guide artifacts maintenance.
 
 #### Edge Case Matrix
 
-| ID | Description | Likelihood | Impact | Risk Score | Mitigation |
-|----|-------------|------------|--------|------------|------------|
-| edge-001 | Unsupported syntax/prompt | Frequent | High | 85 | Parse/validate; return actionable error |
-| edge-002 | Memory context mismatch | Occasional | High | 75 | Validate memory; prompt user if unclear |
-| edge-003 | Ambiguous instruction interpretation | Occasional | Medium | 60 | Ask clarifying question before execution |
+| ID       | Description                          | Likelihood | Impact | Risk Score | Mitigation                               |
+| -------- | ------------------------------------ | ---------- | ------ | ---------- | ---------------------------------------- |
+| edge-001 | Unsupported syntax/prompt            | Frequent   | High   | 85         | Parse/validate; return actionable error  |
+| edge-002 | Memory context mismatch              | Occasional | High   | 75         | Validate memory; prompt user if unclear  |
+| edge-003 | Ambiguous instruction interpretation | Occasional | Medium | 60         | Ask clarifying question before execution |
 
 ### design.md
 
@@ -287,13 +295,13 @@ Based on risk and effort for remediation.
 
 ### Quality Metrics (Auto-Tracked)
 
-| Metric | Description | Target |
-|--------|-------------|--------|
-| Code Coverage | Percentage and gap analysis | >80% |
-| Cyclomatic Complexity | Score per function/method | <10 |
-| Maintainability Index | Overall assessment | >70 |
-| Technical Debt Ratio | Remediation time vs. development time | <20% |
-| Documentation Coverage | Public methods with comments | >90% |
-| Edge Case Coverage | Edge cases with implemented mitigations | >95% |
-| Linting Error Rate | Trend across project | Decreasing |
-| Type Checking Error Rate | Trend across project | Decreasing |
+| Metric                   | Description                             | Target     |
+| ------------------------ | --------------------------------------- | ---------- |
+| Code Coverage            | Percentage and gap analysis             | >80%       |
+| Cyclomatic Complexity    | Score per function/method               | <10        |
+| Maintainability Index    | Overall assessment                      | >70        |
+| Technical Debt Ratio     | Remediation time vs. development time   | <20%       |
+| Documentation Coverage   | Public methods with comments            | >90%       |
+| Edge Case Coverage       | Edge cases with implemented mitigations | >95%       |
+| Linting Error Rate       | Trend across project                    | Decreasing |
+| Type Checking Error Rate | Trend across project                    | Decreasing |
