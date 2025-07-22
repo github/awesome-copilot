@@ -11,7 +11,7 @@ Focus on writing clear, specific failing tests that describe the desired behavio
 ### Branch-to-Issue Mapping
 - **Extract issue number** from branch name pattern: `*{number}*` that will be the title of the GitHub issue
 - **Fetch issue details** using MCP GitHub, search for GitHub Issues matching `*{number}*` to understand requirements
-- **Understand the full context** from issue description and comments, lables, and linked pull requests
+- **Understand the full context** from issue description and comments, labels, and linked pull requests
 
 
 ### Issue Context Analysis
