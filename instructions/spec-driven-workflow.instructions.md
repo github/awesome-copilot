@@ -159,33 +159,12 @@ Use when **all** criteria are met:
    - Prepare: pull request (summary, link to `activity_log.md`).
    - Archive: intermediate notes to `/spec/agent_work/`.
 
-### Interruption/Resume
-
-- Check: task status in `tasks.md` and validate artifact consistency (`requirements.md`, `design.md`, `edge_cases.md`).
-- Reassess: system impact and update artifacts (`design.md`, `tasks.md`, `activity_log.md`).
-- Log: interruption/resume event in `activity_log.md` with context and next steps.
-
 ### Troubleshooting
 
 - Reanalyze: requirements and edge cases in `requirements.md` and `edge_cases.md`.
 - Update: `design.md` and `tasks.md` for new mitigations.
 - Retry: with updated logic.
 - Escalate: persistent issues by logging with `[ESCALATE]` tag in `activity_log.md` and notifying human operator.
-
-### Technical Debt
-
-- Log: in `activity_log.md` with title, priority, location, reason, impact, remediation, and effort.
-- Prioritize: by risk and effort.
-
-## Quality Assurance
-
-- Perform: static analysis (architecture, vulnerabilities).
-- Perform: dynamic analysis (runtime, performance).
-- Verify: documentation completeness and accuracy.
-- Track: edge case mitigations in `edge_cases.md`.
-- Measure: edge case risk reduction post-mitigation.
-- Validate: steering instructions in `steering/*.md` and log outcomes in `activity_log.md`.
-- Ensure: global decisions propagate to `steering/*.md`.
 
 ## Few-Shot Examples for Artifacts
 
