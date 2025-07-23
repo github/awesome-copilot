@@ -7,8 +7,6 @@ description: 'PowerShell Pester testing best practices based on Pester v5 conven
 
 This guide provides PowerShell-specific instructions for creating automated tests using PowerShell Pester v5 module. Follow PowerShell cmdlet development guidelines in [powershell.instructions.md](./powershell.instructions.md) for general PowerShell scripting best practices.
 
-```powershell
-
 ## File Naming and Structure
 
 - **File Convention:** Use `*.Tests.ps1` naming pattern
