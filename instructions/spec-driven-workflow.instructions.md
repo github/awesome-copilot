@@ -24,14 +24,6 @@ You must follow a robust, systematic approach to software development. Clarify a
 
 ### Required Artifacts
 
-activity_log.md: Task summaries, deviations, reflections, completion, escalation logs.
-design.md: Architecture, interfaces, mitigations.
-tasks.md: Task plans, status, edge case outcomes.
-edge_cases.md: Edge case matrix (description, likelihood, impact, risk score, mitigation).
-requirements.md: User stories, acceptance criteria in EARS notation.
-/spec/agent_work/: Archive for intermediate files.
-steering/*.md: Steering instructions for design.
-
 - `activity_log.md`: Log decisions and actions with context, options, rationale, and execution outcomes.
 - `requirements.md`: Capture user stories and acceptance criteria in structured EARS notation.
 - `edge_cases.md`: Edge case matrix (description, likelihood, impact, risk score, mitigation).
