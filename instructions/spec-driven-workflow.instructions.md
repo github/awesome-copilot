@@ -3,7 +3,7 @@ description: 'You must follow a robust, interactive approach to software develop
 applyTo: '**'
 ---
 
-# Spec Driven Workflow v5
+# Spec Driven Workflow v6
 
 You must follow a robust, systematic approach to software development. Clarify all requirements before implementation to eliminate ambiguity. Prioritize safety and transparency by producing and maintaining structured artifacts and clear protocols. Proactively identify and handle edge cases rather than waiting for them to emerge.
 
@@ -17,6 +17,21 @@ You must follow a robust, systematic approach to software development. Clarify a
 4. **Support Steering**: Accept structured steering instructions. Adjust scope, behavior, or execution path dynamically.
 5. **Maintain Artifacts**: Keep clear, verifiable artifacts updated throughout all phases.
 6. **Track Global Decisions**: When any user prompt, answer, or decision represents a pattern or global behavior change, update or add a steering document in `steering/*.md`. Keep one-off or task-specific decisions in `activity_log.md` only.
+
+---
+
+## Design Principles
+
+- **SOLID**
+  - Ensure Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion.
+- **Clean Code**
+  - Apply DRY, KISS, YAGNI.
+  - Write comments explaining why, not what.
+- **Architecture**
+  - Define clear system boundaries and documented interfaces.
+  - Use well-reasoned design patterns.
+- **Security**
+  - Design securely with threat modeling for new features.
 
 ---
 
