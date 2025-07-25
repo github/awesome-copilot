@@ -13,7 +13,8 @@ Instructions help customize GitHub Copilot's behavior for specific technologies,
 3. **Structure your content**: Start with a clear heading and organize your instructions logically
 4. **Test your instructions**: Make sure your instructions work well with GitHub Copilot
 
-#### Example instruction format:
+#### Example Instruction Format
+
 ```markdown
 # Your Technology/Framework Name
 
@@ -37,7 +38,8 @@ Prompts are ready-to-use templates for specific development scenarios and tasks.
 3. **Include frontmatter**: Add metadata at the top of your file (optional but recommended)
 4. **Structure your prompt**: Provide clear context and specific instructions
 
-#### Example prompt format:
+#### Example Prompt Format
+
 ```markdown
 ---
 mode: "agent"
