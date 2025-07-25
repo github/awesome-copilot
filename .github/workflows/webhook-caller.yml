@@ -1,0 +1,44 @@
+name: Call Webhooks on Main Push
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: none
+  checks: none
+  deployments: none
+  issues: none
+  discussions: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  call-webhooks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check and call webhooks
+        env:
+          WEBHOOK_URLS: ${{ secrets.WEBHOOK_URLS }}
+        run: |
+          if [ -n "$WEBHOOK_URLS" ]; then
+            IFS=',' read -ra URLS <<< "$WEBHOOK_URLS"
+            idx=1
+            for url in "${URLS[@]}"; do
+              if [[ "$url" =~ ^https:// ]]; then
+                if ! curl -f --max-time 30 --retry 3 --silent --show-error -X POST -H "User-Agent: webhook-caller" -H "Content-Type: application/json" "$url"; then
+                  echo "Webhook call failed for URL '$url' at index $idx" >&2
+                fi
+              else
+                echo "Skipping invalid webhook URL (must start with https://): '$url' at index $idx" >&2
+              fi
+              idx=$((idx+1))
+            done
+          else
+            echo "No webhooks to call."
+          fi
