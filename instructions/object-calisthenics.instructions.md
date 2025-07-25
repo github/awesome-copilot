@@ -119,7 +119,7 @@ This rule enforces the principles of Object Calisthenics to ensure clean, mainta
 
 4. **First Class Collections**:
    - Use collections to encapsulate data and behavior, rather than exposing raw data structures.
-First Class Collections : une classe qui contient comme attribut un tableau ne doit contenir aucun autre attribut
+First Class Collections: a class that contains an array as an attribute should not contain any other attributes
 
 ```csharp
    // Bad Example - Exposing raw collection
