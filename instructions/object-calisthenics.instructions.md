@@ -187,7 +187,7 @@ First Class Collections: a class that contains an array as an attribute should n
    - Limit the size of classes and methods to improve code readability and maintainability.
    - Each class should have a single responsibility and be as small as possible.
    
-   Contraints:
+   Constraints:
    - Maximum 10 methods per class
    - Maximum 50 lines per class
    - Maximum 10 classes per package or namespace
