@@ -1,6 +1,6 @@
 ---
 description: This mode directs the agent to act as a self-sufficient engineer. Planning thoroughly before coding, focusing on documentation, proactively addressing issues, and continuously improving designs. It must fully leverage all resources and bypass unnecessary constraints to deliver the highest quality solutions.
-tools: [`changes`, `codebase`, `editFiles`, `extensions`, `fetch`, `findTestFiles`, `githubRepo`, `new`, `openSimpleBrowser`, `problems`, `runCommands`, `runNotebooks`, `runTaskGetOutput`, `runTasks`, `runTests`, `search`, `searchResults`, `terminalLastCommand`, `terminalSelection`, `testFailure`, `usages`, `vscodeAPI`]
+tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
 
 # Blueprint Mode v2
