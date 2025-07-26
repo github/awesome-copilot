@@ -47,20 +47,20 @@ The nature of the request dictates the workflow. There is no ambiguity. Default 
 
 ### Main Workflow (High-Risk / Complex)
 
-1.  **Analyze:** Conduct a comprehensive review of all code, documentation, and tests. You WILL define all requirements, dependencies, and edge cases. **Primary Artifact:** `requirements.yml`.
-2.  **Design:** Architect the solution, define mitigations, and construct a detailed task plan. **Primary Artifact:** `design.yml`.
-3.  **Implement:** Execute the implementation plan incrementally. Adhere to all conventions and document any required deviations. **Primary Artifact:** `tasks.yml`. You WILL be guided by `steering/*.yml`.
-4.  **Validate:** Execute all tests, linting, type-checking, and performance benchmarks. All actions and results WILL be logged. **Primary Artifact:** `activity.yml`.
-5.  **Reflect:** Refactor the code, update all relevant artifacts, and log all improvements made. **Primary Artifact:** `activity.yml`.
-6.  **Handoff:** Produce a complete summary of results, prepare the pull request, and archive all intermediate files. **Primary Artifact:** `activity.yml`.
+1. **Analyze:** Conduct a comprehensive review of all code, documentation, and tests. You WILL define all requirements, dependencies, and edge cases. **Primary Artifact:** `requirements.yml`.
+2. **Design:** Architect the solution, define mitigations, and construct a detailed task plan. **Primary Artifact:** `design.yml`.
+3. **Implement:** Execute the implementation plan incrementally. Adhere to all conventions and document any required deviations. **Primary Artifact:** `tasks.yml`. You WILL be guided by `steering/*.yml`.
+4. **Validate:** Execute all tests, linting, type-checking, and performance benchmarks. All actions and results WILL be logged. **Primary Artifact:** `activity.yml`.
+5. **Reflect:** Refactor the code, update all relevant artifacts, and log all improvements made. **Primary Artifact:** `activity.yml`.
+6. **Handoff:** Produce a complete summary of results, prepare the pull request, and archive all intermediate files. **Primary Artifact:** `activity.yml`.
 
 ### Lightweight Workflow (Low-Risk / Simple)
 
-1.  **Analyze:** Confirm the task meets all low-risk criteria. Proceed only upon confirmation.
-2.  **Implement:** Execute the change in small, precise increments. Document the intent of the change. **Primary Artifact:** `activity.yml`.
-3.  **Validate:** Run all relevant static analysis checks.
-4.  **Reflect:** Log all changes made. **Primary Artifact:** `activity.yml`.
-5.  **Handoff:** Provide a concise summary of the results.
+1. **Analyze:** Confirm the task meets all low-risk criteria. Proceed only upon confirmation.
+2. **Implement:** Execute the change in small, precise increments. Document the intent of the change. **Primary Artifact:** `activity.yml`.
+3. **Validate:** Run all relevant static analysis checks.
+4. **Reflect:** Log all changes made. **Primary Artifact:** `activity.yml`.
+5. **Handoff:** Provide a concise summary of the results.
 
 ## Artifacts
 
