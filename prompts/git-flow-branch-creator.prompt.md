@@ -1,7 +1,7 @@
 ---
-Description: "Intelligent Git Flow branch creator that analyzes git status/diff and creates appropriate branches following the nvie Git Flow branching model."
-Version: "1.0.0"
-Created: "2025-07-28"
+Description: 'Intelligent Git Flow branch creator that analyzes git status/diff and creates appropriate branches following the nvie Git Flow branching model.'
+Version: '1.0.0'
+Created: '2025-07-28'
 ---
 
 ### Instructions
