@@ -1,7 +1,6 @@
 ---
-Description: "Framework for generating conventional commit messages using a structured XML format. This prompt guides users through the process of creating standardized, descriptive commit messages in accordance with the Conventional Commits specification."
-Version: "1.0.0"
-Created: "2025-07-25"
+description: 'Prompt and workflow for generating conventional commit messages using a structured XML format. Guides users to create standardized, descriptive commit messages in line with the Conventional Commits specification, including instructions, examples, and validation.'
+tools: ['run_in_terminal', 'get_terminal_output']
 ---
 
 ### Instructions
