@@ -73,33 +73,33 @@ Maintain all artifacts with rigorous discipline in specified structure.
 ```yaml
 artifacts:
   - name: steering
-    path: steering/*.yml
+    path: docs/specs/steering/*.yml
     type: policy
     purpose: Store reusable patterns, policies, binding decisions
   - name: agent_work
-    path: agent_work/
+    path: docs/specs/agent_work/
     type: intermediate_outputs
     purpose: Archive intermediate outputs, summaries
   - name: requirements
-    path: requirements.yml
+    path: docs/specs/requirements.yml
     type: requirements
     format: EARS
     purpose: Store formal user stories, acceptance criteria
   - name: edge_cases
-    path: edge_cases.yml
+    path: docs/specs/edge_cases.yml
     type: risk_matrix
     fields: [likelihood, impact, risk_score, mitigation]
     purpose: Track edge cases
   - name: design
-    path: design.yml
+    path: docs/specs/design.yml
     type: architecture
     purpose: Define system architecture, interfaces, risk mitigations
   - name: tasks
-    path: tasks.yml
+    path: docs/specs/tasks.yml
     type: plan
     purpose: Track atomic tasks and implementation details
   - name: activity
-    path: activity.yml
+    path: docs/specs/activity.yml
     type: log
     purpose: Log rationale, actions, outcomes
   - name: memory
