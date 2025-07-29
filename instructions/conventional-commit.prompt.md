@@ -6,14 +6,8 @@ tools: ['run_in_terminal', 'get_terminal_output']
 ### Instructions
 
 ```xml
-<instructions>
-	<title>Conventional Commit Prompt</title>
 	<description>This file contains a prompt template for generating conventional commit messages. It provides instructions, examples, and formatting guidelines to help users write standardized, descriptive commit messages in accordance with the Conventional Commits specification.</description>
-	</description>
 	<note>
-		Just run the prompt and Copilot will commit your changes in the terminal for you.
-	</note>
-</instructions>
 ```
 
 ### Workflow
