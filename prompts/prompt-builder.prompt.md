@@ -1,8 +1,7 @@
 ---
----
-description: 'Guide users through creating high-quality GitHub Copilot prompts with proper structure, tools, and best practices.'
 mode: 'agent'
 tools: ['codebase', 'editFiles', 'search']
+description: 'Guide users through creating high-quality GitHub Copilot prompts with proper structure, tools, and best practices.'
 ---
 
 # Professional Prompt Builder
