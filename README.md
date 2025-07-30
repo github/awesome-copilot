@@ -17,6 +17,16 @@ GitHub Copilot provides three main ways to customize AI responses and tailor ass
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.
 
+## 📁 Collections
+
+Curated collections of prompts, instructions, and chat modes organized by specific domains or workflows:
+
+| Collection | Description | Contents |
+| ---------- | ----------- | -------- |
+| [Plan](collections/plan/README.md) | A curated collection of GitHub Copilot customizations focused on plan workflows and best practices. | 6 prompts |
+
+> 💡 **Usage**: Each collection contains domain-specific customizations. Navigate to a collection folder to find its specialized prompts, instructions, and chat modes.
+
 ## 📋 Custom Instructions
 
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:

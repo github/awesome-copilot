@@ -24,6 +24,20 @@ GitHub Copilot provides three main ways to customize AI responses and tailor ass
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.`,
 
+  collectionsSection: `## 📁 Collections
+
+Curated collections of prompts, instructions, and chat modes organized by specific domains or workflows:`,
+
+  collectionsUsage: `> 💡 **Usage**: Each collection contains domain-specific customizations. Navigate to a collection folder to find its specialized prompts, instructions, and chat modes.`,
+
+  collectionHeader: (collectionName) => `# 🎯 ${collectionName.charAt(0).toUpperCase() + collectionName.slice(1)} Collection
+
+A curated collection of GitHub Copilot customizations focused on ${collectionName} workflows and best practices.
+
+## 📄 About This Collection
+
+This collection provides specialized prompts, instructions, and chat modes tailored for ${collectionName}-related development tasks.`,
+
   instructionsSection: `## 📋 Custom Instructions
 
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:`,
@@ -85,6 +99,73 @@ function safeFileOperation(operation, filePath, defaultValue = null) {
     console.error(`Error processing file ${filePath}: ${error.message}`);
     return defaultValue;
   }
+}
+
+/**
+ * Get all collections in the collections directory
+ */
+function getCollections(collectionsDir) {
+  if (!fs.existsSync(collectionsDir)) {
+    return [];
+  }
+
+  return fs.readdirSync(collectionsDir)
+    .filter(item => {
+      const itemPath = path.join(collectionsDir, item);
+      return fs.statSync(itemPath).isDirectory();
+    })
+    .sort();
+}
+
+/**
+ * Extract description from a collection's README or create default
+ */
+function getCollectionDescription(collectionPath) {
+  const readmePath = path.join(collectionPath, 'README.md');
+
+  if (fs.existsSync(readmePath)) {
+    return safeFileOperation(() => {
+      const content = fs.readFileSync(readmePath, 'utf8');
+      const lines = content.split('\n');
+
+      // Look for description in frontmatter first
+      let inFrontmatter = false;
+      for (const line of lines) {
+        if (line.trim() === '---') {
+          if (!inFrontmatter) {
+            inFrontmatter = true;
+            continue;
+          } else {
+            break;
+          }
+        }
+
+        if (inFrontmatter && line.includes('description:')) {
+          const match = line.match(/^description:\s*['"]?(.+?)['"]?$/);
+          if (match) {
+            return match[1];
+          }
+        }
+      }
+
+      // Look for first paragraph after headers
+      let foundHeader = false;
+      for (const line of lines) {
+        if (line.startsWith('#')) {
+          foundHeader = true;
+          continue;
+        }
+
+        if (foundHeader && line.trim() && !line.startsWith('#') && !line.startsWith('>')) {
+          return line.trim();
+        }
+      }
+
+      return null;
+    }, readmePath, null);
+  }
+
+  return null;
 }
 
 function extractTitle(filePath) {
@@ -260,6 +341,8 @@ function extractDescription(filePath) {
 /**
  * Generate badges for installation links in VS Code and VS Code Insiders.
  * @param {string} link - The relative link to the instructions or prompts file.
+ * @param {string} type - The type of customization (instructions, prompt, chatmode).
+ * @param {string} collectionPath - Optional collection path prefix for URLs.
  * @returns {string} - Markdown formatted badges for installation.
  */
 const vscodeInstallImage =
@@ -270,25 +353,36 @@ const repoBaseUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
 const vscodeBaseUrl = "https://vscode.dev/redirect?url=";
 const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
-function makeBadges(link, type) {
+
+function makeBadges(link, type, collectionPath = '') {
+  const fullLink = collectionPath ? `${collectionPath}/${link}` : link;
   return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
-    `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
+    `vscode:chat-${type}/install?url=${repoBaseUrl}/${fullLink})`
   )} [![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
-    `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
+    `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${fullLink})`
   )}`;
 }
 
 /**
  * Generate the instructions section with a table of all instructions
  */
-function generateInstructionsSection(instructionsDir) {
+function generateInstructionsSection(instructionsDir, collectionPath = '') {
+  // Check if instructions directory exists
+  if (!fs.existsSync(instructionsDir)) {
+    return '';
+  }
+
   // Get all instruction files
   const instructionFiles = fs
     .readdirSync(instructionsDir)
     .filter((file) => file.endsWith(".md"))
     .sort();
 
-  console.log(`Found ${instructionFiles.length} instruction files`);
+  if (instructionFiles.length === 0) {
+    return '';
+  }
+
+  console.log(`Found ${instructionFiles.length} instruction files in ${instructionsDir}`);
 
   // Create table header
   let instructionsContent =
@@ -298,13 +392,13 @@ function generateInstructionsSection(instructionsDir) {
   for (const file of instructionFiles) {
     const filePath = path.join(instructionsDir, file);
     const title = extractTitle(filePath);
-    const link = encodeURI(`instructions/${file}`);
+    const link = encodeURI(collectionPath ? `instructions/${file}` : `instructions/${file}`);
 
     // Check if there's a description in the frontmatter
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "instructions");
+    const badges = makeBadges(link, 'instructions', collectionPath);
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
@@ -316,20 +410,37 @@ function generateInstructionsSection(instructionsDir) {
     }
   }
 
-  return `${TEMPLATES.instructionsSection}\n\n${instructionsContent}\n${TEMPLATES.instructionsUsage}`;
+  const sectionHeader = collectionPath ?
+    "## 📋 Instructions\n\nCoding standards and best practices for this collection:" :
+    TEMPLATES.instructionsSection;
+
+  const sectionUsage = collectionPath ?
+    "> 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder." :
+    TEMPLATES.instructionsUsage;
+
+  return `${sectionHeader}\n\n${instructionsContent}\n${sectionUsage}`;
 }
 
 /**
  * Generate the prompts section with a table of all prompts
  */
-function generatePromptsSection(promptsDir) {
+function generatePromptsSection(promptsDir, collectionPath = '') {
+  // Check if prompts directory exists
+  if (!fs.existsSync(promptsDir)) {
+    return '';
+  }
+
   // Get all prompt files
   const promptFiles = fs
     .readdirSync(promptsDir)
     .filter((file) => file.endsWith(".prompt.md"))
     .sort();
 
-  console.log(`Found ${promptFiles.length} prompt files`);
+  if (promptFiles.length === 0) {
+    return '';
+  }
+
+  console.log(`Found ${promptFiles.length} prompt files in ${promptsDir}`);
 
   // Create table header
   let promptsContent =
@@ -345,7 +456,7 @@ function generatePromptsSection(promptsDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "prompt");
+    const badges = makeBadges(link, 'prompt', collectionPath);
 
     if (customDescription && customDescription !== "null") {
       promptsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
@@ -354,16 +465,24 @@ function generatePromptsSection(promptsDir) {
     }
   }
 
-  return `${TEMPLATES.promptsSection}\n\n${promptsContent}\n${TEMPLATES.promptsUsage}`;
+  const sectionHeader = collectionPath ?
+    "## 🎯 Prompts\n\nReady-to-use prompt templates for this collection:" :
+    TEMPLATES.promptsSection;
+
+  const sectionUsage = collectionPath ?
+    "> 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open." :
+    TEMPLATES.promptsUsage;
+
+  return `${sectionHeader}\n\n${promptsContent}\n${sectionUsage}`;
 }
 
 /**
  * Generate the chat modes section with a table of all chat modes
  */
-function generateChatModesSection(chatmodesDir) {
+function generateChatModesSection(chatmodesDir, collectionPath = '') {
   // Check if chatmodes directory exists
   if (!fs.existsSync(chatmodesDir)) {
-    console.log("Chat modes directory does not exist");
+    console.log(`Chat modes directory does not exist: ${chatmodesDir}`);
     return "";
   }
 
@@ -373,7 +492,7 @@ function generateChatModesSection(chatmodesDir) {
     .filter((file) => file.endsWith(".chatmode.md"))
     .sort();
 
-  console.log(`Found ${chatmodeFiles.length} chat mode files`);
+  console.log(`Found ${chatmodeFiles.length} chat mode files in ${chatmodesDir}`);
 
   // If no chat modes, return empty string
   if (chatmodeFiles.length === 0) {
@@ -394,7 +513,7 @@ function generateChatModesSection(chatmodesDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "chatmode");
+    const badges = makeBadges(link, 'chatmode', collectionPath);
 
     if (customDescription && customDescription !== "null") {
       chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
@@ -403,24 +522,144 @@ function generateChatModesSection(chatmodesDir) {
     }
   }
 
-  return `${TEMPLATES.chatmodesSection}\n\n${chatmodesContent}\n${TEMPLATES.chatmodesUsage}`;
+  const sectionHeader = collectionPath ?
+    "## 🧩 Chat Modes\n\nCustom chat modes for this collection:" :
+    TEMPLATES.chatmodesSection;
+
+  const sectionUsage = collectionPath ?
+    "> 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode." :
+    TEMPLATES.chatmodesUsage;
+
+  return `${sectionHeader}\n\n${chatmodesContent}\n${sectionUsage}`;
 }
 
 /**
- * Generate the complete README.md content from scratch
+ * Generate the collections section with a table of all collections
  */
+function generateCollectionsSection(collectionsDir) {
+  // Get all collections
+  const collections = getCollections(collectionsDir);
+
+  if (collections.length === 0) {
+    return '';
+  }
+
+  console.log(`Found ${collections.length} collections`);
+
+  // Create table header
+  let collectionsContent =
+    "| Collection | Description | Contents |\n| ---------- | ----------- | -------- |\n";
+
+  // Generate table rows for each collection
+  for (const collection of collections) {
+    const collectionPath = path.join(collectionsDir, collection);
+    const title = collection.charAt(0).toUpperCase() + collection.slice(1);
+    const link = `collections/${collection}/README.md`;
+
+    // Get description
+    const description = getCollectionDescription(collectionPath) ||
+      `Specialized ${collection} prompts and instructions`;
+
+    // Count contents
+    const promptsDir = path.join(collectionPath, 'prompts');
+    const instructionsDir = path.join(collectionPath, 'instructions');
+    const chatmodesDir = path.join(collectionPath, 'chatmodes');
+
+    let contents = [];
+
+    if (fs.existsSync(promptsDir)) {
+      const promptCount = fs.readdirSync(promptsDir).filter(f => f.endsWith('.prompt.md')).length;
+      if (promptCount > 0) contents.push(`${promptCount} prompts`);
+    }
+
+    if (fs.existsSync(instructionsDir)) {
+      const instructionCount = fs.readdirSync(instructionsDir).filter(f => f.endsWith('.md')).length;
+      if (instructionCount > 0) contents.push(`${instructionCount} instructions`);
+    }
+
+    if (fs.existsSync(chatmodesDir)) {
+      const chatmodeCount = fs.readdirSync(chatmodesDir).filter(f => f.endsWith('.chatmode.md')).length;
+      if (chatmodeCount > 0) contents.push(`${chatmodeCount} chat modes`);
+    }
+
+    const contentsText = contents.length > 0 ? contents.join(', ') : 'No items';
+
+    collectionsContent += `| [${title}](${link}) | ${description} | ${contentsText} |\n`;
+  }
+
+  return `${TEMPLATES.collectionsSection}\n\n${collectionsContent}\n${TEMPLATES.collectionsUsage}`;
+}
+
+/**
+ * Generate README for a specific collection
+ */
+function generateCollectionReadme(collectionPath, collectionName) {
+  const promptsDir = path.join(collectionPath, 'prompts');
+  const instructionsDir = path.join(collectionPath, 'instructions');
+  const chatmodesDir = path.join(collectionPath, 'chatmodes');
+
+  const collectionPathForBadges = `collections/${collectionName}`;
+
+  // Generate each section for the collection
+  const sections = [];
+
+  // Header
+  sections.push(TEMPLATES.collectionHeader(collectionName));
+
+  // Instructions section
+  const instructionsSection = generateInstructionsSection(instructionsDir, collectionPathForBadges);
+  if (instructionsSection) {
+    sections.push(instructionsSection);
+  }
+
+  // Prompts section
+  const promptsSection = generatePromptsSection(promptsDir, collectionPathForBadges);
+  if (promptsSection) {
+    sections.push(promptsSection);
+  }
+
+  // Chat modes section
+  const chatmodesSection = generateChatModesSection(chatmodesDir, collectionPathForBadges);
+  if (chatmodesSection) {
+    sections.push(chatmodesSection);
+  }
+
+  // Add footer
+  sections.push(`## 🔗 Related
+
+- [Main Repository](../../) - Browse all available customizations
+- [Contributing Guide](../../CONTRIBUTING.md) - How to contribute to this collection`);
+
+  return sections.join('\n\n');
+}
 function generateReadme() {
   const instructionsDir = path.join(__dirname, "instructions");
   const promptsDir = path.join(__dirname, "prompts");
   const chatmodesDir = path.join(__dirname, "chatmodes");
+  const collectionsDir = path.join(__dirname, "collections");
 
   // Generate each section
   const instructionsSection = generateInstructionsSection(instructionsDir);
   const promptsSection = generatePromptsSection(promptsDir);
   const chatmodesSection = generateChatModesSection(chatmodesDir);
+  const collectionsSection = generateCollectionsSection(collectionsDir);
 
   // Build the complete README content with template sections
-  let readmeContent = [TEMPLATES.header, instructionsSection, promptsSection];
+  let readmeContent = [TEMPLATES.header];
+
+  // Add collections section first if we have any
+  if (collectionsSection) {
+    readmeContent.push(collectionsSection);
+  }
+
+  // Add main sections
+  if (instructionsSection) {
+    readmeContent.push(instructionsSection);
+  }
+
+  if (promptsSection) {
+    readmeContent.push(promptsSection);
+  }
 
   // Only include chat modes section if we have any chat modes
   if (chatmodesSection) {
@@ -456,6 +695,37 @@ try {
     fs.writeFileSync(readmePath, newReadmeContent);
     console.log("README.md created successfully!");
   }
+
+  // Generate READMEs for all collections
+  const collectionsDir = path.join(__dirname, "collections");
+  const collections = getCollections(collectionsDir);
+
+  console.log(`\nProcessing ${collections.length} collections...`);
+
+  for (const collection of collections) {
+    const collectionPath = path.join(collectionsDir, collection);
+    const collectionReadmePath = path.join(collectionPath, "README.md");
+    const newCollectionContent = generateCollectionReadme(collectionPath, collection);
+
+    // Check if the collection README file already exists
+    if (fs.existsSync(collectionReadmePath)) {
+      const originalContent = fs.readFileSync(collectionReadmePath, "utf8");
+      const hasChanges = originalContent !== newCollectionContent;
+
+      if (hasChanges) {
+        fs.writeFileSync(collectionReadmePath, newCollectionContent);
+        console.log(`${collection}/README.md updated successfully!`);
+      } else {
+        console.log(`${collection}/README.md is already up to date. No changes needed.`);
+      }
+    } else {
+      // Create the collection README file if it doesn't exist
+      fs.writeFileSync(collectionReadmePath, newCollectionContent);
+      console.log(`${collection}/README.md created successfully!`);
+    }
+  }
+
+  console.log("\nAll README files processed successfully!");
 } catch (error) {
   console.error(`Error generating README.md: ${error.message}`);
   process.exit(1);
