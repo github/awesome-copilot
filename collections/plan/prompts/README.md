@@ -93,7 +93,7 @@ graph LR
 - **plan-epic-arch.prompt.md** – Epic Technical Architecture Specification  
 - **plan-feature-prd.prompt.md** – Feature Product Requirements Document
 - **plan-feature-implementation.prompt.md** – Feature Technical Implementation Plan
-- **plan-test.prompt.md** – Comprehensive Test Strategy (ISTQB & ISO 25010)
+- **plan-test.prompt.md** – Comprehensive Test Strategy (ISTQB & ISO 25010) - wip
 - **plan-github.prompt.md** – GitHub Project Management and Issue Planning
 
 ---
@@ -109,30 +109,11 @@ graph LR
 
 ---
 
-## Workflow Connections Diagram
-
-```mermaid
-graph TD
-    A[Epic Definition] --> B[Epic Architecture]
-    B --> C[Feature PRD]
-    C --> D[Feature Implementation Plan]
-    D --> E[Test Strategy]
-    E --> F[GitHub Project Setup]
-    
-    subgraph "Key Planning Stages"
-        G["Epic Level: Business & Technical Vision"]
-        H["Feature Level: Detailed Requirements & Implementation"]
-        I["Quality Level: Testing & Project Management"]
-    end
-```
-
----
-
 ## Simplified Workflow Pattern
 
 - **Epic Level**: Define business capability and technical architecture
 - **Feature Level**: Detailed requirements and implementation planning  
-- **Quality Level**: Comprehensive testing strategy and project management setup
+- **Project Level**: Comprehensive testing strategy and project management setup
 
 The process provides **complete traceability** from high-level business goals down to specific implementation plans and quality validation, with automated project management integration.
 
@@ -142,15 +123,11 @@ The process provides **complete traceability** from high-level business goals do
 
 ### Complete Epic Planning
 
-1. Epic PRD → Epic Architecture → Feature PRD → Implementation → Testing → Project Setup
+1. Epic PRD → Epic Architecture → Feature PRD → Implementation → Project Setup
 
 ### Feature-Focused Planning
 
-1. Feature PRD → Implementation Plan → Test Strategy → GitHub Setup
-
-### Quality-Focused Planning
-
-1. Review existing artifacts → Test Strategy → Quality validation framework
+1. Feature PRD → Implementation Plan → GitHub Setup
 
 ### Project Management Setup
 
