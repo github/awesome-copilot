@@ -4,28 +4,18 @@ Enhance your GitHub Copilot experience with community-contributed instructions, 
 
 ## 🎯 GitHub Copilot Customization Features
 
-GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
+GitHub Copilot provides four main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **🧩 [Custom Chat Modes](#-custom-chat-modes)** |
-| --- | --- | --- |
-| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
+| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **🧩 [Custom Chat Modes](#-custom-chat-modes)** | **📁 [Collections](#-collections)** |
+| --- | --- | --- | --- |
+| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows | Curated bundles of domain-specific instructions, prompts, and chat modes organized by technology or workflow<br><br>**Benefits:**<br>• Complete solution packages<br>• Domain-specific expertise<br>• Pre-configured workflows |
 
-> **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
+> **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all four customization types - use custom instructions for general guidelines, prompt files for specific tasks, chat modes to control interaction context, and collections for domain-specific workflows.
 
 
 ## 📝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.
-
-## 📁 Collections
-
-Curated collections of prompts, instructions, and chat modes organized by specific domains or workflows:
-
-| Collection | Description | Contents |
-| ---------- | ----------- | -------- |
-| [Plan](collections/plan/README.md) | A curated collection of GitHub Copilot customizations focused on plan workflows and best practices. | 6 prompts |
-
-> 💡 **Usage**: Each collection contains domain-specific customizations. Navigate to a collection folder to find its specialized prompts, instructions, and chat modes.
 
 ## 📋 Custom Instructions
 
@@ -208,6 +198,16 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 | [Wg Code Sentinel](chatmodes/wg-code-sentinel.chatmode.md) | Ask WG Code Sentinel to review your code for security issues. | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Achat-chatmode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Fwg-code-sentinel.chatmode.md) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Achat-chatmode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Fwg-code-sentinel.chatmode.md) |
 
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.
+
+## 📁 Collections
+
+Curated collections of prompts, instructions, and chat modes organized by specific domains or workflows:
+
+| Collection | Description | Contents |
+| ---------- | ----------- | -------- |
+| [Plan](collections/plan/README.md) | A curated collection of GitHub Copilot customizations focused on plan workflows and best practices. | 6 prompts |
+
+> 💡 **Usage**: Each collection contains domain-specific customizations. Navigate to a collection folder to find its specialized prompts, instructions, and chat modes.
 
 ## 📚 Additional Resources
 
