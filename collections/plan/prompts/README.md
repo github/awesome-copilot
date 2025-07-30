@@ -1,159 +1,111 @@
 # GitHub Copilot Prompt Library
 
-This directory contains specialized prompt files designed to work with GitHub Copilot to streamline the development process for the Epoch platform using a comprehensive hierarchical breakdown approach.
+This directory contains specialized prompt files designed to work with GitHub Copilot to streamline the development process using a comprehensive hierarchical breakdown approach.
 
-## Unified Epic, Feature, and Testing Workflow
+## Core Planning Workflow
 
-This workflow integrates user story UX design, technical breakdown, and comprehensive testing automation into a single, traceable process. All steps, prompts, and best practices are consolidated here for clarity and efficiency.
+This streamlined workflow covers the essential planning stages from epic definition through project management setup, with integrated testing and quality assurance.
 
 ### Hierarchical Work Breakdown Structure
 
-Our workflow follows the Agile hierarchy: **Epic → Feature → Story/Enabler → Test → Task**, with each level providing specific value and granularity:
+Our workflow follows the Agile hierarchy: **Epic → Feature → Implementation → Project Management**, with each level providing specific value and granularity:
 
 - **Epic**: Large business capability spanning multiple features (milestone level)
-- **Feature**: Deliverable user-facing functionality within an epic
-- **Story**: User-focused requirement that delivers value independently
-- **Enabler**: Technical infrastructure or architectural work supporting stories
-- **Test**: Quality assurance work for validating stories and enablers
-- **Task**: Implementation-level work breakdown for stories/enablers
+- **Feature**: Deliverable user-facing functionality within an epic  
+- **Implementation**: Technical planning and architecture for feature delivery
+- **Project Management**: GitHub issues, automation, and delivery tracking
 
 ---
 
-## Complete Feature Development Flow
+## Streamlined Development Flow
 
 ```mermaid
 graph LR
-    A[Feature PRD] --> B[Feature UX Design]
-    B --> C[User Story UX Design]
-    A --> D[BA User Story Breakdown]
-    C --> E[TL Technical Breakdown]
-    D --> E
-    E --> F[Playwright Testing]
-    C --> F
-    E --> G[GitHub Issue Planning]
-    F --> G
-    G --> H[Automated project Setup]
+    A[Epic PRD] --> B[Epic Architecture]
+    B --> C[Feature PRD] 
+    C --> D[Feature Implementation Plan]
+    D --> E[GitHub Project Setup]
+    
+    subgraph "Core Planning Chain"
+        G["Epic → Feature → Implementation"]
+        H["Project Management"]
+    end
 ```
 
 ### Input/Output Chain
 
-1. **Feature PRD** → User stories and requirements
-2. **User Story UX Design** → Micro-interaction specifications
-3. **Technical Breakdown** → Implementation tasks with UX context
-4. **Playwright Testing** → Comprehensive test strategy
-5. **GitHub Issue Planning** → Automated project management
+1. **Epic PRD** → Business requirements and scope definition
+2. **Epic Architecture** → High-level technical approach and system design
+3. **Feature PRD** → Detailed feature specifications and user requirements
+4. **Feature Implementation** → Technical planning and development approach
+5. **GitHub Project Setup** → Automated project management and tracking
 
 ---
 
 ## Step-by-Step Execution Guide
 
-### 1. Epic Definition (Product)
+### 1. Epic Definition (Product Management)
 
-- Use `epic-pm.prompt.md` to create an Epic PRD.
-- **Input:** High-level epic idea.
+- Use `plan-epic-pm.prompt.md` to create an Epic PRD
+- **Input:** High-level epic idea or business requirement
 - **Output:** `/docs/ways-of-work/plan/epic/{epic-name}.md`
 
-### 2. Epic Architecture
+### 2. Epic Architecture (Technical Leadership)
 
-- Use `epic-arch.prompt.md` with the Epic PRD to define high-level technical architecture.
-- **Input:** Epic PRD.
+- Use `plan-epic-arch.prompt.md` with the Epic PRD to define technical architecture
+- **Input:** Epic PRD from step 1
 - **Output:** `/docs/ways-of-work/plan/epic/{epic-name}-arch.md`
 
-### 3. Feature Definition (Product)
+### 3. Feature Definition (Product Management)
 
-- Use `feature-prd.prompt.md` for each feature in the epic to create a Feature PRD.
-- **Input:** Feature from Epic Architecture.
+- Use `plan-feature-prd.prompt.md` for each feature in the epic
+- **Input:** Epic PRD and Epic Architecture
 - **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}.md`
 
-### 4. Feature Design (UI/UX)
+### 4. Feature Implementation Planning (Engineering)
 
-- Use `feature-ux.prompt.md` with the Feature PRD to create a UI/UX design spec.
-- **Input:** Feature PRD.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/design.md`
-
-#### 4a. User Story Design (Micro-UX)
-
-- Use `user-story-ux.prompt.md` for detailed interaction design at the user story level.
-- **Input:** User stories from Feature PRD.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/user-story-{id}-design.md`
-
-### 5. Feature Implementation Plan
-
-- Use `feature-implementation.prompt.md` with the Feature PRD and Design Spec to create a technical plan.
-- **Input:** Feature PRD and Design Spec.
+- Use `plan-feature-implementation.prompt.md` to create technical implementation plan
+- **Input:** Feature PRD and Epic Architecture
 - **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/implementation-plan.md`
 
-### 6. Feature Testing Strategy (ISTQB & ISO 25010)
+### 5. GitHub Project Setup (Project Management)
 
-- Use `feature-test.prompt.md` to generate a comprehensive test strategy.
-- **Input:** Epic PRD, Epic Architecture, Feature PRD, Feature UX Design, Implementation Plan.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/test-strategy.md`
-
-### 7. Business Analyst Breakdown
-
-- Use `ba-user-story-breakdown.prompt.md` to break down features into user stories for AI agent execution.
-- **Input:** Feature PRD, Design Spec, Implementation Plan.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/user-stories-breakdown.md`
-
-### 8. Tech Lead Technical Breakdown
-
-- Use `tl-technical-breakdown.prompt.md` to convert user stories into implementation tasks.
-- **Input:** User Stories Breakdown and all previous artifacts.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/technical-breakdown.md`
-
-### 9. Story-Level Playwright Testing
-
-- Use `playwright-testing.prompt.md` to create detailed Playwright test implementations.
-- **Input:** Test Strategy, User Story UX Design, Technical Breakdown.
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/story-{id}-playwright-tests.md`
-
-### 10. GitHub Issue Planning & Automation
-
-- Use `github-issue-plan.prompt.md` to generate automated project management.
-- **Input:** All feature artifacts (PRD, UX, Technical, Test Strategy, Playwright Testing plans).
-- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md` and `/docs/ways-of-work/plan/{epic-name}/{feature-name}/github-issues-checklist.md`
+- Use `plan-github.prompt.md` to generate automated project management and issue tracking
+- **Input:** Epic PRD, Epic Architecture, Feature PRD, Implementation Plan
+- **Output:** `/docs/ways-of-work/plan/{epic-name}/{feature-name}/project-plan.md`
 
 ---
 
 ## Best Practices
 
-- **Always attach required documents** as specified in each prompt.
-- **Use absolute file paths** for referencing outputs.
-- **Maintain file naming conventions** and version control all artifacts.
-- **Review outputs** before using as inputs for subsequent steps.
-- **Validate technical feasibility** and ensure UX consistency.
-- **Leverage MCP tools** for automation and traceability.
-- **Iterate and refine** using feedback loops.
+- **Sequential Execution**: Follow the step-by-step guide in order for optimal results
+- **Document Attachment**: Always attach required input documents as specified in each prompt
+- **File Path Consistency**: Use absolute file paths for referencing outputs
+- **Version Control**: Maintain version control for all planning artifacts
+- **Review and Validate**: Review outputs before using as inputs for subsequent steps
+- **Iterative Refinement**: Use feedback loops to improve planning quality
 
 ---
 
 ## Available Prompts
 
-- **epic-pm.prompt.md** – Epic PRD
-- **epic-arch.prompt.md** – Epic Architecture
-- **feature-prd.prompt.md** – Feature PRD
-- **feature-ux.prompt.md** – Feature UI/UX Design
-- **story-ux.prompt.md** – User Story UX Design
-- **feature-implementation.prompt.md** – Implementation Plan
-- **feature-test.prompt.md** – Test Strategy
-- **story-ba-breakdown.prompt.md** – User Story Breakdown
-- **story-tl.prompt.md** – Technical Breakdown
-- **story-test.prompt.md** – Playwright Testing
-- **github-issue-plan.prompt.md** – GitHub Issue Planning
+- **plan-epic-pm.prompt.md** – Epic Product Requirements Document
+- **plan-epic-arch.prompt.md** – Epic Technical Architecture Specification  
+- **plan-feature-prd.prompt.md** – Feature Product Requirements Document
+- **plan-feature-implementation.prompt.md** – Feature Technical Implementation Plan
+- **plan-test.prompt.md** – Comprehensive Test Strategy (ISTQB & ISO 25010)
+- **plan-github.prompt.md** – GitHub Project Management and Issue Planning
 
 ---
 
 ## AI Agent Integration & Automation
 
-- **Multi-Agent Orchestration**: Copilot, Claude, MCP tools
-- **Executable Code Actions**: CodeAct patterns
-- **MCP Server Configuration**: Automated tool chain setup
-- **Context-Aware Handoffs**: Seamless transitions between planning, development, and testing
-- **Quality Gate Automation**: Autonomous validation with human oversight
-- **Comprehensive Testing**: Playwright MCP integration
-- **Project Management Automation**: GitHub Issues and Projects API
-- **Kanban Workflow Support**: Automated status transitions and dependency tracking
-- **Anti-Solutioneering Guidance**: Focus on outcomes over prescribed solutions
+- **Sequential Planning**: Copilot-driven workflow execution from epic to project management
+- **Document Chain Integration**: Each prompt builds on previous outputs for complete traceability
+- **Quality Gate Automation**: ISTQB framework integration with automated validation
+- **GitHub Integration**: Automated project setup and issue tracking from planning artifacts
+- **Multi-Modal Planning**: Business, technical, testing, and project management perspectives
+- **Artifact Management**: Structured file output with consistent naming and organization
 
 ---
 
@@ -163,62 +115,47 @@ graph LR
 graph TD
     A[Epic Definition] --> B[Epic Architecture]
     B --> C[Feature PRD]
-    C --> D[Feature UX Design]
-    C --> E[Implementation Plan]
-
-    D --> F[User Story UX Design]
-    E --> G[BA User Story Breakdown]
-    G --> H[TL Technical Breakdown]
-
-    F --> H
-    H --> I[Playwright Testing]
-    F --> I
-
-    H --> J[GitHub Issue Planning]
-    I --> J
-
-    J --> K[Automated Project Setup]
-    K --> L[Sprint Execution]
-
-    subgraph "Key Workflow Connections"
-        M["User Story UX → Technical Breakdown"]
-        N["Technical Breakdown → Playwright Testing"]
-        O["All Artifacts → GitHub Issue Planning"]
+    C --> D[Feature Implementation Plan]
+    D --> E[Test Strategy]
+    E --> F[GitHub Project Setup]
+    
+    subgraph "Key Planning Stages"
+        G["Epic Level: Business & Technical Vision"]
+        H["Feature Level: Detailed Requirements & Implementation"]
+        I["Quality Level: Testing & Project Management"]
     end
 ```
 
 ---
 
-## Cyclical Workflow Pattern
+## Simplified Workflow Pattern
 
-- **Epic Level**: Each epic can contain multiple features, each requiring full workflow execution
-- **Feature Level**: Each feature contains multiple stories/enablers, each with detailed UX and technical breakdown
-- **Story Level**: Each story can generate multiple implementation tasks and test cases
-- **Testing Level**: Each story/enabler requires comprehensive test coverage across multiple test types
+- **Epic Level**: Define business capability and technical architecture
+- **Feature Level**: Detailed requirements and implementation planning  
+- **Quality Level**: Comprehensive testing strategy and project management setup
 
-The process **repeats and deepens** as you move through the hierarchy, ensuring complete coverage and traceability from high-level business goals down to specific implementation tasks and quality validation.
-
----
-
-## User Story Implementation
-
-1. User Story UX → TL Technical → Playwright Testing → GitHub Issues
-
-## Testing Focus
-
-1. Review existing artifacts → Playwright Testing → Execute test automation
-
-## Project Management Setup
-
-1. Gather all feature artifacts → GitHub Issue Planning → Automated project creation
+The process provides **complete traceability** from high-level business goals down to specific implementation plans and quality validation, with automated project management integration.
 
 ---
 
-## Checklist & Deferred Work Policy
+## Usage Patterns
 
-- **Always create a checklist** when starting work on any Epic, Feature, or Issue. Name the file `_checklist-{issue-number}.md` if an issue number is available, otherwise use `_checklist-epic.md`, `_checklist-feat.md`, etc.
-- **Update the checklist** as work is completed, marking items off in real time.
-- **Move any deferred or explicitly skipped items** to a `_todo.md` file in the same directory (e.g., `_todo.md` for open/parked tasks).
-- **Checklist and todo files must be kept up to date** throughout the workflow for traceability and auditability.
+### Complete Epic Planning
 
-This ensures all work is tracked, deferred items are not lost, and the workflow remains transparent and reviewable.
+1. Epic PRD → Epic Architecture → Feature PRD → Implementation → Testing → Project Setup
+
+### Feature-Focused Planning
+
+1. Feature PRD → Implementation Plan → Test Strategy → GitHub Setup
+
+### Quality-Focused Planning
+
+1. Review existing artifacts → Test Strategy → Quality validation framework
+
+### Project Management Setup
+
+1. Gather all artifacts → GitHub Project Planning → Automated issue creation
+
+---
+
+This streamlined planning workflow provides complete coverage from business requirements through technical implementation and quality assurance, with integrated project management automation for efficient delivery tracking.

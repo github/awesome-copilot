@@ -34,62 +34,15 @@ The output should be a complete Epic Architecture Specification in Markdown form
 
 #### 2. System Architecture Diagram
 
-Create a comprehensive Mermaid diagram detailing the full system architecture for the epic:
+Create a comprehensive Mermaid diagram that illustrates the complete system architecture for this epic. The diagram should include:
 
-```mermaid
-graph TB
-    subgraph "User Layer"
-        U[Users] --> WEB[Web Browser]
-        U --> MOB[Mobile App]
-    end
+- **User Layer**: Show how different user types (web browsers, mobile apps, admin interfaces) interact with the system
+- **Application Layer**: Depict load balancers, application instances, and authentication services (Stack Auth)
+- **Service Layer**: Include tRPC APIs, background services, workflow engines (n8n), and any epic-specific services
+- **Data Layer**: Show databases (PostgreSQL), vector databases (Qdrant), caching layers (Redis), and external API integrations
+- **Infrastructure Layer**: Represent Docker containerization and deployment architecture
 
-    subgraph "Application Layer"
-        WEB --> LB[Load Balancer]
-        MOB --> LB
-        LB --> APP1[App Instance 1]
-        LB --> APP2[App Instance 2]
-
-        APP1 --> AUTH[Stack Auth]
-        APP2 --> AUTH
-    end
-
-    subgraph "Service Layer"
-        APP1 --> API[tRPC API]
-        APP2 --> API
-        API --> BG[Background Services]
-        BG --> WORK[n8n Workflows]
-    end
-
-    subgraph "Data Layer"
-        API --> DB[(PostgreSQL)]
-        API --> VECTOR[(Qdrant Vector DB)]
-        BG --> CACHE[(Redis Cache)]
-        WORK --> EXT[External APIs]
-    end
-
-    subgraph "Infrastructure Layer"
-        DB --> DOCKER[Docker Containers]
-        VECTOR --> DOCKER
-        CACHE --> DOCKER
-        APP1 --> DOCKER
-        APP2 --> DOCKER
-    end
-
-    style U fill:#e1f5fe
-    style WEB fill:#f3e5f5
-    style MOB fill:#f3e5f5
-    style APP1 fill:#e8f5e8
-    style APP2 fill:#e8f5e8
-    style DB fill:#fff3e0
-    style VECTOR fill:#fff3e0
-```
-
-**Architecture Flow Description:**
-
-- **Color Coding**: User interactions (blue), Applications (purple), Services (green), Data (orange)
-- **Service Boundaries**: Clear separation between application zones and data persistence
-- **Data Flow**: Request routing from users through load balancer to application instances
-- **Integration Points**: Authentication, background processing, and external service connections
+Use clear subgraphs to organize these layers, apply consistent color coding for different component types, and show the data flow between components. Include both synchronous request paths and asynchronous processing flows where relevant to the epic.
 
 #### 3. High-Level Features & Technical Enablers
 

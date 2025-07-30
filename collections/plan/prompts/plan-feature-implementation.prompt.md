@@ -45,50 +45,17 @@ Feature goal described (3-5 sentences)
 
 ##### System Architecture Overview
 
-Create a comprehensive system architecture diagram using Mermaid showing the feature's integration:
+Create a comprehensive system architecture diagram using Mermaid that shows how this feature integrates into the overall system. The diagram should include:
 
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        UI[User Interface]
-        COMPONENTS[React Components]
-        STATE[State Management]
-    end
+- **Frontend Layer**: User interface components, state management, and client-side logic
+- **API Layer**: tRPC endpoints, authentication middleware, input validation, and request routing
+- **Business Logic Layer**: Service classes, business rules, workflow orchestration, and event handling
+- **Data Layer**: Database interactions, caching mechanisms, and external API integrations
+- **Infrastructure Layer**: Docker containers, background services, and deployment components
 
-    subgraph "API Layer"
-        TRPC[tRPC Endpoints]
-        MIDDLEWARE[Auth Middleware]
-        VALIDATION[Input Validation]
-    end
+Use subgraphs to organize these layers clearly. Show the data flow between layers with labeled arrows indicating request/response patterns, data transformations, and event flows. Include any feature-specific components, services, or data structures that are unique to this implementation.
 
-    subgraph "Business Logic"
-        SERVICES[Business Services]
-        WORKFLOWS[Background Workflows]
-        EVENTS[Event Handlers]
-    end
-
-    subgraph "Data Layer"
-        DATABASE[(Database)]
-        CACHE[(Cache)]
-        EXTERNAL[(External APIs)]
-    end
-
-    UI --> COMPONENTS
-    COMPONENTS --> STATE
-    STATE --> TRPC
-    TRPC --> MIDDLEWARE
-    MIDDLEWARE --> VALIDATION
-    VALIDATION --> SERVICES
-    SERVICES --> WORKFLOWS
-    WORKFLOWS --> EVENTS
-    SERVICES --> DATABASE
-    SERVICES --> CACHE
-    WORKFLOWS --> EXTERNAL
-
-    style UI fill:#e1f5fe
-    style COMPONENTS fill:#f3e5f5
-    style TRPC fill:#e8f5e8
-    style DATABASE fill:#fff3e0
+- **Technology Stack Selection**: Document choice rationale for each layer
 ```
 
 - **Technology Stack Selection**: Document choice rationale for each layer
@@ -107,7 +74,7 @@ Create an entity-relationship diagram using Mermaid showing the feature's data m
 
 ##### API Design
 
-- tRPC endpoints with full specifications
+- Endpoints with full specifications
 - Request/response formats with TypeScript types
 - Authentication and authorization with Stack Auth
 - Error handling strategies and status codes
@@ -145,7 +112,6 @@ Recipe Library Page
 ```
 
 - **State Flow Diagram**: Component state management using Mermaid
-- Next.js App Router component hierarchy
 - Reusable component library specifications
 - State management patterns with Zustand/React Query
 - TypeScript interfaces and types
