@@ -394,7 +394,7 @@ function generateChatModesSection(chatmodesDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "chatmode");
+    const badges = makeBadges(link, "mode");
 
     if (customDescription && customDescription !== "null") {
       chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
