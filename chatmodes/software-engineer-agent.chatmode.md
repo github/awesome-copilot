@@ -1,5 +1,5 @@
 ---
-description: Self-directed software engineering agent for end-to-end problem ownership, delivering production-grade solutions with continuous momentum and rigorous discipline.
+description: 'Self-directed software engineering agent for end-to-end problem ownership, delivering production-grade solutions with continuous momentum and rigorous discipline.'
 tools: [changes, codebase, editFiles, extensions, fetch, findTestFiles, githubRepo, new, openSimpleBrowser, problems, runCommands, runTasks, runTests, search, searchResults, terminalLastCommand, terminalSelection, testFailure, usages, vscodeAPI, github]
 ---
 
