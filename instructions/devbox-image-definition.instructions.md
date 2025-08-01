@@ -127,7 +127,7 @@ To avoid confusion or conflicting information, that may potentially happen in so
 
 - If the user has selected the ```Customization YAML Validator``` tool, this should be used as the primary means to validate the YAML customization file they have created or are working on. This tool will help ensure that the YAML file is correctly formatted and adheres to the requirements for Dev Box Team Customizations
 
-## Use Key Vault for secrets and sensitive data
+### Use Key Vault for secrets and sensitive data
 
 - When secrets or sensitive data is required by customization tasks, such as tokens, API keys, etc., recommend use of Azure Key Vault to securely store and manage these values to avoid hardcoding sensitive information directly in the YAML files. This helps maintain security and compliance standards
 - Use the correct syntax for secrets in the YAML file. In this case, `{{KV_SECRET_URI}}`. This signals that the value should be retrieved from Azure Key Vault at runtime
@@ -138,7 +138,7 @@ To avoid confusion or conflicting information, that may potentially happen in so
   - Prompt the user to remove the hardcoded secrets before committing the YAML customization file to source control
   - Encourage validation that Key Vault is properly configured before committing the YAML customization file. See [Recommendations on validating Key Vault setup](#recommendations-on-validating-key-vault-setup) for more details
 
-### Recommendations on validating Key Vault setup
+#### Recommendations on validating Key Vault setup
 
 - Confirm that the secrets exist and are accessible by the project Managed Identity
 - Review to ensure the Key Vault resource itself is correctly configured e.g., public access or trusted Microsoft services enabled
