@@ -1,5 +1,5 @@
 ---
-applyTo: ['*']
+applyTo: '*'
 description: 'Comprehensive best practices for creating optimized, secure, and efficient Docker images and managing containers. Covers multi-stage builds, image layer optimization, security scanning, and runtime best practices.'
 ---
 
@@ -174,8 +174,7 @@ RUN apt-get update && \
 - **Example (Comprehensive .dockerignore):**
 ```dockerignore
 # Version control
-.git
-.gitignore
+.git*
 
 # Dependencies (if installed in container)
 node_modules
@@ -189,8 +188,7 @@ build
 *.so
 
 # Development files
-.env
-.env.local
+.env.*
 *.log
 coverage
 .nyc_output
@@ -206,9 +204,8 @@ coverage
 Thumbs.db
 
 # Documentation
-README.md
-docs/
 *.md
+docs/
 
 # Test files
 test/

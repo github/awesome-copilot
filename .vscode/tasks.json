@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "generate-readme",
+      "type": "shell",
+      "command": "node update-readme.js",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Generates the README.md file using update-readme.js script."
+    }
+  ]
+}
