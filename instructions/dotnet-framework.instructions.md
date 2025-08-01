@@ -9,6 +9,29 @@ applyTo: '**/*.csproj', '**/*.cs'
 ## Build and Compilation Requirements
 - Always use `msbuild /t:rebuild` to build the solution or projects instead of `dotnet build`
 
+## Project File Management
+
+### Non-SDK Style Project Structure
+.NET Framework projects use the legacy project format, which differs significantly from modern SDK-style projects:
+
+- **Explicit File Inclusion**: All new source files **MUST** be explicitly added to the project file (`.csproj`) using a `<Compile>` element
+  - .NET Framework projects do not automatically include files in the directory like SDK-style projects
+  - Example: `<Compile Include="Path\To\NewFile.cs" />`
+
+- **No Implicit Imports**: Unlike SDK-style projects, .NET Framework projects do not automatically import common namespaces or assemblies
+ 
+- **Build Configuration**: Contains explicit `<PropertyGroup>` sections for Debug/Release configurations
+
+- **Output Paths**: Explicit `<OutputPath>` and `<IntermediateOutputPath>` definitions
+
+- **Target Framework**: Uses `<TargetFrameworkVersion>` instead of `<TargetFramework>`
+  - Example: `<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>`
+
+## NuGet Package Management
+- Installing and updating NuGet packages in .NET Framework projects is a complex task requiring coordinated changes to multiple files. Therefore, **do not attempt to install or update NuGet packages** in this project.
+- Instead, if changes to NuGet references are required, ask the user to install or update NuGet packages using the Visual Studio NuGet Package Manager or Visual Studio package manager console.
+- When recommending NuGet packages, ensure they are compatible with .NET Framework or .NET Standard 2.0 (not only .NET Core or .NET 5+).
+
 ## C# Language Version is 7.3
 - This project is limited to C# 7.3 features only. Please avoid using:
 
@@ -42,29 +65,6 @@ applyTo: '**/*.csproj', '**/*.cs'
   - Explicit null checks instead of null-coalescing assignment
   - Array slicing with manual indexing
   - Abstract classes or interfaces instead of default interface methods
-
-## Project File Management
-
-### Non-SDK Style Project Structure
-.NET Framework projects use the legacy project format, which differs significantly from modern SDK-style projects:
-
-- **Explicit File Inclusion**: All new source files **MUST** be explicitly added to the project file (`.csproj`) using a `<Compile>` element
-  - .NET Framework projects do not automatically include files in the directory like SDK-style projects
-  - Example: `<Compile Include="Path\To\NewFile.cs" />`
-
-- **No Implicit Imports**: Unlike SDK-style projects, .NET Framework projects do not automatically import common namespaces or assemblies
- 
-- **Build Configuration**: Contains explicit `<PropertyGroup>` sections for Debug/Release configurations
-
-- **Output Paths**: Explicit `<OutputPath>` and `<IntermediateOutputPath>` definitions
-
-- **Target Framework**: Uses `<TargetFrameworkVersion>` instead of `<TargetFramework>`
-  - Example: `<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>`
-
-## NuGet Package Management
-- Installing and updating NuGet packages in .NET Framework projects is a complex task requiring coordinated changes to multiple files. Therefore, **do not attempt to install or update NuGet packages** in this project.
-- Instead, ask the user to install or update NuGet packages using the Visual Studio NuGet Package Manager or Visual Studio package manager console.
-- When recommending NuGet packages, ensure they are compatible with .NET Framework or .NET Standard 2.0 (not only .NET Core or .NET 5+).
 
 ## Environment Considerations (Windows environment)
 - Use Windows-style paths with backslashes (e.g., `C:\path\to\file.cs`)
