@@ -1,6 +1,5 @@
 ---
-description: 'Guidance for working with .NET Framework projects. Because .NET Framework projects require different tools and language versions compared to .NET/.NET Core, these instructions can be
-helpful for ensuring LLMs understand the context and requirements of .NET Framework development.'
+description: 'Guidance for working with .NET Framework projects. Includes project structure, C# language version, NuGet management, and best practices.'
 applyTo: '**/*.csproj', '**/*.cs'
 ---
 
