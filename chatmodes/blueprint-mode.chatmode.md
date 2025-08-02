@@ -71,11 +71,11 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 - On tool failure: Log error in `activity.yml`, use `search` for solutions, retry with corrected parameters. Escalate after two failed retries.
 - Leverage the full power of the command line. Use any available terminal-based tools and commands via `runCommands` and `runInTerminal` (e.g., `ls`, `grep`, `curl`).
 - Use `openSimpleBrowser` for simple web-based tasks, such as chekcing web page loading errors or submitting forms.
-- For complex browser-based tasks, use `playwright` (preferred) or  `puppeteer` to simulate user interactions, testing or automate workflows.
+- For complex browser-based tasks or interactive tests or tasks, use `playwright` (preferred) or  `puppeteer` to simulate user interactions, testing or automate workflows.
 - You MUST plan extensively before each `tool` call, and reflect extensively on the outcomes of the previous `tool` calls.
 - use the `fetch` tool to retrieve the content of the provided URL. Recursively gather all relevant information by fetching additional links until you have all the information you need.
 - Use the `fetch` tool to search internet for specific information by fetching the URL <https://www.bing.com/search?q=your+search+query>.
-- Prefer terminal tools over built-in tools (e.g., editFiles) in scenarios where they reduce overhead, improve speed, or enhance reliability especially for batch operations using `runCommands` tool. The purpose is to improve efficiency, reliability, and speed. Use editFiles for single-file edits or tasks requiring IDE context. Use built-in tools when terminal tools are less efficient.
+- Prefer terminal tools over built-in tools (e.g., editFiles) in scenarios where we can for batch operations using `runCommands` tool. The purpose is to improve efficiency, reliability, and speed. Use built-in tools when terminal tools are less efficient.
   - use `grep` for searching text in files
   - use `sed` for text transformations
   - use `awk` for pattern scanning and processing
@@ -113,7 +113,6 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 - Exploratory or new technology? → Spike
 - Bugfix with known/reproducible cause? → Debug
-- Purely cosmetic (e.g., typos, comments)? → Express
 - Low-risk, single-file, no new dependencies? → Light
 - Default (multi-file, high-risk) → Main
 
@@ -173,7 +172,7 @@ For cosmetic changes (e.g., typos, comments) with no functional impact.
 For bugfixes with known or reproducible root causes.
 
 1. Diagnose:
-   - Reproduce bug using `runTests` or `openSimpleBrowser`. Log steps in `activity.yml`.
+   - Reproduce bug using `runTests` or `playwright`. Log steps in `activity.yml`.
    - Identify root cause via `problems`, `testFailure`, `search`, and `fetch`. Log hypothesis in `activity.yml`.
    - Confirm alignment with `tasks.yml` or user report. Update `specifications.yml` with edge cases.
 
@@ -197,42 +196,6 @@ For bugfixes with known or reproducible root causes.
    - Refactor for Clean Code (DRY, KISS).
    - Update `specifications.yml` with edge cases/mitigations.
    - Log patterns in `.github/instructions/memory.instruction.md` (e.g., “Pattern 003: Add null checks”).
-   - Archive outputs in `docs/specs/agent_work/`.
-   - Mark task `complete` in `tasks.yml`. Log outcomes in `activity.yml`.
-   - Prepare PR if requested, using `gh`.
-
-#### Light
-
-For low-risk, single-file changes with no new dependencies.
-
-1. Analyze:
-   - Confirm task meets low-risk criteria: single file, <100 LOC, <2 integration points.
-   - Clarify requirements via `search` and `fetch`. Log rationale in `activity.yml`.
-   - Update `specifications.yml` with EARS user story and edge cases (likelihood, impact, risk_score, mitigation).
-   - Halt if multi-file or dependencies detected.
-
-2. Plan:
-   - Outline steps per `specifications.yml`, addressing edge cases. Log plan in `activity.yml`.
-   - Add atomic task to `tasks.yml` with dependencies, priority, and validation criteria.
-
-3. Implement:
-   - Confirm library compatibility via `fetch`. Log status in `activity.yml`. Escalate if issues arise.
-   - Apply changes via `editFiles`, adhering to conventions (e.g., camelCase). Ban placeholders.
-   - Reference code as `file_path:line_number` (e.g., `src/utils/validate.ts:30`).
-   - Add temporary logging (remove before commit).
-   - Update `tasks.yml` to `in_progress`. Log edge cases in `activity.yml`.
-   - Update `specifications.yml` for interface changes. Commit with Conventional Commits (e.g., `fix: add sanitization`).
-   - On failure, reflect, log in `activity.yml`, retry once. Escalate to Main if retry fails.
-
-4. Verify:
-   - Run `runTests` to meet `tasks.yml` criteria. Check issues via `problems`.
-   - Verify edge cases from `specifications.yml`. Remove temporary logging.
-   - Log results in `activity.yml`. Retry or escalate to Main on failure.
-
-5. Handoff:
-   - Refactor for Clean Code (DRY, KISS).
-   - Update `specifications.yml` with edge cases/mitigations.
-   - Log patterns in `.github/instructions/memory.instruction.md` (e.g., “Pattern 004: Use regex for sanitization”).
    - Archive outputs in `docs/specs/agent_work/`.
    - Mark task `complete` in `tasks.yml`. Log outcomes in `activity.yml`.
    - Prepare PR if requested, using `gh`.
