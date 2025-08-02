@@ -111,102 +111,60 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 ## Workflow Selection Decision Tree
 
-- Exploratory or new technology? → Spike
-- Bugfix with known/reproducible cause? → Debug
-- Low-risk, single-file, no new dependencies? → Light
-- Default (multi-file, high-risk) → Main
+- Bugfix with known/reproducible cause? → **Debug Workflow**
+- Single-file, no functional impact (e.g., typos, comments)? → **Express Workflow**
+- Multi-file, new dependencies, or high risk? → **Main Workflow**
 
-### Workflows
+## Workflows
 
-#### Spike
-
-For exploratory tasks or new technology evaluation.
-
-1. Investigate:
-   - Define exploration scope (e.g., new database, API). Log goals in `activity.yml`.
-   - Gather documentation, case studies, or feedback via `search` and `fetch` (e.g., GitHub issues, Stack Overflow). Log findings in `activity.yml`.
-
-2. Prototype:
-   - Create minimal proof-of-concept using `editFiles` and `runCommands` in a sandbox (e.g., temporary branch).
-   - Avoid production code changes.
-   - Validate prototype with `runTests` or `openSimpleBrowser`. Log results in `activity.yml`.
-
-3. Document & Handoff:
-   - Create `recommendation` report in `activity.yml` with findings, risks, and next steps.
-   - Archive prototype in `docs/specs/agent_work/`.
-   - Recommend next steps (e.g., escalate to Main or abandon). Log in `activity.yml`.
-
-#### Express
-
-For cosmetic changes (e.g., typos, comments) with no functional impact.
-
-1. Analyze:
-   - Verify task is cosmetic, confined to 1-2 files (e.g., `README.md`, `src/utils/validate.ts`).
-   - Check style guides via `search` (e.g., Markdown linting rules). Log rationale in `activity.yml`.
-   - Update `specifications.yml` with EARS user story if needed. Halt if functional changes detected.
-
-2. Plan:
-   - Outline changes per `specifications.yml` and style guides. Log plan in `activity.yml`.
-   - Add atomic task to `tasks.yml` with priority and validation criteria.
-
-3. Implement:
-   - Confirm tools (e.g., Prettier) via `fetch`. Log status in `activity.yml`. Escalate if unavailable.
-   - Apply changes via `editFiles`, adhering to style guides. Reference code as `file_path:line_number`.
-   - Update `tasks.yml` to `in_progress`. Log details in `activity.yml`.
-   - Commit with Conventional Commits (e.g., `docs: fix typos in README.md`).
-   - On failure (e.g., linting errors), reflect, log in `activity.yml`, retry once. Escalate to Light if retry fails.
-
-4. Verify:
-   - Run `runTests` or linting tools (e.g., Prettier, ESLint). Check issues via `problems`.
-   - Log results in `activity.yml`. Retry or escalate to Light on failure.
-
-5. Handoff:
-   - Confirm consistency with style guides.
-   - Log patterns in `.github/instructions/memory.instruction.md` (e.g., “Pattern 006: Use Prettier for Markdown”).
-   - Archive outputs in `docs/specs/agent_work/`.
-   - Mark task `complete` in `tasks.yml`. Log outcomes in `activity.yml`.
-   - Prepare PR if requested, using `gh`.
-
-#### Debug
+### Debug Workflow
 
 For bugfixes with known or reproducible root causes.
 
-1. Diagnose:
+1. **Diagnose**:
    - Reproduce bug using `runTests` or `playwright`. Log steps in `activity.yml`.
-   - Identify root cause via `problems`, `testFailure`, `search`, and `fetch`. Log hypothesis in `activity.yml`.
-   - Confirm alignment with `tasks.yml` or user report. Update `specifications.yml` with edge cases.
+   - Identify root cause via `problems` and `search`. Update `specifications.yml` with edge cases.
+   - Log hypothesis in `activity.yml`.
 
-2. Implement:
-   - Plan: Align fix with `specifications.yml` and `tasks.yml`. Verify best practices via `search` and `fetch`. Log plan in `activity.yml`.
-   - Dependencies: Confirm library/API compatibility via `fetch`. Log status in `activity.yml`. Escalate if unavailable.
-   - Execute:
-     - Apply fix via `editFiles`, adhering to conventions (e.g., camelCase). Ban placeholders.
-     - Reference code as `file_path:line_number` (e.g., `src/server/api.ts:45`).
-     - Add temporary logging (remove before commit).
-     - Update `tasks.yml` to `in_progress`. Log edge cases in `activity.yml`.
-   - Document: Update `specifications.yml` for architecture changes. Log details in `activity.yml`. Commit with Conventional Commits (e.g., `fix: add null check`).
-   - Handle Failures: On error (e.g., `problems` issues), reflect, log in `activity.yml`, retry once. Escalate to Main’s Design if retry fails.
+2. **Implement**:
+   - Apply fix via `editFiles`, following coding conventions. Add temporary logging if needed.
+   - Update `specifications.yml` for architecture changes. Commit with Conventional Commits (e.g., `fix: add null check`).
+   - On failure, log in `activity.yml`, retry once with corrected approach, then escalate to **Main Workflow**.
 
-3. Verify:
-   - Run `runTests` (unit, integration, E2E) to meet `tasks.yml` criteria. Check issues via `problems`.
-   - Verify edge cases from `specifications.yml`. Remove temporary logging via `editFiles`.
-   - Log results in `activity.yml`. Retry or escalate to Main on failure.
+3. **Verify**:
+   - Run `runTests` to validate fix against `specifications.yml` edge cases.
+   - Remove temporary logging. Log results in `activity.yml`.
+   - If tests fail, retry once or escalate to **Main Workflow**.
 
-4. Handoff:
+4. **Handoff**:
    - Refactor for Clean Code (DRY, KISS).
-   - Update `specifications.yml` with edge cases/mitigations.
    - Log patterns in `.github/instructions/memory.instruction.md` (e.g., “Pattern 003: Add null checks”).
    - Archive outputs in `docs/specs/agent_work/`.
-   - Mark task `complete` in `tasks.yml`. Log outcomes in `activity.yml`.
-   - Prepare PR if requested, using `gh`.
+   - Mark task `complete` in `tasks.yml`. Log in `activity.yml`.
+   - Prepare PR with `gh` if requested.
 
-#### Main
+### Express Workflow
 
-For tasks involving multiple files, new dependencies, or high risk.
+For cosmetic changes (e.g., typos, comments) with no functional impact.
 
-1. Analyze:
-   - Map project structure, data flows, and integration points using `codebase` and `findTestFiles`.
-   - Clarify requirements via `search` and `fetch`. Propose in `specifications.yml` (EARS format) if unclear:
+1. **Analyze**:
+   - Verify non-functional change using `problems`. Switch to **Main Workflow** if functional impact detected.
+
+2. **Implement**:
+   - Apply changes via `editFiles`. Commit with Conventional Commits (e.g., `docs: fix typo`).
+   - On failure, log in `activity.yml`, retry once, then escalate to **Main Workflow**.
+
+3. **Verify**:
+   - Run `problems` to confirm no issues introduced.
+   - Log results in `activity.yml`. Escalate to **Main Workflow** if verification fails.
+
+### Main Workflow
+
+For multi-file changes, new dependencies, or high-risk tasks.
+
+1. **Analyze**:
+   - Map project structure and data flows using `codebase`. Log findings in `activity.yml`.
+   - Clarify ambiguous requirements via `search` and `fetch`. Propose in `specifications.yml` (EARS format) if unclear:
 
      ```markdown
      ## Proposed Requirements
@@ -215,55 +173,36 @@ For tasks involving multiple files, new dependencies, or high risk.
      Please confirm or clarify.
      ```
 
-   - Log analysis, user response, and edge cases (likelihood, impact, risk_score, mitigation) in `activity.yml` and `specifications.yml`.
-   - Escalate infeasible requirements, logging assumptions in `activity.yml`.
+   - Log edge cases (likelihood, impact, mitigation) in `specifications.yml`.
 
-2. Design:
+2. **Design**:
    - Define in `specifications.yml`:
-     - Tech stack (languages, frameworks, databases, DevOps).
-     - Project structure (folders, naming conventions, modules).
-     - Component architecture (server, client, data flow).
-     - Features (user stories, steps, edge cases, validation, UI/UX).
-     - Database/server logic (schema, relationships, migrations, CRUD, endpoints).
-     - Security (encryption, compliance, threat modeling).
-   - Log edge cases and rationale in `activity.yml`. Revert to Analyze if infeasible.
+     - Tech stack, project structure, component architecture, features, database/server logic, security.
+     - Edge cases and mitigations.
+   - Log rationale in `activity.yml`. Revert to **Analyze** if design is infeasible.
 
-3. Plan Tasks:
-   - Break solution into atomic tasks in `tasks.yml`, specifying dependencies, priority, owner, time estimate, and validation criteria.
-   - Revert to Design if tasks can be simplified or exceed single-responsibility scope.
+3. **Plan**:
+   - Create atomic tasks in `tasks.yml` with dependencies, priority, and validation criteria.
+   - Verify tasks align with `specifications.yml`. Simplify if overly complex.
 
-4. Implement:
-   - Plan: Align with `specifications.yml` and `tasks.yml`. Verify best practices via `search` and `fetch`. Log plan in `activity.yml`.
-   - Dependencies: Confirm library/API compatibility via `fetch`. Log status in `activity.yml`. Escalate issues. Update `specifications.yml` with versions.
-   - Execute:
-     - Select workflow (per Decision Tree) for each task.
-     - Apply changes via `editFiles`, adhering to conventions (e.g., PascalCase for components). Ban placeholders.
-     - Reference code as `file_path:line_number` (e.g., `src/server/api.ts:100`).
-     - Add temporary logging (remove before commit).
-     - Create `.env` placeholders if needed, notify user, log in `activity.yml`.
-     - Monitor with `problems` and `runTests`.
-   - Document: Update `specifications.yml` for architecture/interface changes. Log details, rationale, and deviations in `activity.yml`. Commit with Conventional Commits (e.g., `feat: add /api/generate`).
-   - Handle Failures: On error, reflect, log in `activity.yml`, retry once. Escalate to Design if retry fails.
+4. **Implement**:
+   - Execute tasks via `editFiles`, ensuring compatibility with dependencies (`fetch` for versions).
+   - Update `specifications.yml` for architecture changes. Commit with Conventional Commits (e.g., `feat: add /api/generate`).
+   - On failure, log in `activity.yml`, retry once, then revert to **Design**.
 
-5. Review:
-   - Check coding standards using `problems`. Log findings in `activity.yml`.
-   - Update `tasks.yml` to `reviewed`.
+5. **Verify**:
+   - Run `runTests` and `problems` to validate against `tasks.yml` criteria.
+   - Log results in `activity.yml`. Retry or revert to **Design** if tests fail.
 
-6. Validate:
-   - Run `runTests` (unit, integration, E2E) to meet `tasks.yml` criteria. Verify edge cases from `specifications.yml`.
-   - Check issues via `problems`. Remove temporary logging.
-   - Log results in `activity.yml`. Retry or revert to Design on failure.
-
-7. Handoff:
+6. **Handoff**:
    - Refactor for Clean Code (DRY, KISS, YAGNI).
-   - Update `specifications.yml` with edge cases/mitigations.
-   - Log patterns in `.github/instructions/memory.instruction.md` (e.g., “Pattern 005: Use middleware for API validation”).
+   - Update `specifications.yml` and `.github/instructions/memory.instruction.md` with patterns.
    - Archive outputs in `docs/specs/agent_work/`.
-   - Mark tasks `complete` in `tasks.yml`. Log outcomes in `activity.yml`.
-   - Prepare PR if requested, using `gh`.
+   - Mark tasks `complete` in `tasks.yml`. Log in `activity.yml`.
+   - Prepare PR with `gh` if requested.
 
-8. Iterate:
-   - Review `tasks.yml` for incomplete tasks. Revert to Design if any remain.
+7. **Iterate**:
+   - Review `tasks.yml` for incomplete tasks. Repeat from **Implement** until all tasks are validated.
 
 ## Artifacts
 
