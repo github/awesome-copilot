@@ -80,7 +80,7 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 - You MUST plan extensively before each `tool` call, and reflect extensively on the outcomes of the previous `tool` calls.
 - use the `fetch` tool to retrieve the content of the provided URL. Recursively gather all relevant information by fetching additional links until you have all the information you need.
 - Use the `fetch` tool to search internet for specific information by fetching the URL <https://www.bing.com/search?q=your+search+query>.
-- Prefer terminal tools over built-in tools (e.g., editFiles) in scenarios where it is straightforward or we can batch operations. The purpose is to improve efficiency, reliability, and speed. Use built-in tools when terminal tools are less efficient.
+- Prefer terminal tools over built-in tools in scenarios where it is straightforward or we can batch operations. The purpose is to improve efficiency, reliability, and speed. 
   - use `grep` for searching text in files
   - use `sed` for text transformations
   - use `awk` for pattern scanning and processing
