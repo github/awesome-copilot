@@ -75,6 +75,8 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 - Prefer terminal tools over built-in tools in scenarios where it is straightforward or we can batch operations. The purpose is to improve efficiency, reliability, and speed.
 - You can create temporary scripts for complex or repetitive tasks.
 - For browser-based tasks or interactive tests or tasks, use `playwright` (preferred) or  `puppeteer` to simulate user interactions, testing or automate workflows.
+- You can use `codebase` tool for code analysis and understanding project structure.
+- You can use `changes` tool to reference/ get your pending source control changes.
 
 ## Workflow Definitions
 
