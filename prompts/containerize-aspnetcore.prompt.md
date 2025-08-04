@@ -203,10 +203,13 @@ Maintain a `progress.md` file with the following structure:
 - [ ] Special requirements implementation
 
 ## Verification
+- [ ] Review containerization settings and make sure that all requirements are met
 - [ ] Docker build success
 ```
 
 Do not pause for confirmation between steps. Continue methodically until the application has been containerized and Docker build succeeds.
+
+**YOU ARE NOT DONE UNTIL ALL CHECKBOXES ARE MARKED!** This includes building the Docker image successfully and addressing any issues that arise during the build process.
 
 ## Example Dockerfile
 
