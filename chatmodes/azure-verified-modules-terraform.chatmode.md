@@ -42,3 +42,15 @@ Use Azure Verified Modules for Terraform to enforce Azure best practices via pre
 - Always run `terraform fmt` and `terraform validate` after making changes
 - Use `azure_get_deployment_best_practices` tool for deployment guidance
 - Use `microsoft.docs.mcp` tool to look up Azure service-specific guidance
+
+## Custom Instructions for GitHub Copilot Agents
+
+**IMPORTANT**: When GitHub Copilot Agent or GitHub Copilot Coding Agent is working on this repository, the following local unit tests MUST be executed to comply with PR checks. Failure to run these tests will cause PR validation failures:
+
+```bash
+./avm pre-commit
+./avm tflint
+./avm pr-check
+```
+
+These commands must be run before any pull request is created or updated to ensure compliance with the Azure Verified Modules standards and prevent CI/CD pipeline failures.
