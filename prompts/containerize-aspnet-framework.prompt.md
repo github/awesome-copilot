@@ -6,9 +6,95 @@ description: 'Containerize an ASP.NET .NET Framework project by creating Dockerf
 
 # ASP.NET .NET Framework Containerization Prompt
 
-Containerize the ASP.NET (.NET Framework) project specified in the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) settings file, focusing **exclusively** on changes required for the application to run in a Windows Docker container. Containerization should consider all settings specified in the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) file.
+Containerize the ASP.NET (.NET Framework) project specified in the containerization settings below, focusing **exclusively** on changes required for the application to run in a Windows Docker container. Containerization should consider all settings specified here.
 
 **REMEMBER:** This is a .NET Framework application, not .NET Core. The containerization process will be different from that of a .NET Core application.
+
+## Containerization Settings
+
+This section of the prompt contains the specific settings and configurations required for containerizing the ASP.NET (.NET Framework) application. Prior to running this prompt, ensure that the settings are filled out with the necessary information. Note that in many cases, only the first few settings are required. Later settings can be left as defaults if they do not apply to the project being containerized.
+
+Any settings that are not specified will be set to default values. The default values are provided in `[square brackets]`.
+
+### Basic Project Information
+1. Project to containerize: 
+   - `[ProjectName (provide path to .csproj file)]`
+
+2. Windows Server SKU to use:
+   - `[Windows Server Core (Default) or Windows Server Full]`
+
+3. Windows Server version to use:
+   - `[2022, 2019, or 2016 (Default 2022)]`
+
+4. Custom base image for the build stage of the Docker image ("None" to use standard Microsoft base image):
+   - `[Specify base image to use for build stage (Default None)]`
+
+5. Custom base image for the run stage of the Docker image ("None" to use standard Microsoft base image):
+   - `[Specify base image to use for run stage (Default None)]`   
+
+### Container Configuration
+1. Ports that must be exposed in the container image:
+   - Primary HTTP port: `[e.g., 80]`
+   - Additional ports: `[List any additional ports, or "None"]`
+
+2. User account the container should run as:
+   - `[User account, or default to "ContainerUser"]`
+
+3. IIS settings that must be configured in the container image:
+   - `[List any specific IIS settings, or "None"]`
+
+### Build configuration
+1. Custom build steps that must be performed before building the container image:
+   - `[List any specific build steps, or "None"]`
+
+2. Custom build steps that must be performed after building the container image:
+   - `[List any specific build steps, or "None"]`
+
+### Dependencies
+1. .NET assemblies that should be registered in the GAC in the container image:
+   - `[Assembly name and version, or "None"]`
+
+2. MSIs that must be copied to the container image and installed:
+   - `[MSI names and versions, or "None"]`
+
+3. COM components that must be registered in the container image:
+   - `[COM component names, or "None"]`
+
+### System Configuration
+1. Registry keys and values that must be added to the container image:
+   - `[Registry paths and values, or "None"]`
+
+2. Environment variables that must be set in the container image:
+   - `[Variable names and values, or "Use defaults"]`
+
+3. Windows Server roles and features that must be installed in the container image:
+   - `[Role/feature names, or "None"]`
+
+### File System
+1. Files/directories that need to be copied to the container image:
+   - `[Paths relative to project root, or "None"]`
+   - Target location in container: `[Container paths, or "Not applicable"]`
+
+2. Files/directories to exclude from containerization:
+   - `[Paths to exclude, or "None"]`
+
+### .dockerignore Configuration
+1. Patterns to include in the `.dockerignore` file (.dockerignore will already have common defaults; these are additional patterns):
+   - Additional patterns: `[List any additional patterns, or "None"]`
+
+### Health Check Configuration
+1. Health check endpoint:
+   - `[Health check URL path, or "None"]`
+
+2. Health check interval and timeout:
+   - `[Interval and timeout values, or "Use defaults"]`
+
+### Additional Instructions
+1. Other instructions that must be followed to containerize the project:
+   - `[Specific requirements, or "None"]`
+
+2. Known issues to address:
+   - `[Describe any known issues, or "None"]`
 
 ## Scope
 
@@ -22,13 +108,13 @@ Containerize the ASP.NET (.NET Framework) project specified in the [`containeriz
 
 ## Execution Process
 
-1. Review the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) file to understand the containerization requirements
+1. Review the containerization settings above to understand the containerization requirements
 2. Create a `progress.md` file to track changes with check marks
 3. Determine the .NET Framework version from the project's .csproj file by checking the `TargetFrameworkVersion` element
 4. Select the appropriate Windows Server container image based on:
    - The .NET Framework version detected from the project
-   - The Windows Server SKU specified in [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) (Core or Full)
-   - The Windows Server version specified in [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) (2016, 2019, or 2022)
+   - The Windows Server SKU specified in containerization settings (Core or Full)
+   - The Windows Server version specified in containerization settings (2016, 2019, or 2022)
    - Windows Server Core tags can be found at: https://github.com/microsoft/dotnet-framework-docker/blob/main/README.aspnet.md#full-tag-listing
 5. Ensure that required NuGet packages are installed. **DO NOT** install these if they are missing. If they are not installed, the user must install them manually. If they are not installed, pause executing this prompt and ask the user to install them using the Visual Studio NuGet Package Manager or Visual Studio package manager console. The following packages are required:
    - `Microsoft.Configuration.ConfigurationBuilders.Environment`
@@ -53,7 +139,7 @@ Containerize the ASP.NET (.NET Framework) project specified in the [`containeriz
        <!-- existing connection strings -->
      </connectionStrings>
      ```
-7. Create a `LogMonitorConfig.json` file in the folder where the Dockerfile will be created by copying the reference `LogMonitorConfig.json` file at the end of this prompt. The file's contents **MUST NOT** not be modified and should match the reference content exactly unless instructions in [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) specify otherwise.
+7. Create a `LogMonitorConfig.json` file in the folder where the Dockerfile will be created by copying the reference `LogMonitorConfig.json` file at the end of this prompt. The file's contents **MUST NOT** not be modified and should match the reference content exactly unless instructions in containerization settings specify otherwise.
    - In particular, make sure the level of issues to be logged is not changed as using `Information` level for EventLog sources will cause unnecessary noise.
 8. Create a Dockerfile in the root of the project directory to containerize the application
    - The Dockerfile should use multiple stages:
@@ -72,7 +158,7 @@ Containerize the ASP.NET (.NET Framework) project specified in the [`containeriz
        - Copy the published output from the build stage (in C:\publish) to the final image
        - Set the container's entry point to run LogMonitor.exe with ServiceMonitor.exe to monitor the IIS service
            - `ENTRYPOINT [ "C:\\LogMonitor\\LogMonitor.exe", "C:\\ServiceMonitor.exe", "w3svc" ]`
-   - Be sure to consider all requirements in the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) file:
+   - Be sure to consider all requirements in the containerization settings:
      - Windows Server SKU and version
      - Exposed ports
      - User account for container
@@ -86,7 +172,7 @@ Containerize the ASP.NET (.NET Framework) project specified in the [`containeriz
      - File/directory copying
    - Model the Dockerfile after the example provided at the end of this prompt, but ensure it is customized to the specific project requirements and settings.
    - **IMPORTANT:** Use a Windows Server Core base image unless the user has **specifically requested** a full Windows Server image in the settings file
-9. Create a `.dockerignore` file in the root of the project directory to exclude unnecessary files from the Docker image. The `.dockerignore` file **MUST** include at least the following elements as well as additional patterns as specified in the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) file:
+9. Create a `.dockerignore` file in the root of the project directory to exclude unnecessary files from the Docker image. The `.dockerignore` file **MUST** include at least the following elements as well as additional patterns as specified in the containerization settings:
    - packages/
    - bin/
    - obj/
@@ -101,7 +187,7 @@ Containerize the ASP.NET (.NET Framework) project specified in the [`containeriz
    - *.suo
    - **/.DS_Store
    - **/Thumbs.db
-   - Any additional patterns specified in the [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md) file
+   - Any additional patterns specified in the containerization settings
 10. Configure health checks if specified in the settings:
    - Add HEALTHCHECK instruction to Dockerfile if health check endpoint is provided
 11. Add the dockerfile to the project by adding the following item to the project file: `<None Include="Dockerfile" />`
@@ -146,10 +232,13 @@ Maintain a `progress.md` file with the following structure:
 - [ ] Special requirements implementation
 
 ## Verification
+- [ ] Review containerization settings and make sure that all requirements are met
 - [ ] Docker build success
 ```
 
 Do not pause for confirmation between steps. Continue methodically until the application has been containerized and Docker build succeeds.
+
+**YOU ARE NOT DONE UNTIL ALL CHECKBOXES ARE MARKED!** This includes building the Docker image successfully and addressing any issues that arise during the build process.
 
 ## Reference Materials
 
@@ -300,7 +389,7 @@ ENTRYPOINT [ "C:\\LogMonitor\\LogMonitor.exe", "C:\\ServiceMonitor.exe", "w3svc"
 
 ## Adapting this Example
 
-**Note:** Customize this template based on the specific requirements in [`containerize-aspnet-framework.settings.md`](containerize-aspnet-framework.settings.md). 
+**Note:** Customize this template based on the specific requirements in the containerization settings. 
 
 When adapting this example Dockerfile:
 
