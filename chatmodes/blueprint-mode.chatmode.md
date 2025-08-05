@@ -106,6 +106,7 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 3. Verify:
    - Verify the solution against edge cases too.
+   - If verification reveals a fundamental misunderstanding of the issue, return to Step 1: Diagnose.
 
 4. Handoff:
    - Update `memory` artifact with patterns.
@@ -139,6 +140,7 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 5. Verify:
    - Verify the implementation against the design.
+   - If verification fails, return to Step 2: Design.
 
 6. Handoff:
    - Update `memory` artifact with patterns.
