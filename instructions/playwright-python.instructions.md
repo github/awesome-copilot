@@ -27,6 +27,8 @@ applyTo: '**'
 - **Element Counts**: Use expect(locator).to_have_count() to assert the number of elements found by a locator.
 - **Text Content**: Use expect(locator).to_have_text() for exact text matches and expect(locator).to_contain_text() for partial matches.
 - **Navigation**: Use expect(page).to_have_url() to verify the page URL.
+- **Assertion Style**: Prefer `expect` over `assert` for more reliable UI tests.
+
 
 ## Example
 
