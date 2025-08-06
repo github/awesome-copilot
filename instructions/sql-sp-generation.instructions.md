@@ -36,11 +36,11 @@ applyTo: '**/*.sql'
 - avoid using functions on indexed columns in WHERE clauses
 
 ## Stored Procedure Naming Conventions
-- prefix stored procedure names with 'sp_'
+- prefix stored procedure names with 'usp_'
 - use PascalCase for stored procedure names
-- use descriptive names that indicate purpose (e.g., sp_GetCustomerOrders)
-- include plural noun when returning multiple records (e.g., sp_GetProducts)
-- include singular noun when returning single record (e.g., sp_GetProduct)
+- use descriptive names that indicate purpose (e.g., usp_GetCustomerOrders)
+- include plural noun when returning multiple records (e.g., usp_GetProducts)
+- include singular noun when returning single record (e.g., usp_GetProduct)
 
 ## Parameter Handling
 - prefix parameters with '@'

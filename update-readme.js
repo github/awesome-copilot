@@ -227,13 +227,13 @@ function extractDescription(filePath) {
           } else {
             // Look for single-line description field in frontmatter
             const descriptionMatch = line.match(
-              /^description:\s*['"]?(.+?)['"]?$/
+              /^description:\s*['"]?(.+?)['"]?\s*$/
             );
             if (descriptionMatch) {
               let description = descriptionMatch[1];
 
               // Check if the description is wrapped in single quotes and handle escaped quotes
-              const singleQuoteMatch = line.match(/^description:\s*'(.+)'$/);
+              const singleQuoteMatch = line.match(/^description:\s*'(.+?)'\s*$/);
               if (singleQuoteMatch) {
                 // Replace escaped single quotes ('') with single quotes (')
                 description = singleQuoteMatch[1].replace(/''/g, "'");
@@ -394,7 +394,7 @@ function generateChatModesSection(chatmodesDir) {
     const customDescription = extractDescription(filePath);
 
     // Create badges for installation links
-    const badges = makeBadges(link, "chatmode");
+    const badges = makeBadges(link, "mode");
 
     if (customDescription && customDescription !== "null") {
       chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
