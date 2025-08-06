@@ -1,5 +1,5 @@
 ---
-description: Authoring recommendations for creating YAML based image definition files for use with Microsoft Dev Box Team Customizations
+description: 'Authoring recommendations for creating YAML based image definition files for use with Microsoft Dev Box Team Customizations'
 applyTo: '**/*.yaml'
 ---
 
@@ -84,7 +84,7 @@ This approach ensures users have the best experience while avoiding unnecessary 
 
 ### Critical: Always Use ~/prefix for Intrinsic Tasks
 
-**IMPORTANT**: When working with intrinsic tasks, ALWAYS use the `~/` prefix. This is a critical requirement that must be consistently applied to ensure the correct task is used and to avoid conflicts with any custom tasks that may have similar names. Examples:
+**IMPORTANT**: When working with intrinsic tasks, and using the short task name, ALWAYS use the `~/` prefix. This is a critical requirement that must be consistently applied to ensure the correct task is used and to avoid conflicts with any custom tasks that may have similar names. Examples:
 
 - ✅ **Correct**: `name: ~/winget` (for WinGet installations)
 - ✅ **Correct**: `name: ~/powershell` (for PowerShell scripts)  
@@ -122,18 +122,18 @@ To avoid confusion or conflicting information, that may potentially happen in so
 - If the user has selected the ```Customization YAML Generation Planner``` tool, this should be used as a first pass to help the user plan and generate the YAML file based on their requirements and the available customization tasks before considering the content of this file, dev box CLI, and/or referenced documentation.
 
   > [!IMPORTANT]
-  > Be aware that the ```Customization YAML Generation Planner``` tool will only be aware of the intrinsic tasks available to them. This presently includes WinGet (```__INTRINSIC_WinGet__```), Git Clone (```__INTRINSIC_GetClone__```), and PowerShell (```__INTRINSIC_PowerShell__```). It does not include any custom tasks the user may also have available to them which may be a better fit for the requirements
+  > Be aware that the ```Customization YAML Generation Planner``` tool will only be aware of the intrinsic tasks available to them. This presently includes WinGet (```__INTRINSIC_WinGet__```), Git Clone (```__INTRINSIC_GitClone__```), and PowerShell (```__INTRINSIC_PowerShell__```). It does not include any custom tasks the user may also have available to them which may be a better fit for the requirements
   > You should **ALWAYS** evaluate whether there are other tasks available that might be a better fit for the requirements which they might wish to consider instead of an intrinsic task
 
 - If the user has selected the ```Customization YAML Validator``` tool, this should be used as the primary means to validate the YAML customization file they have created or are working on. This tool will help ensure that the YAML file is correctly formatted and adheres to the requirements for Dev Box Team Customizations
 
 ### Use Key Vault for secrets and sensitive data
 
-- When secrets or sensitive data is required by customization tasks, such as tokens, API keys, etc., recommend use of Azure Key Vault to securely store and manage these values to avoid hardcoding sensitive information directly in the YAML files. This helps maintain security and compliance standards
+- When secrets or sensitive data is required by customization tasks, such as tokens, API keys, passwords or passphrases, database connection strings, etc., recommend use of Azure Key Vault to securely store and manage these values to avoid hardcoding sensitive information directly in the YAML files. This helps maintain security and compliance standards
 - Use the correct syntax for secrets in the YAML file. In this case, `{{KV_SECRET_URI}}`. This signals that the value should be retrieved from Azure Key Vault at runtime
 - **CRITICAL**: Understand the runtime-only resolution constraint; the `{{}}` syntax is only resolved at runtime. Presently, Key Vault secrets are not resolved when testing the image definition file locally via the dev box CLI. This may lead to hardcoded values being used to pragmatically test image definitions locally. Therefore, pay attention to the **SECURITY CRITICAL** points below.
 - **SECURITY CRITICAL**: Copilot should help to ensure any temporarily hard-coded secrets are removed before committing the YAML customization file to source control. Specifically:
-  - If hardcoded secrets are found while reading and/or making edits to the YAML file, Copilot should add a comment to the respective customization task `description` in **CAPITAL LETTERS** after the user's original comment. Template: `ACTION: HARDCODED SECRETS SHOULD BE REMOVED BEFORE COMMITTING THIS FILE TO SOURCE CONTROL!`
+  - Before suggesting code completions, after validating the file, or when performing other editing and review actions, scan the file for patterns that resemble secrets or sensitive data. If hardcoded secrets are found while reading and/or making edits to the YAML file, Copilot should flag this to the user and prompt them to remove the hardcoded secrets before committing the YAML customization file to source control
 - **SECURITY CRITICAL**: If helping with git operations, and hardcoded secrets are present, Copilot should:
   - Prompt the user to remove the hardcoded secrets before committing the YAML customization file to source control
   - Encourage validation that Key Vault is properly configured before committing the YAML customization file. See [Recommendations on validating Key Vault setup](#recommendations-on-validating-key-vault-setup) for more details
@@ -150,7 +150,7 @@ Understanding when to use `tasks` (system context) versus `userTasks` (user cont
 
 #### System Context (tasks section)
 
-Include tasks in the `tasks` section for operations requiring administrative privileges or system-wide installation or configuration. Common exampls:
+Include tasks in the `tasks` section for operations requiring administrative privileges or system-wide installation or configuration. Common examples:
 
 - Software installations via WinGet that require system-wide access
 - Core development tools (Git, .NET SDK, PowerShell Core)
@@ -246,7 +246,7 @@ This will help you find the exact package IDs (like `Microsoft.VisualStudioCode`
 
 ## Troubleshooting
 
-- When asked for assistance troublshooting issues applying the tasks (or proactively troubleshooting after customizations failed to apply), offer to find the relevant logs and provide guidance on how to address the issue.
+- When asked for assistance troubleshooting issues applying the tasks (or proactively troubleshooting after customizations failed to apply), offer to find the relevant logs and provide guidance on how to address the issue.
 
 - **IMPORTANT TROUBLESHOOTING INFORMATION** Logs are found in the following location: ```C:\ProgramData\Microsoft\DevBoxAgent\Logs\customizations```
   - The most recent logs are found in the folder named with the most recent timestamp. The expected format is: ```yyyy-MM-DDTHH-mm-ss```
