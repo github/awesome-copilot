@@ -1,4 +1,9 @@
-# Azure Verified Modules (AVM) Instructions
+---
+description: ' Azure Verified Modules (AVM) and Terraform'
+applyTo: '**/*.terraform'
+---
+
+ # Azure Verified Modules (AVM) Terraform Instructions
 
 ## Overview
 
