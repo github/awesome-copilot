@@ -3,15 +3,15 @@ description: ' Azure Verified Modules (AVM) and Terraform'
 applyTo: '**/*.terraform, **/*.tf, **/*.tfvars, **/*.tfstate, **/*.tflint.hcl, **/*.tf.json, **/*.tfvars.json'
 ---
 
- # Azure Verified Modules (AVM) Terraform Instructions
+# Azure Verified Modules (AVM) Terraform Instructions
 
 ## Overview
 
 Azure Verified Modules (AVM) are pre-built, tested, and validated Terraform and Bicep modules that follow Azure best practices. Use these modules to create, update, or review Azure Infrastructure as Code (IaC) with confidence.
 
-## Critical Compliance Requirements
+## Custom Instructions for GitHub Copilot Agents
 
-**⚠️ MANDATORY for GitHub Copilot Agents**: When GitHub Copilot Agent or GitHub Copilot Coding Agent is working on AVM repositories, the following local unit tests MUST be executed before any pull request is created or updated:
+**IMPORTANT**: When GitHub Copilot Agent or GitHub Copilot Coding Agent is working on this repository, the following local unit tests MUST be executed to comply with PR checks. Failure to run these tests will cause PR validation failures:
 
 ```bash
 ./avm pre-commit
@@ -19,16 +19,21 @@ Azure Verified Modules (AVM) are pre-built, tested, and validated Terraform and 
 ./avm pr-check
 ```
 
+These commands must be run before any pull request is created or updated to ensure compliance with the Azure Verified Modules standards and prevent CI/CD pipeline failures.
+More details on the AVM process can be found in the [Azure Verified Modules Contribution documentation](https://azure.github.io/Azure-Verified-Modules/contributing/terraform/testing/).
+
 **Failure to run these tests will cause PR validation failures and prevent successful merges.**
 
 ## Module Discovery
 
 ### Terraform Registry
+
 - Search for "avm" + resource name
 - Filter by "Partner" tag to find official AVM modules
 - Example: Search "avm storage account" → filter by Partner
 
 ### Official AVM Index
+
 - **Terraform Resources**: `https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-resource-modules/`
 - **Terraform Patterns**: `https://azure.github.io/Azure-Verified-Modules/indexes/terraform/tf-pattern-modules/`
 - **Bicep Resources**: `https://azure.github.io/Azure-Verified-Modules/indexes/bicep/bicep-resource-modules/`
@@ -37,18 +42,21 @@ Azure Verified Modules (AVM) are pre-built, tested, and validated Terraform and 
 ## Terraform Module Usage
 
 ### From Examples
+
 1. Copy the example code from the module documentation
 2. Replace `source = "../../"` with `source = "Azure/avm-res-{service}-{resource}/azurerm"`
 3. Add `version = "~> 1.0"` (use latest available)
 4. Set `enable_telemetry = true`
 
 ### From Scratch
+
 1. Copy the Provision Instructions from module documentation
 2. Configure required and optional inputs
 3. Pin the module version
 4. Enable telemetry
 
 ### Example Usage
+
 ```hcl
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
@@ -66,6 +74,7 @@ module "storage_account" {
 ## Naming Conventions
 
 ### Module Types
+
 - **Resource Modules**: `Azure/avm-res-{service}-{resource}/azurerm`
   - Example: `Azure/avm-res-storage-storageaccount/azurerm`
 - **Pattern Modules**: `Azure/avm-ptn-{pattern}/azurerm`
@@ -74,16 +83,19 @@ module "storage_account" {
   - Example: `Azure/avm-utl-regions/azurerm`
 
 ### Service Naming
+
 - Use kebab-case for services and resources
 - Follow Azure service names (e.g., `storage-storageaccount`, `network-virtualnetwork`)
 
 ## Version Management
 
 ### Check Available Versions
+
 - Endpoint: `https://registry.terraform.io/v1/modules/Azure/{module}/azurerm/versions`
 - Example: `https://registry.terraform.io/v1/modules/Azure/avm-res-storage-storageaccount/azurerm/versions`
 
 ### Version Pinning Best Practices
+
 - Use pessimistic version constraints: `version = "~> 1.0"`
 - Pin to specific versions for production: `version = "1.2.3"`
 - Always review changelog before upgrading
@@ -91,10 +103,12 @@ module "storage_account" {
 ## Module Sources
 
 ### Terraform Registry
+
 - **URL Pattern**: `https://registry.terraform.io/modules/Azure/{module}/azurerm/latest`
 - **Example**: `https://registry.terraform.io/modules/Azure/avm-res-storage-storageaccount/azurerm/latest`
 
 ### GitHub Repository
+
 - **URL Pattern**: `https://github.com/Azure/terraform-azurerm-avm-{type}-{service}-{resource}`
 - **Examples**:
   - Resource: `https://github.com/Azure/terraform-azurerm-avm-res-storage-storageaccount`
@@ -103,6 +117,7 @@ module "storage_account" {
 ## Development Best Practices
 
 ### Module Usage
+
 - ✅ **Always** pin module and provider versions
 - ✅ **Start** with official examples from module documentation
 - ✅ **Review** all inputs and outputs before implementation
@@ -111,6 +126,7 @@ module "storage_account" {
 - ✅ **Follow** AzureRM provider requirements and constraints
 
 ### Code Quality
+
 - ✅ **Always** run `terraform fmt` after making changes
 - ✅ **Always** run `terraform validate` after making changes
 - ✅ **Use** meaningful variable names and descriptions
@@ -118,6 +134,7 @@ module "storage_account" {
 - ✅ **Document** complex configurations
 
 ### Validation Requirements
+
 Before creating or updating any pull request:
 
 ```bash
@@ -136,12 +153,15 @@ terraform validate
 ## Tool Integration
 
 ### Use Available Tools
+
 - **Deployment Guidance**: Use `azure_get_deployment_best_practices` tool
 - **Service Documentation**: Use `microsoft.docs.mcp` tool for Azure service-specific guidance
 - **Schema Information**: Use `azure_get_schema_for_Bicep` for Bicep resources
 
 ### GitHub Copilot Integration
+
 When working with AVM repositories:
+
 1. Always check for existing modules before creating new resources
 2. Use the official examples as starting points
 3. Run all validation tests before committing
@@ -150,6 +170,7 @@ When working with AVM repositories:
 ## Common Patterns
 
 ### Resource Group Module
+
 ```hcl
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
@@ -162,6 +183,7 @@ module "resource_group" {
 ```
 
 ### Virtual Network Module
+
 ```hcl
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
@@ -178,12 +200,14 @@ module "virtual_network" {
 ## Troubleshooting
 
 ### Common Issues
+
 1. **Version Conflicts**: Always check compatibility between module and provider versions
 2. **Missing Dependencies**: Ensure all required resources are created first
 3. **Validation Failures**: Run AVM validation tools before committing
 4. **Documentation**: Always refer to the latest module documentation
 
 ### Support Resources
+
 - **AVM Documentation**: `https://azure.github.io/Azure-Verified-Modules/`
 - **GitHub Issues**: Report issues in the specific module's GitHub repository
 - **Community**: Azure Terraform Provider GitHub discussions
