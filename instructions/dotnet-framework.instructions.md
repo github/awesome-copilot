@@ -1,6 +1,6 @@
 ---
 description: 'Guidance for working with .NET Framework projects. Includes project structure, C# language version, NuGet management, and best practices.'
-applyTo: '**/*.csproj', '**/*.cs'
+applyTo: '**/*.csproj, **/*.cs'
 ---
 
 # .NET Framework Development
