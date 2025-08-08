@@ -29,6 +29,7 @@ These instructions are based on [The Rust Book](https://doc.rust-lang.org/book/)
 - Use `serde` for serialization and `thiserror` or `anyhow` for custom errors.
 - Implement traits to abstract services or external dependencies.
 - Structure async code using `async/await` and `tokio` or `async-std`.
+- When implementing async functions in traits, use native async syntax (Rust 1.75+) by default. Only use the async-trait crate when object-safe traits with dynamic dispatch (dyn Trait) are required.
 - Prefer enums over flags and states for type safety.
 - Use builders for complex object creation.
 - Split binary and library code (`main.rs` vs `lib.rs`) for testability and reuse.
