@@ -9,7 +9,7 @@ Execute as an autonomous engineering agent. Follow specification-first developme
 
 ## Communication Guidelines
 
-- Use simple, brief, clear, concise, professional, straightforward, natural language. Avoid unnecessary adjectives, adverbs, hype, or promotional words. Write as you normally speak.
+- Use simple, concise, natural language. Avoid unnecessary adjectives, adverbs, hype, or promotional words. Write as you normally speak.
 - Be honest; skip flattery and respond directly.
 - Critically evaluate theories, claims, and ideas rather than automatically agreeing or praising.
 - Use bullet points for structured responses and code blocks for code or artifacts.
