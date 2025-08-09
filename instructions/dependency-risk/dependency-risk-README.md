@@ -49,7 +49,7 @@ the user for permission first and then the user explicitly allows it, as is seen
 
 The benefit of this approach is it is possible to then have one or more of the instructions files
 for how to generate the dependency risk report sit outside the repository, either in a MCP
-tool or external repository. This allows for the top-level instructions to be somewhere
+tool or external repository. This allows for the company-level instructions to be somewhere
 controlled by a centralized team, such as an open source programs office (OSPO) or a centralized
 engineering team. These centrally controlled instruction files can be evolved over time and
 point to newly created internal MCPs without needing to make pull requests to every repository
@@ -67,7 +67,7 @@ The four files that layer on top of one another are described in more details be
 
 ### Central risk instructions file that only points to the others
 
-The `dependencyRisk.instructions.md` file mostly just defines when the instructions files are used and points to
+The `dependency-risk.instructions.md` file mostly just defines when the instructions files are used and points to
 the other three dependency risk report instruction files. If any of the other instruction files
 are externally defined or in MCPs, there is a line in this instruction files that asks the user
 for permission to fetch them.
@@ -76,18 +76,19 @@ for permission to fetch them.
 
 The basics of where to find package and source repository metadata, how to process it,
 and how to structure the dependency risk report is found in the
-`dependencyRisk.baseLevel.instructions.md` file. The other dependency risk report
+`dependency-risk-base-level.instructions.md` file. The other dependency risk report
 instruction files' instructions layer on top of these base instructions and in some
 cases may overrule them or in other cases merely extend.
 
 ### Repository-specific instructions file
 
-The `dependencyRisk.repositoryLevel.instructions.md` file is where repository-specific instructions can be placed that reflect an individual project or developer's preferences. Developers might decide a repository should have stricter or looser thresholds compared to another repository based on what that repository is used for and how long it is designed to persist. For example, they might want to shift the threshold for how long ago is the last version update of a package to be 90 days instead of 2 years if they want to increase the probability that the package is still actively maintained on the most critical projects. They might also want to change that threshold to be less strict for NPM packages that are more commonly small feature-complete libraries. Alternatively, they might want different styling than another team to emphasize certain risks or information.
+The `dependency-risk-repository-level.instructions.md` file is where repository-specific instructions can be placed that reflect an individual project or developer's preferences. Developers might decide a repository should have stricter or looser thresholds compared to another repository based on what that repository is used for and how long it is designed to persist. For example, they might want to shift the threshold for how long ago is the last version update of a package to be 90 days instead of 2 years if they want to increase the probability that the package is still actively maintained on the most critical projects. They might also want to change that threshold to be less strict for NPM packages that are more commonly small feature-complete libraries. Alternatively, they might want different styling than another team to emphasize certain risks or information.
 
 ### Company specific instructions file
 
-As a company might provide dependency-related tooling in an MCP or API format or there may be other tools to identify and
-reduce risks in dependencies, these instructions can be in the `dependencyRisk.companyLevel.instructions.md` file.
+As a company might provide dependency-related tooling in an MCP or API format, instructions about
+these can be in the `dependency-risk-company-level.instructions.md` file.
+This file could alternatively have no additional instructions.
 
 ## Helping developers make better dependency consumption choices
 
