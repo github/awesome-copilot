@@ -1,9 +1,11 @@
 ---
-description: 'Sub-instructions of `dependency_instructions_baseLevel.md" focused on per-repository guidance or tools for "Should I use" questions.'
+description: 'Sub-instructions of "dependency-risk-base-level.instructions.md" focused on per-repository guidance or tools for "Should I use" questions.'
 applyTo: '**'
 mode: "agent"
-version: "0.1.00"
+version: "0.1.01"
 ---
+
+# Dependency Risk Repository Level Instructions
 
 ## Instructions
 
@@ -13,7 +15,7 @@ The following are instructions that reflect policies that must be followed that 
 
 No additional instructions for MCPs or APIs at this time.
 
-#### Formatting and Styling Guidelines for Dependency Risk Report
+### Formatting and Styling Guidelines for Dependency Risk Report
 
 - Use section headers in bold (e.g., **Indicators of risk: POSSIBLY ABANDONED**).
 - For each risk indicator, use:

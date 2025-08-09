@@ -2,8 +2,10 @@
 description: 'How to give guidance on which packages or libraries to use. Provides a dependency risk report.'
 applyTo: '**'
 mode: "agent"
-version: "0.1.00"
+version: "0.1.01"
 ---
+
+# Dependency Risk Base Level Instructions
 
 ## When to use the instructions below
 
@@ -33,7 +35,7 @@ the dependency risk report in the following locations:
 - `/.github/dependency-risk-company-level.instructions.md` file
 - `/.github/dependency-risk-repository-level.instructions.md`, file,
 
-#### Formatting and Styling Guidelines for Dependency Risk Report
+### Formatting and Styling Guidelines for Dependency Risk Report
 
 Check for style guidelines in `./dependency-risk-repository-level.instructions.md` file. or `./dependency-risk-company-level.instructions.md` file. If not found, use style choices that make it easy to read and skim.
 
@@ -41,7 +43,7 @@ Check for style guidelines in `./dependency-risk-repository-level.instructions.m
 
 You will visit the following pages and return only the data instructed necessary to flag specific risks:
 
-- Ecosyte.ms: <https://packages.ecosyste.ms/api/v1/registries/><packageManagerName>/packages/<packageNameHere>
+- Ecosyste.ms: <https://packages.ecosyste.ms/api/v1/registries/><packageManagerName>/packages/<packageName>
 - Source repository on GitHub: <https://github.com/><ownerLogin>/<repositoryName>
 - Contributors graph on GitHub : <https://github.com/><ownerLogin>/<repositoryName>/graphs/contributors
 - Pull request page on GitHub: <https://github.com/><ownerLogin>/<repositoryName>/pulls
@@ -54,6 +56,7 @@ Do not return information except what information was requested and where it was
 ## Structure of report to deliver in chat window
 
 Yes to any of the following questions indicates a risk you should report in the report to the user
+
 ------------
 
 ### Indicators of that risk that project is POSSIBLY ABANDONED?
@@ -90,7 +93,7 @@ Yes to any of the following questions indicates a risk you should report in the 
   - If yes:
     - 1. Remind user to ensure they are not using a vulnerable version of the package.
     - 2. Provide link to vulnerability advisors, either:
-      - <https://packages.ecosyste.ms/registries/><packageManagerName>/packages/<packageNameHere>/advisories
+      - <https://packages.ecosyste.ms/registries/><packageManagerName>/packages/<packageName>/advisories
       - <https://github.com/><ownerLogin>/<repositoryName>/security
     - 3. State latest version of package based on ecosyste.ms data. REMEMBER, Do not state this version is vulnerable unless you know this specific version is listed as vulnerable.
 
@@ -106,14 +109,14 @@ or `/.github/dependencyRisk.repositoryLevel.instructions.md`, simply state that 
 
 ### Key links to include at end of report, populate by replacing variables as appropriate for each package for which a report is being made
 
-- Ecosyte.ms: <https://packages.ecosyste.ms/api/v1/registries/><packageManagerName>/packages/<packageNameHere>
+- Ecosyste.ms: <https://packages.ecosyste.ms/api/v1/registries/><packageManagerName>/packages/<packageName>
 - Source repository on GitHub: <https://github.com/><ownerLogin>/<repositoryName>
 - Contributors graph on GitHub : <https://github.com/><ownerLogin>/<repositoryName>/graphs/contributors
 - Pull request page on GitHub: <https://github.com/><ownerLogin>/<repositoryName>/pulls
 - Commits over time on GitHub: <https://github.com/><ownerLogin>/<repositoryName>/commits
 - OpenSSF scorecard.dev: <https://api.scorecard.dev/projects/github.com/><ownerLogin>/<repositoryName>
 
----------------
+------------
 
 ## How to process data into flagged risks for the report
 
@@ -131,7 +134,7 @@ or `/.github/dependencyRisk.repositoryLevel.instructions.md`, simply state that 
 
 ### How to get that information from ecosyste.ms
 
-Ecosyste.ms is a website that has metadata information about packages and their source repository as plain text on the page. The format of the URL is : `https://packages.ecosyste.ms/api/v1/registries/<packageManagerName>/packages/<packageNameHere>` where the package name is the variable <packageNamehere> in that URL. The possible package manager names that should be used in <packageManagerName> variable in the URL above are: "pypi.org" for python packages, "npmjs.org" for javascript or npm packages, "proxy.golang.org" for go packages, "hub.docker.com" for docker, "nuget.org" for C# and C+ packages, "repo1.maven.org" for java packages, "rubygems.org" for ruby packages, "crates.io" for Rust packages, "cocapods.org", and "anaconda.org" for conda packages.
+Ecosyste.ms is a website that has metadata information about packages and their source repository as plain text on the page. The format of the URL is : `https://packages.ecosyste.ms/api/v1/registries/<packageManagerName>/packages/<packageName>` where the package name is the variable <packageName> in that URL. The possible package manager names that should be used in <packageManagerName> variable in the URL above are: "pypi.org" for python packages, "npmjs.org" for javascript or npm packages, "proxy.golang.org" for go packages, "hub.docker.com" for docker, "nuget.org" for C# and C+ packages, "repo1.maven.org" for java packages, "rubygems.org" for ruby packages, "crates.io" for Rust packages, "cocapods.org", and "anaconda.org" for conda packages.
 
 Within the ecosystem.ms page found in the last step there are several top-level KEYS with more useful information for determining risk that should be found and remembered. Please find each of these.
 
@@ -190,7 +193,7 @@ REMEMBER:
 Do not use a GitHub repository's description, About section, or README.md or README.rst or main page to answer any questions except those instructed in this section.
 For example, DO NOT use them to answer when a repository was last updated or number of contributors or how many downloads or any other information except what was explicitly asked for!
 
-----------
+------------
 
 ## LAST REMINDERS
 

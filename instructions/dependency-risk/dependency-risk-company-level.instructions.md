@@ -1,9 +1,11 @@
 ---
-description: 'Sub-instructions of `dependency_instructions_baseLevel.md" focused on company specific guidance or tools.'
+description: 'Sub-instructions of "dependency-risk-base-level.instructions.md" focused on company specific guidance or tools.'
 applyTo: '**'
 mode: "agent"
-version: "0.1.00"
+version: "0.1.01"
 ---
+
+# Dependency Risk Company Level Instructions
 
 ## Instructions
 
