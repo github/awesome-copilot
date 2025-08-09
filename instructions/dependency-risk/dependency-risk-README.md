@@ -65,7 +65,7 @@ numbers of repositories.
 
 The four files that layer on top of one another are described in more details below.
 
-### Central risk instructions file that only points to the others
+### Central instructions file that only points to the others
 
 The `dependency-risk.instructions.md` file mostly just defines when the instructions files are used and points to
 the other three dependency risk report instruction files. If any of the other instruction files
@@ -80,7 +80,7 @@ and how to structure the dependency risk report is found in the
 instruction files' instructions layer on top of these base instructions and in some
 cases may overrule them or in other cases merely extend.
 
-### Repository-specific instructions file
+### Repository specific instructions file
 
 The `dependency-risk-repository-level.instructions.md` file is where repository-specific instructions can be placed that reflect an individual project or developer's preferences. Developers might decide a repository should have stricter or looser thresholds compared to another repository based on what that repository is used for and how long it is designed to persist. For example, they might want to shift the threshold for how long ago is the last version update of a package to be 90 days instead of 2 years if they want to increase the probability that the package is still actively maintained on the most critical projects. They might also want to change that threshold to be less strict for NPM packages that are more commonly small feature-complete libraries. Alternatively, they might want different styling than another team to emphasize certain risks or information.
 
