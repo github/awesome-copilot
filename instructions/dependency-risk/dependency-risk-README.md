@@ -8,7 +8,7 @@ Dependency risk instruction files are designed to provide detailed guidance for 
 The goal is to support the following visions:
 
 - “Copilot should help me make healthier choices of dependencies.”
-- "Copilot should not suggest to me a fake package that I then try to use."
+- "It should be obvious if Copilot suggests a fake package to use."
 
 These instructions are meant to be called when:
 
@@ -27,23 +27,34 @@ example of what can be done. You can edit or extend to match your own needs or i
 
 Copy and paste all four of the instruction files in this directory into your repository's `.github/instructions/` directory.
 Ask Copilot Chat agent mode a question like "What can you tell me about the security and community health of the python package welly?"
+These instructions were created while using the GPT-4o model.
+Performance has been observed to be more variable with other models.
 
-Optionally, if you have a new MCP tool or additional API source of information for one of the
-dependency risk categories explore trying to add instructions for how to access it to either the
-company or repository level instructions files.
+If you have a new MCP tool or additional source of information for one of the
+dependency risk categories, you can explore trying to add instructions for how to access that data
+to either the company or repository level instructions files.
 
 ### Disclaimer
 
-These instructions are not exhaustive and do not replace any required compliance processes that you may be required to follow based on writing code for a company or organization. They definitely do not surface all risks, nor is there any guarantee that the information is up-to-date or accurate. Much of the data is sourced from either public metadata repositories, package managers, or GitHub source repository pages, so information in some cases could be manipulated by the package authors or maintainers.
+These instructions are not exhaustive and do not replace any required compliance processes that you may be required to
+follow based on writing code for a company or organization. They definitely do not surface all risks, nor is there
+any guarantee that the information is up-to-date or accurate. Much of the data is sourced from either public metadata
+repositories, package managers, or GitHub source repository pages, so information in some cases could be manipulated
+by the package authors or maintainers.
+Open ended questions posed to Copilot create more uncertainty in reliability of responses, so it is advisable to limit questions to known information in the metadata sources, which should be considered untrusted.
 
-The dependency risk report is meant to provide a quick reference that flags for developers risks identified with metadata that associated with third-party dependencies. It tries to do this at the point when using a package is being first considered
-in their IDE (Integrated Development Environment), as this is when switching costs are lowest.
-Users are encouraged to leverage the report as a starting point and then visit the suggested links to find more information.
+The dependency risk report prototype is meant to provide a quick reference that sometimes flags for
+developers risks identifiable with publicly available metadata. It tries to do this at the point when
+using a package is being first considered in their IDE (Integrated Development Environment), as this
+is when switching costs are lowest. Users are encouraged to leverage the report as a starting point only
+and to visit the suggested links to find more information.
 
-## Why not a single instructions file
+## Why not a single instructions file?
 
-The dependency risk instructions are split into four files to allow for instructions to be owned by different parties and then combined. While all the files are local files now, one or more files could be externally defined. While Copilot will normally
-not accept externally defined instructions, it will if the instruction files include instructions to ask
+The dependency risk instructions are split into four files to allow for different parts of the instructions
+to be owned and maintained by different parties, then combined. While all the files are local files
+now, one or more files could be externally defined. While Copilot will normally will not accept
+externally defined instructions, it will if the instruction files include instructions to ask
 the user for permission first and then the user explicitly allows it, as is seen in the
 `dependencyRisk.instructions.md` file.
 
@@ -82,7 +93,10 @@ cases may overrule them or in other cases merely extend.
 
 ### Repository specific instructions file
 
-The `dependency-risk-repository-level.instructions.md` file is where repository-specific instructions can be placed that reflect an individual project or developer's preferences. Developers might decide a repository should have stricter or looser thresholds compared to another repository based on what that repository is used for and how long it is designed to persist. For example, they might want to shift the threshold for how long ago is the last version update of a package to be 90 days instead of 2 years if they want to increase the probability that the package is still actively maintained on the most critical projects. They might also want to change that threshold to be less strict for NPM packages that are more commonly small feature-complete libraries. Alternatively, they might want different styling than another team to emphasize certain risks or information.
+The `dependency-risk-repository-level.instructions.md` file is where repository-specific instructions can be placed that reflect an individual repository's preferences. Developers might decide a repository should have stricter or looser threshold for a particular risk based on what that repository is used for and how long it is designed to persist. For example, they might want to shift the threshold for how long ago is the last version update of a package to be 90 days instead of 2 years on the most critical projects that require fast pull
+request response times. Alternatively, they might change that threshold to be less strict for
+small NPM packages that are more likely to be feature-complete, or they might want different styling
+to emphasize certain risks.
 
 ### Company specific instructions file
 
@@ -97,27 +111,26 @@ security, and quality. Developers have also reported using packages that Copilot
 additional checking if they exist or are risky.
 
 To minimize these risks and encourage more well informed choices, the dependency risk report will
-generate in the Copilot chat window when in agent mode without being asked for explicitly anytime
-Copilot is suggesting a package in addition to when the user is asking Copilot about a package.
-As the dependency report can generate fully in 0.2-2 minutes and is in their
+generate in the Copilot chat window when in agent mode when the user requests or Copilot suggests
+a new package to use. As the dependency report can generate fully in 0.5-2 minutes and is in their
 IDE (Integrated Development Environment), it is hoped the information will be more likely to
-be considered than if they had to leave their IDE and spend 10-30 minutes manually researching
-the same information across package managers, source repositories, and others locations.
+be considered than if they had to remember to do the research, leave their IDE, and spend 10-30 minutes
+manually researching the same information across package managers, source repositories, and others locations.
 
 ## Types of dependency risks
 
 It can be helpful to think of dependency risks in terms of two classes of risks, continuous and binary.
 Binary risks are either present or not, with clear yes/no answers, which makes them fit well into compliance frameworks
 and compliance tooling that can be deployed across an entire organization with the same thresholds and rules.
-Continuous risks in contrast are risks that tend to exist on a continuous spectrum of risks AND different projects
+Continuous risks in contrast are risks that tend to exist on a continuous spectrum of risks and different projects
 can reasonably have different thresholds for what is acceptable risk.
 
 ### Differences Between Binary and Continuous Risks
 
-| Risk Class  | Definition                                                                 | Impact Felt At Company-Scale or Individual Team | Impact Types                        | Fits Into Compliance or Risk-Reduction Framework         | Often Modified By What Instructions File                |
+| Risk Class  | Definition                                                                 | Impact Felt At What Scale | Impact Types                        | Risks Best Addressed By What Type of Framework?         | Often Modified By What Instructions File                |
 |-------------|----------------------------------------------------------------------------|------------------------------------------------|-------------------------------------|---------------------------------------------------------|--------------------------------------------------------|
-| Binary      | Risks that are either present or not, with clear yes/no answers.            | Company-scale (often enforced organization-wide) | $, reputation, trust                | Typically fits into compliance frameworks (e.g., license, vulnerabilities) | Company-specific instructions file (`dependencyRisk.companyLevel.instructions.md`) |
-| Continuous  | Risks that exist on a spectrum and require judgment or thresholds.          | Individual team (context-specific, flexible)    | unplanned for developer time        | Often fits into risk-reduction frameworks (e.g., maintenance, community health) | Repository-specific instructions file (`dependencyRisk.repositoryLevel.instructions.md`) |
+| Binary      | Risks that are either present or not, with clear yes/no answers.            | Company-scale | $, reputation, trust                | compliance frameworks | Company-specific instructions file (`dependencyRisk.companyLevel.instructions.md`) |
+| Continuous  | Risk presence is a continuous spectrum. Always some risk.          | Individual team   | unplanned for developer time        | risk-reduction frameworks | Repository-specific instructions file (`dependencyRisk.repositoryLevel.instructions.md`) |
 
 ### Types of dependency risk considered by the dependency risk report
 
@@ -126,9 +139,9 @@ can reasonably have different thresholds for what is acceptable risk.
 | Binary        | Vulnerability             | Whether known security vulnerabilities are associated with the dependency based on a CVE.        | Report uses public vulnerability databases reflected in ecosyste.ms. and sometimes vulnerability information on source repository in GitHub. Use other tools for full assessment!                        |
 | Binary        | License                   | License of the package.            | Currently, only the first identified licenses is surfaced to the user.  Does not cover multiple licenses, modified licenses, whether copyleft license, tell you what licenses require extra steps, etc. Use other tooling for actual license compliance!              |
 | Binary        | Malicious                 | Whether the package contains known or suspected malicious code.               | Currently, this does nothing but tell you to use your own tooling and check for company instructions file for listed tooling. It is a placeholder.       |
-| Continuous    | Possibly abandoned        | Assesses if the dependency appears to be no longer maintained.              | Considers time since last release, lack of recent activity, if source repository is archived, etc.               |
-| Continuous    | Not enough eyeballs       | Evaluates if there are too few contributors or reviewers to catch issues.   | Considers number of downloads, number of dependent repositories.                   |
-| Continuous    | Contribution could stop suddenly | Considers the risk that development may halt unexpectedly.           | Considers reliance on a single maintainer, if number of contributors is small, if only single version published, too few commits recently, etc.  |
+| Continuous    | Possibly abandoned _(sustainability)_        | Assesses if the dependency appears to be no longer maintained.              | Considers time since last release, lack of recent activity, if source repository is archived, etc.               |
+| Continuous    | Not enough eyeballs _(sustainability)_     | Evaluates if there are too few contributors or reviewers to catch issues.   | Considers number of downloads, number of dependent repositories.                   |
+| Continuous    | Contribution could stop suddenly _(sustainability)_ | Considers the risk that development may halt unexpectedly.           | Considers reliance on a single maintainer, if number of contributors is small, if only single version published, too few commits recently, etc.  |
 | Continuous    | Poor security posture     | Assesses the overall security posture of the project.  | Considers low OpenSSF Scorecard score, if uses a dangerous GitHub Action workflow pattern, etc. Note that not all packages will have pre-existing scans by OpenSSF Scorecard |
 
 **Use other tooling to assess the risk of license complications, malicious code, and security vulnerabilities as the dependency risk report generated is not exhaustive!**
