@@ -202,7 +202,8 @@ that override these general instruction for producing
 the dependency risk report in the following locations:
 
 - `/.github/dependency_instructions_companyLevel.md` file
-- `/.github/dependency_instructions_repositoryLevel.md`, file,
+- `/.github/dependency-risk-company-level.instructions.md` file
+- `/.github/dependency-risk-repository-level.instructions.md` file
 
 If no data is found and returned to populate the risks, stop and ask the user if the package is misspelled or fake?
 
