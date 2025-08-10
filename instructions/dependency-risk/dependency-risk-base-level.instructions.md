@@ -1,8 +1,8 @@
 ---
 description: 'How to give guidance on which packages or libraries to use. Provides a dependency risk report.'
 applyTo: '**'
-mode: "agent"
-version: "0.1.01"
+mode: 'agent'
+version: '0.1.01'
 ---
 
 # Dependency Risk Base Level Instructions

@@ -1,8 +1,8 @@
 ---
 description: 'Sub-instructions of `dependency-risk-base-level.instructions.md` focused on per-repository guidance or tools for should I use questions.'
 applyTo: '**'
-mode: "agent"
-version: "0.1.01"
+mode: 'agent'
+version: '0.1.01'
 ---
 
 # Dependency Risk Repository Level Instructions

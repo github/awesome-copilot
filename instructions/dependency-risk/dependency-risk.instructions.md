@@ -1,7 +1,7 @@
 ---
-description: "Instructions for producing a dependency risk report anytime user requests or Copilot suggests a package."
+description: 'Instructions for producing a dependency risk report anytime user requests or Copilot suggests a package.'
 applyTo: '**'
-mode: "agent"
+mode: 'agent'
 version: '0.1.01'
 ---
 
