@@ -9,7 +9,7 @@ version: "0.1.01"
 
 ## Instructions
 
-The following are instructions that reflect policies that must be followed that are specific to this repository. They build off of the instructions found in the [./dependency-risk-base-level.instructions.md](./dependency_instructions_baseLevel.md) and override any instructions in that file.
+The following are instructions that reflect policies that must be followed that are specific to this repository. They build off of the instructions found in the [./dependency-risk-base-level.instructions.md](./dependency-risk-base-level.instructions.md) and override any instructions in that file.
 
 ## MCPs or APIs
 
