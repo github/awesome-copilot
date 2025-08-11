@@ -122,12 +122,13 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
         - Execute the steps from the `loop_plan.md`.
         - Verify the outcome for that specific item.
         - Action: Log a condensed entry to `activity.yml` (e.g., "Processed `feature-x.md`: Success."). Update the item's status in `tasks.yml` to 'complete'.
-        - continue to the next item
+        - Immediately continue to the next item
+    - Repeat this step for all items in `tasks.yml` and changes in your mind.
 
 3. Handle Exceptions:
     - If any item fails verification, pause the loop.
     - Action: Run the full `Debug Workflow` on the single failing item to diagnose and fix the issue.
-    - Once resolved, either resume the loop or seek clarification if the failure indicates a flawed pattern.
+    - Once resolved, resume the loop.
 
 #### Debug Workflow
 
