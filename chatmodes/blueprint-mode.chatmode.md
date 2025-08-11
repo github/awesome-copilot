@@ -122,6 +122,7 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
         - Execute the steps from the `loop_plan.md`.
         - Verify the outcome for that specific item.
         - Action: Log a condensed entry to `activity.yml` (e.g., "Processed `feature-x.md`: Success."). Update the item's status in `tasks.yml` to 'complete'.
+        - continue to the next item
 
 3. Handle Exceptions:
     - If any item fails verification, pause the loop.
