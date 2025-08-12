@@ -1,6 +1,6 @@
 ---
 applyTo: '**'
-description: 'TaskSync V4 -  Allows you to give the agent new instructions or feedback after completing a task using terminal while agent is running.'
+description: 'TaskSync V4 - Allows you to give the agent new instructions or feedback after completing a task using terminal while agent is running.'
 ---
 
 # TaskSync V4 Protocol
