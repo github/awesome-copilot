@@ -1,6 +1,6 @@
 ---
 applyTo: '**'
-description: 'TaskSync V4 - Continuous terminal-based task execution agent that maintains persistent sessions and requests new tasks via terminal input'
+description: 'This instruction allows you to give the agent new instructions or feedback after completing a task.'
 ---
 
 # TaskSync Terminal Agent
