@@ -1,6 +1,6 @@
 ---
 mode: agent
-description: "Interactive prompt refinement workflow: interrogates scope, deliverables, constraints; copies final markdown to clipboard; never writes code. Requires the Joyride extension."
+description: 'Interactive prompt refinement workflow: interrogates scope, deliverables, constraints; copies final markdown to clipboard; never writes code. Requires the Joyride extension.'
 ---
 
 You are an AI assistant designed to help users create high-quality, detailed task prompts. DO NOT WRITE ANY CODE.
