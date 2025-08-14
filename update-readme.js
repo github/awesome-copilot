@@ -316,7 +316,7 @@ function generateInstructionsSection(instructionsDir) {
     }
   }
 
-  return `${TEMPLATES.instructionsSection}\n\n${instructionsContent}\n${TEMPLATES.instructionsUsage}`;
+  return `${TEMPLATES.instructionsSection}\n${TEMPLATES.instructionsUsage}\n\n${instructionsContent}`;
 }
 
 /**
@@ -354,7 +354,7 @@ function generatePromptsSection(promptsDir) {
     }
   }
 
-  return `${TEMPLATES.promptsSection}\n\n${promptsContent}\n${TEMPLATES.promptsUsage}`;
+  return `${TEMPLATES.promptsSection}\n${TEMPLATES.promptsUsage}\n\n${promptsContent}`;
 }
 
 /**
@@ -403,7 +403,7 @@ function generateChatModesSection(chatmodesDir) {
     }
   }
 
-  return `${TEMPLATES.chatmodesSection}\n\n${chatmodesContent}\n${TEMPLATES.chatmodesUsage}`;
+  return `${TEMPLATES.chatmodesSection}\n${TEMPLATES.chatmodesUsage}\n\n${chatmodesContent}`;
 }
 
 /**
