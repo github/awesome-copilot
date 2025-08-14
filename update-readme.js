@@ -273,7 +273,7 @@ const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
 function makeBadges(link, type) {
   return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
     `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )} [![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
+  )}<br />[![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
     `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
   )}`;
 }
@@ -292,7 +292,7 @@ function generateInstructionsSection(instructionsDir) {
 
   // Create table header
   let instructionsContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each instruction file
   for (const file of instructionFiles) {
@@ -308,11 +308,11 @@ function generateInstructionsSection(instructionsDir) {
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      instructionsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `| [${title}](${link}) | ${topic} specific coding standards and best practices | ${badges} |\n`;
+      instructionsContent += `| [${title}](${link})<br />${badges} | ${topic} specific coding standards and best practices |\n`;
     }
   }
 
@@ -333,7 +333,7 @@ function generatePromptsSection(promptsDir) {
 
   // Create table header
   let promptsContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each prompt file
   for (const file of promptFiles) {
@@ -348,9 +348,9 @@ function generatePromptsSection(promptsDir) {
     const badges = makeBadges(link, "prompt");
 
     if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      promptsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
-      promptsContent += `| [${title}](${link}) | | ${badges} |\n`;
+      promptsContent += `| [${title}](${link})<br />${badges} | | |\n`;
     }
   }
 
@@ -382,7 +382,7 @@ function generateChatModesSection(chatmodesDir) {
 
   // Create table header
   let chatmodesContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description  |\n| ----- | ----------- |\n";
 
   // Generate table rows for each chat mode file
   for (const file of chatmodeFiles) {
@@ -397,9 +397,9 @@ function generateChatModesSection(chatmodesDir) {
     const badges = makeBadges(link, "mode");
 
     if (customDescription && customDescription !== "null") {
-      chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      chatmodesContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
-      chatmodesContent += `| [${title}](${link}) | | ${badges} |\n`;
+      chatmodesContent += `| [${title}](${link})<br />${badges} | | |\n`;
     }
   }
 
