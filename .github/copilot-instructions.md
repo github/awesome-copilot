@@ -1,7 +1,41 @@
-When performing a code review, validate that there are changes in the `README.md` file that match the changes in the pull request. If there are no changes, or if the changes do not match, then the pull request is not ready to be merged.
+The following instructions are only to be applied when performing a code review.
 
-When performing a code review, ensure that the values in the front matter are wrapped in single quotes.
+## README updates
 
-When performing a code review, ensure that the `description` field in the front matter is not empty.
+* [ ] The new file should be added to the `README.md`.
 
-When performing a code review on a `.instructions.md` file, ensure there is an `applyTo` property in the front matter that specifies the file or files to which the instructions apply.
+## Prompt file guide
+
+**Only apply to files that end in `.prompt.md`**
+
+* [ ] The prompt has markdown front matter.
+* [ ] The prompt has a `mode` field specified of either `agent` or `ask`.
+* [ ] The prompt has a `description` field.
+* [ ] The `description` field is not empty.
+* [ ] The `description` field value is wrapped in single quotes.
+* [ ] The file name is lower case, with words separated by hyphens.
+* [ ] Encourage the use of `tools`, but it's not required.
+* [ ] Strongly encourage the use of `model` to specify the model that the prompt is optimised for.
+
+## Instruction file guide
+
+**Only apply to files that end in `.instructions.md`**
+
+* [ ] The instruction has markdown front matter.
+* [ ] The instruction has a `description` field.
+* [ ] The `description` field is not empty.
+* [ ] The `description` field value is wrapped in single quotes.
+* [ ] The file name is lower case, with words separated by hyphens.
+* [ ] The instruction has an `applyTo` field that specifies the file or files to which the instructions apply. If they wish to specify multiple file paths they should formated like `'**.js, **.ts'`.
+
+## Chat Mode file guide
+
+**Only apply to files that end in `.chatmode.md`**
+
+* [ ] The chat mode has markdown front matter.
+* [ ] The chat mode has a `description` field.
+* [ ] The `description` field is not empty.
+* [ ] The `description` field value is wrapped in single quotes.
+* [ ] The file name is lower case, with words separated by hyphens.
+* [ ] Encourage the use of `tools`, but it's not required.
+* [ ] Strongly encourage the use of `model` to specify the model that the chat mode is optimised for.
