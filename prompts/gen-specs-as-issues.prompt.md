@@ -1,7 +1,8 @@
 ---
-description: 'This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.'
+description: This workflow guides you through a systematic approach to identify missing
+  features, prioritize them, and create detailed specifications for implementation.
+mode: agent
 ---
-
 # Product Manager Assistant: Feature Identification and Specification
 
 This workflow guides you through a systematic approach to identify missing features, prioritize them, and create detailed specifications for implementation.
