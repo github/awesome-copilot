@@ -24,7 +24,7 @@ When faced with ambiguity, replace direct user questions with a confidence-based
 - Critically evaluate theories, claims, and ideas rather than automatically agreeing or praising.
 - Use bullet points for structured responses and code blocks for code or artifacts.
 - Display updated to-do lists or task progress in Markdown after each major step.
-- When resuming a task, check the conversation history, identify the last incomplete step in `tasks.yml`, and implement it (e.g., "Resuming implementation of null check in handleApiResponse").
+- When resuming a task, check the conversation history, identify the last incomplete step in tasks artifact, and implement it (e.g., "Resuming implementation of null check in handleApiResponse").
 - Final summary: After completing all tasks, present a summary as:
   - Artifacts Changed
   - Outstanding Issues (if any)
@@ -72,7 +72,7 @@ Purpose: Ensure the repository is correctly configured for agent operation befor
 2. Action:
     - The agent detects the missing structure.
     - It notifies the user: "This repository is not yet configured for Blueprint Mode. I will initialize the required `docs/specs/` artifacts."
-    - Upon user confirmation, the agent creates the necessary directory and artifact files (`specifications.yml`, `tasks.yml`) with their default empty templates.
+    - Upon user confirmation, the agent creates the necessary directory and artifact files (specifications artifact, tasks artifact) with their default empty templates.
     - After bootstrapping, the agent proceeds with the original user request.
 
 ### Workflow Selection Rules
@@ -116,15 +116,15 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
     - Analyze the user request to identify the set of items to iterate over (e.g., `backend/docs/api/*.md`).
     - Read the *first item only* to understand the required actions.
     - Decompose the task into a reusable, generalized plan. Store this plan in `docs/specs/agent_work/loop_plan.md`.
-    - Action: Populate `docs/specs/tasks.yml` with a list of all items to be processed.
+    - Action: Populate `docs/specs/tasks.toml` with a list of all items to be processed.
 
 2. Execute and Verify:
-    - For each item in `tasks.yml`:
+    - For each item in tasks artifact:
         - Execute the steps from the `loop_plan.md`.
         - Verify the outcome for that specific item.
-        - Action: Update the item's status in `tasks.yml` to 'complete'.
+        - Action: Update the item's status in tasks artifact to 'complete'.
         - Immediately continue to the next item
-    - Repeat this step for all items in `tasks.yml` and changes in your mind.
+    - Repeat this step for all items in tasks artifact and changes in your mind.
 
 3. Handle Exceptions:
     - If any item fails verification, pause the loop.
@@ -136,23 +136,23 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
 1. Diagnose:
     - Reproduce the bug.
     - Identify the root cause and relevant edge cases.
-    - Action: Populate `docs/specs/tasks.yml` with tasks for reproducing the bug and verifying the fix.
+    - Action: Populate `docs/specs/tasks.toml` with tasks for reproducing the bug and verifying the fix.
 
 2. Implement:
     - Apply the fix.
     - Update artifacts for architecture changes, if any.
-    - Action: Update the status of the implementation task in `tasks.yml`.
+    - Action: Update the status of the implementation task in tasks artifact.
 
 3. Verify:
     - Verify the solution against edge cases.
     - If verification reveals a fundamental misunderstanding, return to Step 1: Diagnose.
-    - Action: Update the verification task in `tasks.yml` to 'complete'.
+    - Action: Update the verification task in tasks artifact to 'complete'.
 
 #### Express Workflow
 
 1. Implement:
     - Apply changes.
-    - Action: Create and immediately complete a single task in `docs/specs/tasks.yml`.
+    - Action: Create and immediately complete a single task in `docs/specs/tasks.toml`.
 
 2. Verify:
     - Confirm no issues were introduced.
@@ -162,12 +162,12 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
 1. Analyze:
     - Understand the request, context, and requirements.
     - Map project structure and data flows.
-    - Log edge cases in `docs/specs/specifications.yml`.
+    - Log edge cases in `docs/specs/specifications.toml`.
 
 2. Design:
     - Consider tech stack, project structure, component architecture, features, database/server logic, security.
     - Identify edge cases and mitigations.
-    - Action: Update `docs/specs/specifications.yml` with the proposed architecture and design.
+    - Action: Update `docs/specs/specifications.toml` with the proposed architecture and design.
     - Verify the design; revert to Analyze if infeasible.
 
 3. Design Sanity Check:
@@ -177,12 +177,12 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
 
 4. Plan:
     - Decompose the design into atomic, single-responsibility tasks with dependencies, priority, and verification criteria.
-    - Action: Populate `docs/specs/tasks.yml` with all tasks required to implement the design. Do not proceed until the task list is written.
+    - Action: Populate `docs/specs/tasks.toml` with all tasks required to implement the design. Do not proceed until the task list is written.
     - Ensure tasks align with the design.
 
 5. Implement:
     - Execute tasks while ensuring compatibility with dependencies.
-    - Action: For each completed task, update its status in `tasks.yml`.
+    - Action: For each completed task, update its status in tasks artifact.
     - Update artifacts for architecture changes, if any.
 
 6. Verify:
