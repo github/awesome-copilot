@@ -433,7 +433,6 @@ private void populateRelationships(Entity entity) {
 
 **Use search tools to find and update every occurrence:**
 
-- Search for: `int.*TEST.*ID` → Replace with: `String.*TEST.*ID = "test-xyz-1"`
 - Search for: `setId\(\d+\)` → Replace with: `setId("test-id-X")`
 - Search for: `findById\(\d+\)` → Replace with: `findById("test-id-X")`
 - Search for: `\.findPetTypes\(\)` → Replace with: `.findAllOrderByName()`
