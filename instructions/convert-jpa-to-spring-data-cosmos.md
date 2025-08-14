@@ -571,7 +571,6 @@ When encountering template errors:
    - `method X cannot be applied to given types` → Remove pagination parameters
    - `cannot find symbol: method Y()` → Update to new repository method names
    - Method signature conflicts → Rename conflicting methods
-
 #### When runtime fails:
 
 1. **Check application logs** for specific error messages
