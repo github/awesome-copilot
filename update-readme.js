@@ -7,9 +7,10 @@ const path = require("path");
 const TEMPLATES = {
   header: `# 🤖 Awesome GitHub Copilot Customizations
 
-Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and configurations. Get consistent AI assistance that follows your team's coding standards and project requirements.
+Enhance your GitHub Copilot experience with community-contributed [instructions](#-custom-instructions), [prompts](#-reusable-prompts), and [chat modes](#-custom-chat-modes). Get consistent AI assistance that follows your team's coding standards and project requirements.
 
-## 🎯 GitHub Copilot Customization Features
+<details>
+<summary><strong>🎯 GitHub Copilot Customization Features</strong></summary>
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
@@ -19,10 +20,14 @@ GitHub Copilot provides three main ways to customize AI responses and tailor ass
 
 > **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
 
+</details>
 
-## 📝 Contributing
+<details>
+<summary><strong>📝 Contributing</strong></summary>
 
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.`,
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.
+
+</details>`,
 
   instructionsSection: `## 📋 Custom Instructions
 
@@ -282,6 +287,11 @@ function makeBadges(link, type) {
  * Generate the instructions section with a table of all instructions
  */
 function generateInstructionsSection(instructionsDir) {
+  // Check if directory exists
+  if (!fs.existsSync(instructionsDir)) {
+    return "";
+  }
+
   // Get all instruction files
   const instructionFiles = fs
     .readdirSync(instructionsDir)
@@ -289,6 +299,11 @@ function generateInstructionsSection(instructionsDir) {
     .sort();
 
   console.log(`Found ${instructionFiles.length} instruction files`);
+
+  // Return empty string if no files found
+  if (instructionFiles.length === 0) {
+    return "";
+  }
 
   // Create table header
   let instructionsContent =
@@ -323,6 +338,11 @@ function generateInstructionsSection(instructionsDir) {
  * Generate the prompts section with a table of all prompts
  */
 function generatePromptsSection(promptsDir) {
+  // Check if directory exists
+  if (!fs.existsSync(promptsDir)) {
+    return "";
+  }
+
   // Get all prompt files
   const promptFiles = fs
     .readdirSync(promptsDir)
@@ -330,6 +350,11 @@ function generatePromptsSection(promptsDir) {
     .sort();
 
   console.log(`Found ${promptFiles.length} prompt files`);
+
+  // Return empty string if no files found
+  if (promptFiles.length === 0) {
+    return "";
+  }
 
   // Create table header
   let promptsContent =
@@ -420,9 +445,16 @@ function generateReadme() {
   const chatmodesSection = generateChatModesSection(chatmodesDir);
 
   // Build the complete README content with template sections
-  let readmeContent = [TEMPLATES.header, chatmodesSection, promptsSection, instructionsSection, TEMPLATES.footer];
+  const sections = [TEMPLATES.header];
 
-  return readmeContent.join("\n\n");
+  // Only include sections that have content
+  if (instructionsSection.trim()) sections.push(instructionsSection);
+  if (promptsSection.trim()) sections.push(promptsSection);
+  if (chatmodesSection.trim()) sections.push(chatmodesSection);
+
+  sections.push(TEMPLATES.footer);
+
+  return sections.join("\n\n");
 }
 
 // Main execution
