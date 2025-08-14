@@ -852,7 +852,7 @@ management:
 
 **Solution**: Update service methods to handle new entity structure:
 
-````java
+```java
 // Before: Entity relationships
 public Set<RelatedEntity> getRelatedEntities() {
     return entity.getRelatedEntities(); // Direct entity references
