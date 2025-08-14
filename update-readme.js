@@ -9,6 +9,16 @@ const TEMPLATES = {
 
 Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and configurations. Get consistent AI assistance that follows your team's coding standards and project requirements.
 
+## 📖 Table of Contents
+
+- [🎯 GitHub Copilot Customization Features](#-github-copilot-customization-features)
+- [🚀 Quick Start](#-quick-start)
+- [📋 Custom Instructions](#-custom-instructions)
+- [🎯 Reusable Prompts](#-reusable-prompts)
+- [🧩 Custom Chat Modes](#-custom-chat-modes)
+- [📚 Additional Resources](#-additional-resources)
+- [📝 Contributing](#-contributing)
+
 ## 🎯 GitHub Copilot Customization Features
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
@@ -19,6 +29,15 @@ GitHub Copilot provides three main ways to customize AI responses and tailor ass
 
 > **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
 
+## 🚀 Quick Start
+
+### Most Popular Items
+
+**📋 Instructions:** [C# Development](instructions/csharp.instructions.md) • [JavaScript/TypeScript](instructions/javascript-typescript.instructions.md) • [React](instructions/react.instructions.md) • [Docker Best Practices](instructions/containerization-docker-best-practices.instructions.md)
+
+**🎯 Prompts:** [Create README](prompts/create-readme.prompt.md) • [Code Review](prompts/review-and-refactor.prompt.md) • [SQL Optimization](prompts/sql-optimization.prompt.md) • [Create Implementation Plan](prompts/create-implementation-plan.prompt.md)
+
+**🧩 Chat Modes:** [Debug Mode](chatmodes/debug.chatmode.md) • [Expert .NET Engineer](chatmodes/expert-dotnet-software-engineer.chatmode.md) • [Blueprint Mode](chatmodes/blueprint-mode.chatmode.md) • [Code Review](chatmodes/gilfoyle.chatmode.md)
 
 ## 📝 Contributing
 
@@ -273,9 +292,9 @@ const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
 function makeBadges(link, type) {
   return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
     `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )} [![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
+  )})<br>[![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
     `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )}`;
+  )})`;
 }
 
 /**
