@@ -19,7 +19,18 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 ## 📋 Custom Instructions
 
-Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:
+Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices.
+
+### How to Use Custom Instructions
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the instruction you want to use
+- Download the `*.instructions.md` file and manually add it to your project's instruction collection
+
+**To Use/Apply:**
+- Copy these instructions to your `.github/copilot-instructions.md` file in your workspace
+- Create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder
+- Instructions automatically apply to Copilot behavior once installed in your workspace
 
 | Title | Description | Install |
 | ----- | ----------- | ------- |
@@ -86,11 +97,20 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 | [Terraform Conventions](instructions/terraform.instructions.md) | Terraform Conventions and Guidelines | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Fterraform.instructions.md) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Fterraform.instructions.md) |
 | [VueJS 3 Development Instructions](instructions/vuejs3.instructions.md) | VueJS 3 development standards and best practices with Composition API and TypeScript | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Fvuejs3.instructions.md) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Fvuejs3.instructions.md) |
 
-> 💡 **Usage**: Copy these instructions to your `.github/copilot-instructions.md` file or create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder.
-
 ## 🎯 Reusable Prompts
 
 Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.
+
+### How to Use Reusable Prompts
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the prompt you want to use
+- Download the `*.prompt.md` file and manually add it to your prompt collection
+
+**To Run/Execute:**
+- Use `/prompt-name` in VS Code chat after installation
+- Run the `Chat: Run Prompt` command from the Command Palette
+- Hit the run button while you have a prompt file open in VS Code
 
 | Title | Description | Install |
 | ----- | ----------- | ------- |
@@ -169,11 +189,20 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 | [Update Standard OO Component Documentation](prompts/update-oo-component-documentation.prompt.md) | Update existing object-oriented component documentation following industry best practices and architectural documentation standards. | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Achat-prompt%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fprompts%2Fupdate-oo-component-documentation.prompt.md) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Achat-prompt%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fprompts%2Fupdate-oo-component-documentation.prompt.md) |
 | [Update Specification](prompts/update-specification.prompt.md) | Update an existing specification file for the solution, optimized for Generative AI consumption based on new requirements or updates to any existing code. | [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://vscode.dev/redirect?url=vscode%3Achat-prompt%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fprompts%2Fupdate-specification.prompt.md) [![Install in VS Code](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Achat-prompt%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fprompts%2Fupdate-specification.prompt.md) |
 
-> 💡 **Usage**: Use `/prompt-name` in VS Code chat, run `Chat: Run Prompt` command, or hit the run button while you have a prompt open.
-
 ## 🧩 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.
+
+### How to Use Custom Chat Modes
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the chat mode you want to use
+- Download the `*.chatmode.md` file and manually install it in VS Code using the Command Palette
+
+**To Activate/Use:**
+- Import the chat mode configuration into your VS Code settings
+- Access the installed chat modes through the VS Code Chat interface
+- Select the desired chat mode from the available options in VS Code Chat
 
 | Title | Description | Install |
 | ----- | ----------- | ------- |
