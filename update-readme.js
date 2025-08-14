@@ -13,9 +13,9 @@ Enhance your GitHub Copilot experience with community-contributed instructions, 
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **🧩 [Custom Chat Modes](#-custom-chat-modes)** |
+| **🧩 [Custom Chat Modes](#-custom-chat-modes)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **📋 [Custom Instructions](#-custom-instructions)** |
 | --- | --- | --- |
-| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
+| Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options |
 
 > **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
 
@@ -420,15 +420,7 @@ function generateReadme() {
   const chatmodesSection = generateChatModesSection(chatmodesDir);
 
   // Build the complete README content with template sections
-  let readmeContent = [TEMPLATES.header, instructionsSection, promptsSection];
-
-  // Only include chat modes section if we have any chat modes
-  if (chatmodesSection) {
-    readmeContent.push(chatmodesSection);
-  }
-
-  // Add footer
-  readmeContent.push(TEMPLATES.footer);
+  let readmeContent = [TEMPLATES.header, chatmodesSection, promptsSection, instructionsSection, TEMPLATES.footer];
 
   return readmeContent.join("\n\n");
 }
