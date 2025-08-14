@@ -913,7 +913,6 @@ public Set<RelatedEntity> getRelatedEntities() {
        return StreamSupport.stream(this.findAll().spliterator(), false)
                .collect(Collectors.toList());
    }
-````
 
 2. **BigDecimal Compatibility (Java 17+)**:
 
