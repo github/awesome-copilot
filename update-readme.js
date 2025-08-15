@@ -7,22 +7,27 @@ const path = require("path");
 const TEMPLATES = {
   header: `# 🤖 Awesome GitHub Copilot Customizations
 
-Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and configurations. Get consistent AI assistance that follows your team's coding standards and project requirements.
+Enhance your GitHub Copilot experience with community-contributed [instructions](#-custom-instructions), [prompts](#-reusable-prompts), and [chat modes](#-custom-chat-modes). Get consistent AI assistance that follows your team's coding standards and project requirements.
 
-## 🎯 GitHub Copilot Customization Features
+<details>
+<summary><strong>🎯 GitHub Copilot Customization Features</strong></summary>
 
 GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
 
-| **📋 [Custom Instructions](#-custom-instructions)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **🧩 [Custom Chat Modes](#-custom-chat-modes)** |
+| **🧩 [Custom Chat Modes](#-custom-chat-modes)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **📋 [Custom Instructions](#-custom-instructions)** |
 | --- | --- | --- |
-| Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows |
+| Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options |
 
 > **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
 
+</details>
 
-## 📝 Contributing
+<details>
+<summary><strong>📝 Contributing</strong></summary>
 
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.`,
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.
+
+</details>`,
 
   instructionsSection: `## 📋 Custom Instructions
 
@@ -273,7 +278,7 @@ const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
 function makeBadges(link, type) {
   return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
     `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )} [![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
+  )}<br />[![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
     `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
   )}`;
 }
@@ -282,6 +287,11 @@ function makeBadges(link, type) {
  * Generate the instructions section with a table of all instructions
  */
 function generateInstructionsSection(instructionsDir) {
+  // Check if directory exists
+  if (!fs.existsSync(instructionsDir)) {
+    return "";
+  }
+
   // Get all instruction files
   const instructionFiles = fs
     .readdirSync(instructionsDir)
@@ -290,9 +300,14 @@ function generateInstructionsSection(instructionsDir) {
 
   console.log(`Found ${instructionFiles.length} instruction files`);
 
+  // Return empty string if no files found
+  if (instructionFiles.length === 0) {
+    return "";
+  }
+
   // Create table header
   let instructionsContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each instruction file
   for (const file of instructionFiles) {
@@ -308,21 +323,26 @@ function generateInstructionsSection(instructionsDir) {
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      instructionsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `| [${title}](${link}) | ${topic} specific coding standards and best practices | ${badges} |\n`;
+      instructionsContent += `| [${title}](${link})<br />${badges} | ${topic} specific coding standards and best practices |\n`;
     }
   }
 
-  return `${TEMPLATES.instructionsSection}\n\n${instructionsContent}\n${TEMPLATES.instructionsUsage}`;
+  return `${TEMPLATES.instructionsSection}\n${TEMPLATES.instructionsUsage}\n\n${instructionsContent}`;
 }
 
 /**
  * Generate the prompts section with a table of all prompts
  */
 function generatePromptsSection(promptsDir) {
+  // Check if directory exists
+  if (!fs.existsSync(promptsDir)) {
+    return "";
+  }
+
   // Get all prompt files
   const promptFiles = fs
     .readdirSync(promptsDir)
@@ -331,9 +351,14 @@ function generatePromptsSection(promptsDir) {
 
   console.log(`Found ${promptFiles.length} prompt files`);
 
+  // Return empty string if no files found
+  if (promptFiles.length === 0) {
+    return "";
+  }
+
   // Create table header
   let promptsContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each prompt file
   for (const file of promptFiles) {
@@ -348,13 +373,13 @@ function generatePromptsSection(promptsDir) {
     const badges = makeBadges(link, "prompt");
 
     if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      promptsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
-      promptsContent += `| [${title}](${link}) | | ${badges} |\n`;
+      promptsContent += `| [${title}](${link})<br />${badges} | | |\n`;
     }
   }
 
-  return `${TEMPLATES.promptsSection}\n\n${promptsContent}\n${TEMPLATES.promptsUsage}`;
+  return `${TEMPLATES.promptsSection}\n${TEMPLATES.promptsUsage}\n\n${promptsContent}`;
 }
 
 /**
@@ -382,7 +407,7 @@ function generateChatModesSection(chatmodesDir) {
 
   // Create table header
   let chatmodesContent =
-    "| Title | Description | Install |\n| ----- | ----------- | ------- |\n";
+    "| Title | Description  |\n| ----- | ----------- |\n";
 
   // Generate table rows for each chat mode file
   for (const file of chatmodeFiles) {
@@ -397,13 +422,13 @@ function generateChatModesSection(chatmodesDir) {
     const badges = makeBadges(link, "mode");
 
     if (customDescription && customDescription !== "null") {
-      chatmodesContent += `| [${title}](${link}) | ${customDescription} | ${badges} |\n`;
+      chatmodesContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
     } else {
-      chatmodesContent += `| [${title}](${link}) | | ${badges} |\n`;
+      chatmodesContent += `| [${title}](${link})<br />${badges} | | |\n`;
     }
   }
 
-  return `${TEMPLATES.chatmodesSection}\n\n${chatmodesContent}\n${TEMPLATES.chatmodesUsage}`;
+  return `${TEMPLATES.chatmodesSection}\n${TEMPLATES.chatmodesUsage}\n\n${chatmodesContent}`;
 }
 
 /**
@@ -420,17 +445,16 @@ function generateReadme() {
   const chatmodesSection = generateChatModesSection(chatmodesDir);
 
   // Build the complete README content with template sections
-  let readmeContent = [TEMPLATES.header, instructionsSection, promptsSection];
+  const sections = [TEMPLATES.header];
 
-  // Only include chat modes section if we have any chat modes
-  if (chatmodesSection) {
-    readmeContent.push(chatmodesSection);
-  }
+  // Only include sections that have content
+  if (instructionsSection.trim()) sections.push(instructionsSection);
+  if (promptsSection.trim()) sections.push(promptsSection);
+  if (chatmodesSection.trim()) sections.push(chatmodesSection);
 
-  // Add footer
-  readmeContent.push(TEMPLATES.footer);
+  sections.push(TEMPLATES.footer);
 
-  return readmeContent.join("\n\n");
+  return sections.join("\n\n");
 }
 
 // Main execution

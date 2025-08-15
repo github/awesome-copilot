@@ -17,7 +17,7 @@ Your goal is to help me write effective unit tests with JUnit 5, covering both s
 
 ## Test Structure
 
-- Test classes should have a `Test` suffix, e.g., `CalculatorTests` for a `Calculator` class.
+- Test classes should have a `Test` suffix, e.g., `CalculatorTest` for a `Calculator` class.
 - Use `@Test` for test methods.
 - Follow the Arrange-Act-Assert (AAA) pattern.
 - Name tests using a descriptive convention, like `methodName_should_expectedBehavior_when_scenario`.
