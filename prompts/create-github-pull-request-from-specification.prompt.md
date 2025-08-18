@@ -19,7 +19,7 @@ Create GitHub Pull Request for the specification at `${workspaceFolder}/.github/
 ## Requirements
 - Single issue for the complete specification
 - Clear title/pull_request_template.md identifying the specification
-- Fill enought infomation onto pull_request_template.md
+- Fill enough information into pull_request_template.md
 - Verify against existing issues before creation
 - Don't ask user for permission between each step. Continue til the end.
 
