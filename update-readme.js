@@ -409,7 +409,7 @@ function generateChatModesSection(chatmodesDir) {
 
   // Create table header
   let chatmodesContent =
-    "| Title | Description  |\n| ----- | ----------- |\n";
+    "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each chat mode file
   for (const file of chatmodeFiles) {
