@@ -1,4 +1,4 @@
-# Awesome GitHub Copilot
+# 🤖 Awesome GitHub Copilot Customizations
 
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
 
