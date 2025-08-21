@@ -26,9 +26,7 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 ## 📋 Custom Instructions
 
-Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:
 Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices.
-
 ### How to Use Custom Instructions
 
 **To Install:**

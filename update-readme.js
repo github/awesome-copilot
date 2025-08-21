@@ -33,11 +33,9 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
   instructionsSection: `## 📋 Custom Instructions
 
-Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:`,
+Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices.`,
 
-  instructionsUsage: `Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices.
-
-### How to Use Custom Instructions
+  instructionsUsage: `### How to Use Custom Instructions
 
 **To Install:**
 - Click the **VS Code** or **VS Code Insiders** install button for the instruction you want to use
