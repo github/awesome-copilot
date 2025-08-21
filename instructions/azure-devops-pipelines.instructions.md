@@ -162,11 +162,12 @@ stages:
             deploy:
               steps:
                 - download: current
+                  displayName: 'Download drop artifact'
                   artifact: drop
                 - task: AzureWebApp@1
                   displayName: 'Deploy to Azure Web App'
                   inputs:
-                    azureSubscription: 'production-service-connection'
+                    azureSubscription: 'staging-service-connection'
                     appType: 'webApp'
                     appName: 'myapp-staging'
                     package: '$(Pipeline.Workspace)/drop/**/*.zip'
