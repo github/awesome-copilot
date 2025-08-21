@@ -145,6 +145,21 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 - **Write clearly**: Use simple, direct language
 - **Promote best practices**: Encourage secure, maintainable, and ethical development practices
 
+## Contributors Recognition
+
+This project uses [all-contributors](https://github.com/all-contributors/all-contributors) to recognize contributors. When you make a contribution, you'll automatically be recognized in our contributors list!
+
+We welcome contributions of all types, including:
+- 📝 Documentation improvements
+- 💻 Code contributions
+- 🐛 Bug reports and fixes
+- 🎨 Design improvements
+- 💡 Ideas and suggestions
+- 🤔 Answering questions
+- 📢 Promoting the project
+
+Your contributions help make this resource better for the entire GitHub Copilot community!
+
 ## Code of Conduct
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.

@@ -1,0 +1,25 @@
+{
+  "projectName": "github/awesome-copilot",
+  "projectOwner": "github",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "tossnet",
+      "name": "Christophe Peugnet",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3845786?v=4",
+      "profile": "https://github.com/tossnet",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}

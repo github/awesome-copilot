@@ -8,6 +8,9 @@ const TEMPLATES = {
   header: `# 🤖 Awesome GitHub Copilot Customizations
 
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-0-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Enhance your GitHub Copilot experience with community-contributed [instructions](#-custom-instructions), [prompts](#-reusable-prompts), and [chat modes](#-custom-chat-modes). Get consistent AI assistance that follows your team's coding standards and project requirements.
 
@@ -49,7 +52,20 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 
   chatmodesUsage: `> 💡 **Usage**: Create new chat modes using the command \`Chat: Configure Chat Modes...\`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.`,
 
-  footer: `## 📚 Additional Resources
+  footer: `## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+
+## 📚 Additional Resources
 
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
