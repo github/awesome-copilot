@@ -459,30 +459,68 @@ function generateReadme() {
   return sections.join("\n\n");
 }
 
+// Utility: write file only if content changed
+function writeFileIfChanged(filePath, content) {
+  const exists = fs.existsSync(filePath);
+  if (exists) {
+    const original = fs.readFileSync(filePath, "utf8");
+    if (original === content) {
+      console.log(`${path.basename(filePath)} is already up to date. No changes needed.`);
+      return;
+    }
+  }
+  fs.writeFileSync(filePath, content);
+  console.log(`${path.basename(filePath)} ${exists ? "updated" : "created"} successfully!`);
+}
+
+// Build per-category README content using existing generators, upgrading headings to H1
+function buildCategoryReadme(sectionBuilder, dirPath, headerLine, usageLine) {
+  const section = sectionBuilder(dirPath);
+  if (section && section.trim()) {
+    // Upgrade the first markdown heading level from ## to # for standalone README files
+    return section.replace(/^##\s/m, "# ");
+  }
+  // Fallback content when no entries are found
+  return `${headerLine}\n\n${usageLine}\n\n_No entries found yet._`;
+}
+
 // Main execution
 try {
-  console.log("Generating README.md from scratch...");
+  console.log("Generating category README files...");
 
-  const readmePath = path.join(__dirname, "README.md");
-  const newReadmeContent = generateReadme();
+  const instructionsDir = path.join(__dirname, "instructions");
+  const promptsDir = path.join(__dirname, "prompts");
+  const chatmodesDir = path.join(__dirname, "chatmodes");
 
-  // Check if the README file already exists
-  if (fs.existsSync(readmePath)) {
-    const originalContent = fs.readFileSync(readmePath, "utf8");
-    const hasChanges = originalContent !== newReadmeContent;
+  // Compose headers for standalone files by converting section headers to H1
+  const instructionsHeader = TEMPLATES.instructionsSection.replace(/^##\s/m, "# ");
+  const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
+  const chatmodesHeader = TEMPLATES.chatmodesSection.replace(/^##\s/m, "# ");
 
-    if (hasChanges) {
-      fs.writeFileSync(readmePath, newReadmeContent);
-      console.log("README.md updated successfully!");
-    } else {
-      console.log("README.md is already up to date. No changes needed.");
-    }
-  } else {
-    // Create the README file if it doesn't exist
-    fs.writeFileSync(readmePath, newReadmeContent);
-    console.log("README.md created successfully!");
-  }
+  const instructionsReadme = buildCategoryReadme(
+    generateInstructionsSection,
+    instructionsDir,
+    instructionsHeader,
+    TEMPLATES.instructionsUsage
+  );
+  const promptsReadme = buildCategoryReadme(
+    generatePromptsSection,
+    promptsDir,
+    promptsHeader,
+    TEMPLATES.promptsUsage
+  );
+  const chatmodesReadme = buildCategoryReadme(
+    generateChatModesSection,
+    chatmodesDir,
+    chatmodesHeader,
+    TEMPLATES.chatmodesUsage
+  );
+
+  // Write outputs
+  writeFileIfChanged(path.join(__dirname, "README.instructions.md"), instructionsReadme);
+  writeFileIfChanged(path.join(__dirname, "README.prompts.md"), promptsReadme);
+  writeFileIfChanged(path.join(__dirname, "README.chatmodes.md"), chatmodesReadme);
 } catch (error) {
-  console.error(`Error generating README.md: ${error.message}`);
+  console.error(`Error generating category README files: ${error.message}`);
   process.exit(1);
 }
