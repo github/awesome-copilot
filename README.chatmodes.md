@@ -1,4 +1,4 @@
-# 🧩 Custom Chat Modes
+# 💭 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.
 > 💡 **Usage**: Create new chat modes using the command `Chat: Configure Chat Modes...`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.

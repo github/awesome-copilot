@@ -43,7 +43,7 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 
   promptsUsage: `> 💡 **Usage**: Use \`/prompt-name\` in VS Code chat, run \`Chat: Run Prompt\` command, or hit the run button while you have a prompt open.`,
 
-  chatmodesSection: `## 🧩 Custom Chat Modes
+  chatmodesSection: `## 💭 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.`,
 

@@ -14,16 +14,16 @@ This repository provides a comprehensive toolkit for enhancing GitHub Copilot wi
 
 ## 🔧 How to Use
 
-### Prompts
+### 🎯 Prompts
 Use the `/` command in GitHub Copilot Chat to access prompts:
 ```
 /awesome-copilot create-readme
 ```
 
-### Instructions
+### 📋 Instructions
 Instructions automatically apply to files based on their patterns and provide contextual guidance for coding standards, frameworks, and best practices.
 
-### Chat Modes
+### 💭 Chat Modes
 Activate chat modes to get specialized assistance from AI personas tailored for specific roles like architects, DBAs, or security experts.
 
 ## 🤝 Contributing
