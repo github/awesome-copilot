@@ -113,6 +113,8 @@ You are an expert [domain/role] with deep knowledge in [specific areas].
    - A brief description of what your instruction/prompt does
    - Any relevant context or usage notes
 
+**Note**: Once your contribution is merged, you'll automatically be added to our [Contributors](#contributors-) section! We use [all-contributors](https://github.com/all-contributors/all-contributors) to recognize all types of contributions to the project.
+
 ## What We Accept
 
 We welcome contributions covering any technology, framework, or development practice that helps developers work more effectively with GitHub Copilot. This includes:
