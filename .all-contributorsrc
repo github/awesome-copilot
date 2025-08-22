@@ -7,19 +7,19 @@
     "README.md"
   ],
   "imageSize": 100,
-  "commit": false,
-  "commitConvention": "angular",
+  "commit": true,
+  "commitConvention": "none",
   "contributors": [
     {
-      "login": "tossnet",
-      "name": "Christophe Peugnet",
-      "avatar_url": "https://avatars.githubusercontent.com/u/3845786?v=4",
-      "profile": "https://github.com/tossnet",
+      "login": "aaronpowell",
+      "name": "Aaron Powell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/434140?v=4",
+      "profile": "https://www.aaron-powell.com/",
       "contributions": [
         "code"
       ]
     }
   ],
   "contributorsPerLine": 7,
-  "linkToUsage": false
+  "linkToUsage": true
 }
