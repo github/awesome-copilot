@@ -27,6 +27,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "digitarald",
+      "name": "Harald Kirschner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8599?v=4",
+      "profile": "http://digitarald.de/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
