@@ -5,83 +5,50 @@ const path = require("path");
 
 // Template sections for the README
 const TEMPLATES = {
-  header: `# 🤖 Awesome GitHub Copilot Customizations
-
-[![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
-
-Enhance your GitHub Copilot experience with community-contributed [instructions](#-custom-instructions), [prompts](#-reusable-prompts), and [chat modes](#-custom-chat-modes). Get consistent AI assistance that follows your team's coding standards and project requirements.
-
-<details>
-<summary><strong>🎯 GitHub Copilot Customization Features</strong></summary>
-
-GitHub Copilot provides three main ways to customize AI responses and tailor assistance to your specific workflows, team guidelines, and project requirements:
-
-| **🧩 [Custom Chat Modes](#-custom-chat-modes)** | **🎯 [Reusable Prompts](#-reusable-prompts)** | **📋 [Custom Instructions](#-custom-instructions)** |
-| --- | --- | --- |
-| Define chat behavior, available tools, and codebase interaction patterns within specific boundaries for each request<br><br>**Benefits:**<br>• Context-aware assistance<br>• Tool configuration<br>• Role-specific workflows | Create reusable, standalone prompts for specific tasks. Describe *what* should be done with optional task-specific guidelines<br><br>**Benefits:**<br>• Eliminate repetitive prompt writing<br>• Shareable across teams<br>• Support for variables and dependencies | Define common guidelines for tasks like code generation, reviews, and commit messages. Describe *how* tasks should be performed<br><br>**Benefits:**<br>• Automatic inclusion in every chat request<br>• Repository-wide consistency<br>• Multiple implementation options |
-
-> **💡 Pro Tip:** Custom instructions only affect Copilot Chat (not inline code completions). You can combine all three customization types - use custom instructions for general guidelines, prompt files for specific tasks, and chat modes to control the interaction context.
-
-</details>
-
-<details>
-<summary><strong>📝 Contributing</strong></summary>
-
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on how to submit new instructions and prompts.
-
-</details>`,
-
   instructionsSection: `## 📋 Custom Instructions
 
-Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices:`,
+Team and project-specific instructions to enhance GitHub Copilot's behavior for specific technologies and coding practices.`,
 
-  instructionsUsage: `> 💡 **Usage**: Copy these instructions to your \`.github/copilot-instructions.md\` file or create task-specific \`.github/.instructions.md\` files in your workspace's \`.github/instructions\` folder.`,
+  instructionsUsage: `### How to Use Custom Instructions
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the instruction you want to use
+- Download the \`*.instructions.md\` file and manually add it to your project's instruction collection
+
+**To Use/Apply:**
+- Copy these instructions to your \`.github/copilot-instructions.md\` file in your workspace
+- Create task-specific \`.github/.instructions.md\` files in your workspace's \`.github/instructions\` folder
+- Instructions automatically apply to Copilot behavior once installed in your workspace`,
 
   promptsSection: `## 🎯 Reusable Prompts
 
 Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.`,
 
-  promptsUsage: `> 💡 **Usage**: Use \`/prompt-name\` in VS Code chat, run \`Chat: Run Prompt\` command, or hit the run button while you have a prompt open.`,
+  promptsUsage: `### How to Use Reusable Prompts
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the prompt you want to use
+- Download the \`*.prompt.md\` file and manually add it to your prompt collection
+
+**To Run/Execute:**
+- Use \`/prompt-name\` in VS Code chat after installation
+- Run the \`Chat: Run Prompt\` command from the Command Palette
+- Hit the run button while you have a prompt file open in VS Code`,
 
   chatmodesSection: `## 💭 Custom Chat Modes
 
 Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.`,
 
-  chatmodesUsage: `> 💡 **Usage**: Create new chat modes using the command \`Chat: Configure Chat Modes...\`, then switch your chat mode in the Chat input from _Agent_ or _Ask_ to your own mode.`,
+  chatmodesUsage: `### How to Use Custom Chat Modes
 
-  footer: `## 📚 Additional Resources
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the chat mode you want to use
+- Download the \`*.chatmode.md\` file and manually install it in VS Code using the Command Palette
 
-- [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
-- [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
-- [Custom Chat Modes](https://code.visualstudio.com/docs/copilot/chat/chat-modes) - Advanced chat configuration
-- [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
-
-## 🛠️ Development Configuration
-
-This repository uses various configuration files to ensure consistent code style and avoid issues with line endings:
-
-- [\`.editorconfig\`](.editorconfig) - Defines coding styles across different editors and IDEs
-- [\`.gitattributes\`](.gitattributes) - Ensures consistent line endings in text files
-- [\`.vscode/settings.json\`](.vscode/settings.json) - VS Code-specific settings for this repository
-- [\`.vscode/extensions.json\`](.vscode/extensions.json) - Recommended VS Code extensions
-
-> 💡 **Note**: All markdown files in this repository use LF line endings (Unix-style) to avoid mixed line endings issues. The repository is configured to automatically handle line endings conversion.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🤝 Code of Conduct
-
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
-
-## ™️ Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
-trademarks or logos is subject to and must follow
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.`,
+**To Activate/Use:**
+- Import the chat mode configuration into your VS Code settings
+- Access the installed chat modes through the VS Code Chat interface
+- Select the desired chat mode from the available options in VS Code Chat`,
 };
 
 // Add error handling utility
@@ -431,32 +398,6 @@ function generateChatModesSection(chatmodesDir) {
   }
 
   return `${TEMPLATES.chatmodesSection}\n${TEMPLATES.chatmodesUsage}\n\n${chatmodesContent}`;
-}
-
-/**
- * Generate the complete README.md content from scratch
- */
-function generateReadme() {
-  const instructionsDir = path.join(__dirname, "instructions");
-  const promptsDir = path.join(__dirname, "prompts");
-  const chatmodesDir = path.join(__dirname, "chatmodes");
-
-  // Generate each section
-  const instructionsSection = generateInstructionsSection(instructionsDir);
-  const promptsSection = generatePromptsSection(promptsDir);
-  const chatmodesSection = generateChatModesSection(chatmodesDir);
-
-  // Build the complete README content with template sections
-  const sections = [TEMPLATES.header];
-
-  // Only include sections that have content
-  if (instructionsSection.trim()) sections.push(instructionsSection);
-  if (promptsSection.trim()) sections.push(promptsSection);
-  if (chatmodesSection.trim()) sections.push(chatmodesSection);
-
-  sections.push(TEMPLATES.footer);
-
-  return sections.join("\n\n");
 }
 
 // Utility: write file only if content changed

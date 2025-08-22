@@ -113,6 +113,8 @@ You are an expert [domain/role] with deep knowledge in [specific areas].
    - A brief description of what your instruction/prompt does
    - Any relevant context or usage notes
 
+**Note**: Once your contribution is merged, you'll automatically be added to our [Contributors](#contributors-) section! We use [all-contributors](https://github.com/all-contributors/all-contributors) to recognize all types of contributions to the project.
+
 ## What We Accept
 
 We welcome contributions covering any technology, framework, or development practice that helps developers work more effectively with GitHub Copilot. This includes:
@@ -144,6 +146,21 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 - **Keep it focused**: Each file should address a specific technology, framework, or use case
 - **Write clearly**: Use simple, direct language
 - **Promote best practices**: Encourage secure, maintainable, and ethical development practices
+
+## Contributors Recognition
+
+This project uses [all-contributors](https://github.com/all-contributors/all-contributors) to recognize contributors. When you make a contribution, you'll automatically be recognized in our contributors list!
+
+We welcome contributions of all types, including:
+- 📝 Documentation improvements
+- 💻 Code contributions
+- 🐛 Bug reports and fixes
+- 🎨 Design improvements
+- 💡 Ideas and suggestions
+- 🤔 Answering questions
+- 📢 Promoting the project
+
+Your contributions help make this resource better for the entire GitHub Copilot community!
 
 ## Code of Conduct
 

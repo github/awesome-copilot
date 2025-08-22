@@ -1,0 +1,67 @@
+name: Contributors
+
+on:
+  schedule:
+    - cron: '0 3 * * 0' # Weekly on Sundays at 3am UTC
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  contributors:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Update contributors
+        uses: all-contributors/all-contributors-cli@v6.26.1
+        with:
+          args: 'check'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Regenerate README
+        run: node update-readme.js
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if git diff --exit-code > /dev/null; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit contributors
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "docs: update contributors" -a || exit 0
+
+      - name: Create Pull Request
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: update contributors"
+          title: "Update Contributors"
+          body: |
+            Auto-generated PR to update contributors.
+            
+            This PR was automatically created by the contributors workflow.
+          branch: update-contributors
+          delete-branch: true
