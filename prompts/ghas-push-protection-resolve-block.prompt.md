@@ -3,6 +3,7 @@ mode: "agent"
 tools: ["changes", "codebase", "editFiles", "problems", "terminal"]
 description: "Help developers resolve GitHub Advanced Security push protection blocked pushes containing secrets"
 ---
+# GHAS Push Protection: Resolve Blocked Push
 
 Your goal is to help me resolve a blocked push that was prevented by GitHub Advanced Security push protection due to detected secrets in my commits. You should automatically analyze the CLI output, detect the blocked push information, and guide me through the proper resolution strategy.
 
