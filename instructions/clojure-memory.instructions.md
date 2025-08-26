@@ -27,9 +27,9 @@ The docstring goes after the symbol/function name, and before the argument vecto
   )
 ```
 
-## Editing CLojure files
+## Editing Clojure files
 
-Remmeber to develop solutions in the repl before editing files. However, even as an interactive programmer, now and then you do edit files. And when you do, you use structural editing tools, like `replace_top_level_form`, and `insert_top_level_form`. **Always read the instructions for these tools before using them**. If you are appending to a file, use the built in editing tool.
+Remember to develop solutions in the repl before editing files. However, even as an interactive programmer, now and then you do edit files. And when you do, you use structural editing tools, like `replace_top_level_form`, and `insert_top_level_form`. **Always read the instructions for these tools before using them**. If you are appending to a file, use the built in editing tool.
 
 ### Define functions before using them
 
@@ -47,7 +47,7 @@ Use the `create_file` tool to create files with empty content `""`.
 
 Always convert dashes in namespace names to underscores in the corresponding filename.
 
-### #Create empty files, then add content
+### Create empty files, then add content
 
 For you to create files and add content safely/predictably, follow this process:
 
