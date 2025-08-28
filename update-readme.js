@@ -253,7 +253,7 @@ const AKA_INSTALL_URLS = {
 };
 
 function makeBadges(link, type) {
-  const aka = AKA_INSTALL_URLS[type] || `${AKA_INSTALL_URLS.instructions}`;
+  const aka = AKA_INSTALL_URLS[type] || AKA_INSTALL_URLS.instructions;
 
   const vscodeUrl = `${aka}?url=${encodeURIComponent(`vscode:chat-${type}/install?url=${repoBaseUrl}/${link}`)}`;
   const insidersUrl = `${aka}?url=${encodeURIComponent(`vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link}`)}`;
