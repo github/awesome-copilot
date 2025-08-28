@@ -1,6 +1,6 @@
 ---
 description: 'Guidelines for developing Azure Logic Apps and Power Automate workflows with best practices for Workflow Definition Language (WDL), integration patterns, and enterprise automation'
-applyTo: '**/*.json,**/*.logicapp.json,**/workflow.json,**/*-definition.json,**/*.flow.json'
+applyTo: "**/*.json,**/*.logicapp.json,**/workflow.json,**/*-definition.json,**/*.flow.json"
 ---
 
 # Azure Logic Apps and Power Automate Instructions
