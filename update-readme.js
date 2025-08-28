@@ -242,14 +242,23 @@ const vscodeInsidersInstallImage =
   "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
 const repoBaseUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
-const vscodeBaseUrl = "https://vscode.dev/redirect?url=";
-const vscodeInsidersBaseUrl = "https://insiders.vscode.dev/redirect?url=";
+
+// Map install types to aka.ms short links. Both VS Code and Insiders will use
+// the same aka.ms target; the redirect base (vscode vs insiders) is preserved
+// so VS Code or Insiders opens correctly but the installation URL is uniform.
+const AKA_INSTALL_URLS = {
+  instructions: "https://aka.ms/awesome-copilot/install/instructions",
+  prompt: "https://aka.ms/awesome-copilot/install/prompt",
+  mode: "https://aka.ms/awesome-copilot/install/chatmode",
+};
+
 function makeBadges(link, type) {
-  return `[![Install in VS Code](${vscodeInstallImage})](${vscodeBaseUrl}${encodeURIComponent(
-    `vscode:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )}<br />[![Install in VS Code](${vscodeInsidersInstallImage})](${vscodeInsidersBaseUrl}${encodeURIComponent(
-    `vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link})`
-  )}`;
+  const aka = AKA_INSTALL_URLS[type] || `${AKA_INSTALL_URLS.instructions}`;
+
+  const vscodeUrl = `${aka}?url=${encodeURIComponent(`vscode:chat-${type}/install?url=${repoBaseUrl}/${link}`)}`;
+  const insidersUrl = `${aka}?url=${encodeURIComponent(`vscode-insiders:chat-${type}/install?url=${repoBaseUrl}/${link}`)}`;
+
+  return `[![Install in VS Code](${vscodeInstallImage})](${vscodeUrl})<br />[![Install in VS Code Insiders](${vscodeInsidersInstallImage})](${insidersUrl})`;
 }
 
 /**
