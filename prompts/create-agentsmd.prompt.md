@@ -1,9 +1,9 @@
 ---
-description: "Prompt for generating an AGENTS.md file for a software project"
+description: "Prompt for generating an AGENTS.md file for a repository"
 mode: "agent"
 ---
 
-# Generate high‑quality AGENTS.md for this repository
+# Create high‑quality AGENTS.md file
 
 You are a code agent. Your task is to create a complete, accurate AGENTS.md at the root of this repository that follows the public guidance at https://agents.md/.
 
