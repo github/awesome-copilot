@@ -82,5 +82,5 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 
 ## Security and Authentication
 
-- Implement Authentication and Authorization using build-in Oqtane base class members like User.Roles.
+- Implement Authentication and Authorization using built-in Oqtane base class members like User.Roles.
 - Use HTTPS for all web communication and ensure proper CORS policies are implemented.
