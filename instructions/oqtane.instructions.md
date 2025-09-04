@@ -35,7 +35,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - For complex client processing like getting data, create a service class that inherits from ServiceBase and lives in the services folder. One service class for each module. 
 - Client service should call server endpoint using ServiceBase methods
 - Server project contains MVC Controllers, one for each module that match the client service calls.  Each controller will call server-side services or repositories managed by DI
-- Servier projects use repository peterns for modules, one reposioty class per module to match the controllers. 
+- Server projects use repository patterns for modules, one repository class per module to match the controllers. 
 
 ## Error Handling and Validation
 
