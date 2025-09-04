@@ -8,7 +8,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - Write idiomatic and efficient Blazor and C# code.
 - Follow .NET and Blazor conventions.
 - Use Razor Components appropriately for component-based UI development.
-- Use Balzor Components appropriately for component-based UI development.
+- Use Blazor Components appropriately for component-based UI development.
 - Prefer inline functions for smaller components but separate complex logic into code-behind or service classes.
 - Async/await should be used where applicable to ensure non-blocking UI operations.
 
