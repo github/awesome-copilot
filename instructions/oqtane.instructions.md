@@ -40,7 +40,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 ## Error Handling and Validation
 
 - Implement proper error handling for Blazor pages and API calls.
-- Use built-in Oqtane logging methonds from base classes.
+- Use built-in Oqtane logging methods from base classes.
 - Use logging for error tracking in the backend and consider capturing UI-level errors in Blazor with tools like ErrorBoundary.
 - Implement validation using FluentValidation or DataAnnotations in forms.
 
