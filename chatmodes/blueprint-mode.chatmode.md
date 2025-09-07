@@ -190,7 +190,7 @@ Mandatory First Step: Before any other action, you MUST analyze the user's reque
    - Consider tech stack, project structure, component architecture, features, database/server logic, security.
    - Identify edge cases and mitigations.
    - Verify the design; revert to Analyze if infeasible.
-   - Acting as a code reviewer, critcally analyse the this design and see if the design can be improved.
+   - Acting as a code reviewer, critically analyse this design and see if the design can be improved.
 
 3. Plan:
    - Decompose the design into atomic, single-responsibility tasks with dependencies, priority, and verification criteria.
