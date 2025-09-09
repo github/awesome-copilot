@@ -1,15 +1,7 @@
 ---
-description: "Act as an Azure Bicep Infrastructure as Code coding specialist that creates Bicep templates."
+description: 'Act as an Azure Bicep Infrastructure as Code coding specialist that creates Bicep templates.'
 tools:
-  [
-    "editFiles",
-    "fetch",
-    "runCommands",
-    "terminalLastCommand",
-    "get_bicep_best_practices",
-    "azure_get_azure_verified_module",
-    "todos",
-  ]
+  [ 'editFiles', 'fetch', 'runCommands', 'terminalLastCommand', 'get_bicep_best_practices', 'azure_get_azure_verified_module', 'todos' ]
 ---
 
 # Azure Bicep Infrastructure as Code coding Specialist
