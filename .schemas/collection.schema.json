@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Collection Manifest",
+  "description": "Schema for awesome-copilot collection manifest files",
+  "type": "object",
+  "required": ["id", "name", "description", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the collection",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "maxLength": 50
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name for the collection",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what this collection contains",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "tags": {
+      "type": "array",
+      "description": "Optional tags for discovery",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$",
+        "minLength": 1,
+        "maxLength": 30
+      },
+      "uniqueItems": true,
+      "maxItems": 10
+    },
+    "items": {
+      "type": "array",
+      "description": "List of items in this collection",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative path from repository root to the item file",
+            "pattern": "^(prompts|instructions|chatmodes)\/[^\/]+\\.(prompt|instructions|chatmode)\\.md$",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "description": "Type of the item",
+            "enum": ["prompt", "instruction", "chat-mode"]
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "display": {
+      "type": "object",
+      "description": "Optional display settings for the collection",
+      "additionalProperties": false,
+      "properties": {
+        "ordering": {
+          "type": "string",
+          "description": "How to order items in the collection",
+          "enum": ["manual", "alpha"],
+          "default": "alpha"
+        },
+        "show_badge": {
+          "type": "boolean",
+          "description": "Whether to show collection badge on items",
+          "default": false
+        }
+      }
+    }
+  }
+}

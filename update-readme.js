@@ -49,6 +49,22 @@ Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, e
 - Import the chat mode configuration into your VS Code settings
 - Access the installed chat modes through the VS Code Chat interface
 - Select the desired chat mode from the available options in VS Code Chat`,
+
+  collectionsSection: `## 📦 Collections
+
+Curated collections of related prompts, instructions, and chat modes organized around specific themes, workflows, or use cases.`,
+
+  collectionsUsage: `### How to Use Collections
+
+**Browse Collections:**
+- Explore themed collections that group related customizations
+- Each collection includes prompts, instructions, and chat modes for specific workflows
+- Collections make it easy to adopt comprehensive toolkits for particular scenarios
+
+**Install Items:**
+- Click install buttons for individual items within collections
+- Or browse to the individual files to copy content manually
+- Collections help you discover related customizations you might have missed`,
 };
 
 // Add error handling utility
@@ -59,6 +75,110 @@ function safeFileOperation(operation, filePath, defaultValue = null) {
     console.error(`Error processing file ${filePath}: ${error.message}`);
     return defaultValue;
   }
+}
+
+/**
+ * Simple YAML parser for collection manifests
+ * Handles our specific YAML structure without external dependencies
+ */
+function parseCollectionYaml(filePath) {
+  return safeFileOperation(
+    () => {
+      const content = fs.readFileSync(filePath, "utf8");
+      const lines = content.split("\n");
+      const result = {};
+      let currentKey = null;
+      let currentArray = null;
+      let currentObject = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        
+        if (!trimmed || trimmed.startsWith("#")) continue;
+
+        const leadingSpaces = line.length - line.trimLeft().length;
+        
+        // Handle array items starting with -
+        if (trimmed.startsWith("- ")) {
+          if (currentKey === "items") {
+            if (!currentArray) {
+              currentArray = [];
+              result[currentKey] = currentArray;
+            }
+            
+            // Parse item object
+            const item = {};
+            currentArray.push(item);
+            currentObject = item;
+            
+            // Handle inline properties on same line as -
+            const restOfLine = trimmed.substring(2).trim();
+            if (restOfLine) {
+              const colonIndex = restOfLine.indexOf(":");
+              if (colonIndex > -1) {
+                const key = restOfLine.substring(0, colonIndex).trim();
+                const value = restOfLine.substring(colonIndex + 1).trim();
+                item[key] = value;
+              }
+            }
+          } else if (currentKey === "tags") {
+            if (!currentArray) {
+              currentArray = [];
+              result[currentKey] = currentArray;
+            }
+            const value = trimmed.substring(2).trim();
+            currentArray.push(value);
+          }
+        }
+        // Handle key-value pairs
+        else if (trimmed.includes(":")) {
+          const colonIndex = trimmed.indexOf(":");
+          const key = trimmed.substring(0, colonIndex).trim();
+          let value = trimmed.substring(colonIndex + 1).trim();
+          
+          if (leadingSpaces === 0) {
+            // Top-level property
+            currentKey = key;
+            currentArray = null;
+            currentObject = null;
+            
+            if (value) {
+              // Handle array format [item1, item2, item3]
+              if (value.startsWith("[") && value.endsWith("]")) {
+                const arrayContent = value.slice(1, -1);
+                if (arrayContent.trim()) {
+                  result[key] = arrayContent.split(",").map(item => item.trim());
+                } else {
+                  result[key] = [];
+                }
+                currentKey = null; // Reset since we handled the array
+              } else {
+                result[key] = value;
+              }
+            } else if (key === "items" || key === "tags") {
+              // Will be populated by array items
+              result[key] = [];
+              currentArray = result[key];
+            } else if (key === "display") {
+              result[key] = {};
+              currentObject = result[key];
+            }
+          } else if (currentObject && leadingSpaces > 0) {
+            // Property of current object (e.g., display properties)
+            currentObject[key] = value === "true" ? true : value === "false" ? false : value;
+          } else if (currentArray && currentObject && leadingSpaces > leadingSpaces) {
+            // Property of array item object
+            currentObject[key] = value;
+          }
+        }
+      }
+      
+      return result;
+    },
+    filePath,
+    null
+  );
 }
 
 function extractTitle(filePath) {
@@ -409,6 +529,110 @@ function generateChatModesSection(chatmodesDir) {
   return `${TEMPLATES.chatmodesSection}\n${TEMPLATES.chatmodesUsage}\n\n${chatmodesContent}`;
 }
 
+/**
+ * Generate the collections section with a table of all collections
+ */
+function generateCollectionsSection(collectionsDir) {
+  // Check if collections directory exists
+  if (!fs.existsSync(collectionsDir)) {
+    console.log("Collections directory does not exist");
+    return "";
+  }
+
+  // Get all collection files
+  const collectionFiles = fs
+    .readdirSync(collectionsDir)
+    .filter((file) => file.endsWith(".collection.yml"))
+    .sort();
+
+  console.log(`Found ${collectionFiles.length} collection files`);
+
+  // If no collections, return empty string
+  if (collectionFiles.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let collectionsContent =
+    "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
+
+  // Generate table rows for each collection file
+  for (const file of collectionFiles) {
+    const filePath = path.join(collectionsDir, file);
+    const collection = parseCollectionYaml(filePath);
+    
+    if (!collection) {
+      console.warn(`Failed to parse collection: ${file}`);
+      continue;
+    }
+
+    const collectionId = collection.id || path.basename(file, ".collection.yml");
+    const name = collection.name || collectionId;
+    const description = collection.description || "No description";
+    const itemCount = collection.items ? collection.items.length : 0;
+    const tags = collection.tags ? collection.tags.join(", ") : "";
+    
+    const link = `collections/${collectionId}.md`;
+
+    collectionsContent += `| [${name}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
+  }
+
+  return `${TEMPLATES.collectionsSection}\n${TEMPLATES.collectionsUsage}\n\n${collectionsContent}`;
+}
+
+/**
+ * Generate individual collection README file
+ */
+function generateCollectionReadme(collection, collectionId) {
+  if (!collection || !collection.items) {
+    return `# ${collectionId}\n\nCollection not found or invalid.`;
+  }
+
+  const name = collection.name || collectionId;
+  const description = collection.description || "No description provided.";
+  const tags = collection.tags ? collection.tags.join(", ") : "None";
+  
+  let content = `# ${name}\n\n${description}\n\n`;
+  
+  if (collection.tags && collection.tags.length > 0) {
+    content += `**Tags:** ${tags}\n\n`;
+  }
+  
+  content += `## Items in this Collection\n\n`;
+  content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
+
+  // Sort items based on display.ordering setting
+  const items = [...collection.items];
+  if (collection.display?.ordering === "alpha") {
+    items.sort((a, b) => {
+      const titleA = extractTitle(path.join(__dirname, a.path));
+      const titleB = extractTitle(path.join(__dirname, b.path));
+      return titleA.localeCompare(titleB);
+    });
+  }
+
+  for (const item of items) {
+    const filePath = path.join(__dirname, item.path);
+    const title = extractTitle(filePath);
+    const description = extractDescription(filePath) || "No description";
+    const typeDisplay = item.kind === "chat-mode" ? "Chat Mode" : 
+                       item.kind === "instruction" ? "Instruction" : "Prompt";
+    const link = `../${item.path}`;
+
+    // Create install badges for each item
+    const badges = makeBadges(item.path, item.kind === "instruction" ? "instructions" : 
+                             item.kind === "chat-mode" ? "mode" : "prompt");
+
+    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${description} |\n`;
+  }
+
+  if (collection.display?.show_badge) {
+    content += `\n---\n*This collection includes ${items.length} curated items for ${name.toLowerCase()}.*`;
+  }
+
+  return content;
+}
+
 // Utility: write file only if content changed
 function writeFileIfChanged(filePath, content) {
   const exists = fs.existsSync(filePath);
@@ -441,11 +665,13 @@ try {
   const instructionsDir = path.join(__dirname, "instructions");
   const promptsDir = path.join(__dirname, "prompts");
   const chatmodesDir = path.join(__dirname, "chatmodes");
+  const collectionsDir = path.join(__dirname, "collections");
 
   // Compose headers for standalone files by converting section headers to H1
   const instructionsHeader = TEMPLATES.instructionsSection.replace(/^##\s/m, "# ");
   const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
   const chatmodesHeader = TEMPLATES.chatmodesSection.replace(/^##\s/m, "# ");
+  const collectionsHeader = TEMPLATES.collectionsSection.replace(/^##\s/m, "# ");
 
   const instructionsReadme = buildCategoryReadme(
     generateInstructionsSection,
@@ -465,11 +691,41 @@ try {
     chatmodesHeader,
     TEMPLATES.chatmodesUsage
   );
+  
+  // Generate collections README
+  const collectionsReadme = buildCategoryReadme(
+    generateCollectionsSection,
+    collectionsDir,
+    collectionsHeader,
+    TEMPLATES.collectionsUsage
+  );
 
-  // Write outputs
+  // Write category outputs
   writeFileIfChanged(path.join(__dirname, "README.instructions.md"), instructionsReadme);
   writeFileIfChanged(path.join(__dirname, "README.prompts.md"), promptsReadme);
   writeFileIfChanged(path.join(__dirname, "README.chatmodes.md"), chatmodesReadme);
+  writeFileIfChanged(path.join(__dirname, "README.collections.md"), collectionsReadme);
+
+  // Generate individual collection README files
+  if (fs.existsSync(collectionsDir)) {
+    console.log("Generating individual collection README files...");
+    
+    const collectionFiles = fs
+      .readdirSync(collectionsDir)
+      .filter((file) => file.endsWith(".collection.yml"));
+
+    for (const file of collectionFiles) {
+      const filePath = path.join(collectionsDir, file);
+      const collection = parseCollectionYaml(filePath);
+      
+      if (collection) {
+        const collectionId = collection.id || path.basename(file, ".collection.yml");
+        const readmeContent = generateCollectionReadme(collection, collectionId);
+        const readmeFile = path.join(collectionsDir, `${collectionId}.md`);
+        writeFileIfChanged(readmeFile, readmeContent);
+      }
+    }
+  }
 } catch (error) {
   console.error(`Error generating category README files: ${error.message}`);
   process.exit(1);
