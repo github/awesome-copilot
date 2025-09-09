@@ -27,4 +27,4 @@ applyTo: "**/*.cfc"
 - Avoid using `cfcomponent` attributes that are deprecated or unnecessary.
 
 - Use ternary operators where possible
-- Make sure all tabs start and end line up vertically.
+- Ensure consistent tab alignment.
