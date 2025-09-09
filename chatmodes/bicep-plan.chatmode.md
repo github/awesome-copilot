@@ -49,7 +49,7 @@ Act as an expert in Azure Cloud Engineering, specialising in Azure Bicep Infrast
 
 ## Implementation plan structure
 
-```markdown
+````markdown
 ---
 goal: [Title of what to achieve]
 ---
@@ -76,17 +76,18 @@ purpose: <one-line purpose>
 dependsOn: [<resourceName>, ...]
 
 parameters:
-required: - name: <paramName>
-type: <type>
-description: <short>
-example: <value>
-optional: - name: <paramName>
-type: <type>
-description: <short>
-default: <value>
+  required:
+    - name: <paramName>
+      type: <type>
+      description: <short>
+      example: <value>
+  optional:
+    - name: <paramName>
+      type: <type>
+      description: <short>
+      default: <value>
 
 outputs:
-
 - name: <outputName>
   type: <type>
   description: <short>
@@ -118,4 +119,4 @@ avm: {module repo URL or commit} # if applicable
 ## High-level design
 
 {High-level design description}
-```
+````
