@@ -25,4 +25,4 @@ applyTo: "**/*.cfm"
 - Prefer `cfinclude` for shared templates, but avoid circular includes.
 
 - Use ternary operators where possible
-- Make sure all tabs start and end line up vertically.
+- Ensure consistent tab alignment.
