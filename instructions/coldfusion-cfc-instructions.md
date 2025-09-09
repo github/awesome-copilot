@@ -1,5 +1,5 @@
 ---
-description: "ColdFusion Coding Standards for CFC component and application patterns"
+description: 'ColdFusion Coding Standards for CFC component and application patterns'
 applyTo: "**/*.cfc"
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: "ColdFusion cfm files and application patterns"
+description: 'ColdFusion cfm files and application patterns'
 applyTo: "**/*.cfm"
 ---
 
