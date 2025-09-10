@@ -11,6 +11,31 @@
         "isDefault": true
       },
       "detail": "Generates the README.md file using update-readme.js script."
+    },
+    {
+      "label": "validate-collections",
+      "type": "shell",
+      "command": "node validate-collections.js",
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Validates all collection manifest files."
+    },
+    {
+      "label": "create-collection",
+      "type": "shell",
+      "command": "${workspaceFolder}/create-collection.js",
+      "args": ["${input:collectionId}"],
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Creates a new collection manifest template."
+    }
+  ],
+  "inputs": [
+    {
+      "id": "collectionId",
+      "description": "Collection ID (lowercase, hyphen-separated)",
+      "default": "my-collection",
+      "type": "promptString"
     }
   ]
 }

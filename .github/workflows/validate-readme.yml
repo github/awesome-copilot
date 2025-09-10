@@ -7,6 +7,7 @@ on:
       - "instructions/**"
       - "prompts/**"
       - "chatmodes/**"
+      - "collections/**"
       - "*.js"
 
 jobs:
@@ -25,6 +26,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
+
+      - name: Validate collections
+        run: node validate-collections.js
 
       - name: Update README.md
         run: node update-readme.js

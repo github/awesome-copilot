@@ -14,6 +14,7 @@ This repository provides a comprehensive toolkit for enhancing GitHub Copilot wi
 - **[![Awesome Prompts](https://img.shields.io/badge/Awesome-Prompts-blue?logo=githubcopilot)](README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
 - **[![Awesome Instructions](https://img.shields.io/badge/Awesome-Instructions-blue?logo=githubcopilot)](README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
 - **[![Awesome Chat Modes](https://img.shields.io/badge/Awesome-Chat_Modes-blue?logo=githubcopilot)](README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
+- **[![Awesome Collections](https://img.shields.io/badge/Awesome-Collections-blue?logo=githubcopilot)](README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
 
 ## MCP Server
 
@@ -76,12 +77,13 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 ├── prompts/          # Task-specific prompts (.prompt.md)
 ├── instructions/     # Coding standards and best practices (.instructions.md)
 ├── chatmodes/        # AI personas and specialized modes (.chatmode.md)
+├── collections/      # Curated collections of related items (.collection.yml)
 └── scripts/          # Utility scripts for maintenance
 ```
 
 ## 🌟 Getting Started
 
-1. **Browse the Collections**: Check out our comprehensive lists of [prompts](README.prompts.md), [instructions](README.instructions.md), and [chat modes](README.chatmodes.md).
+1. **Browse the Collections**: Check out our comprehensive lists of [collections](README.collections.md), [prompts](README.prompts.md), [instructions](README.instructions.md), and [chat modes](README.chatmodes.md).
 2. **Add to your editor**: Click the "Install" button to install to VS Code, or copy the file contents for other editors.
 3. **Start Using**: Copy prompts to use with `/` commands, let instructions enhance your coding experience, or activate chat modes for specialized assistance.
 
