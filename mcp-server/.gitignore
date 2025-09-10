@@ -1,0 +1,10 @@
+src/awesome-copilot/
+
+!.vscode/mcp.json
+.azure
+.vs
+bin
+obj
+*.user
+*.suo
+appsettings.*.json

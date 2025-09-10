@@ -1,0 +1,63 @@
+name: CI - Build and push Docker images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/awesome-copilot-mcp-server
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        working-directory: ./mcp-server
+        run: dotnet restore src/AwesomeCopilot.McpServer/AwesomeCopilot.McpServer.csproj
+
+      - name: Run unit tests (if any)
+        working-directory: ./mcp-server
+        run: |
+          if [ -f "src/AwesomeCopilot.McpServer/Tests.csproj" ]; then
+            dotnet test --no-build --verbosity normal
+          else
+            echo "No tests found, skipping"
+          fi
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./mcp-server
+          file: ./mcp-server/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          build-args: |
+            RUNTIME=linux-x64
+
+      - name: Image cleanup
+        run: docker image prune -f || true

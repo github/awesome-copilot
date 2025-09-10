@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/AwesomeCopilot.AppHost/AwesomeCopilot.AppHost.csproj" />
+    <Project Path="src/AwesomeCopilot.McpServer/AwesomeCopilot.McpServer.csproj" />
+    <Project Path="src/AwesomeCopilot.ServiceDefaults/AwesomeCopilot.ServiceDefaults.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Frontmatter Schema",
+  "description": "Schema for validating frontmatter data in the awesome-copilot repository",
+  "type": "object",
+  "properties": {
+    "chatmodes": {
+      "type": "array",
+      "description": "Array of chat mode configurations",
+      "items": {
+        "$ref": "#/definitions/chatmode"
+      }
+    },
+    "instructions": {
+      "type": "array",
+      "description": "Array of instruction file configurations",
+      "items": {
+        "$ref": "#/definitions/instruction"
+      }
+    },
+    "prompts": {
+      "type": "array",
+      "description": "Array of prompt file configurations",
+      "items": {
+        "$ref": "#/definitions/prompt"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "chatmode": {
+      "type": "object",
+      "description": "Configuration for a chat mode",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "description": "Name of the chat mode file",
+          "pattern": "^[a-zA-Z0-9._-]+\\.chatmode\\.md$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Display title for the chat mode",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the chat mode functionality",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model to use for this chat mode"
+        },
+        "tools": {
+          "type": "array",
+          "description": "Array of available tools for this chat mode",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["filename", "description"],
+      "additionalProperties": false
+    },
+    "instruction": {
+      "type": "object",
+      "description": "Configuration for an instruction file",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "description": "Name of the instruction file",
+          "pattern": "^[a-zA-Z0-9._-]+\\.instructions\\.md$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the instruction file purpose",
+          "minLength": 1
+        },
+        "applyTo": {
+          "type": "array",
+          "description": "File patterns that this instruction applies to",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": ["filename", "description"],
+      "additionalProperties": false
+    },
+    "prompt": {
+      "type": "object",
+      "description": "Configuration for a prompt file",
+      "properties": {
+        "filename": {
+          "type": "string",
+          "description": "Name of the prompt file",
+          "pattern": "^[a-zA-Z0-9._-]+\\.prompt\\.md$"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the prompt functionality",
+          "minLength": 1
+        },
+        "mode": {
+          "type": "string",
+          "description": "Execution mode for the prompt"
+        },
+        "tools": {
+          "type": "array",
+          "description": "Array of available tools for this prompt",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["filename", "description"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.0-preview.1.25459.5" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>801a20cd-64b4-4a88-89e2-948b802e2f50</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.0-preview.1.25459.5" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.McpInspector" Version="9.8.0-beta.376" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AwesomeCopilot.McpServer\AwesomeCopilot.McpServer.csproj" />
+  </ItemGroup>
+
+</Project>
