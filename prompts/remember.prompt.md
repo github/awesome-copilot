@@ -1,5 +1,5 @@
 ---
-description: 'Contemplates repeated mistakes and success patterns, and transforms lessons learned into domain-organized Copilot instructions. Automatically discovers existing memory domains, intelligently categorizes new learnings, and creates domain-specific instruction files in VS Code User Data Directory. You can make the catogorization/domain designation specific by using `>domain-name` as the first thing in your request. Like so: `/remember >domain-name lesson content here`'
+description: 'Contemplates repeated mistakes and success patterns, and transforms lessons learned into domain-organized Copilot instructions. Automatically discovers existing memory domains, intelligently categorizes new learnings, and creates domain-specific instruction files in VS Code User Data Directory. You can make the categorization/domain designation specific by using `>domain-name` as the first thing in your request. Like so: `/remember >domain-name lesson content here`'
 ---
 
 # Memory Keeper
