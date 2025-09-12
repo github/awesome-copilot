@@ -1,7 +1,6 @@
 ---
 mode: 'agent'
-tools: ['changes', 'codebase', 'editFiles', 'findTestFiles', 'problems', 'runCommands', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'testFailure', 'usages']
-description: 'Create Spring Boot Java project skeleton'
+description: 'Create Spring Boot Java Project Skeleton'
 ---
 
 # Create Spring Boot Java project prompt
@@ -30,7 +29,7 @@ java -version
 
 ```shell
 curl https://start.spring.io/starter.zip \
-  -d artifactId=demo \
+  -d artifactId=${input:projectName:demo-java} \
   -d bootVersion=3.4.5 \
   -d dependencies=lombok,configuration-processor,web,data-jpa,postgresql,data-redis,data-mongodb,validation,cache,testcontainers \
   -d javaVersion=21 \
@@ -45,7 +44,7 @@ curl https://start.spring.io/starter.zip \
 - Run following command in terminal to unzip the downloaded file
 
 ```shell
-unzip starter.zip -d .
+unzip starter.zip -d ./${input:projectName:demo-java}
 ```
 
 ## Remove the downloaded zip file
@@ -54,6 +53,14 @@ unzip starter.zip -d .
 
 ```shell
 rm -f starter.zip
+```
+
+## Change directory to the project root
+
+- Run following command in terminal to change directory to the project root
+
+```shell
+cd ${input:projectName:demo-java}
 ```
 
 ## Add additional dependencies
