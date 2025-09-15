@@ -99,7 +99,7 @@ function parseCollectionYaml(filePath) {
           } else if (currentObject && leadingSpaces > 0) {
             // Property of current object (e.g., display properties)
             currentObject[key] = value === "true" ? true : value === "false" ? false : value;
-          } else if (currentArray && currentObject && leadingSpaces > leadingSpaces) {
+          } else if (currentArray && currentObject && leadingSpaces > 2) {
             // Property of array item object
             currentObject[key] = value;
           }
