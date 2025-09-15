@@ -83,7 +83,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 🌟 Getting Started
 
-1. **Browse the Collections**: Check out our comprehensive lists of [collections](README.collections.md), [prompts](README.prompts.md), [instructions](README.instructions.md), and [chat modes](README.chatmodes.md).
+1. **Browse the Collections**: Check out our comprehensive lists of [prompts](README.prompts.md), [instructions](README.instructions.md), [chat modes](README.chatmodes.md), and [collections](README.collections.md).
 2. **Add to your editor**: Click the "Install" button to install to VS Code, or copy the file contents for other editors.
 3. **Start Using**: Copy prompts to use with `/` commands, let instructions enhance your coding experience, or activate chat modes for specialized assistance.
 
