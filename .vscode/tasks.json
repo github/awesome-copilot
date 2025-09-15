@@ -4,7 +4,7 @@
     {
       "label": "generate-readme",
       "type": "shell",
-      "command": "node update-readme.js",
+      "command": "node ${workspaceFolder}/update-readme.js",
       "problemMatcher": [],
       "group": {
         "kind": "build",
@@ -15,7 +15,7 @@
     {
       "label": "validate-collections",
       "type": "shell",
-      "command": "node validate-collections.js",
+      "command": "node ${workspaceFolder}/validate-collections.js",
       "problemMatcher": [],
       "group": "build",
       "detail": "Validates all collection manifest files."
@@ -23,8 +23,11 @@
     {
       "label": "create-collection",
       "type": "shell",
-      "command": "${workspaceFolder}/create-collection.js",
-      "args": ["${input:collectionId}"],
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/create-collection.js",
+        "${input:collectionId}"
+      ],
       "problemMatcher": [],
       "group": "build",
       "detail": "Creates a new collection manifest template."
