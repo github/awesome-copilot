@@ -15,16 +15,50 @@ function prompt(question) {
   });
 }
 
+function parseArgs() {
+  const args = process.argv.slice(2);
+  const out = { id: undefined, tags: undefined };
+
+  // simple long/short option parsing
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === '--id' || a === '-i') {
+      out.id = args[i + 1];
+      i++;
+    } else if (a.startsWith('--id=')) {
+      out.id = a.split('=')[1];
+    } else if (a === '--tags' || a === '-t') {
+      out.tags = args[i + 1];
+      i++;
+    } else if (a.startsWith('--tags=')) {
+      out.tags = a.split('=')[1];
+    } else if (!a.startsWith('-') && !out.id) {
+      // first positional -> id
+      out.id = a;
+    } else if (!a.startsWith('-') && out.id && !out.tags) {
+      // second positional -> tags
+      out.tags = a;
+    }
+  }
+
+  // normalize tags to string (comma separated) or undefined
+  if (Array.isArray(out.tags)) {
+    out.tags = out.tags.join(',');
+  }
+
+  return out;
+}
+
 async function createCollectionTemplate() {
   try {
     console.log("🎯 Collection Creator");
     console.log("This tool will help you create a new collection manifest.\n");
 
+    // Parse CLI args and fall back to interactive prompts when missing
+    const parsed = parseArgs();
     // Get collection ID
-    let collectionId;
-    if (process.argv[2]) {
-      collectionId = process.argv[2];
-    } else {
+    let collectionId = parsed.id;
+    if (!collectionId) {
       collectionId = await prompt("Collection ID (lowercase, hyphens only): ");
     }
 
@@ -59,7 +93,7 @@ async function createCollectionTemplate() {
       .split("-")
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
-    
+
     let collectionName = await prompt(`Collection name (default: ${defaultName}): `);
     if (!collectionName.trim()) {
       collectionName = defaultName;
@@ -72,11 +106,15 @@ async function createCollectionTemplate() {
       description = defaultDescription;
     }
 
-    // Get tags
+    // Get tags (from CLI or prompt)
     let tags = [];
-    const tagInput = await prompt("Tags (comma-separated, or press Enter for defaults): ");
-    if (tagInput.trim()) {
-      tags = tagInput.split(",").map(tag => tag.trim()).filter(tag => tag);
+    let tagInput = parsed.tags;
+    if (!tagInput) {
+      tagInput = await prompt("Tags (comma-separated, or press Enter for defaults): ");
+    }
+
+    if (tagInput && tagInput.toString().trim()) {
+      tags = tagInput.toString().split(",").map(tag => tag.trim()).filter(tag => tag);
     } else {
       // Generate some default tags from the collection ID
       tags = collectionId.split("-").slice(0, 3);

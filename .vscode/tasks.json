@@ -26,7 +26,10 @@
       "command": "node",
       "args": [
         "${workspaceFolder}/create-collection.js",
-        "${input:collectionId}"
+        "--id",
+        "${input:collectionId}",
+        "--tags",
+        "${input:tags}"
       ],
       "problemMatcher": [],
       "group": "build",
@@ -38,6 +41,12 @@
       "id": "collectionId",
       "description": "Collection ID (lowercase, hyphen-separated)",
       "default": "my-collection",
+      "type": "promptString"
+    },
+    {
+      "id": "tags",
+      "description": "Comma separated list of tags",
+      "default": "tag1,tag2",
       "type": "promptString"
     }
   ]
