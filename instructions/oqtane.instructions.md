@@ -28,7 +28,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - Always use the latest version C#, currently C# 13 features like record types, pattern matching, and global usings.
 
 ## Oqtane specific Guidelines
-
+- See base classes and patterns in the [Main Oqtane repo](https://github.com/oqtane/oqtane.framework)
 - Follow client server patterns for module development.
 - The Client project has various modules in the modules folder.
 - Each action in the client module is a seperate razor file that inherits from ModuleBase with index.razor being the default action.
