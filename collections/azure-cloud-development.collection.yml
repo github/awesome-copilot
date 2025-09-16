@@ -1,0 +1,48 @@
+id: azure-cloud-development
+name: Azure & Cloud Development
+description: Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.
+tags: [azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops]
+items:
+  # Azure Expert Chat Modes
+  - path: chatmodes/azure-principal-architect.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/azure-saas-architect.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/azure-logic-apps-expert.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/azure-verified-modules-bicep.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/azure-verified-modules-terraform.chatmode.md
+    kind: chat-mode
+
+  # Infrastructure as Code Instructions
+  - path: instructions/bicep-code-best-practices.instructions.md
+    kind: instruction
+  - path: instructions/terraform.instructions.md
+    kind: instruction
+  - path: instructions/azure-verified-modules-terraform.instructions.md
+    kind: instruction
+
+  # Azure Development Instructions
+  - path: instructions/azure-functions-typescript.instructions.md
+    kind: instruction
+  - path: instructions/azure-logic-apps-power-automate.instructions.md
+    kind: instruction
+  - path: instructions/azure-devops-pipelines.instructions.md
+    kind: instruction
+
+  # Infrastructure & Deployment Instructions
+  - path: instructions/containerization-docker-best-practices.instructions.md
+    kind: instruction
+  - path: instructions/kubernetes-deployment-best-practices.instructions.md
+    kind: instruction
+
+  # Azure Prompts
+  - path: prompts/azure-resource-health-diagnose.prompt.md
+    kind: prompt
+  - path: prompts/az-cost-optimize.prompt.md
+    kind: prompt
+
+display:
+  ordering: alpha
+  show_badge: true

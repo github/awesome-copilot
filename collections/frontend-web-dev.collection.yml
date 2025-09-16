@@ -1,0 +1,36 @@
+id: frontend-web-dev
+name: Frontend Web Development
+description: Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.
+tags: [frontend, web, react, typescript, javascript, css, html, angular, vue]
+items:
+  # Expert Chat Modes
+  - path: chatmodes/expert-react-frontend-engineer.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/electron-angular-native.chatmode.md
+    kind: chat-mode
+
+  # Development Instructions
+  - path: instructions/reactjs.instructions.md
+    kind: instruction
+  - path: instructions/angular.instructions.md
+    kind: instruction
+  - path: instructions/vuejs3.instructions.md
+    kind: instruction
+  - path: instructions/nextjs.instructions.md
+    kind: instruction
+  - path: instructions/nextjs-tailwind.instructions.md
+    kind: instruction
+  - path: instructions/tanstack-start-shadcn-tailwind.instructions.md
+    kind: instruction
+  - path: instructions/nodejs-javascript-vitest.instructions.md
+    kind: instruction
+
+  # Prompts
+  - path: prompts/playwright-explore-website.prompt.md
+    kind: prompt
+  - path: prompts/playwright-generate-test.prompt.md
+    kind: prompt
+
+display:
+  ordering: alpha
+  show_badge: true
