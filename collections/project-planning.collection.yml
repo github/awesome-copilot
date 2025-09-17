@@ -1,7 +1,7 @@
 id: project-planning
 name: Project Planning & Management
 description: Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams.
-tags: [planning, project-management, epic, feature, implementation, task, architecture]
+tags: [planning, project-management, epic, feature, implementation, task, architecture, technical-spike]
 items:
   # Planning Chat Modes
   - path: chatmodes/task-planner.chatmode.md
@@ -15,6 +15,8 @@ items:
   - path: chatmodes/prd.chatmode.md
     kind: chat-mode
   - path: chatmodes/implementation-plan.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/research-technical-spike.chatmode.md
     kind: chat-mode
 
   # Planning Instructions
@@ -37,6 +39,8 @@ items:
   - path: prompts/update-implementation-plan.prompt.md
     kind: prompt
   - path: prompts/create-github-issues-feature-from-implementation-plan.prompt.md
+    kind: prompt
+  - path: prompts/create-technical-spike.prompt.md
     kind: prompt
 
 display:
