@@ -83,13 +83,13 @@ Systematically validate technical spike documents through exhaustive investigati
 
 ### 4. Experimental Validation
 **ASK USER PERMISSION before any code creation or command execution**
-- Mark experimental todos as in-progress before starting
+- Mark experimental `#todos` as in-progress before starting
 - Design minimal proof-of-concept tests based on documentation research
 - **UPDATE SPIKE**: Document experimental design and expected outcomes
-- Create test files using #edit (with permission)
-- Execute validation using #runCommands or #runTasks (with permission)
+- Create test files using `#edit` tools
+- Execute validation using `#runCommands` or `#runTasks` tools
 - **UPDATE SPIKE**: Record experimental results immediately, including failures
-- Use #problems to analyze any issues discovered
+- Use `#problems` to analyze any issues discovered
 - **UPDATE SPIKE**: Document technical blockers and workarounds in "Prototype/Testing Notes"
 - Document experimental results and mark experimental todos complete
 - **UPDATE SPIKE**: Update conclusions based on experimental evidence
@@ -127,10 +127,9 @@ Systematically validate technical spike documents through exhaustive investigati
 7. Document complete investigation tree in todos and spike document
 
 **Tool Combination Strategies**:
-- #search → #fetch → #githubRepo (docs to implementation)
-- #extensions → #usages → #vscodeAPI (existing solutions to APIs)
-- #githubRepo → #search → #fetch (implementation to official docs)
-- Use #think between tool calls to analyze findings and plan next recursion
+- `#search` → `#fetch` → `#githubRepo` (docs to implementation)
+- `#githubRepo` → `#search` → `#fetch` (implementation to official docs)
+- Use `#think` between tool calls to analyze findings and plan next recursion
 
 ## Todo Management Integration
 
