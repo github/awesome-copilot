@@ -97,7 +97,7 @@ function validateCollectionItems(items) {
     if (!["prompt", "instruction", "chat-mode"].includes(item.kind)) {
       return `Item ${i + 1} kind must be one of: prompt, instruction, chat-mode`;
     }
-    
+
     // Validate file path exists
     const filePath = path.join(__dirname, item.path);
     if (!fs.existsSync(filePath)) {
@@ -123,11 +123,39 @@ function validateCollectionDisplay(display) {
     return "Display must be an object";
   }
   if (display) {
-    if (display.ordering && !["manual", "alpha"].includes(display.ordering)) {
-      return "Display ordering must be 'manual' or 'alpha'";
+    // Normalize ordering and show_badge in case the YAML parser left inline comments
+    const normalize = (val) => {
+      if (typeof val !== 'string') return val;
+      // Strip any inline comment starting with '#'
+      const hashIndex = val.indexOf('#');
+      if (hashIndex !== -1) {
+        val = val.substring(0, hashIndex).trim();
+      }
+      // Also strip surrounding quotes if present
+      if ((val.startsWith("\"") && val.endsWith("\"")) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.substring(1, val.length - 1);
+      }
+      return val.trim();
+    };
+
+    if (display.ordering) {
+      const normalizedOrdering = normalize(display.ordering);
+      if (!["manual", "alpha"].includes(normalizedOrdering)) {
+        return "Display ordering must be 'manual' or 'alpha'";
+      }
     }
-    if (display.show_badge && typeof display.show_badge !== "boolean") {
-      return "Display show_badge must be boolean";
+
+    if (display.show_badge !== undefined) {
+      const raw = display.show_badge;
+      const normalizedBadge = normalize(raw);
+      // Accept boolean or string boolean values
+      if (typeof normalizedBadge === 'string') {
+        if (!['true', 'false'].includes(normalizedBadge.toLowerCase())) {
+          return "Display show_badge must be boolean";
+        }
+      } else if (typeof normalizedBadge !== 'boolean') {
+        return "Display show_badge must be boolean";
+      }
     }
   }
   return null;
@@ -160,7 +188,7 @@ function validateCollectionManifest(collection, filePath) {
 // Main validation function
 function validateCollections() {
   const collectionsDir = path.join(__dirname, "collections");
-  
+
   if (!fs.existsSync(collectionsDir)) {
     console.log("No collections directory found - validation skipped");
     return true;
@@ -183,7 +211,7 @@ function validateCollections() {
   for (const file of collectionFiles) {
     const filePath = path.join(collectionsDir, file);
     console.log(`\nValidating ${file}...`);
-    
+
     const collection = parseCollectionYaml(filePath);
     if (!collection) {
       console.error(`❌ Failed to parse ${file}`);
@@ -193,7 +221,7 @@ function validateCollections() {
 
     // Validate the collection structure
     const errors = validateCollectionManifest(collection, filePath);
-    
+
     if (errors.length > 0) {
       console.error(`❌ Validation errors in ${file}:`);
       errors.forEach(error => console.error(`   - ${error}`));
