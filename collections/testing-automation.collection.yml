@@ -1,0 +1,36 @@
+id: testing-automation
+name: Testing & Test Automation
+description: Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.
+tags: [testing, tdd, automation, unit-tests, integration, playwright, jest, nunit]
+items:
+  # TDD Chat Modes
+  - path: chatmodes/tdd-red.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/tdd-green.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/tdd-refactor.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/playwright-tester.chatmode.md
+    kind: chat-mode
+
+  # Testing Instructions
+  - path: instructions/playwright-typescript.instructions.md
+    kind: instruction
+  - path: instructions/playwright-python.instructions.md
+    kind: instruction
+
+  # Testing Prompts
+  - path: prompts/playwright-explore-website.prompt.md
+    kind: prompt
+  - path: prompts/playwright-generate-test.prompt.md
+    kind: prompt
+  - path: prompts/csharp-nunit.prompt.md
+    kind: prompt
+  - path: prompts/java-junit.prompt.md
+    kind: prompt
+  - path: prompts/ai-prompt-engineering-safety-review.prompt.md
+    kind: prompt
+
+display:
+  ordering: alpha
+  show_badge: true

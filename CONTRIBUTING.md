@@ -100,6 +100,48 @@ You are an expert [domain/role] with deep knowledge in [specific areas].
 - [Best practices to follow]
 ```
 
+### Adding Collections
+
+Collections group related prompts, instructions, and chat modes around specific themes or workflows, making it easier for users to discover and adopt comprehensive toolkits.
+
+1. **Create your collection manifest**: Add a new `.collection.yml` file in the `collections/` directory
+2. **Follow the naming convention**: Use descriptive, lowercase filenames with hyphens (e.g., `python-web-development.collection.yml`)
+3. **Reference existing items**: Collections should only reference files that already exist in the repository
+4. **Test your collection**: Verify all referenced files exist and work well together
+
+#### Creating a collection:
+```bash
+# Using the creation script
+node create-collection.js my-collection-id
+
+# Or using VS Code Task: Ctrl+Shift+P > "Tasks: Run Task" > "create-collection"
+```
+
+#### Example collection format:
+```yaml
+id: my-collection-id
+name: My Collection Name
+description: A brief description of what this collection provides and who should use it.
+tags: [tag1, tag2, tag3] # Optional discovery tags
+items:
+  - path: prompts/my-prompt.prompt.md
+    kind: prompt
+  - path: instructions/my-instructions.instructions.md
+    kind: instruction
+  - path: chatmodes/my-chatmode.chatmode.md
+    kind: chat-mode
+display:
+  ordering: alpha # or "manual" to preserve order above
+  show_badge: false # set to true to show collection badge
+```
+
+#### Collection Guidelines:
+- **Focus on workflows**: Group items that work together for specific use cases
+- **Reasonable size**: Typically 3-10 items work well
+- **Test combinations**: Ensure the items complement each other effectively
+- **Clear purpose**: The collection should solve a specific problem or workflow
+- **Validate before submitting**: Run `node validate-collections.js` to ensure your manifest is valid
+
 ## Submitting Your Contribution
 
 1. **Fork this repository**

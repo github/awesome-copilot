@@ -1,7 +1,6 @@
 ---
 mode: 'agent'
-tools: ['changes', 'codebase', 'editFiles', 'findTestFiles', 'problems', 'runCommands', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'testFailure', 'usages']
-description: 'Create Spring Boot Kotlin project skeleton'
+description: 'Create Spring Boot Kotlin Project Skeleton'
 ---
 
 # Create Spring Boot Kotlin project prompt
@@ -30,7 +29,7 @@ java -version
 
 ```shell
 curl https://start.spring.io/starter.zip \
-  -d artifactId=demo \
+  -d artifactId=${input:projectName:demo-kotlin} \
   -d bootVersion=3.4.5 \
   -d dependencies=configuration-processor,webflux,data-r2dbc,postgresql,data-redis-reactive,data-mongodb-reactive,validation,cache,testcontainers \
   -d javaVersion=21 \
@@ -46,7 +45,7 @@ curl https://start.spring.io/starter.zip \
 - Run following command in terminal to unzip the downloaded file
 
 ```shell
-unzip starter.zip -d .
+unzip starter.zip -d ./${input:projectName:demo-kotlin}
 ```
 
 ## Remove the downloaded zip file
@@ -55,6 +54,14 @@ unzip starter.zip -d .
 
 ```shell
 rm -f starter.zip
+```
+
+## Unzip the downloaded file
+
+- Run following command in terminal to unzip the downloaded file
+
+```shell
+unzip starter.zip -d ./${input:projectName:demo-kotlin}
 ```
 
 ## Add additional dependencies

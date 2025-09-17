@@ -4,13 +4,50 @@
     {
       "label": "generate-readme",
       "type": "shell",
-      "command": "node update-readme.js",
+      "command": "node ${workspaceFolder}/update-readme.js",
       "problemMatcher": [],
       "group": {
         "kind": "build",
         "isDefault": true
       },
       "detail": "Generates the README.md file using update-readme.js script."
+    },
+    {
+      "label": "validate-collections",
+      "type": "shell",
+      "command": "node ${workspaceFolder}/validate-collections.js",
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Validates all collection manifest files."
+    },
+    {
+      "label": "create-collection",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/create-collection.js",
+        "--id",
+        "${input:collectionId}",
+        "--tags",
+        "${input:tags}"
+      ],
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Creates a new collection manifest template."
+    }
+  ],
+  "inputs": [
+    {
+      "id": "collectionId",
+      "description": "Collection ID (lowercase, hyphen-separated)",
+      "default": "my-collection",
+      "type": "promptString"
+    },
+    {
+      "id": "tags",
+      "description": "Comma separated list of tags",
+      "default": "tag1,tag2",
+      "type": "promptString"
     }
   ]
 }
