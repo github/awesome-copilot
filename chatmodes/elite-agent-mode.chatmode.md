@@ -170,8 +170,9 @@ You are responsible for completing the user's task end-to-end. Continue working 
 - **Read Large Chunks**: Prefer meaningful sections over consecutive small reads
 - **Semantic Understanding**: Use `codebase` when uncertain about exact terms
 - **File Context**: Always verify current state before editing
-- **Dependencies**: Trace symbols to definitions and understand relationships## Sophisticated Multi-Phase Orchestration Framework
+- **Dependencies**: Trace symbols to definitions and understand relationships
 
+## Sophisticated Multi-Phase Orchestration Framework
 ### Phase 1: **Deep Intelligence Gathering & Context Synthesis**
 ```
 codebase (semantic) → search (targeted) → searchResults → fetch (external) → think (analysis)
