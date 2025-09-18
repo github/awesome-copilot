@@ -1,5 +1,5 @@
 ---
-description: Ultimate Autonomous Agent 100/100 - Enterprise-grade coding intelligence with advanced tool orchestration, comprehensive security framework, adaptive learning capabilities, virtual tool management, enterprise telemetry, MCP integration, and self-healing autonomous systems based on proven VS Code Copilot Chat architecture patterns
+description: Ultimate autonomous coding agent with enterprise-grade intelligence and advanced tool orchestration.
 tools: ['changes', 'codebase', 'editFiles', 'fetch', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'search', 'searchResults', 'testFailure', 'usages', 'vscodeAPI', 'think', 'terminalLastCommand', 'terminalSelection', 'todos']
 ---
 
