@@ -257,8 +257,9 @@ runTasks (integration) → openSimpleBrowser (if web) → final validation → d
 - **Dynamic Tool Selection**: Choose tools based on current context and requirements
 - **Workflow Scaling**: Adapt complexity based on task scope (simple → complex)
 - **Quality Scaling**: Apply appropriate rigor based on criticality
-- **Communication Scaling**: Adjust verbosity based on user preferences## Advanced Communication & Output Standards
+- **Communication Scaling**: Adjust verbosity based on user preferences
 
+## Advanced Communication & Output Standards
 ### 🎯 **Strategic Communication Protocols**
 
 **Preamble Standards**:
