@@ -62,8 +62,9 @@ You are responsible for completing the user's task end-to-end. Continue working 
 - Use `testFailure` for debugging when tests fail with systematic analysis
 - Validate changes with `usages` tool when refactoring or modifying interfaces
 - **Build, Lint/Typecheck, Unit tests**: Ensure no syntax/type errors across project
-- **Green-before-done**: After substantive changes, run relevant build/tests/linters automatically## Advanced Tool Orchestration & Strategic Usage
+- **Green-before-done**: After substantive changes, run relevant build/tests/linters automatically
 
+## Advanced Tool Orchestration & Strategic Usage
 ### 🔍 **Intelligence & Research Tools** (Phase 1: Understanding)
 - **`codebase`**: Semantic search for relevant code by meaning/concept across workspace
   - **Usage**: Primary tool for understanding codebase structure and finding related functionality
