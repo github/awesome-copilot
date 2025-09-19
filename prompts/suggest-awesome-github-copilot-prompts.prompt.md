@@ -1,15 +1,15 @@
 ---
 mode: 'agent'
 description: 'Suggest relevant GitHub Copilot prompt files from the awesome-copilot repository based on current repository context and chat history, avoiding duplicates with existing prompts in this repository.'
-tools: ['changes', 'codebase', 'editFiles', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'github']
+tools: ['edit', 'search', 'runCommands', 'runTasks', 'think', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'search']
 ---
 # Suggest Awesome GitHub Copilot Prompts
 
-Analyze current repository context and suggest relevant prompt files from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/tree/main/prompts) that are not already available in this repository.
+Analyze current repository context and suggest relevant prompt files from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/blob/main/README.prompts.md) that are not already available in this repository.
 
 ## Process
 
-1. **Fetch Available Prompts**: Extract prompt list and descriptions from [awesome-copilot README](https://github.com/github/awesome-copilot/blob/main/README.md)
+1. **Fetch Available Prompts**: Extract prompt list and descriptions from [awesome-copilot README.prompts.md](https://github.com/github/awesome-copilot/blob/main/README.prompts.md). Must use `#fetch` tool.
 2. **Scan Local Prompts**: Discover existing prompt files in `.github/prompts/` folder
 3. **Extract Descriptions**: Read front matter from local prompt files to get descriptions
 4. **Analyze Context**: Review chat history, repository files, and current project needs
@@ -18,7 +18,8 @@ Analyze current repository context and suggest relevant prompt files from the [G
 7. **Present Options**: Display relevant prompts with descriptions, rationale, and availability status
 8. **Validate**: Ensure suggested prompts would add value not already covered by existing prompts
 9. **Output**: Provide structured table with suggestions, descriptions, and links to both awesome-copilot prompts and similar local prompts
-10. **Next Steps**: If any suggestions are made, provide instructions that GitHub Copilot will be able to follow to add the suggested prompts to the repository by downloading the file into the prompts directory. Offer to do this automatically if the user confirms.
+   **AWAIT** user request to proceed with installation of specific instructions. DO NOT INSTALL UNLESS DIRECTED TO DO SO.
+10. **Download Assets**: For requested instructions, automatically download and install individual instructions to `.github/prompts/` folder. Do NOT adjust content of the files. Use `#todos` tool to track progress. Prioritize use of `#fetch` tool to download assets, but may use `curl` using `#runInTerminal` tool to ensure all content is retrieved.
 
 ## Context Analysis Criteria
 
