@@ -4,32 +4,39 @@ The Awesome Copilot repository supports a configuration file system that allows 
 
 ## Installation
 
-### Via NPM (Recommended)
+### Via Git Clone (Required)
 ```bash
-# Install globally
-npm install -g awesome-copilot
-
-# Or run without installing
-npx awesome-copilot init
-```
-
-### Via Git Clone
-```bash
+# Clone the repository
 git clone https://github.com/AstroSteveo/awesome-copilot
 cd awesome-copilot
+
+# Install dependencies
 npm install
+
+# Now you can use the CLI tool
+node awesome-copilot.js help
 ```
+
+**Note:** The `awesome-copilot` package is not yet published to npm, so you must clone the repository to use the CLI tool.
 
 ## Quick Start
 
 ### 1. Initialize Your Project
 
+Navigate to your project directory where you want to add awesome-copilot customizations, then run:
+
 ```bash
 # Initialize with default configuration
-awesome-copilot init
+node /path/to/awesome-copilot/awesome-copilot.js init
 
 # Or initialize with a specific name
-awesome-copilot init my-project.config.yml
+node /path/to/awesome-copilot/awesome-copilot.js init my-project.config.yml
+```
+
+**Tip:** You can create an alias or add the awesome-copilot directory to your PATH for easier access:
+```bash
+# Add to your ~/.bashrc or ~/.zshrc
+alias awesome-copilot="node /path/to/awesome-copilot/awesome-copilot.js"
 ```
 
 This creates:
@@ -69,10 +76,10 @@ collections:
 
 ```bash
 # Apply default configuration file
-awesome-copilot apply
+node /path/to/awesome-copilot/awesome-copilot.js apply
 
 # Or apply specific configuration file  
-awesome-copilot apply my-project.config.yml
+node /path/to/awesome-copilot/awesome-copilot.js apply my-project.config.yml
 ```
 
 This will copy the enabled files to your project's `.awesome-copilot` directory (or the directory specified in the config).
@@ -145,7 +152,7 @@ npm run config help
 
 ## VS Code Integration
 
-The `awesome-copilot init` command automatically configures VS Code to detect your customizations:
+The `node awesome-copilot.js init` command automatically configures VS Code to detect your customizations:
 
 - Creates `.vscode/settings.json` with proper file locations
 - Points to `.awesome-copilot/` directories instead of framework directories
@@ -207,16 +214,15 @@ chatmodes:
 If you were previously copying files manually or using an older version:
 
 1. Remove manually copied files from your `.github` directory
-2. Install awesome-copilot: `npm install -g awesome-copilot` 
-3. Run `awesome-copilot init` to create a clean setup
+2. Clone awesome-copilot repository: `git clone https://github.com/AstroSteveo/awesome-copilot`
+3. Run `node /path/to/awesome-copilot/awesome-copilot.js init` to create a clean setup
 4. Edit the config to enable the same items you were using manually
-5. Run `awesome-copilot apply` to get a clean, managed setup
+5. Run `node /path/to/awesome-copilot/awesome-copilot.js apply` to get a clean, managed setup
 
 The new approach uses `.awesome-copilot/` directory instead of `.github/` for better separation.
 
 ## Benefits
 
-- **Clean Installation**: Install via npm/npx, no need to clone the entire repository
 - **Centralized Management**: One file controls all your Copilot customizations
 - **VS Code Integration**: Automatic configuration, no manual setup required
 - **Clear Separation**: Framework files separated from your project files
