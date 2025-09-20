@@ -75,8 +75,16 @@ function createVSCodeSettings() {
     }
   }
   
-  // Merge awesome-copilot settings
-  Object.assign(settings, awesomeCopilotSettings);
+  // Deep merge awesome-copilot settings to preserve existing chat settings
+  for (const [key, value] of Object.entries(awesomeCopilotSettings)) {
+    if (settings[key] && typeof settings[key] === 'object' && typeof value === 'object') {
+      // If both the existing setting and new setting are objects, merge them
+      settings[key] = { ...settings[key], ...value };
+    } else {
+      // Otherwise, set the new value
+      settings[key] = value;
+    }
+  }
   
   // Write settings back
   fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
