@@ -1,0 +1,71 @@
+# Schema for awesome-copilot configuration file
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Awesome Copilot Configuration"
+description: "Configuration file to enable/disable prompts, instructions, chat modes, and collections"
+type: object
+
+properties:
+  version:
+    type: string
+    description: "Config file format version"
+    default: "1.0"
+    
+  project:
+    type: object
+    description: "Project-specific settings"
+    properties:
+      name:
+        type: string
+        description: "Project name"
+      description:
+        type: string
+        description: "Project description"
+      output_directory:
+        type: string
+        description: "Directory where files should be copied (default: .github)"
+        default: ".github"
+    
+  prompts:
+    type: object
+    description: "Enable/disable specific prompts"
+    additionalProperties:
+      type: boolean
+      
+  instructions:
+    type: object
+    description: "Enable/disable specific instructions"
+    additionalProperties:
+      type: boolean
+      
+  chatmodes:
+    type: object
+    description: "Enable/disable specific chat modes"
+    additionalProperties:
+      type: boolean
+      
+  collections:
+    type: object
+    description: "Enable/disable entire collections (will enable/disable all items in collection)"
+    additionalProperties:
+      type: boolean
+
+required: ["version"]
+
+examples:
+  - version: "1.0"
+    project:
+      name: "My Awesome Project"
+      description: "A project using awesome-copilot customizations"
+      output_directory: ".github"
+    prompts:
+      create-readme: true
+      generate-tests: false
+    instructions:
+      typescript-best-practices: true
+      testing-standards: false
+    chatmodes:
+      architect: true
+      dba: false
+    collections:
+      frontend-web-dev: true
+      csharp-dotnet-development: false

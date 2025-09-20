@@ -46,6 +46,37 @@ To make it easy to add these customizations to your editor, we have created a [M
 
 ## 🔧 How to Use
 
+There are two ways to use awesome-copilot customizations in your project:
+
+### 🎛️ Configuration File Approach (Recommended)
+
+Use our configuration system to manage all customizations in one place:
+
+1. **Clone the repository** to your local machine or include it as a git submodule
+2. **Generate a configuration file** with all available options:
+   ```bash
+   node awesome-copilot.js init
+   ```
+3. **Edit the configuration** to enable the items you want:
+   ```yaml
+   collections:
+     frontend-web-dev: true      # Enable entire collection
+   prompts:
+     create-readme: true         # Enable specific prompts
+   instructions:
+     typescript-best-practices: true
+   ```
+4. **Apply the configuration** to copy files to your project:
+   ```bash
+   node awesome-copilot.js apply
+   ```
+
+See [CONFIG.md](CONFIG.md) for detailed configuration documentation.
+
+### 📁 Manual File Approach
+
+Browse the collections and manually copy files you want to use:
+
 ### 🎯 Prompts
 Use the `/` command in GitHub Copilot Chat to access prompts:
 ```

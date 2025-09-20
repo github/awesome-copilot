@@ -4,3 +4,12 @@ Copilot-Processing.md
 
 # macOS system files
 .DS_Store
+
+# Configuration files (user-specific)
+awesome-copilot.config.yml
+*.config.yml
+test-config.yml
+test-apply-config.yml
+
+# Test output directories
+test-output/
