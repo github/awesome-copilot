@@ -5,11 +5,12 @@ const { applyConfig } = require("./apply-config");
 
 const commands = {
   init: {
-    description: "Generate a new configuration file",
+    description: "Initialize a new project with awesome-copilot configuration",
     usage: "awesome-copilot init [config-file]",
     action: async (args) => {
       const configFile = args[0] || "awesome-copilot.config.yml";
-      generateConfig(configFile);
+      const { initializeProject } = require("./initialize-project");
+      await initializeProject(configFile);
     }
   },
   
