@@ -5,6 +5,9 @@
   "main": "update-readme.js",
   "scripts": {
     "build": "node update-readme.js",
+    "config:init": "node generate-config.js",
+    "config:apply": "node apply-config.js",
+    "config": "node awesome-copilot.js",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check"
