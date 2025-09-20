@@ -78,12 +78,13 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   console.log("Applying awesome-copilot configuration...");
   
   const rootDir = __dirname;
-  const outputDir = config.project?.output_directory || ".github";
+  const outputDir = config.project?.output_directory || ".awesome-copilot";
   
   // Create output directory structure
   ensureDirectoryExists(outputDir);
-  ensureDirectoryExists(path.join(outputDir, "copilot"));
+  ensureDirectoryExists(path.join(outputDir, "prompts"));
   ensureDirectoryExists(path.join(outputDir, "instructions"));
+  ensureDirectoryExists(path.join(outputDir, "chatmodes"));
   
   let copiedCount = 0;
   const summary = {
@@ -119,7 +120,7 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
       if (enabled) {
         const sourcePath = path.join(rootDir, "prompts", `${promptName}.prompt.md`);
         if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(outputDir, "copilot", `${promptName}.prompt.md`);
+          const destPath = path.join(outputDir, "prompts", `${promptName}.prompt.md`);
           copyFile(sourcePath, destPath);
           copiedCount++;
           summary.prompts++;
@@ -149,7 +150,7 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
       if (enabled) {
         const sourcePath = path.join(rootDir, "chatmodes", `${chatmodeName}.chatmode.md`);
         if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(outputDir, "copilot", `${chatmodeName}.chatmode.md`);
+          const destPath = path.join(outputDir, "chatmodes", `${chatmodeName}.chatmode.md`);
           copyFile(sourcePath, destPath);
           copiedCount++;
           summary.chatmodes++;
@@ -165,8 +166,10 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
       const fileName = path.basename(itemPath);
       let destPath;
       
-      if (fileName.endsWith('.prompt.md') || fileName.endsWith('.chatmode.md')) {
-        destPath = path.join(outputDir, "copilot", fileName);
+      if (fileName.endsWith('.prompt.md')) {
+        destPath = path.join(outputDir, "prompts", fileName);
+      } else if (fileName.endsWith('.chatmode.md')) {
+        destPath = path.join(outputDir, "chatmodes", fileName);
       } else if (fileName.endsWith('.instructions.md')) {
         destPath = path.join(outputDir, "instructions", fileName);
       }

@@ -114,6 +114,33 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 🌟 Getting Started
 
+### 🔧 CLI Installation (Recommended)
+
+Install awesome-copilot CLI for streamlined project setup:
+
+```bash
+# Install globally via npm
+npm install -g awesome-copilot
+
+# Or run without installing
+npx awesome-copilot init
+```
+
+**Quick Setup:**
+1. Navigate to your project directory
+2. Run `awesome-copilot init` to create configuration and VS Code setup
+3. Edit `awesome-copilot.config.yml` to enable desired items
+4. Run `awesome-copilot apply` to copy files to your project
+5. Start using enhanced GitHub Copilot!
+
+✨ **Benefits:**
+- Clean project setup with automatic VS Code configuration
+- Files organized in `.awesome-copilot/` directory 
+- Automatic `.gitignore` management
+- Easy updates by re-running `apply` command
+
+### 📖 Manual Installation
+
 1. **Browse the Collections**: Check out our comprehensive lists of [prompts](README.prompts.md), [instructions](README.instructions.md), [chat modes](README.chatmodes.md), and [collections](README.collections.md).
 2. **Add to your editor**: Click the "Install" button to install to VS Code, or copy the file contents for other editors.
 3. **Start Using**: Copy prompts to use with `/` commands, let instructions enhance your coding experience, or activate chat modes for specialized assistance.

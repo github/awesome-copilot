@@ -1,20 +1,42 @@
 # Configuration File System
 
-The Awesome Copilot repository now supports a configuration file system that allows you to easily manage which prompts, instructions, chat modes, and collections are included in your project.
+The Awesome Copilot repository supports a configuration file system that allows you to easily manage which prompts, instructions, chat modes, and collections are included in your project.
+
+## Installation
+
+### Via NPM (Recommended)
+```bash
+# Install globally
+npm install -g awesome-copilot
+
+# Or run without installing
+npx awesome-copilot init
+```
+
+### Via Git Clone
+```bash
+git clone https://github.com/AstroSteveo/awesome-copilot
+cd awesome-copilot
+npm install
+```
 
 ## Quick Start
 
-### 1. Generate a Configuration File
+### 1. Initialize Your Project
 
 ```bash
-# Generate default configuration file
-node awesome-copilot.js init
+# Initialize with default configuration
+awesome-copilot init
 
-# Or generate with a specific name
-node awesome-copilot.js init my-project.config.yml
+# Or initialize with a specific name
+awesome-copilot init my-project.config.yml
 ```
 
-This creates a YAML configuration file with all available items set to `false` by default.
+This creates:
+- Configuration file (`awesome-copilot.config.yml`)
+- `.awesome-copilot/` directory structure
+- VS Code settings pointing to `.awesome-copilot/` directories
+- `.gitignore` entry to exclude generated files
 
 ### 2. Enable Desired Items
 
@@ -25,7 +47,7 @@ version: "1.0"
 project:
   name: "My Project"
   description: "A project using awesome-copilot customizations"
-  output_directory: ".github"
+  output_directory: ".awesome-copilot"
 prompts:
   create-readme: true
   editorconfig: true
@@ -47,13 +69,13 @@ collections:
 
 ```bash
 # Apply default configuration file
-node awesome-copilot.js apply
+awesome-copilot apply
 
 # Or apply specific configuration file  
-node awesome-copilot.js apply my-project.config.yml
+awesome-copilot apply my-project.config.yml
 ```
 
-This will copy the enabled files to your project's `.github` directory (or the directory specified in the config).
+This will copy the enabled files to your project's `.awesome-copilot` directory (or the directory specified in the config).
 
 ## Configuration File Format
 
@@ -95,28 +117,41 @@ collections:
 When you apply a configuration, files are organized as follows:
 
 ```
-.github/
-├── copilot/
-│   ├── *.prompt.md             # Prompts for /awesome-copilot commands
+.awesome-copilot/
+├── prompts/
+│   └── *.prompt.md             # Prompts for /awesome-copilot commands
+├── chatmodes/
 │   └── *.chatmode.md           # Chat modes for VS Code
 └── instructions/
     └── *.instructions.md       # Instructions that auto-apply to coding
 ```
 
+VS Code automatically detects these files through the generated `.vscode/settings.json` configuration.
+
 ## NPM Scripts
 
-You can also use npm scripts instead of the CLI:
+If you've cloned the repository locally, you can also use npm scripts:
 
 ```bash
-# Generate configuration
+# Initialize configuration
 npm run config:init
 
 # Apply configuration
 npm run config:apply
 
-# Access CLI
+# Access CLI help
 npm run config help
 ```
+
+## VS Code Integration
+
+The `awesome-copilot init` command automatically configures VS Code to detect your customizations:
+
+- Creates `.vscode/settings.json` with proper file locations
+- Points to `.awesome-copilot/` directories instead of framework directories
+- Maintains separation between your project and the awesome-copilot framework
+
+No manual VS Code configuration needed!
 
 ## Examples
 
@@ -142,7 +177,7 @@ chatmodes:
 version: "1.0"
 project:
   name: ".NET API"
-  output_directory: ".github"
+  output_directory: ".awesome-copilot"
 collections:
   csharp-dotnet-development: true
 instructions:
@@ -157,7 +192,7 @@ prompts:
 version: "1.0"
 project:
   name: "Full Stack App"
-  output_directory: ".github"
+  output_directory: ".awesome-copilot"
 collections:
   frontend-web-dev: true
   csharp-dotnet-development: true
@@ -169,17 +204,23 @@ chatmodes:
 
 ## Migration from Manual Approach
 
-If you were previously copying files manually:
+If you were previously copying files manually or using an older version:
 
 1. Remove manually copied files from your `.github` directory
-2. Run `node awesome-copilot.js init` to create a config file
-3. Edit the config to enable the same items you were using manually
-4. Run `node awesome-copilot.js apply` to get a clean, managed setup
+2. Install awesome-copilot: `npm install -g awesome-copilot` 
+3. Run `awesome-copilot init` to create a clean setup
+4. Edit the config to enable the same items you were using manually
+5. Run `awesome-copilot apply` to get a clean, managed setup
+
+The new approach uses `.awesome-copilot/` directory instead of `.github/` for better separation.
 
 ## Benefits
 
+- **Clean Installation**: Install via npm/npx, no need to clone the entire repository
 - **Centralized Management**: One file controls all your Copilot customizations
-- **Version Control Friendly**: Config file tracks what's enabled in your project
-- **Easy Updates**: Re-run apply command after pulling awesome-copilot updates
+- **VS Code Integration**: Automatic configuration, no manual setup required
+- **Clear Separation**: Framework files separated from your project files
+- **Version Control Friendly**: Config file tracks what's enabled, generated files are ignored
+- **Easy Updates**: Re-run apply command after awesome-copilot updates
 - **Collection Support**: Enable entire curated sets with one setting
-- **Clean Organization**: Files are organized in proper directory structure
+- **Minimal Footprint**: Only enabled files are copied to your project
