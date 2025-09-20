@@ -59,7 +59,7 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
 # Set items to 'true' to include them in your project
 # Set items to 'false' to exclude them
 #
-# After configuring, run: node apply-config.js
+# After configuring, run: awesome-copilot apply
 #
 
 `;
@@ -71,7 +71,7 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
   console.log(`Found ${prompts.length} prompts, ${instructions.length} instructions, ${chatmodes.length} chat modes, ${collections.length} collections`);
   console.log("\nNext steps:");
   console.log("1. Edit the configuration file to enable desired items");
-  console.log("2. Run: node apply-config.js to apply the configuration");
+  console.log("2. Run: awesome-copilot apply to apply the configuration");
 }
 
 /**
