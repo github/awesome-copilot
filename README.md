@@ -87,6 +87,47 @@ Use our configuration system to manage all customizations in one place:
 
 See [CONFIG.md](CONFIG.md) for detailed configuration documentation.
 
+#### ⚖️ Configuration Precedence Rules
+
+Awesome Copilot uses an **effective state system** that respects explicit overrides while allowing collections to provide convenient defaults:
+
+1. **Explicit Settings Override Everything**
+   ```yaml
+   collections:
+     testing-automation: true    # Enables 11 items
+   prompts:
+     playwright-generate-test: false  # Explicitly disabled, overrides collection
+   ```
+
+2. **Collections Enable Groups of Items**
+   ```yaml
+   collections:
+     frontend-web-dev: true     # Enables React, Vue, TypeScript items
+     testing-automation: true   # Enables testing tools and frameworks
+   ```
+
+3. **Undefined Items Follow Collections**
+   - Items not explicitly listed inherit from enabled collections
+   - Only explicitly set true/false values override collection settings
+   - This allows collections to work as intended while preserving explicit choices
+
+**Examples:**
+```bash
+# See effective states and why each item is enabled
+awesome-copilot list prompts
+# [✓] create-readme (explicit)
+# [✓] playwright-generate-test (collection)
+# [ ] react-component
+
+# Collection toggle shows what will change
+awesome-copilot toggle collections frontend-web-dev on
+# Delta summary:
+#   📈 8 items will be enabled:
+#     + prompts/react-component
+#     + prompts/vue-component
+#     + instructions/typescript-best-practices
+```
+
 ### 📁 Manual File Approach
 
 Browse the collections and manually copy files you want to use:
