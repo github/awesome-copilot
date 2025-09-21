@@ -20,10 +20,10 @@ function cleanup() {
     fs.unlinkSync(TEST_CONFIG);
   }
   if (fs.existsSync(TEST_OUTPUT_DIR)) {
-    execSync(`rm -rf ${TEST_OUTPUT_DIR}`);
+    fs.rmSync(TEST_OUTPUT_DIR, { recursive: true, force: true });
   }
   if (fs.existsSync('.awesome-copilot')) {
-    execSync(`rm -rf .awesome-copilot`);
+    fs.rmSync('.awesome-copilot', { recursive: true, force: true });
   }
 }
 
