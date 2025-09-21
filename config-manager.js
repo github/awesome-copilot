@@ -159,6 +159,29 @@ function getAllAvailableItems(type) {
 }
 
 /**
+ * Generate a stable hash of configuration for comparison
+ * @param {Object} config - Configuration object
+ * @returns {string} Stable hash string
+ */
+function generateConfigHash(config) {
+  const crypto = require('crypto');
+  
+  // Create a stable representation by sorting all keys recursively
+  function stableStringify(obj) {
+    if (obj === null || obj === undefined) return 'null';
+    if (typeof obj !== 'object') return JSON.stringify(obj);
+    if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
+    
+    const keys = Object.keys(obj).sort();
+    const pairs = keys.map(key => `"${key}":${stableStringify(obj[key])}`);
+    return '{' + pairs.join(',') + '}';
+  }
+  
+  const stableJson = stableStringify(config);
+  return crypto.createHash('sha256').update(stableJson).digest('hex').substring(0, 16);
+}
+
+/**
  * Compute effective item states respecting explicit overrides over collections
  * @param {Object} config - Configuration object with sections
  * @returns {Object} Effective states for each section with { itemName: { enabled: boolean, reason: string } }
@@ -253,5 +276,6 @@ module.exports = {
   sortObjectKeys,
   countEnabledItems,
   getAllAvailableItems,
-  computeEffectiveItemStates
+  computeEffectiveItemStates,
+  generateConfigHash
 };
