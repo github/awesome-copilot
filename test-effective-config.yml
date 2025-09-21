@@ -8,23 +8,10 @@ project:
   name: "Test Project"
   description: "Testing effective state precedence"
   output_directory: ".awesome-copilot"
-
 collections:
-  testing-automation: true
-
+  testing-automation: false
 prompts:
-  playwright-generate-test: true
-  # Note: playwright-explore-website is not defined (undefined)
-  # Note: csharp-nunit is not defined (undefined)
-  # Note: java-junit is not defined (undefined)
   ai-prompt-engineering-safety-review: false
-
+  playwright-generate-test: true
 instructions:
-  # Note: playwright-typescript is not defined (undefined)
-  # Note: playwright-python is not defined (undefined)
-
 chatmodes:
-  # Note: tdd-red is not defined (undefined)
-  # Note: tdd-green is not defined (undefined)
-  # Note: tdd-refactor is not defined (undefined)
-  # Note: playwright-tester is not defined (undefined)

@@ -116,14 +116,22 @@ function handleListCommand(rawArgs) {
   const { config } = loadConfig(configPath);
   const sanitizedConfig = ensureConfigStructure(config);
 
+  // Import computeEffectiveItemStates
+  const { computeEffectiveItemStates } = require("./config-manager");
+  const effectiveStates = computeEffectiveItemStates(sanitizedConfig);
+
   console.log(`📄 Configuration: ${configPath}`);
 
   sectionsToShow.forEach(section => {
     const availableItems = getAllAvailableItems(section);
-    const enabledCount = countEnabledItems(sanitizedConfig[section]);
+    
+    // Count effectively enabled items
+    const effectivelyEnabled = Object.values(effectiveStates[section] || {})
+      .filter(state => state.enabled).length;
+    
     const { totalCharacters } = calculateSectionFootprint(section, sanitizedConfig[section]);
     const headingParts = [
-      `${SECTION_METADATA[section].label} (${enabledCount}/${availableItems.length} enabled)`
+      `${SECTION_METADATA[section].label} (${effectivelyEnabled}/${availableItems.length} enabled)`
     ];
 
     if (totalCharacters > 0 && section !== "collections") {
@@ -137,10 +145,28 @@ function handleListCommand(rawArgs) {
       return;
     }
 
-    availableItems.forEach(itemName => {
-      const isEnabled = Boolean(sanitizedConfig[section]?.[itemName]);
-      console.log(`  [${isEnabled ? "✓" : " "}] ${itemName}`);
-    });
+    // Show items with effective state and reason
+    if (section === "collections") {
+      // Collections show simple enabled/disabled
+      availableItems.forEach(itemName => {
+        const isEnabled = Boolean(sanitizedConfig[section]?.[itemName]);
+        console.log(`  [${isEnabled ? "✓" : " "}] ${itemName}`);
+      });
+    } else {
+      // Other sections show effective state with reason
+      availableItems.forEach(itemName => {
+        const effectiveState = effectiveStates[section]?.[itemName];
+        if (effectiveState) {
+          const symbol = effectiveState.enabled ? "✓" : " ";
+          const reasonText = effectiveState.enabled 
+            ? ` (${effectiveState.reason})`
+            : "";
+          console.log(`  [${symbol}] ${itemName}${reasonText}`);
+        } else {
+          console.log(`  [ ] ${itemName}`);
+        }
+      });
+    }
   });
 
   console.log("\nUse 'awesome-copilot toggle' to enable or disable specific items.");
@@ -171,7 +197,66 @@ function handleToggleCommand(rawArgs) {
   };
   const sectionState = configCopy[section];
 
-  if (itemName === "all") {
+  // Special handling for collections to show delta summary
+  if (section === "collections") {
+    if (!availableSet.has(itemName)) {
+      const suggestion = findClosestMatch(itemName, availableItems);
+      if (suggestion) {
+        throw new Error(`Unknown ${SECTION_METADATA[section].singular} '${itemName}'. Did you mean '${suggestion}'?`);
+      }
+      throw new Error(`Unknown ${SECTION_METADATA[section].singular} '${itemName}'.`);
+    }
+
+    const currentState = Boolean(sectionState[itemName]);
+    const newState = desiredState === null ? !currentState : desiredState;
+    
+    // Show delta summary for collections
+    if (currentState !== newState) {
+      const { computeEffectiveItemStates } = require("./config-manager");
+      
+      // Compute effective states before change
+      const effectiveStatesBefore = computeEffectiveItemStates(configCopy);
+      
+      // Simulate the change
+      configCopy[section][itemName] = newState;
+      const effectiveStatesAfter = computeEffectiveItemStates(configCopy);
+      
+      // Calculate delta
+      const delta = { enabled: [], disabled: [] };
+      for (const sectionName of ["prompts", "instructions", "chatmodes"]) {
+        for (const item of getAllAvailableItems(sectionName)) {
+          const beforeState = effectiveStatesBefore[sectionName]?.[item]?.enabled || false;
+          const afterState = effectiveStatesAfter[sectionName]?.[item]?.enabled || false;
+          
+          if (!beforeState && afterState) {
+            delta.enabled.push(`${sectionName}/${item}`);
+          } else if (beforeState && !afterState) {
+            delta.disabled.push(`${sectionName}/${item}`);
+          }
+        }
+      }
+      
+      console.log(`${newState ? "Enabled" : "Disabled"} collection '${itemName}'.`);
+      
+      if (delta.enabled.length > 0 || delta.disabled.length > 0) {
+        console.log("\nDelta summary:");
+        if (delta.enabled.length > 0) {
+          console.log(`  📈 ${delta.enabled.length} items will be enabled:`);
+          delta.enabled.forEach(item => console.log(`    + ${item}`));
+        }
+        if (delta.disabled.length > 0) {
+          console.log(`  📉 ${delta.disabled.length} items will be disabled:`);
+          delta.disabled.forEach(item => console.log(`    - ${item}`));
+        }
+      } else {
+        console.log("  No effective changes (items may have explicit overrides)");
+      }
+    } else {
+      console.log(`Collection '${itemName}' is already ${currentState ? "enabled" : "disabled"}.`);
+    }
+    
+    sectionState[itemName] = newState;
+  } else if (itemName === "all") {
     if (desiredState === null) {
       throw new Error("Specify 'on' or 'off' when toggling all items.");
     }
@@ -205,7 +290,7 @@ function handleToggleCommand(rawArgs) {
   const totalAvailable = availableItems.length;
   const { totalCharacters } = calculateSectionFootprint(section, sanitizedConfig[section]);
 
-  console.log(`${SECTION_METADATA[section].label}: ${enabledCount}/${totalAvailable} enabled.`);
+  console.log(`\n${SECTION_METADATA[section].label}: ${enabledCount}/${totalAvailable} enabled.`);
   if (totalCharacters > 0 && section !== "collections") {
     console.log(`Estimated ${SECTION_METADATA[section].label.toLowerCase()} context size: ${formatNumber(totalCharacters)} characters.`);
   }
