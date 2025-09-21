@@ -1,0 +1,16 @@
+# Invalid config for testing
+version: 1.0
+
+project:
+  name: "Test Project"
+  output_directory: ".awesome-copilot"
+
+prompts:
+  breakdown-epic-arch: invalid_value  # This should be boolean
+  breakdown-epic-pm: true
+
+invalid_section:
+  some_key: true
+
+instructions:
+  task-implementation: "yes"  # This should be boolean

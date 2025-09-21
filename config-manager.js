@@ -3,6 +3,7 @@ const path = require("path");
 
 const { parseConfigYamlContent } = require("./apply-config");
 const { objectToYaml, generateConfigHeader, getAvailableItems } = require("./generate-config");
+const { parseCollectionYaml } = require("./yaml-parser");
 
 const DEFAULT_CONFIG_PATH = "awesome-copilot.config.yml";
 const SECTION_METADATA = {
@@ -158,6 +159,115 @@ function getAllAvailableItems(type) {
   return getAvailableItems(path.join(__dirname, meta.dir), meta.ext);
 }
 
+/**
+ * Get individual items from a collection
+ */
+function getCollectionItems(collectionName) {
+  const collectionPath = path.join(__dirname, "collections", `${collectionName}.collection.yml`);
+  if (!fs.existsSync(collectionPath)) {
+    return { prompts: [], instructions: [], chatmodes: [] };
+  }
+
+  const collection = parseCollectionYaml(collectionPath);
+  if (!collection || !collection.items) {
+    return { prompts: [], instructions: [], chatmodes: [] };
+  }
+
+  const result = { prompts: [], instructions: [], chatmodes: [] };
+  
+  collection.items.forEach(item => {
+    const filePath = item.path;
+    const filename = path.basename(filePath);
+    
+    if (filename.endsWith('.prompt.md')) {
+      const name = filename.replace('.prompt.md', '');
+      result.prompts.push(name);
+    } else if (filename.endsWith('.instructions.md')) {
+      const name = filename.replace('.instructions.md', '');
+      result.instructions.push(name);
+    } else if (filename.endsWith('.chatmode.md')) {
+      const name = filename.replace('.chatmode.md', '');
+      result.chatmodes.push(name);
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Update individual items when a collection is toggled
+ */
+function updateCollectionItems(config, collectionName, enabled) {
+  const items = getCollectionItems(collectionName);
+  const configCopy = { ...config };
+  
+  // Ensure sections exist
+  CONFIG_SECTIONS.forEach(section => {
+    if (!configCopy[section]) {
+      configCopy[section] = {};
+    }
+  });
+
+  // Update individual items
+  items.prompts.forEach(prompt => {
+    configCopy.prompts[prompt] = enabled;
+  });
+  
+  items.instructions.forEach(instruction => {
+    configCopy.instructions[instruction] = enabled;
+  });
+  
+  items.chatmodes.forEach(chatmode => {
+    configCopy.chatmodes[chatmode] = enabled;
+  });
+
+  return configCopy;
+}
+
+/**
+ * Get which collections contain specific items
+ */
+function getItemToCollectionsMap() {
+  const map = {};
+  const collectionsDir = path.join(__dirname, "collections");
+  
+  if (!fs.existsSync(collectionsDir)) {
+    return map;
+  }
+
+  const collectionFiles = fs.readdirSync(collectionsDir)
+    .filter(file => file.endsWith('.collection.yml'));
+
+  collectionFiles.forEach(file => {
+    const collectionName = file.replace('.collection.yml', '');
+    const collectionPath = path.join(collectionsDir, file);
+    const collection = parseCollectionYaml(collectionPath);
+    
+    if (collection && collection.items) {
+      collection.items.forEach(item => {
+        const filename = path.basename(item.path);
+        let itemName;
+        
+        if (filename.endsWith('.prompt.md')) {
+          itemName = filename.replace('.prompt.md', '');
+          if (!map[itemName]) map[itemName] = { section: 'prompts', collections: [] };
+          map[itemName].collections.push(collectionName);
+        } else if (filename.endsWith('.instructions.md')) {
+          itemName = filename.replace('.instructions.md', '');
+          if (!map[itemName]) map[itemName] = { section: 'instructions', collections: [] };
+          map[itemName].collections.push(collectionName);
+        } else if (filename.endsWith('.chatmode.md')) {
+          itemName = filename.replace('.chatmode.md', '');
+          if (!map[itemName]) map[itemName] = { section: 'chatmodes', collections: [] };
+          map[itemName].collections.push(collectionName);
+        }
+      });
+    }
+  });
+
+  return map;
+}
+
 module.exports = {
   DEFAULT_CONFIG_PATH,
   CONFIG_SECTIONS,
@@ -168,5 +278,8 @@ module.exports = {
   ensureConfigStructure,
   sortObjectKeys,
   countEnabledItems,
-  getAllAvailableItems
+  getAllAvailableItems,
+  getCollectionItems,
+  updateCollectionItems,
+  getItemToCollectionsMap
 };
