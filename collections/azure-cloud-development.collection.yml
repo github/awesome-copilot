@@ -14,11 +14,17 @@ items:
     kind: chat-mode
   - path: chatmodes/azure-verified-modules-terraform.chatmode.md
     kind: chat-mode
+  - path: chatmodes/terraform-azure-planning.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/terraform-azure-implement.chatmode.md
+    kind: chat-mode
 
   # Infrastructure as Code Instructions
   - path: instructions/bicep-code-best-practices.instructions.md
     kind: instruction
   - path: instructions/terraform.instructions.md
+    kind: instruction
+  - path: instructions/terraform-azure.instructions.md
     kind: instruction
   - path: instructions/azure-verified-modules-terraform.instructions.md
     kind: instruction
