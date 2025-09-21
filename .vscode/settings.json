@@ -16,11 +16,22 @@
     "editor.formatOnSave": true
   },
   "editor.rulers": [
-    100
+    120
   ],
   "files.associations": {
     "*.chatmode.md": "markdown",
     "*.instructions.md": "markdown",
     "*.prompt.md": "markdown"
-  }
+  },
+  "github.copilot.chat.agent.thinkingTool": true,
+  "github.copilot.chat.alternateGptPrompt.enabled": true,
+  "github.copilot.chat.editor.temporalContext.enabled": true,
+  "github.copilot.chat.edits.temporalContext.enabled": true,
+  "github.copilot.chat.generateTests.codeLens": true,
+  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
+  "github.copilot.chat.languageContext.inline.typescript.enabled": true,
+  "github.copilot.chat.languageContext.typescript.enabled": true,
+  "github.copilot.chat.newWorkspace.useContext7": true,
+  "github.copilot.chat.notebook.enhancedNextEditSuggestions.enabled": true,
+  "github.copilot.chat.notebook.followCellExecution.enabled": true,
 }

@@ -13,3 +13,6 @@ test-apply-config.yml
 
 # Test output directories
 test-output/
+
+# Awesome Copilot generated files
+.awesome-copilot/
