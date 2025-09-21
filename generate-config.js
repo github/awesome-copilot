@@ -8,7 +8,7 @@ const path = require("path");
  */
 function generateConfig(outputPath = "awesome-copilot.config.yml") {
   const rootDir = __dirname;
-  
+
   // Get all available items
   const prompts = getAvailableItems(path.join(rootDir, "prompts"), ".prompt.md");
   const instructions = getAvailableItems(path.join(rootDir, "instructions"), ".instructions.md");
@@ -46,25 +46,8 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
     config.collections[item] = false;
   });
 
-  // Convert to YAML format manually (since we don't want to add dependencies)
   const yamlContent = objectToYaml(config);
-  
-  // Add header comment
-  const header = `# Awesome Copilot Configuration File
-# Generated on ${new Date().toISOString()}
-# 
-# This file allows you to enable/disable specific prompts, instructions, 
-# chat modes, and collections for your project.
-#
-# Set items to 'true' to include them in your project
-# Set items to 'false' to exclude them
-#
-# After configuring, run: awesome-copilot apply
-#
-
-`;
-
-  const fullContent = header + yamlContent;
+  const fullContent = generateConfigHeader() + yamlContent;
 
   fs.writeFileSync(outputPath, fullContent);
   console.log(`Configuration file generated: ${outputPath}`);
@@ -108,18 +91,31 @@ function objectToYaml(obj, indent = 0) {
   return yaml;
 }
 
+function generateConfigHeader(date = new Date()) {
+  return `# Awesome Copilot Configuration File
+# Generated on ${date.toISOString()}
+#
+# This file allows you to enable/disable specific prompts, instructions,
+# chat modes, and collections for your project.
+#
+# Set items to 'true' to include them in your project
+# Set items to 'false' to exclude them
+#
+# After configuring, run: awesome-copilot apply
+#
+
+`;
+}
+
 // CLI usage
 if (require.main === module) {
   const outputPath = process.argv[2] || "awesome-copilot.config.yml";
   generateConfig(outputPath);
 }
 
-module.exports = { generateConfig, getAvailableItems };
-
-// CLI usage
-if (require.main === module) {
-  const outputPath = process.argv[2] || "awesome-copilot.config.yml";
-  generateConfig(outputPath);
-}
-
-module.exports = { generateConfig, getAvailableItems };
+module.exports = {
+  generateConfig,
+  getAvailableItems,
+  objectToYaml,
+  generateConfigHeader
+};

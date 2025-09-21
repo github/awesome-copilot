@@ -63,7 +63,7 @@ Use our configuration system to manage all customizations in one place:
    ```bash
    node /path/to/awesome-copilot/awesome-copilot.js init
    ```
-4. **Edit the configuration** to enable the items you want:
+4. **Edit the configuration** to enable the items you want (or use the new CLI helpers):
    ```yaml
    collections:
      frontend-web-dev: true      # Enable entire collection
@@ -71,6 +71,14 @@ Use our configuration system to manage all customizations in one place:
      create-readme: true         # Enable specific prompts
    instructions:
      typescript-best-practices: true
+   ```
+   ```bash
+   # List what is currently enabled
+   node /path/to/awesome-copilot/awesome-copilot.js list instructions
+
+   # Enable or disable individual items without editing YAML by hand
+   node /path/to/awesome-copilot/awesome-copilot.js toggle prompts create-readme on
+   node /path/to/awesome-copilot/awesome-copilot.js toggle instructions all off
    ```
 5. **Apply the configuration** to copy files to your project:
    ```bash
