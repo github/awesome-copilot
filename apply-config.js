@@ -30,7 +30,7 @@ function parseConfigYamlContent(content) {
       let value = trimmed.substring(colonIndex + 1).trim();
 
       // Validate key format
-      if (!key || key.includes(" ") && !currentSection) {
+      if (!key || key.includes(" ")) {
         throw new Error(`Invalid key format on line ${lineNumber}: "${key}"`);
       }
 
