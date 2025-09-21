@@ -12,7 +12,10 @@ const {
   saveConfig,
   ensureConfigStructure,
   countEnabledItems,
-  getAllAvailableItems
+  getAllAvailableItems,
+  getCollectionItems,
+  updateCollectionItems,
+  getItemToCollectionsMap
 } = require("./config-manager");
 
 const CONFIG_FLAG_ALIASES = ["--config", "-c"];
@@ -115,10 +118,22 @@ function handleListCommand(rawArgs) {
 
   const { config } = loadConfig(configPath);
   const sanitizedConfig = ensureConfigStructure(config);
+  const itemToCollectionsMap = getItemToCollectionsMap();
 
   console.log(`📄 Configuration: ${configPath}`);
 
+  // Always show collections first if they're in the sections to show
+  const orderedSections = [];
+  if (sectionsToShow.includes('collections')) {
+    orderedSections.push('collections');
+  }
   sectionsToShow.forEach(section => {
+    if (section !== 'collections') {
+      orderedSections.push(section);
+    }
+  });
+
+  orderedSections.forEach(section => {
     const availableItems = getAllAvailableItems(section);
     const enabledCount = countEnabledItems(sanitizedConfig[section]);
     const { totalCharacters } = calculateSectionFootprint(section, sanitizedConfig[section]);
@@ -139,11 +154,27 @@ function handleListCommand(rawArgs) {
 
     availableItems.forEach(itemName => {
       const isEnabled = Boolean(sanitizedConfig[section]?.[itemName]);
-      console.log(`  [${isEnabled ? "✓" : " "}] ${itemName}`);
+      let itemDisplay = `  [${isEnabled ? "✓" : " "}] ${itemName}`;
+      
+      // Add collection indicators for non-collection items
+      if (section !== 'collections' && itemToCollectionsMap[itemName]) {
+        const collections = itemToCollectionsMap[itemName].collections;
+        itemDisplay += ` ${collections.map(c => `📦${c}`).join(' ')}`;
+      }
+      
+      // For collections, show how many items they contain
+      if (section === 'collections') {
+        const collectionItems = getCollectionItems(itemName);
+        const totalItems = collectionItems.prompts.length + collectionItems.instructions.length + collectionItems.chatmodes.length;
+        itemDisplay += ` (${totalItems} items)`;
+      }
+      
+      console.log(itemDisplay);
     });
   });
 
   console.log("\nUse 'awesome-copilot toggle' to enable or disable specific items.");
+  console.log("📦 indicates items that are part of collections.");
 }
 
 function handleToggleCommand(rawArgs) {
@@ -165,7 +196,7 @@ function handleToggleCommand(rawArgs) {
   }
 
   const { config, header } = loadConfig(configPath);
-  const configCopy = {
+  let configCopy = {
     ...config,
     [section]: { ...config[section] }
   };
@@ -195,7 +226,32 @@ function handleToggleCommand(rawArgs) {
     const currentState = Boolean(sectionState[itemName]);
     const newState = desiredState === null ? !currentState : desiredState;
     sectionState[itemName] = newState;
-    console.log(`${newState ? "Enabled" : "Disabled"} ${SECTION_METADATA[section].singular} '${itemName}'.`);
+    
+    // Special handling for collections - also toggle individual items
+    if (section === "collections") {
+      console.log(`${newState ? "Enabled" : "Disabled"} ${SECTION_METADATA[section].singular} '${itemName}'.`);
+      
+      // Update individual items in the collection
+      configCopy = updateCollectionItems(configCopy, itemName, newState);
+      
+      const collectionItems = getCollectionItems(itemName);
+      const totalItems = collectionItems.prompts.length + collectionItems.instructions.length + collectionItems.chatmodes.length;
+      
+      if (totalItems > 0) {
+        console.log(`${newState ? "Enabled" : "Disabled"} ${totalItems} individual items from collection '${itemName}'.`);
+        if (collectionItems.prompts.length > 0) {
+          console.log(`  Prompts: ${collectionItems.prompts.join(", ")}`);
+        }
+        if (collectionItems.instructions.length > 0) {
+          console.log(`  Instructions: ${collectionItems.instructions.join(", ")}`);
+        }
+        if (collectionItems.chatmodes.length > 0) {
+          console.log(`  Chat modes: ${collectionItems.chatmodes.join(", ")}`);
+        }
+      }
+    } else {
+      console.log(`${newState ? "Enabled" : "Disabled"} ${SECTION_METADATA[section].singular} '${itemName}'.`);
+    }
   }
 
   const sanitizedConfig = ensureConfigStructure(configCopy);
@@ -210,7 +266,12 @@ function handleToggleCommand(rawArgs) {
     console.log(`Estimated ${SECTION_METADATA[section].label.toLowerCase()} context size: ${formatNumber(totalCharacters)} characters.`);
   }
   maybeWarnAboutContext(section, totalCharacters);
-  console.log("Run 'awesome-copilot apply' to copy updated selections into your project.");
+  
+  // Auto-apply functionality - automatically run apply after toggle
+  console.log("Applying configuration automatically...");
+  applyConfig(configPath).catch(error => {
+    console.error("Error during auto-apply:", error.message);
+  });
 }
 
 function extractConfigOption(rawArgs) {
