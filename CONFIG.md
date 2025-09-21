@@ -47,7 +47,11 @@ This creates:
 
 ### 2. Enable Desired Items
 
-Edit the configuration file to set items to `true` that you want to include:
+You can enable items either by editing the YAML file directly or by using the CLI helpers that toggle entries for you.
+
+#### Option A: Edit the configuration file manually
+
+Set items to `true` in the configuration file to include them:
 
 ```yaml
 version: "1.0"
@@ -71,6 +75,24 @@ collections:
   frontend-web-dev: true
   csharp-dotnet-development: false
 ```
+
+#### Option B: Manage items from the CLI (recommended for quick toggles)
+
+```bash
+# Inspect what is enabled in the default configuration file
+node /path/to/awesome-copilot/awesome-copilot.js list instructions
+
+# Enable a single prompt
+node /path/to/awesome-copilot/awesome-copilot.js toggle prompts create-readme on
+
+# Disable everything in a section
+node /path/to/awesome-copilot/awesome-copilot.js toggle instructions all off
+
+# Work with a named configuration file
+node /path/to/awesome-copilot/awesome-copilot.js list prompts --config team.config.yml
+```
+
+The CLI prints the number of enabled items and estimates the combined size of their instructions/prompts so you can avoid exceeding Copilot Agent's context window. If the total size approaches a risky threshold, you'll see a warning.
 
 ### 3. Apply Configuration
 

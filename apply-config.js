@@ -7,52 +7,58 @@ const { parseCollectionYaml } = require("./yaml-parser");
 /**
  * Simple YAML parser for configuration files
  */
+function parseConfigYamlContent(content) {
+  const lines = content.split("\n");
+  const result = {};
+  let currentSection = null;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Skip comments and empty lines
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    if (!trimmed.includes(":")) {
+      continue;
+    }
+
+    const colonIndex = trimmed.indexOf(":");
+    const key = trimmed.substring(0, colonIndex).trim();
+    let value = trimmed.substring(colonIndex + 1).trim();
+
+    // Remove quotes if present
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+
+    // Handle sections (no value)
+    if (!value) {
+      currentSection = key;
+      if (!result[currentSection]) {
+        result[currentSection] = {};
+      }
+      continue;
+    }
+
+    // Handle boolean values
+    if (value === "true") value = true;
+    else if (value === "false") value = false;
+
+    if (currentSection) {
+      result[currentSection][key] = value;
+    } else {
+      result[key] = value;
+    }
+  }
+
+  return result;
+}
+
 function parseConfigYaml(filePath) {
   try {
     const content = fs.readFileSync(filePath, "utf8");
-    const lines = content.split("\n");
-    const result = {};
-    let currentSection = null;
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      // Skip comments and empty lines
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      
-      // Handle key-value pairs
-      if (trimmed.includes(":")) {
-        const colonIndex = trimmed.indexOf(":");
-        const key = trimmed.substring(0, colonIndex).trim();
-        let value = trimmed.substring(colonIndex + 1).trim();
-        
-        // Remove quotes if present
-        if ((value.startsWith('"') && value.endsWith('"')) || 
-            (value.startsWith("'") && value.endsWith("'"))) {
-          value = value.slice(1, -1);
-        }
-        
-        // Handle sections (no value)
-        if (!value) {
-          currentSection = key;
-          if (!result[currentSection]) {
-            result[currentSection] = {};
-          }
-        } else {
-          // Handle boolean values
-          if (value === "true") value = true;
-          else if (value === "false") value = false;
-          
-          if (currentSection) {
-            result[currentSection][key] = value;
-          } else {
-            result[key] = value;
-          }
-        }
-      }
-    }
-    
-    return result;
+    return parseConfigYamlContent(content);
   } catch (error) {
     console.error(`Error parsing config file ${filePath}: ${error.message}`);
     return null;
@@ -230,4 +236,8 @@ if (require.main === module) {
   });
 }
 
-module.exports = { applyConfig, parseConfigYaml };
+module.exports = {
+  applyConfig,
+  parseConfigYaml,
+  parseConfigYamlContent
+};
