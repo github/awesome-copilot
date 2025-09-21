@@ -52,12 +52,18 @@ There are two ways to use awesome-copilot customizations in your project:
 
 Use our configuration system to manage all customizations in one place:
 
-1. **Clone the repository** to your local machine or include it as a git submodule
-2. **Generate a configuration file** with all available options:
+1. **Clone the repository** to your local machine and install dependencies:
    ```bash
-   node awesome-copilot.js init
+   git clone https://github.com/AstroSteveo/awesome-copilot
+   cd awesome-copilot
+   npm install
    ```
-3. **Edit the configuration** to enable the items you want:
+2. **Navigate to your project directory** where you want to add awesome-copilot customizations
+3. **Generate a configuration file** with all available options:
+   ```bash
+   node /path/to/awesome-copilot/awesome-copilot.js init
+   ```
+4. **Edit the configuration** to enable the items you want:
    ```yaml
    collections:
      frontend-web-dev: true      # Enable entire collection
@@ -66,9 +72,9 @@ Use our configuration system to manage all customizations in one place:
    instructions:
      typescript-best-practices: true
    ```
-4. **Apply the configuration** to copy files to your project:
+5. **Apply the configuration** to copy files to your project:
    ```bash
-   node awesome-copilot.js apply
+   node /path/to/awesome-copilot/awesome-copilot.js apply
    ```
 
 See [CONFIG.md](CONFIG.md) for detailed configuration documentation.
@@ -119,25 +125,41 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 Install awesome-copilot CLI for streamlined project setup:
 
 ```bash
-# Install globally via npm
-npm install -g awesome-copilot
+# Step 1: Clone the repository
+git clone https://github.com/AstroSteveo/awesome-copilot
+cd awesome-copilot
 
-# Or run without installing
-npx awesome-copilot init
+# Step 2: Install dependencies
+npm install
+
+# Step 3: Verify installation
+node awesome-copilot.js help
 ```
 
 **Quick Setup:**
-1. Navigate to your project directory
-2. Run `awesome-copilot init` to create configuration and VS Code setup
+1. Navigate to your project directory: `cd /path/to/your/project`
+2. Run `node /path/to/awesome-copilot/awesome-copilot.js init` to create configuration and VS Code setup
 3. Edit `awesome-copilot.config.yml` to enable desired items
-4. Run `awesome-copilot apply` to copy files to your project
+4. Run `node /path/to/awesome-copilot/awesome-copilot.js apply` to copy files to your project
 5. Start using enhanced GitHub Copilot!
+
+**💡 Pro Tip:** Create an alias for easier access:
+```bash
+# Add to your ~/.bashrc or ~/.zshrc
+alias awesome-copilot="node /path/to/awesome-copilot/awesome-copilot.js"
+
+# Then you can simply use:
+awesome-copilot init
+awesome-copilot apply
+```
 
 ✨ **Benefits:**
 - Clean project setup with automatic VS Code configuration
 - Files organized in `.awesome-copilot/` directory 
 - Automatic `.gitignore` management
 - Easy updates by re-running `apply` command
+
+**Note:** The package is not yet published to npm, so cloning the repository is currently required.
 
 ### 📖 Manual Installation
 
