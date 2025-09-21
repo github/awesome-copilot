@@ -19,7 +19,7 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
   const config = {
     version: "1.0",
     project: {
-      name: "My Project",
+      name: "My Project", 
       description: "A project using awesome-copilot customizations",
       output_directory: ".awesome-copilot"
     },
@@ -29,22 +29,15 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
     collections: {}
   };
 
-  // Populate with all items disabled by default (user can enable what they want)
-  prompts.forEach(item => {
-    config.prompts[item] = false;
-  });
-
-  instructions.forEach(item => {
-    config.instructions[item] = false;
-  });
-
-  chatmodes.forEach(item => {
-    config.chatmodes[item] = false;
-  });
-
+  // Only populate collections with defaults (set to false)
+  // Individual items are left undefined to allow collection precedence
   collections.forEach(item => {
     config.collections[item] = false;
   });
+
+  // Note: prompts, instructions, and chatmodes are left empty
+  // Users can explicitly enable items they want, or enable collections
+  // to get groups of items. Undefined items respect collection settings.
 
   const yamlContent = objectToYaml(config);
   const fullContent = generateConfigHeader() + yamlContent;
@@ -95,11 +88,15 @@ function generateConfigHeader(date = new Date()) {
   return `# Awesome Copilot Configuration File
 # Generated on ${date.toISOString()}
 #
-# This file allows you to enable/disable specific prompts, instructions,
-# chat modes, and collections for your project.
+# This file uses effective state precedence:
+# 1. Explicit item settings (true/false) override everything
+# 2. Items not listed inherit from enabled collections
+# 3. Otherwise items are disabled
 #
-# Set items to 'true' to include them in your project
-# Set items to 'false' to exclude them
+# To use:
+# - Enable collections for curated sets of related items
+# - Explicitly set individual items to true/false to override collections
+# - Items not mentioned will follow collection settings
 #
 # After configuring, run: awesome-copilot apply
 #

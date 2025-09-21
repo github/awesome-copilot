@@ -1,0 +1,17 @@
+# Awesome Copilot Configuration File
+# Manual test for effective state computation
+#
+# Testing precedence rules with undefined values
+
+version: "1.0"
+project:
+  name: "Test Project"
+  description: "Testing effective state precedence"
+  output_directory: ".awesome-copilot"
+collections:
+  testing-automation: false
+prompts:
+  ai-prompt-engineering-safety-review: false
+  playwright-generate-test: true
+instructions:
+chatmodes:
