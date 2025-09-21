@@ -1,37 +1,11 @@
 {
   "chat.modeFilesLocations": {
-    "chatmodes": true
+    ".awesome-copilot/chatmodes": true
   },
   "chat.promptFilesLocations": {
-    "prompts": true
+    ".awesome-copilot/prompts": true
   },
   "chat.instructionsFilesLocations": {
-    "instructions": true
-  },
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
-  "files.trimTrailingWhitespace": true,
-  "[markdown]": {
-    "files.trimTrailingWhitespace": false,
-    "editor.formatOnSave": true
-  },
-  "editor.rulers": [
-    120
-  ],
-  "files.associations": {
-    "*.chatmode.md": "markdown",
-    "*.instructions.md": "markdown",
-    "*.prompt.md": "markdown"
-  },
-  "github.copilot.chat.agent.thinkingTool": true,
-  "github.copilot.chat.alternateGptPrompt.enabled": true,
-  "github.copilot.chat.editor.temporalContext.enabled": true,
-  "github.copilot.chat.edits.temporalContext.enabled": true,
-  "github.copilot.chat.generateTests.codeLens": true,
-  "github.copilot.chat.languageContext.fix.typescript.enabled": true,
-  "github.copilot.chat.languageContext.inline.typescript.enabled": true,
-  "github.copilot.chat.languageContext.typescript.enabled": true,
-  "github.copilot.chat.newWorkspace.useContext7": true,
-  "github.copilot.chat.notebook.enhancedNextEditSuggestions.enabled": true,
-  "github.copilot.chat.notebook.followCellExecution.enabled": true,
+    ".awesome-copilot/instructions": true
+  }
 }
