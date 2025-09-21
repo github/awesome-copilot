@@ -165,8 +165,21 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   ensureDirectoryExists(path.join(outputDir, "instructions"));
   ensureDirectoryExists(path.join(outputDir, "chatmodes"));
   
+  // Check if this is a subsequent run by looking for existing state
+  const stateFilePath = path.join(outputDir, ".awesome-copilot-state.json");
+  let previousState = {};
+  if (fs.existsSync(stateFilePath)) {
+    try {
+      previousState = JSON.parse(fs.readFileSync(stateFilePath, 'utf8'));
+    } catch (error) {
+      // If state file is corrupted, treat as first run
+      previousState = {};
+    }
+  }
+
   let copiedCount = 0;
   let removedCount = 0;
+  let skippedCount = 0;
   const summary = {
     prompts: 0,
     instructions: 0,
@@ -204,9 +217,13 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
         const destPath = path.join(outputDir, destDir, `${itemName}${fileExtension}`);
         
         if (enabled && fs.existsSync(sourcePath)) {
-          copyFile(sourcePath, destPath);
-          copiedCount++;
-          summary[sectionName]++;
+          const copyResult = copyFileWithTracking(sourcePath, destPath);
+          if (copyResult.copied) {
+            copiedCount++;
+            summary[sectionName]++;
+          } else if (copyResult.skipped) {
+            skippedCount++;
+          }
           enabledInSection.add(itemName);
         } else if (!enabled && fs.existsSync(destPath)) {
           // Remove file if it's disabled
@@ -233,6 +250,29 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
         }
       });
     }
+  }
+
+  // Helper function to copy files with tracking
+  function copyFileWithTracking(sourcePath, destPath) {
+    // Check if file already exists and is identical
+    if (fs.existsSync(destPath)) {
+      try {
+        const sourceContent = fs.readFileSync(sourcePath);
+        const destContent = fs.readFileSync(destPath);
+        
+        if (sourceContent.equals(destContent)) {
+          // Files are identical, no need to copy
+          console.log(`⚡ Skipped (up to date): ${path.basename(sourcePath)}`);
+          return { copied: false, skipped: true };
+        }
+      } catch (error) {
+        // If we can't read files for comparison, just proceed with copy
+      }
+    }
+
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`✓ Copied: ${path.basename(sourcePath)}`);
+    return { copied: true, skipped: false };
   }
 
   // Helper function to check if an item is in an enabled collection
@@ -277,9 +317,13 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
       // Only copy if not explicitly disabled in individual settings
       const isExplicitlyDisabled = config[section] && config[section][itemName] === false;
       
-      if (destPath && !fs.existsSync(destPath) && !isExplicitlyDisabled) {
-        copyFile(sourcePath, destPath);
-        copiedCount++;
+      if (destPath && !isExplicitlyDisabled) {
+        const copyResult = copyFileWithTracking(sourcePath, destPath);
+        if (copyResult.copied) {
+          copiedCount++;
+        } else if (copyResult.skipped) {
+          skippedCount++;
+        }
       }
     }
   }
@@ -290,6 +334,9 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   console.log("=".repeat(50));
   console.log(`📂 Output directory: ${outputDir}`);
   console.log(`📝 Total files copied: ${copiedCount}`);
+  if (skippedCount > 0) {
+    console.log(`⚡ Files skipped (up to date): ${skippedCount}`);
+  }
   if (removedCount > 0) {
     console.log(`🗑️  Total files removed: ${removedCount}`);
   }
@@ -300,6 +347,20 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   
   if (config.project?.name) {
     console.log(`🏷️  Project: ${config.project.name}`);
+  }
+
+  // Save current state for future idempotency checks
+  const currentState = {
+    lastApplied: new Date().toISOString(),
+    configHash: Buffer.from(JSON.stringify(config)).toString('base64'),
+    outputDir: outputDir
+  };
+  
+  try {
+    fs.writeFileSync(stateFilePath, JSON.stringify(currentState, null, 2));
+  } catch (error) {
+    // State saving failure is not critical
+    console.log("⚠️  Warning: Could not save state file for future optimization");
   }
   
   console.log("\nNext steps:");
@@ -317,14 +378,6 @@ function ensureDirectoryExists(dirPath) {
     fs.mkdirSync(dirPath, { recursive: true });
     console.log(`📁 Created directory: ${dirPath}`);
   }
-}
-
-/**
- * Copy file from source to destination
- */
-function copyFile(sourcePath, destPath) {
-  fs.copyFileSync(sourcePath, destPath);
-  console.log(`✓ Copied: ${path.basename(sourcePath)}`);
 }
 
 // CLI usage
