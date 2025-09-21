@@ -158,6 +158,90 @@ function getAllAvailableItems(type) {
   return getAvailableItems(path.join(__dirname, meta.dir), meta.ext);
 }
 
+/**
+ * Compute effective item states respecting explicit overrides over collections
+ * @param {Object} config - Configuration object with sections
+ * @returns {Object} Effective states for each section with { itemName: { enabled: boolean, reason: string } }
+ */
+function computeEffectiveItemStates(config) {
+  const { parseCollectionYaml } = require("./yaml-parser");
+  
+  const effectiveStates = {
+    prompts: {},
+    instructions: {},
+    chatmodes: {}
+  };
+
+  // First, collect all items enabled by collections
+  const collectionEnabledItems = {
+    prompts: new Set(),
+    instructions: new Set(), 
+    chatmodes: new Set()
+  };
+
+  if (config.collections) {
+    for (const [collectionName, enabled] of Object.entries(config.collections)) {
+      if (enabled === true) {
+        const collectionPath = path.join(__dirname, "collections", `${collectionName}.collection.yml`);
+        if (fs.existsSync(collectionPath)) {
+          const collection = parseCollectionYaml(collectionPath);
+          if (collection && collection.items) {
+            collection.items.forEach(item => {
+              // Extract item name from path - remove directory and all extensions
+              const itemName = path.basename(item.path).replace(/\.(prompt|instructions|chatmode)\.md$/, '');
+              
+              if (item.kind === "prompt") {
+                collectionEnabledItems.prompts.add(itemName);
+              } else if (item.kind === "instruction") {
+                collectionEnabledItems.instructions.add(itemName);
+              } else if (item.kind === "chat-mode") {
+                collectionEnabledItems.chatmodes.add(itemName);
+              }
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // For each section, compute effective states
+  for (const section of ["prompts", "instructions", "chatmodes"]) {
+    const sectionConfig = config[section] || {};
+    const collectionEnabled = collectionEnabledItems[section];
+    
+    // Get all available items for this section
+    const availableItems = getAllAvailableItems(section);
+    
+    for (const itemName of availableItems) {
+      const explicitValue = sectionConfig[itemName];
+      const isEnabledByCollection = collectionEnabled.has(itemName);
+      
+      // Precedence rules:
+      // 1. If explicitly set to true or false, use that value
+      // 2. If undefined and enabled by collection, use true
+      // 3. Otherwise, use false
+      
+      let enabled = false;
+      let reason = "disabled";
+      
+      if (explicitValue === true) {
+        enabled = true;
+        reason = "explicit";
+      } else if (explicitValue === false) {
+        enabled = false;
+        reason = "explicit";
+      } else if (explicitValue === undefined && isEnabledByCollection) {
+        enabled = true;
+        reason = "collection";
+      }
+      
+      effectiveStates[section][itemName] = { enabled, reason };
+    }
+  }
+
+  return effectiveStates;
+}
+
 module.exports = {
   DEFAULT_CONFIG_PATH,
   CONFIG_SECTIONS,
@@ -168,5 +252,6 @@ module.exports = {
   ensureConfigStructure,
   sortObjectKeys,
   countEnabledItems,
-  getAllAvailableItems
+  getAllAvailableItems,
+  computeEffectiveItemStates
 };

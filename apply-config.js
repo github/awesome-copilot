@@ -100,8 +100,28 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
     collections: 0
   };
 
-  // Process collections first (they can enable individual items)
-  const enabledItems = new Set();
+  // Import config manager for effective state computation
+  const { computeEffectiveItemStates } = require("./config-manager");
+  
+  // Compute effective states using precedence rules
+  const effectiveStates = computeEffectiveItemStates(config);
+  
+  // Create sets of effectively enabled items for performance
+  const effectivelyEnabledSets = {
+    prompts: new Set(),
+    instructions: new Set(),
+    chatmodes: new Set()
+  };
+  
+  for (const section of ["prompts", "instructions", "chatmodes"]) {
+    for (const [itemName, state] of Object.entries(effectiveStates[section])) {
+      if (state.enabled) {
+        effectivelyEnabledSets[section].add(itemName);
+      }
+    }
+  }
+
+  // Count enabled collections for summary
   if (config.collections) {
     for (const [collectionName, enabled] of Object.entries(config.collections)) {
       if (enabled) {
@@ -109,9 +129,6 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
         if (fs.existsSync(collectionPath)) {
           const collection = parseCollectionYaml(collectionPath);
           if (collection && collection.items) {
-            collection.items.forEach(item => {
-              enabledItems.add(item.path);
-            });
             summary.collections++;
             console.log(`✓ Enabled collection: ${collectionName} (${collection.items.length} items)`);
           }
@@ -120,70 +137,36 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
     }
   }
 
-  // Process prompts
-  if (config.prompts) {
-    for (const [promptName, enabled] of Object.entries(config.prompts)) {
-      if (enabled) {
-        const sourcePath = path.join(rootDir, "prompts", `${promptName}.prompt.md`);
-        if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(outputDir, "prompts", `${promptName}.prompt.md`);
-          copyFile(sourcePath, destPath);
-          copiedCount++;
-          summary.prompts++;
-        }
-      }
-    }
-  }
-
-  // Process instructions
-  if (config.instructions) {
-    for (const [instructionName, enabled] of Object.entries(config.instructions)) {
-      if (enabled) {
-        const sourcePath = path.join(rootDir, "instructions", `${instructionName}.instructions.md`);
-        if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(outputDir, "instructions", `${instructionName}.instructions.md`);
-          copyFile(sourcePath, destPath);
-          copiedCount++;
-          summary.instructions++;
-        }
-      }
-    }
-  }
-
-  // Process chat modes
-  if (config.chatmodes) {
-    for (const [chatmodeName, enabled] of Object.entries(config.chatmodes)) {
-      if (enabled) {
-        const sourcePath = path.join(rootDir, "chatmodes", `${chatmodeName}.chatmode.md`);
-        if (fs.existsSync(sourcePath)) {
-          const destPath = path.join(outputDir, "chatmodes", `${chatmodeName}.chatmode.md`);
-          copyFile(sourcePath, destPath);
-          copiedCount++;
-          summary.chatmodes++;
-        }
-      }
-    }
-  }
-
-  // Process items from enabled collections
-  for (const itemPath of enabledItems) {
-    const sourcePath = path.join(rootDir, itemPath);
+  // Process prompts using effective states
+  for (const promptName of effectivelyEnabledSets.prompts) {
+    const sourcePath = path.join(rootDir, "prompts", `${promptName}.prompt.md`);
     if (fs.existsSync(sourcePath)) {
-      const fileName = path.basename(itemPath);
-      let destPath;
-      
-      if (fileName.endsWith('.prompt.md')) {
-        destPath = path.join(outputDir, "prompts", fileName);
-      } else if (fileName.endsWith('.chatmode.md')) {
-        destPath = path.join(outputDir, "chatmodes", fileName);
-      } else if (fileName.endsWith('.instructions.md')) {
-        destPath = path.join(outputDir, "instructions", fileName);
-      }
-      
-      if (destPath && !fs.existsSync(destPath)) {
-        copyFile(sourcePath, destPath);
-        copiedCount++;
-      }
+      const destPath = path.join(outputDir, "prompts", `${promptName}.prompt.md`);
+      copyFile(sourcePath, destPath);
+      copiedCount++;
+      summary.prompts++;
+    }
+  }
+
+  // Process instructions using effective states
+  for (const instructionName of effectivelyEnabledSets.instructions) {
+    const sourcePath = path.join(rootDir, "instructions", `${instructionName}.instructions.md`);
+    if (fs.existsSync(sourcePath)) {
+      const destPath = path.join(outputDir, "instructions", `${instructionName}.instructions.md`);
+      copyFile(sourcePath, destPath);
+      copiedCount++;
+      summary.instructions++;
+    }
+  }
+
+  // Process chat modes using effective states
+  for (const chatmodeName of effectivelyEnabledSets.chatmodes) {
+    const sourcePath = path.join(rootDir, "chatmodes", `${chatmodeName}.chatmode.md`);
+    if (fs.existsSync(sourcePath)) {
+      const destPath = path.join(outputDir, "chatmodes", `${chatmodeName}.chatmode.md`);
+      copyFile(sourcePath, destPath);
+      copiedCount++;
+      summary.chatmodes++;
     }
   }
 
