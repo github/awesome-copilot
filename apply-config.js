@@ -229,10 +229,14 @@ function copyFile(sourcePath, destPath) {
 }
 
 /**
- * Clean up files that are no longer enabled (requirement #3)
+ * Cleans up files in the output directory that are no longer enabled.
+ *
+ * @param {string} outputDir - The root directory where generated files are stored.
+ * @param {Object} effectivelyEnabledSets - An object mapping section names to Sets of enabled item names.
+ * @param {string} rootDir - The root directory of the project (used for path resolution).
+ * @returns {Object} Summary of the number of files removed per section.
  */
 function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
-  const cleanupSummary = {
     prompts: 0,
     instructions: 0,
     chatmodes: 0
