@@ -180,7 +180,8 @@ async function runTests() {
     
     // Double-check with list command
     const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult.stdout.includes('playwright-generate-test (explicit)') && !listResult.stdout.includes('[✓] playwright-generate-test'), 'Should remain explicitly disabled');
+    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), "'playwright-generate-test (explicit)' should be present in the list output");
+    assert(!listResult.stdout.includes('[✓] playwright-generate-test'), "'[✓] playwright-generate-test' should NOT be present in the list output (should remain explicitly disabled)");
   });
 
   console.log(`\nNew Features Test Results: ${passedTests}/${totalTests} passed`);
