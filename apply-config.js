@@ -137,13 +137,17 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
     }
   }
 
+  // Clean up files that are no longer enabled (requirement #3: Toggling instructions off will remove them)
+  const cleanupSummary = cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir);
+  
   // Process prompts using effective states
   for (const promptName of effectivelyEnabledSets.prompts) {
     const sourcePath = path.join(rootDir, "prompts", `${promptName}.prompt.md`);
     if (fs.existsSync(sourcePath)) {
       const destPath = path.join(outputDir, "prompts", `${promptName}.prompt.md`);
-      copyFile(sourcePath, destPath);
-      copiedCount++;
+      if (copyFile(sourcePath, destPath)) {
+        copiedCount++;
+      }
       summary.prompts++;
     }
   }
@@ -153,8 +157,9 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
     const sourcePath = path.join(rootDir, "instructions", `${instructionName}.instructions.md`);
     if (fs.existsSync(sourcePath)) {
       const destPath = path.join(outputDir, "instructions", `${instructionName}.instructions.md`);
-      copyFile(sourcePath, destPath);
-      copiedCount++;
+      if (copyFile(sourcePath, destPath)) {
+        copiedCount++;
+      }
       summary.instructions++;
     }
   }
@@ -164,8 +169,9 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
     const sourcePath = path.join(rootDir, "chatmodes", `${chatmodeName}.chatmode.md`);
     if (fs.existsSync(sourcePath)) {
       const destPath = path.join(outputDir, "chatmodes", `${chatmodeName}.chatmode.md`);
-      copyFile(sourcePath, destPath);
-      copiedCount++;
+      if (copyFile(sourcePath, destPath)) {
+        copiedCount++;
+      }
       summary.chatmodes++;
     }
   }
@@ -203,11 +209,62 @@ function ensureDirectoryExists(dirPath) {
 }
 
 /**
- * Copy file from source to destination
+ * Copy file from source to destination with idempotency check
  */
 function copyFile(sourcePath, destPath) {
+  // Check if destination exists and has same content (idempotency)
+  if (fs.existsSync(destPath)) {
+    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+    const destContent = fs.readFileSync(destPath, 'utf8');
+    
+    if (sourceContent === destContent) {
+      console.log(`✓ Already exists and up-to-date: ${path.basename(sourcePath)}`);
+      return false; // No copy needed
+    }
+  }
+  
   fs.copyFileSync(sourcePath, destPath);
   console.log(`✓ Copied: ${path.basename(sourcePath)}`);
+  return true; // File was copied
+}
+
+/**
+ * Clean up files that are no longer enabled (requirement #3)
+ */
+function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
+  const cleanupSummary = {
+    prompts: 0,
+    instructions: 0,
+    chatmodes: 0
+  };
+
+  const sections = [
+    { name: "prompts", ext: ".prompt.md" },
+    { name: "instructions", ext: ".instructions.md" },
+    { name: "chatmodes", ext: ".chatmode.md" }
+  ];
+
+  for (const section of sections) {
+    const sectionDir = path.join(outputDir, section.name);
+    if (!fs.existsSync(sectionDir)) continue;
+
+    const existingFiles = fs.readdirSync(sectionDir);
+    for (const fileName of existingFiles) {
+      if (!fileName.endsWith(section.ext)) continue;
+      
+      const itemName = fileName.replace(section.ext, '');
+      
+      // Check if this item is still enabled
+      if (!effectivelyEnabledSets[section.name].has(itemName)) {
+        const filePath = path.join(sectionDir, fileName);
+        fs.unlinkSync(filePath);
+        cleanupSummary[section.name]++;
+        console.log(`🗑️  Removed: ${section.name}/${fileName}`);
+      }
+    }
+  }
+
+  return cleanupSummary;
 }
 
 // CLI usage

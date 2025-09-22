@@ -54,9 +54,17 @@ const commands = {
 
   toggle: {
     description: "Enable or disable prompts, instructions, chat modes, or collections",
-    usage: "awesome-copilot toggle <section> <name|all> [on|off] [--config <file>]",
+    usage: "awesome-copilot toggle <section> <name|all> [on|off] [--all] [--apply] [--config <file>]",
+    action: async (args) => {
+      await handleToggleCommand(args);
+    }
+  },
+
+  reset: {
+    description: "Reset .awesome-copilot directory (remove all files but keep structure)",
+    usage: "awesome-copilot reset [config-file]",
     action: (args) => {
-      handleToggleCommand(args);
+      handleResetCommand(args);
     }
   },
 
@@ -87,9 +95,12 @@ function showHelp() {
   console.log("  awesome-copilot init                          # Create default config file");
   console.log("  awesome-copilot init my-config.yml            # Create named config file");
   console.log("  awesome-copilot apply                         # Apply default config");
+  console.log("  awesome-copilot reset                         # Clear .awesome-copilot directory");
   console.log("  awesome-copilot list instructions             # See which instructions are enabled");
   console.log("  awesome-copilot toggle prompts create-readme on  # Enable a specific prompt");
   console.log("  awesome-copilot toggle instructions all off --config team.yml  # Disable all instructions");
+  console.log("  awesome-copilot toggle prompts all on --all   # Force enable ALL prompts (override explicit settings)");
+  console.log("  awesome-copilot toggle collections testing-automation on --apply  # Enable collection and apply");
   console.log("");
   console.log("Workflow:");
   console.log("  1. Run 'awesome-copilot init' to create a configuration file");
@@ -158,9 +169,9 @@ function handleListCommand(rawArgs) {
         const effectiveState = effectiveStates[section]?.[itemName];
         if (effectiveState) {
           const symbol = effectiveState.enabled ? "✓" : " ";
-          const reasonText = effectiveState.enabled 
+          const reasonText = effectiveState.reason === "explicit" 
             ? ` (${effectiveState.reason})`
-            : "";
+            : effectiveState.enabled ? ` (${effectiveState.reason})` : "";
           console.log(`  [${symbol}] ${itemName}${reasonText}`);
         } else {
           console.log(`  [ ] ${itemName}`);
@@ -172,17 +183,22 @@ function handleListCommand(rawArgs) {
   console.log("\nUse 'awesome-copilot toggle' to enable or disable specific items.");
 }
 
-function handleToggleCommand(rawArgs) {
-  const { args, configPath } = extractConfigOption(rawArgs);
+async function handleToggleCommand(rawArgs) {
+  const { args, configPath, flags } = extractToggleOptions(rawArgs);
 
   if (args.length < 2) {
-    throw new Error("Usage: awesome-copilot toggle <section> <name|all> [on|off] [--config <file>]");
+    throw new Error("Usage: awesome-copilot toggle <section> <name|all> [on|off] [--all] [--apply] [--config <file>]");
   }
 
   const section = validateSectionType(args[0]);
-  const itemName = args[1];
+  let itemName = args[1];
   const stateArg = args[2];
   const desiredState = stateArg ? parseStateToken(stateArg) : null;
+  
+  // Handle --all flag
+  if (flags.all) {
+    itemName = "all";
+  }
 
   const availableItems = getAllAvailableItems(section);
   const availableSet = new Set(availableItems);
@@ -260,10 +276,20 @@ function handleToggleCommand(rawArgs) {
     if (desiredState === null) {
       throw new Error("Specify 'on' or 'off' when toggling all items.");
     }
-    availableItems.forEach(item => {
-      sectionState[item] = desiredState;
-    });
-    console.log(`${desiredState ? "Enabled" : "Disabled"} all ${SECTION_METADATA[section].label.toLowerCase()}.`);
+    
+    // Enhanced --all behavior: override ALL items, even explicit ones
+    if (flags.all) {
+      console.log(`${desiredState ? "Force-enabling" : "Force-disabling"} ALL ${SECTION_METADATA[section].label.toLowerCase()} (including explicit overrides).`);
+      availableItems.forEach(item => {
+        sectionState[item] = desiredState;
+      });
+    } else {
+      // Regular "all" behavior: set all items explicitly but respect that they are now explicit
+      availableItems.forEach(item => {
+        sectionState[item] = desiredState;
+      });
+      console.log(`${desiredState ? "Enabled" : "Disabled"} all ${SECTION_METADATA[section].label.toLowerCase()}.`);
+    }
 
     if (section === "instructions" && desiredState) {
       console.log("⚠️  Enabling every instruction can exceed Copilot Agent's context window. Consider enabling only what you need.");
@@ -295,7 +321,53 @@ function handleToggleCommand(rawArgs) {
     console.log(`Estimated ${SECTION_METADATA[section].label.toLowerCase()} context size: ${formatNumber(totalCharacters)} characters.`);
   }
   maybeWarnAboutContext(section, totalCharacters);
-  console.log("Run 'awesome-copilot apply' to copy updated selections into your project.");
+  
+  // Handle automatic application
+  if (flags.apply) {
+    console.log("\n🔄 Applying configuration automatically...");
+    await applyConfig(configPath);
+  } else {
+    console.log("Run 'awesome-copilot apply' to copy updated selections into your project.");
+  }
+}
+
+function extractToggleOptions(rawArgs) {
+  const args = [...rawArgs];
+  let configPath = DEFAULT_CONFIG_PATH;
+  const flags = {
+    all: false,
+    apply: false
+  };
+
+  // Process flags
+  for (let i = args.length - 1; i >= 0; i--) {
+    const arg = args[i];
+    
+    if (arg === "--all") {
+      flags.all = true;
+      args.splice(i, 1);
+    } else if (arg === "--apply") {
+      flags.apply = true;
+      args.splice(i, 1);
+    } else if (CONFIG_FLAG_ALIASES.includes(arg)) {
+      if (i === args.length - 1) {
+        throw new Error("Missing configuration file after --config flag.");
+      }
+      configPath = args[i + 1];
+      args.splice(i, 2);
+    }
+  }
+
+  // Check for config file as last argument
+  if (args.length > 0) {
+    const potentialPath = args[args.length - 1];
+    if (isConfigFilePath(potentialPath)) {
+      configPath = potentialPath;
+      args.pop();
+    }
+  }
+
+  return { args, configPath, flags };
 }
 
 function extractConfigOption(rawArgs) {
@@ -394,6 +466,51 @@ function formatNumber(value) {
 function findClosestMatch(target, candidates) {
   const normalizedTarget = target.toLowerCase();
   return candidates.find(candidate => candidate.toLowerCase().includes(normalizedTarget));
+}
+
+function handleResetCommand(rawArgs) {
+  const { args, configPath } = extractConfigOption(rawArgs);
+  
+  const { config } = loadConfig(configPath);
+  const outputDir = config.project?.output_directory || ".awesome-copilot";
+  
+  if (!fs.existsSync(outputDir)) {
+    console.log(`📁 Directory ${outputDir} does not exist - nothing to reset.`);
+    return;
+  }
+  
+  console.log(`🔄 Resetting ${outputDir} directory...`);
+  
+  let removedCount = 0;
+  
+  // Remove all files from subdirectories but keep the directory structure
+  const subdirs = ["prompts", "instructions", "chatmodes"];
+  for (const subdir of subdirs) {
+    const subdirPath = path.join(outputDir, subdir);
+    if (fs.existsSync(subdirPath)) {
+      const files = fs.readdirSync(subdirPath);
+      for (const file of files) {
+        const filePath = path.join(subdirPath, file);
+        if (fs.statSync(filePath).isFile()) {
+          fs.unlinkSync(filePath);
+          removedCount++;
+          console.log(`🗑️  Removed: ${subdir}/${file}`);
+        }
+      }
+    }
+  }
+  
+  // Remove README.md if it exists
+  const readmePath = path.join(outputDir, "README.md");
+  if (fs.existsSync(readmePath)) {
+    fs.unlinkSync(readmePath);
+    removedCount++;
+    console.log(`🗑️  Removed: README.md`);
+  }
+  
+  console.log(`\n✅ Reset complete! Removed ${removedCount} files.`);
+  console.log(`📁 Directory structure preserved: ${outputDir}/`);
+  console.log("Run 'awesome-copilot apply' to repopulate with current configuration.");
 }
 
 async function main() {
