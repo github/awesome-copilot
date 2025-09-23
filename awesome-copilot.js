@@ -61,7 +61,7 @@ const commands = {
   },
 
   reset: {
-    description: "Reset .awesome-copilot directory (remove all files but keep structure)",
+    description: "Reset output directory (remove all files but keep structure)",
     usage: "awesome-copilot reset [config-file]",
     action: (args) => {
       handleResetCommand(args);
@@ -95,7 +95,7 @@ function showHelp() {
   console.log("  awesome-copilot init                          # Create default config file");
   console.log("  awesome-copilot init my-config.yml            # Create named config file");
   console.log("  awesome-copilot apply                         # Apply default config");
-  console.log("  awesome-copilot reset                         # Clear .awesome-copilot directory");
+  console.log("  awesome-copilot reset                         # Clear output directory");
   console.log("  awesome-copilot list instructions             # See which instructions are enabled");
   console.log("  awesome-copilot toggle prompts create-readme on  # Enable a specific prompt");
   console.log("  awesome-copilot toggle instructions all off --config team.yml  # Disable all instructions");
@@ -472,7 +472,7 @@ function handleResetCommand(rawArgs) {
   const { args, configPath } = extractConfigOption(rawArgs);
   
   const { config } = loadConfig(configPath);
-  const outputDir = config.project?.output_directory || ".awesome-copilot";
+  const outputDir = config.project?.output_directory || ".github";
   
   if (!fs.existsSync(outputDir)) {
     console.log(`📁 Directory ${outputDir} does not exist - nothing to reset.`);
