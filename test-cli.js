@@ -92,7 +92,7 @@ async function runTests() {
     
     const result = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
     assert(result.success, 'List should succeed');
-    assert(result.stdout.includes('(collection)'), 'Should show collection reason');
+    assert(result.stdout.includes('(via:[testing-automation])'), 'Should show collection reason');
     assert(result.stdout.includes('[✓]'), 'Should show enabled items');
   });
 
@@ -105,7 +105,7 @@ async function runTests() {
     assert(result.success, 'Individual toggle should succeed');
     
     const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), 
+    assert(listResult.stdout.includes('playwright-generate-test (explicit:false)'), 
            'Explicitly disabled item should show explicit reason');
   });
 

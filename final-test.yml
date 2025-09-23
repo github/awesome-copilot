@@ -1,0 +1,36 @@
+# Awesome Copilot Configuration File
+# Generated on 2025-09-23T23:58:14.331Z
+#
+# This file uses effective state precedence:
+# 1. Explicit item settings (true/false) override everything
+# 2. Items not listed inherit from enabled collections
+# 3. Otherwise items are disabled
+#
+# To use:
+# - Enable collections for curated sets of related items
+# - Explicitly set individual items to true/false to override collections
+# - Items not mentioned will follow collection settings
+#
+# After configuring, run: awesome-copilot apply
+#
+
+version: "1.0"
+project:
+  name: "My Project"
+  description: "A project using awesome-copilot customizations"
+  output_directory: ".github"
+prompts:
+  create-readme: true
+  csharp-nunit: false
+instructions:
+chatmodes:
+collections:
+  azure-cloud-development: false
+  csharp-dotnet-development: false
+  database-data-management: false
+  devops-oncall: false
+  frontend-web-dev: false
+  project-planning: false
+  security-best-practices: true
+  technical-spike: false
+  testing-automation: true
