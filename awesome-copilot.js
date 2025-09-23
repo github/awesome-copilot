@@ -353,7 +353,7 @@ function extractToggleOptions(rawArgs) {
       if (i === args.length - 1) {
         throw new Error("Missing configuration file after --config flag.");
       }
-      configPath = args[i + 1];
+      configPath = validateConfigPath(args[i + 1]);
       args.splice(i, 2);
     }
   }
@@ -362,7 +362,7 @@ function extractToggleOptions(rawArgs) {
   if (args.length > 0) {
     const potentialPath = args[args.length - 1];
     if (isConfigFilePath(potentialPath)) {
-      configPath = potentialPath;
+      configPath = validateConfigPath(potentialPath);
       args.pop();
     }
   }
@@ -380,7 +380,7 @@ function extractConfigOption(rawArgs) {
       if (i === args.length - 1) {
         throw new Error("Missing configuration file after --config flag.");
       }
-      configPath = args[i + 1];
+      configPath = validateConfigPath(args[i + 1]);
       args.splice(i, 2);
       i -= 1;
     }
@@ -389,7 +389,7 @@ function extractConfigOption(rawArgs) {
   if (args.length > 0) {
     const potentialPath = args[args.length - 1];
     if (isConfigFilePath(potentialPath)) {
-      configPath = potentialPath;
+      configPath = validateConfigPath(potentialPath);
       args.pop();
     }
   }
@@ -402,6 +402,24 @@ function isConfigFilePath(value) {
     return false;
   }
   return value.endsWith(".yml") || value.endsWith(".yaml") || value.includes("/") || value.includes("\\");
+}
+
+function validateConfigPath(configPath) {
+  if (typeof configPath !== "string") {
+    throw new Error("Configuration path must be a string");
+  }
+  
+  // Basic path traversal protection
+  if (configPath.includes("..") || configPath.includes("~")) {
+    throw new Error("Configuration path cannot contain path traversal sequences (..) or home directory references (~)");
+  }
+  
+  // Ensure it's a reasonable file extension
+  if (!configPath.endsWith(".yml") && !configPath.endsWith(".yaml")) {
+    throw new Error("Configuration file must have a .yml or .yaml extension");
+  }
+  
+  return configPath;
 }
 
 function validateSectionType(input) {
@@ -482,20 +500,31 @@ function handleResetCommand(rawArgs) {
   console.log(`🔄 Resetting ${outputDir} directory...`);
   
   let removedCount = 0;
+  let failedCount = 0;
   
   // Remove all files from subdirectories but keep the directory structure
   const subdirs = ["prompts", "instructions", "chatmodes"];
   for (const subdir of subdirs) {
     const subdirPath = path.join(outputDir, subdir);
     if (fs.existsSync(subdirPath)) {
-      const files = fs.readdirSync(subdirPath);
-      for (const file of files) {
-        const filePath = path.join(subdirPath, file);
-        if (fs.statSync(filePath).isFile()) {
-          fs.unlinkSync(filePath);
-          removedCount++;
-          console.log(`🗑️  Removed: ${subdir}/${file}`);
+      try {
+        const files = fs.readdirSync(subdirPath);
+        for (const file of files) {
+          const filePath = path.join(subdirPath, file);
+          try {
+            if (fs.statSync(filePath).isFile()) {
+              fs.unlinkSync(filePath);
+              removedCount++;
+              console.log(`🗑️  Removed: ${subdir}/${file}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed to remove ${subdir}/${file}: ${error.message}`);
+            failedCount++;
+          }
         }
+      } catch (error) {
+        console.error(`❌ Failed to read directory ${subdirPath}: ${error.message}`);
+        failedCount++;
       }
     }
   }
@@ -503,12 +532,20 @@ function handleResetCommand(rawArgs) {
   // Remove README.md if it exists
   const readmePath = path.join(outputDir, "README.md");
   if (fs.existsSync(readmePath)) {
-    fs.unlinkSync(readmePath);
-    removedCount++;
-    console.log(`🗑️  Removed: README.md`);
+    try {
+      fs.unlinkSync(readmePath);
+      removedCount++;
+      console.log(`🗑️  Removed: README.md`);
+    } catch (error) {
+      console.error(`❌ Failed to remove README.md: ${error.message}`);
+      failedCount++;
+    }
   }
   
   console.log(`\n✅ Reset complete! Removed ${removedCount} files.`);
+  if (failedCount > 0) {
+    console.log(`⚠️  ${failedCount} files could not be removed.`);
+  }
   console.log(`📁 Directory structure preserved: ${outputDir}/`);
   console.log("Run 'awesome-copilot apply' to repopulate with current configuration.");
 }

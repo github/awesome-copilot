@@ -202,9 +202,13 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
  * Ensure directory exists, create if it doesn't
  */
 function ensureDirectoryExists(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-    console.log(`📁 Created directory: ${dirPath}`);
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+      console.log(`📁 Created directory: ${dirPath}`);
+    }
+  } catch (error) {
+    throw new Error(`Failed to create directory ${dirPath}: ${error.message}`);
   }
 }
 
@@ -212,20 +216,34 @@ function ensureDirectoryExists(dirPath) {
  * Copy file from source to destination with idempotency check
  */
 function copyFile(sourcePath, destPath) {
-  // Check if destination exists and has same content (idempotency)
-  if (fs.existsSync(destPath)) {
-    const sourceContent = fs.readFileSync(sourcePath, 'utf8');
-    const destContent = fs.readFileSync(destPath, 'utf8');
-    
-    if (sourceContent === destContent) {
-      console.log(`✓ Already exists and up-to-date: ${path.basename(sourcePath)}`);
-      return false; // No copy needed
+  try {
+    // Validate source file exists
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`Source file does not exist: ${sourcePath}`);
     }
+
+    // Check if destination exists and has same content (idempotency)
+    if (fs.existsSync(destPath)) {
+      const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+      const destContent = fs.readFileSync(destPath, 'utf8');
+      
+      if (sourceContent === destContent) {
+        console.log(`✓ Already exists and up-to-date: ${path.basename(sourcePath)}`);
+        return false; // No copy needed
+      }
+    }
+    
+    // Ensure destination directory exists
+    const destDir = path.dirname(destPath);
+    ensureDirectoryExists(destDir);
+    
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`✓ Copied: ${path.basename(sourcePath)}`);
+    return true; // File was copied
+  } catch (error) {
+    console.error(`❌ Failed to copy ${path.basename(sourcePath)}: ${error.message}`);
+    return false; // Copy failed
   }
-  
-  fs.copyFileSync(sourcePath, destPath);
-  console.log(`✓ Copied: ${path.basename(sourcePath)}`);
-  return true; // File was copied
 }
 
 /**
@@ -253,19 +271,27 @@ function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
     const sectionDir = path.join(outputDir, section.name);
     if (!fs.existsSync(sectionDir)) continue;
 
-    const existingFiles = fs.readdirSync(sectionDir);
-    for (const fileName of existingFiles) {
-      if (!fileName.endsWith(section.ext)) continue;
-      
-      const itemName = fileName.replace(section.ext, '');
-      
-      // Check if this item is still enabled
-      if (!effectivelyEnabledSets[section.name].has(itemName)) {
-        const filePath = path.join(sectionDir, fileName);
-        fs.unlinkSync(filePath);
-        removedCounts[section.name]++;
-        console.log(`🗑️  Removed: ${section.name}/${fileName}`);
+    try {
+      const existingFiles = fs.readdirSync(sectionDir);
+      for (const fileName of existingFiles) {
+        if (!fileName.endsWith(section.ext)) continue;
+        
+        const itemName = fileName.replace(section.ext, '');
+        
+        // Check if this item is still enabled
+        if (!effectivelyEnabledSets[section.name].has(itemName)) {
+          const filePath = path.join(sectionDir, fileName);
+          try {
+            fs.unlinkSync(filePath);
+            removedCounts[section.name]++;
+            console.log(`🗑️  Removed: ${section.name}/${fileName}`);
+          } catch (error) {
+            console.error(`❌ Failed to remove ${section.name}/${fileName}: ${error.message}`);
+          }
+        }
       }
+    } catch (error) {
+      console.error(`❌ Failed to read directory ${sectionDir}: ${error.message}`);
     }
   }
 
