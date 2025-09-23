@@ -68,6 +68,15 @@ const commands = {
     }
   },
 
+  "generate-repo-instructions": {
+    description: "Generate .github/copilot-instructions.md from enabled instructions",
+    usage: "awesome-copilot generate-repo-instructions [config-file] [--consolidated|--basic] [--output=<file>] [--no-header]",
+    action: async (args) => {
+      const { handleGenerateRepoInstructions } = require("./repository-instructions");
+      await handleGenerateRepoInstructions(args);
+    }
+  },
+
   help: {
     description: "Show help information",
     usage: "awesome-copilot help",
@@ -101,11 +110,14 @@ function showHelp() {
   console.log("  awesome-copilot toggle instructions all off --config team.yml  # Disable all instructions");
   console.log("  awesome-copilot toggle prompts all on --all   # Force enable ALL prompts (override explicit settings)");
   console.log("  awesome-copilot toggle collections testing-automation on --apply  # Enable collection and apply");
+  console.log("  awesome-copilot generate-repo-instructions    # Generate .github/copilot-instructions.md");
+  console.log("  awesome-copilot generate-repo-instructions --consolidated  # Include full instruction content");
   console.log("");
   console.log("Workflow:");
   console.log("  1. Run 'awesome-copilot init' to create a configuration file");
   console.log("  2. Use 'awesome-copilot list' and 'awesome-copilot toggle' to manage enabled items");
   console.log("  3. Run 'awesome-copilot apply' to copy files to your project");
+  console.log("  4. Run 'awesome-copilot generate-repo-instructions' for GitHub Copilot repository instructions");
 }
 
 function showError(message) {

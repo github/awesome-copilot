@@ -196,6 +196,11 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   console.log("2. Use prompts with /awesome-copilot command in GitHub Copilot Chat");
   console.log("3. Instructions will automatically apply to your coding");
   console.log("4. Import chat modes in VS Code settings");
+  
+  // Suggest generating repository instructions if instructions are enabled
+  if (summary.instructions > 0) {
+    console.log("5. Consider running 'awesome-copilot generate-repo-instructions' to create .github/copilot-instructions.md");
+  }
 }
 
 /**

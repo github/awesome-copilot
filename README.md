@@ -85,7 +85,32 @@ Use our configuration system to manage all customizations in one place:
    node /path/to/awesome-copilot/awesome-copilot.js apply
    ```
 
+6. **Generate repository instructions** (optional, for GitHub Copilot repository-level instructions):
+   ```bash
+   # Generate .github/copilot-instructions.md from enabled instructions
+   node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions
+   
+   # Or generate with full instruction content included
+   node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions --consolidated
+   ```
+
 See [CONFIG.md](CONFIG.md) for detailed configuration documentation.
+
+#### 🤖 GitHub Copilot Repository Instructions
+
+Awesome Copilot can generate a `.github/copilot-instructions.md` file that provides repository-level instructions to GitHub Copilot. This file is automatically recognized by GitHub Copilot and applies to all code generation within your repository.
+
+**Benefits:**
+- Instructions automatically apply to all Copilot interactions in your repository
+- No need to manually configure VS Code settings for each team member
+- Instructions are version-controlled with your code
+- Works across all supported IDEs and GitHub Copilot interfaces
+
+**Templates:**
+- `--basic`: Simple list of enabled instructions (default)
+- `--consolidated`: Includes full content of all enabled instruction files
+- Custom templates can be created by modifying the `repository-instructions.js` file
+
 
 #### ⚖️ Configuration Precedence Rules
 

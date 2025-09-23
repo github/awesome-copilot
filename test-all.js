@@ -11,7 +11,7 @@ const { runTests: runApplyTests } = require('./test-apply-effective');
 
 async function runAllTests() {
   console.log('🧪 Running Awesome Copilot Comprehensive Test Suite\n');
-  console.log('=' * 60);
+  console.log('='.repeat(60));
   
   const results = {
     unit: false,
@@ -22,7 +22,7 @@ async function runAllTests() {
 
   try {
     console.log('\n📊 Unit Tests (Effective State Computation)');
-    console.log('-' * 45);
+    console.log('-'.repeat(45));
     results.unit = await runUnitTests();
   } catch (error) {
     console.error('Unit tests failed with error:', error.message);
@@ -30,7 +30,7 @@ async function runAllTests() {
 
   try {
     console.log('\n🔄 Integration Tests (Toggle+Apply Idempotency)');
-    console.log('-' * 48);
+    console.log('-'.repeat(48));
     results.integration = await runIntegrationTests();
   } catch (error) {
     console.error('Integration tests failed with error:', error.message);
@@ -38,7 +38,7 @@ async function runAllTests() {
 
   try {
     console.log('\n⌨️  CLI Tests (List and Toggle Commands)');
-    console.log('-' * 40);
+    console.log('-'.repeat(40));
     results.cli = await runCliTests();
   } catch (error) {
     console.error('CLI tests failed with error:', error.message);
@@ -46,22 +46,32 @@ async function runAllTests() {
 
   try {
     console.log('\n🎯 Apply Tests (Effective States in Apply)');
-    console.log('-' * 42);
+    console.log('-'.repeat(42));
     results.apply = await runApplyTests();
   } catch (error) {
     console.error('Apply tests failed with error:', error.message);
   }
 
+  try {
+    console.log('\n🤖 Repository Instructions Tests');
+    console.log('-'.repeat(33));
+    const { runTests: runRepoInstructionsTests } = require('./test-repository-instructions');
+    results.repoInstructions = await runRepoInstructionsTests();
+  } catch (error) {
+    console.error('Repository instructions tests failed with error:', error.message);
+  }
+
   // Summary
-  console.log('\n' + '=' * 60);
+  console.log('\n' + '='.repeat(60));
   console.log('📋 Test Suite Summary');
-  console.log('=' * 60);
+  console.log('='.repeat(60));
   
   const testTypes = [
     { name: 'Unit Tests', result: results.unit, emoji: '📊' },
     { name: 'Integration Tests', result: results.integration, emoji: '🔄' },
     { name: 'CLI Tests', result: results.cli, emoji: '⌨️' },
-    { name: 'Apply Tests', result: results.apply, emoji: '🎯' }
+    { name: 'Apply Tests', result: results.apply, emoji: '🎯' },
+    { name: 'Repo Instructions', result: results.repoInstructions, emoji: '🤖' }
   ];
 
   testTypes.forEach(test => {
@@ -72,7 +82,7 @@ async function runAllTests() {
   const passedCount = Object.values(results).filter(Boolean).length;
   const totalCount = Object.keys(results).length;
 
-  console.log('\n' + '-' * 60);
+  console.log('\n' + '-'.repeat(60));
   console.log(`Overall Result: ${passedCount}/${totalCount} test suites passed`);
   
   if (passedCount === totalCount) {
