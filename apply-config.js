@@ -237,6 +237,7 @@ function copyFile(sourcePath, destPath) {
  * @returns {Object} Summary of the number of files removed per section.
  */
 function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
+  const removedCounts = {
     prompts: 0,
     instructions: 0,
     chatmodes: 0
