@@ -89,14 +89,22 @@ See [CONFIG.md](CONFIG.md) for detailed configuration documentation.
 
 #### ⚖️ Configuration Precedence Rules
 
-Awesome Copilot uses an **effective state system** that respects explicit overrides while allowing collections to provide convenient defaults:
+Awesome Copilot uses an **effective state system** that respects explicit overrides while allowing collections to provide convenient defaults. The effective state computation follows these precise rules:
 
-1. **Explicit Settings Override Everything**
+**Boolean Value Behavior:**
+- `true` → **enabled** (explicit override)
+- `false` → **disabled** (explicit override)  
+- `undefined` → **inherit from collections** (union of enabled collections)
+
+**Precedence Hierarchy:**
+
+1. **Explicit Per-Item Overrides Take Precedence Over Collections**
    ```yaml
    collections:
-     testing-automation: true    # Enables 11 items
+     testing-automation: true    # Enables 11 items including playwright-generate-test
    prompts:
      playwright-generate-test: false  # Explicitly disabled, overrides collection
+     create-readme: true             # Explicitly enabled, regardless of collections
    ```
 
 2. **Collections Enable Groups of Items**
@@ -106,18 +114,35 @@ Awesome Copilot uses an **effective state system** that respects explicit overri
      testing-automation: true   # Enables testing tools and frameworks
    ```
 
-3. **Undefined Items Follow Collections**
-   - Items not explicitly listed inherit from enabled collections
-   - Only explicitly set true/false values override collection settings
-   - This allows collections to work as intended while preserving explicit choices
+3. **Undefined Items Inherit from Collections (Union Behavior)**
+   - Items not explicitly listed (`undefined`) inherit from enabled collections
+   - **Effective state = explicit override OR union of enabled collections**
+   - Multiple enabled collections combine their items (union operation)
+   - Only explicitly set `true`/`false` values override collection settings
 
-**Examples:**
+**Detailed Examples:**
+
+```yaml
+# Configuration example showing precedence rules
+collections:
+  testing-automation: true     # Enables: playwright-generate-test, csharp-nunit, etc.
+  frontend-web-dev: true       # Enables: react-component, vue-component, etc.
+
+prompts:
+  playwright-generate-test: false  # Explicitly disabled (overrides testing-automation)
+  create-readme: true             # Explicitly enabled (regardless of collections)
+  # vue-component: undefined      # Inherits from frontend-web-dev → enabled
+  # api-testing: undefined        # Not in any enabled collection → disabled
+```
+
 ```bash
 # See effective states and why each item is enabled
 awesome-copilot list prompts
-# [✓] create-readme (explicit)
-# [✓] playwright-generate-test (collection)
-# [ ] react-component
+# [✓] create-readme (explicit: true)
+# [✓] vue-component (collection: frontend-web-dev)  
+# [✓] react-component (collection: frontend-web-dev)
+# [ ] playwright-generate-test (explicit: false - overrides collection)
+# [ ] api-testing (disabled: not in any enabled collection)
 
 # Collection toggle shows what will change
 awesome-copilot toggle collections frontend-web-dev on
