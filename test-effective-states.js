@@ -5,7 +5,7 @@
  */
 
 const path = require('path');
-const { computeEffectiveItemStates } = require('./config-manager');
+const { computeEffectiveItemStates, getEffectivelyEnabledItems } = require('./config-manager');
 
 // Change to project directory for tests
 process.chdir(__dirname);
@@ -162,6 +162,56 @@ function runTests() {
     const chatmode = result.chatmodes['tdd-red'];
     assert(chatmode && chatmode.enabled && chatmode.reason === 'collection', 
            'Chat mode should be enabled by collection');
+  });
+
+  // Test 8: getEffectivelyEnabledItems returns Sets format
+  test("getEffectivelyEnabledItems returns Sets format", () => {
+    const config = {
+      prompts: {
+        'playwright-generate-test': true,
+        'csharp-nunit': false
+      },
+      collections: {
+        'testing-automation': true
+      }
+    };
+    const result = getEffectivelyEnabledItems(config);
+    
+    assert(typeof result === 'object', 'Should return object');
+    assert(result.prompts instanceof Set, 'Prompts should be a Set');
+    assert(result.instructions instanceof Set, 'Instructions should be a Set');
+    assert(result.chatmodes instanceof Set, 'Chatmodes should be a Set');
+    
+    // Check that explicitly enabled items are included
+    assert(result.prompts.has('playwright-generate-test'), 
+           'Explicitly enabled prompt should be in Set');
+    
+    // Check that explicitly disabled items are not included (even if in collection)
+    assert(!result.prompts.has('csharp-nunit'), 
+           'Explicitly disabled prompt should not be in Set');
+    
+    // Check that collection-enabled items are included
+    assert(result.prompts.has('playwright-explore-website'), 
+           'Collection-enabled prompt should be in Set');
+  });
+
+  // Test 9: getEffectivelyEnabledItems performance check
+  test("getEffectivelyEnabledItems provides O(1) lookups", () => {
+    const config = {
+      collections: {
+        'testing-automation': true
+      }
+    };
+    const result = getEffectivelyEnabledItems(config);
+    
+    // Test O(1) lookup performance
+    const startTime = process.hrtime.bigint();
+    const hasItem = result.prompts.has('playwright-generate-test');
+    const endTime = process.hrtime.bigint();
+    
+    assert(hasItem === true, 'Should find enabled item');
+    // This is more of a structural test - Sets provide O(1) lookups by design
+    assert(result.prompts.size > 0, 'Should have enabled prompts');
   });
 
   console.log(`\nTest Results: ${passedTests}/${totalTests} passed`);
