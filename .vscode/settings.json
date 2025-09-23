@@ -1,11 +1,11 @@
 {
   "chat.modeFilesLocations": {
-    ".awesome-copilot/chatmodes": true
+    ".github/chatmodes": true
   },
   "chat.promptFilesLocations": {
-    ".awesome-copilot/prompts": true
+    ".github/prompts": true
   },
   "chat.instructionsFilesLocations": {
-    ".awesome-copilot/instructions": true
+    ".github/instructions": true
   }
 }

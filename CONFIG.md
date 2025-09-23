@@ -41,9 +41,9 @@ alias awesome-copilot="node /path/to/awesome-copilot/awesome-copilot.js"
 
 This creates:
 - Configuration file (`awesome-copilot.config.yml`)
-- `.awesome-copilot/` directory structure
-- VS Code settings pointing to `.awesome-copilot/` directories
-- `.gitignore` entry to exclude generated files
+- `.github/` directory structure
+- VS Code settings pointing to `.github/` directories
+- No changes to `.gitignore` (files in `.github/` are typically tracked)
 
 ### 2. Enable Desired Items
 
@@ -58,7 +58,8 @@ version: "1.0"
 project:
   name: "My Project"
   description: "A project using awesome-copilot customizations"
-  output_directory: ".awesome-copilot"
+  output_directory: ".github"
+  # Recommended default is .github; explicit output_directory will be respected
 prompts:
   create-readme: true
   editorconfig: true
@@ -104,7 +105,7 @@ node /path/to/awesome-copilot/awesome-copilot.js apply
 node /path/to/awesome-copilot/awesome-copilot.js apply my-project.config.yml
 ```
 
-This will copy the enabled files to your project's `.awesome-copilot` directory (or the directory specified in the config).
+This will copy the enabled files to your project's `.github` directory (or the directory specified in the config).
 
 ## Configuration File Format
 
@@ -146,7 +147,7 @@ collections:
 When you apply a configuration, files are organized as follows:
 
 ```
-.awesome-copilot/
+.github/
 ├── prompts/
 │   └── *.prompt.md             # Prompts for /awesome-copilot commands
 ├── chatmodes/
@@ -177,7 +178,7 @@ npm run config help
 The `node awesome-copilot.js init` command automatically configures VS Code to detect your customizations:
 
 - Creates `.vscode/settings.json` with proper file locations
-- Points to `.awesome-copilot/` directories instead of framework directories
+- Points to `.github/` directories instead of framework directories
 - Maintains separation between your project and the awesome-copilot framework
 
 No manual VS Code configuration needed!
@@ -206,7 +207,7 @@ chatmodes:
 version: "1.0"
 project:
   name: ".NET API"
-  output_directory: ".awesome-copilot"
+  output_directory: ".github"
 collections:
   csharp-dotnet-development: true
 instructions:
@@ -221,7 +222,7 @@ prompts:
 version: "1.0"
 project:
   name: "Full Stack App"
-  output_directory: ".awesome-copilot"
+  output_directory: ".github"
 collections:
   frontend-web-dev: true
   csharp-dotnet-development: true
@@ -241,7 +242,7 @@ If you were previously copying files manually or using an older version:
 4. Edit the config to enable the same items you were using manually
 5. Run `node /path/to/awesome-copilot/awesome-copilot.js apply` to get a clean, managed setup
 
-The new approach uses `.awesome-copilot/` directory instead of `.github/` for better separation.
+The approach uses the standard `.github/` directory for Copilot customizations. If you previously used `.awesome-copilot/`, set `project.output_directory: ".awesome-copilot"` to keep that structure.
 
 ## Benefits
 

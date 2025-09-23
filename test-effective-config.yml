@@ -7,7 +7,7 @@ version: "1.0"
 project:
   name: "Test Project"
   description: "Testing effective state precedence"
-  output_directory: ".awesome-copilot"
+  output_directory: ".github"
 collections:
   testing-automation: false
 prompts:

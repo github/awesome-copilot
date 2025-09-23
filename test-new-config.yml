@@ -18,7 +18,7 @@ version: "1.0"
 project:
   name: "My Project"
   description: "A project using awesome-copilot customizations"
-  output_directory: ".awesome-copilot"
+  output_directory: ".github"
 prompts:
   playwright-generate-test: false
 instructions:
