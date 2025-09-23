@@ -263,13 +263,13 @@ function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
       if (!effectivelyEnabledSets[section.name].has(itemName)) {
         const filePath = path.join(sectionDir, fileName);
         fs.unlinkSync(filePath);
-        cleanupSummary[section.name]++;
+        removedCounts[section.name]++;
         console.log(`🗑️  Removed: ${section.name}/${fileName}`);
       }
     }
   }
 
-  return cleanupSummary;
+  return removedCounts;
 }
 
 // CLI usage
