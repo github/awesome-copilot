@@ -101,25 +101,10 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   };
 
   // Import config manager for effective state computation
-  const { computeEffectiveItemStates } = require("./config-manager");
+  const { getEffectivelyEnabledItems } = require("./config-manager");
 
-  // Compute effective states using precedence rules
-  const effectiveStates = computeEffectiveItemStates(config);
-
-  // Create sets of effectively enabled items for performance
-  const effectivelyEnabledSets = {
-    prompts: new Set(),
-    instructions: new Set(),
-    chatmodes: new Set()
-  };
-
-  for (const section of ["prompts", "instructions", "chatmodes"]) {
-    for (const [itemName, state] of Object.entries(effectiveStates[section])) {
-      if (state.enabled) {
-        effectivelyEnabledSets[section].add(itemName);
-      }
-    }
-  }
+  // Get precomputed sets of effectively enabled items for O(1) performance
+  const effectivelyEnabledSets = getEffectivelyEnabledItems(config);
 
   // Count enabled collections for summary
   if (config.collections) {
