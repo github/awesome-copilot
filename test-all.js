@@ -52,6 +52,15 @@ async function runAllTests() {
     console.error('Apply tests failed with error:', error.message);
   }
 
+  try {
+    console.log('\n🤖 Repository Instructions Tests');
+    console.log('-' * 33);
+    const { runTests: runRepoInstructionsTests } = require('./test-repository-instructions');
+    results.repoInstructions = await runRepoInstructionsTests();
+  } catch (error) {
+    console.error('Repository instructions tests failed with error:', error.message);
+  }
+
   // Summary
   console.log('\n' + '=' * 60);
   console.log('📋 Test Suite Summary');
@@ -61,7 +70,8 @@ async function runAllTests() {
     { name: 'Unit Tests', result: results.unit, emoji: '📊' },
     { name: 'Integration Tests', result: results.integration, emoji: '🔄' },
     { name: 'CLI Tests', result: results.cli, emoji: '⌨️' },
-    { name: 'Apply Tests', result: results.apply, emoji: '🎯' }
+    { name: 'Apply Tests', result: results.apply, emoji: '🎯' },
+    { name: 'Repo Instructions', result: results.repoInstructions, emoji: '🤖' }
   ];
 
   testTypes.forEach(test => {

@@ -183,6 +183,64 @@ The `node awesome-copilot.js init` command automatically configures VS Code to d
 
 No manual VS Code configuration needed!
 
+## GitHub Copilot Repository Instructions
+
+Awesome Copilot can generate a `.github/copilot-instructions.md` file that provides repository-level instructions to GitHub Copilot. This feature supports GitHub's native repository instructions capability, which automatically applies instructions to all Copilot interactions within your repository.
+
+### Generating Repository Instructions
+
+```bash
+# Generate basic repository instructions file
+node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions
+
+# Generate with full instruction content included
+node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions --consolidated
+
+# Custom output location
+node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions --output=.copilot/instructions.md
+
+# Generate without header
+node /path/to/awesome-copilot/awesome-copilot.js generate-repo-instructions --no-header
+```
+
+### Template Options
+
+- **`repository` (default)**: Lists enabled instructions with references to individual files
+- **`consolidated`**: Includes full content from all enabled instruction files
+- **`basic`**: Simple list without detailed formatting
+
+### Benefits of Repository Instructions
+
+- **Automatic Application**: Instructions apply to all team members without manual configuration
+- **Version Control**: Instructions are tracked with your code and evolve with your project
+- **IDE Agnostic**: Works across VS Code, Visual Studio, GitHub Copilot CLI, and web interfaces
+- **Consistency**: Ensures all team members get the same Copilot behavior
+- **No Setup Required**: New team members automatically get proper instructions
+
+### Integration with Configuration
+
+The repository instructions are generated based on your enabled instructions in the configuration file:
+
+```yaml
+instructions:
+  csharp: true       # Included in repository instructions
+  python: true       # Included in repository instructions
+  java: false        # Excluded from repository instructions
+  
+collections:
+  testing-automation: true  # All instructions in this collection included
+```
+
+### Workflow Integration
+
+Repository instructions work seamlessly with the existing workflow:
+
+1. **Configure**: Enable instructions in your config file
+2. **Apply**: Run `awesome-copilot apply` to copy files to your project
+3. **Generate**: Run `generate-repo-instructions` to create the repository instructions file
+4. **Commit**: Add the generated file to version control
+5. **Collaborate**: Team members automatically get consistent Copilot behavior
+
 ## Examples
 
 ### Frontend React Project
