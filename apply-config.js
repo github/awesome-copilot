@@ -237,6 +237,7 @@ function copyFile(sourcePath, destPath) {
  * @returns {Object} Summary of the number of files removed per section.
  */
 function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
+  const removedCounts = {
     prompts: 0,
     instructions: 0,
     chatmodes: 0
@@ -262,13 +263,13 @@ function cleanupDisabledFiles(outputDir, effectivelyEnabledSets, rootDir) {
       if (!effectivelyEnabledSets[section.name].has(itemName)) {
         const filePath = path.join(sectionDir, fileName);
         fs.unlinkSync(filePath);
-        cleanupSummary[section.name]++;
+        removedCounts[section.name]++;
         console.log(`🗑️  Removed: ${section.name}/${fileName}`);
       }
     }
   }
 
-  return cleanupSummary;
+  return removedCounts;
 }
 
 // CLI usage
