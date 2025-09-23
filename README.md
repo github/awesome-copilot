@@ -204,7 +204,7 @@ awesome-copilot apply
 
 ✨ **Benefits:**
 - Clean project setup with automatic VS Code configuration
-- Files organized in `.awesome-copilot/` directory 
+- Files organized in `.github/` directory 
 - Automatic `.gitignore` management
 - Easy updates by re-running `apply` command
 

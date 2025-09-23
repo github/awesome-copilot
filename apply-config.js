@@ -82,16 +82,16 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   }
 
   console.log("Applying awesome-copilot configuration...");
-  
+
   const rootDir = __dirname;
-  const outputDir = config.project?.output_directory || ".awesome-copilot";
-  
+  const outputDir = config.project?.output_directory || ".github";
+
   // Create output directory structure
   ensureDirectoryExists(outputDir);
   ensureDirectoryExists(path.join(outputDir, "prompts"));
   ensureDirectoryExists(path.join(outputDir, "instructions"));
   ensureDirectoryExists(path.join(outputDir, "chatmodes"));
-  
+
   let copiedCount = 0;
   const summary = {
     prompts: 0,
@@ -102,17 +102,17 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
 
   // Import config manager for effective state computation
   const { computeEffectiveItemStates } = require("./config-manager");
-  
+
   // Compute effective states using precedence rules
   const effectiveStates = computeEffectiveItemStates(config);
-  
+
   // Create sets of effectively enabled items for performance
   const effectivelyEnabledSets = {
     prompts: new Set(),
     instructions: new Set(),
     chatmodes: new Set()
   };
-  
+
   for (const section of ["prompts", "instructions", "chatmodes"]) {
     for (const [itemName, state] of Object.entries(effectiveStates[section])) {
       if (state.enabled) {
@@ -186,11 +186,11 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   console.log(`📋 Instructions: ${summary.instructions}`);
   console.log(`💭 Chat modes: ${summary.chatmodes}`);
   console.log(`📦 Collections: ${summary.collections}`);
-  
+
   if (config.project?.name) {
     console.log(`🏷️  Project: ${config.project.name}`);
   }
-  
+
   console.log("\nNext steps:");
   console.log("1. Add the files to your version control system");
   console.log("2. Use prompts with /awesome-copilot command in GitHub Copilot Chat");

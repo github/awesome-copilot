@@ -14,5 +14,5 @@ test-apply-config.yml
 # Test output directories
 test-output/
 
-# Awesome Copilot generated files
-.awesome-copilot/
+# Awesome Copilot legacy generated files (no longer used by default)
+# .awesome-copilot/

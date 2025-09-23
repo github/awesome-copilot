@@ -19,9 +19,9 @@ function generateConfig(outputPath = "awesome-copilot.config.yml") {
   const config = {
     version: "1.0",
     project: {
-      name: "My Project", 
+      name: "My Project",
       description: "A project using awesome-copilot customizations",
-      output_directory: ".awesome-copilot"
+      output_directory: ".github"
     },
     prompts: {},
     instructions: {},
