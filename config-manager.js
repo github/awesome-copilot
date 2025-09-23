@@ -287,23 +287,20 @@ function computeEffectiveItemStates(config) {
 function getEffectivelyEnabledItems(config) {
   const effectiveStates = computeEffectiveItemStates(config);
   
-  return {
-    prompts: new Set(
-      Object.entries(effectiveStates.prompts)
-        .filter(([, state]) => state.enabled)
-        .map(([itemName]) => itemName)
-    ),
-    instructions: new Set(
-      Object.entries(effectiveStates.instructions)
-        .filter(([, state]) => state.enabled)
-        .map(([itemName]) => itemName)
-    ),
-    chatmodes: new Set(
-      Object.entries(effectiveStates.chatmodes)
-        .filter(([, state]) => state.enabled)
-        .map(([itemName]) => itemName)
-    )
+  const result = {
+    prompts: new Set(),
+    instructions: new Set(),
+    chatmodes: new Set()
   };
+
+  for (const section of ["prompts", "instructions", "chatmodes"]) {
+    for (const itemName in effectiveStates[section]) {
+      if (effectiveStates[section][itemName].enabled) {
+        result[section].add(itemName);
+      }
+    }
+  }
+  return result;
 }
 
 module.exports = {
