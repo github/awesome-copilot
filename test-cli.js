@@ -105,8 +105,8 @@ async function runTests() {
     assert(result.success, 'Individual toggle should succeed');
     
     const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult.stdout.includes('playwright-generate-test') && !listResult.stdout.includes('playwright-generate-test ('), 
-           'Explicitly disabled item should not show reason');
+    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), 
+           'Explicitly disabled item should show explicit reason');
   });
 
   // Test 6: Error handling for invalid commands
