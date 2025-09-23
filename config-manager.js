@@ -293,19 +293,11 @@ function getEffectivelyEnabledItems(config) {
     chatmodes: new Set()
   };
 
-  for (const itemName in effectiveStates.prompts) {
-    if (effectiveStates.prompts[itemName].enabled) {
-      result.prompts.add(itemName);
-    }
-  }
-  for (const itemName in effectiveStates.instructions) {
-    if (effectiveStates.instructions[itemName].enabled) {
-      result.instructions.add(itemName);
-    }
-  }
-  for (const itemName in effectiveStates.chatmodes) {
-    if (effectiveStates.chatmodes[itemName].enabled) {
-      result.chatmodes.add(itemName);
+  for (const section of ["prompts", "instructions", "chatmodes"]) {
+    for (const itemName in effectiveStates[section]) {
+      if (effectiveStates[section][itemName].enabled) {
+        result[section].add(itemName);
+      }
     }
   }
   return result;
