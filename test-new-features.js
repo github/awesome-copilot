@@ -48,7 +48,7 @@ async function runCommand(command) {
 function setTestOutputDir(configFile) {
   if (fs.existsSync(configFile)) {
     let content = fs.readFileSync(configFile, 'utf8');
-    content = content.replace(/output_directory: "\.awesome-copilot"/, `output_directory: "${TEST_OUTPUT_DIR}"`);
+    content = content.replace(/output_directory: "\.github"/, `output_directory: "${TEST_OUTPUT_DIR}"`);
     fs.writeFileSync(configFile, content);
   }
 }
@@ -72,7 +72,7 @@ async function runTests() {
   }
 
   // Test 1: Reset command
-  await test("Reset command clears .awesome-copilot directory", async () => {
+  await test("Reset command clears output directory", async () => {
     await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
     setTestOutputDir(TEST_CONFIG);
     
