@@ -214,14 +214,21 @@ function computeEffectiveItemStates(config) {
     chatmodes: {}
   };
 
-  // Build membership maps: Map<itemName, Set<collectionName>> per section for O(1) lookups
+  // Build detailed membership maps: Map<itemName, Set<collectionName>> per section
+  const collectionMemberships = {
+    prompts: new Map(),
+    instructions: new Map(),
+    chatmodes: new Map()
+  };
+
+  // Build simple enabled sets for O(1) lookups
   const collectionEnabledItems = {
     prompts: new Set(),
     instructions: new Set(),
     chatmodes: new Set()
   };
 
-  // Identify enabled collections per section
+  // Identify enabled collections per section and track memberships
   if (config.collections) {
     for (const [collectionName, enabled] of Object.entries(config.collections)) {
       if (enabled === true) {
@@ -233,12 +240,24 @@ function computeEffectiveItemStates(config) {
               // Extract item name from path - remove directory and all extensions
               const itemName = path.basename(item.path).replace(/\.(prompt|instructions|chatmode)\.md$/, '');
 
+              let sectionName;
               if (item.kind === "prompt") {
-                collectionEnabledItems.prompts.add(itemName);
+                sectionName = "prompts";
               } else if (item.kind === "instruction") {
-                collectionEnabledItems.instructions.add(itemName);
+                sectionName = "instructions";
               } else if (item.kind === "chat-mode") {
-                collectionEnabledItems.chatmodes.add(itemName);
+                sectionName = "chatmodes";
+              }
+
+              if (sectionName) {
+                // Track which collections enable this item
+                if (!collectionMemberships[sectionName].has(itemName)) {
+                  collectionMemberships[sectionName].set(itemName, new Set());
+                }
+                collectionMemberships[sectionName].get(itemName).add(collectionName);
+                
+                // Add to enabled set for O(1) lookups
+                collectionEnabledItems[sectionName].add(itemName);
               }
             });
           }
@@ -258,6 +277,7 @@ function computeEffectiveItemStates(config) {
     for (const itemName of availableItems) {
       const explicitValue = sectionConfig[itemName];
       const isEnabledByCollection = collectionEnabled.has(itemName);
+      const enablingCollections = collectionMemberships[section].get(itemName) || new Set();
 
       // Precedence rules with strict undefined handling:
       // 1. If explicitly set to true or false, use that value (highest priority)
@@ -269,6 +289,7 @@ function computeEffectiveItemStates(config) {
 
       let enabled = false;
       let reason = "disabled";
+      let collections = [];
 
       if (explicitValue === true) {
         enabled = true;
@@ -281,9 +302,10 @@ function computeEffectiveItemStates(config) {
         // undefined values can be enabled by collections (not treated as disabled)
         enabled = true;
         reason = "collection";
+        collections = Array.from(enablingCollections).sort();
       }
 
-      effectiveStates[section][itemName] = { enabled, reason };
+      effectiveStates[section][itemName] = { enabled, reason, collections };
     }
   }
 

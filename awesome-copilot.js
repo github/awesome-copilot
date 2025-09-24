@@ -149,8 +149,16 @@ function handleListCommand(rawArgs) {
     const availableItems = getAllAvailableItems(section);
     
     // Count effectively enabled items
-    const effectivelyEnabled = Object.values(effectiveStates[section] || {})
-      .filter(state => state.enabled).length;
+    let effectivelyEnabled;
+    if (section === "collections") {
+      // For collections, count explicitly enabled ones
+      effectivelyEnabled = Object.values(sanitizedConfig[section] || {})
+        .filter(value => value === true).length;
+    } else {
+      // For other sections, count effectively enabled items
+      effectivelyEnabled = Object.values(effectiveStates[section] || {})
+        .filter(state => state.enabled).length;
+    }
     
     const { totalCharacters } = calculateSectionFootprint(section, sanitizedConfig[section]);
     const headingParts = [
@@ -170,20 +178,40 @@ function handleListCommand(rawArgs) {
 
     // Show items with effective state and reason
     if (section === "collections") {
-      // Collections show simple enabled/disabled
+      // Collections show simple enabled/disabled with count of effectively enabled items
       availableItems.forEach(itemName => {
         const isEnabled = Boolean(sanitizedConfig[section]?.[itemName]);
-        console.log(`  [${isEnabled ? "✓" : " "}] ${itemName}`);
+        
+        // Count how many items this collection would enable
+        let enabledCount = 0;
+        if (isEnabled) {
+          // Simulate what would happen if only this collection was enabled
+          const testConfig = { collections: { [itemName]: true } };
+          const testEffectiveStates = computeEffectiveItemStates(testConfig);
+          
+          for (const sectionName of ["prompts", "instructions", "chatmodes"]) {
+            enabledCount += Object.values(testEffectiveStates[sectionName] || {})
+              .filter(state => state.enabled && state.reason === "collection").length;
+          }
+        }
+        
+        const countText = isEnabled ? ` (${enabledCount} items effectively enabled)` : "";
+        console.log(`  [${isEnabled ? "✓" : " "}] ${itemName}${countText}`);
       });
     } else {
-      // Other sections show effective state with reason
+      // Other sections show effective state with detailed reason
       availableItems.forEach(itemName => {
         const effectiveState = effectiveStates[section]?.[itemName];
         if (effectiveState) {
           const symbol = effectiveState.enabled ? "✓" : " ";
-          const reasonText = effectiveState.reason === "explicit" 
-            ? ` (${effectiveState.reason})`
-            : effectiveState.enabled ? ` (${effectiveState.reason})` : "";
+          let reasonText = "";
+          
+          if (effectiveState.reason === "explicit") {
+            reasonText = ` (explicit:${effectiveState.enabled})`;
+          } else if (effectiveState.reason === "collection" && effectiveState.collections && effectiveState.collections.length > 0) {
+            reasonText = ` (via:[${effectiveState.collections.join(',')}])`;
+          }
+          
           console.log(`  [${symbol}] ${itemName}${reasonText}`);
         } else {
           console.log(`  [ ] ${itemName}`);
