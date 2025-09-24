@@ -1,11 +1,14 @@
 {
   "chat.modeFilesLocations": {
-    "chatmodes": true
+    "chatmodes": true,
+    ".github/chatmodes": true
   },
   "chat.promptFilesLocations": {
-    "prompts": true
+    "prompts": true,
+    ".github/prompts": true
   },
   "chat.instructionsFilesLocations": {
-    "instructions": true
+    "instructions": true,
+    ".github/instructions": true
   }
 }
