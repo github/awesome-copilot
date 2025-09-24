@@ -13,11 +13,11 @@ items:
     kind: instruction
   - path: instructions/convert-jpa-to-spring-data-cosmos.instructions.md
     kind: instruction
-  - path: instructions/java-11-to-java-17-upgrade.md
+  - path: instructions/java-11-to-java-17-upgrade.instructions.md
     kind: instruction
-  - path: instructions/java-17-to-java-21-upgrade.md
+  - path: instructions/java-17-to-java-21-upgrade.instructions.md
     kind: instruction
-  - path: instructions/java-21-to-java-25-upgrade.md
+  - path: instructions/java-21-to-java-25-upgrade.instructions.md
     kind: instruction
   - path: prompts/java-docs.prompt.md
     kind: prompt
