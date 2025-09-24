@@ -1,9 +1,40 @@
 ---
 description: 'Create or modify solutions built using Terraform on Azure.'
-applyTo: '**/*.terraform, **/*.tf, **/*.tfvars, **/*.tfstate, **/*.tflint.hcl, **/*.tf.json, **/*.tfvars.json'
+applyTo: '**/*.terraform, **/*.tf, **/*.tfvars, **/*.tflint.hcl, **/*.tfstate, **/*.tf.json, **/*.tfvars.json'
 ---
 
 # Azure Terraform Best Practices
+
+## Integration and Self-Containment
+
+This instruction set extends the universal DevOps Core Principles and Taming Copilot directives for Azure/Terraform scenarios. It assumes those foundational rules are loaded but includes summaries here for self-containment. If the general rules are not present, these summaries serve as defaults to maintain behavioral consistency.
+
+### Incorporated DevOps Core Principles (CALMS Framework)
+
+- **Culture**: Foster collaborative, blameless culture with shared responsibility and continuous learning.
+- **Automation**: Automate everything possible across the software delivery lifecycle to reduce manual effort and errors.
+- **Lean**: Eliminate waste, maximize flow, and deliver value continuously by reducing batch sizes and bottlenecks.
+- **Measurement**: Measure everything relevant (e.g., DORA metrics: Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) to drive improvement.
+- **Sharing**: Promote knowledge sharing, collaboration, and transparency across teams.
+
+### Incorporated Taming Copilot Directives (Behavioral Hierarchy)
+
+- **Primacy of User Directives**: Direct user commands take highest priority.
+- **Factual Verification**: Prioritize tools for current, factual answers over internal knowledge.
+- **Adherence to Philosophy**: Follow minimalist, surgical approaches—code on request only, minimal necessary changes, direct and concise responses.
+- **Tool Usage**: Use tools purposefully; declare intent before action; prefer parallel calls when possible.
+
+These summaries ensure the mode functions independently while aligning with the broader chat mode context. For full details, reference the original DevOps Core Principles and Taming Copilot instructions.
+
+## Chat Mode Integration
+
+When operating in chat mode with these instructions loaded:
+
+- Treat this as a self-contained extension that incorporates summarized general rules for independent operation.
+- Prioritize user directives over automated actions, especially for terraform commands beyond validate.
+- Use implicit dependencies where possible and confirm before any terraform plan or apply operations.
+- Maintain minimalist responses and surgical code changes, aligning with the incorporated Taming philosophy.
+- **Planning Files Awareness**: Always check for planning files in the `.terraform-planning-files/` folder (if present). Read and incorporate relevant details from these files into responses, especially for migration or implementation plans. If speckit or similar planning files exist in user-specified folders, prompt the user to confirm inclusion or read them explicitly.
 
 ## 1. Overview
 
@@ -38,6 +69,8 @@ For development of modules, especially Azure Verified Modules, see [azure-verifi
 - MUST only use a Terraform state file (`**/*.tfstate`) for read only operations, all changes must be made via Terraform CLI or HCL.
 - MUST only use the contents of `**/.terraform/**` (fetched modules and providers) for read only operations.
 
+These build on the incorporated Taming Copilot directives for secure, operational practices.
+
 ---
 
 ## 3. Organize Code Cleanly
@@ -61,6 +94,8 @@ Any significant resource should use an AVM if available. AVMs are designed to be
 If an Azure Verified Module is not available for the resource, suggest creating one "in the style of" AVM in order to align to existing work and provide an opportunity to contribute upstream to the community.
 
 An exception to this instruction is if the user has been directed to use an internal private registry, or explicitly states they do not wish to use Azure Verified Modules.
+
+This aligns with the incorporated DevOps Automation principle by leveraging pre-validated, community-maintained modules.
 
 ## 5. Variable and Code Style Standards
 
@@ -124,7 +159,8 @@ locals {
 
 ## 9. Follow recommended Terraform practices
 
-- **Dependencies**: Use `depends_on` sparingly - only when implicit dependencies via resource outputs aren't possible. Comment necessary dependencies and suggest removing unnecessary ones. Never depend on module outputs.
+- **Dependencies**: avoid using `depends_on`. Only when implicit dependencies via resource outputs aren't possible. Comment necessary dependencies and suggest removing unnecessary ones. Never depend on module outputs.
+  - **Redundant depends_on Detection**: Flag any `depends_on` where the depended resource is already referenced implicitly in the same resource block (e.g., via attributes like `principal_id = module.web_app.identity_principal_id`). This indicates the dependency is likely unnecessary, as Terraform handles implicit ordering. Use `grep_search` for "depends_on" and manually verify references to ensure no redundancy.
 
 - **Iteration**: Use `count` for 0-1 resources, `for_each` for multiple resources. Prefer maps for stable resource addresses. Align with TFNFR7.
 
@@ -167,23 +203,6 @@ Never change the folder structure without direct agreement with the user.
 
 Follow AVM specifications TFNFR1, TFNFR2, TFNFR3, and TFNFR4 for consistent file naming and structure.
 
-**Example tfvars differentiation:**
-
-- `environments/dev.tfvars`: Smaller SKUs, single region, minimal redundancy
-- `environments/prod.tfvars`: Production SKUs, multi-region, high availability
-
-**Usage with explicit tfvars:**
-
-```bash
-# Development deployment
-terraform plan -var-file="environments/dev.tfvars"
-terraform apply -var-file="environments/dev.tfvars"
-
-# Production deployment
-terraform plan -var-file="environments/prod.tfvars"
-terraform apply -var-file="environments/prod.tfvars"
-```
-
 ## Azure-Specific Best Practices
 
 ### Resource Naming and Tagging
@@ -225,7 +244,12 @@ terraform apply -var-file="environments/prod.tfvars"
 
 ## Validation
 
-- Run `terraform validate` before applying
-- Review `terraform plan` output carefully
+- Do an inventory of existing resources and offer to remove unused resource blocks.
+- Run `terraform validate` to check syntax
+- Ask before running `terraform plan`.  Terraform plan will require a subscription ID, this should be sourced from the ARM_SUBSCRIPTION_ID environment variable, *NOT* coded in the provider block.
 - Test configurations in non-production environments first
 - Ensure idempotency (multiple applies produce same result)
+
+## Fallback Behavior
+
+If general rules are not loaded, default to: minimalist code generation, explicit consent for any terraform commands beyond validate, and adherence to CALMS principles in all suggestions.

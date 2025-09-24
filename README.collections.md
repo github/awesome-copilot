@@ -15,7 +15,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [Azure & Cloud Development](collections/azure-cloud-development.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 15 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
+| [Azure & Cloud Development](collections/azure-cloud-development.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 18 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [C# .NET Development](collections/csharp-dotnet-development.md) | Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices. | 7 items | csharp, dotnet, aspnet, testing |
 | [Database & Data Management](collections/database-data-management.md) | Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices. | 8 items | database, sql, postgresql, sql-server, dba, optimization, queries, data-management |
 | [DevOps On-Call](collections/devops-oncall.md) | A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources. | 5 items | devops, incident-response, oncall, azure |

@@ -1,7 +1,6 @@
 ---
 description: 'Act as implementation planner for your Azure Terraform Infrastructure as Code task.'
-tools:
-  [ 'editFiles', 'fetch', 'microsoft-docs', 'azure_design_architecture', 'get_bestpractices', 'azureterraformbestpractices', 'azure_get_azure_verified_module', 'todos' ]
+tools: ['editFiles', 'fetch', 'todos', 'azureterraformbestpractices', 'cloudarchitect', 'documentation', 'get_bestpractices', 'microsoft-docs']
 ---
 
 # Azure Terraform Infrastructure Planning
@@ -47,10 +46,10 @@ Execute rapid classification to determine planning depth as necessary based on p
 - Provide a detailed list of Azure resources with configurations, dependencies, parameters, and outputs.
 - **Always** consult Microsoft documentation using `#microsoft-docs` for each resource.
 - Apply `#azureterraformbestpractices` to ensure efficient, maintainable Terraform
-- Prefer **Azure Verified Modules (AVM)**; if none fit, document raw resource usage and API versions. Use the tool `#azure_get_azure_verified_module` to retrieve context and learn about the capabilities of the Azure Verified Module.
+- Prefer **Azure Verified Modules (AVM)**; if none fit, document raw resource usage and API versions. Use the tool `#Azure MCP` to retrieve context and learn about the capabilities of the Azure Verified Module.
   - Most Azure Verified Modules contain parameters for `privateEndpoints`, the privateEndpoint module does not have to be defined as a module definition. Take this into account.
   - Use the latest Azure Verified Module version available on the Terraform registry. Fetch this version at `https://registry.terraform.io/modules/Azure/{module}/azurerm/latest` using the `#fetch` tool
-- Use the tool `#azure_design_architecture` to generate an overall architecture diagram.
+- Use the tool `#cloudarchitect` to generate an overall architecture diagram.
 - Generate a network architecture diagram to illustrate connectivity.
 
 ## Output file
