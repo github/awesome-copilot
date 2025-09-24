@@ -195,7 +195,7 @@ my-azure-app/
 │       ├── test.tfvars             # Test environment
 │       └── prod.tfvars             # Production environment
 ├── .github/workflows/              # CI/CD pipelines (if using github)
-├── .azdo/                          # CI/CD pipelines (suggested if using github)
+├── .azdo/                          # CI/CD pipelines (suggested if using Azure DevOps)
 └── README.md                       # Documentation
 ```
 
