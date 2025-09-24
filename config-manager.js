@@ -319,6 +319,93 @@ function getEffectivelyEnabledItems(config) {
   return result;
 }
 
+/**
+ * Toggle a collection's enabled state without modifying individual item flags
+ * 
+ * This function implements the core requirement from TASK-003:
+ * - Only modifies the collection's enabled flag
+ * - Never writes to per-item flags (e.g., config.prompts[item] = enabled)  
+ * - Returns summary information for CLI feedback
+ * - Preserves all existing explicit per-item overrides
+ * 
+ * @param {Object} config - Configuration object with collections section
+ * @param {string} name - Collection name to toggle
+ * @param {boolean} enabled - Desired enabled state for the collection
+ * @returns {Object} Summary object with delta information for CLI feedback
+ */
+function toggleCollection(config, name, enabled) {
+  // Validate inputs
+  if (!config || typeof config !== 'object') {
+    throw new Error('Config object is required');
+  }
+  if (!name || typeof name !== 'string') {
+    throw new Error('Collection name is required');
+  }
+  if (typeof enabled !== 'boolean') {
+    throw new Error('Enabled state must be a boolean');
+  }
+
+  // Ensure collections section exists
+  if (!config.collections) {
+    config.collections = {};
+  }
+
+  // Get current state
+  const currentState = Boolean(config.collections[name]);
+  
+  // Check if collection exists (has a .collection.yml file)
+  const collectionPath = path.join(__dirname, "collections", `${name}.collection.yml`);
+  if (!fs.existsSync(collectionPath)) {
+    throw new Error(`Collection '${name}' does not exist`);
+  }
+
+  // If state is already the desired state, return early
+  if (currentState === enabled) {
+    return {
+      changed: false,
+      collectionName: name,
+      currentState: currentState,
+      newState: enabled,
+      delta: { enabled: [], disabled: [] },
+      message: `Collection '${name}' is already ${enabled ? 'enabled' : 'disabled'}.`
+    };
+  }
+
+  // Compute effective states before the change
+  const effectiveStatesBefore = computeEffectiveItemStates(config);
+
+  // CORE REQUIREMENT: Only modify the collection's enabled flag
+  // Never write to per-item flags (config.prompts[item] = enabled)
+  config.collections[name] = enabled;
+
+  // Compute effective states after the change
+  const effectiveStatesAfter = computeEffectiveItemStates(config);
+
+  // Calculate delta summary for CLI feedback
+  const delta = { enabled: [], disabled: [] };
+  for (const sectionName of ["prompts", "instructions", "chatmodes"]) {
+    for (const item of getAllAvailableItems(sectionName)) {
+      const beforeState = effectiveStatesBefore[sectionName]?.[item]?.enabled || false;
+      const afterState = effectiveStatesAfter[sectionName]?.[item]?.enabled || false;
+      
+      if (!beforeState && afterState) {
+        delta.enabled.push(`${sectionName}/${item}`);
+      } else if (beforeState && !afterState) {
+        delta.disabled.push(`${sectionName}/${item}`);
+      }
+    }
+  }
+
+  return {
+    changed: true,
+    collectionName: name,
+    currentState: currentState,
+    newState: enabled,
+    delta,
+    message: `${enabled ? 'Enabled' : 'Disabled'} collection '${name}'.`
+  };
+}
+
 module.exports = {
   DEFAULT_CONFIG_PATH,
   CONFIG_SECTIONS,
@@ -332,5 +419,6 @@ module.exports = {
   getAllAvailableItems,
   computeEffectiveItemStates,
   getEffectivelyEnabledItems,
-  generateConfigHash
+  generateConfigHash,
+  toggleCollection
 };
