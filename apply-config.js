@@ -106,16 +106,35 @@ async function applyConfig(configPath = "awesome-copilot.config.yml") {
   // Get precomputed sets of effectively enabled items for O(1) performance
   const effectivelyEnabledSets = getEffectivelyEnabledItems(config);
 
-  // Count enabled collections for summary
+  // Count effectively enabled collections for summary
+  // A collection is effectively enabled if it contributes any enabled items
   if (config.collections) {
-    for (const [collectionName, enabled] of Object.entries(config.collections)) {
-      if (enabled) {
+    for (const [collectionName, configEnabled] of Object.entries(config.collections)) {
+      if (configEnabled) {
         const collectionPath = path.join(rootDir, "collections", `${collectionName}.collection.yml`);
         if (fs.existsSync(collectionPath)) {
           const collection = parseCollectionYaml(collectionPath);
           if (collection && collection.items) {
-            summary.collections++;
-            console.log(`✓ Enabled collection: ${collectionName} (${collection.items.length} items)`);
+            // Check if this collection contributes any effectively enabled items
+            let hasEnabledItems = false;
+            for (const item of collection.items) {
+              const itemName = path.basename(item.path).replace(/\.(prompt|instructions|chatmode)\.md$/, '');
+              if (item.kind === "prompt" && effectivelyEnabledSets.prompts.has(itemName)) {
+                hasEnabledItems = true;
+                break;
+              } else if (item.kind === "instruction" && effectivelyEnabledSets.instructions.has(itemName)) {
+                hasEnabledItems = true;
+                break;
+              } else if (item.kind === "chat-mode" && effectivelyEnabledSets.chatmodes.has(itemName)) {
+                hasEnabledItems = true;
+                break;
+              }
+            }
+            
+            if (hasEnabledItems) {
+              summary.collections++;
+              console.log(`✓ Enabled collection: ${collectionName} (${collection.items.length} items)`);
+            }
           }
         }
       }
