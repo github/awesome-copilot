@@ -40,14 +40,12 @@ The following instructions are only to be applied when performing a code review.
 * [ ] Encourage the use of `tools`, but it's not required.
 * [ ] Strongly encourage the use of `model` to specify the model that the chat mode is optimised for.
 
-
 ## Branching Policy
 
-- Always create a new branch for each task, feature, or fix.
-- Use the following naming conventions:
-	- `feature/<short-description>`
-	- `bugfix/<short-description>`
-	- `task/<short-description>`
-- Never commit changes directly to the `main` or default branch.
-- After completing changes, push the branch and open a pull request for review and merging.
+* [ ] Always create a new branch for each task or issue you are working on.
+* [ ] Use descriptive branch names following the convention: `feature/description`, `fix/description`, or `docs/description`.
+* [ ] Never commit directly to the `main` branch.
+* [ ] Always open a pull request for code changes, even for small updates.
+* [ ] Ensure your branch is up to date with `main` before opening a pull request.
+* [ ] Delete the branch after the pull request is merged.
 

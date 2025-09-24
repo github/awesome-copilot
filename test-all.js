@@ -8,6 +8,7 @@ const { runTests: runUnitTests } = require('./test-effective-states');
 const { runTests: runIntegrationTests } = require('./test-integration');
 const { runTests: runCliTests } = require('./test-cli');
 const { runTests: runApplyTests } = require('./test-apply-effective');
+const { runTests: runToggleCollectionTests } = require('./test-toggle-collection');
 
 async function runAllTests() {
   console.log('🧪 Running Awesome Copilot Comprehensive Test Suite\n');
@@ -17,7 +18,8 @@ async function runAllTests() {
     unit: false,
     integration: false,
     cli: false,
-    apply: false
+    apply: false,
+    toggleCollection: false
   };
 
   try {
@@ -53,6 +55,14 @@ async function runAllTests() {
   }
 
   try {
+    console.log('\n🔧 Toggle Collection Tests (TASK-003)');
+    console.log('-'.repeat(36));
+    results.toggleCollection = await runToggleCollectionTests();
+  } catch (error) {
+    console.error('Toggle collection tests failed with error:', error.message);
+  }
+
+  try {
     console.log('\n🤖 Repository Instructions Tests');
     console.log('-'.repeat(33));
     const { runTests: runRepoInstructionsTests } = require('./test-repository-instructions');
@@ -71,6 +81,7 @@ async function runAllTests() {
     { name: 'Integration Tests', result: results.integration, emoji: '🔄' },
     { name: 'CLI Tests', result: results.cli, emoji: '⌨️' },
     { name: 'Apply Tests', result: results.apply, emoji: '🎯' },
+    { name: 'Toggle Collection', result: results.toggleCollection, emoji: '🔧' },
     { name: 'Repo Instructions', result: results.repoInstructions, emoji: '🤖' }
   ];
 

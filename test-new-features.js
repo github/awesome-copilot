@@ -119,14 +119,14 @@ async function runTests() {
     
     // Check it's explicitly disabled
     const listResult1 = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult1.stdout.includes('create-readme (explicit)'), 'Should show explicit disabled');
+    assert(listResult1.stdout.includes('create-readme (explicit:false)'), 'Should show explicit disabled');
     
     // Force enable all with --all flag
     await runCommand(`node awesome-copilot.js toggle prompts all on --all --config ${TEST_CONFIG}`);
     
     // Check it's now explicitly enabled
     const listResult2 = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult2.stdout.includes('create-readme (explicit)') && listResult2.stdout.includes('[✓]'), 'Should be explicitly enabled');
+    assert(listResult2.stdout.includes('create-readme (explicit:true)') && listResult2.stdout.includes('[✓]'), 'Should be explicitly enabled');
   });
 
   // Test 4: File cleanup on disable
@@ -180,7 +180,7 @@ async function runTests() {
     
     // Double-check with list command
     const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), "'playwright-generate-test (explicit)' should be present in the list output");
+    assert(listResult.stdout.includes('playwright-generate-test (explicit:false)'), "'playwright-generate-test (explicit:false)' should be present in the list output");
     assert(!listResult.stdout.includes('[✓] playwright-generate-test'), "'[✓] playwright-generate-test' should NOT be present in the list output (should remain explicitly disabled)");
   });
 

@@ -164,7 +164,50 @@ function runTests() {
            'Chat mode should be enabled by collection');
   });
 
-  // Test 8: getEffectivelyEnabledItems returns Sets format
+  // Test 9: TASK-006 - Strict false checks prevent undefined treated as disabled
+  test("TASK-006: Strict false checks prevent undefined treated as disabled", () => {
+    const config = {
+      prompts: {
+        'explicit-false-item': false,
+        'explicit-true-item': true,
+        // 'undefined-item' is undefined (not set)
+      },
+      collections: {
+        'testing-automation': true
+      }
+    };
+    const result = computeEffectiveItemStates(config);
+    
+    // Explicit false should be disabled with reason 'explicit'
+    const explicitFalse = result.prompts['explicit-false-item'];
+    if (explicitFalse) {
+      assert(explicitFalse.reason === 'explicit' && !explicitFalse.enabled,
+             'Items with explicit false should be disabled with reason explicit');
+    }
+    
+    // Explicit true should be enabled with reason 'explicit'  
+    const explicitTrue = result.prompts['explicit-true-item'];
+    if (explicitTrue) {
+      assert(explicitTrue.reason === 'explicit' && explicitTrue.enabled,
+             'Items with explicit true should be enabled with reason explicit');
+    }
+    
+    // Undefined item in collection should be enabled with reason 'collection'
+    const undefinedInCollection = result.prompts['playwright-generate-test'];
+    if (undefinedInCollection) {
+      assert(undefinedInCollection.reason === 'collection' && undefinedInCollection.enabled,
+             'Undefined items should be enabled by collections, not treated as explicitly disabled');
+    }
+    
+    // Undefined item NOT in collection should be disabled with reason 'disabled' (not 'explicit')
+    const undefinedNotInCollection = result.prompts['some-random-item-not-in-any-collection'];
+    if (undefinedNotInCollection) {
+      assert(undefinedNotInCollection.reason === 'disabled' && !undefinedNotInCollection.enabled,
+             'Undefined items not in collections should have reason disabled, not explicit');
+    }
+  });
+
+  // Test 10: getEffectivelyEnabledItems returns Sets format
   test("getEffectivelyEnabledItems returns Sets format", () => {
     const config = {
       prompts: {
@@ -212,6 +255,37 @@ function runTests() {
     assert(hasItem === true, 'Should find enabled item');
     // This is more of a structural test - Sets provide O(1) lookups by design
     assert(result.prompts.size > 0, 'Should have enabled prompts');
+  });
+
+  // Test 10: Undefined values are not treated as explicitly disabled (TASK-004)
+  test("Undefined values are not treated as explicitly disabled", () => {
+    const config = {
+      prompts: {
+        'playwright-generate-test': true,   // explicit true
+        'csharp-nunit': false,             // explicit false
+        // 'playwright-explore-website' is undefined (not mentioned)
+      },
+      collections: {
+        'testing-automation': true
+      }
+    };
+    
+    const result = computeEffectiveItemStates(config);
+    
+    // Explicit true should be explicit
+    const explicitTrue = result.prompts['playwright-generate-test'];
+    assert(explicitTrue && explicitTrue.enabled && explicitTrue.reason === 'explicit',
+           'Explicit true should be enabled with explicit reason');
+    
+    // Explicit false should be explicit (strict === false comparison)
+    const explicitFalse = result.prompts['csharp-nunit'];
+    assert(explicitFalse && !explicitFalse.enabled && explicitFalse.reason === 'explicit',
+           'Explicit false should be disabled with explicit reason');
+    
+    // Undefined should inherit from collection
+    const undefinedItem = result.prompts['playwright-explore-website'];
+    assert(undefinedItem && undefinedItem.enabled && undefinedItem.reason === 'collection',
+           'Undefined items should inherit from collection, not be treated as explicitly disabled');
   });
 
   console.log(`\nTest Results: ${passedTests}/${totalTests} passed`);

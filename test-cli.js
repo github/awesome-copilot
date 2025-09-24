@@ -92,7 +92,7 @@ async function runTests() {
     
     const result = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
     assert(result.success, 'List should succeed');
-    assert(result.stdout.includes('(collection)'), 'Should show collection reason');
+    assert(result.stdout.includes('(via:[testing-automation])'), 'Should show collection reason');
     assert(result.stdout.includes('[✓]'), 'Should show enabled items');
   });
 
@@ -105,7 +105,7 @@ async function runTests() {
     assert(result.success, 'Individual toggle should succeed');
     
     const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
-    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), 
+    assert(listResult.stdout.includes('playwright-generate-test (explicit:false)'), 
            'Explicitly disabled item should show explicit reason');
   });
 
@@ -126,6 +126,209 @@ async function runTests() {
     const result = await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
     assert(result.success, 'Should succeed');
     assert(result.stdout.includes('already enabled'), 'Should indicate no change needed');
+  });
+
+  // Test 8: Multiple collections effective states
+  await test("Multiple collections effective states", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    
+    // Enable two collections with potential overlap
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections csharp-dotnet-development on --config ${TEST_CONFIG}`);
+    
+    const result = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
+    assert(result.success, 'List should succeed');
+    
+    // Should show collection reason for items enabled by collection
+    assert(result.stdout.includes('(collection)'), 'Should show collection reason');
+    assert(result.stdout.includes('[✓]'), 'Should show enabled items');
+    
+    // Count should reflect enabled items from both collections
+    const enabledMatch = result.stdout.match(/Prompts \((\d+)\/\d+ enabled\)/);
+    assert(enabledMatch && parseInt(enabledMatch[1]) > 5, 'Should have multiple enabled prompts from collections');
+  });
+
+  // Test 9: Explicit overrides with collection conflicts
+  await test("Explicit overrides with collection conflicts", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    // Override a collection item explicitly to off
+    await runCommand(`node awesome-copilot.js toggle prompts playwright-generate-test off --config ${TEST_CONFIG}`);
+    
+    const listResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
+    assert(listResult.success, 'List should succeed');
+    
+    // Should show explicit reason and disabled state
+    assert(listResult.stdout.includes('playwright-generate-test (explicit)'), 'Should show explicit reason');
+    assert(listResult.stdout.includes('[ ] playwright-generate-test'), 'Should show as disabled despite collection');
+    
+    // Other collection items should still show as enabled
+    assert(listResult.stdout.includes('[✓] playwright-explore-website (collection)'), 'Other collection items should remain enabled');
+  });
+
+  // Test 10: Delta summary accuracy with conflicts
+  await test("Delta summary accuracy with conflicts", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    
+    // Enable collection
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    // Add explicit override to disable one item
+    await runCommand(`node awesome-copilot.js toggle prompts playwright-generate-test off --config ${TEST_CONFIG}`);
+    
+    // Disable the collection - should show accurate delta excluding explicit override
+    const result = await runCommand(`node awesome-copilot.js toggle collections testing-automation off --config ${TEST_CONFIG}`);
+    assert(result.success, 'Toggle should succeed');
+    assert(result.stdout.includes('Delta summary'), 'Should show delta summary');
+    assert(result.stdout.includes('items will be disabled'), 'Should show disabled items count');
+    
+    // Should not include the explicitly disabled item in the delta
+    const lines = result.stdout.split('\n');
+    const disabledItems = lines.filter(line => line.includes('    - prompts/'));
+    assert(!disabledItems.some(line => line.includes('playwright-generate-test')), 
+           'Should not show explicitly disabled item in delta');
+  });
+
+  // Test 11: Instructions and chatmodes effective states
+  await test("Instructions and chatmodes effective states", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    // Test instructions
+    const instructionsResult = await runCommand(`node awesome-copilot.js list instructions --config ${TEST_CONFIG}`);
+    assert(instructionsResult.success, 'Instructions list should succeed');
+    assert(instructionsResult.stdout.includes('[✓] playwright-typescript (collection)'), 
+           'Instructions should show collection reason');
+    
+    // Test chatmodes
+    const chatmodesResult = await runCommand(`node awesome-copilot.js list chatmodes --config ${TEST_CONFIG}`);
+    assert(chatmodesResult.success, 'Chatmodes list should succeed');
+    assert(chatmodesResult.stdout.includes('[✓] tdd-red (collection)'), 
+           'Chatmodes should show collection reason');
+  });
+
+  // Test 12: Collections section display
+  await test("Collections section shows simple enabled/disabled", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    const result = await runCommand(`node awesome-copilot.js list collections --config ${TEST_CONFIG}`);
+    assert(result.success, 'Collections list should succeed');
+    assert(result.stdout.includes('[✓] testing-automation'), 'Should show enabled collection');
+    assert(result.stdout.includes('[ ] csharp-dotnet-development'), 'Should show disabled collection');
+    
+    // Collections should not show reasons (unlike other sections)
+    assert(!result.stdout.includes('(explicit)'), 'Collections should not show reason text');
+    assert(!result.stdout.includes('(collection)'), 'Collections should not show reason text');
+  });
+
+  // Test 13: Output clarity and user-friendliness
+  await test("Output clarity and user-friendliness", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    const result = await runCommand(`node awesome-copilot.js list --config ${TEST_CONFIG}`);
+    assert(result.success, 'List should succeed');
+    
+    // Should show counts (character estimates may or may not appear depending on content)
+    assert(result.stdout.includes('enabled'), 'Should show enabled counts');
+    
+    // Should show helpful usage message
+    assert(result.stdout.includes("Use 'awesome-copilot toggle'"), 'Should show usage instructions');
+    
+    // Should show clear section headers
+    assert(result.stdout.includes('Prompts'), 'Should show Prompts section');
+    assert(result.stdout.includes('Instructions'), 'Should show Instructions section');
+    assert(result.stdout.includes('Chat Modes'), 'Should show Chat Modes section');
+    assert(result.stdout.includes('Collections'), 'Should show Collections section');
+    
+    // Should show configuration path
+    assert(result.stdout.includes('Configuration:'), 'Should show configuration file path');
+  });
+
+  // Test 14: Complex scenario with multiple overrides
+  await test("Complex scenario with multiple overrides", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    
+    // Enable multiple collections
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle collections csharp-dotnet-development on --config ${TEST_CONFIG}`);
+    
+    // Add explicit overrides
+    await runCommand(`node awesome-copilot.js toggle prompts playwright-generate-test off --config ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle prompts create-readme on --config ${TEST_CONFIG}`);
+    
+    const result = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
+    assert(result.success, 'List should succeed');
+    
+    // Should show mixed states with correct reasons
+    assert(result.stdout.includes('[ ] playwright-generate-test (explicit)'), 'Should show explicit disable');
+    assert(result.stdout.includes('[✓] create-readme (explicit)'), 'Should show explicit enable');
+    assert(result.stdout.includes('(collection)'), 'Should show collection-enabled items');
+    
+    // Count should be accurate
+    const enabledMatch = result.stdout.match(/Prompts \((\d+)\/\d+ enabled\)/);
+    assert(enabledMatch, 'Should show enabled count');
+    
+    const enabledCount = parseInt(enabledMatch[1]);
+    assert(enabledCount > 8, 'Should have multiple items enabled from collections and explicit');
+  });
+
+  // Test 15: No misleading disabled messages for shared items
+  await test("No misleading disabled messages for shared items", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    
+    // Enable a collection that has items potentially shared with other collections
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    
+    // Toggle collection off and check delta summary
+    const result = await runCommand(`node awesome-copilot.js toggle collections testing-automation off --config ${TEST_CONFIG}`);
+    assert(result.success, 'Toggle should succeed');
+    
+    // Should show accurate delta - items should be listed as will be disabled
+    // since they're not enabled by other collections in this test
+    assert(result.stdout.includes('Delta summary'), 'Should show delta summary');
+    assert(result.stdout.includes('items will be disabled'), 'Should show disabled items count');
+    
+    // Verify the messaging is clear and not misleading
+    const lines = result.stdout.split('\n');
+    const deltaLines = lines.filter(line => line.includes('+ ') || line.includes('- '));
+    assert(deltaLines.length > 0, 'Should show specific items in delta');
+  });
+
+  // Test 16: Membership and counts verification
+  await test("Membership and counts verification", async () => {
+    await runCommand(`node awesome-copilot.js init ${TEST_CONFIG}`);
+    
+    // Enable collection and add explicit overrides
+    await runCommand(`node awesome-copilot.js toggle collections testing-automation on --config ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle prompts playwright-generate-test off --config ${TEST_CONFIG}`);
+    await runCommand(`node awesome-copilot.js toggle prompts create-readme on --config ${TEST_CONFIG}`);
+    
+    // Get all section results
+    const promptsResult = await runCommand(`node awesome-copilot.js list prompts --config ${TEST_CONFIG}`);
+    const instructionsResult = await runCommand(`node awesome-copilot.js list instructions --config ${TEST_CONFIG}`);
+    const chatmodesResult = await runCommand(`node awesome-copilot.js list chatmodes --config ${TEST_CONFIG}`);
+    
+    // Verify counts are accurate and consistent
+    const promptsMatch = promptsResult.stdout.match(/Prompts \((\d+)\/(\d+) enabled\)/);
+    const instructionsMatch = instructionsResult.stdout.match(/Instructions \((\d+)\/(\d+) enabled\)/);
+    const chatmodesMatch = chatmodesResult.stdout.match(/Chat Modes \((\d+)\/(\d+) enabled\)/);
+    
+    assert(promptsMatch, 'Should show prompts count');
+    assert(instructionsMatch, 'Should show instructions count');  
+    assert(chatmodesMatch, 'Should show chatmodes count');
+    
+    // Counts should be reasonable for testing-automation collection
+    assert(parseInt(promptsMatch[1]) >= 4, 'Should have reasonable prompts enabled');
+    assert(parseInt(instructionsMatch[1]) >= 2, 'Should have reasonable instructions enabled');
+    assert(parseInt(chatmodesMatch[1]) >= 3, 'Should have reasonable chatmodes enabled');
+    
+    // Total items should be consistent
+    assert(parseInt(promptsMatch[2]) > 80, 'Should show total prompts available');
+    assert(parseInt(instructionsMatch[2]) > 70, 'Should show total instructions available');
+    assert(parseInt(chatmodesMatch[2]) > 50, 'Should show total chatmodes available');
   });
 
   console.log(`\nCLI Test Results: ${passedTests}/${totalTests} passed`);

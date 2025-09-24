@@ -101,6 +101,11 @@ function toBoolean(value) {
     if (normalized === "false") return false;
   }
 
+  // Preserve undefined as undefined for "no explicit override"
+  if (value === undefined) {
+    return undefined;
+  }
+
   return Boolean(value);
 }
 
@@ -185,10 +190,16 @@ function generateConfigHash(config) {
  * Compute effective item states respecting explicit overrides over collections
  * 
  * This function builds membership maps per section and returns effectively enabled items with reasons.
- * It uses the following precedence rules:
- * 1. Explicit true/false overrides everything (highest priority)
+ * It uses strict comparisons to ensure undefined values are never treated as explicitly disabled.
+ * 
+ * Precedence rules with strict undefined handling:
+ * 1. Explicit true/false overrides everything (highest priority) - uses strict === comparisons
  * 2. If undefined and enabled by collection, use true
  * 3. Otherwise, use false (disabled)
+ * 
+ * CRITICAL: Only values that are strictly === false are treated as explicitly disabled.
+ * undefined, null, 0, '', or other falsy values are NOT treated as explicit disabling.
+ * This allows collections to enable items that are not explicitly configured.
  * 
  * @param {Object} config - Configuration object with sections
  * @returns {Object} Effective states for each section with { itemName: { enabled: boolean, reason: string } }
@@ -203,14 +214,21 @@ function computeEffectiveItemStates(config) {
     chatmodes: {}
   };
 
-  // Build membership maps: Map<itemName, Set<collectionName>> per section for O(1) lookups
+  // Build detailed membership maps: Map<itemName, Set<collectionName>> per section
+  const collectionMemberships = {
+    prompts: new Map(),
+    instructions: new Map(),
+    chatmodes: new Map()
+  };
+
+  // Build simple enabled sets for O(1) lookups
   const collectionEnabledItems = {
     prompts: new Set(),
     instructions: new Set(),
     chatmodes: new Set()
   };
 
-  // Identify enabled collections per section
+  // Identify enabled collections per section and track memberships
   if (config.collections) {
     for (const [collectionName, enabled] of Object.entries(config.collections)) {
       if (enabled === true) {
@@ -222,12 +240,24 @@ function computeEffectiveItemStates(config) {
               // Extract item name from path - remove directory and all extensions
               const itemName = path.basename(item.path).replace(/\.(prompt|instructions|chatmode)\.md$/, '');
 
+              let sectionName;
               if (item.kind === "prompt") {
-                collectionEnabledItems.prompts.add(itemName);
+                sectionName = "prompts";
               } else if (item.kind === "instruction") {
-                collectionEnabledItems.instructions.add(itemName);
+                sectionName = "instructions";
               } else if (item.kind === "chat-mode") {
-                collectionEnabledItems.chatmodes.add(itemName);
+                sectionName = "chatmodes";
+              }
+
+              if (sectionName) {
+                // Track which collections enable this item
+                if (!collectionMemberships[sectionName].has(itemName)) {
+                  collectionMemberships[sectionName].set(itemName, new Set());
+                }
+                collectionMemberships[sectionName].get(itemName).add(collectionName);
+                
+                // Add to enabled set for O(1) lookups
+                collectionEnabledItems[sectionName].add(itemName);
               }
             });
           }
@@ -247,27 +277,35 @@ function computeEffectiveItemStates(config) {
     for (const itemName of availableItems) {
       const explicitValue = sectionConfig[itemName];
       const isEnabledByCollection = collectionEnabled.has(itemName);
+      const enablingCollections = collectionMemberships[section].get(itemName) || new Set();
 
-      // Precedence rules:
-      // 1. If explicitly set to true or false, use that value
+      // Precedence rules with strict undefined handling:
+      // 1. If explicitly set to true or false, use that value (highest priority)
       // 2. If undefined and enabled by collection, use true
-      // 3. Otherwise, use false
+      // 3. Otherwise, use false (disabled)
+      //
+      // IMPORTANT: Only strict === false comparisons are used to determine explicit disabling.
+      // undefined values are NEVER treated as explicitly disabled, allowing collections to enable them.
 
       let enabled = false;
       let reason = "disabled";
+      let collections = [];
 
       if (explicitValue === true) {
         enabled = true;
         reason = "explicit";
       } else if (explicitValue === false) {
+        // Strict comparison ensures only explicit false disables items
         enabled = false;
         reason = "explicit";
       } else if (explicitValue === undefined && isEnabledByCollection) {
+        // undefined values can be enabled by collections (not treated as disabled)
         enabled = true;
         reason = "collection";
+        collections = Array.from(enablingCollections).sort();
       }
 
-      effectiveStates[section][itemName] = { enabled, reason };
+      effectiveStates[section][itemName] = { enabled, reason, collections };
     }
   }
 
@@ -303,6 +341,93 @@ function getEffectivelyEnabledItems(config) {
   return result;
 }
 
+/**
+ * Toggle a collection's enabled state without modifying individual item flags
+ * 
+ * This function implements the core requirement from TASK-003:
+ * - Only modifies the collection's enabled flag
+ * - Never writes to per-item flags (e.g., config.prompts[item] = enabled)  
+ * - Returns summary information for CLI feedback
+ * - Preserves all existing explicit per-item overrides
+ * 
+ * @param {Object} config - Configuration object with collections section
+ * @param {string} name - Collection name to toggle
+ * @param {boolean} enabled - Desired enabled state for the collection
+ * @returns {Object} Summary object with delta information for CLI feedback
+ */
+function toggleCollection(config, name, enabled) {
+  // Validate inputs
+  if (!config || typeof config !== 'object') {
+    throw new Error('Config object is required');
+  }
+  if (!name || typeof name !== 'string') {
+    throw new Error('Collection name is required');
+  }
+  if (typeof enabled !== 'boolean') {
+    throw new Error('Enabled state must be a boolean');
+  }
+
+  // Ensure collections section exists
+  if (!config.collections) {
+    config.collections = {};
+  }
+
+  // Get current state
+  const currentState = Boolean(config.collections[name]);
+  
+  // Check if collection exists (has a .collection.yml file)
+  const collectionPath = path.join(__dirname, "collections", `${name}.collection.yml`);
+  if (!fs.existsSync(collectionPath)) {
+    throw new Error(`Collection '${name}' does not exist`);
+  }
+
+  // If state is already the desired state, return early
+  if (currentState === enabled) {
+    return {
+      changed: false,
+      collectionName: name,
+      currentState: currentState,
+      newState: enabled,
+      delta: { enabled: [], disabled: [] },
+      message: `Collection '${name}' is already ${enabled ? 'enabled' : 'disabled'}.`
+    };
+  }
+
+  // Compute effective states before the change
+  const effectiveStatesBefore = computeEffectiveItemStates(config);
+
+  // CORE REQUIREMENT: Only modify the collection's enabled flag
+  // Never write to per-item flags (config.prompts[item] = enabled)
+  config.collections[name] = enabled;
+
+  // Compute effective states after the change
+  const effectiveStatesAfter = computeEffectiveItemStates(config);
+
+  // Calculate delta summary for CLI feedback
+  const delta = { enabled: [], disabled: [] };
+  for (const sectionName of ["prompts", "instructions", "chatmodes"]) {
+    for (const item of getAllAvailableItems(sectionName)) {
+      const beforeState = effectiveStatesBefore[sectionName]?.[item]?.enabled || false;
+      const afterState = effectiveStatesAfter[sectionName]?.[item]?.enabled || false;
+      
+      if (!beforeState && afterState) {
+        delta.enabled.push(`${sectionName}/${item}`);
+      } else if (beforeState && !afterState) {
+        delta.disabled.push(`${sectionName}/${item}`);
+      }
+    }
+  }
+
+  return {
+    changed: true,
+    collectionName: name,
+    currentState: currentState,
+    newState: enabled,
+    delta,
+    message: `${enabled ? 'Enabled' : 'Disabled'} collection '${name}'.`
+  };
+}
+
 module.exports = {
   DEFAULT_CONFIG_PATH,
   CONFIG_SECTIONS,
@@ -316,5 +441,6 @@ module.exports = {
   getAllAvailableItems,
   computeEffectiveItemStates,
   getEffectivelyEnabledItems,
-  generateConfigHash
+  generateConfigHash,
+  toggleCollection
 };
