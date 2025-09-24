@@ -101,6 +101,11 @@ function toBoolean(value) {
     if (normalized === "false") return false;
   }
 
+  // Preserve undefined as undefined for "no explicit override"
+  if (value === undefined) {
+    return undefined;
+  }
+
   return Boolean(value);
 }
 
