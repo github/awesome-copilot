@@ -214,6 +214,37 @@ function runTests() {
     assert(result.prompts.size > 0, 'Should have enabled prompts');
   });
 
+  // Test 10: Undefined values are not treated as explicitly disabled (TASK-004)
+  test("Undefined values are not treated as explicitly disabled", () => {
+    const config = {
+      prompts: {
+        'playwright-generate-test': true,   // explicit true
+        'csharp-nunit': false,             // explicit false
+        // 'playwright-explore-website' is undefined (not mentioned)
+      },
+      collections: {
+        'testing-automation': true
+      }
+    };
+    
+    const result = computeEffectiveItemStates(config);
+    
+    // Explicit true should be explicit
+    const explicitTrue = result.prompts['playwright-generate-test'];
+    assert(explicitTrue && explicitTrue.enabled && explicitTrue.reason === 'explicit',
+           'Explicit true should be enabled with explicit reason');
+    
+    // Explicit false should be explicit (strict === false comparison)
+    const explicitFalse = result.prompts['csharp-nunit'];
+    assert(explicitFalse && !explicitFalse.enabled && explicitFalse.reason === 'explicit',
+           'Explicit false should be disabled with explicit reason');
+    
+    // Undefined should inherit from collection
+    const undefinedItem = result.prompts['playwright-explore-website'];
+    assert(undefinedItem && undefinedItem.enabled && undefinedItem.reason === 'collection',
+           'Undefined items should inherit from collection, not be treated as explicitly disabled');
+  });
+
   console.log(`\nTest Results: ${passedTests}/${totalTests} passed`);
   
   if (passedTests === totalTests) {
