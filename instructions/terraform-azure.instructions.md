@@ -89,7 +89,7 @@ Use `snake_casing` for variables and module names.
 
 ## 4. Use Azure Verified Modules (AVM)
 
-Any significant resource should use an AVM if available. AVMs are designed to be aligned to the Well Architected Framework, are supported and maintained by Microsoft helping reduce the amount of code to be maintained. Information about how to discover these is available in [Azure Verified Modules for Terraform](instructions/azure-verified-modules-terraform.instructions.md).
+Any significant resource should use an AVM if available. AVMs are designed to be aligned to the Well Architected Framework, are supported and maintained by Microsoft helping reduce the amount of code to be maintained. Information about how to discover these is available in [Azure Verified Modules for Terraform](azure-verified-modules-terraform.instructions.md).
 
 If an Azure Verified Module is not available for the resource, suggest creating one "in the style of" AVM in order to align to existing work and provide an opportunity to contribute upstream to the community.
 
@@ -159,8 +159,7 @@ locals {
 
 ## 9. Follow recommended Terraform practices
 
-- **Dependencies**: avoid using `depends_on`. Only when implicit dependencies via resource outputs aren't possible. Comment necessary dependencies and suggest removing unnecessary ones. Never depend on module outputs.
-  - **Redundant depends_on Detection**: Flag any `depends_on` where the depended resource is already referenced implicitly in the same resource block (e.g., via attributes like `principal_id = module.web_app.identity_principal_id`). This indicates the dependency is likely unnecessary, as Terraform handles implicit ordering. Use `grep_search` for "depends_on" and manually verify references to ensure no redundancy.
+- **Redundant depends_on Detection**: Search and remove `depends_on` where the dependent resource is already referenced implicitly in the same resource block. Retain `depends_on` only where it is explicitly required.  Never depend on module outputs.
 
 - **Iteration**: Use `count` for 0-1 resources, `for_each` for multiple resources. Prefer maps for stable resource addresses. Align with TFNFR7.
 
