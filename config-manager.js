@@ -101,6 +101,11 @@ function toBoolean(value) {
     if (normalized === "false") return false;
   }
 
+  // Preserve undefined as undefined for "no explicit override"
+  if (value === undefined) {
+    return undefined;
+  }
+
   return Boolean(value);
 }
 
@@ -185,10 +190,16 @@ function generateConfigHash(config) {
  * Compute effective item states respecting explicit overrides over collections
  * 
  * This function builds membership maps per section and returns effectively enabled items with reasons.
- * It uses the following precedence rules:
- * 1. Explicit true/false overrides everything (highest priority)
+ * It uses strict comparisons to ensure undefined values are never treated as explicitly disabled.
+ * 
+ * Precedence rules with strict undefined handling:
+ * 1. Explicit true/false overrides everything (highest priority) - uses strict === comparisons
  * 2. If undefined and enabled by collection, use true
  * 3. Otherwise, use false (disabled)
+ * 
+ * CRITICAL: Only values that are strictly === false are treated as explicitly disabled.
+ * undefined, null, 0, '', or other falsy values are NOT treated as explicit disabling.
+ * This allows collections to enable items that are not explicitly configured.
  * 
  * @param {Object} config - Configuration object with sections
  * @returns {Object} Effective states for each section with { itemName: { enabled: boolean, reason: string } }
@@ -248,10 +259,13 @@ function computeEffectiveItemStates(config) {
       const explicitValue = sectionConfig[itemName];
       const isEnabledByCollection = collectionEnabled.has(itemName);
 
-      // Precedence rules:
-      // 1. If explicitly set to true or false, use that value
+      // Precedence rules with strict undefined handling:
+      // 1. If explicitly set to true or false, use that value (highest priority)
       // 2. If undefined and enabled by collection, use true
-      // 3. Otherwise, use false
+      // 3. Otherwise, use false (disabled)
+      //
+      // IMPORTANT: Only strict === false comparisons are used to determine explicit disabling.
+      // undefined values are NEVER treated as explicitly disabled, allowing collections to enable them.
 
       let enabled = false;
       let reason = "disabled";
@@ -260,9 +274,11 @@ function computeEffectiveItemStates(config) {
         enabled = true;
         reason = "explicit";
       } else if (explicitValue === false) {
+        // Strict comparison ensures only explicit false disables items
         enabled = false;
         reason = "explicit";
       } else if (explicitValue === undefined && isEnabledByCollection) {
+        // undefined values can be enabled by collections (not treated as disabled)
         enabled = true;
         reason = "collection";
       }
