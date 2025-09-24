@@ -99,6 +99,6 @@ Do not excessively comment code; only add comments where they add value or clari
 - No secrets or environment-specific values hardcoded
 - The generated Terraform validates cleanly and passes format checks
 - Resource names follow Azure naming conventions and include appropriate tags
-- Implicit dependencies are used where possible; agressively remove unnecessary `depends_on`
+- Implicit dependencies are used where possible; aggressively remove unnecessary `depends_on`
 - Resource configurations are correct (e.g., storage mounts, secret references, managed identities)
 - Architectural decisions align with INFRA plans and incorporated best practices
