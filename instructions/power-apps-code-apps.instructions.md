@@ -1,5 +1,6 @@
 ---
 description: 'Power Apps Code Apps development standards and best practices for TypeScript, React, and Power Platform integration'
+applyTo: '**/*.{ts,tsx,js,jsx}, **/vite.config.*, **/package.json, **/tsconfig.json, **/power.config.json'
 ---
 
 # Power Apps Code Apps Development Instructions
@@ -596,4 +597,5 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 7. **Use generated services and models from PAC CLI**
 8. **Plan for future feature updates and migrations**
 9. **Implement comprehensive testing strategies**
+
 10. **Follow proper DevOps and deployment practices**
