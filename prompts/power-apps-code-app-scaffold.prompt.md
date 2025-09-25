@@ -1,7 +1,8 @@
 ---
+description: 'Scaffold a complete Power Apps Code App project with PAC CLI setup, SDK integration, and connector configuration'
 mode: 'agent'
 tools: ['changes', 'codebase', 'editFiles', 'problems', 'search']
-description: 'Scaffold a complete Power Apps Code App project with PAC CLI setup, SDK integration, and connector configuration'
+model: GPT-4.1
 ---
 
 # Power Apps Code Apps Project Scaffolding
@@ -145,4 +146,5 @@ const photoData = await Office365UsersService.UserPhoto_V2(profile.data.id);
 6. Best practices implementation examples
 
 Ensure the generated project follows Microsoft's official Power Apps Code Apps documentation and samples from https://github.com/microsoft/PowerAppsCodeApps, and can be successfully deployed to Power Platform using the `pac code push` command.
+
 
