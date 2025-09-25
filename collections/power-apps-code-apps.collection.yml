@@ -6,11 +6,11 @@ items:
   # Power Apps Code Apps Prompt
   - path: prompts/power-apps-code-app-scaffold.prompt.md
     kind: prompt
-  
+
   # Power Apps Code Apps Instructions
   - path: instructions/power-apps-code-apps.instructions.md
     kind: instruction
-  
+
   # Power Platform Expert Chat Mode
   - path: chatmodes/power-platform-expert.chatmode.md
     kind: chat-mode
