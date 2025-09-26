@@ -1,6 +1,6 @@
 ````prompt
 ---
-mode: 'assistant'
+mode: 'agent'
 description: 'Systematic Power BI performance troubleshooting prompt for identifying, diagnosing, and resolving performance issues in Power BI models, reports, and queries.'
 model: 'gpt-4.1'
 tools: ['microsoft.docs.mcp']
@@ -383,4 +383,5 @@ Provide details about your specific Power BI performance issue, including:
 - Business requirements and constraints
 
 I'll guide you through systematic diagnosis and provide specific, actionable solutions tailored to your situation.
+
 ````
