@@ -31,6 +31,7 @@ Create specific instruction files:
 - `documentation.instructions.md` - Documentation requirements
 - `security.instructions.md` - Security best practices
 - `performance.instructions.md` - Performance optimization guidelines
+- `code-review.instructions.md` - Code review standards and GitHub review guidelines
 
 ### 3. `.github/prompts/` Directory
 Create reusable prompt files:
@@ -161,7 +162,8 @@ project-root/
 │   │   ├── testing.instructions.md
 │   │   ├── documentation.instructions.md
 │   │   ├── security.instructions.md
-│   │   └── performance.instructions.md
+│   │   ├── performance.instructions.md
+│   │   └── code-review.instructions.md
 │   ├── prompts/
 │   │   ├── setup-component.prompt.md
 │   │   ├── write-tests.prompt.md
@@ -187,6 +189,15 @@ Use this frontmatter structure for all files:
 applyTo: ["**/*.{ext}"]
 description: "Description of what this instruction covers"
 tags: ["language", "framework", "best-practices"]
+---
+```
+
+**Note**: For `code-review.instructions.md`, use:
+```yaml
+---
+applyTo: ["**/*"]
+description: "Code review standards and GitHub review guidelines"
+tags: ["code-review", "github", "quality-assurance"]
 ---
 ```
 
@@ -240,6 +251,7 @@ Before completing, verify:
 - [ ] Security and performance considerations are addressed
 - [ ] Testing guidelines are included
 - [ ] Documentation standards are clear
+- [ ] Code review standards are defined
 
 ## Workflow Template Structure
 
