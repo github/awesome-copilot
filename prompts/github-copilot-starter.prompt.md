@@ -272,7 +272,7 @@ jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
     permissions:
-      contents: read  # Adjust based on tech stack needs
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
