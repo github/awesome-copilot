@@ -87,7 +87,7 @@ For each file, follow these principles:
 ```markdown
 <!-- Based on: https://github.com/github/awesome-copilot/blob/main/instructions/react.instructions.md -->
 ---
-applyTo: ["**/*.jsx", "**/*.tsx"]
+applyTo: "**/*.jsx,**/*.tsx"
 description: "React development best practices"
 ---
 # React Development Guidelines
@@ -98,7 +98,7 @@ description: "React development best practices"
 <!-- Inspired by: https://github.com/github/awesome-copilot/blob/main/instructions/java.instructions.md -->
 <!-- and: https://github.com/github/awesome-copilot/blob/main/instructions/spring-boot.instructions.md -->
 ---
-applyTo: ["**/*.java"]
+applyTo: "**/*.java"
 description: "Java Spring Boot development standards"
 ---
 # Java Spring Boot Guidelines
