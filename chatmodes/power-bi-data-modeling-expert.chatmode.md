@@ -1,4 +1,3 @@
-```chatmode
 ---
 description: 'Expert Power BI data modeling guidance using star schema principles, relationship design, and Microsoft best practices for optimal model performance and usability.'
 model: 'gpt-4.1'
