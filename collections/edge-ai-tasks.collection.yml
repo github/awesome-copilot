@@ -48,7 +48,7 @@ items:
         * The details for the implementation, the plan file refers to this file for specific details (important if you have a big plan).
       * `.copilot-tracking/prompts/implement-*.prompt.md`
 
-        * A newly generated prompt file that will create a `.copilot-tracking/changes/*-changes.md` file and proceed to implement th changes.
+        * A newly generated prompt file that will create a `.copilot-tracking/changes/*-changes.md` file and proceed to implement the changes.
 
       Continue to use `task-planner` to iterate on the plan until you have exactly what you want done to your codebase.
 
