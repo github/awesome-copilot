@@ -15,10 +15,13 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Keep the happy path left-aligned (minimize indentation)
 - Return early to reduce nesting
 - Make the zero value useful
+- Write self-documenting code with clear, descriptive names
 - Document exported types, functions, methods, and packages
 - Use Go modules for dependency management
 - Leverage the Go standard library instead of reinventing the wheel (e.g., use `strings.Builder` for string concatenation, `filepath.Join` for path construction)
 - Prefer standard library solutions over custom implementations when functionality exists
+- Write comments in English by default; translate only upon user request
+- Avoid using emoji in code and comments
 
 ## Naming Conventions
 
@@ -65,12 +68,16 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 
 ### Comments
 
-- Write comments in complete sentences
+- Strive for self-documenting code; prefer clear variable names, function names, and code structure over comments
+- Write comments only when necessary to explain complex logic, business rules, or non-obvious behavior
+- Write comments in complete sentences in English by default
+- Translate comments to other languages only upon specific user request
 - Start sentences with the name of the thing being described
 - Package comments should start with "Package [name]"
 - Use line comments (`//`) for most comments
 - Use block comments (`/* */`) sparingly, mainly for package documentation
 - Document why, not what, unless the what is complex
+- Avoid emoji in comments and code
 
 ### Error Handling
 
@@ -295,11 +302,14 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 
 ### Code Documentation
 
-- Document all exported symbols
+- Prioritize self-documenting code through clear naming and structure
+- Document all exported symbols with clear, concise explanations
 - Start documentation with the symbol name
+- Write documentation in English by default
 - Use examples in documentation when helpful
 - Keep documentation close to code
 - Update documentation when code changes
+- Avoid emoji in documentation and comments
 
 ### README and Documentation Files
 
