@@ -14,6 +14,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Follow the principle of least surprise
 - Keep the happy path left-aligned (minimize indentation)
 - Return early to reduce nesting
+- Prefer early return over if-else chains; use `if condition { return }` pattern to avoid else blocks
 - Make the zero value useful
 - Write self-documenting code with clear, descriptive names
 - Document exported types, functions, methods, and packages
