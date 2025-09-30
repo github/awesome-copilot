@@ -174,7 +174,13 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Choose between channels and mutexes based on the use case: use channels for communication, mutexes for protecting state
 - Use `sync.Once` for one-time initialization
 - WaitGroup usage by Go version:
-	- If `go >= 1.25` in `go.mod`, use the new `WaitGroup` pattern
+	- If `go >= 1.25` in `go.mod`, use the new `WaitGroup.Go` method ([documentation](https://pkg.go.dev/sync#WaitGroup)):
+		```go
+		var wg sync.WaitGroup
+		wg.Go(task1)
+		wg.Go(task2)
+		wg.Wait()
+		```
 	- If `go < 1.25`, use the classic `Add`/`Done` pattern
 
 ## Error Handling Patterns
