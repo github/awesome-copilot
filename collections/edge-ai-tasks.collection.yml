@@ -70,7 +70,7 @@ items:
 
       This prompt has the added benefit of attaching the plan as instructions, which helps with keeping the plan in context throughout the whole conversation.
 
-      **Expert Warning** ->>Use `phaseStop=false` to have Copilot implement the whole plane without stopping. Additionally, you can use `taskStop=true` to have Copilot stop after every Task implementation for finer detail control.
+      **Expert Warning** ->>Use `phaseStop=false` to have Copilot implement the whole plan without stopping. Additionally, you can use `taskStop=true` to have Copilot stop after every Task implementation for finer detail control.
 
       To use these generated instructions and prompts, you'll need to update your `settings.json` accordingly:
 
