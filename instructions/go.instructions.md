@@ -32,8 +32,21 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Choose names that describe what the package provides, not what it contains
 - Avoid generic names like `util`, `common`, or `base`
 - Package names should be singular, not plural
-- When editing an existing `.go` file, preserve the current `package` declaration and do not insert a second `package` line
-- When creating a new `.go` file, match the package name used by other files in the same directory (or the directory name if new), and ensure exactly one `package` declaration at the top
+
+#### Package Declaration Rules (CRITICAL):
+- **NEVER duplicate `package` declarations** - each Go file must have exactly ONE `package` line
+- When editing an existing `.go` file:
+  - **PRESERVE** the existing `package` declaration - do not add another one
+  - If you need to replace the entire file content, start with the existing package name
+- When creating a new `.go` file:
+  - **BEFORE writing any code**, check what package name other `.go` files in the same directory use
+  - Use the SAME package name as existing files in that directory
+  - If it's a new directory, use the directory name as the package name
+  - Write **exactly one** `package <name>` line at the very top of the file
+- When using file creation or replacement tools:
+  - **ALWAYS verify** the target file doesn't already have a `package` declaration before adding one
+  - If replacing file content, include only ONE `package` declaration in the new content
+  - **NEVER** create files with multiple `package` lines or duplicate declarations
 
 ### Variables and Functions
 
@@ -350,3 +363,4 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Using global variables unnecessarily
 - Over-using unconstrained types (e.g., `any`); prefer specific types or generic type parameters with constraints. If an unconstrained type is required, use `any` rather than `interface{}`
 - Not considering the zero value of types
+- **Creating duplicate `package` declarations** - this is a compile error; always check existing files before adding package declarations
