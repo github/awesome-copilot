@@ -48,7 +48,7 @@ description: 'Ensure that C# types are documented with XML comments and follow b
 - The `<summary>` should start with:
   - "Gets or sets..." for a read-write property.
   - "Gets..." for a read-only property.
-  - For properties that return a Boolean value, the summary should start with "Gets [or sets] a value that indicates whether...".
+  - "Gets [or sets] a value that indicates whether..." for properties that return a Boolean value.
 - Use `<value>` to describe the value of the property.
   - The description should be a noun phrase that doesn't specify the data type.
   - If the property has a default value, add it in a separate sentence, for example, "The default is `<see langword="false" />`".  
