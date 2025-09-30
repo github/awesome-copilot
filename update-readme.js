@@ -460,7 +460,7 @@ function generateCollectionsSection(collectionsDir) {
   for (const file of collectionFiles) {
     const filePath = path.join(collectionsDir, file);
     const collection = parseCollectionYaml(filePath);
-    
+
     if (!collection) {
       console.warn(`Failed to parse collection: ${file}`);
       continue;
@@ -471,7 +471,7 @@ function generateCollectionsSection(collectionsDir) {
     const description = collection.description || "No description";
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
-    
+
     const link = `collections/${collectionId}.md`;
 
     collectionsContent += `| [${name}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
@@ -491,15 +491,18 @@ function generateCollectionReadme(collection, collectionId) {
   const name = collection.name || collectionId;
   const description = collection.description || "No description provided.";
   const tags = collection.tags ? collection.tags.join(", ") : "None";
-  
+
   let content = `# ${name}\n\n${description}\n\n`;
-  
+
   if (collection.tags && collection.tags.length > 0) {
     content += `**Tags:** ${tags}\n\n`;
   }
-  
+
   content += `## Items in this Collection\n\n`;
   content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
+
+  let collectionUsageHeader = "## Collection Usage\n\n";
+  let collectionUsageContent = [];
 
   // Sort items based on display.ordering setting
   const items = [...collection.items];
@@ -515,19 +518,48 @@ function generateCollectionReadme(collection, collectionId) {
     const filePath = path.join(__dirname, item.path);
     const title = extractTitle(filePath);
     const description = extractDescription(filePath) || "No description";
-    const typeDisplay = item.kind === "chat-mode" ? "Chat Mode" : 
-                       item.kind === "instruction" ? "Instruction" : "Prompt";
+    const typeDisplay =
+      item.kind === "chat-mode"
+        ? "Chat Mode"
+        : item.kind === "instruction"
+          ? "Instruction"
+          : "Prompt";
     const link = `../${item.path}`;
 
     // Create install badges for each item
-    const badges = makeBadges(item.path, item.kind === "instruction" ? "instructions" : 
-                             item.kind === "chat-mode" ? "mode" : "prompt");
+    const badges = makeBadges(
+      item.path,
+      item.kind === "instruction"
+        ? "instructions"
+        : item.kind === "chat-mode"
+          ? "mode"
+          : "prompt",
+    );
 
-    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${description} |\n`;
+    const usageDescription = item.usage
+      ? `${description} [see usage](#${title
+          .replace(/\s+/g, "-")
+          .toLowerCase()})`
+      : description;
+
+    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} |\n`;
+    // Generate Usage section for each collection
+    if (item.usage && item.usage.trim()) {
+      collectionUsageContent.push(`### ${title}\n\n${item.usage.trim()}\n\n---\n\n`);
+    }
   }
 
+  // Append the usage section if any items had usage defined
+  if (collectionUsageContent.length > 0) {
+    content += `\n${collectionUsageHeader}${collectionUsageContent.join("")}`;
+  } else if (collection.display?.show_badge) {
+    content += "\n---\n";
+  }
+
+
+  // Optional badge note at the end if show_badge is true
   if (collection.display?.show_badge) {
-    content += `\n---\n*This collection includes ${items.length} curated items for ${name.toLowerCase()}.*`;
+    content += `*This collection includes ${items.length} curated items for ${name.toLowerCase()}.*`;
   }
 
   return content;
@@ -591,7 +623,7 @@ try {
     chatmodesHeader,
     TEMPLATES.chatmodesUsage
   );
-  
+
   // Generate collections README
   const collectionsReadme = buildCategoryReadme(
     generateCollectionsSection,
@@ -609,7 +641,7 @@ try {
   // Generate individual collection README files
   if (fs.existsSync(collectionsDir)) {
     console.log("Generating individual collection README files...");
-    
+
     const collectionFiles = fs
       .readdirSync(collectionsDir)
       .filter((file) => file.endsWith(".collection.yml"));
@@ -617,7 +649,7 @@ try {
     for (const file of collectionFiles) {
       const filePath = path.join(collectionsDir, file);
       const collection = parseCollectionYaml(filePath);
-      
+
       if (collection) {
         const collectionId = collection.id || path.basename(file, ".collection.yml");
         const readmeContent = generateCollectionReadme(collection, collectionId);
