@@ -1,0 +1,14 @@
+id: clojure-interactive-programming
+name: Clojure Interactive Programming
+description: Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance.
+tags: [clojure, repl, interactive-programming]
+items:
+  - path: instructions/clojure.instructions.md
+    kind: instruction
+  - path: chatmodes/clojure-interactive-programming.chatmode.md
+    kind: chat-mode
+  - path: prompts/remember-interactive-programming.prompt.md
+    kind: prompt
+display:
+  ordering: manual
+  show_badge: true
