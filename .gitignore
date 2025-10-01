@@ -4,3 +4,4 @@ Copilot-Processing.md
 
 # macOS system files
 .DS_Store
+*.tmp
