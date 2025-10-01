@@ -1,6 +1,6 @@
 ---
-applyTo: "wp-content/plugins/**,wp-content/themes/**,**/*.php,**/*.inc,**/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.css,**/*.scss,**/*.json"
-description: "Coding, security, and testing rules for WordPress plugins and themes"
+applyTo: 'wp-content/plugins/**,wp-content/themes/**,**/*.php,**/*.inc,**/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.css,**/*.scss,**/*.json'
+description: 'Coding, security, and testing rules for WordPress plugins and themes'
 ---
 
 # WordPress Development — Copilot Instructions
