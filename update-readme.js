@@ -90,13 +90,16 @@ function extractTitle(filePath) {
       // Step 1: Look for title in frontmatter for all file types
       let inFrontmatter = false;
       let frontmatterEnded = false;
+      let hasFrontmatter = false;
 
       for (const line of lines) {
         if (line.trim() === "---") {
           if (!inFrontmatter) {
             inFrontmatter = true;
+            hasFrontmatter = true;
           } else if (!frontmatterEnded) {
             frontmatterEnded = true;
+            break;
           }
           continue;
         }
@@ -115,28 +118,52 @@ function extractTitle(filePath) {
         }
       }
 
-      // Reset for second pass
-      inFrontmatter = false;
-      frontmatterEnded = false;
-
       // Step 2: For prompt/chatmode/instructions files, look for heading after frontmatter
       if (
         filePath.includes(".prompt.md") ||
         filePath.includes(".chatmode.md") ||
         filePath.includes(".instructions.md")
       ) {
-        for (const line of lines) {
-          if (line.trim() === "---") {
-            if (!inFrontmatter) {
-              inFrontmatter = true;
-            } else if (inFrontmatter && !frontmatterEnded) {
-              frontmatterEnded = true;
-            }
-            continue;
-          }
+        // If we had frontmatter, only look for headings after it ended
+        if (hasFrontmatter) {
+          let inFrontmatter2 = false;
+          let frontmatterEnded2 = false;
+          let inCodeBlock = false;
 
-          if (frontmatterEnded && line.startsWith("# ")) {
-            return line.substring(2).trim();
+          for (const line of lines) {
+            if (line.trim() === "---") {
+              if (!inFrontmatter2) {
+                inFrontmatter2 = true;
+              } else if (inFrontmatter2 && !frontmatterEnded2) {
+                frontmatterEnded2 = true;
+              }
+              continue;
+            }
+
+            // Track code blocks to ignore headings inside them
+            if (frontmatterEnded2) {
+              if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
+                inCodeBlock = !inCodeBlock;
+                continue;
+              }
+
+              if (!inCodeBlock && line.startsWith("# ")) {
+                return line.substring(2).trim();
+              }
+            }
+          }
+        } else {
+          // No frontmatter, look for first heading (but not in code blocks)
+          let inCodeBlock = false;
+          for (const line of lines) {
+            if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
+              inCodeBlock = !inCodeBlock;
+              continue;
+            }
+
+            if (!inCodeBlock && line.startsWith("# ")) {
+              return line.substring(2).trim();
+            }
           }
         }
 
@@ -154,9 +181,15 @@ function extractTitle(filePath) {
           .replace(/\b\w/g, (l) => l.toUpperCase());
       }
 
-      // Step 4: For instruction files, look for the first heading
+      // Step 4: For instruction files, look for the first heading (but not in code blocks)
+      let inCodeBlock = false;
       for (const line of lines) {
-        if (line.startsWith("# ")) {
+        if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
+          inCodeBlock = !inCodeBlock;
+          continue;
+        }
+
+        if (!inCodeBlock && line.startsWith("# ")) {
           return line.substring(2).trim();
         }
       }
@@ -293,13 +326,22 @@ function generateInstructionsSection(instructionsDir) {
   // Get all instruction files
   const instructionFiles = fs
     .readdirSync(instructionsDir)
-    .filter((file) => file.endsWith(".md"))
-    .sort();
+    .filter((file) => file.endsWith(".md"));
 
-  console.log(`Found ${instructionFiles.length} instruction files`);
+  // Map instruction files to objects with title for sorting
+  const instructionEntries = instructionFiles.map((file) => {
+    const filePath = path.join(instructionsDir, file);
+    const title = extractTitle(filePath);
+    return { file, filePath, title };
+  });
+
+  // Sort by title alphabetically
+  instructionEntries.sort((a, b) => a.title.localeCompare(b.title));
+
+  console.log(`Found ${instructionEntries.length} instruction files`);
 
   // Return empty string if no files found
-  if (instructionFiles.length === 0) {
+  if (instructionEntries.length === 0) {
     return "";
   }
 
@@ -308,9 +350,8 @@ function generateInstructionsSection(instructionsDir) {
     "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each instruction file
-  for (const file of instructionFiles) {
-    const filePath = path.join(instructionsDir, file);
-    const title = extractTitle(filePath);
+  for (const entry of instructionEntries) {
+    const { file, filePath, title } = entry;
     const link = encodeURI(`instructions/${file}`);
 
     // Check if there's a description in the frontmatter
@@ -344,13 +385,22 @@ function generatePromptsSection(promptsDir) {
   // Get all prompt files
   const promptFiles = fs
     .readdirSync(promptsDir)
-    .filter((file) => file.endsWith(".prompt.md"))
-    .sort();
+    .filter((file) => file.endsWith(".prompt.md"));
 
-  console.log(`Found ${promptFiles.length} prompt files`);
+  // Map prompt files to objects with title for sorting
+  const promptEntries = promptFiles.map((file) => {
+    const filePath = path.join(promptsDir, file);
+    const title = extractTitle(filePath);
+    return { file, filePath, title };
+  });
+
+  // Sort by title alphabetically
+  promptEntries.sort((a, b) => a.title.localeCompare(b.title));
+
+  console.log(`Found ${promptEntries.length} prompt files`);
 
   // Return empty string if no files found
-  if (promptFiles.length === 0) {
+  if (promptEntries.length === 0) {
     return "";
   }
 
@@ -359,9 +409,8 @@ function generatePromptsSection(promptsDir) {
     "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each prompt file
-  for (const file of promptFiles) {
-    const filePath = path.join(promptsDir, file);
-    const title = extractTitle(filePath);
+  for (const entry of promptEntries) {
+    const { file, filePath, title } = entry;
     const link = encodeURI(`prompts/${file}`);
 
     // Check if there's a description in the frontmatter
@@ -393,13 +442,22 @@ function generateChatModesSection(chatmodesDir) {
   // Get all chat mode files
   const chatmodeFiles = fs
     .readdirSync(chatmodesDir)
-    .filter((file) => file.endsWith(".chatmode.md"))
-    .sort();
+    .filter((file) => file.endsWith(".chatmode.md"));
 
-  console.log(`Found ${chatmodeFiles.length} chat mode files`);
+  // Map chat mode files to objects with title for sorting
+  const chatmodeEntries = chatmodeFiles.map((file) => {
+    const filePath = path.join(chatmodesDir, file);
+    const title = extractTitle(filePath);
+    return { file, filePath, title };
+  });
+
+  // Sort by title alphabetically
+  chatmodeEntries.sort((a, b) => a.title.localeCompare(b.title));
+
+  console.log(`Found ${chatmodeEntries.length} chat mode files`);
 
   // If no chat modes, return empty string
-  if (chatmodeFiles.length === 0) {
+  if (chatmodeEntries.length === 0) {
     return "";
   }
 
@@ -408,9 +466,8 @@ function generateChatModesSection(chatmodesDir) {
     "| Title | Description |\n| ----- | ----------- |\n";
 
   // Generate table rows for each chat mode file
-  for (const file of chatmodeFiles) {
-    const filePath = path.join(chatmodesDir, file);
-    const title = extractTitle(filePath);
+  for (const entry of chatmodeEntries) {
+    const { file, filePath, title } = entry;
     const link = encodeURI(`chatmodes/${file}`);
 
     // Check if there's a description in the frontmatter
@@ -442,13 +499,30 @@ function generateCollectionsSection(collectionsDir) {
   // Get all collection files
   const collectionFiles = fs
     .readdirSync(collectionsDir)
-    .filter((file) => file.endsWith(".collection.yml"))
-    .sort();
+    .filter((file) => file.endsWith(".collection.yml"));
 
-  console.log(`Found ${collectionFiles.length} collection files`);
+  // Map collection files to objects with name for sorting
+  const collectionEntries = collectionFiles.map((file) => {
+    const filePath = path.join(collectionsDir, file);
+    const collection = parseCollectionYaml(filePath);
+
+    if (!collection) {
+      console.warn(`Failed to parse collection: ${file}`);
+      return null;
+    }
+
+    const collectionId = collection.id || path.basename(file, ".collection.yml");
+    const name = collection.name || collectionId;
+    return { file, filePath, collection, collectionId, name };
+  }).filter(entry => entry !== null); // Remove failed parses
+
+  // Sort by name alphabetically
+  collectionEntries.sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${collectionEntries.length} collection files`);
 
   // If no collections, return empty string
-  if (collectionFiles.length === 0) {
+  if (collectionEntries.length === 0) {
     return "";
   }
 
@@ -457,21 +531,12 @@ function generateCollectionsSection(collectionsDir) {
     "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
 
   // Generate table rows for each collection file
-  for (const file of collectionFiles) {
-    const filePath = path.join(collectionsDir, file);
-    const collection = parseCollectionYaml(filePath);
-    
-    if (!collection) {
-      console.warn(`Failed to parse collection: ${file}`);
-      continue;
-    }
-
-    const collectionId = collection.id || path.basename(file, ".collection.yml");
-    const name = collection.name || collectionId;
+  for (const entry of collectionEntries) {
+    const { collection, collectionId, name } = entry;
     const description = collection.description || "No description";
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
-    
+
     const link = `collections/${collectionId}.md`;
 
     collectionsContent += `| [${name}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
@@ -491,13 +556,13 @@ function generateCollectionReadme(collection, collectionId) {
   const name = collection.name || collectionId;
   const description = collection.description || "No description provided.";
   const tags = collection.tags ? collection.tags.join(", ") : "None";
-  
+
   let content = `# ${name}\n\n${description}\n\n`;
-  
+
   if (collection.tags && collection.tags.length > 0) {
     content += `**Tags:** ${tags}\n\n`;
   }
-  
+
   content += `## Items in this Collection\n\n`;
   content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
 
@@ -515,12 +580,12 @@ function generateCollectionReadme(collection, collectionId) {
     const filePath = path.join(__dirname, item.path);
     const title = extractTitle(filePath);
     const description = extractDescription(filePath) || "No description";
-    const typeDisplay = item.kind === "chat-mode" ? "Chat Mode" : 
+    const typeDisplay = item.kind === "chat-mode" ? "Chat Mode" :
                        item.kind === "instruction" ? "Instruction" : "Prompt";
     const link = `../${item.path}`;
 
     // Create install badges for each item
-    const badges = makeBadges(item.path, item.kind === "instruction" ? "instructions" : 
+    const badges = makeBadges(item.path, item.kind === "instruction" ? "instructions" :
                              item.kind === "chat-mode" ? "mode" : "prompt");
 
     content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${description} |\n`;
@@ -591,7 +656,7 @@ try {
     chatmodesHeader,
     TEMPLATES.chatmodesUsage
   );
-  
+
   // Generate collections README
   const collectionsReadme = buildCategoryReadme(
     generateCollectionsSection,
@@ -609,7 +674,7 @@ try {
   // Generate individual collection README files
   if (fs.existsSync(collectionsDir)) {
     console.log("Generating individual collection README files...");
-    
+
     const collectionFiles = fs
       .readdirSync(collectionsDir)
       .filter((file) => file.endsWith(".collection.yml"));
@@ -617,7 +682,7 @@ try {
     for (const file of collectionFiles) {
       const filePath = path.join(collectionsDir, file);
       const collection = parseCollectionYaml(filePath);
-      
+
       if (collection) {
         const collectionId = collection.id || path.basename(file, ".collection.yml");
         const readmeContent = generateCollectionReadme(collection, collectionId);
