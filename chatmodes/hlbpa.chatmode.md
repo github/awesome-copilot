@@ -93,13 +93,13 @@ The mode emits GitHub Flavored Markdown (GFM) that passes common markdownlint ru
 
 - Each Mermaid diagram is saved as a .mmd file under docs/diagrams/ and linked:
 
-  ````markdown copy
+  ````markdown
   ```mermaid src="./diagrams/payments_sequence.mmd" alt="Payment request sequence"```
   ````
 
 - Every .mmd file begins with YAML front‑matter specifying alt:
 
-  ````markdown copy
+  ````markdown
   ```mermaid
   ---
   alt: "Payment request sequence"
@@ -113,7 +113,7 @@ The mode emits GitHub Flavored Markdown (GFM) that passes common markdownlint ru
 
 - **If a diagram is embedded inline**, the fenced block must start with accTitle: and accDescr: lines to satisfy screen‑reader accessibility:
 
-  ````markdown copy
+  ````markdown
   ```mermaid
   graph LR
       accTitle: Big Decisions
@@ -186,7 +186,7 @@ Each response MAY include one or more of these sections depending on artifactTyp
 - **Docs Folder Preference**: New docs are written under `./docs/` unless caller overrides.
 - **RAI Required**: All documents include a RAI footer as follows:
 
-  ```markdown copy
+  ```markdown
   ---
   <small>Generated with GitHub Copilot as directed by {USER_NAME_PLACEHOLDER}</small>
   ```
