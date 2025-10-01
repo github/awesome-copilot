@@ -7,6 +7,11 @@ applyTo: '**/*.{clj,cljs,cljc,bb,edn.mdx?}'
 
 ## Code Evaluation Tool usage
 
+“Use the repl” means to use the **Evaluate Clojure Code** tool from Calva Backseat Driver. It connects you to the the same REPL as the user is connected to via Calva.
+
+- Always stay inside Calva's REPL instead of launching a second one from the terminal.
+- If there is no REPL connection, ask the user to connect the REPL instead of trying to start and connect it yourself.
+
 ### JSON Strings in REPL Tool Calls
 Do not over-escape JSON arguments when invoking REPL tools.
 

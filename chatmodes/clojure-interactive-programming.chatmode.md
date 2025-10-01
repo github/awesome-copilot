@@ -81,8 +81,8 @@ Before ANY file modification:
 #### Example: Bug Fix Workflow
 
 ```clojure
-(require '[namespace.with.issue :as issue])
-(require '[clojure.repl :refer [source]])
+(require '[namespace.with.issue :as issue] :reload)
+(require '[clojure.repl :refer [source]] :reload)
 ;; 1. Examine the current implementation
 ;; 2. Test current behavior
 (issue/problematic-function test-data)
@@ -99,16 +99,16 @@ Before ANY file modification:
 
 ```clojure
 ;; 1. Run the failing test
-(require '[clojure.test :refer [test-vars]])
+(require '[clojure.test :refer [test-vars]] :reload)
 (test-vars [#'my.namespace-test/failing-test])
 ;; 2. Extract test data from the test
-(require '[my.namespace-test :as test])
+(require '[my.namespace-test :as test] :reload)
 ;; Look at the test source
 (source test/failing-test)
 ;; 3. Create test data in REPL
 (def test-input {:id 123 :name \"test\"})
 ;; 4. Run the function being tested
-(require '[my.namespace :as my])
+(require '[my.namespace :as my] :reload)
 (my/process-data test-input)
 ;; => Unexpected result!
 ;; 5. Debug step by step
