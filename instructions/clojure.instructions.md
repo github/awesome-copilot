@@ -189,21 +189,7 @@ Rich Comment Forms `(comment ...)` serve a different purpose than direct REPL ev
 - **Exploration preservation** - Keep useful REPL discoveries in the codebase
 - **Example scenarios** - Demonstrate edge cases and typical usage
 
-### Docstrings in `defn`
-Docstrings belong immediately after the function name and before the argument vector.
-
-```clojure
-(defn my-function
-  "This function does something."
-  [arg1 arg2]
-  ;; function body
-  )
-```
-
-- Define functions before they are used—prefer ordering over `declare` except when truly necessary.
-
 ### RCF Patterns
-
 RCF = Rich Comment Forms.
 
 When files are loaded code in RCFs is not evaluated, making them perfect for documenting example usage, since humans easily can evaluate the code in there at will.
