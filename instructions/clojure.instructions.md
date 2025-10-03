@@ -36,10 +36,10 @@ Docstrings belong immediately after the function name and before the argument ve
 
 - Define functions before they are used—prefer ordering over `declare` except when truly necessary.
 
-## Interactive Programming (a.k.a. REPL Drivern Development)
+## Interactive Programming (a.k.a. REPL Driven Development)
 
 ### Align Data Structure Elements for Bracket Balancing
-**Always align multi-line elements vertically in all data structures (vectors, maps, lists, sets, all code). Misalignment causes the bracket balancer to close brackets incorrectly, creating invalid forms.
+**Always align multi-line elements vertically in all data structures (vectors, maps, lists, sets, all code). Misalignment causes the bracket balancer to close brackets incorrectly, creating invalid forms.**
 
 ```clojure
 ;; ❌ Wrong - misaligned vector elements
