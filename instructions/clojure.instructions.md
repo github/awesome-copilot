@@ -36,6 +36,72 @@ Docstrings belong immediately after the function name and before the argument ve
 
 - Define functions before they are used—prefer ordering over `declare` except when truly necessary.
 
+## Interactive Programming (a.k.a. REPL Drivern Development)
+
+### Align Data Structure Elements for Bracket Balancing
+**Always align multi-line elements vertically in all data structures (vectors, maps, lists, sets, all code). Misalignment causes the bracket balancer to close brackets incorrectly, creating invalid forms.
+
+```clojure
+;; ❌ Wrong - misaligned vector elements
+(select-keys m [:key-a
+                :key-b
+               :key-c])  ; Misalignment → incorrect ] placement
+
+;; ✅ Correct - aligned vector elements
+(select-keys m [:key-a
+                :key-b
+                :key-c])  ; Proper alignment → correct ] placement
+
+;; ❌ Wrong - misaligned map entries
+{:name "Alice"
+ :age 30
+:city "Oslo"}  ; Misalignment → incorrect } placement
+
+;; ✅ Correct - aligned map entries
+{:name "Alice"
+ :age 30
+ :city "Oslo"}  ; Proper alignment → correct } placement
+```
+
+**Critical**: The bracket balancer relies on consistent indentation to determine structure.
+
+### REPL Dependency Management
+Use `clojure.repl.deps/add-libs` for dynamic dependency loading during REPL sessions.
+
+```clojure
+(require '[clojure.repl.deps :refer [add-libs]])
+(add-libs '{dk.ative/docjure {:mvn/version "1.15.0"}})
+```
+
+- Requires Clojure 1.12 or later
+- Perfect for library exploration and prototyping
+
+### Checking Clojure Version
+
+```clojure
+*clojure-version*
+;; => {:major 1, :minor 12, :incremental 1, :qualifier nil}
+```
+
+### REPL Availability Discipline
+
+**Never edit code files when the REPL is unavailable.** When REPL evaluation returns errors like "No available JS runtime", stop immediately and inform the user:
+
+```
+The REPL is currently unavailable. I cannot verify changes without REPL access. Please ensure the REPL is connected before proceeding with code modifications.
+```
+
+#### Why This Matters
+- **Interactive Programming requires working REPL** - Cannot verify behavior without evaluation
+- **Guessing creates bugs** - Code changes without testing introduce errors
+- **User wastes time** - Undoing speculative changes is frustrating
+- **Trust erosion** - Making changes without verification undermines confidence
+
+#### When REPL Is Unavailable
+1. **Stop immediately** - Do not proceed with code changes
+2. **Inform the user** - Clearly state REPL is unreachable
+3. **Wait for reconnection** - Let user restore REPL before continuing
+
 ## Structural Editing and REPL-First Habit
 - Develop changes in the REPL before touching files.
 - When editing Clojure files, always use structural editing tools such as **Insert Top Level Form**, **Replace Top Level Form**, **Create Clojure File**, and **Append Code**, and always read their instructions first.
@@ -50,22 +116,6 @@ After editing files, reload the edited namespace in the REPL so updated definiti
 ```clojure
 (require 'my.namespace :reload)
 ```
-
-### Keeping Brackets Balanced
-If tools or the compiler signal bracket imbalance, stop and ask for help rather than guessing—use the human-input tool.
-
-## Interactive Programming with REPL
-
-When evaluating code during development, always show the complete code being evaluated in a code block before using evaluation tools. The code block should start with the appropriate `(in-ns ...)` form and contain the exact code being evaluated, so the human can run the same code in their REPL.
-
-Example:
-```clojure
-(in-ns 'my.namespace)
-(let [test-data {:name "example"}]
-  (process-data test-data))
-```
-
-This applies to all REPL-driven development, whether using Calva, Joyride, or other Clojure evaluation tools.
 
 ## Code Indentation Before Evaluation
 Consistent indentation is crucial to help the bracket balancer.
@@ -307,3 +357,4 @@ Guidelines:
 ## Happy Interactive Programming
 
 Remember to prefer the REPL in your work. Keep in mind that the user does not see what you evaluate. Nor the results. Communicate with the user in the chat about what you evaluate and what you get back.
+
