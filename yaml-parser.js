@@ -20,14 +20,53 @@ function parseCollectionYaml(filePath) {
       let currentArray = null;
       let currentObject = null;
 
+      const readLiteralBlock = (startIndex, parentIndent) => {
+        const blockLines = [];
+        let blockIndent = null;
+        let index = startIndex;
+
+        for (; index < lines.length; index++) {
+          const rawLine = lines[index];
+          const trimmedLine = rawLine.trimEnd();
+          const contentOnly = trimmedLine.trim();
+          const lineIndent = rawLine.length - rawLine.trimLeft().length;
+
+          if (contentOnly === "" && blockIndent === null) {
+            // Preserve leading blank lines inside the literal block
+            blockLines.push("");
+            continue;
+          }
+
+          if (contentOnly !== "" && lineIndent <= parentIndent) {
+            break;
+          }
+
+          if (contentOnly === "") {
+            blockLines.push("");
+            continue;
+          }
+
+          if (blockIndent === null) {
+            blockIndent = lineIndent;
+          }
+
+          blockLines.push(rawLine.slice(blockIndent));
+        }
+
+        return {
+          content: blockLines.join("\n").replace(/\r/g, "").trimEnd(),
+          nextIndex: index - 1,
+        };
+      };
+
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const trimmed = line.trim();
-        
+
         if (!trimmed || trimmed.startsWith("#")) continue;
 
         const leadingSpaces = line.length - line.trimLeft().length;
-        
+
         // Handle array items starting with -
         if (trimmed.startsWith("- ")) {
           if (currentKey === "items") {
@@ -35,12 +74,12 @@ function parseCollectionYaml(filePath) {
               currentArray = [];
               result[currentKey] = currentArray;
             }
-            
+
             // Parse item object
             const item = {};
             currentArray.push(item);
             currentObject = item;
-            
+
             // Handle inline properties on same line as -
             const restOfLine = trimmed.substring(2).trim();
             if (restOfLine) {
@@ -65,13 +104,13 @@ function parseCollectionYaml(filePath) {
           const colonIndex = trimmed.indexOf(":");
           const key = trimmed.substring(0, colonIndex).trim();
           let value = trimmed.substring(colonIndex + 1).trim();
-          
+
           if (leadingSpaces === 0) {
             // Top-level property
             currentKey = key;
             currentArray = null;
             currentObject = null;
-            
+
             if (value) {
               // Handle array format [item1, item2, item3]
               if (value.startsWith("[") && value.endsWith("]")) {
@@ -82,6 +121,10 @@ function parseCollectionYaml(filePath) {
                   result[key] = [];
                 }
                 currentKey = null; // Reset since we handled the array
+              } else if (value === "|" || value === ">") {
+                const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
+                result[key] = blockContent;
+                i = nextIndex;
               } else {
                 result[key] = value;
               }
@@ -95,14 +138,26 @@ function parseCollectionYaml(filePath) {
             }
           } else if (currentObject && leadingSpaces > 0) {
             // Property of current object (e.g., display properties)
-            currentObject[key] = value === "true" ? true : value === "false" ? false : value;
+            if (value === "|" || value === ">") {
+              const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
+              currentObject[key] = blockContent;
+              i = nextIndex;
+            } else {
+              currentObject[key] = value === "true" ? true : value === "false" ? false : value;
+            }
           } else if (currentArray && currentObject && leadingSpaces > 2) {
             // Property of array item object
-            currentObject[key] = value;
+            if (value === "|" || value === ">") {
+              const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
+              currentObject[key] = blockContent;
+              i = nextIndex;
+            } else {
+              currentObject[key] = value;
+            }
           }
         }
       }
-      
+
       return result;
     },
     filePath,

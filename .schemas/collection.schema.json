@@ -57,6 +57,10 @@
             "type": "string",
             "description": "Type of the item",
             "enum": ["prompt", "instruction", "chat-mode"]
+          },
+          "usage": {
+            "type": "string",
+            "description": "Optional usage context for the item"
           }
         }
       },

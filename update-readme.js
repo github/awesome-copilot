@@ -566,6 +566,9 @@ function generateCollectionReadme(collection, collectionId) {
   content += `## Items in this Collection\n\n`;
   content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
 
+  let collectionUsageHeader = "## Collection Usage\n\n";
+  let collectionUsageContent = [];
+
   // Sort items based on display.ordering setting
   const items = [...collection.items];
   if (collection.display?.ordering === "alpha") {
@@ -580,6 +583,7 @@ function generateCollectionReadme(collection, collectionId) {
     const filePath = path.join(__dirname, item.path);
     const title = extractTitle(filePath);
     const description = extractDescription(filePath) || "No description";
+
     const typeDisplay = item.kind === "chat-mode" ? "Chat Mode" :
                        item.kind === "instruction" ? "Instruction" : "Prompt";
     const link = `../${item.path}`;
@@ -587,12 +591,30 @@ function generateCollectionReadme(collection, collectionId) {
     // Create install badges for each item
     const badges = makeBadges(item.path, item.kind === "instruction" ? "instructions" :
                              item.kind === "chat-mode" ? "mode" : "prompt");
+  
+    const usageDescription = item.usage
+      ? `${description} [see usage](#${title
+          .replace(/\s+/g, "-")
+          .toLowerCase()})`
+      : description;
 
-    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${description} |\n`;
+    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} |\n`;
+    // Generate Usage section for each collection
+    if (item.usage && item.usage.trim()) {
+      collectionUsageContent.push(`### ${title}\n\n${item.usage.trim()}\n\n---\n\n`);
+    }
+
+  // Append the usage section if any items had usage defined
+  if (collectionUsageContent.length > 0) {
+    content += `\n${collectionUsageHeader}${collectionUsageContent.join("")}`;
+  } else if (collection.display?.show_badge) {
+    content += "\n---\n";
   }
 
+
+  // Optional badge note at the end if show_badge is true
   if (collection.display?.show_badge) {
-    content += `\n---\n*This collection includes ${items.length} curated items for ${name.toLowerCase()}.*`;
+    content += `*This collection includes ${items.length} curated items for ${name.toLowerCase()}.*`;
   }
 
   return content;
