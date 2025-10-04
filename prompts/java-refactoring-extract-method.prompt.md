@@ -99,4 +99,4 @@ Perform intermediate steps internally:
 
 # Code to be Refactored:
 
-Now, assess all methods with high complexity and refactoring them using **Extract Method**
+Now, assess all methods with high complexity and refactor them using **Extract Method**
