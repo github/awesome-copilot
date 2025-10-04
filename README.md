@@ -47,25 +47,31 @@ To make it easy to add these customizations to your editor, we have created a [M
 ## 🔧 How to Use
 
 ### 🎯 Prompts
+
 Use the `/` command in GitHub Copilot Chat to access prompts:
-```
+
+```plaintext
 /awesome-copilot create-readme
 ```
 
 ### 📋 Instructions
+
 Instructions automatically apply to files based on their patterns and provide contextual guidance for coding standards, frameworks, and best practices.
 
 ### 💭 Chat Modes
+
 Activate chat modes to get specialized assistance from AI personas tailored for specific roles like architects, DBAs, or security experts.
 
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to:
+
 - Add new prompts, instructions, or chat modes
 - Improve existing content
 - Report issues or suggest enhancements
 
 ### Quick Contribution Guide
+
 1. Follow our file naming conventions and frontmatter requirements
 2. Test your contributions thoroughly
 3. Update the appropriate README tables
@@ -73,7 +79,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 📖 Repository Structure
 
-```
+```plaintext
 ├── prompts/          # Task-specific prompts (.prompt.md)
 ├── instructions/     # Coding standards and best practices (.instructions.md)
 ├── chatmodes/        # AI personas and specialized modes (.chatmode.md)
