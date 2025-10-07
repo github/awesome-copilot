@@ -1,5 +1,6 @@
 ---
 description: 'Instructions for developing Power Platform custom connectors with Model Context Protocol (MCP) integration for Microsoft Copilot Studio'
+applyTo: '**/*.{json,csx,md}'
 ---
 
 # Power Platform MCP Custom Connector Development
