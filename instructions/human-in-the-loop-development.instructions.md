@@ -325,7 +325,7 @@ Validated against OWASP authentication best practices.
 **Use AI as a learning tool:**
 
 - Ask AI to explain unfamiliar patterns or techniques
-- Request alternative approaches and their trade offs
+- Request alternative approaches and their trade-offs
 - Have AI suggest improvements to your code
 - Learn from AI-suggested test cases
 - Explore new libraries and frameworks with AI guidance
