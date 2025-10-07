@@ -321,7 +321,7 @@ async function reviewAICodeSuggestion(suggestion: AISuggestion, reviewer: User):
 - [ ] Consider all six Responsible AI principles
 - [ ] Identify potential risks and harms
 - [ ] Plan for fairness, privacy, and inclusiveness
-- [ ] Document design decisions and trade offs
+- [ ] Document design decisions and trade-offs
 
 **2. Implementation Phase:**
 
