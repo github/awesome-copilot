@@ -166,6 +166,10 @@ display:
   show_badge: false # set to true to show collection badge
 ```
 
+For full example of usage checkout edge-ai tasks collection:
+- [edge-ai-tasks.collection.yml](./collections/edge-ai-tasks.collection.yml)
+- [edge-ai-tasks.md](./collections/edge-ai-tasks.md)
+
 #### Collection Guidelines
 
 - **Focus on workflows**: Group items that work together for specific use cases
