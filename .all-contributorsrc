@@ -786,8 +786,18 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "soderlind",
+      "name": "Per Søderlind",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1649452?v=4",
+      "profile": "https://soderlind.no",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "linkToUsage": true
+  "linkToUsage": true,
+  "commitType": "docs"
 }
