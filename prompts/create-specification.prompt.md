@@ -111,9 +111,9 @@ tags: [Optional: List of relevant tags or categories, e.g., `infrastructure`, `p
 
 ## 9. Examples & Edge Cases
 
-```code
-// Code snippet or data example demonstrating the correct application of the guidelines, including edge cases
-```
+    ```code
+    // Code snippet or data example demonstrating the correct application of the guidelines, including edge cases
+    ```
 
 ## 10. Validation Criteria
 

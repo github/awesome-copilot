@@ -1,11 +1,12 @@
 ---
 applyTo: '**/*.ps1,**/*.psm1'
 description: 'PowerShell cmdlet and scripting best practices based on Microsoft guidelines'
----  
+---
 
 # PowerShell Cmdlet Development Guidelines
 
-This guide provides PowerShell-specific instructions to help GitHub Copilot generate idiomatic, safe, and maintainable scripts. It aligns with Microsoft’s PowerShell cmdlet development guidelines.
+This guide provides PowerShell-specific instructions to help GitHub Copilot generate idiomatic,
+safe, and maintainable scripts. It aligns with Microsoft’s PowerShell cmdlet development guidelines.
 
 ## Naming Conventions
 
@@ -87,19 +88,19 @@ function Set-ResourceConfiguration {
     param(
         [Parameter(Mandatory)]
         [string]$Name,
-        
+
         [Parameter()]
         [ValidateSet('Dev', 'Test', 'Prod')]
         [string]$Environment = 'Dev',
-        
+
         [Parameter()]
         [switch]$Force,
-        
+
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string[]]$Tags
     )
-    
+
     process {
         # Logic here
     }
@@ -150,32 +151,32 @@ function Update-ResourceStatus {
     )
 
     begin {
-        Write-Verbose "Starting resource status update process"
+        Write-Verbose 'Starting resource status update process'
         $timestamp = Get-Date
     }
 
     process {
         # Process each resource individually
         Write-Verbose "Processing resource: $Name"
-        
+
         $resource = [PSCustomObject]@{
-            Name = $Name
-            Status = $Status
+            Name        = $Name
+            Status      = $Status
             LastUpdated = $timestamp
-            UpdatedBy = $env:USERNAME
+            UpdatedBy   = $env:USERNAME
         }
 
         # Only output if PassThru is specified
-        if ($PassThru) {
+        if ($PassThru.IsPresent) {
             Write-Output $resource
         }
     }
 
     end {
-        Write-Verbose "Resource status update process completed"
+        Write-Verbose 'Resource status update process completed'
     }
 }
- ```
+```
 
 ## Error Handling and Safety
 
@@ -198,6 +199,9 @@ function Update-ResourceStatus {
   - Return meaningful error messages
   - Use ErrorVariable when needed
   - Include proper terminating vs non-terminating error handling
+  - In advanced functions with `[CmdletBinding()]`, prefer `$PSCmdlet.WriteError()` over `Write-Error`
+  - In advanced functions with `[CmdletBinding()]`, prefer `$PSCmdlet.ThrowTerminatingError()` over `throw`
+  - Construct proper ErrorRecord objects with category, target, and exception details
 
 - **Non-Interactive Design:**
   - Accept input via parameters
@@ -220,7 +224,7 @@ function Remove-UserAccount {
     )
 
     begin {
-        Write-Verbose "Starting user account removal process"
+        Write-Verbose 'Starting user account removal process'
         $ErrorActionPreference = 'Stop'
     }
 
@@ -228,7 +232,13 @@ function Remove-UserAccount {
         try {
             # Validation
             if (-not (Test-UserExists -Username $Username)) {
-                Write-Error "User account '$Username' not found"
+                $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                    [System.Exception]::new("User account '$Username' not found"),
+                    'UserNotFound',
+                    [System.Management.Automation.ErrorCategory]::ObjectNotFound,
+                    $Username
+                )
+                $PSCmdlet.WriteError($errorRecord)
                 return
             }
 
@@ -236,24 +246,32 @@ function Remove-UserAccount {
             $shouldProcessMessage = "Remove user account '$Username'"
             if ($Force -or $PSCmdlet.ShouldProcess($Username, $shouldProcessMessage)) {
                 Write-Verbose "Removing user account: $Username"
-                
+
                 # Main operation
                 Remove-ADUser -Identity $Username -ErrorAction Stop
                 Write-Warning "User account '$Username' has been removed"
             }
-        }
-        catch [Microsoft.ActiveDirectory.Management.ADException] {
-            Write-Error "Active Directory error: $_"
-            throw
-        }
-        catch {
-            Write-Error "Unexpected error removing user account: $_"
-            throw
+        } catch [Microsoft.ActiveDirectory.Management.ADException] {
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'ActiveDirectoryError',
+                [System.Management.Automation.ErrorCategory]::NotSpecified,
+                $Username
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
+        } catch {
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'UnexpectedError',
+                [System.Management.Automation.ErrorCategory]::NotSpecified,
+                $Username
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
     }
 
     end {
-        Write-Verbose "User account removal process completed"
+        Write-Verbose 'User account removal process completed'
     }
 }
 ```
@@ -296,8 +314,8 @@ function New-Resource {
     [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     param(
         [Parameter(Mandatory = $true,
-                   ValueFromPipeline = $true,
-                   ValueFromPipelineByPropertyName = $true)]
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
         [string]$Name,
 
@@ -305,29 +323,34 @@ function New-Resource {
         [ValidateSet('Development', 'Production')]
         [string]$Environment = 'Development'
     )
-    
+
     begin {
-        Write-Verbose "Starting resource creation process"
+        Write-Verbose 'Starting resource creation process'
     }
-    
+
     process {
         try {
-            if ($PSCmdlet.ShouldProcess($Name, "Create new resource")) {
+            if ($PSCmdlet.ShouldProcess($Name, 'Create new resource')) {
                 # Resource creation logic here
                 Write-Output ([PSCustomObject]@{
-                    Name = $Name
-                    Environment = $Environment
-                    Created = Get-Date
-                })
+                        Name        = $Name
+                        Environment = $Environment
+                        Created     = Get-Date
+                    })
             }
-        }
-        catch {
-            Write-Error "Failed to create resource: $_"
+        } catch {
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $_.Exception,
+                'ResourceCreationFailed',
+                [System.Management.Automation.ErrorCategory]::NotSpecified,
+                $Name
+            )
+            $PSCmdlet.ThrowTerminatingError($errorRecord)
         }
     }
-    
+
     end {
-        Write-Verbose "Completed resource creation process"
+        Write-Verbose 'Completed resource creation process'
     }
 }
 ```

@@ -7,7 +7,7 @@ applyTo: '**/*.{clj,cljs,cljc,bb,edn.mdx?}'
 
 ## Code Evaluation Tool usage
 
-“Use the repl” means to use the **Evaluate Clojure Code** tool from Calva Backseat Driver. It connects you to the the same REPL as the user is connected to via Calva.
+“Use the repl” means to use the **Evaluate Clojure Code** tool from Calva Backseat Driver. It connects you to the same REPL as the user is connected to via Calva.
 
 - Always stay inside Calva's REPL instead of launching a second one from the terminal.
 - If there is no REPL connection, ask the user to connect the REPL instead of trying to start and connect it yourself.
@@ -36,12 +36,67 @@ Docstrings belong immediately after the function name and before the argument ve
 
 - Define functions before they are used—prefer ordering over `declare` except when truly necessary.
 
+## Interactive Programming (a.k.a. REPL Driven Development)
+
+### Align Data Structure Elements for Bracket Balancing
+**Always align multi-line elements vertically in all data structures: vectors, maps, lists, sets, all code (since Clojure code is data). Misalignment causes the bracket balancer to close brackets incorrectly, creating invalid forms.**
+
+```clojure
+;; ❌ Wrong - misaligned vector elements
+(select-keys m [:key-a
+                :key-b
+               :key-c])  ; Misalignment → incorrect ] placement
+
+;; ✅ Correct - aligned vector elements
+(select-keys m [:key-a
+                :key-b
+                :key-c])  ; Proper alignment → correct ] placement
+
+;; ❌ Wrong - misaligned map entries
+{:name "Alice"
+ :age 30
+:city "Oslo"}  ; Misalignment → incorrect } placement
+
+;; ✅ Correct - aligned map entries
+{:name "Alice"
+ :age 30
+ :city "Oslo"}  ; Proper alignment → correct } placement
+```
+
+**Critical**: The bracket balancer relies on consistent indentation to determine structure.
+
+### REPL Dependency Management
+Use `clojure.repl.deps/add-libs` for dynamic dependency loading during REPL sessions.
+
+```clojure
+(require '[clojure.repl.deps :refer [add-libs]])
+(add-libs '{dk.ative/docjure {:mvn/version "1.15.0"}})
+```
+
+- Dynamic dependency loading requires Clojure 1.12 or later
+- Perfect for library exploration and prototyping
+
+### Checking Clojure Version
+
+```clojure
+*clojure-version*
+;; => {:major 1, :minor 12, :incremental 1, :qualifier nil}
+```
+
+### REPL Availability Discipline
+
+**Never edit code files when the REPL is unavailable.** When REPL evaluation returns errors indicating that the REPL is unavailable, stop immediately and inform the user. Let the user restore REPL before continuing.
+
+#### Why This Matters
+- **Interactive Programming requires a working REPL** - You cannot verify behavior without evaluation
+- **Guessing creates bugs** - Code changes without testing introduce errors
+
 ## Structural Editing and REPL-First Habit
 - Develop changes in the REPL before touching files.
 - When editing Clojure files, always use structural editing tools such as **Insert Top Level Form**, **Replace Top Level Form**, **Create Clojure File**, and **Append Code**, and always read their instructions first.
 
 ### Creating New Files
-- Use the **Create Clojure File** tool, with initial content
+- Use the **Create Clojure File** tool with initial content
 - Follow Clojure naming rules: namespaces in kebab-case, file paths in matching snake_case (e.g., `my.project.ns` → `my/project/ns.clj`).
 
 ### Reloading Namespaces
@@ -50,22 +105,6 @@ After editing files, reload the edited namespace in the REPL so updated definiti
 ```clojure
 (require 'my.namespace :reload)
 ```
-
-### Keeping Brackets Balanced
-If tools or the compiler signal bracket imbalance, stop and ask for help rather than guessing—use the human-input tool.
-
-## Interactive Programming with REPL
-
-When evaluating code during development, always show the complete code being evaluated in a code block before using evaluation tools. The code block should start with the appropriate `(in-ns ...)` form and contain the exact code being evaluated, so the human can run the same code in their REPL.
-
-Example:
-```clojure
-(in-ns 'my.namespace)
-(let [test-data {:name "example"}]
-  (process-data test-data))
-```
-
-This applies to all REPL-driven development, whether using Calva, Joyride, or other Clojure evaluation tools.
 
 ## Code Indentation Before Evaluation
 Consistent indentation is crucial to help the bracket balancer.
@@ -121,7 +160,7 @@ You can also use "inline def" when showing the user code in the chat, to make it
 
 ## Return values > print side effects
 
-Prefer using the repl and return values from your evaluations, over printing things to stdout.
+Prefer using the REPL and return values from your evaluations, over printing things to stdout.
 
 ## Reading from `stdin`
 - When Clojure code uses `(read-line)`, it will prompt the user through VS Code.
@@ -272,9 +311,9 @@ Iterate with real data before editing files.
 ```
 
 #### Benefits
-- Verified behaviour before committing changes
+- Verified behavior before committing changes
 - Incremental development with immediate feedback
-- Tests that capture known-good behaviour
+- Tests that capture known-good behavior
 - Start new work with failing tests to lock in intent
 
 ### Test Naming and Messaging
@@ -307,3 +346,4 @@ Guidelines:
 ## Happy Interactive Programming
 
 Remember to prefer the REPL in your work. Keep in mind that the user does not see what you evaluate. Nor the results. Communicate with the user in the chat about what you evaluate and what you get back.
+
