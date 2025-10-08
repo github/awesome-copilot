@@ -1,57 +1,41 @@
 ---
+
 description: "Instructions for using LangChain with Python"
-applyTo: "**/*.py"
----
 
-# LangChain with Python — Development Instructions
+# Chat models
 
-Purpose: concise, opinionated guidance for building reliable, secure, and maintainable LangChain applications in Python. Includes setup, patterns, tests, CI, and links to authoritative docs.
+LangChain's chat model integration centers on the `ChatOpenAI` class and similar APIs for other providers. For Copilot, focus on actionable usage:
 
-## Quick setup
+- Use `ChatOpenAI` for OpenAI chat models (GPT-3.5, GPT-4):
 
-- Python: 3.10+
-- Suggested install (adjust to your needs):
+  ```python
+  from langchain.chat_models import ChatOpenAI
+  from langchain.schema import HumanMessage, SystemMessage
 
-```bash
-pip install "langchain[all]" openai chromadb faiss-cpu
-```
+  chat = ChatOpenAI(model="gpt-4", temperature=0)
+  messages = [
+      SystemMessage(content="You are a helpful assistant."),
+      HumanMessage(content="What is LangChain?")
+  ]
+  response = chat(messages)
+  print(response.content)
+  ```
 
-- Use virtualenv/venv, Poetry, or pip-tools for dependency isolation and reproducible installs. Prefer a lockfile for CI builds (poetry.lock or requirements.txt).
-- Keep provider API keys and credentials in environment variables or a secret store (Azure Key Vault, HashiCorp Vault). Do not commit secrets.
-- Official docs (bookmark): https://python.langchain.com/
+- Compose messages as a list of `SystemMessage`, `HumanMessage`, and optionally `AIMessage` objects.
+- For RAG, combine chat models with retrievers/vectorstores for context injection.
+- Use `streaming=True` for real-time token streaming (if supported).
+- Use `tools` argument for function/tool calling (OpenAI, Anthropic, etc.).
+- Use `response_format="json"` for structured outputs (OpenAI models).
 
-## Pinning and versions
+Best practices:
 
-LangChain evolves quickly. Pin a tested minor version in `pyproject.toml` or `requirements.txt`.
+- Always validate model outputs before using them in downstream tasks.
+- Prefer explicit message types for clarity and reliability.
+- For Copilot, provide clear, actionable prompts and document expected outputs.
 
-Example (requirements.txt):
+Reference: [LangChain Chat Models Docs](https://python.langchain.com/docs/integrations/chat/)
 
-```
-langchain==0.3.<your-tested>
-chromadb>=0.3,<1.0
-faiss-cpu==1.7.3
-```
-
-Adjust versions after local verification — changes between minor releases can be breaking.
-
-## Suggested repo layout
-
-```
-src/
-  app/            # application entry points
-  models/         # domain models / dataclasses
-  agents/         # agent definitions and tool adapters
-  prompts/        # canonical prompt templates (files)
-  services/       # LLM wiring, retrievers, adapters
-  tests/          # unit & integration tests
-examples/         # minimal examples and notebooks
-scripts/
-docker/
-pyproject.toml or requirements.txt
-README.md
-```
-
-## Core concepts & patterns
+...existing code...
 
 - LLM client factory: centralize provider configs (API keys), timeouts, retries, and telemetry. Provide a single place to switch providers or client settings.
 - Prompt templates: store templates under `prompts/` and load via a safe helper. Keep templates small and testable.
@@ -70,6 +54,42 @@ README.md
 - Use consistent chunking and metadata fields (source, page, chunk_index).
 - Cache embeddings to avoid repeated cost for unchanged documents.
 - Local/dev: Chroma or FAISS. Production: managed vector DBs (Pinecone, Qdrant, Milvus, Weaviate) depending on scale and SLAs.
+
+## Vector stores (LangChain-specific)
+
+- Use LangChain's vectorstore integrations for semantic search, retrieval-augmented generation (RAG), and document similarity workflows.
+- Always initialize vectorstores with a supported embedding model (e.g., OpenAIEmbeddings, HuggingFaceEmbeddings).
+- Prefer official integrations (e.g., Chroma, FAISS, Pinecone, Qdrant, Weaviate) for production; use InMemoryVectorStore for tests and demos.
+- Store documents as LangChain `Document` objects with `page_content` and `metadata`.
+- Use `add_documents(documents, ids=...)` to add/update documents. Always provide unique IDs for upserts.
+- Use `delete(ids=...)` to remove documents by ID.
+- Use `similarity_search(query, k=4, filter={...})` to retrieve top-k similar documents. Use metadata filters for scoped search.
+- For RAG, connect your vectorstore to a retriever and chain with an LLM (see LangChain Retriever and RAGChain docs).
+- For advanced search, use vectorstore-specific options: Pinecone supports hybrid search and metadata filtering; Chroma supports filtering and custom distance metrics.
+- Always validate the vectorstore integration and API version in your environment; breaking changes are common between LangChain releases.
+- Example (InMemoryVectorStore):
+
+```python
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_core.documents import Document
+from langchain_openai.embeddings import OpenAIEmbeddings
+
+embedding_model = OpenAIEmbeddings(api_key="...")
+vector_store = InMemoryVectorStore(embedding=embedding_model)
+
+documents = [
+    Document(page_content="LangChain enables RAG workflows.", metadata={"source": "doc1"}),
+    Document(page_content="Vector search finds semantically similar text.", metadata={"source": "doc2"}),
+]
+vector_store.add_documents(documents=documents, ids=["doc1", "doc2"])
+
+results = vector_store.similarity_search("What is RAG?", k=2)
+for doc in results:
+    print(doc.page_content, doc.metadata)
+```
+
+- For production, prefer persistent vectorstores (Chroma, Pinecone, Qdrant, Weaviate) and configure authentication, scaling, and backup as per provider docs.
+- Reference: https://python.langchain.com/docs/integrations/vectorstores/
 
 ## Prompt engineering & governance
 
