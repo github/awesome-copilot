@@ -35,10 +35,7 @@ LangChain's `Runnable` interface is the foundation for composing and executing c
 - For advanced configuration, expose fields and alternatives via `configurable_fields` and `configurable_alternatives`.
 
 
-
-## Chat Models
-
-Use LangChain's chat model integrations for conversational AI:
+- Use LangChain's chat model integrations for conversational AI:
 
 - Import from `langchain.chat_models` or `langchain_openai` (e.g., `ChatOpenAI`).
 - Compose messages using `SystemMessage`, `HumanMessage`, `AIMessage`.
@@ -132,27 +129,7 @@ for doc in results:
 
 ## Chat models
 
-### Overview
-
-Large Language Models (LLMs) power a wide range of language tasks (generation, summarization, QA, etc.). Modern LLMs are commonly exposed via a chat model interface that accepts a list of messages and returns a message or list of messages.
-
-Newer chat models include advanced capabilities:
-
-- Tool calling: native APIs that allow models to call external tools/services (see tool calling guides).
-- Structured output: ask models to emit JSON or schema-shaped responses (use `with_structured_output` where available).
-- Multimodality: support for non-text inputs (images, audio) in some models — consult provider docs for support and limits.
-
-### Features & benefits
-
-LangChain offers a consistent interface for chat models with additional features for monitoring, debugging, and optimization:
-
-- Integrations with many providers (OpenAI, Anthropic, Ollama, Azure, Google Vertex, Amazon Bedrock, Hugging Face, Cohere, Groq, etc.). See the chat model integrations in the official docs for the current list.
-- Support for LangChain's message format and OpenAI-style message format.
-- Standardized tool-calling API for binding tools and handling tool requests/results.
-- `with_structured_output` helper for structured responses.
-- Async, streaming, and optimized batching support.
-- LangSmith integration for tracing/monitoring.
-- Standardized token usage reporting, rate limiting hooks, and caching support.
+LangChain offers a consistent interface for chat models with additional features for monitoring, debugging, and optimization.
 
 ### Integrations
 
