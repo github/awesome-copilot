@@ -1,4 +1,3 @@
-````instructions
 ---
 description: 'Comprehensive Power BI report design and visualization best practices based on Microsoft guidance for creating effective, accessible, and performant reports and dashboards.'
 applyTo: '**/*.{pbix,md,json,txt}'
@@ -751,4 +750,3 @@ Continuous Improvement:
 ```
 
 Remember: Always design with your specific users and use cases in mind. Test early and often with real users and realistic data to ensure your reports effectively communicate insights and enable data-driven decision making.
-````

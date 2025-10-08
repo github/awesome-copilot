@@ -1,4 +1,3 @@
-````prompt
 ---
 mode: 'agent'
 description: 'Power BI report visualization design prompt for creating effective, user-friendly, and accessible reports with optimal chart selection and layout design.'
@@ -352,4 +351,3 @@ To get visualization design recommendations, provide:
 - Specific design challenges or questions
 
 I'll provide comprehensive design recommendations including chart selection, layout design, interaction patterns, and implementation guidance tailored to your specific needs and context.
-````

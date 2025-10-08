@@ -1,4 +1,3 @@
-````prompt
 ---
 mode: 'agent'
 description: 'Comprehensive Power BI DAX formula optimization prompt for improving performance, readability, and maintainability of DAX calculations.'
@@ -174,4 +173,3 @@ Sales Growth = ([Total Sales] - CALCULATE([Total Sales], PARALLELPERIOD('Date'[D
 ```
 
 This calculates year-over-year sales growth and is used in several report visuals. Current performance is slow when filtering by multiple dimensions."
-````

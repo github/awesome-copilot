@@ -1,4 +1,3 @@
-````instructions
 ---
 description: 'Comprehensive Power BI DAX best practices and patterns based on Microsoft guidance for creating efficient, maintainable, and performant DAX formulas.'
 applyTo: '**/*.{pbix,dax,md,txt}'
@@ -794,4 +793,3 @@ RETURN
 ```
 
 Remember: Always validate DAX formulas with business users to ensure calculations match business requirements and expectations. Use Power BI's Performance Analyzer and DAX Studio for performance optimization and debugging.
-````
