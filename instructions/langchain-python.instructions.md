@@ -1,25 +1,63 @@
 ---
-
 description: "Instructions for using LangChain with Python"
+applyTo: "**/*.py"
+---
 
-# Chat models
+# LangChain Python Instructions
 
-LangChain's chat model integration centers on the `ChatOpenAI` class and similar APIs for other providers. For Copilot, focus on actionable usage:
+These instructions guide GitHub Copilot in generating code and documentation for LangChain applications in Python. Focus on LangChain-specific patterns, APIs, and best practices.
 
-- Use `ChatOpenAI` for OpenAI chat models (GPT-3.5, GPT-4):
+## Runnable Interface (LangChain-specific)
 
-  ```python
-  from langchain.chat_models import ChatOpenAI
-  from langchain.schema import HumanMessage, SystemMessage
+LangChain's `Runnable` interface is the foundation for composing and executing chains, chat models, output parsers, retrievers, and LangGraph graphs. It provides a unified API for invoking, batching, streaming, inspecting, and composing components.
 
-  chat = ChatOpenAI(model="gpt-4", temperature=0)
-  messages = [
-      SystemMessage(content="You are a helpful assistant."),
-      HumanMessage(content="What is LangChain?")
-  ]
-  response = chat(messages)
-  print(response.content)
-  ```
+**Key LangChain-specific features:**
+
+- All major LangChain components (chat models, output parsers, retrievers, graphs) implement the Runnable interface.
+- Supports synchronous (`invoke`, `batch`, `stream`) and asynchronous (`ainvoke`, `abatch`, `astream`) execution.
+- Batching (`batch`, `batch_as_completed`) is optimized for parallel API calls; set `max_concurrency` in `RunnableConfig` to control parallelism.
+- Streaming APIs (`stream`, `astream`, `astream_events`) yield outputs as they are produced, critical for responsive LLM apps.
+- Input/output types are component-specific (e.g., chat models accept messages, retrievers accept strings, output parsers accept model outputs).
+- Inspect schemas with `get_input_schema`, `get_output_schema`, and their JSONSchema variants for validation and OpenAPI generation.
+- Use `with_types` to override inferred input/output types for complex LCEL chains.
+- Compose Runnables declaratively with LCEL: `chain = prompt | chat_model | output_parser`.
+- Propagate `RunnableConfig` (tags, metadata, callbacks, concurrency) automatically in Python 3.11+; manually in async code for Python 3.9/3.10.
+- Create custom runnables with `RunnableLambda` (simple transforms) or `RunnableGenerator` (streaming transforms); avoid subclassing directly.
+- Configure runtime attributes and alternatives with `configurable_fields` and `configurable_alternatives` for dynamic chains and LangServe deployments.
+
+**LangChain best practices:**
+
+- Use batching for parallel API calls to LLMs or retrievers; set `max_concurrency` to avoid rate limits.
+- Prefer streaming APIs for chat UIs and long outputs.
+- Always validate input/output schemas for custom chains and deployed endpoints.
+- Use tags and metadata in `RunnableConfig` for tracing in LangSmith and debugging complex chains.
+- For custom logic, wrap functions with `RunnableLambda` or `RunnableGenerator` instead of subclassing.
+- For advanced configuration, expose fields and alternatives via `configurable_fields` and `configurable_alternatives`.
+
+
+
+## Chat Models
+
+Use LangChain's chat model integrations for conversational AI:
+
+- Import from `langchain.chat_models` or `langchain_openai` (e.g., `ChatOpenAI`).
+- Compose messages using `SystemMessage`, `HumanMessage`, `AIMessage`.
+- For tool calling, use `bind_tools(tools)` method.
+- For structured outputs, use `with_structured_output(schema)`.
+
+Example:
+```python
+from langchain_openai import ChatOpenAI
+from langchain.schema import HumanMessage, SystemMessage
+
+chat = ChatOpenAI(model="gpt-4", temperature=0)
+messages = [
+    SystemMessage(content="You are a helpful assistant."),
+    HumanMessage(content="What is LangChain?")
+]
+response = chat.invoke(messages)
+print(response.content)
+```
 
 - Compose messages as a list of `SystemMessage`, `HumanMessage`, and optionally `AIMessage` objects.
 - For RAG, combine chat models with retrievers/vectorstores for context injection.
@@ -33,9 +71,7 @@ Best practices:
 - Prefer explicit message types for clarity and reliability.
 - For Copilot, provide clear, actionable prompts and document expected outputs.
 
-Reference: [LangChain Chat Models Docs](https://python.langchain.com/docs/integrations/chat/)
 
-...existing code...
 
 - LLM client factory: centralize provider configs (API keys), timeouts, retries, and telemetry. Provide a single place to switch providers or client settings.
 - Prompt templates: store templates under `prompts/` and load via a safe helper. Keep templates small and testable.
@@ -71,17 +107,14 @@ Reference: [LangChain Chat Models Docs](https://python.langchain.com/docs/integr
 
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
-from langchain_openai.embeddings import OpenAIEmbeddings
 
-embedding_model = OpenAIEmbeddings(api_key="...")
+embedding_model = OpenAIEmbeddings()
 vector_store = InMemoryVectorStore(embedding=embedding_model)
 
-documents = [
-    Document(page_content="LangChain enables RAG workflows.", metadata={"source": "doc1"}),
-    Document(page_content="Vector search finds semantically similar text.", metadata={"source": "doc2"}),
-]
-vector_store.add_documents(documents=documents, ids=["doc1", "doc2"])
+documents = [Document(page_content="LangChain content", metadata={"source": "doc1"})]
+vector_store.add_documents(documents=documents, ids=["doc1"])
 
 results = vector_store.similarity_search("What is RAG?", k=2)
 for doc in results:
@@ -217,66 +250,3 @@ Models have a finite context window measured in tokens. When designing conversat
 - Validate any user-supplied URLs and inputs to avoid SSRF and injection attacks.
 - Document data retention and add an API to erase user data on request.
 - Limit stored PII and encrypt sensitive fields at rest.
-
-## Testing
-
-- Unit tests: mock LLM and embedding clients; assert prompt rendering and chain wiring.
-- Integration tests: use sandboxed providers or local mocks to keep costs low.
-- Regression tests: snapshot prompt outputs with mocked LLM responses; update fixtures intentionally and with review.
-
-Suggested libraries:
-
-- `pytest`, `pytest-mock` for testing
-- `responses` or `requests-mock` for HTTP provider mocks
-
-CI: add a low-cost job that runs prompt-template tests using mocks to detect silent regressions.
-
-## Example — minimal chain
-
-```python
-import os
-from langchain import OpenAI, PromptTemplate, LLMChain
-
-llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), temperature=0.0)
-template = PromptTemplate(input_variables=["q"], template="Answer concisely: {q}")
-chain = LLMChain(llm=llm, prompt=template)
-
-resp = chain.run({"q": "What is LangChain?"})
-print(resp)
-```
-
-Note: LangChain provides both LLM and chat-model APIs (e.g., `ChatOpenAI`). Prefer the interface that matches your provider and desired message semantics.
-
-## Agents & tools
-
-- Use Agents (`Agent`, `AgentExecutor`) only when dynamic planning or tool orchestration is required.
-- Sandbox and scope tools: avoid arbitrary shell or filesystem operations from model outputs. Validate and restrict tool inputs.
-- Follow the official agents tutorial: https://python.langchain.com/docs/tutorials/agents/
-
-## CI / deployment
-
-- Pin dependencies and run `pip-audit` or `safety` in CI.
-- Run tests (unit + lightweight integration) on PRs.
-- Containerize with resource limits and provide secrets via your platform's secret manager (do not commit `.env` files).
-
-Example Dockerfile (minimal):
-
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-CMD ["python", "-m", "your_app.entrypoint"]
-```
-
-## Observability & cost control
-
-- Track tokens and cost per request; implement per-request budget checks in production.
-- Integrate LangSmith for tracing and observability: https://python.langchain.com/docs/ecosystem/langsmith/
-
-## Documentation & governance
-
-- Keep prompts and templates under version control in `prompts/`.
-- Add `examples/` with Jupyter notebooks or scripts that demonstrate RAG, a simple agent, and callback handlers.
-- Add README sections explaining local run, tests, and secret configuration.
