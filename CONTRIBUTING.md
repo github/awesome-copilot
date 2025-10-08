@@ -135,10 +135,40 @@ items:
     kind: instruction
   - path: chatmodes/my-chatmode.chatmode.md
     kind: chat-mode
+    usage: |
+     recommended # or "optional" if not essential to the workflow
+
+     This chat mode requires the following instructions/prompts/MCPs:
+      - Instruction 1
+      - Prompt 1
+      - MCP 1
+
+     This chat mode is ideal for...
+      - Use case 1
+      - Use case 2
+    
+      Here is an example of how to use it:
+      ```markdown, task-plan.prompt.md
+      ---
+      mode: task-planner
+      title: Plan microsoft fabric realtime intelligence terraform support
+      ---
+      #file: <file including in chat context>
+      Do an action to achieve goal.
+      ```
+
+      To get the best results, consider...
+      - Tip 1
+      - Tip 2
+    
 display:
   ordering: alpha # or "manual" to preserve order above
   show_badge: false # set to true to show collection badge
 ```
+
+For full example of usage checkout edge-ai tasks collection:
+- [edge-ai-tasks.collection.yml](./collections/edge-ai-tasks.collection.yml)
+- [edge-ai-tasks.md](./collections/edge-ai-tasks.md)
 
 #### Collection Guidelines
 
