@@ -135,10 +135,40 @@ items:
     kind: instruction
   - path: chatmodes/my-chatmode.chatmode.md
     kind: chat-mode
+    usage: |
+     recommended # or "optional" if not essential to the workflow
+
+     This chat mode requires the following instructions/prompts/MCPs:
+      - Instruction 1
+      - Prompt 1
+      - MCP 1
+
+     This chat mode is ideal for...
+      - Use case 1
+      - Use case 2
+    
+      Here is an example of how to use it:
+      ```markdown, task-plan.prompt.md
+      ---
+      mode: task-planner
+      title: Plan microsoft fabric realtime intelligence terraform support
+      ---
+      #file: <file including in chat context>
+      Do an action to achieve goal.
+      ```
+
+      To get the best results, consider...
+      - Tip 1
+      - Tip 2
+    
 display:
   ordering: alpha # or "manual" to preserve order above
   show_badge: false # set to true to show collection badge
 ```
+
+For full example of usage checkout edge-ai tasks collection:
+- [edge-ai-tasks.collection.yml](./collections/edge-ai-tasks.collection.yml)
+- [edge-ai-tasks.md](./collections/edge-ai-tasks.md)
 
 #### Collection Guidelines
 
@@ -152,7 +182,7 @@ display:
 
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
-3. **Add your instruction or prompt file** following the guidelines above
+3. **Add your instruction, prompt file, chatmode, or collection** following the guidelines above
 4. **Run the update script** (optional): `node update-readme.js` to update the README with your new file
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
