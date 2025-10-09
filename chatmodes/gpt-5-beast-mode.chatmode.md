@@ -83,6 +83,3 @@ Goal (1 line) → Plan (few steps) → Policy (read/edit/test) → Execute
 - Unbounded research loops
 - Redundant file reads or repetitive tool invocations
 
-## Attribution
-
-Submitted by: nicholasbrady & GPT-5 Beast Mode (self-hosted persona refinement). Recognition is requested under the project’s all-contributors system.
