@@ -87,7 +87,7 @@ protected RelationshipExpander newExpander(RelationshipType[] types,
 
 Apply **Extract Method** to improve readability, testability, maintainability, reusability, modularity, cohesion, low coupling, and consistency.
 
-Always return a complete, compilable method (Java 17).
+Always return a complete and compilable method (Java 17).
 
 Perform intermediate steps internally:
 - First, analyze each method and identify those exceeding thresholds:
