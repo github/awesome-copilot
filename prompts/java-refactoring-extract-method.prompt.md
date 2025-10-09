@@ -3,13 +3,15 @@ mode: 'agent'
 description: 'Refactoring using Extract Methods in Java Language'
 ---
 
+# Refactoring Java Methods with Extract Method
+
 ## Role
 
 You are an expert in refactoring Java methods.
 
 Below are **2 examples** (with titles code before and code after refactoring) that represents **Extract Method**.
 
-# Code Before Refactoring 1:
+## Code Before Refactoring 1:
 ```java
 public FactLineBuilder setC_BPartner_ID_IfValid(final int bpartnerId) {
 	assertNotBuild();
@@ -20,7 +22,7 @@ public FactLineBuilder setC_BPartner_ID_IfValid(final int bpartnerId) {
 }
 ```
 
-# Code After Refactoring 1:
+## Code After Refactoring 1:
 ```java
 public FactLineBuilder bpartnerIdIfNotNull(final BPartnerId bpartnerId) {
 	if (bpartnerId != null) {
@@ -34,7 +36,7 @@ public FactLineBuilder setC_BPartner_ID_IfValid(final int bpartnerRepoId) {
 }
 ```
 
-# Code Before Refactoring 2:
+## Code Before Refactoring 2:
 ```java
 public DefaultExpander add(RelationshipType type, Direction direction) {
      Direction existingDirection = directions.get(type.name());
@@ -55,7 +57,7 @@ public DefaultExpander add(RelationshipType type, Direction direction) {
 }
 ```
 
-# Code After Refactoring 2:
+## Code After Refactoring 2:
 ```java
 public DefaultExpander add(RelationshipType type, Direction direction) {
      Direction existingDirection = directions.get(type.name());
@@ -97,6 +99,6 @@ Perform intermediate steps internally:
 - Do not remove any functionality from the original method.
 - Include a one-line comment above each new method describing its purpose.
 
-# Code to be Refactored:
+## Code to be Refactored:
 
 Now, assess all methods with high complexity and refactor them using **Extract Method**
