@@ -25,7 +25,7 @@ Throughout this prompt, `<global-prompts>` and `<workspace-instructions>` refer 
 /memory-merger >domain-name [scope]
 ```
 
-- `>domain-name` - Required. The domain to merge (e.g., `>clojure`, `>git-workflow`, `prompt-engineering`)
+- `>domain-name` - Required. The domain to merge (e.g., `>clojure`, `>git-workflow`, `>prompt-engineering`)
 - `[scope]` - Optional. One of: `global`, `user` (both mean global), `workspace`, or `ws`. Defaults to `global`
 
 **Examples:**
