@@ -8,13 +8,13 @@ tags:
   - custom-connector
   - json-rpc
 items:
-  - path: ../instructions/power-platform-mcp-development.instructions.md
+  - path: instructions/power-platform-mcp-development.instructions.md
     kind: instruction
-  - path: ../prompts/power-platform-mcp-connector-suite.prompt.md
+  - path: prompts/power-platform-mcp-connector-suite.prompt.md
     kind: prompt
-  - path: ../prompts/mcp-copilot-studio-server-generator.prompt.md
+  - path: prompts/mcp-copilot-studio-server-generator.prompt.md
     kind: prompt
-  - path: ../chatmodes/power-platform-mcp-integration-expert.chatmode.md
+  - path: chatmodes/power-platform-mcp-integration-expert.chatmode.md
     kind: chat-mode
 display:
   ordering: manual
