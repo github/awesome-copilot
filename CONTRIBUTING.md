@@ -205,6 +205,27 @@ We welcome contributions covering any technology, framework, or development prac
 - Accessibility and inclusive design
 - Performance optimization techniques
 
+### Especially Welcome: Responsible AI Development
+
+We particularly encourage contributions that promote **Responsible AI development practices** aligned with **[Microsoft's Responsible AI principles](https://www.microsoft.com/en-us/ai/responsible-ai)**:
+
+- **Fairness**: AI systems should treat all people fairly
+- **Reliability and Safety**: AI systems should perform reliably and safely
+- **Privacy and Security**: AI systems should be secure and respect privacy
+- **Inclusiveness**: AI systems should empower everyone and engage people
+- **Transparency**: AI systems should be understandable
+- **Accountability**: People should be accountable for AI systems
+
+**Specific contribution areas we welcome:**
+
+- **Human-in-the-loop workflows**: Practices that keep humans as the decision-makers
+- **Bias mitigation and fairness**: Instructions that promote equity and inclusion
+- **Security and privacy best practices**: Protecting user data and system security
+- **Accessibility-first development**: Making technology accessible to everyone (WCAG 2.2 Level AA)
+- **Transparent AI usage**: Making AI behavior understandable and explainable
+- **Validation and testing**: Ensuring AI-assisted code meets quality standards
+- **Inclusive language**: Promoting respectful, bias-free communication
+
 ## What We Don't Accept
 
 To maintain a safe, responsible, and constructive community, we will **not accept** contributions that:
@@ -224,6 +245,28 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 - **Keep it focused**: Each file should address a specific technology, framework, or use case
 - **Write clearly**: Use simple, direct language
 - **Promote best practices**: Encourage secure, maintainable, and ethical development practices
+
+### Responsible AI Development Standards
+
+When creating contributions, especially those involving AI assistance, align with **Microsoft's Responsible AI principles**:
+
+- **Fairness**: Avoid biased assumptions, use inclusive language, test with diverse data
+- **Reliability and Safety**: Include proper error handling, validate AI suggestions, test thoroughly
+- **Privacy and Security**: Protect sensitive data, follow security best practices, never include PII in examples
+- **Inclusiveness**: Follow WCAG 2.2 accessibility standards, use people-first language, consider diverse users
+- **Transparency**: Document AI usage clearly, explain limitations, make behavior understandable
+- **Accountability**: Emphasize human oversight, require validation of AI-generated code, maintain responsibility
+
+**In practice:**
+
+- **Human oversight**: AI should assist, not replace human judgment
+- **Validation required**: Critical code should always be reviewed by humans
+- **Understanding first**: Encourage developers to understand AI-generated code before using it
+- **Inclusive language**: Ensure all content is welcoming and bias-free
+- **Accessibility**: Make sure instructions promote accessible development (WCAG 2.2 Level AA)
+- **Security focus**: Include security and privacy considerations
+- **Document limitations**: Be transparent about what AI can and cannot do
+- **Continuous learning**: Help developers grow their skills alongside AI tools
 
 ## Contributors Recognition
 
