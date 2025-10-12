@@ -13,7 +13,7 @@ Instructions for creating effective and maintainable prompt files that guide Git
 - Primary references: VS Code documentation on prompt files and organization-specific conventions.
 
 ## Frontmatter Requirements
-- Include `description` (single sentence, actionable outcome), `mode` (explicitly choose `ask`, `edit`, or `agent`), and `tools` (minimal set of tool bundles required to fulfil the prompt).
+- Include `description` (single sentence, actionable outcome), `mode` (explicitly choose `ask`, `edit`, or `agent`), and `tools` (minimal set of tool bundles required to fulfill the prompt).
 - Declare `model` when the prompt depends on a specific capability tier; otherwise inherit the active model.
 - Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization.
 - Use consistent quoting (single quotes recommended) and keep one field per line for readability and version control clarity.
