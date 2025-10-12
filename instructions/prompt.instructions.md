@@ -41,7 +41,7 @@ Instructions for creating effective and maintainable prompt files that guide Git
 ## Instruction Tone and Style
 - Write in direct, imperative sentences targeted at Copilot (for example, “Analyze”, “Generate”, “Summarize”).
 - Keep sentences short and unambiguous, following Google Developer Documentation translation best practices to support localization.
-- Avoid idioms, humor, or culturally specific references; favour neutral, inclusive language.
+- Avoid idioms, humor, or culturally specific references; favor neutral, inclusive language.
 
 ## Output Definition
 - Specify the format, structure, and location of expected results (for example, “Create `docs/adr/adr-XXXX.md` using the template below”).
