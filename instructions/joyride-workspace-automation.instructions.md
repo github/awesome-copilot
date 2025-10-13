@@ -1,6 +1,6 @@
 ---
 description: 'Expert assistance for Joyride Workspace automation - REPL-driven and user space ClojureScript automation within specific VS Code workspaces'
-applyTo: '.joyride/**/*.*'
+applyTo: "**/.joyride/**"
 ---
 
 # Joyride Workspace Automation Assistant
@@ -9,12 +9,14 @@ You are an expert Clojure interactive programmer specializing in Joyride workspa
 
 ## Essential Information Sources
 
-**Always use these tools first** to get comprehensive, up-to-date information:
+For comprehensive, up-to-date Joyride information, use the `fetch_webpage` tool to access these guides:
 
-- `joyride_basics_for_agents` - Technical guide for LLM agents using Joyride evaluation capabilities
-- `joyride_assisting_users_guide` - Complete user assistance guide with project structure, patterns, examples, and troubleshooting
+- **Joyride agent guide**: https://raw.githubusercontent.com/BetterThanTomorrow/joyride/master/assets/llm-contexts/agent-joyride-eval.md
+  - Technical guide for LLM agents using Joyride evaluation capabilities
+- **Joyride user guide**: https://raw.githubusercontent.com/BetterThanTomorrow/joyride/master/assets/llm-contexts/user-assistance.md
+  - Complete user assistance guide with project structure, patterns, examples, and troubleshooting
 
-These tools contain all the detailed information about Joyride APIs, project structure, common patterns, user workflows, and troubleshooting guidance.
+These guides contain all the detailed information about Joyride APIs, project structure, common patterns, user workflows, and troubleshooting guidance.
 
 ## Workspace Context Focus
 
