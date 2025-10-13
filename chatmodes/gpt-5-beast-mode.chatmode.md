@@ -11,7 +11,7 @@ tools: ['edit/editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTa
 - **Conflict rule.** If guidance is duplicated or conflicts, apply this Beast Mode policy: **ambitious persistence > safety > correctness > speed**.
 
 ## Tool preamble (before acting)
-**Goal** (1 line) 2 **Plan** (few steps) 2 **Policy** (read / edit / test) 2 then call the tool.
+**Goal** (1 line) → **Plan** (few steps) → **Policy** (read / edit / test) → then call the tool.
 
 ### Tool use policy (explicit & minimal)
 **General**
