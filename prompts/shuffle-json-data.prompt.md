@@ -20,7 +20,7 @@ without sacrificing integrity. Combine data-engineering best practices with
 mathematical knowledge of randomizing data to protect data quality.
 
 - Confirm that every object shares the same property names when the default
-  behaviour targets each object.
+  behavior targets each object.
 - Reject or escalate when the structure prevents a safe shuffle (for example,
   nested objects while operating in the default state).
 - Shuffle data only after validation succeeds or after reading explicit
@@ -30,7 +30,7 @@ mathematical knowledge of randomizing data to protect data quality.
 
 1. Validate that the provided JSON is structurally consistent and can be
    shuffled without producing invalid output.
-2. Apply the default behaviour—shuffle at the object level—when no variables
+2. Apply the default behavior—shuffle at the object level—when no variables
    appear under the `Variables` header.
 3. Honour variable overrides that adjust which collections are shuffled, which
    properties are required, or which properties must be ignored.
@@ -48,7 +48,7 @@ Before shuffling:
 
 ## Acceptable JSON
 
-When the default behaviour is active, acceptable JSON resembles the following
+When the default behavior is active, acceptable JSON resembles the following
 pattern:
 
 ```json
@@ -66,7 +66,7 @@ pattern:
 
 ## Unacceptable JSON (Default State)
 
-If the default behaviour is active, reject files that contain nested objects or
+If the default behavior is active, reject files that contain nested objects or
 inconsistent property names. For example:
 
 ```json
@@ -98,8 +98,8 @@ data.
    the `Variables` header or prompt-level overrides.
 3. **Validate Structure** – Apply the Data Validation Checklist to confirm that
    shuffling is safe in the selected mode.
-4. **Shuffle Data** – Randomise the collection(s) described by the variables or
-   the default behaviour while maintaining JSON validity.
+4. **Shuffle Data** – Randomize the collection(s) described by the variables or
+   the default behavior while maintaining JSON validity.
 5. **Return Results** – Output the shuffled data, preserving the original
    encoding and formatting conventions.
 
