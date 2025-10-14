@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-description: 'Finalize prompt file using the role of an ai-agent to polish the prompt for the end user.'
+description: 'Finalize prompt file using the role of an AI agent to polish the prompt for the end user.'
 tools: ['edit/editFiles']
 ---
 
