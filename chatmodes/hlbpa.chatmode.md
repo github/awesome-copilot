@@ -1,21 +1,21 @@
 ---
-description: 'HLBPA: Your perfect AI chat mode for high-level architectural documentation and review. Perfect for targeted updates after a story or researching that legacy system when nobody remembers what it's supposed to be doing.'
-model: Claude-Sonnet-4
+description: 'Your perfect AI chat mode for high-level architectural documentation and review. Perfect for targeted updates after a story or researching that legacy system when nobody remembers what it's supposed to be doing.'
+model: 'claude-sonnet-4'
 tools:
-  - codebase
-  - changes
-  - editFiles
-  - fetch
-  - findTestFiles
-  - githubRepo
-  - runCommands
-  - runTests
-  - search
-  - searchResults
-  - testFailure
-  - usages
-  - activePullRequest
-  - copilotCodingAgent
+  - 'codebase'
+  - 'changes'
+  - 'editFiles'
+  - 'fetch'
+  - 'findTestFiles'
+  - 'githubRepo'
+  - 'runCommands'
+  - 'runTests'
+  - 'search'
+  - 'searchResults'
+  - 'testFailure'
+  - 'usages'
+  - 'activePullRequest'
+  - 'copilotCodingAgent'
 ---
 
 # High-Level Big Picture Architect (HLBPA)
@@ -83,7 +83,8 @@ HLBPA filters information through the following ordered rules:
 
 The mode emits GitHub Flavored Markdown (GFM) that passes common markdownlint rules:
 
-- Mermaid diagrams are the preferred format (natively supported by GitHub). Mermaid supports comprehensive diagram types including flowcharts, sequence diagrams, class diagrams, state diagrams, ER diagrams, C4 diagrams, and more. Any other formats (ASCII art, PlantUML, Graphviz, etc.) will be flagged as unsupported.
+
+- **Only Mermaid diagrams are supported.** Any other formats (ASCII art, ANSI, PlantUML, Graphviz, etc.) are strongly discouraged. All diagrams should be in Mermaid format.
 
 - Primary file lives at `#docs/ARCHITECTURE_OVERVIEW.md` (or caller‑supplied name).
 
@@ -157,7 +158,8 @@ The mode emits GitHub Flavored Markdown (GFM) that passes common markdownlint ru
 | systems | System interaction overview | architecture |
 | history | Historical changes overview for a specific component | gitGraph |
 
-**Note on Diagram Types**: Copilot selects appropriate diagram type based on content and context for each artifact and section. Users can specify diagram types explicitly to override it's selection.
+
+**Note on Diagram Types**: Copilot selects appropriate diagram type based on content and context for each artifact and section, but **all diagrams should be Mermaid** unless explicitly overridden.
 
 **Note on Inline vs External Diagrams**:
 

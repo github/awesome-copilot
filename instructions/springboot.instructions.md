@@ -53,6 +53,6 @@ applyTo: '**/*.java, **/*.kt'
 ## Build and Verification
 
 - After adding or modifying code, verify the project continues to build successfully.
-- If the project uses Maven, run `mvn clean install`.
+- If the project uses Maven, run `mvn clean package`.
 - If the project uses Gradle, run `./gradlew build` (or `gradlew.bat build` on Windows).
 - Ensure all tests pass as part of the build.
