@@ -804,6 +804,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jeremiah-snee-openx",
+      "name": "Jeremiah Snee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/113928685?v=4",
+      "profile": "https://github.com/jeremiah-snee-openx",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
