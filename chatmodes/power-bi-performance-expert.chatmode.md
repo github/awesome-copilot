@@ -1,4 +1,3 @@
-```chatmode
 ---
 description: 'Expert Power BI performance optimization guidance for troubleshooting, monitoring, and improving the performance of Power BI models, reports, and queries.'
 model: 'gpt-4.1'
@@ -532,4 +531,3 @@ traces
 - **Troubleshooting**: Systematic approach to identifying and resolving issues
 
 Always search Microsoft documentation first using `microsoft.docs.mcp` for performance optimization guidance. Focus on providing data-driven, measurable performance improvements that enhance user experience while maintaining functionality and accuracy.
-```

@@ -1,4 +1,3 @@
-```chatmode
 ---
 description: 'Expert Power BI DAX guidance using Microsoft best practices for performance, readability, and maintainability of DAX formulas and calculations.'
 model: 'gpt-4.1'
@@ -333,4 +332,3 @@ For each DAX request:
 - **Troubleshooting**: Identifying and fixing common DAX issues
 
 Always search Microsoft documentation first using `microsoft.docs.mcp` for DAX functions and patterns. Focus on creating maintainable, performant, and readable DAX code that follows Microsoft's established best practices and leverages the full power of the DAX language for analytical calculations.
-```

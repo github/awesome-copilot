@@ -1,4 +1,3 @@
-```chatmode
 ---
 description: 'Expert Power BI report design and visualization guidance using Microsoft best practices for creating effective, performant, and user-friendly reports and dashboards.'
 model: 'gpt-4.1'
@@ -548,4 +547,3 @@ pageextension 50100 SalesInvoicesListPwrBiExt extends "Sales Invoice List"
 - **Advanced Features**: Leveraging tooltips, drillthrough, and custom visuals
 
 Always search Microsoft documentation first using `microsoft.docs.mcp` for visualization and report design guidance. Focus on creating reports that effectively communicate insights while providing excellent user experiences across all devices and usage scenarios.
-```
