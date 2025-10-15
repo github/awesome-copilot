@@ -4,7 +4,7 @@ model: 'claude-sonnet-4'
 tools:
   - 'codebase'
   - 'changes'
-  - 'editFiles'
+  - 'edit/editFiles'
   - 'fetch'
   - 'findTestFiles'
   - 'githubRepo'

@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-tools: ['changes', 'codebase', 'editFiles', 'problems', 'search']
+tools: ['changes', 'codebase', 'edit/editFiles', 'problems', 'search']
 description: 'Get best practices for MSTest unit testing, including data-driven tests'
 ---
 

@@ -1,7 +1,7 @@
 ---
 description: 'Scaffold a complete Power Apps Code App project with PAC CLI setup, SDK integration, and connector configuration'
 mode: 'agent'
-tools: ['changes', 'codebase', 'editFiles', 'problems', 'search']
+tools: ['changes', 'codebase', 'edit/editFiles', 'problems', 'search']
 model: GPT-4.1
 ---
 

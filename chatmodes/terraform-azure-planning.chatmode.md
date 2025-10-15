@@ -1,6 +1,6 @@
 ---
 description: 'Act as implementation planner for your Azure Terraform Infrastructure as Code task.'
-tools: ['editFiles', 'fetch', 'todos', 'azureterraformbestpractices', 'cloudarchitect', 'documentation', 'get_bestpractices', 'microsoft-docs']
+tools: ['edit/editFiles', 'fetch', 'todos', 'azureterraformbestpractices', 'cloudarchitect', 'documentation', 'get_bestpractices', 'microsoft-docs']
 ---
 
 # Azure Terraform Infrastructure Planning

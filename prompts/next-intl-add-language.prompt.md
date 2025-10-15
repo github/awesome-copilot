@@ -1,6 +1,6 @@
 ---
 mode: 'agent'
-tools: ['changes','codebase', 'editFiles', 'findTestFiles', 'search', 'writeTest']
+tools: ['changes','codebase', 'edit/editFiles', 'findTestFiles', 'search', 'writeTest']
 description: 'Add new language to a Next.js + next-intl application'
 ---
 
