@@ -56,3 +56,13 @@ applyTo: '**/*.java, **/*.kt'
 - If the project uses Maven, run `mvn clean package`.
 - If the project uses Gradle, run `./gradlew build` (or `gradlew.bat build` on Windows).
 - Ensure all tests pass as part of the build.
+
+## Useful Commands
+
+| Gradle Command            | Maven Command                     | Description                                   |
+|:--------------------------|:----------------------------------|:----------------------------------------------|
+| `./gradlew bootRun`       |`./mvnw spring-boot:run`           | Run the application.                          |
+| `./gradlew build`         |`./mvnw package`                   | Build the application.                        |
+| `./gradlew test`          |`./mvnw test`                      | Run tests.                                    |
+| `./gradlew bootJar`       |`./mvnw spring-boot:repackage`     | Package the application as a JAR.             |
+| `./gradlew bootBuildImage`|`./mvnw spring-boot:build-image`   | Package the application as a container image. |
