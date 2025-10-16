@@ -1,5 +1,5 @@
 ---
-description: Best practices and patterns for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk package.
+description: 'Best practices and patterns for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk package.'
 applyTo: "**/*.go, **/go.mod, **/go.sum"
 ---
 
