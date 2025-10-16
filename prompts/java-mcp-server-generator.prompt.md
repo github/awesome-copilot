@@ -186,6 +186,9 @@ tasks.test {
 ```java
 package com.example.mcp;
 
+import com.example.mcp.tools.ToolHandlers;
+import com.example.mcp.resources.ResourceHandlers;
+import com.example.mcp.prompts.PromptHandlers;
 import io.mcp.server.McpServer;
 import io.mcp.server.McpServerBuilder;
 import io.mcp.server.transport.StdioServerTransport;
@@ -612,10 +615,15 @@ class McpServerTest {
     
     private McpServer createTestServer() {
         // Same setup as main application
-        return McpServerBuilder.builder()
+        McpServer server = McpServerBuilder.builder()
             .serverInfo("test-server", "1.0.0")
             .capabilities(cap -> cap.tools(true))
             .build();
+        
+        // Register handlers
+        ToolHandlers.register(server);
+        
+        return server;
     }
     
     @Test
