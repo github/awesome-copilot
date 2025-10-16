@@ -1,5 +1,6 @@
 ---
 description: 'Instructions for building Model Context Protocol (MCP) servers using the C# SDK'
+applyTo: '**/*.cs, **/*.csproj'
 ---
 
 # C# MCP Server Development
