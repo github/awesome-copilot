@@ -437,8 +437,9 @@ use rmcp::{
     server::{RequestContext, ServerHandler, RoleServer},
 };
 
-// Import your handler
-use {project_name_snake_case}::handler::McpHandler;
+// Replace with your actual project name in snake_case
+// Example: if project is "my-mcp-server", use my_mcp_server
+use my_mcp_server::handler::McpHandler;
 
 #[tokio::test]
 async fn test_list_tools() {
