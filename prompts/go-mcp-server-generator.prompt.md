@@ -1,6 +1,6 @@
 ---
 mode: agent
-description: Generate a complete Go MCP server project with proper structure, dependencies, and implementation using the official github.com/modelcontextprotocol/go-sdk.
+description: 'Generate a complete Go MCP server project with proper structure, dependencies, and implementation using the official github.com/modelcontextprotocol/go-sdk.'
 ---
 
 # Go MCP Server Project Generator
