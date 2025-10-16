@@ -1,10 +1,6 @@
 ---
-title: Rust MCP Server Development Best Practices
 description: 'Best practices for building Model Context Protocol servers in Rust using the official rmcp SDK with async/await patterns'
-applyTo:
-  - '**/*.rs'
-  - '**/Cargo.toml'
-  - '**/Cargo.lock'
+applyTo: '**/*.rs'
 ---
 
 # Rust MCP Server Development Best Practices
