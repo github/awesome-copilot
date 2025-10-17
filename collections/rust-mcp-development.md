@@ -1,6 +1,6 @@
 # Rust MCP Server Development
 
-'Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.'
+Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.
 
 **Tags:** rust, mcp, model-context-protocol, server-development, sdk, tokio, async, macros, rmcp
 
