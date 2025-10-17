@@ -18,7 +18,7 @@ Instructions for generating high-quality Angular applications with TypeScript, u
 
 ### Architecture
 - Use standalone components unless modules are explicitly required
-- Organize code by feature modules or domains for scalability
+- Organize code by standalone feature modules or domains for scalability
 - Implement lazy loading for feature modules to optimize performance
 - Use Angular's built-in dependency injection system effectively
 - Structure components with a clear separation of concerns (smart vs. presentational components)
@@ -32,7 +32,7 @@ Instructions for generating high-quality Angular applications with TypeScript, u
 
 ### Component Design
 - Follow Angular's component lifecycle hooks best practices
-- When using Angular >= 19, Use `input()` `output()`, `viewChild()`, `viewChildren()`, `contentChild()` and `viewChildren()` functions instead of decorators; otherwise use decorators
+- When using Angular >= 19, Use `input()` `output()`, `viewChild()`, `viewChildren()`, `contentChild()` and `contentChildren()` functions instead of decorators; otherwise use decorators
 - Leverage Angular's change detection strategy (default or `OnPush` for performance)
 - Keep templates clean and logic in component classes or services
 - Use Angular directives and pipes for reusable functionality
@@ -78,7 +78,7 @@ Instructions for generating high-quality Angular applications with TypeScript, u
 - Use Angular's `TestBed` for component testing with mocked dependencies
 - Test signal-based state updates using Angular's testing utilities
 - Write end-to-end tests with Cypress or Playwright (if specified)
-- Mock HTTP requests using `HttpClientTestingModule`
+- Mock HTTP requests using `provideHttpClientTesting`
 - Ensure high test coverage for critical functionality
 
 ## Implementation Process
@@ -95,7 +95,7 @@ Instructions for generating high-quality Angular applications with TypeScript, u
 11. Optimize performance and bundle size
 
 ## Additional Guidelines
-- Follow Angular's naming conventions (e.g., `feature.component.ts`, `feature.service.ts`)
+- Follow the Angular Style Guide for file naming conventions (see https://angular.dev/style-guide), e.g., use `feature.ts` for components and `feature-service.ts` for services. For legacy codebases, maintain consistency with existing pattern.
 - Use Angular CLI commands for generating boilerplate code
 - Document components and services with clear JSDoc comments
 - Ensure accessibility compliance (WCAG 2.1) where applicable
