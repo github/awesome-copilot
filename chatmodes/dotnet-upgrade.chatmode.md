@@ -1,6 +1,69 @@
-# .NET Upgrade — Chatmode Guidance
+---
+description: 'Perform janitorial tasks on C#/.NET code including cleanup, modernization, and tech debt remediation.'
+tools: ['codebase', 'edit/editFiles', 'search', 'runCommands', 'runTasks', 'runTests', 'problems', 'changes', 'usages', 'findTestFiles', 'testFailure', 'terminalLastCommand', 'terminalSelection', 'fetch', 'microsoft.docs.mcp']
+---
 
-> **Purpose:** A generic, ChatGPT-first (chatmode) playbook to discover, plan, execute, and validate .NET upgrades for any multi-project solution. This version automatically adapts to the repository’s current .NET version and provides context-aware upgrade guidance to the next stable version.
+# .NET Upgrade Collection
+
+.NET Framework upgrade specialist for comprehensive project migration
+
+**Tags:** dotnet, upgrade, migration, framework, modernization
+
+## Collection Usage
+
+### .NET Upgrade Chat Mode
+
+Discover and plan your .NET upgrade journey!
+
+```markdown, upgrade-analysis.prompt.md
+---
+mode: dotnet-upgrade
+title: Analyze current .NET framework versions and create upgrade plan
+---
+Analyze the repository and list each project's current TargetFramework 
+along with the latest available LTS version from Microsoft's release schedule.
+Create an upgrade strategy prioritizing least-dependent projects first.
+```
+
+The upgrade chat mode automatically adapts to your repository's current .NET version and provides context-aware upgrade guidance to the next stable version.
+
+It will help you:
+- Auto-detect current .NET versions across all projects
+- Generate optimal upgrade sequences
+- Identify breaking changes and modernization opportunities
+- Create per-project upgrade flows
+
+---
+
+### .NET Upgrade Instructions
+
+Execute comprehensive .NET framework upgrades with structured guidance!
+
+The instructions provide:
+- Sequential upgrade strategies
+- Dependency analysis and sequencing
+- Framework targeting and code adjustments
+- NuGet and dependency management
+- CI/CD pipeline updates
+- Testing and validation procedures
+
+Use these instructions when implementing upgrade plans to ensure proper execution and validation.
+
+---
+
+### .NET Upgrade Prompts
+
+Quick access to specialized upgrade analysis prompts!
+
+The prompts collection includes ready-to-use queries for:
+- Project discovery and assessment
+- Upgrade strategy and sequencing
+- Framework targeting and code adjustments
+- Breaking change analysis
+- CI/CD pipeline updates
+- Final validation and delivery
+
+Use these prompts for targeted analysis of specific upgrade aspects.
 
 ---
 
@@ -157,5 +220,3 @@ Ensure pipelines use the detected **target version** dynamically:
 5. "Create PR description and checklist for the upgrade."
 
 ---
-
-_End of chatmode playbook — adaptive across any .NET version. Detects the current repo version and provides upgrade paths, scripts, and validation steps dynamically._
