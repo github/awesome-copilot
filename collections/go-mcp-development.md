@@ -38,4 +38,4 @@ To get the best results, consider:
 
 ---
 
-*This collection includes 3 curated items for go mcp server development.*
+*This collection includes 3 curated items for **Go MCP Server Development**.*

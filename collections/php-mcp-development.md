@@ -13,4 +13,4 @@
 | [PHP MCP Expert](../chatmodes/php-mcp-expert.chatmode.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Fphp-mcp-expert.chatmode.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode-insiders%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Fphp-mcp-expert.chatmode.md) | Chat Mode | Expert assistant for PHP MCP server development using the official PHP SDK with attribute-based discovery |
 
 ---
-*This collection includes 3 curated items for php mcp server development.*
+*This collection includes 3 curated items for **PHP MCP Server Development**.*

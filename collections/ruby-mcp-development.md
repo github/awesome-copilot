@@ -38,4 +38,4 @@ To get the best results, consider:
 
 ---
 
-*This collection includes 3 curated items for ruby mcp server development.*
+*This collection includes 3 curated items for **Ruby MCP Server Development**.*
