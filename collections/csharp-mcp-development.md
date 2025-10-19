@@ -35,4 +35,4 @@ To get the best results, consider:
 
 ---
 
-*This collection includes 3 curated items for c# mcp server development.*
+*This collection includes 3 curated items for **C# MCP Server Development**.*

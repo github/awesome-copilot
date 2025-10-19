@@ -639,9 +639,7 @@ function generateCollectionReadme(collection, collectionId) {
 
   // Optional badge note at the end if show_badge is true
   if (collection.display?.show_badge) {
-    content += `*This collection includes ${
-      items.length
-    } curated items for ${name.toLowerCase()}.*`;
+    content += `*This collection includes ${items.length} curated items for **${name}**.*`;
   }
 
   return content;
