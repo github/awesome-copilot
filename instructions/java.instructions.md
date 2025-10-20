@@ -8,8 +8,23 @@ applyTo: '**/*.java'
 ## General Instructions
 
 - First, prompt the user if they want to integrate static analysis tools (SonarQube, PMD, Checkstyle) into their project setup.
-  - If yes, document a recommended static-analysis setup. Prefer SonarQube/SonarCloud (SonarLint in IDE + `sonar-scanner` in CI). Include: creating a Sonar project key, storing the scanner token in CI secrets, and a sample CI job that runs the scanner. If the team declines Sonar, note this in project README and continue.
-  - If Sonar is bound to the project, use Sonar as the primary source of actionable issues and reference Sonar rule keys in remediation guidance. If Sonar is unavailable, perform up to 3 troubleshooting checks (1. verify project binding and token, 2. ensure SonarScanner runs in CI, 3. confirm SonarLint is installed and configured). If still failing after 3 attempts, enable SpotBugs/PMD/Checkstyle as CI fallbacks and open a short tracker issue documenting the blocker and next steps.
+  - If yes, document a recommended static-analysis setup. 
+    - Prefer SonarQube/SonarCloud (SonarLint in IDE + `sonar-scanner` in CI).
+    - Create a Sonar project key.
+    - Store the scanner token in CI secrets.
+    - Provide a sample CI job that runs the scanner.
+    - If the team declines Sonar, note this in the project README and continue.
+  - If Sonar is bound to the project:
+    - Use Sonar as the primary source of actionable issues.
+    - Reference Sonar rule keys in remediation guidance.
+  - If Sonar is unavailable:
+    - Perform up to 3 troubleshooting checks:
+      1. Verify project binding and token.
+      2. Ensure SonarScanner runs in CI.
+      3. Confirm SonarLint is installed and configured.
+    - If still failing after 3 attempts:
+      - Enable SpotBugs, PMD, or Checkstyle as CI fallbacks.
+      - Open a short tracker issue documenting the blocker and next steps.
 - If the user declines static analysis tools or wants to proceed without them, continue with implementing the Best practices, bug patterns and code smell prevention guidelines outlined below.
 - Address code smells proactively during development rather than accumulating technical debt.
 - Focus on readability, maintainability, and performance when refactoring identified issues.
