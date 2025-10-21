@@ -7,8 +7,24 @@ applyTo: '**/*.java'
 
 ## General Instructions
 
-- First, prompt the user if they want to integrate static analysis tools (SonarQube, PMD, Checkstyle)
-  into their project setup. If yes, provide guidance on tool selection and configuration.
+- First, prompt the user if they want to integrate static analysis tools (SonarQube, PMD, Checkstyle) into their project setup.
+  - If yes, document a recommended static-analysis setup. 
+    - Prefer SonarQube/SonarCloud (SonarLint in IDE + `sonar-scanner` in CI).
+    - Create a Sonar project key.
+    - Store the scanner token in CI secrets.
+    - Provide a sample CI job that runs the scanner.
+    - If the team declines Sonar, note this in the project README and continue.
+  - If Sonar is bound to the project:
+    - Use Sonar as the primary source of actionable issues.
+    - Reference Sonar rule keys in remediation guidance.
+  - If Sonar is unavailable:
+    - Perform up to 3 troubleshooting checks:
+      1. Verify project binding and token.
+      2. Ensure SonarScanner runs in CI.
+      3. Confirm SonarLint is installed and configured.
+    - If still failing after 3 attempts:
+      - Enable SpotBugs, PMD, or Checkstyle as CI fallbacks.
+      - Open a short tracker issue documenting the blocker and next steps.
 - If the user declines static analysis tools or wants to proceed without them, continue with implementing the Best practices, bug patterns and code smell prevention guidelines outlined below.
 - Address code smells proactively during development rather than accumulating technical debt.
 - Focus on readability, maintainability, and performance when refactoring identified issues.
@@ -33,28 +49,29 @@ applyTo: '**/*.java'
 - Use nouns for classes (`UserService`) and verbs for methods (`getUserById`).
 - Avoid abbreviations and Hungarian notation.
 
-### Bug Patterns
+### Common Bug Patterns
 
-| Rule ID | Description                                                 | Example / Notes                                                                                  |
-| ------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `S2095` | Resources should be closed                                  | Use try-with-resources when working with streams, files, sockets, etc.                           |
-| `S1698` | Objects should be compared with `.equals()` instead of `==` | Especially important for Strings and boxed primitives.                                           |
-| `S1905` | Redundant casts should be removed                           | Clean up unnecessary or unsafe casts.                                                            |
-| `S3518` | Conditions should not always evaluate to true or false      | Watch for infinite loops or if-conditions that never change.                                     |
-| `S108`  | Unreachable code should be removed                          | Code after `return`, `throw`, etc., must be cleaned up.                                          |
+Below are concise, human-readable rules you can apply regardless of which static analysis tool you use. If you run Sonar/SonarLint, the IDE will show the matching rule and location — direct Sonar connections are preferred and should override this ruleset.
 
-## Code Smells
+- Resource management — Always close resources (files, sockets, streams). Use try-with-resources where possible so resources are closed automatically.
+- Equality checks — Compare object equality with `.equals()` or `Objects.equals(...)` rather than `==` for non-primitives; this avoids reference-equality bugs.
+- Redundant casts — Remove unnecessary casts; prefer correct generic typing and let the compiler infer types where possible.
+- Reachable conditions — Avoid conditional expressions that are always true or false; they indicate bugs or dead code and should be corrected.
 
-| Rule ID | Description                                            | Example / Notes                                                               |
-| ------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `S107`  | Methods should not have too many parameters            | Refactor into helper classes or use builder pattern.                          |
-| `S121`  | Duplicated blocks of code should be removed            | Consolidate logic into shared methods.                                        |
-| `S138`  | Methods should not be too long                         | Break complex logic into smaller, testable units.                             |
-| `S3776` | Cognitive complexity should be reduced                 | Simplify nested logic, extract methods, avoid deep `if` trees.                |
-| `S1192` | String literals should not be duplicated               | Replace with constants or enums.                                              |
-| `S1854` | Unused assignments should be removed                   | Avoid dead variables—remove or refactor.                                      |
-| `S109`  | Magic numbers should be replaced with constants        | Improves readability and maintainability.                                     |
-| `S1188` | Catch blocks should not be empty                       | Always log or handle exceptions meaningfully.                                 |
+For contributors who *do* use Sonar or SonarLint: the IDE/scan will show the specific rule key (for example, S2095 for resource leaks) and the affected file/line. Use that information to navigate to the exact location, then apply the recommended remediation.
+
+### Common Code Smells
+
+These patterns are phrased for humans; they map cleanly to checks in Sonar, SpotBugs, PMD, or Checkstyle but do not require those tools to be useful.
+
+- Parameter count — Keep method parameter lists short. If a method needs many params, consider grouping into a value object or using the builder pattern.
+- Method size — Keep methods focused and small. Extract helper methods to improve readability and testability.
+- Cognitive complexity — Reduce nested conditionals and heavy branching by extracting methods, using polymorphism, or applying the Strategy pattern.
+- Duplicated literals — Extract repeated strings and numbers into named constants or enums to reduce errors and ease changes.
+- Dead code — Remove unused variables and assignments. They confuse readers and can hide bugs.
+- Magic numbers — Replace numeric literals with named constants that explain intent (e.g., MAX_RETRIES).
+
+If you run a static analyzer like Sonar or SonarLint — direct Sonar connections are preferred and should override this ruleset. Sonar rule keys are useful for automation and suppression, but they are not required in day-to-day developer guidance.
 
 ## Build and Verification
 
