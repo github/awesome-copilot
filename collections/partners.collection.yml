@@ -1,0 +1,29 @@
+id: partners
+name: Partners
+description: Custom agents that have been created by GitHub partners
+tags: [tag1, tag2, tag3]
+items:
+  - path: chatmodes/api-architect.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/azure-logic-apps-expert.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/blueprint-mode-codex.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/clojure-interactive-programming.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/expert-cpp-software-engineer.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/gilfoyle.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/java-mcp-expert.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/meta-agentic-project-scaffold.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/power-platform-expert.chatmode.md
+    kind: chat-mode
+  - path: chatmodes/ruby-mcp-expert.chatmode.md
+    kind: chat-mode
+display:
+  ordering: alpha # or "manual" to preserve the order above
+  show_badge: false # set to true to show collection badge on items
+  promoted: true

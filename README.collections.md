@@ -4,6 +4,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 ### How to Use Collections
 
 **Browse Collections:**
+- ⭐ Featured collections are highlighted and appear at the top of the list
 - Explore themed collections that group related customizations
 - Each collection includes prompts, instructions, and chat modes for specific workflows
 - Collections make it easy to adopt comprehensive toolkits for particular scenarios
@@ -15,6 +16,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
+| [⭐ Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 10 items | tag1, tag2, tag3 |
 | [Azure & Cloud Development](collections/azure-cloud-development.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 18 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [C# .NET Development](collections/csharp-dotnet-development.md) | Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices. | 7 items | csharp, dotnet, aspnet, testing |
 | [C# MCP Server Development](collections/csharp-mcp-development.md) | Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance. | 3 items | csharp, mcp, model-context-protocol, dotnet, server-development |

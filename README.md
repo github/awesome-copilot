@@ -16,6 +16,15 @@ This repository provides a comprehensive toolkit for enhancing GitHub Copilot wi
 - **[![Awesome Chat Modes](https://img.shields.io/badge/Awesome-Chat_Modes-blue?logo=githubcopilot)](README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
 - **[![Awesome Collections](https://img.shields.io/badge/Awesome-Collections-blue?logo=githubcopilot)](README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
 
+## 🌟 Featured Collections
+
+Discover our curated collections of prompts, instructions, and chat modes organized around specific themes and workflows.
+
+| Name | Description | Items | Tags |
+| ---- | ----------- | ----- | ---- |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 10 items | tag1, tag2, tag3 |
+
+
 ## MCP Server
 
 To make it easy to add these customizations to your editor, we have created a [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides a prompt for searching and installing prompts, instructions, and chat modes directly from this repository. You'll need to have Docker installed and running to run the server.

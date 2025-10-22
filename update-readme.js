@@ -58,6 +58,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
   collectionsUsage: `### How to Use Collections
 
 **Browse Collections:**
+- ⭐ Featured collections are highlighted and appear at the top of the list
 - Explore themed collections that group related customizations
 - Each collection includes prompts, instructions, and chat modes for specific workflows
 - Collections make it easy to adopt comprehensive toolkits for particular scenarios
@@ -66,6 +67,10 @@ Curated collections of related prompts, instructions, and chat modes organized a
 - Click install buttons for individual items within collections
 - Or browse to the individual files to copy content manually
 - Collections help you discover related customizations you might have missed`,
+
+  promotedCollectionsSection: `## 🌟 Featured Collections
+
+Discover our curated collections of prompts, instructions, and chat modes organized around specific themes and workflows.`,
 };
 
 // Add error handling utility
@@ -525,17 +530,32 @@ function generateCollectionsSection(collectionsDir) {
       const collectionId =
         collection.id || path.basename(file, ".collection.yml");
       const name = collection.name || collectionId;
-      return { file, filePath, collection, collectionId, name };
+      const isPromoted = collection.display?.promoted === true;
+      return { file, filePath, collection, collectionId, name, isPromoted };
     })
     .filter((entry) => entry !== null); // Remove failed parses
 
-  // Sort by name alphabetically
-  collectionEntries.sort((a, b) => a.name.localeCompare(b.name));
+  // Separate promoted and regular collections
+  const promotedCollections = collectionEntries.filter(
+    (entry) => entry.isPromoted
+  );
+  const regularCollections = collectionEntries.filter(
+    (entry) => !entry.isPromoted
+  );
 
-  console.log(`Found ${collectionEntries.length} collection files`);
+  // Sort each group alphabetically by name
+  promotedCollections.sort((a, b) => a.name.localeCompare(b.name));
+  regularCollections.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Combine: promoted first, then regular
+  const sortedEntries = [...promotedCollections, ...regularCollections];
+
+  console.log(
+    `Found ${collectionEntries.length} collection files (${promotedCollections.length} promoted)`
+  );
 
   // If no collections, return empty string
-  if (collectionEntries.length === 0) {
+  if (sortedEntries.length === 0) {
     return "";
   }
 
@@ -544,18 +564,93 @@ function generateCollectionsSection(collectionsDir) {
     "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
 
   // Generate table rows for each collection file
-  for (const entry of collectionEntries) {
-    const { collection, collectionId, name } = entry;
+  for (const entry of sortedEntries) {
+    const { collection, collectionId, name, isPromoted } = entry;
     const description = collection.description || "No description";
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
 
     const link = `collections/${collectionId}.md`;
+    const displayName = isPromoted ? `⭐ ${name}` : name;
 
-    collectionsContent += `| [${name}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    collectionsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
   }
 
   return `${TEMPLATES.collectionsSection}\n${TEMPLATES.collectionsUsage}\n\n${collectionsContent}`;
+}
+
+/**
+ * Generate the promoted collections section for the main README
+ */
+function generatePromotedCollectionsSection(collectionsDir) {
+  // Check if collections directory exists
+  if (!fs.existsSync(collectionsDir)) {
+    return "";
+  }
+
+  // Get all collection files
+  const collectionFiles = fs
+    .readdirSync(collectionsDir)
+    .filter((file) => file.endsWith(".collection.yml"));
+
+  // Map collection files to objects with name for sorting, filter for promoted
+  const promotedCollections = collectionFiles
+    .map((file) => {
+      const filePath = path.join(collectionsDir, file);
+      return safeFileOperation(
+        () => {
+          const collection = parseCollectionYaml(filePath);
+          if (!collection) return null;
+
+          // Only include collections with promoted: true
+          if (!collection.display?.promoted) return null;
+
+          const collectionId =
+            collection.id || path.basename(file, ".collection.yml");
+          const name = collection.name || collectionId;
+          const description = collection.description || "No description";
+          const tags = collection.tags ? collection.tags.join(", ") : "";
+          const itemCount = collection.items ? collection.items.length : 0;
+
+          return {
+            file,
+            collection,
+            collectionId,
+            name,
+            description,
+            tags,
+            itemCount,
+          };
+        },
+        filePath,
+        null
+      );
+    })
+    .filter((entry) => entry !== null); // Remove non-promoted and failed parses
+
+  // Sort by name alphabetically
+  promotedCollections.sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${promotedCollections.length} promoted collection(s)`);
+
+  // If no promoted collections, return empty string
+  if (promotedCollections.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let promotedContent =
+    "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
+
+  // Generate table rows for each promoted collection
+  for (const entry of promotedCollections) {
+    const { collectionId, name, description, tags, itemCount } = entry;
+    const readmeLink = `collections/${collectionId}.md`;
+
+    promotedContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${tags} |\n`;
+  }
+
+  return `${TEMPLATES.promotedCollectionsSection}\n\n${promotedContent}`;
 }
 
 /**
@@ -760,6 +855,52 @@ try {
         writeFileIfChanged(readmeFile, readmeContent);
       }
     }
+  }
+
+  // Generate promoted collections section and update main README.md
+  console.log("Updating main README.md with promoted collections...");
+  const promotedSection = generatePromotedCollectionsSection(collectionsDir);
+
+  if (promotedSection) {
+    const mainReadmePath = path.join(__dirname, "README.md");
+
+    if (fs.existsSync(mainReadmePath)) {
+      let readmeContent = fs.readFileSync(mainReadmePath, "utf8");
+
+      // Define markers to identify where to insert the promoted collections
+      const startMarker = "## 🌟 Featured Collections";
+      const endMarker = "## MCP Server";
+
+      // Check if the section already exists
+      const startIndex = readmeContent.indexOf(startMarker);
+
+      if (startIndex !== -1) {
+        // Section exists, replace it
+        const endIndex = readmeContent.indexOf(endMarker, startIndex);
+        if (endIndex !== -1) {
+          // Replace the existing section
+          const beforeSection = readmeContent.substring(0, startIndex);
+          const afterSection = readmeContent.substring(endIndex);
+          readmeContent =
+            beforeSection + promotedSection + "\n\n" + afterSection;
+        }
+      } else {
+        // Section doesn't exist, insert it before "## MCP Server"
+        const mcpIndex = readmeContent.indexOf(endMarker);
+        if (mcpIndex !== -1) {
+          const beforeMcp = readmeContent.substring(0, mcpIndex);
+          const afterMcp = readmeContent.substring(mcpIndex);
+          readmeContent = beforeMcp + promotedSection + "\n\n" + afterMcp;
+        }
+      }
+
+      writeFileIfChanged(mainReadmePath, readmeContent);
+      console.log("Main README.md updated with promoted collections");
+    } else {
+      console.warn("README.md not found, skipping promoted collections update");
+    }
+  } else {
+    console.log("No promoted collections found to add to README.md");
   }
 } catch (error) {
   console.error(`Error generating category README files: ${error.message}`);

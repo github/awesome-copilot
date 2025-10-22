@@ -50,7 +50,7 @@
           "path": {
             "type": "string",
             "description": "Relative path from repository root to the item file",
-            "pattern": "^(prompts|instructions|chatmodes)\/[^\/]+\\.(prompt|instructions|chatmode)\\.md$",
+            "pattern": "^(prompts|instructions|chatmodes)/[^/]+\\.(prompt|instructions|chatmode)\\.md$",
             "minLength": 1
           },
           "kind": {
@@ -80,6 +80,11 @@
         "show_badge": {
           "type": "boolean",
           "description": "Whether to show collection badge on items",
+          "default": false
+        },
+        "promoted": {
+          "type": "boolean",
+          "description": "Whether this collection is promoted on the main page",
           "default": false
         }
       }
