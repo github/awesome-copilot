@@ -48,7 +48,7 @@ Help GitHub Copilot generate idiomatic, safe, and maintainable R code across pro
 
 - **Data frames:** prefer tibbles in tidyverse-heavy files; otherwise base `data.frame()` is fine.
 - **Iteration:** use `purrr` in tidyverse code. In base-style code, prefer type-stable, vectorized patterns such as `vapply()`
-  (for atomic outputs) or `Map()` (for elementwise operations) instead of explicit `for` loops when they improve clarity or performance.
+   (for atomic outputs) or `Map()` (for elementwise operations) instead of explicit `for` loops when they improve clarity or performance.
 - **Strings & Dates:** use `stringr`/`lubridate` where already present; otherwise use clear base helpers (e.g., `nchar()`, `substr()`, `as.Date()` with explicit format).
 - **I/O:** prefer explicit, typed readers (e.g., `readr::read_csv()`); make parsing assumptions explicit.
 
