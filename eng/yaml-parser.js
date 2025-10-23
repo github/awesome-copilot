@@ -1,6 +1,8 @@
-// YAML parser for collection files and agent frontmatter
+// YAML parser for collection files and frontmatter parsing using vfile-matter
 const fs = require("fs");
 const yaml = require("js-yaml");
+const { VFile } = require("vfile");
+const { matter } = require("vfile-matter");
 
 function safeFileOperation(operation, filePath, defaultValue = null) {
   try {
@@ -31,53 +33,30 @@ function parseCollectionYaml(filePath) {
 }
 
 /**
- * Parse agent frontmatter from an agent markdown file (.agent.md)
- * Agent files use standard markdown frontmatter with --- delimiters
- * @param {string} filePath - Path to the agent file
- * @returns {object|null} Parsed agent frontmatter or null on error
+ * Parse frontmatter from a markdown file using vfile-matter
+ * Works with any markdown file that has YAML frontmatter (agents, prompts, chatmodes, instructions)
+ * @param {string} filePath - Path to the markdown file
+ * @returns {object|null} Parsed frontmatter object or null on error
  */
-function parseAgentFrontmatter(filePath) {
+function parseFrontmatter(filePath) {
   return safeFileOperation(
     () => {
       const content = fs.readFileSync(filePath, "utf8");
-      const lines = content.split("\n");
+      const file = new VFile({ path: filePath, value: content });
 
-      // Agent files use standard markdown frontmatter format
-      // Find the YAML frontmatter between --- delimiters
-      let yamlStart = -1;
-      let yamlEnd = -1;
-      let delimiterCount = 0;
+      // Parse the frontmatter using vfile-matter
+      matter(file);
 
-      for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim();
-
-        if (trimmed === "---") {
-          delimiterCount++;
-          if (delimiterCount === 1) {
-            yamlStart = i + 1;
-          } else if (delimiterCount === 2) {
-            yamlEnd = i;
-            break;
-          }
-        }
-      }
-
-      if (yamlStart === -1 || yamlEnd === -1) {
-        throw new Error(
-          "Could not find YAML frontmatter delimiters (---) in agent file"
-        );
-      }
-
-      // Extract YAML content between delimiters
-      const yamlContent = lines.slice(yamlStart, yamlEnd).join("\n");
-
-      // Parse YAML directly with js-yaml
-      const frontmatter = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA });
+      // The frontmatter is now available in file.data.matter
+      const frontmatter = file.data.matter;
 
       // Normalize string fields that can accumulate trailing newlines/spaces
       if (frontmatter) {
         if (typeof frontmatter.name === "string") {
           frontmatter.name = frontmatter.name.replace(/[\r\n]+$/g, "").trim();
+        }
+        if (typeof frontmatter.title === "string") {
+          frontmatter.title = frontmatter.title.replace(/[\r\n]+$/g, "").trim();
         }
         if (typeof frontmatter.description === "string") {
           // Remove only trailing whitespace/newlines; preserve internal formatting
@@ -101,7 +80,7 @@ function parseAgentFrontmatter(filePath) {
  * @returns {object|null} Agent metadata object with name, description, tools, and mcp-servers
  */
 function extractAgentMetadata(filePath) {
-  const frontmatter = parseAgentFrontmatter(filePath);
+  const frontmatter = parseFrontmatter(filePath);
 
   if (!frontmatter) {
     return null;
@@ -135,7 +114,7 @@ function extractMcpServers(filePath) {
 
 module.exports = {
   parseCollectionYaml,
-  parseAgentFrontmatter,
+  parseFrontmatter,
   extractAgentMetadata,
   extractMcpServers,
   safeFileOperation,

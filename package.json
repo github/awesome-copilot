@@ -28,6 +28,8 @@
     "all-contributors-cli": "^6.26.1"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "vfile": "^6.0.3",
+    "vfile-matter": "^5.0.1"
   }
 }

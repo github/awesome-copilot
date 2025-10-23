@@ -1,3 +1,5 @@
+const path = require("path");
+
 // Template sections for the README
 const TEMPLATES = {
   instructionsSection: `## 📋 Custom Instructions
@@ -111,3 +113,17 @@ const AKA_INSTALL_URLS = {
   agent: "https://aka.ms/awesome-copilot/install/agent",
 };
 exports.AKA_INSTALL_URLS = AKA_INSTALL_URLS;
+const ROOT_FOLDER = path.join(__dirname, "..");
+exports.ROOT_FOLDER = ROOT_FOLDER;
+const INSTRUCTIOSN_DIR = path.join(ROOT_FOLDER, "instructions");
+exports.INSTRUCTIOSN_DIR = INSTRUCTIOSN_DIR;
+const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
+exports.PROMPTS_DIR = PROMPTS_DIR;
+const CHATMODES_DIR = path.join(ROOT_FOLDER, "chatmodes");
+exports.CHATMODES_DIR = CHATMODES_DIR;
+const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
+exports.AGENTS_DIR = AGENTS_DIR;
+const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
+exports.COLLECTIONS_DIR = COLLECTIONS_DIR; // Maximum number of items allowed in a collection
+const MAX_COLLECTION_ITEMS = 50;
+exports.MAX_COLLECTION_ITEMS = MAX_COLLECTION_ITEMS;

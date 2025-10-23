@@ -5,7 +5,7 @@ const path = require("path");
 const {
   parseCollectionYaml,
   extractMcpServers,
-  parseAgentFrontmatter,
+  parseFrontmatter,
 } = require("./yaml-parser");
 const {
   TEMPLATES,
@@ -13,6 +13,12 @@ const {
   repoBaseUrl,
   vscodeInstallImage,
   vscodeInsidersInstallImage,
+  ROOT_FOLDER,
+  INSTRUCTIOSN_DIR,
+  PROMPTS_DIR,
+  CHATMODES_DIR,
+  AGENTS_DIR,
+  COLLECTIONS_DIR,
 } = require("./constants");
 
 // Add error handling utility
@@ -34,47 +40,21 @@ function extractTitle(filePath) {
       const content = fs.readFileSync(filePath, "utf8");
       const lines = content.split("\n");
 
-      // Step 1: Look for title in frontmatter for all file types
-      let inFrontmatter = false;
-      let frontmatterEnded = false;
-      let hasFrontmatter = false;
+      // Step 1: Try to get title from frontmatter using vfile-matter
+      const frontmatter = parseFrontmatter(filePath);
 
-      for (const line of lines) {
-        if (line.trim() === "---") {
-          if (!inFrontmatter) {
-            inFrontmatter = true;
-            hasFrontmatter = true;
-          } else if (!frontmatterEnded) {
-            frontmatterEnded = true;
-            break;
-          }
-          continue;
+      if (frontmatter) {
+        // Check for title field
+        if (frontmatter.title && typeof frontmatter.title === "string") {
+          return frontmatter.title;
         }
 
-        if (inFrontmatter && !frontmatterEnded) {
-          // Look for title field in frontmatter
-          if (line.includes("title:")) {
-            // Extract everything after 'title:'
-            const afterTitle = line
-              .substring(line.indexOf("title:") + 6)
-              .trim();
-            // Remove quotes if present
-            const cleanTitle = afterTitle.replace(/^['"]|['"]$/g, "");
-            return cleanTitle;
-          }
-
-          // Look for name field in frontmatter
-          if (line.includes("name:")) {
-            // Extract everything after 'name:'
-            const afterName = line.substring(line.indexOf("name:") + 5).trim();
-            // Remove quotes if present
-            const cleanName = afterName.replace(/^['"]|['"]$/g, "");
-            // Convert hyphenated lowercase to title case
-            return cleanName
-              .split("-")
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(" ");
-          }
+        // Check for name field and convert to title case
+        if (frontmatter.name && typeof frontmatter.name === "string") {
+          return frontmatter.name
+            .split("-")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
         }
       }
 
@@ -84,41 +64,24 @@ function extractTitle(filePath) {
         filePath.includes(".chatmode.md") ||
         filePath.includes(".instructions.md")
       ) {
-        // If we had frontmatter, only look for headings after it ended
-        if (hasFrontmatter) {
-          let inFrontmatter2 = false;
-          let frontmatterEnded2 = false;
-          let inCodeBlock = false;
+        // Look for first heading after frontmatter
+        let inFrontmatter = false;
+        let frontmatterEnded = false;
+        let inCodeBlock = false;
 
-          for (const line of lines) {
-            if (line.trim() === "---") {
-              if (!inFrontmatter2) {
-                inFrontmatter2 = true;
-              } else if (inFrontmatter2 && !frontmatterEnded2) {
-                frontmatterEnded2 = true;
-              }
-              continue;
+        for (const line of lines) {
+          if (line.trim() === "---") {
+            if (!inFrontmatter) {
+              inFrontmatter = true;
+            } else if (inFrontmatter && !frontmatterEnded) {
+              frontmatterEnded = true;
             }
-
-            // Track code blocks to ignore headings inside them
-            if (frontmatterEnded2) {
-              if (
-                line.trim().startsWith("```") ||
-                line.trim().startsWith("````")
-              ) {
-                inCodeBlock = !inCodeBlock;
-                continue;
-              }
-
-              if (!inCodeBlock && line.startsWith("# ")) {
-                return line.substring(2).trim();
-              }
-            }
+            continue;
           }
-        } else {
-          // No frontmatter, look for first heading (but not in code blocks)
-          let inCodeBlock = false;
-          for (const line of lines) {
+
+          // Only look for headings after frontmatter ends
+          if (frontmatterEnded || !inFrontmatter) {
+            // Track code blocks to ignore headings inside them
             if (
               line.trim().startsWith("```") ||
               line.trim().startsWith("````")
@@ -147,7 +110,7 @@ function extractTitle(filePath) {
           .replace(/\b\w/g, (l) => l.toUpperCase());
       }
 
-      // Step 4: For instruction files, look for the first heading (but not in code blocks)
+      // Step 4: For other files, look for the first heading (but not in code blocks)
       let inCodeBlock = false;
       for (const line of lines) {
         if (line.trim().startsWith("```") || line.trim().startsWith("````")) {
@@ -177,81 +140,11 @@ function extractTitle(filePath) {
 function extractDescription(filePath) {
   return safeFileOperation(
     () => {
-      // Special handling for agent files
-      if (filePath.endsWith(".agent.md")) {
-        const agent = parseAgentFrontmatter(filePath);
-        if (agent && agent.description) {
-          return agent.description;
-        }
-        return null;
-      }
+      // Use vfile-matter to parse frontmatter for all file types
+      const frontmatter = parseFrontmatter(filePath);
 
-      const content = fs.readFileSync(filePath, "utf8");
-
-      // Parse frontmatter for description (for both prompts and instructions)
-      const lines = content.split("\n");
-      let inFrontmatter = false;
-
-      // For multi-line descriptions
-      let isMultilineDescription = false;
-      let multilineDescription = [];
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (line.trim() === "---") {
-          if (!inFrontmatter) {
-            inFrontmatter = true;
-            continue;
-          }
-          break;
-        }
-
-        if (inFrontmatter) {
-          // Check for multi-line description with pipe syntax (|)
-          const multilineMatch = line.match(/^description:\s*\|(\s*)$/);
-          if (multilineMatch) {
-            isMultilineDescription = true;
-            // Continue to next line to start collecting the multi-line content
-            continue;
-          }
-
-          // If we're collecting a multi-line description
-          if (isMultilineDescription) {
-            // If the line has no indentation or has another frontmatter key, stop collecting
-            if (!line.startsWith("  ") || line.match(/^[a-zA-Z0-9_-]+:/)) {
-              // Join the collected lines and return
-              return multilineDescription.join(" ").trim();
-            }
-
-            // Add the line to our multi-line collection (removing the 2-space indentation)
-            multilineDescription.push(line.substring(2));
-          } else {
-            // Look for single-line description field in frontmatter
-            const descriptionMatch = line.match(
-              /^description:\s*['"]?(.+?)['"]?\s*$/
-            );
-            if (descriptionMatch) {
-              let description = descriptionMatch[1];
-
-              // Check if the description is wrapped in single quotes and handle escaped quotes
-              const singleQuoteMatch = line.match(
-                /^description:\s*'(.+?)'\s*$/
-              );
-              if (singleQuoteMatch) {
-                // Replace escaped single quotes ('') with single quotes (')
-                description = singleQuoteMatch[1].replace(/''/g, "'");
-              }
-
-              return description;
-            }
-          }
-        }
-      }
-
-      // If we've collected multi-line description but the frontmatter ended
-      if (multilineDescription.length > 0) {
-        return multilineDescription.join(" ").trim();
+      if (frontmatter && frontmatter.description) {
+        return frontmatter.description;
       }
 
       return null;
@@ -723,14 +616,14 @@ function generateCollectionReadme(collection, collectionId) {
   const items = [...collection.items];
   if (collection.display?.ordering === "alpha") {
     items.sort((a, b) => {
-      const titleA = extractTitle(path.join(rootFolder, a.path));
-      const titleB = extractTitle(path.join(rootFolder, b.path));
+      const titleA = extractTitle(path.join(ROOT_FOLDER, a.path));
+      const titleB = extractTitle(path.join(ROOT_FOLDER, b.path));
       return titleA.localeCompare(titleB);
     });
   }
 
   for (const item of items) {
-    const filePath = path.join(rootFolder, item.path);
+    const filePath = path.join(ROOT_FOLDER, item.path);
     const title = extractTitle(filePath);
     const description = extractDescription(filePath) || "No description";
 
@@ -849,13 +742,6 @@ function buildCategoryReadme(sectionBuilder, dirPath, headerLine, usageLine) {
   return `${headerLine}\n\n${usageLine}\n\n_No entries found yet._`;
 }
 
-const rootFolder = path.join(__dirname, "..");
-const instructionsDir = path.join(rootFolder, "instructions");
-const promptsDir = path.join(rootFolder, "prompts");
-const chatmodesDir = path.join(rootFolder, "chatmodes");
-const agentsDir = path.join(rootFolder, "agents");
-const collectionsDir = path.join(rootFolder, "collections");
-
 // Main execution
 try {
   console.log("Generating category README files...");
@@ -875,19 +761,19 @@ try {
 
   const instructionsReadme = buildCategoryReadme(
     generateInstructionsSection,
-    instructionsDir,
+    INSTRUCTIOSN_DIR,
     instructionsHeader,
     TEMPLATES.instructionsUsage
   );
   const promptsReadme = buildCategoryReadme(
     generatePromptsSection,
-    promptsDir,
+    PROMPTS_DIR,
     promptsHeader,
     TEMPLATES.promptsUsage
   );
   const chatmodesReadme = buildCategoryReadme(
     generateChatModesSection,
-    chatmodesDir,
+    CHATMODES_DIR,
     chatmodesHeader,
     TEMPLATES.chatmodesUsage
   );
@@ -895,7 +781,7 @@ try {
   // Generate agents README
   const agentsReadme = buildCategoryReadme(
     generateAgentsSection,
-    agentsDir,
+    AGENTS_DIR,
     agentsHeader,
     TEMPLATES.agentsUsage
   );
@@ -903,37 +789,40 @@ try {
   // Generate collections README
   const collectionsReadme = buildCategoryReadme(
     generateCollectionsSection,
-    collectionsDir,
+    COLLECTIONS_DIR,
     collectionsHeader,
     TEMPLATES.collectionsUsage
   );
 
   // Write category outputs
   writeFileIfChanged(
-    path.join(rootFolder, "README.instructions.md"),
+    path.join(ROOT_FOLDER, "README.instructions.md"),
     instructionsReadme
   );
-  writeFileIfChanged(path.join(rootFolder, "README.prompts.md"), promptsReadme);
   writeFileIfChanged(
-    path.join(rootFolder, "README.chatmodes.md"),
+    path.join(ROOT_FOLDER, "README.prompts.md"),
+    promptsReadme
+  );
+  writeFileIfChanged(
+    path.join(ROOT_FOLDER, "README.chatmodes.md"),
     chatmodesReadme
   );
-  writeFileIfChanged(path.join(rootFolder, "README.agents.md"), agentsReadme);
+  writeFileIfChanged(path.join(ROOT_FOLDER, "README.agents.md"), agentsReadme);
   writeFileIfChanged(
-    path.join(rootFolder, "README.collections.md"),
+    path.join(ROOT_FOLDER, "README.collections.md"),
     collectionsReadme
   );
 
   // Generate individual collection README files
-  if (fs.existsSync(collectionsDir)) {
+  if (fs.existsSync(COLLECTIONS_DIR)) {
     console.log("Generating individual collection README files...");
 
     const collectionFiles = fs
-      .readdirSync(collectionsDir)
+      .readdirSync(COLLECTIONS_DIR)
       .filter((file) => file.endsWith(".collection.yml"));
 
     for (const file of collectionFiles) {
-      const filePath = path.join(collectionsDir, file);
+      const filePath = path.join(COLLECTIONS_DIR, file);
       const collection = parseCollectionYaml(filePath);
 
       if (collection) {
@@ -943,7 +832,7 @@ try {
           collection,
           collectionId
         );
-        const readmeFile = path.join(collectionsDir, `${collectionId}.md`);
+        const readmeFile = path.join(COLLECTIONS_DIR, `${collectionId}.md`);
         writeFileIfChanged(readmeFile, readmeContent);
       }
     }
@@ -951,10 +840,10 @@ try {
 
   // Generate featured collections section and update main README.md
   console.log("Updating main README.md with featured collections...");
-  const featuredSection = generateFeaturedCollectionsSection(collectionsDir);
+  const featuredSection = generateFeaturedCollectionsSection(COLLECTIONS_DIR);
 
   if (featuredSection) {
-    const mainReadmePath = path.join(rootFolder, "README.md");
+    const mainReadmePath = path.join(ROOT_FOLDER, "README.md");
 
     if (fs.existsSync(mainReadmePath)) {
       let readmeContent = fs.readFileSync(mainReadmePath, "utf8");

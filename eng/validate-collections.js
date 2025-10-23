@@ -2,13 +2,12 @@
 
 const fs = require("fs");
 const path = require("path");
+const { parseCollectionYaml, parseFrontmatter } = require("./yaml-parser");
 const {
-  parseCollectionYaml,
-  parseAgentFrontmatter,
-} = require("./yaml-parser");
-
-// Maximum number of items allowed in a collection
-const MAX_COLLECTION_ITEMS = 50;
+  ROOT_FOLDER,
+  COLLECTIONS_DIR,
+  MAX_COLLECTION_ITEMS,
+} = require("./constants");
 
 // Validation functions
 function validateCollectionId(id) {
@@ -67,9 +66,9 @@ function validateCollectionTags(tags) {
   return null;
 }
 
-function validateAgentFile(filePath, itemNumber) {
+function validateAgentFile(filePath) {
   try {
-    const agent = parseAgentFrontmatter(filePath);
+    const agent = parseFrontmatter(filePath);
 
     if (!agent) {
       return `Item ${filePath} agent file could not be parsed`;
@@ -188,7 +187,7 @@ function validateCollectionItems(items) {
     }
 
     // Validate file path exists
-    const filePath = path.join(__dirname, item.path);
+    const filePath = path.join(ROOT_FOLDER, item.path);
     if (!fs.existsSync(filePath)) {
       return `Item ${i + 1} file does not exist: ${item.path}`;
     }
@@ -301,15 +300,13 @@ function validateCollectionManifest(collection, filePath) {
 
 // Main validation function
 function validateCollections() {
-  const collectionsDir = path.join(__dirname, "collections");
-
-  if (!fs.existsSync(collectionsDir)) {
+  if (!fs.existsSync(COLLECTIONS_DIR)) {
     console.log("No collections directory found - validation skipped");
     return true;
   }
 
   const collectionFiles = fs
-    .readdirSync(collectionsDir)
+    .readdirSync(COLLECTIONS_DIR)
     .filter((file) => file.endsWith(".collection.yml"));
 
   if (collectionFiles.length === 0) {
@@ -323,7 +320,7 @@ function validateCollections() {
   const usedIds = new Set();
 
   for (const file of collectionFiles) {
-    const filePath = path.join(collectionsDir, file);
+    const filePath = path.join(COLLECTIONS_DIR, file);
     console.log(`\nValidating ${file}...`);
 
     const collection = parseCollectionYaml(filePath);
