@@ -309,19 +309,19 @@ function generateMcpServerLinks(servers) {
   const badges = [
     {
       type: "vscode",
-      url: "https://img.shields.io/badge/Install_MCP-VS_Code-0098FF?style=flat-square",
+      url: "https://img.shields.io/badge/Install-VS_Code-0098FF?style=flat-square",
       badgeUrl: (serverName) =>
         `https://aka.ms/awesome-copilot/install/mcp-vscode?vscode:mcp/by-name/${serverName}/mcp-server`,
     },
     {
       type: "insiders",
-      url: "https://img.shields.io/badge/Install_MCP-VS_Code_Insiders-24bfa5?style=flat-square",
+      url: "https://img.shields.io/badge/Install-VS_Code_Insiders-24bfa5?style=flat-square",
       badgeUrl: (serverName) =>
         `https://aka.ms/awesome-copilot/install/mcp-vscode?vscode-insiders:mcp/by-name/${serverName}/mcp-server`,
     },
     {
       type: "visualstudio",
-      url: "https://img.shields.io/badge/Install_MCP-Visual_Studio-C16FDE?style=flat-square",
+      url: "https://img.shields.io/badge/Install-Visual_Studio-C16FDE?style=flat-square",
       badgeUrl: (serverName) =>
         `https://aka.ms/awesome-copilot/install/mcp-visualstudio?vscode:mcp/by-name/${serverName}/mcp-server`,
     },
