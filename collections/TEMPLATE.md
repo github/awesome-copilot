@@ -51,8 +51,8 @@ node create-collection.js my-collection-id
 1. Create `collections/my-collection-id.collection.yml`
 2. Use the template above as starting point
 3. Add your items and customize settings
-4. Run `node validate-collections.js` to validate
-5. Run `node update-readme.js` to generate documentation
+4. Run `npm run validate:collections` to validate
+5. Run `npm start` to generate documentation
 
 ## Validation
 
@@ -64,7 +64,7 @@ Collections are automatically validated to ensure:
 
 Run validation manually:
 ```bash
-node validate-collections.js
+npm run validate:collections
 ```
 
 ## File Organization

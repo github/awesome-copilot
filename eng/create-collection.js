@@ -166,8 +166,8 @@ display:
     console.log("\n📝 Next steps:");
     console.log("1. Edit the collection manifest to add your items");
     console.log("2. Update the name, description, and tags as needed");
-    console.log("3. Run 'node validate-collections.js' to validate");
-    console.log("4. Run 'node update-readme.js' to generate documentation");
+    console.log("3. Run 'npm run validate:collections' to validate");
+    console.log("4. Run 'npm start' to generate documentation");
     console.log("\n📄 Collection template contents:");
     console.log(template);
   } catch (error) {
