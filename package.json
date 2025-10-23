@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node run build",
-    "build": "node update-readme.js",
+    "build": "node ./eng/update-readme.js",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check"

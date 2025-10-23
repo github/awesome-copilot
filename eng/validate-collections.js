@@ -2,7 +2,10 @@
 
 const fs = require("fs");
 const path = require("path");
-const { parseCollectionYaml, parseAgentFrontmatter } = require("./yaml-parser");
+const {
+  parseCollectionYaml,
+  parseAgentFrontmatter,
+} = require("../yaml-parser");
 
 // Maximum number of items allowed in a collection
 const MAX_COLLECTION_ITEMS = 50;

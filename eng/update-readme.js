@@ -6,7 +6,7 @@ const {
   parseCollectionYaml,
   extractMcpServers,
   parseAgentFrontmatter,
-} = require("./yaml-parser");
+} = require("../yaml-parser");
 
 // Template sections for the README
 const TEMPLATES = {
