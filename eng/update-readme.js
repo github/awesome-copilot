@@ -14,11 +14,11 @@ const {
   vscodeInstallImage,
   vscodeInsidersInstallImage,
   ROOT_FOLDER,
-  INSTRUCTIOSN_DIR,
   PROMPTS_DIR,
   CHATMODES_DIR,
   AGENTS_DIR,
   COLLECTIONS_DIR,
+  INSTRUCTIONS_DIR,
 } = require("./constants");
 
 // Add error handling utility
@@ -761,7 +761,7 @@ try {
 
   const instructionsReadme = buildCategoryReadme(
     generateInstructionsSection,
-    INSTRUCTIOSN_DIR,
+    INSTRUCTIONS_DIR,
     instructionsHeader,
     TEMPLATES.instructionsUsage
   );

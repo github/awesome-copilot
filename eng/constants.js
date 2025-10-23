@@ -113,9 +113,6 @@ const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
 const MAX_COLLECTION_ITEMS = 50;
 
-// Backward compatibility export for typo (remove later)
-const INSTRUCTIOSN_DIR = INSTRUCTIONS_DIR;
-
 module.exports = {
   TEMPLATES,
   vscodeInstallImage,
@@ -124,7 +121,6 @@ module.exports = {
   AKA_INSTALL_URLS,
   ROOT_FOLDER,
   INSTRUCTIONS_DIR,
-  INSTRUCTIOSN_DIR, // deprecated
   PROMPTS_DIR,
   CHATMODES_DIR,
   AGENTS_DIR,
