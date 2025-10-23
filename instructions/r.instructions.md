@@ -1,6 +1,6 @@
 ---
-description: "R language and document formats (R, Rmd, Quarto): coding standards and Copilot guidance for idiomatic, safe, and consistent code generation."
-applyTo: "**/*.{R,r,Rmd,rmd,qmd}"
+description: 'R language and document formats (R, Rmd, Quarto): coding standards and Copilot guidance for idiomatic, safe, and consistent code generation.'
+applyTo: '**/*.{R,r,Rmd,rmd,qmd}'
 ---
 
 # R Programming Language Instructions
@@ -13,8 +13,7 @@ Help GitHub Copilot generate idiomatic, safe, and maintainable R code across pro
 
 - **Match the project’s style.** If the file shows a preference (tidyverse vs. base R, `%>%` vs. `|>`), follow it.
 - **Prefer clear, vectorized code.** Keep functions small and avoid hidden side effects.
-- **Qualify non-base functions in examples/snippets**, e.g., `dplyr::mutate()`, `stringr::str_detect()`. 
-In project code, using `library()` is acceptable when that’s the repo norm.
+- **Qualify non-base functions in examples/snippets**, e.g., `dplyr::mutate()`, `stringr::str_detect()`. In project code, using `library()` is acceptable when that’s the repo norm.
 - **Naming:** `lower_snake_case` for objects/files; avoid dots in names.
 - **Side effects:** Never call `setwd()`; prefer project-relative paths (e.g., `here::here()`).
 - **Reproducibility:** Set seeds locally around stochastic operations using `withr::with_seed()`.
@@ -48,7 +47,7 @@ In project code, using `library()` is acceptable when that’s the repo norm.
 ## Data Wrangling & I/O
 
 - **Data frames:** prefer tibbles in tidyverse-heavy files; otherwise base `data.frame()` is fine.
-- **Iteration:** use `purrr` in tidyverse code. In base-style code, prefer type-stable, vectorized patterns such as `vapply()` 
+- **Iteration:** use `purrr` in tidyverse code. In base-style code, prefer type-stable, vectorized patterns such as `vapply()`
   (for atomic outputs) or `Map()` (for elementwise operations) instead of explicit `for` loops when they improve clarity or performance.
 - **Strings & Dates:** use `stringr`/`lubridate` where already present; otherwise use clear base helpers (e.g., `nchar()`, `substr()`, `as.Date()` with explicit format).
 - **I/O:** prefer explicit, typed readers (e.g., `readr::read_csv()`); make parsing assumptions explicit.
@@ -87,8 +86,7 @@ In project code, using `library()` is acceptable when that’s the repo norm.
 
 ## Copilot-Specific Guidance
 
-- If the current file uses tidyverse, **suggest tidyverse-first patterns** (e.g., `dplyr::across()` instead of superseded verbs).
-If base-R style is present, **use base idioms**.
+- If the current file uses tidyverse, **suggest tidyverse-first patterns** (e.g., `dplyr::across()` instead of superseded verbs). If base-R style is present, **use base idioms**.
 - Qualify non-base calls in suggestions (e.g., `dplyr::mutate()`).
 - Suggest vectorized or tidy solutions over loops when idiomatic.
 - Prefer small helper functions over long pipelines.
@@ -106,7 +104,7 @@ scores$z <- vapply(scores$x, safe_log, numeric(1))
 
 # Tidyverse variant (if this file uses tidyverse)
 result <- tibble::tibble(id = 1:5, x = c(1, 3, 2, 5, 4)) |>
-dplyr::mutate(z = purrr::possibly(log, otherwise = NA_real_)(x)) |>
+dplyr::mutate(z = purrr::map_dbl(x, purrr::possibly(log, otherwise = NA_real_))) |>
 dplyr::filter(z > 0)
 
 # Example reusable helper with roxygen2 doc
