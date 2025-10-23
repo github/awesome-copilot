@@ -12,6 +12,7 @@ A curated collection of prompts, instructions, and chat modes to supercharge you
 This repository provides a comprehensive toolkit for enhancing GitHub Copilot with specialized:
 
 - **[![Awesome Prompts](https://img.shields.io/badge/Awesome-Prompts-blue?logo=githubcopilot)](README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
+- **[![Awesome Custom Agents](https://img.shields.io/badge/Awesome-Agents-blue?logo=githubcopilot)](README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
 - **[![Awesome Instructions](https://img.shields.io/badge/Awesome-Instructions-blue?logo=githubcopilot)](README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
 - **[![Awesome Chat Modes](https://img.shields.io/badge/Awesome-Chat_Modes-blue?logo=githubcopilot)](README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
 - **[![Awesome Collections](https://img.shields.io/badge/Awesome-Collections-blue?logo=githubcopilot)](README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
@@ -22,7 +23,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 10 items | tag1, tag2, tag3 |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 3 items | tag1, tag2, tag3 |
 
 
 ## MCP Server

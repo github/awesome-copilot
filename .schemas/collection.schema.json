@@ -50,13 +50,13 @@
           "path": {
             "type": "string",
             "description": "Relative path from repository root to the item file",
-            "pattern": "^(prompts|instructions|chatmodes)/[^/]+\\.(prompt|instructions|chatmode)\\.md$",
+            "pattern": "^(prompts|instructions|chatmodes|agents)/[^/]+\\.(prompt|instructions|chatmode|agent)\\.md$",
             "minLength": 1
           },
           "kind": {
             "type": "string",
             "description": "Type of the item",
-            "enum": ["prompt", "instruction", "chat-mode"]
+            "enum": ["prompt", "instruction", "chat-mode", "agent"]
           },
           "usage": {
             "type": "string",
@@ -82,9 +82,9 @@
           "description": "Whether to show collection badge on items",
           "default": false
         },
-        "promoted": {
+        "featured": {
           "type": "boolean",
-          "description": "Whether this collection is promoted on the main page",
+          "description": "Whether this collection is featured on the main page",
           "default": false
         }
       }

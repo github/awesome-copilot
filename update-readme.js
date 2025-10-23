@@ -2,7 +2,11 @@
 
 const fs = require("fs");
 const path = require("path");
-const { parseCollectionYaml } = require("./yaml-parser");
+const {
+  parseCollectionYaml,
+  extractMcpServers,
+  parseAgentFrontmatter,
+} = require("./yaml-parser");
 
 // Template sections for the README
 const TEMPLATES = {
@@ -68,9 +72,29 @@ Curated collections of related prompts, instructions, and chat modes organized a
 - Or browse to the individual files to copy content manually
 - Collections help you discover related customizations you might have missed`,
 
-  promotedCollectionsSection: `## 🌟 Featured Collections
+  featuredCollectionsSection: `## 🌟 Featured Collections
 
 Discover our curated collections of prompts, instructions, and chat modes organized around specific themes and workflows.`,
+
+  agentsSection: `## 🤖 Custom Agents
+
+Custom GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools.`,
+
+  agentsUsage: `### How to Use Custom Agents
+
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the agent you want to use
+- Download the \`*.agent.md\` file and manually add it to your repository
+
+**MCP Server Setup:**
+- Each agent may require one or more MCP servers to function
+- Click the MCP server to view it on the GitHub MCP registry
+- Agents will automatically install the MCP servers they need when activated
+
+**To Activate/Use:**
+- Access installed agents through the VS Code Chat interface, through Copilot CLI, or assign them in Coding Agent
+- Agents will have access to tools from configured MCP servers
+- Follow agent-specific instructions for optimal usage`,
 };
 
 // Add error handling utility
@@ -119,6 +143,19 @@ function extractTitle(filePath) {
             // Remove quotes if present
             const cleanTitle = afterTitle.replace(/^['"]|['"]$/g, "");
             return cleanTitle;
+          }
+
+          // Look for name field in frontmatter
+          if (line.includes("name:")) {
+            // Extract everything after 'name:'
+            const afterName = line.substring(line.indexOf("name:") + 5).trim();
+            // Remove quotes if present
+            const cleanName = afterName.replace(/^['"]|['"]$/g, "");
+            // Convert hyphenated lowercase to title case
+            return cleanName
+              .split("-")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ");
           }
         }
       }
@@ -222,6 +259,15 @@ function extractTitle(filePath) {
 function extractDescription(filePath) {
   return safeFileOperation(
     () => {
+      // Special handling for agent files
+      if (filePath.endsWith(".agent.md")) {
+        const agent = parseAgentFrontmatter(filePath);
+        if (agent && agent.description) {
+          return agent.description;
+        }
+        return null;
+      }
+
       const content = fs.readFileSync(filePath, "utf8");
 
       // Parse frontmatter for description (for both prompts and instructions)
@@ -316,6 +362,7 @@ const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
   prompt: "https://aka.ms/awesome-copilot/install/prompt",
   mode: "https://aka.ms/awesome-copilot/install/chatmode",
+  agent: "https://aka.ms/awesome-copilot/install/agent",
 };
 
 function makeBadges(link, type) {
@@ -343,7 +390,7 @@ function generateInstructionsSection(instructionsDir) {
   // Get all instruction files
   const instructionFiles = fs
     .readdirSync(instructionsDir)
-    .filter((file) => file.endsWith(".md"));
+    .filter((file) => file.endsWith(".instructions.md"));
 
   // Map instruction files to objects with title for sorting
   const instructionEntries = instructionFiles.map((file) => {
@@ -449,56 +496,146 @@ function generatePromptsSection(promptsDir) {
  * Generate the chat modes section with a table of all chat modes
  */
 function generateChatModesSection(chatmodesDir) {
-  // Check if chatmodes directory exists
-  if (!fs.existsSync(chatmodesDir)) {
-    console.log("Chat modes directory does not exist");
+  return generateUnifiedModeSection({
+    dir: chatmodesDir,
+    extension: ".chatmode.md",
+    linkPrefix: "chatmodes",
+    badgeType: "mode",
+    includeMcpServers: false,
+    sectionTemplate: TEMPLATES.chatmodesSection,
+    usageTemplate: TEMPLATES.chatmodesUsage,
+  });
+}
+
+/**
+ * Generate MCP server links for an agent
+ * @param {string[]} servers - Array of MCP server names
+ * @returns {string} - Formatted MCP server links with badges
+ */
+function generateMcpServerLinks(servers) {
+  if (!servers || servers.length === 0) {
     return "";
   }
 
-  // Get all chat mode files
-  const chatmodeFiles = fs
-    .readdirSync(chatmodesDir)
-    .filter((file) => file.endsWith(".chatmode.md"));
+  const badges = [
+    {
+      type: "vscode",
+      url: "https://img.shields.io/badge/Install_MCP-VS_Code-0098FF?style=flat-square",
+      badgeUrl: (serverName) =>
+        `https://aka.ms/awesome-copilot/install/mcp-vscode?vscode:mcp/by-name/${serverName}/mcp-server`,
+    },
+    {
+      type: "insiders",
+      url: "https://img.shields.io/badge/Install_MCP-VS_Code_Insiders-24bfa5?style=flat-square",
+      badgeUrl: (serverName) =>
+        `https://aka.ms/awesome-copilot/install/mcp-vscode?vscode-insiders:mcp/by-name/${serverName}/mcp-server`,
+    },
+    {
+      type: "visualstudio",
+      url: "https://img.shields.io/badge/Install_MCP-Visual_Studio-C16FDE?style=flat-square",
+      badgeUrl: (serverName) =>
+        `https://aka.ms/awesome-copilot/install/mcp-visualstudio?vscode:mcp/by-name/${serverName}/mcp-server`,
+    },
+  ];
 
-  // Map chat mode files to objects with title for sorting
-  const chatmodeEntries = chatmodeFiles.map((file) => {
-    const filePath = path.join(chatmodesDir, file);
-    const title = extractTitle(filePath);
-    return { file, filePath, title };
+  return servers
+    .map((serverName) => {
+      const registryUrl = `https://github.com/mcp/${serverName}/mcp-server`;
+      const badgeUrls = badges
+        .map(
+          (badge) =>
+            `[![Install MCP](${badge.url})](${badge.badgeUrl(serverName)})`
+        )
+        .join("<br />");
+      return `[${serverName}](${registryUrl})<br />${badgeUrls}`;
+    })
+    .join("<br />");
+}
+
+/**
+ * Generate the agents section with a table of all agents
+ */
+function generateAgentsSection(agentsDir) {
+  return generateUnifiedModeSection({
+    dir: agentsDir,
+    extension: ".agent.md",
+    linkPrefix: "agents",
+    badgeType: "agent",
+    includeMcpServers: true,
+    sectionTemplate: TEMPLATES.agentsSection,
+    usageTemplate: TEMPLATES.agentsUsage,
+  });
+}
+
+/**
+ * Unified generator for chat modes & agents (future consolidation)
+ * @param {Object} cfg
+ * @param {string} cfg.dir - Directory path
+ * @param {string} cfg.extension - File extension to match (e.g. .chatmode.md, .agent.md)
+ * @param {string} cfg.linkPrefix - Link prefix folder name
+ * @param {string} cfg.badgeType - Badge key (mode, agent)
+ * @param {boolean} cfg.includeMcpServers - Whether to include MCP server column
+ * @param {string} cfg.sectionTemplate - Section heading template
+ * @param {string} cfg.usageTemplate - Usage subheading template
+ */
+function generateUnifiedModeSection(cfg) {
+  const {
+    dir,
+    extension,
+    linkPrefix,
+    badgeType,
+    includeMcpServers,
+    sectionTemplate,
+    usageTemplate,
+  } = cfg;
+
+  if (!fs.existsSync(dir)) {
+    console.log(`Directory missing for unified mode section: ${dir}`);
+    return "";
+  }
+
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(extension));
+
+  const entries = files.map((file) => {
+    const filePath = path.join(dir, file);
+    return { file, filePath, title: extractTitle(filePath) };
   });
 
-  // Sort by title alphabetically
-  chatmodeEntries.sort((a, b) => a.title.localeCompare(b.title));
+  entries.sort((a, b) => a.title.localeCompare(b.title));
+  console.log(
+    `Unified mode generator: ${entries.length} files for extension ${extension}`
+  );
+  if (entries.length === 0) return "";
 
-  console.log(`Found ${chatmodeEntries.length} chat mode files`);
+  let header = "| Title | Description |";
+  if (includeMcpServers) header += " MCP Servers |";
+  let separator = "| ----- | ----------- |";
+  if (includeMcpServers) separator += " ----------- |";
 
-  // If no chat modes, return empty string
-  if (chatmodeEntries.length === 0) {
-    return "";
-  }
+  let content = `${header}\n${separator}\n`;
 
-  // Create table header
-  let chatmodesContent = "| Title | Description |\n| ----- | ----------- |\n";
+  for (const { file, filePath, title } of entries) {
+    const link = encodeURI(`${linkPrefix}/${file}`);
+    const description = extractDescription(filePath);
+    const badges = makeBadges(link, badgeType);
+    let mcpServerCell = "";
+    if (includeMcpServers) {
+      const servers = extractMcpServers(filePath);
+      mcpServerCell = generateMcpServerLinks(servers);
+    }
 
-  // Generate table rows for each chat mode file
-  for (const entry of chatmodeEntries) {
-    const { file, filePath, title } = entry;
-    const link = encodeURI(`chatmodes/${file}`);
-
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    // Create badges for installation links
-    const badges = makeBadges(link, "mode");
-
-    if (customDescription && customDescription !== "null") {
-      chatmodesContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
+    if (includeMcpServers) {
+      content += `| [${title}](${link})<br />${badges} | ${
+        description && description !== "null" ? description : ""
+      } | ${mcpServerCell} |\n`;
     } else {
-      chatmodesContent += `| [${title}](${link})<br />${badges} | | |\n`;
+      content += `| [${title}](${link})<br />${badges} | ${
+        description && description !== "null" ? description : ""
+      } |\n`;
     }
   }
 
-  return `${TEMPLATES.chatmodesSection}\n${TEMPLATES.chatmodesUsage}\n\n${chatmodesContent}`;
+  return `${sectionTemplate}\n${usageTemplate}\n\n${content}`;
 }
 
 /**
@@ -530,28 +667,28 @@ function generateCollectionsSection(collectionsDir) {
       const collectionId =
         collection.id || path.basename(file, ".collection.yml");
       const name = collection.name || collectionId;
-      const isPromoted = collection.display?.promoted === true;
-      return { file, filePath, collection, collectionId, name, isPromoted };
+      const isFeatured = collection.display?.featured === true;
+      return { file, filePath, collection, collectionId, name, isFeatured };
     })
     .filter((entry) => entry !== null); // Remove failed parses
 
-  // Separate promoted and regular collections
-  const promotedCollections = collectionEntries.filter(
-    (entry) => entry.isPromoted
+  // Separate featured and regular collections
+  const featuredCollections = collectionEntries.filter(
+    (entry) => entry.isFeatured
   );
   const regularCollections = collectionEntries.filter(
-    (entry) => !entry.isPromoted
+    (entry) => !entry.isFeatured
   );
 
   // Sort each group alphabetically by name
-  promotedCollections.sort((a, b) => a.name.localeCompare(b.name));
+  featuredCollections.sort((a, b) => a.name.localeCompare(b.name));
   regularCollections.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Combine: promoted first, then regular
-  const sortedEntries = [...promotedCollections, ...regularCollections];
+  // Combine: featured first, then regular
+  const sortedEntries = [...featuredCollections, ...regularCollections];
 
   console.log(
-    `Found ${collectionEntries.length} collection files (${promotedCollections.length} promoted)`
+    `Found ${collectionEntries.length} collection files (${featuredCollections.length} featured)`
   );
 
   // If no collections, return empty string
@@ -565,13 +702,13 @@ function generateCollectionsSection(collectionsDir) {
 
   // Generate table rows for each collection file
   for (const entry of sortedEntries) {
-    const { collection, collectionId, name, isPromoted } = entry;
+    const { collection, collectionId, name, isFeatured } = entry;
     const description = collection.description || "No description";
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
 
     const link = `collections/${collectionId}.md`;
-    const displayName = isPromoted ? `⭐ ${name}` : name;
+    const displayName = isFeatured ? `⭐ ${name}` : name;
 
     collectionsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
   }
@@ -580,9 +717,9 @@ function generateCollectionsSection(collectionsDir) {
 }
 
 /**
- * Generate the promoted collections section for the main README
+ * Generate the featured collections section for the main README
  */
-function generatePromotedCollectionsSection(collectionsDir) {
+function generateFeaturedCollectionsSection(collectionsDir) {
   // Check if collections directory exists
   if (!fs.existsSync(collectionsDir)) {
     return "";
@@ -593,8 +730,8 @@ function generatePromotedCollectionsSection(collectionsDir) {
     .readdirSync(collectionsDir)
     .filter((file) => file.endsWith(".collection.yml"));
 
-  // Map collection files to objects with name for sorting, filter for promoted
-  const promotedCollections = collectionFiles
+  // Map collection files to objects with name for sorting, filter for featured
+  const featuredCollections = collectionFiles
     .map((file) => {
       const filePath = path.join(collectionsDir, file);
       return safeFileOperation(
@@ -602,8 +739,8 @@ function generatePromotedCollectionsSection(collectionsDir) {
           const collection = parseCollectionYaml(filePath);
           if (!collection) return null;
 
-          // Only include collections with promoted: true
-          if (!collection.display?.promoted) return null;
+          // Only include collections with featured: true
+          if (!collection.display?.featured) return null;
 
           const collectionId =
             collection.id || path.basename(file, ".collection.yml");
@@ -626,31 +763,31 @@ function generatePromotedCollectionsSection(collectionsDir) {
         null
       );
     })
-    .filter((entry) => entry !== null); // Remove non-promoted and failed parses
+    .filter((entry) => entry !== null); // Remove non-featured and failed parses
 
   // Sort by name alphabetically
-  promotedCollections.sort((a, b) => a.name.localeCompare(b.name));
+  featuredCollections.sort((a, b) => a.name.localeCompare(b.name));
 
-  console.log(`Found ${promotedCollections.length} promoted collection(s)`);
+  console.log(`Found ${featuredCollections.length} featured collection(s)`);
 
-  // If no promoted collections, return empty string
-  if (promotedCollections.length === 0) {
+  // If no featured collections, return empty string
+  if (featuredCollections.length === 0) {
     return "";
   }
 
   // Create table header
-  let promotedContent =
+  let featuredContent =
     "| Name | Description | Items | Tags |\n| ---- | ----------- | ----- | ---- |\n";
 
-  // Generate table rows for each promoted collection
-  for (const entry of promotedCollections) {
+  // Generate table rows for each featured collection
+  for (const entry of featuredCollections) {
     const { collectionId, name, description, tags, itemCount } = entry;
     const readmeLink = `collections/${collectionId}.md`;
 
-    promotedContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    featuredContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${tags} |\n`;
   }
 
-  return `${TEMPLATES.promotedCollectionsSection}\n\n${promotedContent}`;
+  return `${TEMPLATES.featuredCollectionsSection}\n\n${featuredContent}`;
 }
 
 /**
@@ -672,7 +809,16 @@ function generateCollectionReadme(collection, collectionId) {
   }
 
   content += `## Items in this Collection\n\n`;
-  content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
+
+  // Check if collection has any agents to determine table structure (future: chatmodes may migrate)
+  const hasAgents = collection.items.some((item) => item.kind === "agent");
+
+  // Generate appropriate table header
+  if (hasAgents) {
+    content += `| Title | Type | Description | MCP Servers |\n| ----- | ---- | ----------- | ----------- |\n`;
+  } else {
+    content += `| Title | Type | Description |\n| ----- | ---- | ----------- |\n`;
+  }
 
   let collectionUsageHeader = "## Collection Usage\n\n";
   let collectionUsageContent = [];
@@ -697,6 +843,8 @@ function generateCollectionReadme(collection, collectionId) {
         ? "Chat Mode"
         : item.kind === "instruction"
         ? "Instruction"
+        : item.kind === "agent"
+        ? "Agent"
         : "Prompt";
     const link = `../${item.path}`;
 
@@ -707,6 +855,8 @@ function generateCollectionReadme(collection, collectionId) {
         ? "instructions"
         : item.kind === "chat-mode"
         ? "mode"
+        : item.kind === "agent"
+        ? "agent"
         : "prompt"
     );
 
@@ -716,7 +866,17 @@ function generateCollectionReadme(collection, collectionId) {
           .toLowerCase()})`
       : description;
 
-    content += `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} |\n`;
+    // Generate MCP server column if collection has agents
+    content += buildCollectionRow({
+      hasAgents,
+      title,
+      link,
+      badges,
+      typeDisplay,
+      usageDescription,
+      filePath,
+      kind: item.kind,
+    });
     // Generate Usage section for each collection
     if (item.usage && item.usage.trim()) {
       collectionUsageContent.push(
@@ -738,6 +898,30 @@ function generateCollectionReadme(collection, collectionId) {
   }
 
   return content;
+}
+
+/**
+ * Build a single markdown table row for a collection item.
+ * Handles optional MCP server column when agents are present.
+ */
+function buildCollectionRow({
+  hasAgents,
+  title,
+  link,
+  badges,
+  typeDisplay,
+  usageDescription,
+  filePath,
+  kind,
+}) {
+  if (hasAgents) {
+    // Only agents currently have MCP servers; future migration may extend to chat modes.
+    const mcpServers = kind === "agent" ? extractMcpServers(filePath) : [];
+    const mcpServerCell =
+      mcpServers.length > 0 ? generateMcpServerLinks(mcpServers) : "";
+    return `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} | ${mcpServerCell} |\n`;
+  }
+  return `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} |\n`;
 }
 
 // Utility: write file only if content changed
@@ -776,6 +960,7 @@ try {
   const instructionsDir = path.join(__dirname, "instructions");
   const promptsDir = path.join(__dirname, "prompts");
   const chatmodesDir = path.join(__dirname, "chatmodes");
+  const agentsDir = path.join(__dirname, "agents");
   const collectionsDir = path.join(__dirname, "collections");
 
   // Compose headers for standalone files by converting section headers to H1
@@ -785,6 +970,7 @@ try {
   );
   const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
   const chatmodesHeader = TEMPLATES.chatmodesSection.replace(/^##\s/m, "# ");
+  const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
   const collectionsHeader = TEMPLATES.collectionsSection.replace(
     /^##\s/m,
     "# "
@@ -809,6 +995,14 @@ try {
     TEMPLATES.chatmodesUsage
   );
 
+  // Generate agents README
+  const agentsReadme = buildCategoryReadme(
+    generateAgentsSection,
+    agentsDir,
+    agentsHeader,
+    TEMPLATES.agentsUsage
+  );
+
   // Generate collections README
   const collectionsReadme = buildCategoryReadme(
     generateCollectionsSection,
@@ -827,6 +1021,7 @@ try {
     path.join(__dirname, "README.chatmodes.md"),
     chatmodesReadme
   );
+  writeFileIfChanged(path.join(__dirname, "README.agents.md"), agentsReadme);
   writeFileIfChanged(
     path.join(__dirname, "README.collections.md"),
     collectionsReadme
@@ -857,17 +1052,17 @@ try {
     }
   }
 
-  // Generate promoted collections section and update main README.md
-  console.log("Updating main README.md with promoted collections...");
-  const promotedSection = generatePromotedCollectionsSection(collectionsDir);
+  // Generate featured collections section and update main README.md
+  console.log("Updating main README.md with featured collections...");
+  const featuredSection = generateFeaturedCollectionsSection(collectionsDir);
 
-  if (promotedSection) {
+  if (featuredSection) {
     const mainReadmePath = path.join(__dirname, "README.md");
 
     if (fs.existsSync(mainReadmePath)) {
       let readmeContent = fs.readFileSync(mainReadmePath, "utf8");
 
-      // Define markers to identify where to insert the promoted collections
+      // Define markers to identify where to insert the featured collections
       const startMarker = "## 🌟 Featured Collections";
       const endMarker = "## MCP Server";
 
@@ -882,7 +1077,7 @@ try {
           const beforeSection = readmeContent.substring(0, startIndex);
           const afterSection = readmeContent.substring(endIndex);
           readmeContent =
-            beforeSection + promotedSection + "\n\n" + afterSection;
+            beforeSection + featuredSection + "\n\n" + afterSection;
         }
       } else {
         // Section doesn't exist, insert it before "## MCP Server"
@@ -890,17 +1085,17 @@ try {
         if (mcpIndex !== -1) {
           const beforeMcp = readmeContent.substring(0, mcpIndex);
           const afterMcp = readmeContent.substring(mcpIndex);
-          readmeContent = beforeMcp + promotedSection + "\n\n" + afterMcp;
+          readmeContent = beforeMcp + featuredSection + "\n\n" + afterMcp;
         }
       }
 
       writeFileIfChanged(mainReadmePath, readmeContent);
-      console.log("Main README.md updated with promoted collections");
+      console.log("Main README.md updated with featured collections");
     } else {
-      console.warn("README.md not found, skipping promoted collections update");
+      console.warn("README.md not found, skipping featured collections update");
     }
   } else {
-    console.log("No promoted collections found to add to README.md");
+    console.log("No featured collections found to add to README.md");
   }
 } catch (error) {
   console.error(`Error generating category README files: ${error.message}`);

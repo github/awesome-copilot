@@ -7,7 +7,9 @@ items:
     kind: agent
   - path: agents/stackhawk-security-onboarding.agent.md
     kind: agent
+  - path: agents/amplitude-experiment-implementation.agent.md
+    kind: agent
 display:
   ordering: alpha
   show_badge: true
-  promoted: true
+  featured: true

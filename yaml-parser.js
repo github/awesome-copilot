@@ -1,5 +1,6 @@
-// Simple YAML parser for collection files
+// YAML parser for collection files and agent frontmatter
 const fs = require("fs");
+const yaml = require("js-yaml");
 
 function safeFileOperation(operation, filePath, defaultValue = null) {
   try {
@@ -10,159 +11,132 @@ function safeFileOperation(operation, filePath, defaultValue = null) {
   }
 }
 
+/**
+ * Parse a collection YAML file (.collection.yml)
+ * Collections are pure YAML files without frontmatter delimiters
+ * @param {string} filePath - Path to the collection file
+ * @returns {object|null} Parsed collection object or null on error
+ */
 function parseCollectionYaml(filePath) {
   return safeFileOperation(
     () => {
       const content = fs.readFileSync(filePath, "utf8");
-      const lines = content.split("\n");
-      const result = {};
-      let currentKey = null;
-      let currentArray = null;
-      let currentObject = null;
 
-      const readLiteralBlock = (startIndex, parentIndent) => {
-        const blockLines = [];
-        let blockIndent = null;
-        let index = startIndex;
-
-        for (; index < lines.length; index++) {
-          const rawLine = lines[index];
-          const trimmedLine = rawLine.trimEnd();
-          const contentOnly = trimmedLine.trim();
-          const lineIndent = rawLine.length - rawLine.trimLeft().length;
-
-          if (contentOnly === "" && blockIndent === null) {
-            // Preserve leading blank lines inside the literal block
-            blockLines.push("");
-            continue;
-          }
-
-          if (contentOnly !== "" && lineIndent <= parentIndent) {
-            break;
-          }
-
-          if (contentOnly === "") {
-            blockLines.push("");
-            continue;
-          }
-
-          if (blockIndent === null) {
-            blockIndent = lineIndent;
-          }
-
-          blockLines.push(rawLine.slice(blockIndent));
-        }
-
-        return {
-          content: blockLines.join("\n").replace(/\r/g, "").trimEnd(),
-          nextIndex: index - 1,
-        };
-      };
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmed = line.trim();
-
-        if (!trimmed || trimmed.startsWith("#")) continue;
-
-        const leadingSpaces = line.length - line.trimLeft().length;
-
-        // Handle array items starting with -
-        if (trimmed.startsWith("- ")) {
-          if (currentKey === "items") {
-            if (!currentArray) {
-              currentArray = [];
-              result[currentKey] = currentArray;
-            }
-
-            // Parse item object
-            const item = {};
-            currentArray.push(item);
-            currentObject = item;
-
-            // Handle inline properties on same line as -
-            const restOfLine = trimmed.substring(2).trim();
-            if (restOfLine) {
-              const colonIndex = restOfLine.indexOf(":");
-              if (colonIndex > -1) {
-                const key = restOfLine.substring(0, colonIndex).trim();
-                const value = restOfLine.substring(colonIndex + 1).trim();
-                item[key] = value;
-              }
-            }
-          } else if (currentKey === "tags") {
-            if (!currentArray) {
-              currentArray = [];
-              result[currentKey] = currentArray;
-            }
-            const value = trimmed.substring(2).trim();
-            currentArray.push(value);
-          }
-        }
-        // Handle key-value pairs
-        else if (trimmed.includes(":")) {
-          const colonIndex = trimmed.indexOf(":");
-          const key = trimmed.substring(0, colonIndex).trim();
-          let value = trimmed.substring(colonIndex + 1).trim();
-
-          if (leadingSpaces === 0) {
-            // Top-level property
-            currentKey = key;
-            currentArray = null;
-            currentObject = null;
-
-            if (value) {
-              // Handle array format [item1, item2, item3]
-              if (value.startsWith("[") && value.endsWith("]")) {
-                const arrayContent = value.slice(1, -1);
-                if (arrayContent.trim()) {
-                  result[key] = arrayContent.split(",").map(item => item.trim());
-                } else {
-                  result[key] = [];
-                }
-                currentKey = null; // Reset since we handled the array
-              } else if (value === "|" || value === ">") {
-                const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
-                result[key] = blockContent;
-                i = nextIndex;
-              } else {
-                result[key] = value;
-              }
-            } else if (key === "items" || key === "tags") {
-              // Will be populated by array items
-              result[key] = [];
-              currentArray = result[key];
-            } else if (key === "display") {
-              result[key] = {};
-              currentObject = result[key];
-            }
-          } else if (currentObject && leadingSpaces > 0) {
-            // Property of current object (e.g., display properties)
-            if (value === "|" || value === ">") {
-              const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
-              currentObject[key] = blockContent;
-              i = nextIndex;
-            } else {
-              currentObject[key] = value === "true" ? true : value === "false" ? false : value;
-            }
-          } else if (currentArray && currentObject && leadingSpaces > 2) {
-            // Property of array item object
-            if (value === "|" || value === ">") {
-              const { content: blockContent, nextIndex } = readLiteralBlock(i + 1, leadingSpaces);
-              currentObject[key] = blockContent;
-              i = nextIndex;
-            } else {
-              currentObject[key] = value;
-            }
-          }
-        }
-      }
-
-      return result;
+      // Collections are pure YAML files, parse directly with js-yaml
+      return yaml.load(content, { schema: yaml.JSON_SCHEMA });
     },
     filePath,
     null
   );
 }
 
-module.exports = { parseCollectionYaml, safeFileOperation };
+/**
+ * Parse agent frontmatter from an agent markdown file (.agent.md)
+ * Agent files use standard markdown frontmatter with --- delimiters
+ * @param {string} filePath - Path to the agent file
+ * @returns {object|null} Parsed agent frontmatter or null on error
+ */
+function parseAgentFrontmatter(filePath) {
+  return safeFileOperation(
+    () => {
+      const content = fs.readFileSync(filePath, "utf8");
+      const lines = content.split("\n");
+
+      // Agent files use standard markdown frontmatter format
+      // Find the YAML frontmatter between --- delimiters
+      let yamlStart = -1;
+      let yamlEnd = -1;
+      let delimiterCount = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+
+        if (trimmed === "---") {
+          delimiterCount++;
+          if (delimiterCount === 1) {
+            yamlStart = i + 1;
+          } else if (delimiterCount === 2) {
+            yamlEnd = i;
+            break;
+          }
+        }
+      }
+
+      if (yamlStart === -1 || yamlEnd === -1) {
+        throw new Error(
+          "Could not find YAML frontmatter delimiters (---) in agent file"
+        );
+      }
+
+      // Extract YAML content between delimiters
+      const yamlContent = lines.slice(yamlStart, yamlEnd).join("\n");
+
+      // Parse YAML directly with js-yaml
+      const frontmatter = yaml.load(yamlContent, { schema: yaml.JSON_SCHEMA });
+
+      // Normalize string fields that can accumulate trailing newlines/spaces
+      if (frontmatter) {
+        if (typeof frontmatter.name === "string") {
+          frontmatter.name = frontmatter.name.replace(/[\r\n]+$/g, "").trim();
+        }
+        if (typeof frontmatter.description === "string") {
+          // Remove only trailing whitespace/newlines; preserve internal formatting
+          frontmatter.description = frontmatter.description.replace(
+            /[\s\r\n]+$/g,
+            ""
+          );
+        }
+      }
+
+      return frontmatter;
+    },
+    filePath,
+    null
+  );
+}
+
+/**
+ * Extract agent metadata including MCP server information
+ * @param {string} filePath - Path to the agent file
+ * @returns {object|null} Agent metadata object with name, description, tools, and mcp-servers
+ */
+function extractAgentMetadata(filePath) {
+  const frontmatter = parseAgentFrontmatter(filePath);
+
+  if (!frontmatter) {
+    return null;
+  }
+
+  return {
+    name: typeof frontmatter.name === "string" ? frontmatter.name : null,
+    description:
+      typeof frontmatter.description === "string"
+        ? frontmatter.description
+        : null,
+    tools: frontmatter.tools || [],
+    mcpServers: frontmatter["mcp-servers"] || {},
+  };
+}
+
+/**
+ * Extract MCP server names from an agent file
+ * @param {string} filePath - Path to the agent file
+ * @returns {string[]} Array of MCP server names
+ */
+function extractMcpServers(filePath) {
+  const metadata = extractAgentMetadata(filePath);
+
+  if (!metadata || !metadata.mcpServers) {
+    return [];
+  }
+
+  return Object.keys(metadata.mcpServers);
+}
+
+module.exports = {
+  parseCollectionYaml,
+  parseAgentFrontmatter,
+  extractAgentMetadata,
+  extractMcpServers,
+  safeFileOperation,
+};
