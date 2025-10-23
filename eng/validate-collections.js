@@ -5,18 +5,10 @@ const path = require("path");
 const {
   parseCollectionYaml,
   parseAgentFrontmatter,
-} = require("../yaml-parser");
+} = require("./yaml-parser");
 
 // Maximum number of items allowed in a collection
 const MAX_COLLECTION_ITEMS = 50;
-function safeFileOperation(operation, filePath, defaultValue = null) {
-  try {
-    return operation();
-  } catch (error) {
-    console.error(`Error processing file ${filePath}: ${error.message}`);
-    return defaultValue;
-  }
-}
 
 // Validation functions
 function validateCollectionId(id) {
