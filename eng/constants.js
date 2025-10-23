@@ -70,7 +70,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 
   agentsSection: `## 🤖 Custom Agents
 
-Custom GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools.`,
+Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot Coding Agent (CCA) through simple file-based configuration.`,
 
   agentsUsage: `### How to Use Custom Agents
 
@@ -84,46 +84,50 @@ Custom GitHub Copilot agents that integrate with MCP servers to provide enhanced
 - Agents will automatically install the MCP servers they need when activated
 
 **To Activate/Use:**
-- Access installed agents through the VS Code Chat interface, through Copilot CLI, or assign them in Coding Agent
+- Access installed agents through the VS Code Chat interface, assign them in Copilot Coding Agent, or through Copilot CLI (coming soon)
 - Agents will have access to tools from configured MCP servers
 - Follow agent-specific instructions for optimal usage`,
 };
-exports.TEMPLATES = TEMPLATES;
-/**
- * Generate badges for installation links in VS Code and VS Code Insiders.
- * @param {string} link - The relative link to the instructions or prompts file.
- * @returns {string} - Markdown formatted badges for installation.
- */
+
 const vscodeInstallImage =
   "https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white";
-exports.vscodeInstallImage = vscodeInstallImage;
+
 const vscodeInsidersInstallImage =
   "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
-exports.vscodeInsidersInstallImage = vscodeInsidersInstallImage;
+
 const repoBaseUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
-exports.repoBaseUrl = repoBaseUrl;
-// Map install types to aka.ms short links. Both VS Code and Insiders will use
-// the same aka.ms target; the redirect base (vscode vs insiders) is preserved
-// so VS Code or Insiders opens correctly but the installation URL is uniform.
+
 const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
   prompt: "https://aka.ms/awesome-copilot/install/prompt",
   mode: "https://aka.ms/awesome-copilot/install/chatmode",
   agent: "https://aka.ms/awesome-copilot/install/agent",
 };
-exports.AKA_INSTALL_URLS = AKA_INSTALL_URLS;
+
 const ROOT_FOLDER = path.join(__dirname, "..");
-exports.ROOT_FOLDER = ROOT_FOLDER;
-const INSTRUCTIOSN_DIR = path.join(ROOT_FOLDER, "instructions");
-exports.INSTRUCTIOSN_DIR = INSTRUCTIOSN_DIR;
+const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
-exports.PROMPTS_DIR = PROMPTS_DIR;
 const CHATMODES_DIR = path.join(ROOT_FOLDER, "chatmodes");
-exports.CHATMODES_DIR = CHATMODES_DIR;
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
-exports.AGENTS_DIR = AGENTS_DIR;
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
-exports.COLLECTIONS_DIR = COLLECTIONS_DIR; // Maximum number of items allowed in a collection
 const MAX_COLLECTION_ITEMS = 50;
-exports.MAX_COLLECTION_ITEMS = MAX_COLLECTION_ITEMS;
+
+// Backward compatibility export for typo (remove later)
+const INSTRUCTIOSN_DIR = INSTRUCTIONS_DIR;
+
+module.exports = {
+  TEMPLATES,
+  vscodeInstallImage,
+  vscodeInsidersInstallImage,
+  repoBaseUrl,
+  AKA_INSTALL_URLS,
+  ROOT_FOLDER,
+  INSTRUCTIONS_DIR,
+  INSTRUCTIOSN_DIR, // deprecated
+  PROMPTS_DIR,
+  CHATMODES_DIR,
+  AGENTS_DIR,
+  COLLECTIONS_DIR,
+  MAX_COLLECTION_ITEMS,
+};

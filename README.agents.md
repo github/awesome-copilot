@@ -1,6 +1,6 @@
 # 🤖 Custom Agents
 
-Custom GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools.
+Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot Coding Agent (CCA) through simple file-based configuration.
 ### How to Use Custom Agents
 
 **To Install:**
@@ -13,7 +13,7 @@ Custom GitHub Copilot agents that integrate with MCP servers to provide enhanced
 - Agents will automatically install the MCP servers they need when activated
 
 **To Activate/Use:**
-- Access installed agents through the VS Code Chat interface, through Copilot CLI, or assign them in Coding Agent
+- Access installed agents through the VS Code Chat interface, assign them in Copilot Coding Agent, or through Copilot CLI (coming soon)
 - Agents will have access to tools from configured MCP servers
 - Follow agent-specific instructions for optimal usage
 
