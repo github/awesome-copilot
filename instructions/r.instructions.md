@@ -1,6 +1,6 @@
 ---
 description: 'R language and document formats (R, Rmd, Quarto): coding standards and Copilot guidance for idiomatic, safe, and consistent code generation.'
-applyTo: '**/*.{R,r,Rmd,rmd,qmd}'
+applyTo: '**/*.R, **/*.r, **/*.Rmd, **/*.rmd, **/*.qmd'
 ---
 
 # R Programming Language Instructions
