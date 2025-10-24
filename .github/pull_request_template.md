@@ -1,6 +1,6 @@
 ## Pull Request Checklist
 
-- [ ] I have read and followed the [CONTRIBUTING.md](../CONTRIBUTING.md) guidelines.
+- [ ] I have read and followed the [CONTRIBUTING.md](https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md) guidelines.
 - [ ] My contribution adds a new instruction, prompt, or chat mode file in the correct directory.
 - [ ] The file follows the required naming convention.
 - [ ] The content is clearly structured and follows the example format.
