@@ -3,11 +3,25 @@ name: Partners
 description: Custom agents that have been created by GitHub partners
 tags: [tag1, tag2, tag3]
 items:
+  - path: agents/amplitude-experiment-implementation.agent.md
+    kind: agent
+  - path: agents/arm-migration.agent.md
+    kind: agent
+  - path: agents/dynatrace-expert.agent.md
+    kind: agent
+  - path: agents/jfrog-sec.agent.md
+    kind: agent
   - path: agents/launchdarkly-flag-cleanup.agent.md
+    kind: agent
+  - path: agents/neon-migration-specialist.agent.md
+    kind: agent
+  - path: agents/neon-optimization-analyzer.agent.md
+    kind: agent
+  - path: agents/octopus-deploy-release-notes-mcp.agent.md
     kind: agent
   - path: agents/stackhawk-security-onboarding.agent.md
     kind: agent
-  - path: agents/amplitude-experiment-implementation.agent.md
+  - path: agents/terraform.agent.md
     kind: agent
 display:
   ordering: alpha

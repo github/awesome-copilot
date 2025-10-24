@@ -78,9 +78,6 @@ function validateAgentFile(filePath) {
     if (!agent.name || typeof agent.name !== "string") {
       return `Item ${filePath} agent must have a 'name' field`;
     }
-    if (!/^[a-z0-9-]+$/.test(agent.name)) {
-      return `Item ${filePath} agent name must contain only lowercase letters, numbers, and hyphens`;
-    }
     if (agent.name.length < 1 || agent.name.length > 50) {
       return `Item ${filePath} agent name must be between 1 and 50 characters`;
     }
