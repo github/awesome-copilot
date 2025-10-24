@@ -1,6 +1,6 @@
 # 🤖 Custom Agents
 
-Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot Coding Agent (CCA) through simple file-based configuration.
+Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot coding agent (CCA) through simple file-based configuration.
 ### How to Use Custom Agents
 
 **To Install:**

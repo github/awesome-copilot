@@ -70,7 +70,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 
   agentsSection: `## 🤖 Custom Agents
 
-Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot Coding Agent (CCA) through simple file-based configuration.`,
+Custom agents for GitHub Copilot, making it easy for users and organizations to "specialize" their Copilot coding agent (CCA) through simple file-based configuration.`,
 
   agentsUsage: `### How to Use Custom Agents
 
