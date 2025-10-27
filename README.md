@@ -23,7 +23,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 10 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 11 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
 ## MCP Server
