@@ -24,22 +24,44 @@ const {
 
 // Cache of MCP registry server names (lower-cased) loaded from github-mcp-registry.json
 let MCP_REGISTRY_SET = null;
+/**
+ * Loads and caches the set of MCP registry server display names (lowercased).
+ *
+ * Behavior:
+ * - If a cached set already exists (MCP_REGISTRY_SET), it is returned immediately.
+ * - Attempts to read a JSON registry file named "github-mcp-registry.json" from the
+ *   same directory as this script.
+ * - Safely handles missing file or malformed JSON by returning an empty Set.
+ * - Extracts server display names from: json.payload.mcpRegistryRoute.serversData.servers
+ * - Normalizes names to lowercase and stores them in a Set for O(1) membership checks.
+ *
+ * Side Effects:
+ * - Mutates the module-scoped variable MCP_REGISTRY_SET.
+ * - Logs a warning to console if reading or parsing the registry fails.
+ *
+ * @returns {{ name: string, displayName: string }[]} A Set of lowercased server display names. May be empty if
+ *          the registry file is absent, unreadable, or malformed.
+ *
+ * @throws {none} All errors are caught internally; failures result in an empty Set.
+ */
 function loadMcpRegistryNames() {
   if (MCP_REGISTRY_SET) return MCP_REGISTRY_SET;
   try {
     const registryPath = path.join(__dirname, "github-mcp-registry.json");
     if (!fs.existsSync(registryPath)) {
-      MCP_REGISTRY_SET = new Set();
+      MCP_REGISTRY_SET = [];
       return MCP_REGISTRY_SET;
     }
     const raw = fs.readFileSync(registryPath, "utf8");
     const json = JSON.parse(raw);
     const servers = json?.payload?.mcpRegistryRoute?.serversData?.servers || [];
-    const names = servers.map((s) => s.display_name).filter(Boolean);
-    MCP_REGISTRY_SET = new Set(names.map((n) => n.toLowerCase()));
+    MCP_REGISTRY_SET = servers.map((s) => ({
+      name: s.name,
+      displayName: s.display_name.toLowerCase(),
+    }));
   } catch (e) {
     console.warn(`Failed to load MCP registry: ${e.message}`);
-    MCP_REGISTRY_SET = new Set();
+    MCP_REGISTRY_SET = [];
   }
   return MCP_REGISTRY_SET;
 }
@@ -370,7 +392,9 @@ function generateMcpServerLinks(servers) {
         // Local/stdio: command + args + env
         configPayload = {
           command: serverObj.command || "",
-          args: Array.isArray(serverObj.args) ? serverObj.args.map(encodeURIComponent) : [],
+          args: Array.isArray(serverObj.args)
+            ? serverObj.args.map(encodeURIComponent)
+            : [],
           env: serverObj.env || {},
         };
       }
@@ -383,10 +407,11 @@ function generateMcpServerLinks(servers) {
         `[![Install MCP](${badges[2].url})](https://aka.ms/awesome-copilot/install/mcp-visualstudio/mcp-install?${encodedConfig})`,
       ].join("<br />");
 
-      const registryUrl = `https://github.com/mcp/${serverName}/mcp-server`;
-      const hasRegistryEntry = registryNames.has(serverName.toLowerCase());
-      const serverLabel = hasRegistryEntry
-        ? `[${serverName}](${registryUrl})`
+      const registryEntry = registryNames.find(
+        (entry) => entry.displayName === serverName.toLowerCase()
+      );
+      const serverLabel = registryEntry
+        ? `[${serverName}](${`https://github.com/mcp/${registryEntry.name}`})`
         : serverName;
       return `${serverLabel}<br />${installBadgeUrls}`;
     })
