@@ -2,7 +2,7 @@
 
 Custom agents that have been created by GitHub partners
 
-**Tags:** tag1, tag2, tag3
+**Tags:** devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance
 
 ## Items in this Collection
 

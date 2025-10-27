@@ -1,7 +1,19 @@
 id: partners
 name: Partners
 description: Custom agents that have been created by GitHub partners
-tags: [tag1, tag2, tag3]
+tags:
+  [
+    devops,
+    security,
+    database,
+    cloud,
+    infrastructure,
+    observability,
+    feature-flags,
+    cicd,
+    migration,
+    performance,
+  ]
 items:
   - path: agents/amplitude-experiment-implementation.agent.md
     kind: agent
