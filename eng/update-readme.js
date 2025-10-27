@@ -21,6 +21,28 @@ const {
   INSTRUCTIONS_DIR,
 } = require("./constants");
 
+// Cache of MCP registry server names (lower-cased) loaded from github-mcp-registry.json
+let MCP_REGISTRY_SET = null;
+function loadMcpRegistryNames() {
+  if (MCP_REGISTRY_SET) return MCP_REGISTRY_SET;
+  try {
+    const registryPath = path.join(__dirname, "github-mcp-registry.json");
+    if (!fs.existsSync(registryPath)) {
+      MCP_REGISTRY_SET = new Set();
+      return MCP_REGISTRY_SET;
+    }
+    const raw = fs.readFileSync(registryPath, "utf8");
+    const json = JSON.parse(raw);
+    const servers = json?.payload?.mcpRegistryRoute?.serversData?.servers || [];
+    const names = servers.map((s) => s.display_name).filter(Boolean);
+    MCP_REGISTRY_SET = new Set(names.map((n) => n.toLowerCase()));
+  } catch (e) {
+    console.warn(`Failed to load MCP registry: ${e.message}`);
+    MCP_REGISTRY_SET = new Set();
+  }
+  return MCP_REGISTRY_SET;
+}
+
 // Add error handling utility
 /**
  * Safe file operation wrapper
@@ -327,8 +349,11 @@ function generateMcpServerLinks(servers) {
     },
   ];
 
+  const registryNames = loadMcpRegistryNames();
+
   return servers
-    .map((serverName) => {
+    .map((rawName) => {
+      const serverName = String(rawName).trim();
       const registryUrl = `https://github.com/mcp/${serverName}/mcp-server`;
       const badgeUrls = badges
         .map(
@@ -336,7 +361,11 @@ function generateMcpServerLinks(servers) {
             `[![Install MCP](${badge.url})](${badge.badgeUrl(serverName)})`
         )
         .join("<br />");
-      return `[${serverName}](${registryUrl})<br />${badgeUrls}`;
+      const hasRegistryEntry = registryNames.has(serverName.toLowerCase());
+      const serverLabel = hasRegistryEntry
+        ? `[${serverName}](${registryUrl})`
+        : serverName; // Plain text if not in registry
+      return `${serverLabel}<br />${badgeUrls}`;
     })
     .join("<br />");
 }
