@@ -5,6 +5,7 @@ const path = require("path");
 const {
   parseCollectionYaml,
   extractMcpServers,
+  extractMcpServerConfigs,
   parseFrontmatter,
 } = require("./yaml-parser");
 const {
@@ -352,20 +353,42 @@ function generateMcpServerLinks(servers) {
   const registryNames = loadMcpRegistryNames();
 
   return servers
-    .map((rawName) => {
-      const serverName = String(rawName).trim();
+    .map((entry) => {
+      // Support either a string name or an object with config
+      const serverObj = typeof entry === "string" ? { name: entry } : entry;
+      const serverName = String(serverObj.name).trim();
+
+      // Build config-only JSON (no name/type for stdio; just command+args+env)
+      let configPayload = {};
+      if (serverObj.type && serverObj.type.toLowerCase() === "http") {
+        // HTTP: url + headers
+        configPayload = {
+          url: serverObj.url || "",
+          headers: serverObj.headers || {},
+        };
+      } else {
+        // Local/stdio: command + args + env
+        configPayload = {
+          command: serverObj.command || "",
+          args: Array.isArray(serverObj.args) ? serverObj.args.map(encodeURIComponent) : [],
+          env: serverObj.env || {},
+        };
+      }
+
+      const encodedConfig = encodeURIComponent(JSON.stringify(configPayload));
+
+      const installBadgeUrls = [
+        `[![Install MCP](${badges[0].url})](https://aka.ms/awesome-copilot/install/mcp-vscode?name=${serverName}&config=${encodedConfig})`,
+        `[![Install MCP](${badges[1].url})](https://aka.ms/awesome-copilot/install/mcp-vscodeinsiders?name=${serverName}&config=${encodedConfig})`,
+        `[![Install MCP](${badges[2].url})](https://aka.ms/awesome-copilot/install/mcp-visualstudio/mcp-install?${encodedConfig})`,
+      ].join("<br />");
+
       const registryUrl = `https://github.com/mcp/${serverName}/mcp-server`;
-      const badgeUrls = badges
-        .map(
-          (badge) =>
-            `[![Install MCP](${badge.url})](${badge.badgeUrl(serverName)})`
-        )
-        .join("<br />");
       const hasRegistryEntry = registryNames.has(serverName.toLowerCase());
       const serverLabel = hasRegistryEntry
         ? `[${serverName}](${registryUrl})`
-        : serverName; // Plain text if not in registry
-      return `${serverLabel}<br />${badgeUrls}`;
+        : serverName;
+      return `${serverLabel}<br />${installBadgeUrls}`;
     })
     .join("<br />");
 }
@@ -438,7 +461,7 @@ function generateUnifiedModeSection(cfg) {
     const badges = makeBadges(link, badgeType);
     let mcpServerCell = "";
     if (includeMcpServers) {
-      const servers = extractMcpServers(filePath);
+      const servers = extractMcpServerConfigs(filePath);
       mcpServerCell = generateMcpServerLinks(servers);
     }
 
@@ -734,7 +757,8 @@ function buildCollectionRow({
 }) {
   if (hasAgents) {
     // Only agents currently have MCP servers; future migration may extend to chat modes.
-    const mcpServers = kind === "agent" ? extractMcpServers(filePath) : [];
+    const mcpServers =
+      kind === "agent" ? extractMcpServerConfigs(filePath) : [];
     const mcpServerCell =
       mcpServers.length > 0 ? generateMcpServerLinks(mcpServers) : "";
     return `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} | ${mcpServerCell} |\n`;

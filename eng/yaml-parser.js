@@ -112,10 +112,36 @@ function extractMcpServers(filePath) {
   return Object.keys(metadata.mcpServers);
 }
 
+/**
+ * Extract full MCP server configs from an agent file
+ * @param {string} filePath - Path to the agent file
+ * @returns {Array<{name:string,type?:string,command?:string,args?:string[],url?:string,headers?:object}>}
+ */
+function extractMcpServerConfigs(filePath) {
+  const metadata = extractAgentMetadata(filePath);
+  if (!metadata || !metadata.mcpServers) return [];
+  return Object.entries(metadata.mcpServers).map(([name, cfg]) => {
+    // Ensure we don't mutate original cfg
+    const copy = { ...cfg };
+    return {
+      name,
+      type: typeof copy.type === "string" ? copy.type : undefined,
+      command: typeof copy.command === "string" ? copy.command : undefined,
+      args: Array.isArray(copy.args) ? copy.args : undefined,
+      url: typeof copy.url === "string" ? copy.url : undefined,
+      headers:
+        typeof copy.headers === "object" && copy.headers !== null
+          ? copy.headers
+          : undefined,
+    };
+  });
+}
+
 module.exports = {
   parseCollectionYaml,
   parseFrontmatter,
   extractAgentMetadata,
   extractMcpServers,
+  extractMcpServerConfigs,
   safeFileOperation,
 };
