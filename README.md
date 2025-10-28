@@ -56,6 +56,10 @@ To make it easy to add these customizations to your editor, we have created a [M
 
 ## 🔧 How to Use
 
+### 🤖 Custom Agents
+
+Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assingning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
+
 ### 🎯 Prompts
 
 Use the `/` command in GitHub Copilot Chat to access prompts:
