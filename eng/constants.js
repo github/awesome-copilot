@@ -113,6 +113,8 @@ const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
 const MAX_COLLECTION_ITEMS = 50;
 
+const DOCS_DIR = path.join(ROOT_FOLDER, "docs");
+
 module.exports = {
   TEMPLATES,
   vscodeInstallImage,
@@ -126,4 +128,5 @@ module.exports = {
   AGENTS_DIR,
   COLLECTIONS_DIR,
   MAX_COLLECTION_ITEMS,
+  DOCS_DIR,
 };

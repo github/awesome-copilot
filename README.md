@@ -11,11 +11,11 @@ A curated collection of prompts, instructions, and chat modes to supercharge you
 
 This repository provides a comprehensive toolkit for enhancing GitHub Copilot with specialized:
 
-- **👉 [Awesome Agents](README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
-- **👉 [Awesome Prompts](README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
-- **👉 [Awesome Instructions](README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
-- **👉 [Awesome Chat Modes](README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
-- **👉 [Awesome Collections](README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
+- **👉 [Awesome Agents](docs/README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
+- **👉 [Awesome Prompts](docs/README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
+- **👉 [Awesome Instructions](docs/README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
+- **👉 [Awesome Chat Modes](docs/README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
+- **👉 [Awesome Collections](docs/README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
 
 ## 🌟 Featured Collections
 
@@ -103,7 +103,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## 🌟 Getting Started
 
-1. **Browse the Collections**: Check out our comprehensive lists of [prompts](README.prompts.md), [instructions](README.instructions.md), [chat modes](README.chatmodes.md), and [collections](README.collections.md).
+1. **Browse the Collections**: Check out our comprehensive lists of [prompts](docs/README.prompts.md), [instructions](docs/README.instructions.md), [chat modes](docs/README.chatmodes.md), and [collections](docs/README.collections.md).
 2. **Add to your editor**: Click the "Install" button to install to VS Code, or copy the file contents for other editors.
 3. **Start Using**: Copy prompts to use with `/` commands, let instructions enhance your coding experience, or activate chat modes for specialized assistance.
 
@@ -126,7 +126,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Ready to supercharge your coding experience?** Start exploring our [prompts](README.prompts.md), [instructions](README.instructions.md), and [chat modes](README.chatmodes.md)!
+**Ready to supercharge your coding experience?** Start exploring our [prompts](docs/README.prompts.md), [instructions](docs/README.instructions.md), and [chat modes](docs/README.chatmodes.md)!
 
 ## Contributors ✨
 

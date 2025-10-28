@@ -20,6 +20,7 @@ const {
   AGENTS_DIR,
   COLLECTIONS_DIR,
   INSTRUCTIONS_DIR,
+  DOCS_DIR,
 } = require("./constants");
 
 // Cache of MCP registry server names (lower-cased) loaded from github-mcp-registry.json
@@ -872,22 +873,27 @@ try {
     TEMPLATES.collectionsUsage
   );
 
-  // Write category outputs
+  // Ensure docs directory exists for category outputs
+  if (!fs.existsSync(DOCS_DIR)) {
+    fs.mkdirSync(DOCS_DIR, { recursive: true });
+  }
+
+  // Write category outputs into docs folder
   writeFileIfChanged(
-    path.join(ROOT_FOLDER, "README.instructions.md"),
+    path.join(DOCS_DIR, "README.instructions.md"),
     instructionsReadme
   );
   writeFileIfChanged(
-    path.join(ROOT_FOLDER, "README.prompts.md"),
+    path.join(DOCS_DIR, "README.prompts.md"),
     promptsReadme
   );
   writeFileIfChanged(
-    path.join(ROOT_FOLDER, "README.chatmodes.md"),
+    path.join(DOCS_DIR, "README.chatmodes.md"),
     chatmodesReadme
   );
-  writeFileIfChanged(path.join(ROOT_FOLDER, "README.agents.md"), agentsReadme);
+  writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
   writeFileIfChanged(
-    path.join(ROOT_FOLDER, "README.collections.md"),
+    path.join(DOCS_DIR, "README.collections.md"),
     collectionsReadme
   );
 
