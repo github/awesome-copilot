@@ -883,10 +883,7 @@ try {
     path.join(DOCS_DIR, "README.instructions.md"),
     instructionsReadme
   );
-  writeFileIfChanged(
-    path.join(DOCS_DIR, "README.prompts.md"),
-    promptsReadme
-  );
+  writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
   writeFileIfChanged(
     path.join(DOCS_DIR, "README.chatmodes.md"),
     chatmodesReadme
