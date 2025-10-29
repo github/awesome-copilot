@@ -5,7 +5,7 @@
 - [ ] The file follows the required naming convention.
 - [ ] The content is clearly structured and follows the example format.
 - [ ] I have tested my instructions, prompt, or chat mode with GitHub Copilot.
-- [ ] I have run `node update-readme.js` and verified that `README.md` is up to date.
+- [ ] I have run `npm start` and verified that `README.md` is up to date.
 
 ---
 
@@ -20,6 +20,8 @@
 - [ ] New instruction file.
 - [ ] New prompt file.
 - [ ] New chat mode file.
+- [ ] New collection file.
+- [ ] Update to existing instruction, prompt, chat mode, or collection.
 - [ ] Other (please specify):
 
 ---

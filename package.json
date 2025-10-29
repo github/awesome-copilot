@@ -2,12 +2,15 @@
   "name": "awesome-copilot",
   "version": "1.0.0",
   "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and chat modes",
-  "main": "update-readme.js",
+  "main": "./eng/update-readme.js",
+  "private": true,
   "scripts": {
-    "build": "node update-readme.js",
+    "start": "npm run build",
+    "build": "node ./eng/update-readme.js",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
-    "contributors:check": "all-contributors check"
+    "contributors:check": "all-contributors check",
+    "validate:collections": "node ./eng/validate-collections.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +27,10 @@
   "license": "MIT",
   "devDependencies": {
     "all-contributors-cli": "^6.26.1"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "vfile": "^6.0.3",
+    "vfile-matter": "^5.0.1"
   }
 }

@@ -8,61 +8,11 @@ Task Researcher and Task Planner for intermediate to expert users and large code
 
 | Title | Type | Description |
 | ----- | ---- | ----------- |
-| [Task Researcher Instructions](../chatmodes/task-researcher.chatmode.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-researcher.chatmode.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode-insiders%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-researcher.chatmode.md) | Chat Mode | Task research specialist for comprehensive project analysis - Brought to you by microsoft/edge-ai [see usage](#task-researcher-instructions) |
-| [Task Planner Instructions](../chatmodes/task-planner.chatmode.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-planner.chatmode.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode-insiders%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-planner.chatmode.md) | Chat Mode | Task planner for creating actionable implementation plans - Brought to you by microsoft/edge-ai [see usage](#task-planner-instructions) |
 | [Task Plan Implementation Instructions](../instructions/task-implementation.instructions.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/instructions?url=vscode%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Ftask-implementation.instructions.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/instructions?url=vscode-insiders%3Achat-instructions%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Finstructions%2Ftask-implementation.instructions.md) | Instruction | Instructions for implementing task plans with progressive tracking and change record - Brought to you by microsoft/edge-ai [see usage](#task-plan-implementation-instructions) |
+| [Task Planner Instructions](../chatmodes/task-planner.chatmode.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-planner.chatmode.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode-insiders%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-planner.chatmode.md) | Chat Mode | Task planner for creating actionable implementation plans - Brought to you by microsoft/edge-ai [see usage](#task-planner-instructions) |
+| [Task Researcher Instructions](../chatmodes/task-researcher.chatmode.md)<br />[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-researcher.chatmode.md)<br />[![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/install/chatmode?url=vscode-insiders%3Achat-mode%2Finstall%3Furl%3Dhttps%3A%2F%2Fraw.githubusercontent.com%2Fgithub%2Fawesome-copilot%2Fmain%2Fchatmodes%2Ftask-researcher.chatmode.md) | Chat Mode | Task research specialist for comprehensive project analysis - Brought to you by microsoft/edge-ai [see usage](#task-researcher-instructions) |
 
 ## Collection Usage
-
-### Task Researcher Instructions
-
-Now you can iterate on research for your tasks!
-
-```markdown, research.prompt.md
----
-mode: task-researcher
-title: Research microsoft fabric realtime intelligence terraform support
----
-Review the microsoft documentation for fabric realtime intelligence
-and come up with ideas on how to implement this support into our terraform components.
-```
-
-Research is dumped out into a .copilot-tracking/research/*-research.md file and will include discoveries for GHCP along with examples and schema that will be useful during implementation.
-
-Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
-
----
-
-### Task Planner Instructions
-
-Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
-
-```markdown, task-plan.prompt.md
----
-mode: task-planner
-title: Plan microsoft fabric realtime intelligence terraform support
----
-#file: .copilot-tracking/research/*-fabric-rti-blueprint-modification-research.md
-Build a plan to support adding fabric rti to this project
-```
-
-`task-planner` will help you create a plan for implementing your task(s). It will use your fully researched ideas or build new research if not already provided.
-
-`task-planner` will produce three (3) files that will be used by `task-implementation.instructions.md`.
-
-* `.copilot-tracking/plan/*-plan.instructions.md`
-
-  * A newly generated instructions file that has the plan as a checklist of Phases and Tasks.
-* `.copilot-tracking/details/*-details.md`
-
-  * The details for the implementation, the plan file refers to this file for specific details (important if you have a big plan).
-* `.copilot-tracking/prompts/implement-*.prompt.md`
-
-  * A newly generated prompt file that will create a `.copilot-tracking/changes/*-changes.md` file and proceed to implement the changes.
-
-Continue to use `task-planner` to iterate on the plan until you have exactly what you want done to your codebase.
-
----
 
 ### Task Plan Implementation Instructions
 
@@ -97,4 +47,53 @@ To use these generated instructions and prompts, you'll need to update your `set
 
 ---
 
-*This collection includes 3 curated items for **Tasks by microsoft/edge-ai**.*
+### Task Planner Instructions
+
+Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
+
+```markdown, task-plan.prompt.md
+---
+mode: task-planner
+title: Plan microsoft fabric realtime intelligence terraform support
+---
+#file: .copilot-tracking/research/*-fabric-rti-blueprint-modification-research.md
+Build a plan to support adding fabric rti to this project
+```
+
+`task-planner` will help you create a plan for implementing your task(s). It will use your fully researched ideas or build new research if not already provided.
+
+`task-planner` will produce three (3) files that will be used by `task-implementation.instructions.md`.
+
+* `.copilot-tracking/plan/*-plan.instructions.md`
+
+  * A newly generated instructions file that has the plan as a checklist of Phases and Tasks.
+* `.copilot-tracking/details/*-details.md`
+
+  * The details for the implementation, the plan file refers to this file for specific details (important if you have a big plan).
+* `.copilot-tracking/prompts/implement-*.prompt.md`
+
+  * A newly generated prompt file that will create a `.copilot-tracking/changes/*-changes.md` file and proceed to implement the changes.
+
+Continue to use `task-planner` to iterate on the plan until you have exactly what you want done to your codebase.
+
+---
+
+### Task Researcher Instructions
+
+Now you can iterate on research for your tasks!
+
+```markdown, research.prompt.md
+---
+mode: task-researcher
+title: Research microsoft fabric realtime intelligence terraform support
+---
+Review the microsoft documentation for fabric realtime intelligence
+and come up with ideas on how to implement this support into our terraform components.
+```
+
+Research is dumped out into a .copilot-tracking/research/*-research.md file and will include discoveries for GHCP along with examples and schema that will be useful during implementation.
+
+Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
+
+---
+

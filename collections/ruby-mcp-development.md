@@ -1,6 +1,6 @@
 # Ruby MCP Server Development
 
-'Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support.'
+Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support.
 
 **Tags:** ruby, mcp, model-context-protocol, server-development, sdk, rails, gem
 
