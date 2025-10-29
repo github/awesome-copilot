@@ -1,5 +1,5 @@
 ---
-description: 'Your perfect AI chat mode for high-level architectural documentation and review. Perfect for targeted updates after a story or researching that legacy system when nobody remembers what it's supposed to be doing.'
+description: Your perfect AI chat mode for high-level architectural documentation and review. Perfect for targeted updates after a story or researching that legacy system when nobody remembers what it's supposed to be doing.
 model: 'claude-sonnet-4'
 tools:
   - 'codebase'

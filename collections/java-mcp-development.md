@@ -1,6 +1,6 @@
 # Java MCP Server Development
 
-'Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.'
+Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.
 
 **Tags:** java, mcp, model-context-protocol, server-development, sdk, reactive-streams, spring-boot, reactor
 

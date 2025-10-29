@@ -1,6 +1,6 @@
 # PHP MCP Server Development
 
-'Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance'
+Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance
 
 **Tags:** php, mcp, model-context-protocol, server-development, sdk, attributes, composer
 

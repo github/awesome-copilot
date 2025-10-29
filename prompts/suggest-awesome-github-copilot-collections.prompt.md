@@ -5,11 +5,11 @@ tools: ['edit', 'search', 'runCommands', 'runTasks', 'think', 'changes', 'testFa
 ---
 # Suggest Awesome GitHub Copilot Collections
 
-Analyze current repository context and suggest relevant collections from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/blob/main/README.collections.md) that would enhance the development workflow for this repository.
+Analyze current repository context and suggest relevant collections from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/blob/main/docs/README.collections.md) that would enhance the development workflow for this repository.
 
 ## Process
 
-1. **Fetch Available Collections**: Extract collection list and descriptions from [awesome-copilot README.collections.md](https://github.com/github/awesome-copilot/blob/main/README.collections.md). Must use `#fetch` tool.
+1. **Fetch Available Collections**: Extract collection list and descriptions from [awesome-copilot README.collections.md](https://github.com/github/awesome-copilot/blob/main/docs/README.collections.md). Must use `#fetch` tool.
 2. **Scan Local Assets**: Discover existing prompt files in `prompts/`, instruction files in `instructions/`, and chat modes in `chatmodes/` folders
 3. **Extract Local Descriptions**: Read front matter from local asset files to understand existing capabilities
 4. **Analyze Repository Context**: Review chat history, repository files, programming languages, frameworks, and current project needs

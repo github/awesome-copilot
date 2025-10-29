@@ -5,11 +5,11 @@ tools: ['edit', 'search', 'runCommands', 'runTasks', 'think', 'changes', 'testFa
 ---
 # Suggest Awesome GitHub Copilot Prompts
 
-Analyze current repository context and suggest relevant prompt files from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/blob/main/README.prompts.md) that are not already available in this repository.
+Analyze current repository context and suggest relevant prompt files from the [GitHub awesome-copilot repository](https://github.com/github/awesome-copilot/blob/main/docs/README.prompts.md) that are not already available in this repository.
 
 ## Process
 
-1. **Fetch Available Prompts**: Extract prompt list and descriptions from [awesome-copilot README.prompts.md](https://github.com/github/awesome-copilot/blob/main/README.prompts.md). Must use `#fetch` tool.
+1. **Fetch Available Prompts**: Extract prompt list and descriptions from [awesome-copilot README.prompts.md](https://github.com/github/awesome-copilot/blob/main/docs/README.prompts.md). Must use `#fetch` tool.
 2. **Scan Local Prompts**: Discover existing prompt files in `.github/prompts/` folder
 3. **Extract Descriptions**: Read front matter from local prompt files to get descriptions
 4. **Analyze Context**: Review chat history, repository files, and current project needs

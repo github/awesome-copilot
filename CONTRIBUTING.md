@@ -183,7 +183,7 @@ For full example of usage checkout edge-ai tasks collection:
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
 3. **Add your instruction, prompt file, chatmode, or collection** following the guidelines above
-4. **Run the update script** (optional): `node update-readme.js` to update the README with your new file
+4. **Run the update script**: `npm start` to update the README with your new file (make sure you run `npm install` first if you haven't already)
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
 5. **Submit a pull request** with:

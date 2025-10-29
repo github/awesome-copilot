@@ -48,7 +48,7 @@ When working with collections in the awesome-copilot repository:
 
 ## Generation Process
 
-- Collections automatically generate README files via `update-readme.js`
+- Collections automatically generate README files via `npm start`
 - Individual collection pages are created in collections/ directory
 - Main collections overview is generated as README.collections.md
 - VS Code install badges are automatically created for each item

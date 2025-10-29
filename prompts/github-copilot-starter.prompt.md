@@ -68,7 +68,7 @@ Create Coding Agent workflow file:
 For each file, follow these principles:
 
 **MANDATORY FIRST STEP**: Always use the fetch tool to research existing patterns before creating any content:
-1. **Fetch from awesome-copilot collections**: https://github.com/github/awesome-copilot/blob/main/README.collections.md
+1. **Fetch from awesome-copilot collections**: https://github.com/github/awesome-copilot/blob/main/docs/README.collections.md
 2. **Fetch specific instruction files**: https://raw.githubusercontent.com/github/awesome-copilot/main/instructions/[relevant-file].instructions.md
 3. **Check for existing patterns** that match the technology stack
 
@@ -139,7 +139,7 @@ description: "Java Spring Boot development standards"
 - **Instructions**: https://github.com/github/awesome-copilot/tree/main/instructions
 - **Prompts**: https://github.com/github/awesome-copilot/tree/main/prompts  
 - **Chat Modes**: https://github.com/github/awesome-copilot/tree/main/chatmodes
-- **Collections**: https://github.com/github/awesome-copilot/blob/main/README.collections.md
+- **Collections**: https://github.com/github/awesome-copilot/blob/main/docs/README.collections.md
 
 **Awesome-Copilot Collections to Check:**
 - **Frontend Web Development**: React, Angular, Vue, TypeScript, CSS frameworks
