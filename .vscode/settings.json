@@ -13,5 +13,8 @@
     "*.chatmode.md": "markdown",
     "*.instructions.md": "markdown",
     "*.prompt.md": "markdown"
+  },
+  "yaml.schemas": {
+    "./.schemas/collection.schema.json": "*.collection.yml"
   }
 }
