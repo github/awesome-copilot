@@ -14,7 +14,7 @@ items:
   - path: prompts/suggest-awesome-github-copilot-agents.prompt.md
     kind: prompt
   - path: chatmodes/meta-agentic-project-scaffold.chatmode.md
-    kind: chatmode
+    kind: chat-mode
 display:
   ordering: alpha # or "manual" to preserve the order above
   show_badge: true # set to true to show collection badge on items
