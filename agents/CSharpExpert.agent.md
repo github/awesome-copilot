@@ -177,7 +177,7 @@ bash
 
 * Class `[TestClass]`, test `[TestMethod]`
 * Setup/teardown: `[TestInitialize]`, `[TestCleanup]`
-* Parameterized tests: **use `[DataTestMethod]` + `[DataRow]`**
+* Parameterized tests: **use `[TestMethod]` + `[DataRow]`**
 
 ### Assertions
 

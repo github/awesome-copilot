@@ -261,11 +261,11 @@ function generateInstructionsSection(instructionsDir) {
 
     if (customDescription && customDescription !== "null") {
       // Use the description from frontmatter
-      instructionsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
+      instructionsContent += `| [${title}](../${link})<br />${badges} | ${customDescription} |\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
-      instructionsContent += `| [${title}](${link})<br />${badges} | ${topic} specific coding standards and best practices |\n`;
+      instructionsContent += `| [${title}](../${link})<br />${badges} | ${topic} specific coding standards and best practices |\n`;
     }
   }
 
@@ -318,9 +318,9 @@ function generatePromptsSection(promptsDir) {
     const badges = makeBadges(link, "prompt");
 
     if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](${link})<br />${badges} | ${customDescription} |\n`;
+      promptsContent += `| [${title}](../${link})<br />${badges} | ${customDescription} |\n`;
     } else {
-      promptsContent += `| [${title}](${link})<br />${badges} | | |\n`;
+      promptsContent += `| [${title}](../${link})<br />${badges} | | |\n`;
     }
   }
 
@@ -492,11 +492,11 @@ function generateUnifiedModeSection(cfg) {
     }
 
     if (includeMcpServers) {
-      content += `| [${title}](${link})<br />${badges} | ${
+      content += `| [${title}](../${link})<br />${badges} | ${
         description && description !== "null" ? description : ""
       } | ${mcpServerCell} |\n`;
     } else {
-      content += `| [${title}](${link})<br />${badges} | ${
+      content += `| [${title}](../${link})<br />${badges} | ${
         description && description !== "null" ? description : ""
       } |\n`;
     }
@@ -574,7 +574,7 @@ function generateCollectionsSection(collectionsDir) {
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
 
-    const link = `collections/${collectionId}.md`;
+    const link = `../collections/${collectionId}.md`;
     const displayName = isFeatured ? `⭐ ${name}` : name;
 
     collectionsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;

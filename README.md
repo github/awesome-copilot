@@ -2,7 +2,7 @@
 
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-89-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-90-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A curated collection of prompts, instructions, and chat modes to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
@@ -23,6 +23,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
+| [Awesome Copilot](collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
 | [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 11 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
@@ -58,7 +59,7 @@ To make it easy to add these customizations to your editor, we have created a [M
 
 ### 🤖 Custom Agents
 
-Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assingning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
+Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assigning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
 
 ### 🎯 Prompts
 
@@ -251,6 +252,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://soderlind.no"><img src="https://avatars.githubusercontent.com/u/1649452?v=4?s=100" width="100px;" alt="Per Søderlind"/><br /><sub><b>Per Søderlind</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=soderlind" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/riqueufmg"><img src="https://avatars.githubusercontent.com/u/108551585?v=4?s=100" width="100px;" alt="Henrique Nunes"/><br /><sub><b>Henrique Nunes</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=riqueufmg" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jeremiah-snee-openx"><img src="https://avatars.githubusercontent.com/u/113928685?v=4?s=100" width="100px;" alt="Jeremiah Snee"/><br /><sub><b>Jeremiah Snee</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=jeremiah-snee-openx" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/spectatora"><img src="https://avatars.githubusercontent.com/u/1385755?v=4?s=100" width="100px;" alt="spectatora"/><br /><sub><b>spectatora</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=spectatora" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

@@ -3,6 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const readline = require("readline");
+const { COLLECTIONS_DIR } = require("./constants");
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -75,9 +76,8 @@ async function createCollectionTemplate() {
       process.exit(1);
     }
 
-    const collectionsDir = path.join(__dirname, "collections");
     const filePath = path.join(
-      collectionsDir,
+      COLLECTIONS_DIR,
       `${collectionId}.collection.yml`
     );
 
@@ -91,8 +91,8 @@ async function createCollectionTemplate() {
     }
 
     // Ensure collections directory exists
-    if (!fs.existsSync(collectionsDir)) {
-      fs.mkdirSync(collectionsDir, { recursive: true });
+    if (!fs.existsSync(COLLECTIONS_DIR)) {
+      fs.mkdirSync(COLLECTIONS_DIR, { recursive: true });
     }
 
     // Get collection name
