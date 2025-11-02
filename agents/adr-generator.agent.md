@@ -185,9 +185,9 @@ Before finalizing the ADR, verify:
 - [ ] Date is in YYYY-MM-DD format
 - [ ] Context clearly explains the problem/opportunity
 - [ ] Decision is stated clearly and unambiguously
-- [ ] At least 1 positive consequences documented
-- [ ] At least 1 negative consequences documented
-- [ ] At least 1 alternatives documented with rejection reasons
+- [ ] At least 1 positive consequence documented
+- [ ] At least 1 negative consequence documented
+- [ ] At least 1 alternative documented with rejection reasons
 - [ ] Implementation notes provide actionable guidance
 - [ ] References include related ADRs and resources
 - [ ] All coded items use proper format (e.g., POS-001, NEG-001)
