@@ -103,9 +103,9 @@ Update the mermaid diagram to show current:
 - **Data flow** - Current direction of dependencies and interactions
 - **Inheritance/composition** - Current class hierarchies and composition relationships
 
-```mermaid
-[Update diagram to reflect current architecture]
-```
+    ```mermaid
+    [Update diagram to reflect current architecture]
+    ```
 
 ## 3. Interface Documentation
 
@@ -128,15 +128,15 @@ Update the mermaid diagram to show current:
 
 ### Basic Usage
 
-```csharp
-// Update basic usage example to current API
-```
+    ```csharp
+    // Update basic usage example to current API
+    ```
 
 ### Advanced Usage
 
-```csharp
-// Update advanced configuration patterns to current implementation
-```
+    ```csharp
+    // Update advanced configuration patterns to current implementation
+    ```
 
 - USE-001: Update basic usage examples
 - USE-002: Refresh advanced configuration patterns

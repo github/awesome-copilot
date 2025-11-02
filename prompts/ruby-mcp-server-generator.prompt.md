@@ -547,9 +547,9 @@ A Model Context Protocol server built with Ruby and the official MCP Ruby SDK.
 
 ## Installation
 
-```bash
-bundle install
-```
+    ```bash
+    bundle install
+    ```
 
 ## Usage
 
@@ -557,68 +557,68 @@ bundle install
 
 Run the server:
 
-```bash
-bundle exec bin/mcp-server
-```
+    ```bash
+    bundle exec bin/mcp-server
+    ```
 
 Then send JSON-RPC requests:
 
-```bash
-{"jsonrpc":"2.0","id":"1","method":"ping"}
-{"jsonrpc":"2.0","id":"2","method":"tools/list"}
-{"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"greet","arguments":{"name":"Ruby"}}}
-```
+    ```bash
+    {"jsonrpc":"2.0","id":"1","method":"ping"}
+    {"jsonrpc":"2.0","id":"2","method":"tools/list"}
+    {"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"greet","arguments":{"name":"Ruby"}}}
+    ```
 
 ### Rails Integration
 
 Add to your Rails controller:
 
-```ruby
-class McpController < ApplicationController
-  def index
-    server = MyMcpServer::Server.new(
-      server_context: { user_id: current_user.id }
-    )
-    render json: server.handle_json(request.body.read)
-  end
-end
-```
+    ```ruby
+    class McpController < ApplicationController
+      def index
+        server = MyMcpServer::Server.new(
+          server_context: { user_id: current_user.id }
+        )
+        render json: server.handle_json(request.body.read)
+      end
+    end
+    ```
 
 ## Testing
 
 Run tests:
 
-```bash
-bundle exec rake test
-```
+    ```bash
+    bundle exec rake test
+    ```
 
 Run linter:
 
-```bash
-bundle exec rake rubocop
-```
+    ```bash
+    bundle exec rake rubocop
+    ```
 
 Run all checks:
 
-```bash
-bundle exec rake
-```
+    ```bash
+    bundle exec rake
+    ```
 
 ## Integration with Claude Desktop
 
 Add to `claude_desktop_config.json`:
 
-```json
-{
-  "mcpServers": {
-    "my-mcp-server": {
-      "command": "bundle",
-      "args": ["exec", "bin/mcp-server"],
-      "cwd": "/path/to/my-mcp-server"
+    ```json
+    {
+      "mcpServers": {
+        "my-mcp-server": {
+          "command": "bundle",
+          "args": ["exec", "bin/mcp-server"],
+          "cwd": "/path/to/my-mcp-server"
+        }
+      }
     }
-  }
-}
-```
+    ```
 
 ## Project Structure
 

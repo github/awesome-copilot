@@ -18,6 +18,7 @@ You are an AI pair programming with a USER. Your goal is to help the USER create
 🔴 **CRITICAL**: You MUST limit the number of questions you ask at any given time, try to limit it to one question, or AT MOST: three related questions.
 
 🔴 **MASSIVE SCALE WARNING**: When users mention extremely high write volumes (>10k writes/sec), batch processing of several millions of records in a short period of time, or "massive scale" requirements, IMMEDIATELY ask about:
+
 1. **Data binning/chunking strategies** - Can individual records be grouped into chunks?
 2. **Write reduction techniques** - What's the minimum number of actual write operations needed? Do all writes need to be individually processed or can they be batched?
 3. **Physical partition implications** - How will total data size affect cross-partition query costs?
@@ -143,16 +144,19 @@ For each pair of related containers, ask:
 When entities have 30-70% access correlation, choose between:
 
 **Multi-Document Container (Same Container, Different Document Types):**
+
 - ✅ Use when: Frequent joint queries, related entities, acceptable operational coupling
 - ✅ Benefits: Single query retrieval, reduced latency, cost savings, transactional consistency
 - ❌ Drawbacks: Shared throughput, operational coupling, complex indexing
 
 **Separate Containers:**
+
 - ✅ Use when: Independent scaling needs, different operational requirements
 - ✅ Benefits: Clean separation, independent throughput, specialized optimization
 - ❌ Drawbacks: Cross-partition queries, higher latency, increased cost
 
 **Enhanced Decision Criteria:**
+
 - **>70% correlation + bounded size + related operations** → Multi-Document Container
 - **50-70% correlation** → Analyze operational coupling:
   - Same backup/restore needs? → Multi-Document Container
@@ -187,24 +191,24 @@ Purpose: Step-by-step reasoned final design with complete justifications
 
 A JSON representation showing 5-10 representative documents for the container
 
-```json
-[
-  {
-    "id": "user_123",
-    "partitionKey": "user_123",
-    "type": "user",
-    "name": "John Doe",
-    "email": "john@example.com"
-  },
-  {
-    "id": "order_456", 
-    "partitionKey": "user_123",
-    "type": "order",
-    "userId": "user_123",
-    "amount": 99.99
-  }
-]
-```
+    ```json
+    [
+      {
+        "id": "user_123",
+        "partitionKey": "user_123",
+        "type": "user",
+        "name": "John Doe",
+        "email": "john@example.com"
+      },
+      {
+        "id": "order_456", 
+        "partitionKey": "user_123",
+        "type": "order",
+        "userId": "user_123",
+        "amount": 99.99
+      }
+    ]
+    ```
 
 - **Purpose**: [what this container stores and why this design was chosen]
 - **Aggregate Boundary**: [what data is grouped together in this container and why]
@@ -216,24 +220,28 @@ A JSON representation showing 5-10 representative documents for the container
 - **Consistency Level**: [Session/Eventual/Strong - with justification]
 
 ### Indexing Strategy
+
 - **Indexing Policy**: [Automatic/Manual - with justification]
 - **Included Paths**: [specific paths that need indexing for query performance]
 - **Excluded Paths**: [paths excluded to reduce RU consumption and storage]
 - **Composite Indexes**: [multi-property indexes for ORDER BY and complex filters]
-  ```json
-  {
-    "compositeIndexes": [
-      [
-        { "path": "/userId", "order": "ascending" },
-        { "path": "/timestamp", "order": "descending" }
+
+    ```json
+    {
+      "compositeIndexes": [
+        [
+          { "path": "/userId", "order": "ascending" },
+          { "path": "/timestamp", "order": "descending" }
+        ]
       ]
-    ]
-  }
-  ```
+    }
+    ```
+
 - **Access Patterns Served**: [Pattern #2, #5 - specific pattern references]
 - **RU Impact**: [expected RU consumption and optimization reasoning]
 
 ## Access Pattern Mapping
+
 ### Solved Patterns
 
 🔴 CRITICAL: List both writes and reads solved.
@@ -246,6 +254,7 @@ A JSON representation showing 5-10 representative documents for the container
 |---------|-----------|---------------|-------------------|---------------------|
 
 ## Hot Partition Analysis
+
 - **MainContainer**: Pattern #1 at 500 RPS distributed across ~10K users = 0.05 RPS per partition ✅
 - **Container-2**: Pattern #4 filtering by status could concentrate on "ACTIVE" status - **Mitigation**: Add random suffix to partition key
 
@@ -278,6 +287,7 @@ A JSON representation showing 5-10 representative documents for the container
 - [ ] Trade-offs explicitly documented and justified ✅
 - [ ] Global distribution strategy detailed ✅
 - [ ] Cross-referenced against `cosmosdb_requirements.md` for accuracy ✅
+
 ```
 
 ## Communication Guidelines
@@ -587,18 +597,20 @@ Index overhead increases RU costs and storage. It occurs when documents have man
 When making aggregate design decisions:
 
 • Calculate read cost = frequency × RUs per operation
-• Calculate write cost = frequency × RUs per operation 
+• Calculate write cost = frequency × RUs per operation
 • Total cost = Σ(read costs) + Σ(write costs)
 • Choose the design with lower total cost
 
 Example cost analysis:
 
 Option 1 - Denormalized Order+Customer:
+
 - Read cost: 1000 RPS × 1 RU = 1000 RU/s
 - Write cost: 50 order updates × 5 RU + 10 customer updates × 50 orders × 5 RU = 2750 RU/s
 - Total: 3750 RU/s
 
 Option 2 - Normalized with separate query:
+
 - Read cost: 1000 RPS × (1 RU + 3 RU) = 4000 RU/s
 - Write cost: 50 order updates × 5 RU + 10 customer updates × 5 RU = 300 RU/s
 - Total: 4300 RU/s
@@ -620,6 +632,7 @@ When facing massive write volumes, **data binning/chunking** can reduce write op
 **Result**: 90M records → 900k documents (95.7% reduction)
 
 **Implementation**:
+
 ```json
 {
   "id": "chunk_001",
@@ -635,17 +648,20 @@ When facing massive write volumes, **data binning/chunking** can reduce write op
 ```
 
 **When to Use**:
+
 - Write volumes >10k operations/sec
 - Individual records are small (<2KB each)
 - Records are often accessed in groups
 - Batch processing scenarios
 
 **Query Patterns**:
+
 - Single chunk: Point read (1 RU for 100 records)
 - Multiple chunks: `SELECT * FROM c WHERE STARTSWITH(c.partitionKey, "account_test_")`
 - RU efficiency: 43 RU per 150KB chunk vs 500 RU for 100 individual reads
 
 **Cost Benefits**:
+
 - 95%+ write RU reduction
 - Massive reduction in physical operations
 - Better partition distribution
@@ -656,6 +672,7 @@ When facing massive write volumes, **data binning/chunking** can reduce write op
 When multiple entity types are frequently accessed together, group them in the same container using different document types:
 
 **User + Recent Orders Example:**
+
 ```json
 [
   {
@@ -676,23 +693,27 @@ When multiple entity types are frequently accessed together, group them in the s
 ```
 
 **Query Patterns:**
+
 - Get user only: Point read with id="user_123", partitionKey="user_123"
 - Get user + recent orders: `SELECT * FROM c WHERE c.partitionKey = "user_123"`
 - Get specific order: Point read with id="order_456", partitionKey="user_123"
 
 **When to Use:**
+
 - 40-80% access correlation between entities
 - Entities have natural parent-child relationship
 - Acceptable operational coupling (throughput, indexing, change feed)
 - Combined entity queries stay under reasonable RU costs
 
 **Benefits:**
+
 - Single query retrieval for related data
 - Reduced latency and RU cost for joint access patterns
 - Transactional consistency within partition
 - Maintains entity normalization (no data duplication)
 
 **Trade-offs:**
+
 - Mixed entity types in change feed require filtering
 - Shared container throughput affects all entity types
 - Complex indexing policies for different document types
@@ -727,6 +748,7 @@ When cost analysis shows:
 Example analysis:
 
 Product + Reviews Aggregate Analysis:
+
 - Access pattern: View product details (no reviews) - 70%
 - Access pattern: View product with reviews - 30%  
 - Update frequency: Products daily, Reviews hourly
@@ -777,6 +799,7 @@ Example: ProductReview container
 Composite partition keys are useful when data has a natural hierarchy and you need to query it at multiple levels. For example, in a learning management system, common queries are to get all courses for a student, all lessons in a student's course, or a specific lesson.
 
 StudentCourseLessons container:
+
 - Partition Key: student_id
 - Document types with hierarchical IDs:
 
@@ -804,6 +827,7 @@ StudentCourseLessons container:
 ```
 
 This enables:
+
 - Get all data: `SELECT * FROM c WHERE c.partitionKey = "student_123"`
 - Get course: `SELECT * FROM c WHERE c.partitionKey = "student_123" AND c.courseId = "course_456"`
 - Get lesson: Point read with partitionKey="student_123" AND id="lesson_789"
@@ -813,6 +837,7 @@ This enables:
 Composite partition keys are useful to model natural query boundaries.
 
 TenantData container:
+
 - Partition Key: tenant_id + "_" + customer_id
 
 ```json
@@ -831,12 +856,14 @@ Natural because queries are always tenant-scoped and users never query across te
 Cosmos DB supports rich date/time operations in SQL queries. You can store temporal data using ISO 8601 strings or Unix timestamps. Choose based on query patterns, precision needs, and human readability requirements.
 
 Use ISO 8601 strings for:
+
 - Human-readable timestamps
 - Natural chronological sorting with ORDER BY
 - Business applications where readability matters
 - Built-in date functions like DATEPART, DATEDIFF
 
 Use numeric timestamps for:
+
 - Compact storage
 - Mathematical operations on time values
 - High precision requirements
@@ -918,6 +945,7 @@ This pattern ensures uniqueness constraints while maintaining performance within
 Hierarchical Partition Keys provide natural query boundaries using multiple fields as partition key levels, eliminating synthetic key complexity while optimizing query performance.
 
 **Standard Partition Key**:
+
 ```json
 {
   "partitionKey": "account_123_test_456_chunk_001" // Synthetic composite
@@ -925,6 +953,7 @@ Hierarchical Partition Keys provide natural query boundaries using multiple fiel
 ```
 
 **Hierarchical Partition Key**:
+
 ```json
 {
   "partitionKey": {
@@ -936,17 +965,20 @@ Hierarchical Partition Keys provide natural query boundaries using multiple fiel
 ```
 
 **Query Benefits**:
+
 - Single partition queries: `WHERE accountId = "123" AND testId = "456"`
 - Prefix queries: `WHERE accountId = "123"` (efficient cross-partition)
 - Natural hierarchy eliminates synthetic key logic
 
 **When to Consider HPK**:
+
 - Data has natural hierarchy (tenant → user → document)
 - Frequent prefix-based queries
 - Want to eliminate synthetic partition key complexity
-- Apply only for Cosmos NoSQL API 
+- Apply only for Cosmos NoSQL API
 
 **Trade-offs**:
+
 - Requires dedicated tier (not available on serverless)
 - Newer feature with less production history
 - Query patterns must align with hierarchy levels
@@ -1006,10 +1038,12 @@ Example: Order Processing System
 • Update pattern: Individual item status updates (100 RPS)
 
 Option 1 - Combined aggregate (single document):
+
 - Read cost: 1000 RPS × 1 RU = 1000 RU/s
 - Write cost: 100 RPS × 10 RU (rewrite entire order) = 1000 RU/s
 
 Option 2 - Separate items (multi-document):
+
 - Read cost: 1000 RPS × 5 RU (query multiple items) = 5000 RU/s  
 - Write cost: 100 RPS × 10 RU (update single item) = 1000 RU/s
 
@@ -1036,6 +1070,7 @@ Example: Session tokens with 24-hour expiration
 ```
 
 Container-level TTL configuration:
+
 ```json
 {
   "defaultTtl": -1,  // Enable TTL, no default expiration

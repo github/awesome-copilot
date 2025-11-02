@@ -365,9 +365,9 @@ SELECT * FROM users WHERE data @> '{"role": "admin"}';
 [Improved SQL with explanations]
 
 **Recommended Indexes**:
-```sql
-CREATE INDEX idx_table_column ON table(column);
-```
+    ```sql
+    CREATE INDEX idx_table_column ON table(column);
+    ```
 
 **Performance Impact**: Expected 80% improvement in execution time
 ```

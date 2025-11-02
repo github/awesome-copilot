@@ -198,16 +198,16 @@ This workflow analyzes Infrastructure-as-Code (IaC) files and Azure resources to
    
    **IaC Files Detected**: [Yes/No - based on file_search results]
    
-   ```bash
-   # If IaC files found: Show IaC modifications + deployment
-   # File: infrastructure/bicep/modules/app-service.bicep
-   # Change: sku.name: 'S3' → 'B2'
-   az deployment group create --resource-group [rg] --template-file infrastructure/bicep/main.bicep
-   
-   # If no IaC files: Direct Azure CLI commands + warning
-   # ⚠️ No IaC files found. If they exist elsewhere, modify those instead.
-   az appservice plan update --name [plan] --sku B2
-   ```
+       ```bash
+       # If IaC files found: Show IaC modifications + deployment
+       # File: infrastructure/bicep/modules/app-service.bicep
+       # Change: sku.name: 'S3' → 'B2'
+       az deployment group create --resource-group [rg] --template-file infrastructure/bicep/main.bicep
+       
+       # If no IaC files: Direct Azure CLI commands + warning
+       # ⚠️ No IaC files found. If they exist elsewhere, modify those instead.
+       az appservice plan update --name [plan] --sku B2
+       ```
    
    ### 📊 Evidence
    - Current Configuration: [details]
@@ -251,12 +251,12 @@ This workflow analyzes Infrastructure-as-Code (IaC) files and Azure resources to
    
    ## 🏗️ Current Architecture Overview
    
-   ```mermaid
-   graph TB
-       subgraph "Resource Group: [name]"
-           [Generated architecture diagram showing current resources and costs]
-       end
-   ```
+       ```mermaid
+       graph TB
+           subgraph "Resource Group: [name]"
+               [Generated architecture diagram showing current resources and costs]
+           end
+       ```
    
    ## 📋 Implementation Tracking
    

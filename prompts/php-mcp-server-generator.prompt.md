@@ -97,36 +97,36 @@ phpstan.neon
 
 ## Installation
 
-```bash
-composer install
-```
+    ```bash
+    composer install
+    ```
 
 ## Usage
 
 ### Start Server (Stdio)
 
-```bash
-php server.php
-```
+    ```bash
+    php server.php
+    ```
 
 ### Configure in Claude Desktop
 
-```json
-{
-  "mcpServers": {
-    "{project-name}": {
-      "command": "php",
-      "args": ["/absolute/path/to/server.php"]
+    ```json
+    {
+      "mcpServers": {
+        "{project-name}": {
+          "command": "php",
+          "args": ["/absolute/path/to/server.php"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
 ## Testing
 
-```bash
-vendor/bin/phpunit
-```
+    ```bash
+    vendor/bin/phpunit
+    ```
 
 ## Tools
 
@@ -136,9 +136,9 @@ vendor/bin/phpunit
 
 Test with MCP Inspector:
 
-```bash
-npx @modelcontextprotocol/inspector php server.php
-```
+    ```bash
+    npx @modelcontextprotocol/inspector php server.php
+    ```
 ```
 
 ### server.php

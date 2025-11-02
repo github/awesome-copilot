@@ -148,12 +148,12 @@ First Class Collections: a class that contains an array as an attribute should n
             .Count();
       }
    }
-   ```
-
-5. **One Dot per Line**:
-   - Limit the number of method calls in a single line to improve readability and maintainability.
-
-   ```csharp
+	   ```
+	
+	5. **One Dot per Line**:
+	   - Limit the number of method calls in a single line to improve readability and maintainability.
+	
+	   ```csharp
    // Bad Example - Multiple dots in a single line
    public void ProcessOrder(Order order) {
        var userEmail = order.User.GetEmail().ToUpper().Trim();
@@ -166,13 +166,13 @@ First Class Collections: a class that contains an array as an attribute should n
        var userEmail = email.ToUpper().Trim();
        // Do something with userEmail
    }
-   ```
-
-6. **Don't abbreviate**:
-   - Use meaningful names for classes, methods, and variables.
-   - Avoid abbreviations that can lead to confusion.
-
-   ```csharp
+	   ```
+	
+	6. **Don't abbreviate**:
+	   - Use meaningful names for classes, methods, and variables.
+	   - Avoid abbreviations that can lead to confusion.
+	
+	   ```csharp
    // Bad Example - Abbreviated names
    public class U {
        public string N { get; set; }
@@ -181,18 +181,18 @@ First Class Collections: a class that contains an array as an attribute should n
    public class User {
        public string Name { get; set; }
    }
-   ```
-
-7. **Keep entities small (Class, method, namespace or package)**:
-   - Limit the size of classes and methods to improve code readability and maintainability.
-   - Each class should have a single responsibility and be as small as possible.
-   
-   Constraints:
-   - Maximum 10 methods per class
-   - Maximum 50 lines per class
-   - Maximum 10 classes per package or namespace
-
-   ```csharp
+	   ```
+	
+	7. **Keep entities small (Class, method, namespace or package)**:
+	   - Limit the size of classes and methods to improve code readability and maintainability.
+	   - Each class should have a single responsibility and be as small as possible.
+	   
+	   Constraints:
+	   - Maximum 10 methods per class
+	   - Maximum 50 lines per class
+	   - Maximum 10 classes per package or namespace
+	
+	   ```csharp
    // Bad Example - Large class with multiple responsibilities
    public class UserManager {
        public void CreateUser(string name) { /*...*/ }
@@ -211,15 +211,15 @@ First Class Collections: a class that contains an array as an attribute should n
    public class UserUpdater {
        public void UpdateUser(int id, string name) { /*...*/ }
    }
-   ```
-
-
-8. **No Classes with More Than Two Instance Variables**:
-   - Encourage classes to have a single responsibility by limiting the number of instance variables.
-   - Limit the number of instance variables to two to maintain simplicity.
-   - Do not count ILogger or any other logger as instance variable.
-
-   ```csharp
+	   ```
+	
+	
+	8. **No Classes with More Than Two Instance Variables**:
+	   - Encourage classes to have a single responsibility by limiting the number of instance variables.
+	   - Limit the number of instance variables to two to maintain simplicity.
+	   - Do not count ILogger or any other logger as instance variable.
+	
+	   ```csharp
    // Bad Example - Class with multiple instance variables
    public class UserCreateCommandHandler {
       // Bad: Too many instance variables
@@ -248,14 +248,14 @@ First Class Collections: a class that contains an array as an attribute should n
          this.logger = logger;
       }
    }
-   ```
-
-9. **No Getters/Setters in Domain Classes**:
-   - Avoid exposing setters for properties in domain classes.
-   - Use private constructors and static factory methods for object creation.
-   - **Note**: This rule applies primarily to domain classes, not DTOs or data transfer objects.
-
-   ```csharp
+	   ```
+	
+	9. **No Getters/Setters in Domain Classes**:
+	   - Avoid exposing setters for properties in domain classes.
+	   - Use private constructors and static factory methods for object creation.
+	   - **Note**: This rule applies primarily to domain classes, not DTOs or data transfer objects.
+	
+	   ```csharp
    // Bad Example - Domain class with public setters
    public class User {  // Domain class
        public string Name { get; set; } // Avoid this in domain classes
@@ -272,31 +272,32 @@ First Class Collections: a class that contains an array as an attribute should n
    public class UserDto {  // DTO - exemption applies
        public string Name { get; set; } // Acceptable for DTOs
    }
-   ```
-
-## Implementation Guidelines
-- **Domain Classes**:
-  - Use private constructors and static factory methods for creating instances.
-  - Avoid exposing setters for properties.
-  - Apply all 9 rules strictly for business domain code.
-
-- **Application Layer**:
-  - Apply these rules to use case handlers and application services.
-  - Focus on maintaining single responsibility and clean abstractions.
-
-- **DTOs and Data Objects**:
-  - Rules 3 (wrapping primitives), 8 (two instance variables), and 9 (no getters/setters) may be relaxed for DTOs.
-  - Public properties with getters/setters are acceptable for data transfer objects.
-
-- **Testing**:
-  - Ensure tests validate the behavior of objects rather than their state.
-  - Test classes may have relaxed rules for readability and maintainability.
-
-- **Code Reviews**:
-  - Enforce these rules during code reviews for domain and application code.
-  - Be pragmatic about infrastructure and DTO code.
-
-## References
-- [Object Calisthenics - Original 9 Rules by Jeff Bay](https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf)
-- [ThoughtWorks - Object Calisthenics](https://www.thoughtworks.com/insights/blog/object-calisthenics)
-- [Clean Code: A Handbook of Agile Software Craftsmanship - Robert C. Martin](https://www.oreilly.com/library/view/clean-code-a/9780136083238/)
+	   ```
+	
+	## Implementation Guidelines
+	- **Domain Classes**:
+	  - Use private constructors and static factory methods for creating instances.
+	  - Avoid exposing setters for properties.
+	  - Apply all 9 rules strictly for business domain code.
+	
+	- **Application Layer**:
+	  - Apply these rules to use case handlers and application services.
+	  - Focus on maintaining single responsibility and clean abstractions.
+	
+	- **DTOs and Data Objects**:
+	  - Rules 3 (wrapping primitives), 8 (two instance variables), and 9 (no getters/setters) may be relaxed for DTOs.
+	  - Public properties with getters/setters are acceptable for data transfer objects.
+	
+	- **Testing**:
+	  - Ensure tests validate the behavior of objects rather than their state.
+	  - Test classes may have relaxed rules for readability and maintainability.
+	
+	- **Code Reviews**:
+	  - Enforce these rules during code reviews for domain and application code.
+	  - Be pragmatic about infrastructure and DTO code.
+	
+	## References
+	- [Object Calisthenics - Original 9 Rules by Jeff Bay](https://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf)
+	- [ThoughtWorks - Object Calisthenics](https://www.thoughtworks.com/insights/blog/object-calisthenics)
+	- [Clean Code: A Handbook of Agile Software Craftsmanship - Robert C. Martin](https://www.oreilly.com/library/view/clean-code-a/9780136083238/)
+	

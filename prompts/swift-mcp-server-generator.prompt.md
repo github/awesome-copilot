@@ -576,29 +576,29 @@ A Model Context Protocol server built with Swift.
 
 ## Installation
 
-```bash
-swift build -c release
-```
+    ```bash
+    swift build -c release
+    ```
 
 ## Usage
 
 Run the server:
 
-```bash
-swift run
-```
+    ```bash
+    swift run
+    ```
 
 Or with logging:
 
-```bash
-LOG_LEVEL=debug swift run
-```
+    ```bash
+    LOG_LEVEL=debug swift run
+    ```
 
 ## Testing
 
-```bash
-swift test
-```
+    ```bash
+    swift test
+    ```
 
 ## Development
 

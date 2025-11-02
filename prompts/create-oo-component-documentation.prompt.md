@@ -94,44 +94,44 @@ Include a comprehensive mermaid diagram that shows:
 - **Data flow** - Direction of dependencies and interactions
 - **Inheritance/composition** - Class hierarchies and composition relationships
 
-```mermaid
-graph TD
-    subgraph "Component System"
-        A[Main Component] --> B[Internal Service]
-        A --> C[Internal Repository]
-        B --> D[Business Logic]
-        C --> E[Data Access Layer]
-    end
-
-    subgraph "External Dependencies"
-        F[External API]
-        G[Database]
-        H[Third-party Library]
-        I[Configuration Service]
-    end
-
-    A --> F
-    E --> G
-    B --> H
-    A --> I
-
-    classDiagram
-        class MainComponent {
-            +property: Type
-            +method(): ReturnType
-            +asyncMethod(): Promise~Type~
-        }
-        class InternalService {
-            +businessOperation(): Result
-        }
-        class ExternalAPI {
-            <<external>>
-            +apiCall(): Data
-        }
-
-        MainComponent --> InternalService
-        MainComponent --> ExternalAPI
-```
+    ```mermaid
+    graph TD
+        subgraph "Component System"
+            A[Main Component] --> B[Internal Service]
+            A --> C[Internal Repository]
+            B --> D[Business Logic]
+            C --> E[Data Access Layer]
+        end
+    
+        subgraph "External Dependencies"
+            F[External API]
+            G[Database]
+            H[Third-party Library]
+            I[Configuration Service]
+        end
+    
+        A --> F
+        E --> G
+        B --> H
+        A --> I
+    
+        classDiagram
+            class MainComponent {
+                +property: Type
+                +method(): ReturnType
+                +asyncMethod(): Promise~Type~
+            }
+            class InternalService {
+                +businessOperation(): Result
+            }
+            class ExternalAPI {
+                <<external>>
+                +apiCall(): Data
+            }
+    
+            MainComponent --> InternalService
+            MainComponent --> ExternalAPI
+    ```
 
 ## 3. Interface Documentation
 
@@ -154,20 +154,20 @@ graph TD
 
 ### Basic Usage
 
-```csharp
-// Basic usage example
-var component = new ComponentName();
-component.DoSomething();
-```
+    ```csharp
+    // Basic usage example
+    var component = new ComponentName();
+    component.DoSomething();
+    ```
 
 ### Advanced Usage
 
-```csharp
-// Advanced configuration patterns
-var options = new ComponentOptions();
-var component = ComponentFactory.Create(options);
-await component.ProcessAsync(data);
-```
+    ```csharp
+    // Advanced configuration patterns
+    var options = new ComponentOptions();
+    var component = ComponentFactory.Create(options);
+    await component.ProcessAsync(data);
+    ```
 
 - USE-001: Provide basic usage examples
 - USE-002: Show advanced configuration patterns

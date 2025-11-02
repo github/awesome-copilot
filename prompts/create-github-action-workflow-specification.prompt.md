@@ -39,19 +39,19 @@ tags: [process, cicd, github-actions, automation, [domain-specific-tags]]
 
 ## Execution Flow Diagram
 
-```mermaid
-graph TD
-    A[Trigger Event] --> B[Job 1]
-    B --> C[Job 2]
-    C --> D[Job 3]
-    D --> E[End]
-    
-    B --> F[Parallel Job]
-    F --> D
-    
-    style A fill:#e1f5fe
-    style E fill:#e8f5e8
-```
+    ```mermaid
+    graph TD
+        A[Trigger Event] --> B[Job 1]
+        B --> C[Job 2]
+        C --> D[Job 3]
+        D --> E[End]
+        
+        B --> F[Parallel Job]
+        F --> D
+        
+        style A fill:#e1f5fe
+        style E fill:#e8f5e8
+    ```
 
 ## Jobs & Dependencies
 
@@ -82,23 +82,23 @@ graph TD
 
 ### Inputs
 
-```yaml
-# Environment Variables
-ENV_VAR_1: string  # Purpose: [description]
-ENV_VAR_2: secret  # Purpose: [description]
-
-# Repository Triggers
-paths: [list of path filters]
-branches: [list of branch patterns]
-```
+    ```yaml
+    # Environment Variables
+    ENV_VAR_1: string  # Purpose: [description]
+    ENV_VAR_2: secret  # Purpose: [description]
+    
+    # Repository Triggers
+    paths: [list of path filters]
+    branches: [list of branch patterns]
+    ```
 
 ### Outputs
 
-```yaml
-# Job Outputs
-job_1_output: string  # Description: [purpose]
-build_artifact: file  # Description: [content type]
-```
+    ```yaml
+    # Job Outputs
+    job_1_output: string  # Description: [purpose]
+    build_artifact: file  # Description: [content type]
+    ```
 
 ### Secrets & Variables
 

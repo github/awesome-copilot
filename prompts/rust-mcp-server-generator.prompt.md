@@ -101,44 +101,44 @@ Cargo.lock
 
 ## Installation
 
-```bash
-cargo build --release
-```
+    ```bash
+    cargo build --release
+    ```
 
 ## Usage
 
 ### Stdio Transport
 
-```bash
-cargo run
-```
+    ```bash
+    cargo run
+    ```
 
 ### SSE Transport
 
-```bash
-cargo run --features http -- --transport sse
-```
+    ```bash
+    cargo run --features http -- --transport sse
+    ```
 
 ### HTTP Transport
 
-```bash
-cargo run --features http -- --transport http
-```
+    ```bash
+    cargo run --features http -- --transport http
+    ```
 
 ## Configuration
 
 Configure in your MCP client (e.g., Claude Desktop):
 
-```json
-{
-  "mcpServers": {
-    "{project-name}": {
-      "command": "path/to/target/release/{project-name}",
-      "args": []
+    ```json
+    {
+      "mcpServers": {
+        "{project-name}": {
+          "command": "path/to/target/release/{project-name}",
+          "args": []
+        }
+      }
     }
-  }
-}
-```
+    ```
 
 ## Tools
 
@@ -148,15 +148,15 @@ Configure in your MCP client (e.g., Claude Desktop):
 
 Run tests:
 
-```bash
-cargo test
-```
+    ```bash
+    cargo test
+    ```
 
 Run with logging:
 
-```bash
-RUST_LOG=debug cargo run
-```
+    ```bash
+    RUST_LOG=debug cargo run
+    ```
 ```
 
 ### src/main.rs

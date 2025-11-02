@@ -277,14 +277,14 @@ WHERE order_date >= '2024-01-01'
 **Recommendation**: [Specific fix with code example]
 
 **Before**:
-```sql
--- Problematic SQL
-```
+    ```sql
+    -- Problematic SQL
+    ```
 
 **After**:
-```sql
--- Improved SQL
-```
+    ```sql
+    -- Improved SQL
+    ```
 
 **Expected Improvement**: [Performance gain, security benefit]
 ```

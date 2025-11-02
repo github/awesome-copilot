@@ -912,38 +912,39 @@ public Set<RelatedEntity> getRelatedEntities() {
 ### **Top Runtime Issues to Check**
 
 1. **Repository Collection Casting**:
-   ```java
-   // Fix any repository methods that return collections:
-   default List<Entity> customFindMethod() {
-       return StreamSupport.stream(this.findAll().spliterator(), false)
-               .collect(Collectors.toList());
-   }
-
-2. **BigDecimal Compatibility (Java 17+)**:
-
-   ```java
+	   ```java
+	   // Fix any repository methods that return collections:
+	   default List<Entity> customFindMethod() {
+	       return StreamSupport.stream(this.findAll().spliterator(), false)
+	               .collect(Collectors.toList());
+	   }
+	
+	2. **BigDecimal Compatibility (Java 17+)**:
+	
+	   ```java
    // Replace BigDecimal fields with alternatives:
    private Double amount; // Or String for high precision
 
-   ```
-
-3. **Health Check Configuration**:
-   ```yaml
+	   ```
+	
+	3. **Health Check Configuration**:
+	   ```yaml
    # Remove database dependencies from health checks:
    management:
      health:
        readiness:
          include: 'ping,diskSpace'
-   ```
-
-### **Authentication Conversion Patterns**
-
-- **Remove `@JsonIgnore` from fields that need Cosmos DB persistence**
-- **Store complex objects as simple types** (e.g., authorities as `Set<String>`)
-- **Convert between simple and complex types** in service/repository layers
-
-### **Template/UI Compatibility Patterns**
-
-- **Add transient properties** with `@JsonIgnore` for UI access to related data
-- **Use service layer** to populate transient relationships before rendering
-- **Never return repository results directly** to templates without relationship population
+	   ```
+	
+	### **Authentication Conversion Patterns**
+	
+	- **Remove `@JsonIgnore` from fields that need Cosmos DB persistence**
+	- **Store complex objects as simple types** (e.g., authorities as `Set<String>`)
+	- **Convert between simple and complex types** in service/repository layers
+	
+	### **Template/UI Compatibility Patterns**
+	
+	- **Add transient properties** with `@JsonIgnore` for UI access to related data
+	- **Use service layer** to populate transient relationships before rendering
+	- **Never return repository results directly** to templates without relationship population
+	

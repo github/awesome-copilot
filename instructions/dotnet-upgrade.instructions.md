@@ -131,13 +131,13 @@ BlobServiceClient client = new BlobServiceClient(connectionString);
 2. Update NuGet packages to versions compatible with the target framework.
 3. After upgrading and restoring the latest DLLs, review code for any required changes.
 4. Rebuild the project:
-   ```bash
-   dotnet build <ProjectName>.csproj
-   ```
+	   ```bash
+	   dotnet build <ProjectName>.csproj
+	   ```
 5. Run unit tests if any:
-   ```bash
-   dotnet test
-   ```
+	   ```bash
+	   dotnet test
+	   ```
 6. Fix build or runtime issues before proceeding.
 
 
@@ -168,120 +168,121 @@ After all projects are upgraded:
 
 ## 7. Tools & Automation
 - **.NET Upgrade Assistant**(Optional):
-  ```bash
-  dotnet tool install -g upgrade-assistant
-  upgrade-assistant upgrade <SolutionName>.sln```
-
-- **Upgrade CI/CD Pipelines**: 
-  When upgrading .NET projects, remember that build pipelines must also reference the correct SDK, NuGet versions, and tasks.
-  a. Locate pipeline YAML files  
-   - Check common folders such as:
-     - .azuredevops/
-     - .pipelines/
-     - Deployment/
-     - Root of the repo (*.yml)
-
-b. Scan for .NET SDK installation tasks  
-   Look for tasks like:
-   - task: UseDotNet@2
-     inputs:
-       version: <current-sdk-version>
-
-   or  
-   displayName: Use .NET Core sdk <current-sdk-version>
-
-c. Update SDK version to match the upgraded framework  
-   Replace the old version with the new target version.  
-   Example:  
-   - task: UseDotNet@2
-     displayName: Use .NET SDK <new-version>
-     inputs:
-       version: <new-version>
-       includePreviewVersions: true   # optional, if upgrading to a preview release
-
-d. Update NuGet Tool version if required  
-   Ensure the NuGet installer task matches the upgraded framework’s needs.  
-   Example:  
-   - task: NuGetToolInstaller@0
-     displayName: Use NuGet <new-version>
-     inputs:
-       versionSpec: <new-version>
-       checkLatest: true
-
-e. Validate the pipeline after updates  
-   - Commit changes to a feature branch.  
-   - Trigger a CI build to confirm:
-     - The YAML is valid.  
-     - The SDK is installed successfully.  
-     - Projects restore, build, and test with the upgraded framework.  
-
----
-
-## 8. Commit Plan
-- Always work on the specified branch or branch provided in context, if no branch specified create a new branch (`upgradeNetFramework`).
-- Commit after each successful project upgrade.
-- If a project fails, rollback to the previous commit and fix incrementally.
-
-
----
-
-## 9. Final Deliverable
-- Fully upgraded solution targeting the desired framework version.
-- Updated documentation of upgraded dependencies.
-- Test results confirming successful build & execution.
-
----
-
-
-## 10. Upgrade Checklist (Per Project)
-
-Use this table as a sample to track the progress of the upgrade across all projects in the solution and add this in the PullRequest
-
-| Project Name | Target Framework | Dependencies Updated | Builds Successfully | Tests Passing | Deployment Verified | Notes |
-|--------------|------------------|-----------------------|---------------------|---------------|---------------------|-------|
-| Project A    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
-| Project B    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
-| Project C    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
-
-> ✅ Mark each column as you complete the step for every project.
-
-## 11. Commit & PR Guidelines
-
-- Use a **single PR per repository**:
-  - Title: `Upgrade to .NET [VERSION]`
-  - Include:
-    - Updated target frameworks.
-    - NuGet upgrade summary.
-    - Provide test results as summarized above.
-- Tag with `breaking-change` if APIs were replaced.
-
-## 12. Multi-Repo Execution (Optional)
-
-For organizations with multiple repositories:
-1. Store this `instructions.md` in a central upgrade template repo.
-2. Provide SWE Agent / Cursor with:
-   ```
+      ```bash
+      dotnet tool install -g upgrade-assistant
+      upgrade-assistant upgrade <SolutionName>.sln```
+    
+    - **Upgrade CI/CD Pipelines**: 
+      When upgrading .NET projects, remember that build pipelines must also reference the correct SDK, NuGet versions, and tasks.
+      a. Locate pipeline YAML files  
+       - Check common folders such as:
+         - .azuredevops/
+         - .pipelines/
+         - Deployment/
+         - Root of the repo (*.yml)
+    
+    b. Scan for .NET SDK installation tasks  
+       Look for tasks like:
+       - task: UseDotNet@2
+         inputs:
+           version: <current-sdk-version>
+    
+       or  
+       displayName: Use .NET Core sdk <current-sdk-version>
+    
+    c. Update SDK version to match the upgraded framework  
+       Replace the old version with the new target version.  
+       Example:  
+       - task: UseDotNet@2
+         displayName: Use .NET SDK <new-version>
+         inputs:
+           version: <new-version>
+           includePreviewVersions: true   # optional, if upgrading to a preview release
+    
+    d. Update NuGet Tool version if required  
+       Ensure the NuGet installer task matches the upgraded framework’s needs.  
+       Example:  
+       - task: NuGetToolInstaller@0
+         displayName: Use NuGet <new-version>
+         inputs:
+           versionSpec: <new-version>
+           checkLatest: true
+    
+    e. Validate the pipeline after updates  
+       - Commit changes to a feature branch.  
+       - Trigger a CI build to confirm:
+         - The YAML is valid.  
+         - The SDK is installed successfully.  
+         - Projects restore, build, and test with the upgraded framework.  
+    
+    ---
+    
+    ## 8. Commit Plan
+    - Always work on the specified branch or branch provided in context, if no branch specified create a new branch (`upgradeNetFramework`).
+    - Commit after each successful project upgrade.
+    - If a project fails, rollback to the previous commit and fix incrementally.
+    
+    
+    ---
+    
+    ## 9. Final Deliverable
+    - Fully upgraded solution targeting the desired framework version.
+    - Updated documentation of upgraded dependencies.
+    - Test results confirming successful build & execution.
+    
+    ---
+    
+    
+    ## 10. Upgrade Checklist (Per Project)
+    
+    Use this table as a sample to track the progress of the upgrade across all projects in the solution and add this in the PullRequest
+    
+    | Project Name | Target Framework | Dependencies Updated | Builds Successfully | Tests Passing | Deployment Verified | Notes |
+    |--------------|------------------|-----------------------|---------------------|---------------|---------------------|-------|
+    | Project A    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+    | Project B    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+    | Project C    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+    
+    > ✅ Mark each column as you complete the step for every project.
+    
+    ## 11. Commit & PR Guidelines
+    
+    - Use a **single PR per repository**:
+      - Title: `Upgrade to .NET [VERSION]`
+      - Include:
+        - Updated target frameworks.
+        - NuGet upgrade summary.
+        - Provide test results as summarized above.
+    - Tag with `breaking-change` if APIs were replaced.
+    
+    ## 12. Multi-Repo Execution (Optional)
+    
+    For organizations with multiple repositories:
+    1. Store this `instructions.md` in a central upgrade template repo.
+    2. Provide SWE Agent / Cursor with:
+       ```
    Upgrade all repositories to latest supported .NET versions following instructions.md
-   ```
-3. Agent should:
-   - Detect project type per repo.
-   - Apply the appropriate upgrade path.
-   - Open PRs for each repo.
-
-
-## 🔑 Notes & Best Practices
-
-- **Prefer Migration to Modern .NET**  
-  If on .NET Framework or .NET Standard, evaluate moving to .NET 6/8 for long-term support.
-- **Automate Tests Early**  
-  CI/CD should block merges if tests fail.
-- **Incremental Upgrades**  
-  Large solutions may require upgrading one project at a time.
-
-  ### ✅ Example Agent Prompt
-
-  >  Upgrade this repository to the latest supported .NET version following the steps in `dotnet-upgrade-instructions.md`.  
-  >  Detect project type (.NET Core, Standard, or Framework) and apply the correct migration path.  
-  >  Ensure all tests pass and CI/CD workflows are updated.
-
----
+       ```
+    3. Agent should:
+       - Detect project type per repo.
+       - Apply the appropriate upgrade path.
+       - Open PRs for each repo.
+    
+    
+    ## 🔑 Notes & Best Practices
+    
+    - **Prefer Migration to Modern .NET**  
+      If on .NET Framework or .NET Standard, evaluate moving to .NET 6/8 for long-term support.
+    - **Automate Tests Early**  
+      CI/CD should block merges if tests fail.
+    - **Incremental Upgrades**  
+      Large solutions may require upgrading one project at a time.
+    
+      ### ✅ Example Agent Prompt
+    
+      >  Upgrade this repository to the latest supported .NET version following the steps in `dotnet-upgrade-instructions.md`.  
+      >  Detect project type (.NET Core, Standard, or Framework) and apply the correct migration path.  
+      >  Ensure all tests pass and CI/CD workflows are updated.
+    
+    ---
+    

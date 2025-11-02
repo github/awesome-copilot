@@ -193,20 +193,20 @@ Run this command in Terminal to apply the customizations on the Dev Box to aid i
 
 Run this command in Terminal to list the customization tasks that are available for use with the customization file. This returns a blob of JSON which includes a description of what a task is for and examples of how to use it in the yaml file. Example:
 
-```devbox customizations list-tasks```
-
-> [!IMPORTANT]
-> [Keeping track of the available customization tasks for use during prompting](#keeping-track-of-the-available-customization-tasks-for-use-during-prompting) and then referring to the contents of the local file can reduce the need to prompt the user to execute this command.
-
-### Installing WinGet locally for package discovery
-
-**Recommendation**: Having WinGet CLI on your the Dev Box you're using to author the image definition file can aid in finding correct package IDs for software installations. This is especially helpful when the MCP WinGet task generator requires you to search for package names. This would typically be the case but may depend on the base image used.
-
-#### How to install WinGet
-
-Option 1: PowerShell
-
-```powershell
+    ```devbox customizations list-tasks```
+    
+    > [!IMPORTANT]
+    > [Keeping track of the available customization tasks for use during prompting](#keeping-track-of-the-available-customization-tasks-for-use-during-prompting) and then referring to the contents of the local file can reduce the need to prompt the user to execute this command.
+    
+    ### Installing WinGet locally for package discovery
+    
+    **Recommendation**: Having WinGet CLI on your the Dev Box you're using to author the image definition file can aid in finding correct package IDs for software installations. This is especially helpful when the MCP WinGet task generator requires you to search for package names. This would typically be the case but may depend on the base image used.
+    
+    #### How to install WinGet
+    
+    Option 1: PowerShell
+    
+    ```powershell
 # Install WinGet via PowerShell
 $progressPreference = 'silentlyContinue'
 Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle

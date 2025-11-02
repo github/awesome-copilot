@@ -689,53 +689,53 @@ A Model Context Protocol server built with Java and the official MCP Java SDK.
 ## Build
 
 ### Maven
-```bash
-mvn clean package
-```
+    ```bash
+    mvn clean package
+    ```
 
 ### Gradle
-```bash
-./gradlew build
-```
+    ```bash
+    ./gradlew build
+    ```
 
 ## Run
 
 ### Maven
-```bash
-java -jar target/my-mcp-server-1.0.0.jar
-```
+    ```bash
+    java -jar target/my-mcp-server-1.0.0.jar
+    ```
 
 ### Gradle
-```bash
-./gradlew run
-```
+    ```bash
+    ./gradlew run
+    ```
 
 ## Testing
 
 ### Maven
-```bash
-mvn test
-```
+    ```bash
+    mvn test
+    ```
 
 ### Gradle
-```bash
-./gradlew test
-```
+    ```bash
+    ./gradlew test
+    ```
 
 ## Integration with Claude Desktop
 
 Add to `claude_desktop_config.json`:
 
-```json
-{
-  "mcpServers": {
-    "my-mcp-server": {
-      "command": "java",
-      "args": ["-jar", "/path/to/my-mcp-server-1.0.0.jar"]
+    ```json
+    {
+      "mcpServers": {
+        "my-mcp-server": {
+          "command": "java",
+          "args": ["-jar", "/path/to/my-mcp-server-1.0.0.jar"]
+        }
+      }
     }
-  }
-}
-```
+    ```
 
 ## License
 
