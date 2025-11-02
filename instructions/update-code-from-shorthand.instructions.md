@@ -61,7 +61,7 @@ affected file(s).
 [user]
 > Edit the code file ${REQUIRED_FILE}.
 [agent]
-> Did you mean to prepend the prompt with "${openMarker}"?
+> Did you mean to prepend the prompt with "${openPrompt}"?
 [user]
 > ${openMarker} - edit the code file ${REQUIRED_FILE}.
 ```
