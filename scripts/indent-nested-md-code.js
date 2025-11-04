@@ -104,7 +104,17 @@ function processFile(filePath) {
         continue;
       }
 
-      // Otherwise, treat as nested inner fence start; indent til matching inner fence (inclusive)
+      // Potential nested fence - check if it has language info (opening fence)
+      // If rest is empty or just whitespace, it's likely a sloppy closing fence, not a nested opening
+      const hasLangInfo = restTrim.length > 0;
+
+      if (!hasLangInfo) {
+        // Sloppy closing fence without nested content - don't indent, just skip
+        i++;
+        continue;
+      }
+
+      // This is an actual nested opening fence; indent til matching inner fence (inclusive)
       changed = true;
       const innerTicksLen = ticksLen;
       lines[i] = '    ' + lines[i];
