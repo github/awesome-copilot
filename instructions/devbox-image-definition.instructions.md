@@ -226,9 +226,9 @@ Option 2: GitHub Release
 
 Once installed, you can search for packages locally:
 
-```cmd
-winget search "Visual Studio Code"
-```
+    ```cmd
+    winget search "Visual Studio Code"
+    ```
 
 This will help you find the exact package IDs (like `Microsoft.VisualStudioCode`) needed for your image definition files and understand which winget sources you will need to use.
 

@@ -79,6 +79,14 @@ function processFile(filePath) {
     if (!inOuter) {
       // Look for start of an outer fence
       if (m) {
+        const rest = m.groups.rest || '';
+        // Check if this is a single-line fence (opening and closing on same line)
+        const closingMatch = rest.match(new RegExp(`\`{${m.groups.ticks.length},}\\s*$`));
+        if (closingMatch) {
+          // Single-line code block, skip it
+          i++;
+          continue;
+        }
         inOuter = true;
         outerIndent = m.groups.indent || '';
         outerTicksLen = m.groups.ticks.length;

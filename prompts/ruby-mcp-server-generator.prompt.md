@@ -386,6 +386,7 @@ end
 ```
 
 Make the file executable:
+
 ```bash
 chmod +x bin/mcp-server
 ```
@@ -622,24 +623,24 @@ Add to `claude_desktop_config.json`:
 
 ## Project Structure
 
-```
-my-mcp-server/
-├── Gemfile              # Dependencies
-├── Rakefile             # Build tasks
-├── lib/                 # Source code
-│   ├── my_mcp_server.rb # Main entry point
-│   └── my_mcp_server/   # Module namespace
-│       ├── server.rb    # Server setup
-│       ├── tools/       # Tool implementations
-│       ├── prompts/     # Prompt templates
-│       └── resources/   # Resource handlers
-├── bin/                 # Executables
-│   └── mcp-server       # Stdio server
-├── test/                # Test suite
-│   ├── test_helper.rb   # Test configuration
-│   └── tools/           # Tool tests
-└── README.md            # This file
-```
+    ```
+    my-mcp-server/
+    ├── Gemfile              # Dependencies
+    ├── Rakefile             # Build tasks
+    ├── lib/                 # Source code
+    │   ├── my_mcp_server.rb # Main entry point
+    │   └── my_mcp_server/   # Module namespace
+    │       ├── server.rb    # Server setup
+    │       ├── tools/       # Tool implementations
+    │       ├── prompts/     # Prompt templates
+    │       └── resources/   # Resource handlers
+    ├── bin/                 # Executables
+    │   └── mcp-server       # Stdio server
+    ├── test/                # Test suite
+    │   ├── test_helper.rb   # Test configuration
+    │   └── tools/           # Tool tests
+    └── README.md            # This file
+    ```
 
 ## License
 

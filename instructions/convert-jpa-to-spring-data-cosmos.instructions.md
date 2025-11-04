@@ -34,13 +34,16 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
 ### Step 2 — Properties and Configuration
 
 - Create `src/main/resources/application-cosmos.properties`:
+
   ```properties
   azure.cosmos.uri=${COSMOS_URI:https://localhost:8081}
   azure.cosmos.database=${COSMOS_DATABASE:petclinic}
   azure.cosmos.populate-query-metrics=false
   azure.cosmos.enable-multiple-write-locations=false
   ```
+
 - Update `src/main/resources/application.properties`:
+
   ```properties
   spring.profiles.active=cosmos
   ```
@@ -48,6 +51,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
 ### Step 3 — Configuration class with Azure Identity
 
 - Create `src/main/java/<rootpkg>/config/CosmosConfiguration.java`:
+
   ```java
   @Configuration
   @EnableCosmosRepositories(basePackages = "<rootpkg>")
@@ -76,6 +80,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
   }
 
   ```
+
 - **IMPORTANT**: Use `DefaultAzureCredentialBuilder().build()` instead of key-based authentication for production security
 
 ### Step 4 — Entity transformation
@@ -103,6 +108,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
 - **CRITICAL - Authentication Entity Pattern**:
   - **For User entities with Spring Security**: Store authorities as `Set<String>` instead of `Set<Authority>` objects
   - **Example User entity transformation**:
+
     ```java
     @Container(containerName = "users")
     public class User {
@@ -131,6 +137,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
     }
 
     ```
+
 - **CRITICAL - Template Compatibility for Relationship Changes**:
   - **When converting relationships to ID references, preserve template access**
   - **Example**: If entity had `List<Specialty> specialties` → convert to:
@@ -194,6 +201,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
 - **CRITICAL**: Create service classes to bridge Cosmos document storage with existing template expectations
 - **Purpose**: Handle relationship population and maintain template compatibility
 - **Service pattern for each entity with relationships**:
+
   ```java
   @Service
   public class EntityService {
@@ -242,6 +250,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
 ### Step 6.5 — **Spring Security Integration** (CRITICAL for Authentication)
 
 - **UserDetailsService Integration Pattern**:
+
   ```java
   @Service
   @Transactional
@@ -277,6 +286,7 @@ This generalized guide applies to any JPA to Spring Data Cosmos DB conversion pr
   }
 
   ```
+
 - **Key Authentication Requirements**:
   - User entity must be fully serializable (no `@JsonIgnore` on password/authorities)
   - Store authorities as `Set<String>` for Cosmos DB compatibility
@@ -329,6 +339,7 @@ private void populateRelationships(Entity entity) {
 ### Step 7 — Data seeding
 
 - Create `@Component` implementing `CommandLineRunner`:
+
   ```java
   @Component
   public class DataSeeder implements CommandLineRunner {
@@ -344,6 +355,7 @@ private void populateRelationships(Entity entity) {
   }
 
   ```
+
 - **CRITICAL - BigDecimal Reflection Issues with JDK 17+**:
   - **If using BigDecimal fields**, you may encounter reflection errors during seeding
   - **Error pattern**: `Unable to make field private final java.math.BigInteger java.math.BigDecimal.intVal accessible`
@@ -505,7 +517,7 @@ private void populateRelationships(Entity entity) {
   - Service layer not populating transient relationship properties
   - Controllers not using service layer for relationship loading
 
-#### **Template compatibility fixes**:
+#### **Template compatibility fixes**
 
 - **If templates access relationship properties** (e.g., `entity.relatedObjects`):
   - Ensure transient properties exist on entities with proper getters/setters
@@ -515,7 +527,7 @@ private void populateRelationships(Entity entity) {
   - `Property or field 'xxx' cannot be found` → Add missing transient property
   - `EL1008E` errors → Service layer not populating relationships
 
-#### **Service layer verification**:
+#### **Service layer verification**
 
 - **Ensure all controllers use service layer** instead of direct repository access
 - **Verify service methods populate relationships** before returning entities
@@ -555,7 +567,7 @@ When encountering template errors:
 
 ### Step 10 — **Systematic Error Resolution Process**
 
-#### When compilation fails:
+#### When compilation fails
 
 1. **Run `mvn compile` first** - fix main source issues before tests
 2. **Run `mvn test-compile`** - systematically fix each test compilation error
@@ -567,7 +579,7 @@ When encountering template errors:
 
 ### Step 10 — **Systematic Error Resolution Process**
 
-#### When compilation fails:
+#### When compilation fails
 
 1. **Run `mvn compile` first** - fix main source issues before tests
 2. **Run `mvn test-compile`** - systematically fix each test compilation error
@@ -576,7 +588,8 @@ When encountering template errors:
    - `method X cannot be applied to given types` → Remove pagination parameters
    - `cannot find symbol: method Y()` → Update to new repository method names
    - Method signature conflicts → Rename conflicting methods
-#### When runtime fails:
+
+#### When runtime fails
 
 1. **Check application logs** for specific error messages
 2. **Look for template/SpEL errors**:
@@ -585,7 +598,7 @@ When encountering template errors:
 3. **Verify service layer usage** in controllers
 4. **Test navigation through all application pages**
 
-#### Common error patterns and solutions:
+#### Common error patterns and solutions
 
 - **`method findByLastNameStartingWith cannot be applied`** → Remove `Pageable` parameter
 - **`cannot find symbol: method findPetTypes()`** → Change to `findAllOrderByName()`
@@ -712,7 +725,7 @@ If runtime fails after successful compilation:
 
 ### **Authentication Troubleshooting Guide** (CRITICAL)
 
-#### **Common Authentication Serialization Errors**:
+#### **Common Authentication Serialization Errors**
 
 1. **`Cannot pass null or empty values to constructor`**:
 
@@ -751,7 +764,7 @@ If runtime fails after successful compilation:
    - **Solution**: Update repository `findOneByLogin` method to work with Cosmos DB
    - **Verification**: Test repository methods independently
 
-#### **Authentication Debugging Checklist**:
+#### **Authentication Debugging Checklist**
 
 - [ ] User entity fully serializable (no `@JsonIgnore` on persisted fields)
 - [ ] Password field accessible and not null
@@ -823,6 +836,7 @@ default List<Entity> customFindMethod() {
    ```
 
 3. **Add JVM argument** (if BigDecimal must be kept):
+
    ```
    --add-opens java.base/java.math=ALL-UNNAMED
    ```
@@ -872,10 +886,11 @@ public Set<RelatedEntity> getRelatedEntities() {
         .map(Optional::get)
         .collect(Collectors.toSet());
 }
+```
 
 ### **Enhanced Error Resolution Process**
 
-#### **Common Error Patterns and Solutions**:
+#### **Common Error Patterns and Solutions**
 
 1. **Reactive Type Casting Errors**:
    - **Pattern**: `cannot be cast to java.util.List`
@@ -897,7 +912,8 @@ public Set<RelatedEntity> getRelatedEntities() {
    - **Fix**: Update service methods to handle String-based entity references
    - **Files**: Service classes, DTOs, entity relationship methods
 
-#### **Enhanced Validation Checklist**:
+#### **Enhanced Validation Checklist**
+
 - [ ] **Repository reactive casting handled**: No ClassCastException on collection returns
 - [ ] **BigDecimal compatibility resolved**: Java 17+ serialization works
 - [ ] **Health checks updated**: No database dependencies in health configuration
@@ -912,39 +928,40 @@ public Set<RelatedEntity> getRelatedEntities() {
 ### **Top Runtime Issues to Check**
 
 1. **Repository Collection Casting**:
-	   ```java
-	   // Fix any repository methods that return collections:
-	   default List<Entity> customFindMethod() {
-	       return StreamSupport.stream(this.findAll().spliterator(), false)
-	               .collect(Collectors.toList());
-	   }
-	
-	2. **BigDecimal Compatibility (Java 17+)**:
-	
-	   ```java
-   // Replace BigDecimal fields with alternatives:
-   private Double amount; // Or String for high precision
 
-	   ```
-	
-	3. **Health Check Configuration**:
-	   ```yaml
-   # Remove database dependencies from health checks:
-   management:
-     health:
-       readiness:
-         include: 'ping,diskSpace'
-	   ```
-	
-	### **Authentication Conversion Patterns**
-	
-	- **Remove `@JsonIgnore` from fields that need Cosmos DB persistence**
-	- **Store complex objects as simple types** (e.g., authorities as `Set<String>`)
-	- **Convert between simple and complex types** in service/repository layers
-	
-	### **Template/UI Compatibility Patterns**
-	
-	- **Add transient properties** with `@JsonIgnore` for UI access to related data
-	- **Use service layer** to populate transient relationships before rendering
-	- **Never return repository results directly** to templates without relationship population
-	
+   ```java
+   // Fix any repository methods that return collections:
+   default List<Entity> customFindMethod() {
+       return StreamSupport.stream(this.findAll().spliterator(), false)
+               .collect(Collectors.toList());
+   }
+
+2. **BigDecimal Compatibility (Java 17+)**:
+
+       ```java
+       // Replace BigDecimal fields with alternatives:
+       private Double amount; // Or String for high precision
+    
+       ```
+
+3. **Health Check Configuration**:
+
+       ```yaml
+       # Remove database dependencies from health checks:
+       management:
+         health:
+           readiness:
+             include: 'ping,diskSpace'
+       ```
+
+### **Authentication Conversion Patterns**
+
+- **Remove `@JsonIgnore` from fields that need Cosmos DB persistence**
+- **Store complex objects as simple types** (e.g., authorities as `Set<String>`)
+- **Convert between simple and complex types** in service/repository layers
+
+### **Template/UI Compatibility Patterns**
+
+- **Add transient properties** with `@JsonIgnore` for UI access to related data
+- **Use service layer** to populate transient relationships before rendering
+- **Never return repository results directly** to templates without relationship population
