@@ -15,7 +15,7 @@
  * - Repeat for multiple nested "inner blocks" within the same outer block
  *
  * Notes:
- * - We only consider backtick fences (```). Tilde fences (~~~) are uncommon in this repo and not targeted
+ * - We only consider backtick fences (```). Tilde fences (~~~) are uncommon in repo, and excluded
  * - We preserve existing content and whitespace beyond the added indentation for nested fences
  */
 
@@ -59,7 +59,8 @@ function getEffectiveExt(filename) {
 }
 
 // Regex helpers
-const fenceLineRe = /^(?<indent> {0,3})(?<ticks>`{3,})(?<rest>.*)$/; // up to 3 spaces + ``` + anything
+// up to 3 spaces + ``` + anything
+const fenceLineRe = /^(?<indent> {0,3})(?<ticks>`{3,})(?<rest>.*)$/;
 
 function processFile(filePath) {
   const original = fs.readFileSync(filePath, 'utf8');
@@ -92,7 +93,8 @@ function processFile(filePath) {
       const indentLen = (m.groups.indent || '').length;
       const ticksLen = m.groups.ticks.length;
       const restTrim = (m.groups.rest || '').trim();
-      const isOuterCloser = indentLen <= outerIndent.length && ticksLen === outerTicksLen && restTrim === '';
+      const isOuterCloser = indentLen <= outerIndent.length && ticksLen === outerTicksLen &&
+            restTrim === '';
       if (isOuterCloser) {
         // End of outer block
         inOuter = false;
@@ -102,7 +104,7 @@ function processFile(filePath) {
         continue;
       }
 
-      // Otherwise, treat as nested inner fence start; indent until the matching inner fence (inclusive)
+      // Otherwise, treat as nested inner fence start; indent til matching inner fence (inclusive)
       changed = true;
       const innerTicksLen = ticksLen;
       lines[i] = '    ' + lines[i];
@@ -113,7 +115,8 @@ function processFile(filePath) {
         const m2 = innerLine.match(fenceLineRe);
         lines[i] = '    ' + innerLine;
         i++;
-        if (m2 && m2.groups.ticks.length === innerTicksLen) break; // we've indented the closing inner fence; stop
+        // we've indented the closing inner fence; stop
+        if (m2 && m2.groups.ticks.length === innerTicksLen) break;
       }
       continue;
     }
