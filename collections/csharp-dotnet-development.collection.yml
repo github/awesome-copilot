@@ -1,5 +1,5 @@
 id: csharp-dotnet-development
-name: C# .NET Development 
+name: C# .NET Development
 description: Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.
 tags: [csharp, dotnet, aspnet, testing]
 items:
@@ -16,6 +16,8 @@ items:
   - path: prompts/csharp-xunit.prompt.md
     kind: prompt
   - path: prompts/dotnet-best-practices.prompt.md
+    kind: prompt
+  - path: prompts/dotnet-upgrade.prompt.md
     kind: prompt
 display:
   ordering: alpha
