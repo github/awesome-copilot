@@ -2,19 +2,30 @@
 
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-89-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-91-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-A curated collection of prompts, instructions, and chat modes to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
+A community created collection of custom agents, prompts, and instructions to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
 
 ## 🚀 What is Awesome GitHub Copilot?
 
 This repository provides a comprehensive toolkit for enhancing GitHub Copilot with specialized:
 
-- **[![Awesome Prompts](https://img.shields.io/badge/Awesome-Prompts-blue?logo=githubcopilot)](README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
-- **[![Awesome Instructions](https://img.shields.io/badge/Awesome-Instructions-blue?logo=githubcopilot)](README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
-- **[![Awesome Chat Modes](https://img.shields.io/badge/Awesome-Chat_Modes-blue?logo=githubcopilot)](README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
-- **[![Awesome Collections](https://img.shields.io/badge/Awesome-Collections-blue?logo=githubcopilot)](README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
+- **👉 [Awesome Agents](docs/README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
+- **👉 [Awesome Prompts](docs/README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
+- **👉 [Awesome Instructions](docs/README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
+- **👉 [Awesome Chat Modes](docs/README.chatmodes.md)** - Specialized AI personas and conversation modes for different roles and contexts
+- **👉 [Awesome Collections](docs/README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
+
+## 🌟 Featured Collections
+
+Discover our curated collections of prompts, instructions, and chat modes organized around specific themes and workflows.
+
+| Name | Description | Items | Tags |
+| ---- | ----------- | ----- | ---- |
+| [Awesome Copilot](collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 11 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
+
 
 ## MCP Server
 
@@ -46,6 +57,10 @@ To make it easy to add these customizations to your editor, we have created a [M
 
 ## 🔧 How to Use
 
+### 🤖 Custom Agents
+
+Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assigning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
+
 ### 🎯 Prompts
 
 Use the `/` command in GitHub Copilot Chat to access prompts:
@@ -61,6 +76,13 @@ Instructions automatically apply to files based on their patterns and provide co
 ### 💭 Chat Modes
 
 Activate chat modes to get specialized assistance from AI personas tailored for specific roles like architects, DBAs, or security experts.
+
+## 🎯 Why Use Awesome GitHub Copilot?
+
+- **Productivity**: Pre-built agents, prompts and instructions save time and provide consistent results.
+- **Best Practices**: Benefit from community-curated coding standards and patterns.
+- **Specialized Assistance**: Access expert-level guidance through specialized custom agents.
+- **Continuous Learning**: Stay updated with the latest patterns and practices across technologies.
 
 ## 🤝 Contributing
 
@@ -87,12 +109,6 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 └── scripts/          # Utility scripts for maintenance
 ```
 
-## 🌟 Getting Started
-
-1. **Browse the Collections**: Check out our comprehensive lists of [prompts](README.prompts.md), [instructions](README.instructions.md), [chat modes](README.chatmodes.md), and [collections](README.collections.md).
-2. **Add to your editor**: Click the "Install" button to install to VS Code, or copy the file contents for other editors.
-3. **Start Using**: Copy prompts to use with `/` commands, let instructions enhance your coding experience, or activate chat modes for specialized assistance.
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -103,16 +119,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Support**: Check our [Support Guide](SUPPORT.md) for getting help
 - **Code of Conduct**: We follow the [Contributor Covenant](CODE_OF_CONDUCT.md)
 
-## 🎯 Why Use Awesome GitHub Copilot?
+## ℹ️ Disclaimer
 
-- **Productivity**: Pre-built prompts and instructions save time and provide consistent results
-- **Best Practices**: Benefit from community-curated coding standards and patterns
-- **Specialized Assistance**: Access expert-level guidance through specialized chat modes
-- **Continuous Learning**: Stay updated with the latest patterns and practices across technologies
+The customizations in this repository are sourced from and created by third-party developers. GitHub does not verify, endorse, or guarantee the functionality or security of these agents. Please carefully inspect any agent and its documentation before installing to understand permissions it may require and actions it may perform.
 
 ---
 
-**Ready to supercharge your coding experience?** Start exploring our [prompts](README.prompts.md), [instructions](README.instructions.md), and [chat modes](README.chatmodes.md)!
+**Ready to supercharge your coding experience?** Start exploring our [prompts](docs/README.prompts.md), [instructions](docs/README.instructions.md), and [chat modes](docs/README.chatmodes.md)!
 
 ## Contributors ✨
 
@@ -237,6 +250,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://soderlind.no"><img src="https://avatars.githubusercontent.com/u/1649452?v=4?s=100" width="100px;" alt="Per Søderlind"/><br /><sub><b>Per Søderlind</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=soderlind" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/riqueufmg"><img src="https://avatars.githubusercontent.com/u/108551585?v=4?s=100" width="100px;" alt="Henrique Nunes"/><br /><sub><b>Henrique Nunes</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=riqueufmg" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jeremiah-snee-openx"><img src="https://avatars.githubusercontent.com/u/113928685?v=4?s=100" width="100px;" alt="Jeremiah Snee"/><br /><sub><b>Jeremiah Snee</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=jeremiah-snee-openx" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/spectatora"><img src="https://avatars.githubusercontent.com/u/1385755?v=4?s=100" width="100px;" alt="spectatora"/><br /><sub><b>spectatora</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=spectatora" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Mike-Hanna"><img src="https://avatars.githubusercontent.com/u/50142889?v=4?s=100" width="100px;" alt="Michael"/><br /><sub><b>Michael</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=Mike-Hanna" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

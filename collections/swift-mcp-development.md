@@ -1,6 +1,6 @@
 # Swift MCP Server Development
 
-'Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.'
+Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.
 
 **Tags:** swift, mcp, model-context-protocol, server-development, sdk, ios, macos, concurrency, actor, async-await
 

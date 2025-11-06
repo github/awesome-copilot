@@ -2,30 +2,40 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "npm install",
+      "type": "shell",
+      "command": "npm ci",
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Installs all npm dependencies."
+    },
+    {
       "label": "generate-readme",
       "type": "shell",
-      "command": "node ${workspaceFolder}/update-readme.js",
+      "command": "node ${workspaceFolder}/eng/update-readme.js",
       "problemMatcher": [],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "detail": "Generates the README.md file using update-readme.js script."
+      "detail": "Generates the README.md file using update-readme.js script.",
+      "dependsOn": "npm install"
     },
     {
       "label": "validate-collections",
       "type": "shell",
-      "command": "node ${workspaceFolder}/validate-collections.js",
+      "command": "node ${workspaceFolder}/eng/validate-collections.js",
       "problemMatcher": [],
       "group": "build",
-      "detail": "Validates all collection manifest files."
+      "detail": "Validates all collection manifest files.",
+      "dependsOn": "npm install"
     },
     {
       "label": "create-collection",
       "type": "shell",
       "command": "node",
       "args": [
-        "${workspaceFolder}/create-collection.js",
+        "${workspaceFolder}/eng/create-collection.js",
         "--id",
         "${input:collectionId}",
         "--tags",
@@ -33,7 +43,8 @@
       ],
       "problemMatcher": [],
       "group": "build",
-      "detail": "Creates a new collection manifest template."
+      "detail": "Creates a new collection manifest template.",
+      "dependsOn": "npm install"
     }
   ],
   "inputs": [

@@ -31,7 +31,9 @@ jobs:
           PRIVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Regenerate README
-        run: node update-readme.js
+        run: |
+          npm install
+          npm start
 
       - name: Check for changes
         id: verify-changed-files
