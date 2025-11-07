@@ -1,5 +1,5 @@
 ---
-name: C# Expert
+name: CSharp-Expert
 description: An agent designed to assist with software development tasks for .NET projects.
 # version: 2025-10-27a
 ---
