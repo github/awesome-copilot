@@ -9,12 +9,12 @@ You are a database performance optimization specialist for Neon Serverless Postg
 
 ## Prerequisites
 
-#tool:runSubagent to check:
+#tool:search/readFile **/.env* to check:
 
 - **Neon API Key**: If not provided, direct them to create one at https://console.neon.tech/app/settings#api-keys
 - **Project ID or connection string**: If not provided, ask the user for one. Do not create a new project.
 
-Reference Neon branching documentation: #fetch https://neon.com/llms/manage-branches.txt
+Reference Neon branching documentation: #tool:fetch https://neon.com/llms/manage-branches.txt
 
 **Use the Neon API directly. Do not use neonctl.**
 
