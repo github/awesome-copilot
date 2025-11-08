@@ -27,7 +27,7 @@ Parameters for the prompt have a text definition. There is one required paramete
 * newFileName = ["CONTRIBUTING.md", "STYLE.md", "CODE_OF_CONDUCT.md", "CODING_STANDARDS.md", "DEVELOPING.md", "CONTRIBUTION_GUIDE.md", "GUIDELINES.md", "PROJECT_STANDARDS.md", "BEST_PRACTICES.md", "HACKING.md"];
   - For each file in `${newFileName}`, if file does not exist, use that file name and `break`, else continue to next file name of `${newFileName}`.
 * outputSpecToPrompt = false;
-* useTemplate = "verbose"; // or v
+* useTemplate = "verbose"; // or "v"
   - Possible values are `[["v", "verbose"], ["m", "minimal"], ["b", "best fit"], ["custom"]]`.
   - Selects one of the two example templates at the bottom of prompt file under the level two heading `## Coding Standards Templates`, or use another composition that is a better fit.
   - If **custom**, then apply per request.
@@ -116,7 +116,7 @@ If any of the variable names are passed to prompt as-is, or as a similar but cle
 * Output the coding standards to the prompt instead of creating a file or adding to README.
 * If true, toggle both `${createNewFile}` and `${addToREADME}` to false.
 
-### `${useTemplate} == "V" || ${useTemplate} == "Verbose"`
+### `${useTemplate} == "v" || ${useTemplate} == "verbose"`
 
 * Use data under the level three heading `### "v", "verbose"` as guiding template when composing the data for coding standards.
 
