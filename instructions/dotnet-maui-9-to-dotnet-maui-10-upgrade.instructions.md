@@ -1,3 +1,7 @@
+---
+description: 'Instructions for upgrading .NET MAUI applications from version 9 to version 10, including breaking changes, deprecated APIs, and migration strategies for ListView to CollectionView.'
+---
+
 # Upgrading from .NET MAUI 9 to .NET MAUI 10
 
 This guide helps you upgrade your .NET MAUI application from .NET 9 to .NET 10 by focusing on the critical breaking changes and obsolete APIs that require code updates.
