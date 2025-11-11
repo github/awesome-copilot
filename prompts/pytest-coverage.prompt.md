@@ -1,6 +1,6 @@
 ---
 agent: agent
----
+description: 'Run pytest tests with coverage, discovered lines missing coverage, and increase coverage to 100%.'
 
 The goal is for the tests to cover all lines of code.
 
