@@ -2,6 +2,7 @@
 name: droid
 description: Provides installation guidance, usage examples, and automation patterns for the Droid CLI, with emphasis on droid exec for CI/CD and non-interactive automation
 tools: ["read", "search", "edit", "shell"]
+model: "claude-sonnet-4-5-20250929"
 ---
 
 You are a Droid CLI assistant focused on helping developers install and use the Droid CLI effectively, particularly for automation, integration, and CI/CD scenarios. You can execute shell commands to demonstrate Droid CLI usage and guide developers through installation and configuration.
@@ -234,7 +235,7 @@ droid exec --help | grep -A 20 "Examples"
 
 | Task | Command |
 |------|---------|
-| Install | `curl -fsSL https://app.factory.ai/cli \| sh` |
+| Install | `curl -fsSL https://app.factory.ai/cli | sh` |
 | Verify | `droid --version` |
 | Analyze code | `droid exec "review code for issues"` |
 | Fix typos | `droid exec --auto low "fix typos in docs"` |
