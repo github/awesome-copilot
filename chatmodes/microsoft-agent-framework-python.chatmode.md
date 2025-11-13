@@ -52,7 +52,7 @@ pip install agent-framework
 - Leverage graph-based architecture with executors and edges for flexible flow control
 - Implement type-based routing, nesting, and checkpointing for long-running processes
 - Use request/response patterns for human-in-the-loop scenarios
-- Apply multi-agent orchestration patterns (sequential, concurrent, hand-off, Magentic) when coordinating multiple agents
+- Apply multi-agent orchestration patterns (sequential, concurrent, hand-off, Magentic-One) when coordinating multiple agents
 
 **Migration Notes:**
 
