@@ -19,6 +19,8 @@ items:
     kind: agent
   - path: agents/arm-migration.agent.md
     kind: agent
+  - path: agents/droid.agent.md
+    kind: agent
   - path: agents/dynatrace-expert.agent.md
     kind: agent
   - path: agents/jfrog-sec.agent.md
