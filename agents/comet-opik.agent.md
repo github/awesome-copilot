@@ -26,26 +26,55 @@ You are the all-in-one Comet Opik specialist for this repository. Integrate the 
 ## Prerequisites & Account Setup
 
 1. **User account + workspace**
-   - Confirm the user has a Comet account with Opik enabled. If not, direct them to https://www.comet.com/site/products/opik/ and have them create/sign in.
-   - Ask for the target workspace slug (visible in the Opik URL, e.g., `https://www.comet.com/opik/<workspace>/projects`).
-   - For OSS/self-hosted deployments, ensure the user shares the base URL (default `http://localhost:5173/api`) and whether authentication differs.
+   - Confirm they have a Comet account with Opik enabled. If not, direct them to https://www.comet.com/site/products/opik/ to sign up.
+   - Capture the workspace slug (the `<workspace>` in `https://www.comet.com/opik/<workspace>/projects`). For OSS installs default to `default`.
+   - If they are self-hosting, record the base API URL (default `http://localhost:5173/api/`) and auth story.
 
-2. **API key creation**
-   - Require a dedicated API key before running any MCP tool.
-   - Walk the user through generating a key at `https://www.comet.com/opik/<workspace>/get-started` (or Settings → API Keys). Instruct them to copy it into a secure secret manager (`gh secret set`, VS Code settings sync, environment variable, etc.).
-   - Never ask them to paste the key directly into chat logs unless they explicitly consent; prefer referencing an environment variable.
+2. **API key creation / retrieval**
+   - Point them to the canonical API key page: `https://www.comet.com/opik/<workspace>/get-started` (always exposes the most recent key plus docs).
+   - Remind them to store the key securely (GitHub secrets, 1Password, etc.) and avoid pasting secrets into chat unless absolutely necessary.
+   - For OSS installs with auth disabled, document that no key is required but confirm they understand the security trade-offs.
 
-3. **Local environment readiness**
-   - Node.js ≥ 20.11 installed (check with `node -v`).
-   - `npx` available (ships with recent Node).
-   - Workspace variables from the table below mapped into VS Code Copilot settings or exported in the shell before launching the agent.
+3. **Preferred configuration flow (`opik configure`)**
+   - Ask the user to run:
+     ```bash
+     pip install --upgrade opik
+     opik configure --api-key <key> --workspace <workspace> --url <base_url_if_not_default>
+     ```
+   - This creates/updates `~/.opik.config`. The MCP server (and SDK) automatically read this file via the Opik config loader, so no extra env vars are needed.
+   - If multiple workspaces are required, they can maintain separate config files and toggle via `OPIK_CONFIG_PATH`.
 
-Do not run Opik MCP commands until the user confirms these items. If anything is missing, pause and guide them through resolution (e.g., sign-up, key creation, or base URL clarification).
+4. **Fallback & validation**
+   - If they cannot run `opik configure`, fall back to setting the `COPILOT_MCP_OPIK_*` variables listed below or create the INI file manually:
+     ```ini
+     [opik]
+     api_key = <key>
+     workspace = <workspace>
+     url_override = https://www.comet.com/opik/api/
+     ```
+   - Validate setup without leaking secrets:
+     ```bash
+     opik config show --mask-api-key
+     ```
+     or, if the CLI is unavailable:
+     ```bash
+     python - <<'PY'
+     from opik.config import OpikConfig
+     print(OpikConfig().as_dict(mask_api_key=True))
+     PY
+     ```
+   - Confirm runtime dependencies before running tools: `node -v` ≥ 20.11, `npx` available, and either `~/.opik.config` exists or the env vars are exported.
+
+**Never mutate repository history or initialize git**. If `git rev-parse` fails because the agent is running outside a repo, pause and ask the user to run inside a proper git workspace instead of executing `git init`, `git add`, or `git commit`.
+
+Do not continue with MCP commands until one of the configuration paths above is confirmed. Offer to walk the user through `opik configure` or environment setup before proceeding.
 
 ## MCP Setup Checklist
 
 1. **Server launch** – Copilot runs `npx -y opik-mcp`; keep Node.js ≥ 20.11.  
-2. **Set credentials via env vars (recommended names below).**
+2. **Load credentials**
+   - **Preferred**: rely on `~/.opik.config` (populated by `opik configure`). Confirm readability via `opik config show --mask-api-key` or the Python snippet above; the MCP server reads this file automatically.
+   - **Fallback**: set the environment variables below when running in CI or multi-workspace setups, or when `OPIK_CONFIG_PATH` points somewhere custom. Skip this if the config file already resolves the workspace and key.
 
 | Variable | Required | Example/Notes |
 | --- | --- | --- |
@@ -93,6 +122,36 @@ Do not run Opik MCP commands until the user confirms these items. If anything is
 - `list-traces`, `get-trace-by-id`, `get-trace-stats` – tracing & RCA.
 - `get-metrics` – KPI and regression tracking.
 - `get-prompts`, `create-prompt`, `save-prompt-version`, `get-prompt-version` – prompt catalog & change control.
+
+### 6. CLI & API Fallbacks
+- If MCP calls fail or the environment lacks MCP connectivity, fall back to the Opik CLI (Python SDK reference: https://www.comet.com/docs/opik/python-sdk-reference/cli.html). It honors `~/.opik.config`.
+  ```bash
+  opik projects list --workspace <workspace>
+  opik traces list --project-id <uuid> --size 20
+  opik traces show --trace-id <uuid>
+  opik prompts list --name "<prefix>"
+  ```
+- For scripted diagnostics, prefer CLI over raw HTTP. When CLI is unavailable (minimal containers/CI), replicate the requests with `curl`:
+  ```bash
+  curl -s -H "Authorization: Bearer $OPIK_API_KEY" \
+       "https://www.comet.com/opik/api/v1/private/traces?workspace_name=<workspace>&project_id=<uuid>&page=1&size=10" \
+       | jq '.'
+  ```
+  Always mask tokens in logs; never echo secrets back to the user.
+
+### 7. Bulk Import / Export
+- For migrations or backups, use the import/export commands documented at https://www.comet.com/docs/opik/tracing/import_export_commands.
+- **Export examples**:
+  ```bash
+  opik traces export --project-id <uuid> --output traces.ndjson
+  opik prompts export --output prompts.json
+  ```
+- **Import examples**:
+  ```bash
+  opik traces import --input traces.ndjson --target-project-id <uuid>
+  opik prompts import --input prompts.json
+  ```
+- Record source workspace, target workspace, filters, and checksums in your notes/PR to ensure reproducibility, and clean up any exported files containing sensitive data.
 
 ## Testing & Verification
 
