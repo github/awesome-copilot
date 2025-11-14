@@ -840,6 +840,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Jandev",
+      "name": "Jan de Vries",
+      "avatar_url": "https://avatars.githubusercontent.com/u/462356?v=4",
+      "profile": "https://jan-v.nl",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
