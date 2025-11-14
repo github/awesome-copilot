@@ -1,6 +1,6 @@
 ---
 name: elasticsearch-agent
-description: our expert AI assistant for debugging code (O11y), optimizing vector search (RAG), and remediating security threats using live Elastic data.
+description: Our expert AI assistant for debugging code (O11y), optimizing vector search (RAG), and remediating security threats using live Elastic data.
 tools:
   # Standard tools for file reading, editing, and execution
   - read
