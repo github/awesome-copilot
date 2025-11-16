@@ -1,5 +1,5 @@
 ---
-name: ADR Generator
+name: adr-generator
 description: Expert agent for creating comprehensive Architectural Decision Records (ADRs) with structured formatting optimized for AI consumption and human readability.
 ---
 

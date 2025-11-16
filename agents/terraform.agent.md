@@ -1,5 +1,5 @@
 ---
-name: Terraform Agent
+name: terraform-agent
 description: "Terraform infrastructure specialist with automated HCP Terraform workflows. Leverages Terraform MCP server for registry integration, workspace management, and run orchestration. Generates compliant code using latest provider/module versions, manages private registries, automates variable sets, and orchestrates infrastructure deployments with proper validation and security practices."
 tools: ['read', 'edit', 'search', 'shell', 'terraform/*']
 mcp-servers:
@@ -296,7 +296,7 @@ After generating Terraform code, always:
 4. `get_provider_details` - Get comprehensive documentation and examples
 
 **Module Discovery Workflow:**
-1. `get_latest_module_version` - Resolve latest version if not specified  
+1. `get_latest_module_version` - Resolve latest version if not specified
 2. `search_modules` - Find relevant modules with compatibility info
 3. `get_module_details` - Get usage documentation, inputs, and outputs
 
