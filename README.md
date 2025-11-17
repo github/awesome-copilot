@@ -2,7 +2,7 @@
 
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-92-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-93-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 A community created collection of custom agents, prompts, and instructions to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
@@ -24,7 +24,7 @@ Discover our curated collections of prompts, instructions, and chat modes organi
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
 | [Awesome Copilot](collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
-| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 11 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 18 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
 ## MCP Server
@@ -255,6 +255,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lechnerc77"><img src="https://avatars.githubusercontent.com/u/22294087?v=4?s=100" width="100px;" alt="Christian Lechner"/><br /><sub><b>Christian Lechner</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=lechnerc77" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://jan-v.nl"><img src="https://avatars.githubusercontent.com/u/462356?v=4?s=100" width="100px;" alt="Jan de Vries"/><br /><sub><b>Jan de Vries</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=Jandev" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
