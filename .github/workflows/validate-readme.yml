@@ -9,6 +9,9 @@ on:
       - "chatmodes/**"
       - "collections/**"
       - "*.js"
+      - "agents/**"
+      - "README.md"
+      - "docs/**"
 
 jobs:
   validate-readme:
