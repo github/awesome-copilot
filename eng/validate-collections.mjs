@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
-const { parseCollectionYaml, parseFrontmatter } = require("./yaml-parser");
-const {
+import fs from "fs";
+import path from "path";
+import { parseCollectionYaml, parseFrontmatter } from "./yaml-parser.mjs";
+import {
   ROOT_FOLDER,
   COLLECTIONS_DIR,
   MAX_COLLECTION_ITEMS,
-} = require("./constants");
+} from "./constants.mjs";
 
 // Validation functions
 function validateCollectionId(id) {
@@ -370,3 +370,4 @@ try {
   console.error(`Error during validation: ${error.message}`);
   process.exit(1);
 }
+

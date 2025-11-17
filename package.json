@@ -6,11 +6,11 @@
   "private": true,
   "scripts": {
     "start": "npm run build",
-    "build": "node ./eng/update-readme.js",
+    "build": "node ./eng/update-readme.mjs",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
-    "validate:collections": "node ./eng/validate-collections.js"
+    "validate:collections": "node ./eng/validate-collections.mjs"
   },
   "repository": {
     "type": "git",
