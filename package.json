@@ -6,11 +6,12 @@
   "private": true,
   "scripts": {
     "start": "npm run build",
-    "build": "node ./eng/update-readme.js",
+    "build": "node ./eng/update-readme.mjs",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
-    "validate:collections": "node ./eng/validate-collections.js"
+    "collection:validate": "node ./eng/validate-collections.mjs",
+    "collection:create": "node ./eng/create-collection.mjs"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,7 @@
     "all-contributors-cli": "^6.26.1"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "vfile": "^6.0.3",
     "vfile-matter": "^5.0.1"
   }

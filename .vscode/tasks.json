@@ -12,19 +12,19 @@
     {
       "label": "generate-readme",
       "type": "shell",
-      "command": "node ${workspaceFolder}/eng/update-readme.js",
+      "command": "npm run build",
       "problemMatcher": [],
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "detail": "Generates the README.md file using update-readme.js script.",
+      "detail": "Generates the README.md file using npm build run-script.",
       "dependsOn": "npm install"
     },
     {
       "label": "validate-collections",
       "type": "shell",
-      "command": "node ${workspaceFolder}/eng/validate-collections.js",
+      "command": "npm run collection:validate",
       "problemMatcher": [],
       "group": "build",
       "detail": "Validates all collection manifest files.",
@@ -33,9 +33,8 @@
     {
       "label": "create-collection",
       "type": "shell",
-      "command": "node",
+      "command": "npm run collection:create",
       "args": [
-        "${workspaceFolder}/eng/create-collection.js",
         "--id",
         "${input:collectionId}",
         "--tags",

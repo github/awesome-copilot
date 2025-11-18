@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
-const path = require("path");
-const readline = require("readline");
-const { COLLECTIONS_DIR } = require("./constants");
+import fs from "fs";
+import path from "path";
+import readline from "readline";
+import { COLLECTIONS_DIR } from "./constants.mjs";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -166,7 +166,7 @@ display:
     console.log("\n📝 Next steps:");
     console.log("1. Edit the collection manifest to add your items");
     console.log("2. Update the name, description, and tags as needed");
-    console.log("3. Run 'npm run validate:collections' to validate");
+    console.log("3. Run 'npm run collection:validate' to validate");
     console.log("4. Run 'npm start' to generate documentation");
     console.log("\n📄 Collection template contents:");
     console.log(template);
