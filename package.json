@@ -10,7 +10,8 @@
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
-    "validate:collections": "node ./eng/validate-collections.mjs"
+    "collection:validate": "node ./eng/validate-collections.mjs",
+    "collection:create": "node ./eng/create-collection.mjs"
   },
   "repository": {
     "type": "git",
