@@ -17,9 +17,9 @@ applyTo: '**'
 ### Test Structure
 
 - **Usings**: Start with `using Microsoft.Playwright;` and either `using Microsoft.Playwright.Xunit;` or `using Microsoft.Playwright.NUnit;` or `using Microsoft.Playwright.MSTest;` for MSTest.
-- **Organization**: Create test classes that inherit from `PageTest` (NUnit) or use `IClassFixture<PlaywrightFixture>` (xUnit). Group related tests for a feature in the same test class.
+- **Organization**: Create test classes that inherit from `PageTest` (available in NUnit, xUnit, and MSTest packages) or use `IClassFixture<PlaywrightFixture>` for xUnit with custom fixtures. Group related tests for a feature in the same test class.
 - **Setup**: Use `[SetUp]` (NUnit), `[TestInitialize]` (MSTest), or constructor initialization (xUnit) for setup actions common to all tests (e.g., navigating to a page).
-- **Titles**: Use the `[Test]` attribute with descriptive method names following C# naming conventions (e.g., `SearchForMovieByTitle`).
+- **Titles**: Use the appropriate test attribute (`[Test]` for NUnit, `[Fact]` for xUnit, `[TestMethod]` for MSTest) with descriptive method names following C# naming conventions (e.g., `SearchForMovieByTitle`).
 
 ### File Organization
 
