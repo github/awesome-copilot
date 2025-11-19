@@ -15,19 +15,19 @@ mcp-servers:
     type: 'remote'
     # 'npx mcp-remote' is used to connect to a remote MCP server
     command: 'npx'
-    args: [
+args: [
         'mcp-remote',
         # ---
         # !! ACTION REQUIRED !!
         # Replace this URL with your actual Kibana URL
         # ---
-        'https://{KIBANA_URL}/api/agent_builder/mcp',
+        'https://microsoft-build-search-demo-c81fea.kb.eastus.azure.elastic.cloud/api/agent_builder/mcp',
         '--header',
-        'Authorization:${AUTH_HEADER}'
+        'Authorization: ApiKey ${{ secrets.ELASTIC_API_KEY }}'
       ]
     # This section maps a GitHub secret to the AUTH_HEADER environment variable
     # The 'ApiKey' prefix is required by Elastic
-    env:
+env:
       AUTH_HEADER: ApiKey ${{ secrets.ELASTIC_API_KEY }}
 ---
 
