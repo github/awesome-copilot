@@ -61,7 +61,7 @@ This guide helps you upgrade your .NET MAUI application from .NET 9 to .NET 10 b
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.22621.0</TargetFrameworks>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
   </PropertyGroup>
 </Project>
 ```
