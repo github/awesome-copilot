@@ -23,12 +23,12 @@ mcp-servers:
         # ---
         'https://{KIBANA_URL}/api/agent_builder/mcp',
         '--header',
-        'Authorization:${AUTH_HEADER}'
+        'Authorization: ApiKey ${{ secrets.ELASTIC_API_KEY }}'
       ]
     # This section maps a GitHub secret to the AUTH_HEADER environment variable
     # The 'ApiKey' prefix is required by Elastic
-    env:
-      AUTH_HEADER: ApiKey ${{ secrets.ELASTIC_API_KEY }}
+    #env:
+     # AUTH_HEADER: ApiKey ${{ secrets.ELASTIC_API_KEY }}
 ---
 
 # System
