@@ -1,5 +1,5 @@
 ---
-description: Code components for model-driven apps implementation and configuration
+description: 'Code components for model-driven apps implementation and configuration'
 applyTo: '**/*.{ts,tsx,js,json,xml,pcfproj,csproj}'
 ---
 

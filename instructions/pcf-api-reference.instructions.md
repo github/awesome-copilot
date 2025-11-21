@@ -1,5 +1,5 @@
 ---
-description: Complete PCF API reference with all interfaces and their availability in model-driven and canvas apps
+description: 'Complete PCF API reference with all interfaces and their availability in model-driven and canvas apps'
 applyTo: '**/*.{ts,tsx,js}'
 ---
 

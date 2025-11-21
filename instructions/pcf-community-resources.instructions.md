@@ -1,5 +1,5 @@
 ---
-description: PCF community resources including gallery, videos, blogs, and development tools
+description: 'PCF community resources including gallery, videos, blogs, and development tools'
 applyTo: '**'
 ---
 

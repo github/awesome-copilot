@@ -1,5 +1,5 @@
 ---
-description: Power Apps Component Framework overview and fundamentals
+description: 'Power Apps Component Framework overview and fundamentals'
 applyTo: '**/*.{ts,tsx,js,json,xml,pcfproj,csproj}'
 ---
 

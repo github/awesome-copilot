@@ -1,5 +1,5 @@
 ---
-description: React controls and platform libraries for PCF components
+description: 'React controls and platform libraries for PCF components'
 applyTo: '**/*.{ts,tsx,js,json,xml,pcfproj,csproj}'
 ---
 

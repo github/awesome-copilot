@@ -1,5 +1,5 @@
 ---
-description: Best practices and guidance for developing PCF code components
+description: 'Best practices and guidance for developing PCF code components'
 applyTo: '**/*.{ts,tsx,js,json,xml,pcfproj,csproj,css,html}'
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: Style components with modern theming using Fluent UI
+description: 'Style components with modern theming using Fluent UI'
 applyTo: '**/*.{ts,tsx,js,json,xml,pcfproj,csproj}'
 ---
 
