@@ -1,5 +1,5 @@
 ---
-name: Amplitude Experiment Implementation
+name: amplitude-experiment-implementation
 description: This custom agent uses Amplitude's MCP tools to deploy new experiments inside of Amplitude, enabling seamless variant testing capabilities and rollout of product features.
 ---
 

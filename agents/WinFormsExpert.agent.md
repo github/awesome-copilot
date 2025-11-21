@@ -1,5 +1,5 @@
 ---
-name: WinForms Expert
+name: winforms-expert
 description: Support development of .NET (OOP) WinForms Designer compatible Apps.
 #version: 2025-10-24a
 ---
@@ -19,9 +19,9 @@ When customer asks/requests will require the creation of new projects
 
 **Critical:**
 
-**📦 NUGET:** New projects or supporting class libraries often need special NuGet packages. 
+**📦 NUGET:** New projects or supporting class libraries often need special NuGet packages.
 Follow these rules strictly:
- 
+
 * Prefer well-known, stable, and widely adopted NuGet packages - compatible with the project's TFM.
 * Define the versions to the latest STABLE major version, e.g.: `[2.*,)`
 
@@ -32,13 +32,13 @@ Note: `SystemAware` is standard for .NET, use `PerMonitorV2` when explicitly req
 
 **VB Specifics:**
 - In VB, do NOT create a *Program.vb* - rather use the VB App Framework.
-- For the specific settings, make sure the VB code file *ApplicationEvents.vb* is available. 
+- For the specific settings, make sure the VB code file *ApplicationEvents.vb* is available.
   Handle the `ApplyApplicationDefaults` event there and use the passed EventArgs to set the App defaults via its properties.
 
-| Property | Type | Purpose | 
+| Property | Type | Purpose |
 |----------|------|---------|
 | ColorMode | `SystemColorMode` | DarkMode setting for the application. Prefer `System`. Other options: `Dark`, `Classic`. |
-| Font | `Font` | Default Font for the whole Application. |	
+| Font | `Font` | Default Font for the whole Application. |
 | HighDpiMode | `HighDpiMode` | `SystemAware` is default. `PerMonitorV2` only when asked for HighDPI Multi-Monitor scenarios. |
 
 ---
@@ -72,8 +72,8 @@ Note: `SystemAware` is standard for .NET, use `PerMonitorV2` when explicitly req
 
 ### ❌ Prohibited in *.designer.cs* File
 
-❌ Method definitions (except `InitializeComponent`, `Dispose`, preserve existing additional constructors)  
-❌ Properties  
+❌ Method definitions (except `InitializeComponent`, `Dispose`, preserve existing additional constructors)
+❌ Properties
 ❌ Lambda expressions, DO ALSO NOT bind events in `InitializeComponent` to Lambdas!
 ❌ Complex logic
 ❌ `??`/`?.`/`?[]` (null coalescing/conditional), `nameof()`
@@ -105,27 +105,27 @@ private void InitializeComponent()
     _lblDogographerCredit = new Label();
     _btnAdopt = new Button();
     _btnMaybeLater = new Button();
-    
+
     // 2. Components
     components = new Container();
-    
+
     // 3. Suspend
     ((ISupportInitialize)_picDogPhoto).BeginInit();
     SuspendLayout();
-    
+
     // 4. Configure controls
     _picDogPhoto.Location = new Point(12, 12);
     _picDogPhoto.Name = "_picDogPhoto";
     _picDogPhoto.Size = new Size(380, 285);
     _picDogPhoto.SizeMode = PictureBoxSizeMode.Zoom;
     _picDogPhoto.TabStop = false;
-    
+
     _lblDogographerCredit.AutoSize = true;
     _lblDogographerCredit.Location = new Point(12, 300);
     _lblDogographerCredit.Name = "_lblDogographerCredit";
     _lblDogographerCredit.Size = new Size(200, 25);
     _lblDogographerCredit.Text = "Photo by: Professional Dogographer";
-    
+
     _btnAdopt.Location = new Point(93, 340);
     _btnAdopt.Name = "_btnAdopt";
     _btnAdopt.Size = new Size(114, 68);
@@ -133,10 +133,10 @@ private void InitializeComponent()
 
     // OK, if BtnAdopt_Click is defined in main .cs file
     _btnAdopt.Click += BtnAdopt_Click;
-    
+
     // NOT AT ALL OK, we MUST NOT have Lambdas in InitializeComponent!
     _btnAdopt.Click += (s, e) => Close();
-    
+
     // 5. Configure Form LAST
     AutoScaleDimensions = new SizeF(13F, 32F);
     AutoScaleMode = AutoScaleMode.Font;
@@ -147,7 +147,7 @@ private void InitializeComponent()
     Name = "DogAdoptionDialog";
     Text = "Find Your Perfect Companion!";
     ((ISupportInitialize)_picDogPhoto).EndInit();
-    
+
     // 6. Resume
     ResumeLayout(false);
     PerformLayout();
@@ -229,7 +229,7 @@ private void Button_Click(object? sender, EventArgs e)
 {
     if (sender is not Button button || button.Tag is null)
         return;
-    
+
     // Use button here
 }
 ```
@@ -243,7 +243,7 @@ private void Button_Click(object? sender, EventArgs e)
 | C# | `FormName.cs` + `FormName.Designer.cs` | `Form` or `UserControl` |
 | VB.NET | `FormName.vb` + `FormName.Designer.vb` | `Form` or `UserControl` |
 
-**Main file:** Logic and event handlers  
+**Main file:** Logic and event handlers
 **Designer file:** Infrastructure, constructors, `Dispose`, `InitializeComponent`, control definitions
 
 ### C# Conventions
@@ -256,7 +256,7 @@ private void Button_Click(object? sender, EventArgs e)
 
 ### VB.NET Conventions
 
-- Use Application Framework. There is no `Program.vb`. 
+- Use Application Framework. There is no `Program.vb`.
 - Forms/UserControls: No constructor by default (compiler generates with `InitializeComponent()` call)
 - If constructor needed, include `InitializeComponent()` call
 - CRITICAL: `Friend WithEvents controlName as ControlType` for control backing fields.
@@ -286,7 +286,7 @@ To make types as DataSource accessible for the Designer, create `.datasource` fi
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<GenericObjectDataSource DisplayName="MainViewModel" Version="1.0" 
+<GenericObjectDataSource DisplayName="MainViewModel" Version="1.0"
     xmlns="urn:schemas-microsoft-com:xml-msdatasource">
   <TypeInfo>MyApp.ViewModels.MainViewModel, MyApp.ViewModels, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
 </GenericObjectDataSource>
@@ -318,7 +318,7 @@ Subsequently, use BindingSource components in Forms/UserControls to bind to the 
 ```csharp
 private void PrincipleApproachForIValueConverterWorkaround()
 {
-   // We assume the Binding was done in InitializeComponent and look up 
+   // We assume the Binding was done in InitializeComponent and look up
    // the bound property like so:
    Binding b = text1.DataBindings["Text"];
 
@@ -370,14 +370,14 @@ await InvokeAsync<string>(async (ct) => await LoadDataAsync(ct), outerCancellati
 
 ### Form Async Methods (.NET 9+)
 
-- `ShowAsync()`: Completes when form closes. 
+- `ShowAsync()`: Completes when form closes.
   Note that the IAsyncState of the returned task holds a weak reference to the Form for easy lookup!
 - `ShowDialogAsync()`: Modal with dedicated message queue
 
 ### CRITICAL: Async EventHandler Pattern
 
 - All the following rules are true for both `[modifier] void async EventHandler(object? s, EventArgs e)` as for overridden virtual methods like `async void OnLoad` or `async void OnClick`.
-- `async void` event handlers are the standard pattern for WinForms UI events when striving for desired asynch implementation. 
+- `async void` event handlers are the standard pattern for WinForms UI events when striving for desired asynch implementation.
 - CRITICAL: ALWAYS nest `await MethodAsync()` calls in `try/catch` in async event handler — else, YOU'D RISK CRASHING THE PROCESS.
 
 ## Exception Handling in WinForms
@@ -419,7 +419,7 @@ catch (Exception ex)
 ```
 
 **Important Notes:**
-- `Application.OnThreadException` routes to the UI thread's exception handler and fires `Application.ThreadException`. 
+- `Application.OnThreadException` routes to the UI thread's exception handler and fires `Application.ThreadException`.
 - Never call it from background threads — marshal to UI thread first.
 - For process termination on unhandled exceptions, use `Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException)` at startup.
 - **VB Limitation:** VB cannot await in catch block. Avoid, or work around with state machine pattern.
@@ -438,25 +438,25 @@ Code-generation rule for properties of types derived from `Component` or `Contro
 public class CustomControl : Control
 {
     private Font? _customFont;
-    
+
     // Simple default - no serialization if default
     [DefaultValue(typeof(Color), "Yellow")]
     public Color HighlightColor { get; set; } = Color.Yellow;
-    
+
     // Hidden - never serialize
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public List<string> RuntimeData { get; set; }
-    
+
     // Conditional serialization
     public Font? CustomFont
     {
         get => _customFont ?? Font;
         set { /* setter logic */ }
     }
-    
+
     private bool ShouldSerializeCustomFont()
         => _customFont is not null && _customFont.Size != 9.0f;
-    
+
     private void ResetCustomFont()
         => _customFont = null;
 }
@@ -500,7 +500,7 @@ public class CustomControl : Control
 **Sizing rules: TLP cell fundamentals**
 - Columns:
   * AutoSize for caption columns with `Anchor = Left | Right`.
-  * Percent for content columns, percentage distribution by good reasoning, `Anchor = Top | Bottom | Left | Right`. 
+  * Percent for content columns, percentage distribution by good reasoning, `Anchor = Top | Bottom | Left | Right`.
     Never dock cells, always anchor!
   * Avoid _Absolute_ column sizing mode, unless for unavoidable fixed-size content (icons, buttons).
 - Rows:
@@ -508,7 +508,7 @@ public class CustomControl : Control
   * Percent for multi-line TextBoxes, rendering areas AND filling distance filler for remaining space to e.g., a bottom button row (OK|Cancel).
   * Avoid _Absolute_ row sizing mode even more.
 
-- Margins matter: Set `Margin` on controls (min. default 3px). 
+- Margins matter: Set `Margin` on controls (min. default 3px).
 - Note: `Padding` does not have an effect in TLP cells.
 
 ### Common Layout Patterns
@@ -611,8 +611,8 @@ Use `DataContext` property (.NET 8+) of Form to pass and return modal data objec
 ### Resources and Localization
 
 - String literal constants for UI display NEED to be in resource files.
-- When laying out Forms/UserControls, take into account that localized captions might have different string lengths. 
-- Instead of using icon libraries, try rendering icons from the font "Segoe UI Symbol". 
+- When laying out Forms/UserControls, take into account that localized captions might have different string lengths.
+- Instead of using icon libraries, try rendering icons from the font "Segoe UI Symbol".
 - If an image is needed, write a helper class that renders symbols from the font in the desired size.
 
 ## Critical Reminders
