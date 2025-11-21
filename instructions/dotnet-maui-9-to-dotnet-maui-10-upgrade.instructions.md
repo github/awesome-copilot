@@ -17,6 +17,10 @@ This guide helps you upgrade your .NET MAUI application from .NET 9 to .NET 10 b
    - [MessagingCenter Made Internal](#messagingcenter-made-internal)
    - [ListView and TableView Deprecated](#listview-and-tableview-deprecated)
 4. [Deprecated APIs (P1 - Fix Soon)](#deprecated-apis-p1---fix-soon)
+   - [Animation Methods](#1-animation-methods)
+   - [DisplayAlert and DisplayActionSheet](#2-displayalert-and-displayactionsheet)
+   - [Page.IsBusy](#3-pageisbusy)
+   - [MediaPicker APIs](#4-mediapicker-apis)
 5. [Recommended Changes (P2)](#recommended-changes-p2)
 6. [Bulk Migration Tools](#bulk-migration-tools)
 7. [Testing Your Upgrade](#testing-your-upgrade)
@@ -32,7 +36,7 @@ This guide helps you upgrade your .NET MAUI application from .NET 9 to .NET 10 b
 2. **Update CommunityToolkit.Maui** to 12.3.0+ (if you use it) - REQUIRED
 3. **Fix breaking changes** - MessagingCenter (P0)
 4. **Migrate ListView/TableView to CollectionView** (P0 - CRITICAL)
-5. **Fix deprecated APIs** - Animation methods, DisplayAlert, IsBusy (P1)
+5. **Fix deprecated APIs** - Animation methods, DisplayAlert, IsBusy, MediaPicker (P1)
 
 > ⚠️ **Major Breaking Changes**: 
 > - CommunityToolkit.Maui **must** be version 12.3.0 or later
@@ -1087,6 +1091,253 @@ public class MyViewModel : INotifyPropertyChanged
 
 ---
 
+### 4. MediaPicker APIs
+
+**Status:** ⚠️ **DEPRECATED** - Single-selection methods replaced with multi-selection variants.
+
+**Warning You'll See:**
+```
+warning CS0618: 'MediaPicker.PickPhotoAsync(MediaPickerOptions)' is obsolete: 'Switch to PickPhotosAsync which also allows multiple selections.'
+warning CS0618: 'MediaPicker.PickVideoAsync(MediaPickerOptions)' is obsolete: 'Switch to PickVideosAsync which also allows multiple selections.'
+```
+
+**What Changed:**
+- `PickPhotoAsync()` → `PickPhotosAsync()` (returns `List<FileResult>`)
+- `PickVideoAsync()` → `PickVideosAsync()` (returns `List<FileResult>`)
+- New `SelectionLimit` property on `MediaPickerOptions` (default: 1)
+- Old methods still work but are marked obsolete
+
+**Key Behavior:**
+- **Default behavior preserved:** `SelectionLimit = 1` (single selection)
+- Set `SelectionLimit = 0` for unlimited multi-select
+- Set `SelectionLimit > 1` for specific limits
+
+**Platform Notes:**
+- ✅ **iOS:** Selection limit enforced by native picker UI
+- ⚠️ **Android:** Not all custom pickers honor `SelectionLimit` - be aware!
+- ⚠️ **Windows:** `SelectionLimit` not supported - implement your own validation
+
+#### Migration Examples
+
+**Simple Photo Picker (maintain single-selection behavior):**
+```csharp
+// ❌ OLD (Deprecated)
+var photo = await MediaPicker.PickPhotoAsync(new MediaPickerOptions
+{
+    Title = "Pick a photo"
+});
+
+if (photo != null)
+{
+    var stream = await photo.OpenReadAsync();
+    MyImage.Source = ImageSource.FromStream(() => stream);
+}
+
+// ✅ NEW (maintains same behavior - picks only 1 photo)
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    Title = "Pick a photo",
+    SelectionLimit = 1  // Explicit: only 1 photo
+});
+
+var photo = photos.FirstOrDefault();
+if (photo != null)
+{
+    var stream = await photo.OpenReadAsync();
+    MyImage.Source = ImageSource.FromStream(() => stream);
+}
+```
+
+**Simple Video Picker (maintain single-selection behavior):**
+```csharp
+// ❌ OLD (Deprecated)
+var video = await MediaPicker.PickVideoAsync(new MediaPickerOptions
+{
+    Title = "Pick a video"
+});
+
+if (video != null)
+{
+    VideoPlayer.Source = video.FullPath;
+}
+
+// ✅ NEW (maintains same behavior - picks only 1 video)
+var videos = await MediaPicker.PickVideosAsync(new MediaPickerOptions
+{
+    Title = "Pick a video",
+    SelectionLimit = 1  // Explicit: only 1 video
+});
+
+var video = videos.FirstOrDefault();
+if (video != null)
+{
+    VideoPlayer.Source = video.FullPath;
+}
+```
+
+**Photo Picker without Options (uses defaults):**
+```csharp
+// ❌ OLD (Deprecated)
+var photo = await MediaPicker.PickPhotoAsync();
+
+// ✅ NEW (default SelectionLimit = 1, so same behavior)
+var photos = await MediaPicker.PickPhotosAsync();
+var photo = photos.FirstOrDefault();
+```
+
+**Multi-Photo Selection (new capability):**
+```csharp
+// ✅ NEW: Pick up to 5 photos
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    Title = "Pick up to 5 photos",
+    SelectionLimit = 5
+});
+
+foreach (var photo in photos)
+{
+    var stream = await photo.OpenReadAsync();
+    // Process each photo
+}
+
+// ✅ NEW: Unlimited selection
+var allPhotos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    Title = "Pick photos",
+    SelectionLimit = 0  // No limit
+});
+```
+
+**Multi-Video Selection (new capability):**
+```csharp
+// ✅ NEW: Pick up to 3 videos
+var videos = await MediaPicker.PickVideosAsync(new MediaPickerOptions
+{
+    Title = "Pick up to 3 videos",
+    SelectionLimit = 3
+});
+
+foreach (var video in videos)
+{
+    // Process each video
+    Console.WriteLine($"Selected: {video.FileName}");
+}
+```
+
+**Handling Empty Results:**
+```csharp
+// NEW: Returns empty list if user cancels (not null)
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    SelectionLimit = 1
+});
+
+// ✅ Check for empty list
+if (photos.Count == 0)
+{
+    await DisplayAlertAsync("Cancelled", "No photo selected", "OK");
+    return;
+}
+
+var photo = photos.First();
+// Process photo...
+```
+
+**With Try-Catch (same as before):**
+```csharp
+try
+{
+    var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+    {
+        Title = "Pick a photo",
+        SelectionLimit = 1
+    });
+    
+    if (photos.Count > 0)
+    {
+        await ProcessPhotoAsync(photos.First());
+    }
+}
+catch (PermissionException)
+{
+    await DisplayAlertAsync("Permission Denied", "Camera access required", "OK");
+}
+catch (Exception ex)
+{
+    await DisplayAlertAsync("Error", $"Failed to pick photo: {ex.Message}", "OK");
+}
+```
+
+#### Migration Checklist
+
+When migrating to the new MediaPicker APIs:
+
+- [ ] Replace `PickPhotoAsync()` with `PickPhotosAsync()`
+- [ ] Replace `PickVideoAsync()` with `PickVideosAsync()`
+- [ ] Set `SelectionLimit = 1` to maintain single-selection behavior
+- [ ] Change `FileResult?` to `List<FileResult>` (or use `.FirstOrDefault()`)
+- [ ] Update null checks to empty list checks (`photos.Count == 0`)
+- [ ] Test on Android - ensure custom pickers respect limit (or add validation)
+- [ ] Test on Windows - add your own limit validation if needed
+- [ ] Consider if multi-select would improve your UX (optional)
+
+#### Platform-Specific Validation (Windows & Android)
+
+```csharp
+// ✅ Recommended: Validate selection limit on platforms that don't enforce it
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    Title = "Pick up to 5 photos",
+    SelectionLimit = 5
+});
+
+// On Windows and some Android pickers, the limit might not be enforced
+if (photos.Count > 5)
+{
+    await DisplayAlertAsync(
+        "Too Many Photos", 
+        $"Please select up to 5 photos. You selected {photos.Count}.", 
+        "OK"
+    );
+    return;
+}
+
+// Continue processing...
+```
+
+#### Capture Methods (unchanged)
+
+**Note:** Capture methods (`CapturePhotoAsync`, `CaptureVideoAsync`) are **NOT** deprecated and remain unchanged:
+
+```csharp
+// ✅ These still work as-is (no changes needed)
+var photo = await MediaPicker.CapturePhotoAsync();
+var video = await MediaPicker.CaptureVideoAsync();
+```
+
+#### Quick Migration Pattern
+
+**For all existing single-selection code, use this pattern:**
+
+```csharp
+// ❌ OLD
+var photo = await MediaPicker.PickPhotoAsync(options);
+if (photo != null)
+{
+    // Process photo
+}
+
+// ✅ NEW (drop-in replacement)
+var photos = await MediaPicker.PickPhotosAsync(options ?? new MediaPickerOptions { SelectionLimit = 1 });
+var photo = photos.FirstOrDefault();
+if (photo != null)
+{
+    // Process photo (same code as before)
+}
+```
+
+---
+
 ## Recommended Changes (P2)
 
 These changes are recommended but not required immediately. Consider migrating during your next refactoring cycle.
@@ -1201,6 +1452,31 @@ Replace: DisplayAlertAsync(
 
 Find:    DisplayActionSheet\(
 Replace: DisplayActionSheetAsync(
+```
+
+#### MediaPicker Methods
+
+**⚠️ Note:** MediaPicker migration requires manual code changes due to return type changes (`FileResult?` → `List<FileResult>`). Use these searches to find instances:
+
+```bash
+# Find PickPhotoAsync usages
+grep -rn "PickPhotoAsync" --include="*.cs" .
+
+# Find PickVideoAsync usages
+grep -rn "PickVideoAsync" --include="*.cs" .
+```
+
+**Manual Migration Pattern:**
+```csharp
+// Find: await MediaPicker.PickPhotoAsync(
+// Replace with:
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions { SelectionLimit = 1 });
+var photo = photos.FirstOrDefault();
+
+// Find: await MediaPicker.PickVideoAsync(
+// Replace with:
+var videos = await MediaPicker.PickVideosAsync(new MediaPickerOptions { SelectionLimit = 1 });
+var video = videos.FirstOrDefault();
 ```
 
 #### ListView/TableView Detection (Manual Migration Required)
@@ -1416,6 +1692,54 @@ dotnet workload update
 
 ---
 
+### Warning: MediaPicker methods are obsolete
+
+**Cause:** Using deprecated `PickPhotoAsync` or `PickVideoAsync` methods.
+
+**Solution:** Migrate to `PickPhotosAsync` or `PickVideosAsync`:
+
+```csharp
+// ❌ OLD
+var photo = await MediaPicker.PickPhotoAsync(options);
+
+// ✅ NEW (maintain single-selection)
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions 
+{ 
+    Title = options?.Title,
+    SelectionLimit = 1 
+});
+var photo = photos.FirstOrDefault();
+```
+
+**Key Changes:**
+- Return type changes from `FileResult?` to `List<FileResult>`
+- Use `.FirstOrDefault()` to get single result
+- Set `SelectionLimit = 1` to maintain old behavior
+- Check `photos.Count == 0` instead of `photo == null`
+
+---
+
+### MediaPicker returns more items than SelectionLimit
+
+**Cause:** Windows and some Android custom pickers don't enforce `SelectionLimit`.
+
+**Solution:** Add manual validation:
+
+```csharp
+var photos = await MediaPicker.PickPhotosAsync(new MediaPickerOptions
+{
+    SelectionLimit = 5
+});
+
+if (photos.Count > 5)
+{
+    await DisplayAlertAsync("Error", "Too many photos selected", "OK");
+    return;
+}
+```
+
+---
+
 ### Animation doesn't complete after migration
 
 **Cause:** Forgetting `await` keyword.
@@ -1556,6 +1880,8 @@ warning CS0618: 'ListView' is obsolete: 'With the deprecation of ListView, this 
 - [ ] Update `DisplayAlert` → `DisplayAlertAsync`
 - [ ] Update `DisplayActionSheet` → `DisplayActionSheetAsync`  
 - [ ] Replace `Page.IsBusy` with `ActivityIndicator`
+- [ ] Replace `PickPhotoAsync` → `PickPhotosAsync` (with `SelectionLimit = 1`)
+- [ ] Replace `PickVideoAsync` → `PickVideosAsync` (with `SelectionLimit = 1`)
 
 **Nice to Have (P2):**
 - [ ] Migrate `Application.MainPage` to `CreateWindow`
