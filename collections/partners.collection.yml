@@ -41,8 +41,6 @@ items:
     kind: agent
   - path: agents/neon-optimization-analyzer.agent.md
     kind: agent
-  - path: agents/newrelic-deployment-observability.agent.md
-    kind: agent
   - path: agents/octopus-deploy-release-notes-mcp.agent.md
     kind: agent
   - path: agents/stackhawk-security-onboarding.agent.md
