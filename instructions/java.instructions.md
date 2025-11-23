@@ -26,6 +26,7 @@ applyTo: '**/*.java'
       - Enable SpotBugs, PMD, or Checkstyle as CI fallbacks.
       - Open a short tracker issue documenting the blocker and next steps.
 - If the user declines static analysis tools or wants to proceed without them, continue with implementing the Best practices, bug patterns and code smell prevention guidelines outlined below.
+- Check the README.md and the project build instructions (`pom.xml` or `build.gradle`) for the Java release to use for source constructs as well as testing frameworks to use.
 - Address code smells proactively during development rather than accumulating technical debt.
 - Focus on readability, maintainability, and performance when refactoring identified issues.
 - Use IDE / Code editor reported warnings and suggestions to catch common patterns early in development.
@@ -68,7 +69,7 @@ These patterns are phrased for humans; they map cleanly to checks in Sonar, Spot
 - Method size — Keep methods focused and small. Extract helper methods to improve readability and testability.
 - Cognitive complexity — Reduce nested conditionals and heavy branching by extracting methods, using polymorphism, or applying the Strategy pattern.
 - Duplicated literals — Extract repeated strings and numbers into named constants or enums to reduce errors and ease changes.
-- Dead code — Remove unused variables and assignments. They confuse readers and can hide bugs.
+- Dead code — Remove unused variables, imports and assignments. They confuse readers and can hide bugs.
 - Magic numbers — Replace numeric literals with named constants that explain intent (e.g., MAX_RETRIES).
 
 If you run a static analyzer like Sonar or SonarLint — direct Sonar connections are preferred and should override this ruleset. Sonar rule keys are useful for automation and suppression, but they are not required in day-to-day developer guidance.
@@ -76,6 +77,7 @@ If you run a static analyzer like Sonar or SonarLint — direct Sonar connection
 ## Build and Verification
 
 - After adding or modifying code, verify the project continues to build successfully.
-- If the project uses Maven, run `mvn clean install`.
+- Suggest new unit tests for added functionality to maintain high coverqge.
+- If the project uses Maven, run `mvn clean verify`.
 - If the project uses Gradle, run `./gradlew build` (or `gradlew.bat build` on Windows).
 - Ensure all tests pass as part of the build.
