@@ -5,11 +5,11 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 
 **To Install:**
 - Click the **VS Code** or **VS Code Insiders** install button for the instruction you want to use
-- Download the `\*.instructions.md` file and manually add it to your project's instruction collection
+- Download the `*.instructions.md` file and manually add it to your project's instruction collection
 
 **To Use/Apply:**
-- Copy these instructions to your `.github/copilot-instructions.md` or `AGENTS.md` file in your workspace
-- Create in your workspace task-specific `.github/instructions/\*.instructions.md` files
+- Copy these instructions to your `.github/copilot-instructions.md` or `AGENTS.md` file in your workspace, or
+- Create task-specific `*.instructions.md` files in your workspace's `.github/instructions/` folder
 - Instructions automatically apply to Copilot behavior once installed in your workspace
 - You can reference task specific instructions (for one-off migrations) in the prompt
 
