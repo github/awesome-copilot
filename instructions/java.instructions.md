@@ -77,7 +77,7 @@ If you run a static analyzer like Sonar or SonarLint — direct Sonar connection
 ## Build and Verification
 
 - After adding or modifying code, verify the project continues to build successfully.
-- Suggest new unit tests for added functionality to maintain high coverqge.
+- Suggest new unit tests for added functionality to maintain high coverage.
 - If the project uses Maven, run `mvn clean verify`.
 - If the project uses Gradle, run `./gradlew build` (or `gradlew.bat build` on Windows).
 - Ensure all tests pass as part of the build.
