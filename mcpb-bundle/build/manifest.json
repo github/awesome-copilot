@@ -1,0 +1,62 @@
+{
+  "manifest_version": "0.3",
+  "name": "awesome-copilot",
+  "version": "1.0.0",
+  "display_name": "Awesome Copilot",
+  "description": "Access GitHub Copilot customizations from the awesome-copilot repository",
+  "long_description": "Search and load instructions, prompts, chatmodes, and agents to enhance your development workflow. Browse the complete collection of community-contributed GitHub Copilot customizations including PCF development, React, Python, Azure, and many more.",
+  "author": {
+    "name": "awesome-copilot contributors"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/github/awesome-copilot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/github/awesome-copilot"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"]
+    }
+  },
+  "tools": [
+    {
+      "name": "search_instructions",
+      "description": "Search for GitHub Copilot customizations based on keywords"
+    },
+    {
+      "name": "load_instruction",
+      "description": "Load specific instruction, prompt, chatmode, or agent content"
+    },
+    {
+      "name": "list_files",
+      "description": "List all available files for a specific content type"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "search_prompt",
+      "description": "Get a prompt template for searching copilot instructions",
+      "arguments": ["keyword"],
+      "text": "Please search all the chatmodes, instructions, prompts, and agents that are related to the search keyword, \"${arguments.keyword}\"."
+    }
+  ],
+  "keywords": [
+    "github-copilot",
+    "instructions",
+    "prompts",
+    "chatmodes",
+    "agents",
+    "customization",
+    "templates",
+    "development"
+  ],
+  "compatibility": {
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

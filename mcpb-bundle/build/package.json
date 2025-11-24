@@ -1,0 +1,26 @@
+{
+  "name": "awesome-copilot-mcp",
+  "version": "1.0.0",
+  "description": "MCP server that provides access to GitHub Copilot customizations from the awesome-copilot repository",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "github-copilot",
+    "instructions",
+    "prompts",
+    "chatmodes",
+    "agents"
+  ],
+  "author": "awesome-copilot contributors",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
