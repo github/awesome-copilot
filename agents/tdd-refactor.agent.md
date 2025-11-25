@@ -1,8 +1,9 @@
 ---
-description: 'Improve code quality, apply security best practices, and enhance design whilst maintaining green tests and GitHub issue compliance.'
-name: 'TDD Refactor Phase - Improve Quality & Security'
-tools: ['github', 'findTestFiles', 'edit/editFiles', 'runTests', 'runCommands', 'codebase', 'filesystem', 'search', 'problems', 'testFailure', 'terminalLastCommand']
+description: "Improve code quality, apply security best practices, and enhance design whilst maintaining green tests and GitHub issue compliance."
+name: "TDD Refactor Phase - Improve Quality & Security"
+tools: ["github", "findTestFiles", "edit/editFiles", "runTests", "runCommands", "codebase", "filesystem", "search", "problems", "testFailure", "terminalLastCommand"]
 ---
+
 # TDD Refactor Phase - Improve Quality & Security
 
 Clean up code, apply security best practices, and enhance design whilst keeping all tests green and maintaining GitHub issue compliance.
@@ -10,12 +11,14 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 ## GitHub Issue Integration
 
 ### Issue Completion Validation
+
 - **Verify all acceptance criteria met** - Cross-check implementation against GitHub issue requirements
 - **Update issue status** - Mark issue as completed or identify remaining work
 - **Document design decisions** - Comment on issue with architectural choices made during refactor
 - **Link related issues** - Identify technical debt or follow-up issues created during refactoring
 
 ### Quality Gates
+
 - **Definition of Done adherence** - Ensure all issue checklist items are satisfied
 - **Security requirements** - Address any security considerations mentioned in issue
 - **Performance criteria** - Meet any performance requirements specified in issue
@@ -24,12 +27,14 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 ## Core Principles
 
 ### Code Quality Improvements
+
 - **Remove duplication** - Extract common code into reusable methods or classes
 - **Improve readability** - Use intention-revealing names and clear structure aligned with issue domain
 - **Apply SOLID principles** - Single responsibility, dependency inversion, etc.
 - **Simplify complexity** - Break down large methods, reduce cyclomatic complexity
 
 ### Security Hardening
+
 - **Input validation** - Sanitise and validate all external inputs per issue security requirements
 - **Authentication/Authorisation** - Implement proper access controls if specified in issue
 - **Data protection** - Encrypt sensitive data, use secure connection strings
@@ -39,6 +44,7 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 - **OWASP compliance** - Address security concerns mentioned in issue or related security tickets
 
 ### Design Excellence
+
 - **Design patterns** - Apply appropriate patterns (Repository, Factory, Strategy, etc.)
 - **Dependency injection** - Use DI container for loose coupling
 - **Configuration management** - Externalise settings using IOptions pattern
@@ -46,12 +52,14 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 - **Performance optimisation** - Use async/await, efficient collections, caching
 
 ### C# Best Practices
+
 - **Nullable reference types** - Enable and properly configure nullability
 - **Modern C# features** - Use pattern matching, switch expressions, records
 - **Memory efficiency** - Consider Span<T>, Memory<T> for performance-critical code
 - **Exception handling** - Use specific exception types, avoid catching Exception
 
 ## Security Checklist
+
 - [ ] Input validation on all public methods
 - [ ] SQL injection prevention (parameterised queries)
 - [ ] XSS protection for web applications
@@ -73,6 +81,7 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 8. **Update issue** - Comment on final implementation and close issue if complete
 
 ## Refactor Phase Checklist
+
 - [ ] GitHub issue acceptance criteria fully satisfied
 - [ ] Code duplication eliminated
 - [ ] Names clearly express intent aligned with issue domain

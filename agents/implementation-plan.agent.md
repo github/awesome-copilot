@@ -1,8 +1,9 @@
 ---
-description: 'Generate an implementation plan for new features or refactoring existing code.'
-name: 'Implementation Plan Generation Mode'
-tools: ['codebase', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'terminalSelection', 'terminalLastCommand', 'openSimpleBrowser', 'fetch', 'findTestFiles', 'searchResults', 'githubRepo', 'extensions', 'edit/editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks']
+description: "Generate an implementation plan for new features or refactoring existing code."
+name: "Implementation Plan Generation Mode"
+tools: ["codebase", "usages", "vscodeAPI", "think", "problems", "changes", "testFailure", "terminalSelection", "terminalLastCommand", "openSimpleBrowser", "fetch", "findTestFiles", "searchResults", "githubRepo", "extensions", "edit/editFiles", "runNotebooks", "search", "new", "runCommands", "runTasks"]
 ---
+
 # Implementation Plan Generation Mode
 
 ## Primary Directive
@@ -102,21 +103,21 @@ tags: [Optional: List of relevant tags or categories, e.g., `feature`, `upgrade`
 
 - GOAL-001: [Describe the goal of this phase, e.g., "Implement feature X", "Refactor module Y", etc.]
 
-| Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-001 | Description of task 1 | ✅ | 2025-04-25 |
-| TASK-002 | Description of task 2 | |  |
-| TASK-003 | Description of task 3 | |  |
+| Task     | Description           | Completed | Date       |
+| -------- | --------------------- | --------- | ---------- |
+| TASK-001 | Description of task 1 | ✅        | 2025-04-25 |
+| TASK-002 | Description of task 2 |           |            |
+| TASK-003 | Description of task 3 |           |            |
 
 ### Implementation Phase 2
 
 - GOAL-002: [Describe the goal of this phase, e.g., "Implement feature X", "Refactor module Y", etc.]
 
-| Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-004 | Description of task 4 | |  |
-| TASK-005 | Description of task 5 | |  |
-| TASK-006 | Description of task 6 | |  |
+| Task     | Description           | Completed | Date |
+| -------- | --------------------- | --------- | ---- |
+| TASK-004 | Description of task 4 |           |      |
+| TASK-005 | Description of task 5 |           |      |
+| TASK-006 | Description of task 6 |           |      |
 
 ## 3. Alternatives
 

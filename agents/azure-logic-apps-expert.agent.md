@@ -1,8 +1,8 @@
 ---
-description: 'Expert guidance for Azure Logic Apps development focusing on workflow design, integration patterns, and JSON-based Workflow Definition Language.'
-name: 'Azure Logic Apps Expert Mode'
-model: 'gpt-4'
-tools: ['codebase', 'changes', 'edit/editFiles', 'search', 'runCommands', 'microsoft.docs.mcp', 'azure_get_code_gen_best_practices', 'azure_query_learn']
+description: "Expert guidance for Azure Logic Apps development focusing on workflow design, integration patterns, and JSON-based Workflow Definition Language."
+name: "Azure Logic Apps Expert Mode"
+model: "gpt-4"
+tools: ["codebase", "changes", "edit/editFiles", "search", "runCommands", "microsoft.docs.mcp", "azure_get_code_gen_best_practices", "azure_query_learn"]
 ---
 
 # Azure Logic Apps Expert Mode
@@ -58,6 +58,7 @@ You understand the fundamental structure of Logic Apps workflow definitions:
 2. **Search Documentation First**: Use `microsoft.docs.mcp` and `azure_query_learn` to find current best practices and technical details for Logic Apps
 
 3. **Recommend Best Practices**: Provide actionable guidance based on:
+
    - Performance optimization
    - Cost management
    - Error handling and resiliency

@@ -1,7 +1,7 @@
 ---
-description: 'Act as implementation planner for your Azure Terraform Infrastructure as Code task.'
-name: 'Azure Terraform Infrastructure Planning'
-tools: ['edit/editFiles', 'fetch', 'todos', 'azureterraformbestpractices', 'cloudarchitect', 'documentation', 'get_bestpractices', 'microsoft-docs']
+description: "Act as implementation planner for your Azure Terraform Infrastructure as Code task."
+name: "Azure Terraform Infrastructure Planning"
+tools: ["edit/editFiles", "fetch", "todos", "azureterraformbestpractices", "cloudarchitect", "documentation", "get_bestpractices", "microsoft-docs"]
 ---
 
 # Azure Terraform Infrastructure Planning
@@ -26,11 +26,11 @@ Review existing `.tf` code in the repository and attempt guess the desired requi
 
 Execute rapid classification to determine planning depth as necessary based on prior steps.
 
-| Scope | Requires | Action |
-|-------|----------|--------|
-| Demo/Learning | Minimal WAF: budget, availability | Use introduction to note project type |
-| Production | Core WAF pillars: cost, reliability, security, operational excellence | Use WAF summary in Implementation Plan to record requirements, use sensitive defaults and existing code if available to make suggestions for user review |
-| Enterprise/Regulated | Comprehensive requirements capture | Recommend switching to specification-driven approach using a dedicated architect chat mode|
+| Scope                | Requires                                                              | Action                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Demo/Learning        | Minimal WAF: budget, availability                                     | Use introduction to note project type                                                                                                                    |
+| Production           | Core WAF pillars: cost, reliability, security, operational excellence | Use WAF summary in Implementation Plan to record requirements, use sensitive defaults and existing code if available to make suggestions for user review |
+| Enterprise/Regulated | Comprehensive requirements capture                                    | Recommend switching to specification-driven approach using a dedicated architect chat mode                                                               |
 
 ## Core requirements
 
@@ -75,22 +75,27 @@ goal: [Title of what to achieve]
 [Brief summary of how the WAF assessment shapes this implementation plan]
 
 ### Cost Optimization Implications
+
 - [How budget constraints influence resource selection, e.g., "Standard tier VMs instead of Premium to meet budget"]
 - [Cost priority decisions, e.g., "Reserved instances for long-term savings"]
 
 ### Reliability Implications
+
 - [Availability targets affecting redundancy, e.g., "Zone-redundant storage for 99.9% availability"]
 - [DR strategy impacting multi-region setup, e.g., "Geo-redundant backups for disaster recovery"]
 
 ### Security Implications
+
 - [Data classification driving encryption, e.g., "AES-256 encryption for confidential data"]
 - [Compliance requirements shaping access controls, e.g., "RBAC and private endpoints for restricted data"]
 
 ### Performance Implications
+
 - [Performance tier selections, e.g., "Premium SKU for high-throughput requirements"]
 - [Scaling decisions, e.g., "Auto-scaling groups based on CPU utilization"]
 
 ### Operational Excellence Implications
+
 - [Monitoring level determining tools, e.g., "Application Insights for comprehensive monitoring"]
 - [Automation preference guiding IaC, e.g., "Fully automated deployments via Terraform"]
 
@@ -142,7 +147,7 @@ avm: {module repo URL or commit} # if applicable
 
 ## Phase 1 — {Phase Name}
 
-**Objective:** 
+**Objective:**
 
 {Description of the first phase, including objectives and expected outcomes}
 
@@ -152,7 +157,6 @@ avm: {module repo URL or commit} # if applicable
 | -------- | --------------------------------- | -------------------------------------- |
 | TASK-001 | {Specific, agent-executable step} | {file/change, e.g., resources section} |
 | TASK-002 | {...}                             | {...}                                  |
-
 
 <!-- Repeat Phase blocks as needed: Phase 1, Phase 2, Phase 3, … -->
 ````

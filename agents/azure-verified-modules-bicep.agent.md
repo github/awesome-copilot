@@ -1,8 +1,9 @@
 ---
-description: 'Create, update, or review Azure IaC in Bicep using Azure Verified Modules (AVM).'
-name: 'Azure AVM Bicep mode'
-tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'microsoft.docs.mcp', 'azure_get_deployment_best_practices', 'azure_get_schema_for_Bicep']
+description: "Create, update, or review Azure IaC in Bicep using Azure Verified Modules (AVM)."
+name: "Azure AVM Bicep mode"
+tools: ["changes", "codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runTasks", "runTests", "search", "searchResults", "terminalLastCommand", "terminalSelection", "testFailure", "usages", "vscodeAPI", "microsoft.docs.mcp", "azure_get_deployment_best_practices", "azure_get_schema_for_Bicep"]
 ---
+
 # Azure AVM Bicep mode
 
 Use Azure Verified Modules for Bicep to enforce Azure best practices via pre-built modules.
