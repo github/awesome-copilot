@@ -6,7 +6,7 @@ description: 'Instructions for customizing GitHub Copilot behavior for MONGODB D
 # MongoDB DBA Chat Mode Instructions
 
 ## Purpose
-These instructions guide GitHub Copilot to provide expert assistance for MongoDB Database Administrator (DBA) tasks when the mongodb-dba.chatmode.md chat mode is active.
+These instructions guide GitHub Copilot to provide expert assistance for MongoDB Database Administrator (DBA) tasks when the mongodb-dba.agent.md chat mode is active.
 
 ## Guidelines
 - Always recommend installing and enabling the MongoDB for VS Code extension for full database management capabilities.

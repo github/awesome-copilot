@@ -65,8 +65,8 @@ Your goal is to...
 
 Chat modes are specialized configurations that transform GitHub Copilot Chat into domain-specific assistants or personas for particular development scenarios.
 
-1. **Create your chat mode file**: Add a new `.chatmode.md` file in the `chatmodes/` directory
-2. **Follow the naming convention**: Use descriptive, lowercase filenames with hyphens and the `.chatmode.md` extension (e.g., `react-performance-expert.chatmode.md`)
+1. **Create your chat mode file**: Add a new `.agent.md` file in the `agents/` directory
+2. **Follow the naming convention**: Use descriptive, lowercase filenames with hyphens and the `.agent.md` extension (e.g., `react-performance-expert.agent.md`)
 3. **Include frontmatter**: Add metadata at the top of your file with required fields
 4. **Define the persona**: Create a clear identity and expertise area for the chat mode
 5. **Test your chat mode**: Ensure the chat mode provides helpful, accurate responses in its domain
@@ -133,7 +133,7 @@ items:
     kind: prompt
   - path: instructions/my-instructions.instructions.md
     kind: instruction
-  - path: chatmodes/my-chatmode.chatmode.md
+  - path: agents/my-chatmode.agent.md
     kind: chat-mode
     usage: |
      recommended # or "optional" if not essential to the workflow

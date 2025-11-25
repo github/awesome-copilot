@@ -10,9 +10,9 @@
     100
   ],
   "files.associations": {
-    "*.chatmode.md": "markdown",
-    "*.instructions.md": "markdown",
-    "*.prompt.md": "markdown"
+    "*.agent.md": "chatagent",
+    "*.instructions.md": "instructions",
+    "*.prompt.md": "prompt"
   },
   "yaml.schemas": {
     "./.schemas/collection.schema.json": "*.collection.yml"

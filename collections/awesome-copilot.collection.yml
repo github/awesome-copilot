@@ -13,7 +13,7 @@ items:
     kind: prompt
   - path: prompts/suggest-awesome-github-copilot-agents.prompt.md
     kind: prompt
-  - path: chatmodes/meta-agentic-project-scaffold.chatmode.md
+  - path: agents/meta-agentic-project-scaffold.agent.md
     kind: chat-mode
 display:
   ordering: alpha # or "manual" to preserve the order above

@@ -1,12 +1,22 @@
 id: database-data-management
 name: Database & Data Management
 description: Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.
-tags: [database, sql, postgresql, sql-server, dba, optimization, queries, data-management]
+tags:
+  [
+    database,
+    sql,
+    postgresql,
+    sql-server,
+    dba,
+    optimization,
+    queries,
+    data-management,
+  ]
 items:
   # Database Expert Chat Modes
-  - path: chatmodes/postgresql-dba.chatmode.md
+  - path: agents/postgresql-dba.agent.md
     kind: chat-mode
-  - path: chatmodes/ms-sql-dba.chatmode.md
+  - path: agents/ms-sql-dba.agent.md
     kind: chat-mode
 
   # Database Instructions

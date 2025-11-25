@@ -6,10 +6,9 @@ on:
     paths:
       - "instructions/**"
       - "prompts/**"
-      - "chatmodes/**"
+      - "agents/**"
       - "collections/**"
       - "*.js"
-      - "agents/**"
       - "README.md"
       - "docs/**"
 

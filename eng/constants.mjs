@@ -37,31 +37,16 @@ Ready-to-use prompt templates for specific development scenarios and tasks, defi
 - Run the \`Chat: Run Prompt\` command from the Command Palette
 - Hit the run button while you have a prompt file open in VS Code`,
 
-  chatmodesSection: `## 💭 Custom Chat Modes
-
-Custom chat modes define specific behaviors and tools for GitHub Copilot Chat, enabling enhanced context-aware assistance for particular tasks or workflows.`,
-
-  chatmodesUsage: `### How to Use Custom Chat Modes
-
-**To Install:**
-- Click the **VS Code** or **VS Code Insiders** install button for the chat mode you want to use
-- Download the \`*.chatmode.md\` file and manually install it in VS Code using the Command Palette
-
-**To Activate/Use:**
-- Import the chat mode configuration into your VS Code settings
-- Access the installed chat modes through the VS Code Chat interface
-- Select the desired chat mode from the available options in VS Code Chat`,
-
   collectionsSection: `## 📦 Collections
 
-Curated collections of related prompts, instructions, and chat modes organized around specific themes, workflows, or use cases.`,
+Curated collections of related prompts, instructions, and agents organized around specific themes, workflows, or use cases.`,
 
   collectionsUsage: `### How to Use Collections
 
 **Browse Collections:**
 - ⭐ Featured collections are highlighted and appear at the top of the list
 - Explore themed collections that group related customizations
-- Each collection includes prompts, instructions, and chat modes for specific workflows
+- Each collection includes prompts, instructions, and agents for specific workflows
 - Collections make it easy to adopt comprehensive toolkits for particular scenarios
 
 **Install Items:**
@@ -71,7 +56,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 
   featuredCollectionsSection: `## 🌟 Featured Collections
 
-Discover our curated collections of prompts, instructions, and chat modes organized around specific themes and workflows.`,
+Discover our curated collections of prompts, instructions, and agents organized around specific themes and workflows.`,
 
   agentsSection: `## 🤖 Custom Agents
 
@@ -106,14 +91,12 @@ const repoBaseUrl =
 const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
   prompt: "https://aka.ms/awesome-copilot/install/prompt",
-  mode: "https://aka.ms/awesome-copilot/install/chatmode",
   agent: "https://aka.ms/awesome-copilot/install/agent",
 };
 
 const ROOT_FOLDER = path.join(__dirname, "..");
 const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
-const CHATMODES_DIR = path.join(ROOT_FOLDER, "chatmodes");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
 const MAX_COLLECTION_ITEMS = 50;
@@ -129,7 +112,6 @@ export {
   ROOT_FOLDER,
   INSTRUCTIONS_DIR,
   PROMPTS_DIR,
-  CHATMODES_DIR,
   AGENTS_DIR,
   COLLECTIONS_DIR,
   MAX_COLLECTION_ITEMS,

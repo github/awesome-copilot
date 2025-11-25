@@ -14,7 +14,7 @@ items:
     kind: prompt
   - path: instructions/my-instructions.instructions.md  
     kind: instruction
-  - path: chatmodes/my-chatmode.chatmode.md
+  - path: agents/my-chatmode.agent.md
     kind: chat-mode
 display:
   ordering: alpha # or "manual" to preserve order above

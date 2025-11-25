@@ -5,7 +5,7 @@ tags: [clojure, repl, interactive-programming]
 items:
   - path: instructions/clojure.instructions.md
     kind: instruction
-  - path: chatmodes/clojure-interactive-programming.chatmode.md
+  - path: agents/clojure-interactive-programming.agent.md
     kind: chat-mode
   - path: prompts/remember-interactive-programming.prompt.md
     kind: prompt

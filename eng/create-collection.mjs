@@ -109,7 +109,7 @@ async function createCollectionTemplate() {
     }
 
     // Get description
-    const defaultDescription = `A collection of related prompts, instructions, and chat modes for ${collectionName.toLowerCase()}.`;
+    const defaultDescription = `A collection of related prompts, instructions, and agents for ${collectionName.toLowerCase()}.`;
     let description = await prompt(
       `Description (default: ${defaultDescription}): `
     );
@@ -149,8 +149,8 @@ items:
   #   kind: prompt
   # - path: instructions/example.instructions.md
   #   kind: instruction
-  # - path: chatmodes/example.chatmode.md
-  #   kind: chat-mode
+  # - path: agents/example.agent.md
+  #   kind: agent
     # - path: agents/example.agent.md
     #   kind: agent
     #   usage: |

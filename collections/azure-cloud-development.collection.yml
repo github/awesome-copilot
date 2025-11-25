@@ -1,22 +1,32 @@
 id: azure-cloud-development
 name: Azure & Cloud Development
 description: Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.
-tags: [azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops]
+tags:
+  [
+    azure,
+    cloud,
+    infrastructure,
+    bicep,
+    terraform,
+    serverless,
+    architecture,
+    devops,
+  ]
 items:
   # Azure Expert Chat Modes
-  - path: chatmodes/azure-principal-architect.chatmode.md
+  - path: agents/azure-principal-architect.agent.md
     kind: chat-mode
-  - path: chatmodes/azure-saas-architect.chatmode.md
+  - path: agents/azure-saas-architect.agent.md
     kind: chat-mode
-  - path: chatmodes/azure-logic-apps-expert.chatmode.md
+  - path: agents/azure-logic-apps-expert.agent.md
     kind: chat-mode
-  - path: chatmodes/azure-verified-modules-bicep.chatmode.md
+  - path: agents/azure-verified-modules-bicep.agent.md
     kind: chat-mode
-  - path: chatmodes/azure-verified-modules-terraform.chatmode.md
+  - path: agents/azure-verified-modules-terraform.agent.md
     kind: chat-mode
-  - path: chatmodes/terraform-azure-planning.chatmode.md
+  - path: agents/terraform-azure-planning.agent.md
     kind: chat-mode
-  - path: chatmodes/terraform-azure-implement.chatmode.md
+  - path: agents/terraform-azure-implement.agent.md
     kind: chat-mode
 
   # Infrastructure as Code Instructions
