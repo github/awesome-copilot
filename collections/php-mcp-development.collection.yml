@@ -15,7 +15,7 @@ items:
   - path: prompts/php-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/php-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
 display:
   ordering: manual
   show_badge: true

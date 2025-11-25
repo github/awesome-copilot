@@ -15,7 +15,7 @@ items:
   - path: prompts/mcp-copilot-studio-server-generator.prompt.md
     kind: prompt
   - path: agents/power-platform-mcp-integration-expert.agent.md
-    kind: chat-mode
+    kind: agent
 display:
   ordering: manual
   show_badge: true

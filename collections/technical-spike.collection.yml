@@ -5,7 +5,7 @@ tags: [technical-spike, assumption-testing, validation, research]
 items:
   # Planning Chat Modes
   - path: agents/research-technical-spike.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Planning Prompts
   - path: prompts/create-technical-spike.prompt.md

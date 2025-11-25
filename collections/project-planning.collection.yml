@@ -15,19 +15,19 @@ tags:
 items:
   # Planning Chat Modes
   - path: agents/task-planner.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/task-researcher.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/planner.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/plan.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/prd.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/implementation-plan.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/research-technical-spike.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Planning Instructions
   - path: instructions/task-implementation.instructions.md

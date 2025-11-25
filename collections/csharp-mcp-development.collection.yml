@@ -8,7 +8,7 @@ items:
   - path: prompts/csharp-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/csharp-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
       recommended
 

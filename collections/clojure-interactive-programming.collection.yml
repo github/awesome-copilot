@@ -6,7 +6,7 @@ items:
   - path: instructions/clojure.instructions.md
     kind: instruction
   - path: agents/clojure-interactive-programming.agent.md
-    kind: chat-mode
+    kind: agent
   - path: prompts/remember-interactive-programming.prompt.md
     kind: prompt
 display:

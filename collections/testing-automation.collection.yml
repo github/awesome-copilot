@@ -6,13 +6,13 @@ tags:
 items:
   # TDD Chat Modes
   - path: agents/tdd-red.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/tdd-green.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/tdd-refactor.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/playwright-tester.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Testing Instructions
   - path: instructions/playwright-typescript.instructions.md

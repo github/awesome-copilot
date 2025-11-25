@@ -20,7 +20,7 @@ items:
   - path: prompts/swift-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/swift-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
       recommended
 

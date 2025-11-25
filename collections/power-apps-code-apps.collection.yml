@@ -22,7 +22,7 @@ items:
 
   # Power Platform Expert Chat Mode
   - path: agents/power-platform-expert.agent.md
-    kind: chat-mode
+    kind: agent
 
 display:
   ordering: manual

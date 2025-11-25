@@ -15,19 +15,19 @@ tags:
 items:
   # Azure Expert Chat Modes
   - path: agents/azure-principal-architect.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/azure-saas-architect.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/azure-logic-apps-expert.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/azure-verified-modules-bicep.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/azure-verified-modules-terraform.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/terraform-azure-planning.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/terraform-azure-implement.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Infrastructure as Code Instructions
   - path: instructions/bicep-code-best-practices.instructions.md

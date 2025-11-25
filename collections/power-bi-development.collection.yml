@@ -15,16 +15,16 @@ tags:
 items:
   # Power BI Chat Modes
   - path: agents/power-bi-data-modeling-expert.agent.md
-    kind: chat-mode
+    kind: agent
 
   - path: agents/power-bi-dax-expert.agent.md
-    kind: chat-mode
+    kind: agent
 
   - path: agents/power-bi-performance-expert.agent.md
-    kind: chat-mode
+    kind: agent
 
   - path: agents/power-bi-visualization-expert.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Power BI Instructions
   - path: instructions/power-bi-custom-visuals-development.instructions.md

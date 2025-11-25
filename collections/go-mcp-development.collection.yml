@@ -8,7 +8,7 @@ items:
   - path: prompts/go-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/go-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
       recommended
 

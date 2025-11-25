@@ -8,7 +8,7 @@ items:
   - path: prompts/ruby-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/ruby-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
       recommended
 

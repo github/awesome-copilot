@@ -19,7 +19,7 @@ items:
   - path: prompts/rust-mcp-server-generator.prompt.md
     kind: prompt
   - path: agents/rust-mcp-expert.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
       recommended
 

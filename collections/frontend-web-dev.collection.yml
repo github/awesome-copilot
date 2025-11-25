@@ -5,9 +5,9 @@ tags: [frontend, web, react, typescript, javascript, css, html, angular, vue]
 items:
   # Expert Chat Modes
   - path: agents/expert-react-frontend-engineer.agent.md
-    kind: chat-mode
+    kind: agent
   - path: agents/electron-angular-native.agent.md
-    kind: chat-mode
+    kind: agent
 
   # Development Instructions
   - path: instructions/reactjs.instructions.md

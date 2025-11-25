@@ -134,7 +134,7 @@ items:
   - path: instructions/my-instructions.instructions.md
     kind: instruction
   - path: agents/my-chatmode.agent.md
-    kind: chat-mode
+    kind: agent
     usage: |
      recommended # or "optional" if not essential to the workflow
 

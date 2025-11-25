@@ -12,7 +12,7 @@ items:
   - path: instructions/dotnet-architecture-good-practices.instructions.md
     kind: instruction
   - path: agents/expert-dotnet-software-engineer.agent.md
-    kind: chat-mode
+    kind: agent
   - path: prompts/csharp-xunit.prompt.md
     kind: prompt
   - path: prompts/dotnet-best-practices.prompt.md
