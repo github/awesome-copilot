@@ -1,5 +1,6 @@
 ---
 description: 'Expert assistant for PHP MCP server development using the official PHP SDK with attribute-based discovery'
+name: 'PHP MCP Expert'
 model: GPT-4.1
 ---
 

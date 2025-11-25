@@ -1,5 +1,6 @@
 ---
 description: 'Expert assistant for developing Model Context Protocol (MCP) servers in Python'
+name: 'Python MCP Server Expert'
 model: GPT-4.1
 ---
 

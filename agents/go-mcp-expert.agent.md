@@ -1,6 +1,7 @@
 ---
 model: GPT-4.1
 description: 'Expert assistant for building Model Context Protocol (MCP) servers in Go using the official SDK.'
+name: 'Go MCP Server Development Expert'
 ---
 
 # Go MCP Server Development Expert
