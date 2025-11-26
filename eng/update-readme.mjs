@@ -332,6 +332,26 @@ function generatePromptsSection(promptsDir) {
 }
 
 /**
+ * Get handoff information from an agent
+ * @param {string} filePath - Path to the agent file
+ * @returns {Array|null} - Array of handoff objects with label and agent, or null if no handoffs
+ */
+function getHandoffs(filePath) {
+  try {
+    const frontmatter = parseFrontmatter(filePath);
+    if (frontmatter && Array.isArray(frontmatter.handoffs) && frontmatter.handoffs.length > 0) {
+      return frontmatter.handoffs.map(h => ({
+        label: h.label || 'Unknown handoff',
+        agent: h.agent || 'unknown'
+      }));
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Generate MCP server links for an agent
  * @param {string[]} servers - Array of MCP server names
  * @returns {string} - Formatted MCP server links with badges
@@ -472,12 +492,24 @@ function generateUnifiedModeSection(cfg) {
 
   for (const { file, filePath, title } of entries) {
     const link = encodeURI(`${linkPrefix}/${file}`);
-    const description = extractDescription(filePath);
+    let description = extractDescription(filePath);
     const badges = makeBadges(link, badgeType);
     let mcpServerCell = "";
     if (includeMcpServers) {
       const servers = extractMcpServerConfigs(filePath);
       mcpServerCell = generateMcpServerLinks(servers);
+    }
+
+    // Add handoff indicator if agent supports handoffs
+    if (badgeType === "agent") {
+      const handoffs = getHandoffs(filePath);
+      if (handoffs && handoffs.length > 0) {
+        const handoffLabels = handoffs.map(h => h.label).join(', ');
+        const handoffInfo = `🔄 *Handoffs: ${handoffLabels}*`;
+        description = description && description !== "null" 
+          ? `${description}<br /><br />${handoffInfo}` 
+          : handoffInfo;
+      }
     }
 
     if (includeMcpServers) {

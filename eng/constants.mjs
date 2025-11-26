@@ -76,7 +76,12 @@ Custom agents for GitHub Copilot, making it easy for users and organizations to 
 **To Activate/Use:**
 - Access installed agents through the VS Code Chat interface, assign them in CCA, or through Copilot CLI (coming soon)
 - Agents will have access to tools from configured MCP servers
-- Follow agent-specific instructions for optimal usage`,
+- Follow agent-specific instructions for optimal usage
+
+**Handoffs:**
+- Agents marked with 🔄 support handoffs to other agents (VS Code only)
+- Handoffs allow you to seamlessly transfer context between specialized agents
+- [Learn more about handoffs](https://code.visualstudio.com/docs/copilot/customization/custom-agents#_handoffs)`,
 };
 
 const vscodeInstallImage =
