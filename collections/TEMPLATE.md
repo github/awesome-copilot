@@ -14,8 +14,8 @@ items:
     kind: prompt
   - path: instructions/my-instructions.instructions.md  
     kind: instruction
-  - path: chatmodes/my-chatmode.chatmode.md
-    kind: chat-mode
+  - path: agents/my-chatmode.agent.md
+    kind: agent
 display:
   ordering: alpha # or "manual" to preserve order above
   show_badge: false # set to true to show collection badge

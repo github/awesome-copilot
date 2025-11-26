@@ -18,7 +18,6 @@ import {
   vscodeInsidersInstallImage,
   ROOT_FOLDER,
   PROMPTS_DIR,
-  CHATMODES_DIR,
   AGENTS_DIR,
   COLLECTIONS_DIR,
   INSTRUCTIONS_DIR,
@@ -109,10 +108,10 @@ function extractTitle(filePath) {
         }
       }
 
-      // Step 2: For prompt/chatmode/instructions files, look for heading after frontmatter
+      // Step 2: For prompt/agent/instructions files, look for heading after frontmatter
       if (
         filePath.includes(".prompt.md") ||
-        filePath.includes(".chatmode.md") ||
+        filePath.includes(".agent.md") ||
         filePath.includes(".instructions.md")
       ) {
         // Look for first heading after frontmatter
@@ -152,8 +151,8 @@ function extractTitle(filePath) {
           filePath,
           filePath.includes(".prompt.md")
             ? ".prompt.md"
-            : filePath.includes(".chatmode.md")
-            ? ".chatmode.md"
+            : filePath.includes(".agent.md")
+            ? ".agent.md"
             : ".instructions.md"
         );
         return basename
@@ -333,21 +332,6 @@ function generatePromptsSection(promptsDir) {
 }
 
 /**
- * Generate the chat modes section with a table of all chat modes
- */
-function generateChatModesSection(chatmodesDir) {
-  return generateUnifiedModeSection({
-    dir: chatmodesDir,
-    extension: ".chatmode.md",
-    linkPrefix: "chatmodes",
-    badgeType: "mode",
-    includeMcpServers: false,
-    sectionTemplate: TEMPLATES.chatmodesSection,
-    usageTemplate: TEMPLATES.chatmodesUsage,
-  });
-}
-
-/**
  * Generate MCP server links for an agent
  * @param {string[]} servers - Array of MCP server names
  * @returns {string} - Formatted MCP server links with badges
@@ -443,7 +427,7 @@ function generateAgentsSection(agentsDir) {
  * Unified generator for chat modes & agents (future consolidation)
  * @param {Object} cfg
  * @param {string} cfg.dir - Directory path
- * @param {string} cfg.extension - File extension to match (e.g. .chatmode.md, .agent.md)
+ * @param {string} cfg.extension - File extension to match (e.g. .agent.md, .agent.md)
  * @param {string} cfg.linkPrefix - Link prefix folder name
  * @param {string} cfg.badgeType - Badge key (mode, agent)
  * @param {boolean} cfg.includeMcpServers - Whether to include MCP server column
@@ -836,7 +820,6 @@ try {
     "# "
   );
   const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
-  const chatmodesHeader = TEMPLATES.chatmodesSection.replace(/^##\s/m, "# ");
   const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
   const collectionsHeader = TEMPLATES.collectionsSection.replace(
     /^##\s/m,
@@ -855,13 +838,6 @@ try {
     promptsHeader,
     TEMPLATES.promptsUsage
   );
-  const chatmodesReadme = buildCategoryReadme(
-    generateChatModesSection,
-    CHATMODES_DIR,
-    chatmodesHeader,
-    TEMPLATES.chatmodesUsage
-  );
-
   // Generate agents README
   const agentsReadme = buildCategoryReadme(
     generateAgentsSection,
@@ -889,10 +865,6 @@ try {
     instructionsReadme
   );
   writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
-  writeFileIfChanged(
-    path.join(DOCS_DIR, "README.chatmodes.md"),
-    chatmodesReadme
-  );
   writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
   writeFileIfChanged(
     path.join(DOCS_DIR, "README.collections.md"),

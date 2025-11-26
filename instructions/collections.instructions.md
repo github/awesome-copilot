@@ -44,7 +44,7 @@ When working with collections in the awesome-copilot repository:
 - Collections don't require file reorganization
 - Items can be located anywhere in the repository
 - Use relative paths from repository root
-- Maintain existing directory structure (prompts/, instructions/, chatmodes/)
+- Maintain existing directory structure (prompts/, instructions/, agents/)
 
 ## Generation Process
 

@@ -7,8 +7,8 @@ items:
     kind: instruction
   - path: prompts/python-mcp-server-generator.prompt.md
     kind: prompt
-  - path: chatmodes/python-mcp-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/python-mcp-expert.agent.md
+    kind: agent
     usage: |
       recommended
 

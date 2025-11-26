@@ -9,8 +9,8 @@ items:
     kind: instruction
   - path: instructions/containerization-docker-best-practices.instructions.md
     kind: instruction
-  - path: chatmodes/azure-principal-architect.chatmode.md
-    kind: chat-mode
+  - path: agents/azure-principal-architect.agent.md
+    kind: agent
   - path: prompts/multi-stage-dockerfile.prompt.md
     kind: prompt
 display:
