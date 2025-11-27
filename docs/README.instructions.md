@@ -8,9 +8,10 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - Download the `*.instructions.md` file and manually add it to your project's instruction collection
 
 **To Use/Apply:**
-- Copy these instructions to your `.github/copilot-instructions.md` file in your workspace
-- Create task-specific `.github/.instructions.md` files in your workspace's `.github/instructions` folder
+- Copy these instructions to your `.github/copilot-instructions.md` or `AGENTS.md` file in your workspace, or
+- Create task-specific `*.instructions.md` files in your workspace's `.github/instructions/` folder
 - Instructions automatically apply to Copilot behavior once installed in your workspace
+- You can reference task specific instructions (for one-off migrations) in the prompt
 
 | Title | Description |
 | ----- | ----------- |
