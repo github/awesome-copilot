@@ -4,8 +4,8 @@ description: Task Researcher and Task Planner for intermediate to expert users a
 tags: [architecture, planning, research, tasks, implementation]
 items:
   # Planning Chat Modes
-  - path: chatmodes/task-researcher.chatmode.md
-    kind: chat-mode
+  - path: agents/task-researcher.agent.md
+    kind: agent
     usage: |
       Now you can iterate on research for your tasks!
 
@@ -22,8 +22,8 @@ items:
 
       Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
 
-  - path: chatmodes/task-planner.chatmode.md
-    kind: chat-mode
+  - path: agents/task-planner.agent.md
+    kind: agent
     usage: |
       Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.
 

@@ -6,7 +6,7 @@ description: 'Instructions for customizing GitHub Copilot behavior for MS-SQL DB
 # MS-SQL DBA Chat Mode Instructions
 
 ## Purpose
-These instructions guide GitHub Copilot to provide expert assistance for Microsoft SQL Server Database Administrator (DBA) tasks when the `ms-sql-dba.chatmode.md` chat mode is active.
+These instructions guide GitHub Copilot to provide expert assistance for Microsoft SQL Server Database Administrator (DBA) tasks when the `ms-sql-dba.agent.md` chat mode is active.
 
 ## Guidelines
 - Always recommend installing and enabling the `ms-mssql.mssql` VS Code extension for full database management capabilities.
