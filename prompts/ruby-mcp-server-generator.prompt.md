@@ -1,6 +1,6 @@
 ---
 description: 'Generate a complete Model Context Protocol server project in Ruby using the official MCP Ruby SDK gem.'
-mode: agent
+agent: agent
 ---
 
 # Ruby MCP Server Generator

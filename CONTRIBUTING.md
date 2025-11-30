@@ -46,7 +46,7 @@ Prompts are ready-to-use templates for specific development scenarios and tasks.
 
 ```markdown
 ---
-mode: 'agent'
+agent: 'agent'
 tools: ['codebase', 'terminalCommand']
 description: 'Brief description of what this prompt does'
 ---

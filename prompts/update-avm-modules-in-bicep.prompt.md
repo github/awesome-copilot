@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Update Azure Verified Modules (AVM) to latest versions in Bicep files.'
 tools: ['search/codebase', 'think', 'changes', 'fetch', 'search/searchResults', 'todos', 'edit/editFiles', 'search', 'runCommands', 'bicepschema', 'azure_get_schema_for_Bicep']
 ---

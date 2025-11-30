@@ -1,6 +1,6 @@
 ---
 description: "Analyze chatmode or prompt files and recommend optimal AI models based on task complexity, required capabilities, and cost-efficiency"
-mode: "agent"
+agent: "agent"
 tools:
   - "search/codebase"
   - "fetch"

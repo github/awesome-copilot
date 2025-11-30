@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 model: Claude Sonnet 4
 tools: ['edit', 'githubRepo', 'changes', 'problems', 'search', 'runCommands', 'fetch']
 description: 'Set up complete GitHub Copilot configuration for a new project based on technology stack'
@@ -211,7 +211,7 @@ Apply the [general coding guidelines](./general-coding.instructions.md) to all c
 **Prompts (.prompt.md):**
 ```yaml
 ---
-mode: 'agent'
+agent: 'agent'
 model: Claude Sonnet 4
 tools: ['githubRepo', 'codebase']
 description: 'Generate a new React form component'

@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: agent
 description: 'Generate a language translation for a mkdocs documentation stack.'
 tools: ['search/codebase', 'usages', 'problems', 'changes', 'runCommands/terminalSelection', 'runCommands/terminalLastCommand', 'search/searchResults', 'extensions', 'edit/editFiles', 'search', 'runCommands', 'runTasks']
 model: Claude Sonnet 4

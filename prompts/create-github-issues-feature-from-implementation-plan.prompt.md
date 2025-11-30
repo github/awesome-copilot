@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Create GitHub Issues from implementation plan phases using feature_request.yml or chore_request.yml templates.'
 tools: ['search/codebase', 'search', 'github', 'create_issue', 'search_issues', 'update_issue']
 ---

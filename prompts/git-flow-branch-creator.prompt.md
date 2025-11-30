@@ -1,7 +1,7 @@
 ---
 description: 'Intelligent Git Flow branch creator that analyzes git status/diff and creates appropriate branches following the nvie Git Flow branching model.'
 tools: ['runCommands/runInTerminal', 'runCommands/getTerminalOutput']
-mode: 'agent'
+agent: 'agent'
 ---
 
 ### Instructions

@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Ensure .NET/C# code meets best practices for the solution/project.'
 ---
 # .NET/C# Best Practices

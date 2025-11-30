@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Create Spring Boot Java Project Skeleton'
 ---
 

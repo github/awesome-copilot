@@ -1,6 +1,6 @@
 ---
 description: 'Generate a complete Model Context Protocol server project in Swift using the official MCP Swift SDK package.'
-mode: agent
+agent: agent
 ---
 
 # Swift MCP Server Generator
