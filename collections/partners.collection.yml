@@ -21,6 +21,8 @@ items:
     kind: agent
   - path: agents/arm-migration.agent.md
     kind: agent
+  - path: agents/diffblue-cover.agent.md
+    kind: agent
   - path: agents/droid.agent.md
     kind: agent
   - path: agents/dynatrace-expert.agent.md
@@ -30,6 +32,8 @@ items:
   - path: agents/jfrog-sec.agent.md
     kind: agent
   - path: agents/launchdarkly-flag-cleanup.agent.md
+    kind: agent
+  - path: agents/lingodotdev-i18n.agent.md
     kind: agent
   - path: agents/monday-bug-fixer.agent.md
     kind: agent

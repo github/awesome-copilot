@@ -23,7 +23,7 @@ Discover our curated collections of prompts, instructions, and agents organized 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
 | [Awesome Copilot](collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
-| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 17 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
+| [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 19 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
 ## MCP Server
