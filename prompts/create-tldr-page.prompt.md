@@ -119,8 +119,93 @@ Use this template structure when creating tldr pages:
 - **Examples**: 5-8 most common use cases, ordered by frequency of use
 - **Placeholders**: Use `{{placeholder}}` syntax for user-provided values
 
-### Examples from Template
+## Examples
 
-* #fetch [git](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/common/git.md)
-* #fetch [distrobox-create](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/linux/distrobox-create.md)
-* #fetch [nmcli](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/linux/nmcli.md)
+### Reference Examples
+
+You MAY fetch these example tldr pages to understand the proper format and style:
+
+* [git](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/common/git.md)
+* [distrobox-create](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/linux/distrobox-create.md)
+* [nmcli](https://raw.githubusercontent.com/jhauga/tldr/refs/heads/main/pages/linux/nmcli.md)
+
+### Expected Output Using Example
+
+**User**
+
+```bash
+/create-tldr-page #fetch https://git-scm.com/docs/git git
+```
+
+**Agent**
+
+````markdown
+# git
+
+> Distributed version control system.
+> Some subcommands such as `commit`, `add`, `branch`, `switch`, `push`, etc. have their own usage documentation.
+> More information: <https://git-scm.com/docs/git>.
+
+- Create an empty Git repository:
+
+`git init`
+
+- Clone a remote Git repository from the internet:
+
+`git clone {{https://example.com/repo.git}}`
+
+- View the status of the local repository:
+
+`git status`
+
+- Stage all changes for a commit:
+
+`git add {{[-A|--all]}}`
+
+- Commit changes to version history:
+
+`git commit {{[-m|--message]}} {{message_text}}`
+
+- Push local commits to a remote repository:
+
+`git push`
+
+- Pull any changes made to a remote:
+
+`git pull`
+
+- Reset everything the way it was in the latest commit:
+
+`git reset --hard; git clean {{[-f|--force]}}`
+````
+
+### Output Formatting Rules
+
+You MUST follow these placeholder conventions:
+
+- **Options with arguments**: When an option takes an argument, wrap BOTH the option AND its argument separately
+  - Example: `minipro {{[-p|--device]}} {{chip_name}}`
+  - Example: `git commit {{[-m|--message]}} {{message_text}}`
+  - **DO NOT** combine them as: `minipro -p {{chip_name}}` (incorrect)
+
+- **Options without arguments**: Wrap standalone options (flags) that don't take arguments
+  - Example: `minipro {{[-E|--erase]}}`
+  - Example: `git add {{[-A|--all]}}`
+
+- **Single short options**: Do NOT wrap single short options when used alone without long form
+  - Example: `ls -l` (not wrapped)
+  - Example: `minipro -L` (not wrapped)
+  - However, if both short and long forms exist, wrap them: `{{[-l|--list]}}`
+
+- **Subcommands**: Generally do NOT wrap subcommands unless they are user-provided variables
+  - Example: `git init` (not wrapped)
+  - Example: `tldr {{command}}` (wrapped when variable)
+
+- **Arguments and operands**: Always wrap user-provided values
+  - Example: `{{device_name}}`, `{{chip_name}}`, `{{repository_url}}`
+  - Example: `{{path/to/file}}` for file paths
+  - Example: `{{https://example.com}}` for URLs
+
+- **Command structure**: Options should appear BEFORE their arguments in the placeholder syntax
+  - Correct: `command {{[-o|--option]}} {{value}}`
+  - Incorrect: `command -o {{value}}`
