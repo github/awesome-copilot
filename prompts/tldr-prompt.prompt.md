@@ -23,7 +23,7 @@ the chat context (inline chat vs chat view).
 
 You MUST accomplish the following:
 
-1. **Require input source** - You MUST receive at least one of: ${file}, ${selectedText}, or URL. If
+1. **Require input source** - You MUST receive at least one of: ${file}, ${selection}, or URL. If
 missing, you MUST provide specific guidance on what to provide
 2. **Identify file type** - Determine if the source is a prompt (.prompt.md), agent (.agent.md),
 instruction (.instructions.md), collection (.collections.md), or MCP server documentation
