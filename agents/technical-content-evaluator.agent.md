@@ -87,11 +87,8 @@ Before ANY other analysis, calculate the Documentation Wrapper Score (0-100):
 - Verify all external links are valid and point to correct resources
 - Test that referenced files actually exist in the repository
 - Validate service names, API endpoints, and tool versions are accurate
-<<<<<<< HEAD
 - **CRITICAL**: Cross-reference code snippets in content with their source files to ensure accuracy and synchronization
 - Identify code snippets longer than 30 lines and suggest breaking them into smaller, more digestible examples
-=======
->>>>>>> 5ba082ca2684c821de27bf9932bd481037c4f5f0
 
 ## 3. Content Flow & Structure
 
@@ -135,11 +132,8 @@ Before ANY other analysis, calculate the Documentation Wrapper Score (0-100):
 - Check that error handling is demonstrated where appropriate
 - **CRITICAL**: Verify code samples include expected output and verification steps
 - Ensure commands show what success looks like
-<<<<<<< HEAD
 - **CRITICAL**: Verify that code snippets shown in content match the actual source files they reference
 - **Code Length Standards**: Flag any code snippet exceeding 30 lines (do NOT lower grade, but notify for potential refactoring into smaller examples or using excerpts with "..." for brevity)
-=======
->>>>>>> 5ba082ca2684c821de27bf9932bd481037c4f5f0
 
 ## 7. Testing Infrastructure & Real Exercises
 
@@ -317,11 +311,8 @@ Compare README/documentation claims to actual repository contents:
 - Check formatting and consistency
 - Verify all external links point to correct, unique resources
 - Test that referenced local files actually exist
-<<<<<<< HEAD
 - **CRITICAL**: Compare code snippets in content against their source files to ensure they match
 - Flag any code snippets exceeding 30 lines (note for improvement, not grade penalty)
-=======
->>>>>>> 5ba082ca2684c821de27bf9932bd481037c4f5f0
 
 ## Step 4: Structural Evaluation
 
@@ -380,11 +371,8 @@ Provide comprehensive, structured feedback using this format:
 - Vague exercises that provide no guidance
 - Missing starter code, solutions, or success criteria
 - Service name inconsistencies or outdated information
-<<<<<<< HEAD
 - Code snippets that don't match referenced source files
 - Code snippets exceeding 30 lines (flag for refactoring, no grade penalty)
-=======
->>>>>>> 5ba082ca2684c821de27bf9932bd481037c4f5f0
 
 ## Structural Improvements
 
@@ -418,11 +406,8 @@ Provide comprehensive, structured feedback using this format:
 - Validation results, testing recommendations
 - Expected output examples
 - Verification steps for learners
-<<<<<<< HEAD
 - Source file matching: Verify code snippets match referenced source files
 - Code length analysis: List any code snippets exceeding 30 lines with suggestions for refactoring or using excerpts
-=======
->>>>>>> 5ba082ca2684c821de27bf9932bd481037c4f5f0
 
 ## Excellence Checklist
 
