@@ -6,10 +6,9 @@ on:
     paths:
       - "instructions/**"
       - "prompts/**"
-      - "chatmodes/**"
+      - "agents/**"
       - "collections/**"
       - "*.js"
-      - "agents/**"
       - "README.md"
       - "docs/**"
 
@@ -34,7 +33,7 @@ jobs:
         run: npm install
 
       - name: Validate collections
-        run: npm run validate:collections
+        run: npm run collection:validate
 
       - name: Update README.md
         run: npm start

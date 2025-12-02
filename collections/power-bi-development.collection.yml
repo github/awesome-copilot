@@ -1,20 +1,30 @@
 id: power-bi-development
 name: Power BI Development
 description: Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions.
-tags: [power-bi, dax, data-modeling, performance, visualization, security, devops, business-intelligence]
+tags:
+  [
+    power-bi,
+    dax,
+    data-modeling,
+    performance,
+    visualization,
+    security,
+    devops,
+    business-intelligence,
+  ]
 items:
   # Power BI Chat Modes
-  - path: chatmodes/power-bi-data-modeling-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/power-bi-data-modeling-expert.agent.md
+    kind: agent
 
-  - path: chatmodes/power-bi-dax-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/power-bi-dax-expert.agent.md
+    kind: agent
 
-  - path: chatmodes/power-bi-performance-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/power-bi-performance-expert.agent.md
+    kind: agent
 
-  - path: chatmodes/power-bi-visualization-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/power-bi-visualization-expert.agent.md
+    kind: agent
 
   # Power BI Instructions
   - path: instructions/power-bi-custom-visuals-development.instructions.md

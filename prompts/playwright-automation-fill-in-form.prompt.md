@@ -1,6 +1,6 @@
 ---
 description: 'Automate filling in a form using Playwright MCP'
-mode: agent
+agent: agent
 tools: ['playwright']
 model: 'Claude Sonnet 4'
 ---

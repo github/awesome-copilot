@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 tools: ['search/codebase']
 description: 'Create optimized multi-stage Dockerfiles for any language or framework'
 ---

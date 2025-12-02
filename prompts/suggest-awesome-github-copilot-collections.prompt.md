@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Suggest relevant GitHub Copilot collections from the awesome-copilot repository based on current repository context and chat history, providing automatic download and installation of collection assets.'
 tools: ['edit', 'search', 'runCommands', 'runTasks', 'think', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos', 'search']
 ---
@@ -10,7 +10,7 @@ Analyze current repository context and suggest relevant collections from the [Gi
 ## Process
 
 1. **Fetch Available Collections**: Extract collection list and descriptions from [awesome-copilot README.collections.md](https://github.com/github/awesome-copilot/blob/main/docs/README.collections.md). Must use `#fetch` tool.
-2. **Scan Local Assets**: Discover existing prompt files in `prompts/`, instruction files in `instructions/`, and chat modes in `chatmodes/` folders
+2. **Scan Local Assets**: Discover existing prompt files in `prompts/`, instruction files in `instructions/`, and chat modes in `agents/` folders
 3. **Extract Local Descriptions**: Read front matter from local asset files to understand existing capabilities
 4. **Analyze Repository Context**: Review chat history, repository files, programming languages, frameworks, and current project needs
 5. **Match Collection Relevance**: Compare available collections against identified patterns and requirements
@@ -60,14 +60,14 @@ For each suggested collection, break down individual assets:
 **Installation Preview:**
 - Will install to `prompts/`: 4 Azure-specific prompts
 - Will install to `instructions/`: 6 infrastructure and DevOps best practices
-- Will install to `chatmodes/`: 5 specialized Azure expert modes
+- Will install to `agents/`: 5 specialized Azure expert modes
 
 ## Local Asset Discovery Process
 
 1. **Scan Asset Directories**:
    - List all `*.prompt.md` files in `prompts/` directory
    - List all `*.instructions.md` files in `instructions/` directory
-   - List all `*.chatmode.md` files in `chatmodes/` directory
+   - List all `*.agent.md` files in `agents/` directory
 
 2. **Extract Asset Metadata**: For each discovered file, read YAML front matter to extract:
    - `description` - Primary purpose and functionality
@@ -98,7 +98,7 @@ When user confirms a collection installation:
 3. **Install to Appropriate Directories**:
    - `*.prompt.md` files → `prompts/` directory
    - `*.instructions.md` files → `instructions/` directory
-   - `*.chatmode.md` files → `chatmodes/` directory
+   - `*.agent.md` files → `agents/` directory
 4. **Avoid Duplicates**: Skip files that are substantially similar to existing assets
 5. **Report Installation**: Provide summary of installed assets and usage instructions
 
@@ -106,7 +106,7 @@ When user confirms a collection installation:
 
 - Use `fetch` tool to get collections data from awesome-copilot repository
 - Use `githubRepo` tool to get individual asset content for download
-- Scan local file system for existing assets in `prompts/`, `instructions/`, and `chatmodes/` directories
+- Scan local file system for existing assets in `prompts/`, `instructions/`, and `agents/` directories
 - Read YAML front matter from local asset files to extract descriptions and capabilities
 - Compare collections against repository context to identify relevant matches
 - Focus on collections that fill capability gaps rather than duplicate existing assets
@@ -125,7 +125,7 @@ When user confirms a collection installation:
    - Download raw content from GitHub repository
    - Validate file format and structure
    - Check for substantial overlap with existing local assets
-   - Install to appropriate directory (`prompts/`, `instructions/`, or `chatmodes/`)
+   - Install to appropriate directory (`prompts/`, `instructions/`, or `agents/`)
 4. **Installation Summary**: Report installed assets with usage instructions
 5. **Workflow Enhancement Guide**: Explain how the collection improves development capabilities
 

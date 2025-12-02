@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 model: Claude Sonnet 4
 tools: ['edit', 'githubRepo', 'changes', 'problems', 'search', 'runCommands', 'fetch']
 description: 'Set up complete GitHub Copilot configuration for a new project based on technology stack'
@@ -42,15 +42,15 @@ Create reusable prompt files:
 - `generate-docs.prompt.md` - Documentation generation
 - `debug-issue.prompt.md` - Debugging assistance
 
-### 4. `.github/chatmodes/` Directory
+### 4. `.github/agents/` Directory
 Create specialized chat modes:
-- `architect.chatmode.md` - Architecture planning mode
-- `reviewer.chatmode.md` - Code review mode
-- `debugger.chatmode.md` - Debugging mode
+- `architect.agent.md` - Architecture planning mode
+- `reviewer.agent.md` - Code review mode
+- `debugger.agent.md` - Debugging mode
 
 **Chat Mode Attribution**: When using content from awesome-copilot chatmodes, add attribution comments:
 ```markdown
-<!-- Based on/Inspired by: https://github.com/github/awesome-copilot/blob/main/chatmodes/[filename].chatmode.md -->
+<!-- Based on/Inspired by: https://github.com/github/awesome-copilot/blob/main/agents/[filename].agent.md -->
 ```
 
 ### 5. `.github/workflows/` Directory
@@ -171,10 +171,10 @@ project-root/
 │   │   ├── refactor-code.prompt.md
 │   │   ├── generate-docs.prompt.md
 │   │   └── debug-issue.prompt.md
-│   ├── chatmodes/
-│   │   ├── architect.chatmode.md
-│   │   ├── reviewer.chatmode.md
-│   │   └── debugger.chatmode.md
+│   ├── agents/
+│   │   ├── architect.agent.md
+│   │   ├── reviewer.agent.md
+│   │   └── debugger.agent.md
 │   └── workflows/
 │       └── copilot-setup-steps.yml
 ```
@@ -211,7 +211,7 @@ Apply the [general coding guidelines](./general-coding.instructions.md) to all c
 **Prompts (.prompt.md):**
 ```yaml
 ---
-mode: 'agent'
+agent: 'agent'
 model: Claude Sonnet 4
 tools: ['githubRepo', 'codebase']
 description: 'Generate a new React form component'
@@ -233,7 +233,7 @@ Requirements for the form:
 
 ```
 
-**Chat Modes (.chatmode.md):**
+**Chat Modes (.agent.md):**
 ```yaml
 ---
 description: Generate an implementation plan for new features or refactoring existing code.

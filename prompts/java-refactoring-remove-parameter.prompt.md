@@ -1,6 +1,6 @@
 ---
 title: 'Refactoring Java Methods with Remove Parameter'
-mode: 'agent'
+agent: 'agent'
 description: 'Refactoring using Remove Parameter in Java Language'
 ---
 

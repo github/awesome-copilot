@@ -50,13 +50,13 @@
           "path": {
             "type": "string",
             "description": "Relative path from repository root to the item file",
-            "pattern": "^(prompts|instructions|chatmodes|agents)/[^/]+\\.(prompt|instructions|chatmode|agent)\\.md$",
+            "pattern": "^(prompts|instructions|agents)/[^/]+\\.(prompt|instructions|agent)\\.md$",
             "minLength": 1
           },
           "kind": {
             "type": "string",
             "description": "Type of the item",
-            "enum": ["prompt", "instruction", "chat-mode", "agent"]
+            "enum": ["prompt", "instruction", "agent"]
           },
           "usage": {
             "type": "string",

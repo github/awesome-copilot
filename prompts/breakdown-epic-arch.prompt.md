@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 description: 'Prompt for creating the high-level technical architecture for an Epic, based on a Product Requirements Document.'
 ---
 

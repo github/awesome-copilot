@@ -7,8 +7,8 @@ items:
     kind: instruction
   - path: prompts/typescript-mcp-server-generator.prompt.md
     kind: prompt
-  - path: chatmodes/typescript-mcp-expert.chatmode.md
-    kind: chat-mode
+  - path: agents/typescript-mcp-expert.agent.md
+    kind: agent
     usage: |
       recommended
 

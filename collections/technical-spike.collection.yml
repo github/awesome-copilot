@@ -4,8 +4,8 @@ description: Tools for creation, management and research of technical spikes to 
 tags: [technical-spike, assumption-testing, validation, research]
 items:
   # Planning Chat Modes
-  - path: chatmodes/research-technical-spike.chatmode.md
-    kind: chat-mode
+  - path: agents/research-technical-spike.agent.md
+    kind: agent
 
   # Planning Prompts
   - path: prompts/create-technical-spike.prompt.md

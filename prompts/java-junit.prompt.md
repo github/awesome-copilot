@@ -1,5 +1,5 @@
 ---
-mode: 'agent'
+agent: 'agent'
 tools: ['changes', 'search/codebase', 'edit/editFiles', 'problems', 'search']
 description: 'Get best practices for JUnit 5 unit testing, including data-driven tests'
 ---

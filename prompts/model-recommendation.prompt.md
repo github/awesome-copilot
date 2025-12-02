@@ -1,6 +1,6 @@
 ---
 description: "Analyze chatmode or prompt files and recommend optimal AI models based on task complexity, required capabilities, and cost-efficiency"
-mode: "agent"
+agent: "agent"
 tools:
   - "search/codebase"
   - "fetch"
@@ -12,11 +12,11 @@ model: Auto (copilot)
 
 ## Mission
 
-Analyze `.chatmode.md` or `.prompt.md` files to understand their purpose, complexity, and required capabilities, then recommend the most suitable AI model(s) from GitHub Copilot's available options. Provide rationale based on task characteristics, model strengths, cost-efficiency, and performance trade-offs.
+Analyze `.agent.md` or `.prompt.md` files to understand their purpose, complexity, and required capabilities, then recommend the most suitable AI model(s) from GitHub Copilot's available options. Provide rationale based on task characteristics, model strengths, cost-efficiency, and performance trade-offs.
 
 ## Scope & Preconditions
 
-- **Input**: Path to a `.chatmode.md` or `.prompt.md` file
+- **Input**: Path to a `.agent.md` or `.prompt.md` file
 - **Available Models**: GPT-4.1, GPT-5, GPT-5 mini, GPT-5 Codex, Claude Sonnet 3.5, Claude Sonnet 4, Claude Sonnet 4.5, Claude Opus 4.1, Gemini 2.5 Pro, Gemini 2.0 Flash, Grok Code Fast 1, o3, o4-mini (with deprecation dates)
 - **Model Auto-Selection**: Available in VS Code (Sept 2025+) - selects from GPT-4.1, GPT-5 mini, GPT-5, Claude Sonnet 3.5, Claude Sonnet 4.5 (excludes premium multipliers > 1)
 - **Context**: GitHub Copilot subscription tiers (Free: 2K completions + 50 chat/month with 0x models only; Pro: unlimited 0x + 1000 premium/month; Pro+: unlimited 0x + 5000 premium/month)
@@ -25,7 +25,7 @@ Analyze `.chatmode.md` or `.prompt.md` files to understand their purpose, comple
 
 Required:
 
-- `${input:filePath:Path to .chatmode.md or .prompt.md file}` - Absolute or workspace-relative path to the file to analyze
+- `${input:filePath:Path to .agent.md or .prompt.md file}` - Absolute or workspace-relative path to the file to analyze
 
 Optional:
 
@@ -38,7 +38,7 @@ Optional:
 
 **Read and Parse File**:
 
-- Read the target `.chatmode.md` or `.prompt.md` file
+- Read the target `.agent.md` or `.prompt.md` file
 - Extract frontmatter (description, mode, tools, model if specified)
 - Analyze body content to identify:
   - Task complexity (simple/moderate/complex/advanced)
@@ -505,7 +505,7 @@ model: "[Recommended Model Name]"
 ### Failure Triggers
 
 - File path is invalid or unreadable → Stop and request valid path
-- File is not `.chatmode.md` or `.prompt.md` → Stop and clarify file type
+- File is not `.agent.md` or `.prompt.md` → Stop and clarify file type
 - Cannot determine task complexity from content → Request more specific file or clarification
 - Model recommendation contradicts documented capabilities → Use Context7 to verify current info
 - Subscription tier is invalid (not Free/Pro/Pro+) → Default to Pro and note assumption
@@ -551,7 +551,7 @@ If file specifies a deprecated model:
 
 ### Example 2: Complex Architecture Review
 
-**File**: `architect.chatmode.md`
+**File**: `architect.agent.md`
 **Content**: "Review system design for scalability, security, maintainability; analyze trade-offs; provide ADR-level recommendations"
 **Recommendation**: Claude Sonnet 4.5 (1x multiplier, expert reasoning, excellent for architecture)
 **Alternative**: Claude Opus 4.1 (10x, use for very large codebases >500K tokens)
@@ -559,7 +559,7 @@ If file specifies a deprecated model:
 
 ### Example 3: Django Expert Mode
 
-**File**: `django.chatmode.md`
+**File**: `django.agent.md`
 **Content**: "Django 5.x expert with ORM optimization, async views, REST API design; uses context7 for up-to-date Django docs"
 **Recommendation**: GPT-5 (1x multiplier, advanced reasoning, excellent code quality)
 **Alternative**: Claude Sonnet 4.5 (1x, alternative perspective, strong with frameworks)
@@ -567,7 +567,7 @@ If file specifies a deprecated model:
 
 ### Example 4: Free Tier User with Planning Mode
 
-**File**: `plan.chatmode.md`
+**File**: `plan.agent.md`
 **Content**: "Research and planning mode with read-only tools (search, fetch, githubRepo)"
 **Subscription**: Free (2K completions + 50 chat requests/month, 0x models only)
 **Recommendation**: GPT-4.1 (0x, balanced, included in Free tier)

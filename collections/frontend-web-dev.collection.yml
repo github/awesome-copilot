@@ -4,10 +4,10 @@ description: Essential prompts, instructions, and chat modes for modern frontend
 tags: [frontend, web, react, typescript, javascript, css, html, angular, vue]
 items:
   # Expert Chat Modes
-  - path: chatmodes/expert-react-frontend-engineer.chatmode.md
-    kind: chat-mode
-  - path: chatmodes/electron-angular-native.chatmode.md
-    kind: chat-mode
+  - path: agents/expert-react-frontend-engineer.agent.md
+    kind: agent
+  - path: agents/electron-angular-native.agent.md
+    kind: agent
 
   # Development Instructions
   - path: instructions/reactjs.instructions.md

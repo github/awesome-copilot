@@ -21,6 +21,8 @@ items:
     kind: agent
   - path: agents/arm-migration.agent.md
     kind: agent
+  - path: agents/diffblue-cover.agent.md
+    kind: agent
   - path: agents/droid.agent.md
     kind: agent
   - path: agents/dynatrace-expert.agent.md
@@ -31,6 +33,8 @@ items:
     kind: agent
   - path: agents/launchdarkly-flag-cleanup.agent.md
     kind: agent
+  - path: agents/lingodotdev-i18n.agent.md
+    kind: agent
   - path: agents/monday-bug-fixer.agent.md
     kind: agent
   - path: agents/mongodb-performance-advisor.agent.md
@@ -40,8 +44,6 @@ items:
   - path: agents/neon-migration-specialist.agent.md
     kind: agent
   - path: agents/neon-optimization-analyzer.agent.md
-    kind: agent
-  - path: agents/newrelic-deployment-observability.agent.md
     kind: agent
   - path: agents/octopus-deploy-release-notes-mcp.agent.md
     kind: agent

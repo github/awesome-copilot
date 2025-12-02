@@ -1,12 +1,12 @@
 # 📦 Collections
 
-Curated collections of related prompts, instructions, and chat modes organized around specific themes, workflows, or use cases.
+Curated collections of related prompts, instructions, and agents organized around specific themes, workflows, or use cases.
 ### How to Use Collections
 
 **Browse Collections:**
 - ⭐ Featured collections are highlighted and appear at the top of the list
 - Explore themed collections that group related customizations
-- Each collection includes prompts, instructions, and chat modes for specific workflows
+- Each collection includes prompts, instructions, and agents for specific workflows
 - Collections make it easy to adopt comprehensive toolkits for particular scenarios
 
 **Install Items:**
@@ -17,7 +17,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
 | [⭐ Awesome Copilot](../collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
-| [⭐ Partners](../collections/partners.md) | Custom agents that have been created by GitHub partners | 18 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
+| [⭐ Partners](../collections/partners.md) | Custom agents that have been created by GitHub partners | 19 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 | [Azure & Cloud Development](../collections/azure-cloud-development.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 18 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [C# .NET Development](../collections/csharp-dotnet-development.md) | Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices. | 8 items | csharp, dotnet, aspnet, testing |
 | [C# MCP Server Development](../collections/csharp-mcp-development.md) | Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance. | 3 items | csharp, mcp, model-context-protocol, dotnet, server-development |
@@ -31,6 +31,7 @@ Curated collections of related prompts, instructions, and chat modes organized a
 | [Kotlin MCP Server Development](../collections/kotlin-mcp-development.md) | Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance. | 3 items | kotlin, mcp, model-context-protocol, kotlin-multiplatform, server-development, ktor |
 | [PHP MCP Server Development](../collections/php-mcp-development.md) | Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance | 3 items | php, mcp, model-context-protocol, server-development, sdk, attributes, composer |
 | [Power Apps Code Apps Development](../collections/power-apps-code-apps.md) | Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration. | 3 items | power-apps, power-platform, typescript, react, code-apps, dataverse, connectors |
+| [Power Apps Component Framework (PCF) Development](../collections/pcf-development.md) | Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps | 17 items | power-apps, pcf, component-framework, typescript, power-platform |
 | [Power BI Development](../collections/power-bi-development.md) | Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions. | 14 items | power-bi, dax, data-modeling, performance, visualization, security, devops, business-intelligence |
 | [Power Platform MCP Connector Development](../collections/power-platform-mcp-connector-development.md) | Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio | 4 items | power-platform, mcp, copilot-studio, custom-connector, json-rpc |
 | [Project Planning & Management](../collections/project-planning.md) | Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams. | 17 items | planning, project-management, epic, feature, implementation, task, architecture, technical-spike |

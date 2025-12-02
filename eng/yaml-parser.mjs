@@ -34,7 +34,7 @@ function parseCollectionYaml(filePath) {
 
 /**
  * Parse frontmatter from a markdown file using vfile-matter
- * Works with any markdown file that has YAML frontmatter (agents, prompts, chatmodes, instructions)
+ * Works with any markdown file that has YAML frontmatter (agents, prompts, instructions)
  * @param {string} filePath - Path to the markdown file
  * @returns {object|null} Parsed frontmatter object or null on error
  */
