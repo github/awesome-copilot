@@ -1,5 +1,5 @@
 ---
-title: 'Ultimate Transparent Thinking Beast Mode'
+name: 'Ultimate Transparent Thinking Beast Mode'
 description: 'Ultimate Transparent Thinking Beast Mode'
 ---
 
