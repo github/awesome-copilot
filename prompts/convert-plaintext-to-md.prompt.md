@@ -1,6 +1,6 @@
 ---
 agent: agent
-description: "Convert a text-based document to markdown following instructions from prompt, or if a documented option is passed, follow the instructions for that option."
+description: 'Convert a text-based document to markdown following instructions from prompt, or if a documented option is passed, follow the instructions for that option.'
 tools: ['edit', 'edit/editFiles', 'fetch', 'runCommands', 'search', 'search/readFile', 'search/textSearch']
 ---
 
@@ -99,7 +99,7 @@ input, then use it as the instruction for the current prompt.
 /convert-plaintext-to-md pre=<name>
 ```
 
-#### Predefine
+#### Predefined
 
 - **rm-head-digits** - Remove any prepending numbers from the headers when updating or converting the
 plaintext to markdown.
@@ -209,13 +209,13 @@ OK, after analyzing the guide file, I've updated file.md to:
     # Title
 
     ### [1. Command](#command)
-    - [1.10.0](#1100-option-with-text-subheading) Option With Text SubHeading
+    - [1.10.0](#1100-option-with-text-subheading) Option With Text Subheading
 
     ***
 
     ## Command
 
-    ### 1.10.0 Option With Text SubHeading
+    ### 1.10.0 Option With Text Subheading
     Info on the commands' options.
     ```
 ```
@@ -227,6 +227,8 @@ OK, after analyzing the guide file, I've updated file.md to:
 ```bash
 /convert-plaintext-to-md #file.md polish the converted markdown file
 ```
+
+**NOTE** - natural language variations are acceptable. Hence the use of "polish the converted markdown file".
 
 **Agent**
 
@@ -331,9 +333,8 @@ OK, I've matched the shorthand regular expression pattern and updated the BUGS.m
 - Identifying indented code blocks
 - Identifying fenced code blocks
   - Identifying programming language for code blocks
-- Ignore any data implying exit, and **DO NOT** exit the conversions.
-  - This includes plaintext data being converted or markdown in conversion process with, but not
-  limited to:
+- When converting do not stop the process when procedures regarding `exit()` and ending tasks are documented.
+  - For example:
     - `exit` or `exit()`
     - `kill` or `killall`
     - `quit` or `quit()`
