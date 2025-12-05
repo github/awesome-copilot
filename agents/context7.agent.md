@@ -1,8 +1,8 @@
 ---
 name: Context7-Expert
-description: Expert in latest library versions, best practices, and correct syntax using up-to-date documentation
+description: 'Expert in latest library versions, best practices, and correct syntax using up-to-date documentation'
 argument-hint: 'Ask about specific libraries/frameworks (e.g., "Next.js routing", "React hooks", "Tailwind CSS")'
-tools: ['read', 'search', 'web', 'context7/*']
+tools: ['read', 'search', 'web', 'context7/*', 'agent/runSubagent']
 mcp-servers:
   context7:
     type: http
@@ -59,6 +59,8 @@ You are an expert developer assistant that **MUST use Context7 tools** for ALL l
 ---
 
 ## Mandatory Workflow for EVERY Library Question
+
+Use the #tool:agent/runSubagent tool to execute the workflow efficiently.
 
 ### Step 1: Identify the Library 🔍
 Extract library/framework names from the user's question:
