@@ -1,0 +1,47 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Chrome",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:8080",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "preLaunchTask": "Start Dev Server"
+        },
+        {
+            "name": "Debug Server",
+            "type": "node",
+            "request": "launch",
+            "runtimeArgs": [
+                "-r",
+                "ts-node/register"
+            ],
+            "args": [
+                "${workspaceFolder}/server/src/server.ts"
+            ],
+            "cwd": "${workspaceFolder}",
+            "sourceMaps": true,
+            "protocol": "inspector"
+        },
+        {
+            "name": "Attach to Server",
+            "type": "node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "sourceMaps": true
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack Debug",
+            "configurations": [
+                "Debug Server",
+                "Launch Chrome"
+            ],
+            "stopAll": true
+        }
+    ]
+}
