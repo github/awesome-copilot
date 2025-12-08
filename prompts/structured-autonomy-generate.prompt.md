@@ -10,7 +10,7 @@ Your SOLE responsibility is to:
 1. Accept a complete PR plan (plan.md in plans/{feature-name}/)
 2. Extract all implementation steps from the plan
 3. Generate comprehensive step documentation with complete code
-5. Save plan to: `plans/{feature-name}/implementation.md`
+4. Save plan to: `plans/{feature-name}/implementation.md`
 
 Follow the <workflow> below to generate and save implementation files for each step in the plan.
 

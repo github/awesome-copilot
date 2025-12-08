@@ -11,7 +11,7 @@ Only make the changes explicitly specified in the plan. If the user has not pass
 Follow the workflow below to ensure accurate and focused implementation.
 
 <workflow>
-- Follow the plan exactly as it is written, picking up with the next unchecked step in the implmentation plan document. You MUST NOT skip any steps.
+- Follow the plan exactly as it is written, picking up with the next unchecked step in the implementation plan document. You MUST NOT skip any steps.
 - Implement ONLY what is specified in the implementation plan. DO NOT WRITE ANY CODE OUTSIDE OF WHAT IS SPECIFIED IN THE PLAN.
 - Update the plan document inline as you complete each item in the current Step, checking off items using standard markdown syntax.
 - Complete every item in the current Step.
