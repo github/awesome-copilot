@@ -27,47 +27,78 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Cache of MCP registry server names (lower-cased) loaded from github-mcp-registry.json
+// Cache of MCP registry server names (lower-cased) fetched from the API
 let MCP_REGISTRY_SET = null;
 /**
- * Loads and caches the set of MCP registry server display names (lowercased).
+ * Loads and caches the set of MCP registry server names from the GitHub MCP registry API.
  *
  * Behavior:
  * - If a cached set already exists (MCP_REGISTRY_SET), it is returned immediately.
- * - Attempts to read a JSON registry file named "github-mcp-registry.json" from the
- *   same directory as this script.
- * - Safely handles missing file or malformed JSON by returning an empty Set.
- * - Extracts server display names from: json.payload.mcpRegistryRoute.serversData.servers
- * - Normalizes names to lowercase and stores them in a Set for O(1) membership checks.
+ * - Fetches all pages from https://api.mcp.github.com/v0.1/servers/ using cursor-based pagination
+ * - Safely handles network errors or malformed JSON by returning an empty array.
+ * - Extracts server names from: data[].server.name
+ * - Normalizes names to lowercase for case-insensitive matching
+ * - Only hits the API once per README build run (cached for subsequent calls)
  *
  * Side Effects:
  * - Mutates the module-scoped variable MCP_REGISTRY_SET.
- * - Logs a warning to console if reading or parsing the registry fails.
+ * - Logs a warning to console if fetching or parsing the registry fails.
  *
- * @returns {{ name: string, displayName: string }[]} A Set of lowercased server display names. May be empty if
- *          the registry file is absent, unreadable, or malformed.
+ * @returns {Promise<{ name: string, displayName: string }[]>} Array of server entries with name and lowercase displayName. May be empty if
+ *          the API is unreachable or returns malformed data.
  *
- * @throws {none} All errors are caught internally; failures result in an empty Set.
+ * @throws {none} All errors are caught internally; failures result in an empty array.
  */
-function loadMcpRegistryNames() {
+async function loadMcpRegistryNames() {
   if (MCP_REGISTRY_SET) return MCP_REGISTRY_SET;
+  
   try {
-    const registryPath = path.join(__dirname, "github-mcp-registry.json");
-    if (!fs.existsSync(registryPath)) {
-      MCP_REGISTRY_SET = [];
-      return MCP_REGISTRY_SET;
-    }
-    const raw = fs.readFileSync(registryPath, "utf8");
-    const json = JSON.parse(raw);
-    const servers = json?.payload?.mcpRegistryRoute?.serversData?.servers || [];
-    MCP_REGISTRY_SET = servers.map((s) => ({
-      name: s.name,
-      displayName: s.display_name.toLowerCase(),
-    }));
+    console.log('Fetching MCP registry from API...');
+    const allServers = [];
+    let cursor = null;
+    const apiUrl = 'https://api.mcp.github.com/v0.1/servers/';
+    
+    // Fetch all pages using cursor-based pagination
+    do {
+      const url = cursor ? `${apiUrl}?cursor=${encodeURIComponent(cursor)}` : apiUrl;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
+      }
+      
+      const json = await response.json();
+      const servers = json?.servers || [];
+      
+      // Extract server names and displayNames from the response
+      for (const entry of servers) {
+        const serverName = entry?.server?.name;
+        if (serverName) {
+          // Try to get displayName from GitHub metadata, fall back to server name
+          const displayName = 
+            entry?.server?._meta?.["io.modelcontextprotocol.registry/publisher-provided"]?.github?.displayName || 
+            serverName;
+          
+          allServers.push({
+            name: serverName,
+            displayName: displayName.toLowerCase(),
+            // Also store the original full name for matching
+            fullName: serverName.toLowerCase(),
+          });
+        }
+      }
+      
+      // Get next cursor for pagination
+      cursor = json?.metadata?.nextCursor || null;
+    } while (cursor);
+    
+    console.log(`Loaded ${allServers.length} servers from MCP registry`);
+    MCP_REGISTRY_SET = allServers;
   } catch (e) {
-    console.warn(`Failed to load MCP registry: ${e.message}`);
+    console.warn(`Failed to load MCP registry from API: ${e.message}`);
     MCP_REGISTRY_SET = [];
   }
+  
   return MCP_REGISTRY_SET;
 }
 
@@ -334,9 +365,10 @@ function generatePromptsSection(promptsDir) {
 /**
  * Generate MCP server links for an agent
  * @param {string[]} servers - Array of MCP server names
+ * @param {{ name: string, displayName: string }[]} registryNames - Pre-loaded registry names to avoid async calls
  * @returns {string} - Formatted MCP server links with badges
  */
-function generateMcpServerLinks(servers) {
+function generateMcpServerLinks(servers, registryNames) {
   if (!servers || servers.length === 0) {
     return "";
   }
@@ -361,8 +393,6 @@ function generateMcpServerLinks(servers) {
         `https://aka.ms/awesome-copilot/install/mcp-visualstudio?vscode:mcp/by-name/${serverName}/mcp-server`,
     },
   ];
-
-  const registryNames = loadMcpRegistryNames();
 
   return servers
     .map((entry) => {
@@ -397,8 +427,29 @@ function generateMcpServerLinks(servers) {
         `[![Install MCP](${badges[2].url})](https://aka.ms/awesome-copilot/install/mcp-visualstudio/mcp-install?${encodedConfig})`,
       ].join("<br />");
 
+      // Match against both displayName and full name (case-insensitive)
+      const serverNameLower = serverName.toLowerCase();
       const registryEntry = registryNames.find(
-        (entry) => entry.displayName === serverName.toLowerCase()
+        (entry) => {
+          // Exact match on displayName or fullName
+          if (entry.displayName === serverNameLower || entry.fullName === serverNameLower) {
+            return true;
+          }
+          
+          // Check if the serverName matches a part of the full name after a slash
+          // e.g., "apify" matches "com.apify/apify-mcp-server"
+          const nameParts = entry.fullName.split('/');
+          if (nameParts.length > 1 && nameParts[1]) {
+            // Check if it matches the second part (after the slash)
+            const secondPart = nameParts[1].replace('-mcp-server', '').replace('-mcp', '');
+            if (secondPart === serverNameLower) {
+              return true;
+            }
+          }
+          
+          // Check if serverName matches the displayName ignoring case
+          return entry.displayName === serverNameLower;
+        }
       );
       const serverLabel = registryEntry
         ? `[${serverName}](${`https://github.com/mcp/${registryEntry.name}`})`
@@ -410,8 +461,10 @@ function generateMcpServerLinks(servers) {
 
 /**
  * Generate the agents section with a table of all agents
+ * @param {string} agentsDir - Directory path
+ * @param {{ name: string, displayName: string }[]} registryNames - Pre-loaded MCP registry names
  */
-function generateAgentsSection(agentsDir) {
+function generateAgentsSection(agentsDir, registryNames = []) {
   return generateUnifiedModeSection({
     dir: agentsDir,
     extension: ".agent.md",
@@ -420,6 +473,7 @@ function generateAgentsSection(agentsDir) {
     includeMcpServers: true,
     sectionTemplate: TEMPLATES.agentsSection,
     usageTemplate: TEMPLATES.agentsUsage,
+    registryNames,
   });
 }
 
@@ -433,6 +487,7 @@ function generateAgentsSection(agentsDir) {
  * @param {boolean} cfg.includeMcpServers - Whether to include MCP server column
  * @param {string} cfg.sectionTemplate - Section heading template
  * @param {string} cfg.usageTemplate - Usage subheading template
+ * @param {{ name: string, displayName: string }[]} cfg.registryNames - Pre-loaded MCP registry names
  */
 function generateUnifiedModeSection(cfg) {
   const {
@@ -443,6 +498,7 @@ function generateUnifiedModeSection(cfg) {
     includeMcpServers,
     sectionTemplate,
     usageTemplate,
+    registryNames = [],
   } = cfg;
 
   if (!fs.existsSync(dir)) {
@@ -477,7 +533,7 @@ function generateUnifiedModeSection(cfg) {
     let mcpServerCell = "";
     if (includeMcpServers) {
       const servers = extractMcpServerConfigs(filePath);
-      mcpServerCell = generateMcpServerLinks(servers);
+      mcpServerCell = generateMcpServerLinks(servers, registryNames);
     }
 
     if (includeMcpServers) {
@@ -648,8 +704,11 @@ function generateFeaturedCollectionsSection(collectionsDir) {
 
 /**
  * Generate individual collection README file
+ * @param {Object} collection - Collection object
+ * @param {string} collectionId - Collection ID
+ * @param {{ name: string, displayName: string }[]} registryNames - Pre-loaded MCP registry names
  */
-function generateCollectionReadme(collection, collectionId) {
+function generateCollectionReadme(collection, collectionId, registryNames = []) {
   if (!collection || !collection.items) {
     return `# ${collectionId}\n\nCollection not found or invalid.`;
   }
@@ -732,6 +791,7 @@ function generateCollectionReadme(collection, collectionId) {
       usageDescription,
       filePath,
       kind: item.kind,
+      registryNames,
     });
     // Generate Usage section for each collection
     if (item.usage && item.usage.trim()) {
@@ -769,13 +829,14 @@ function buildCollectionRow({
   usageDescription,
   filePath,
   kind,
+  registryNames = [],
 }) {
   if (hasAgents) {
     // Only agents currently have MCP servers; future migration may extend to chat modes.
     const mcpServers =
       kind === "agent" ? extractMcpServerConfigs(filePath) : [];
     const mcpServerCell =
-      mcpServers.length > 0 ? generateMcpServerLinks(mcpServers) : "";
+      mcpServers.length > 0 ? generateMcpServerLinks(mcpServers, registryNames) : "";
     return `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} | ${mcpServerCell} |\n`;
   }
   return `| [${title}](${link})<br />${badges} | ${typeDisplay} | ${usageDescription} |\n`;
@@ -800,8 +861,8 @@ function writeFileIfChanged(filePath, content) {
 }
 
 // Build per-category README content using existing generators, upgrading headings to H1
-function buildCategoryReadme(sectionBuilder, dirPath, headerLine, usageLine) {
-  const section = sectionBuilder(dirPath);
+function buildCategoryReadme(sectionBuilder, dirPath, headerLine, usageLine, registryNames = []) {
+  const section = sectionBuilder(dirPath, registryNames);
   if (section && section.trim()) {
     // Upgrade the first markdown heading level from ## to # for standalone README files
     return section.replace(/^##\s/m, "# ");
@@ -810,48 +871,56 @@ function buildCategoryReadme(sectionBuilder, dirPath, headerLine, usageLine) {
   return `${headerLine}\n\n${usageLine}\n\n_No entries found yet._`;
 }
 
-// Main execution
-try {
-  console.log("Generating category README files...");
+// Main execution wrapped in async function
+async function main() {
+  try {
+    console.log("Generating category README files...");
 
-  // Compose headers for standalone files by converting section headers to H1
-  const instructionsHeader = TEMPLATES.instructionsSection.replace(
-    /^##\s/m,
-    "# "
-  );
-  const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
-  const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
-  const collectionsHeader = TEMPLATES.collectionsSection.replace(
-    /^##\s/m,
-    "# "
-  );
+    // Load MCP registry names once at the beginning
+    const registryNames = await loadMcpRegistryNames();
 
-  const instructionsReadme = buildCategoryReadme(
-    generateInstructionsSection,
-    INSTRUCTIONS_DIR,
-    instructionsHeader,
-    TEMPLATES.instructionsUsage
-  );
-  const promptsReadme = buildCategoryReadme(
-    generatePromptsSection,
-    PROMPTS_DIR,
-    promptsHeader,
-    TEMPLATES.promptsUsage
-  );
-  // Generate agents README
-  const agentsReadme = buildCategoryReadme(
-    generateAgentsSection,
-    AGENTS_DIR,
-    agentsHeader,
-    TEMPLATES.agentsUsage
-  );
+    // Compose headers for standalone files by converting section headers to H1
+    const instructionsHeader = TEMPLATES.instructionsSection.replace(
+      /^##\s/m,
+      "# "
+    );
+    const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
+    const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
+    const collectionsHeader = TEMPLATES.collectionsSection.replace(
+      /^##\s/m,
+      "# "
+    );
+
+    const instructionsReadme = buildCategoryReadme(
+      generateInstructionsSection,
+      INSTRUCTIONS_DIR,
+      instructionsHeader,
+      TEMPLATES.instructionsUsage,
+      registryNames
+    );
+    const promptsReadme = buildCategoryReadme(
+      generatePromptsSection,
+      PROMPTS_DIR,
+      promptsHeader,
+      TEMPLATES.promptsUsage,
+      registryNames
+    );
+    // Generate agents README
+    const agentsReadme = buildCategoryReadme(
+      generateAgentsSection,
+      AGENTS_DIR,
+      agentsHeader,
+      TEMPLATES.agentsUsage,
+      registryNames
+    );
 
   // Generate collections README
   const collectionsReadme = buildCategoryReadme(
     generateCollectionsSection,
     COLLECTIONS_DIR,
     collectionsHeader,
-    TEMPLATES.collectionsUsage
+    TEMPLATES.collectionsUsage,
+    registryNames
   );
 
   // Ensure docs directory exists for category outputs
@@ -888,7 +957,8 @@ try {
           collection.id || path.basename(file, ".collection.yml");
         const readmeContent = generateCollectionReadme(
           collection,
-          collectionId
+          collectionId,
+          registryNames
         );
         const readmeFile = path.join(COLLECTIONS_DIR, `${collectionId}.md`);
         writeFileIfChanged(readmeFile, readmeContent);
@@ -941,8 +1011,17 @@ try {
   } else {
     console.log("No featured collections found to add to README.md");
   }
-} catch (error) {
-  console.error(`Error generating category README files: ${error.message}`);
-  process.exit(1);
+  } catch (error) {
+    console.error(`Error generating category README files: ${error.message}`);
+    console.error(error.stack);
+    process.exit(1);
+  }
 }
+
+// Run the main function
+main().catch((error) => {
+  console.error(`Fatal error: ${error.message}`);
+  console.error(error.stack);
+  process.exit(1);
+});
 
