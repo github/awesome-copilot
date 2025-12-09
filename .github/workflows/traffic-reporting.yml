@@ -72,7 +72,7 @@ jobs:
           fi
           
           # Send POST request with API key header, reading file directly
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+          HTTP_STATUS=$(curl -f --max-time 30 --retry 3 -s -o /dev/null -w "%{http_code}" \
             -X POST \
             -H "Content-Type: application/json" \
             -H "X-API-KEY: ${API_KEY}" \
