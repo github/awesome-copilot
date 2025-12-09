@@ -59,6 +59,12 @@ jobs:
         run: |
           echo "📤 Sending traffic data to reporting endpoint..."
           
+          # Validate that REPORTING_URL is set
+          if [ -z "${REPORTING_URL}" ]; then
+            echo "❌ Error: REPORTING_URL environment variable is not set. Please configure vars.REPORTING_POST_URL."
+            exit 1
+          fi
+          
           # Send POST request with API key header, reading file directly
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
