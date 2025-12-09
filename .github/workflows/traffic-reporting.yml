@@ -65,6 +65,12 @@ jobs:
             exit 1
           fi
           
+          # Validate that REPORTING_URL uses HTTPS
+          if [[ ! "${REPORTING_URL}" =~ ^https:// ]]; then
+            echo "❌ Error: REPORTING_URL must start with https:// to ensure secure transmission of sensitive traffic data."
+            exit 1
+          fi
+          
           # Send POST request with API key header, reading file directly
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST \
