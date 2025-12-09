@@ -9,7 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      actions: none
+      checks: none
       contents: read
+      deployments: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
 
     steps:
       - name: Fetch GitHub traffic statistics
