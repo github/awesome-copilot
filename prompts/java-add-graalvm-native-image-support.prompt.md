@@ -1,4 +1,5 @@
 ---
+agent: 'agent'
 description: 'GraalVM Native Image expert that adds native image support to Java applications, builds the project, analyzes build errors, applies fixes, and iterates until successful compilation using Oracle best practices.'
 model: 'Claude Sonnet 4.5'
 tools:
