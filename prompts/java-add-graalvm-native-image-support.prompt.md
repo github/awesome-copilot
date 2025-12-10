@@ -42,7 +42,7 @@ Add the GraalVM Native Build Tools plugin to `pom.xml`:
 <plugin>
   <groupId>org.graalvm.buildtools</groupId>
   <artifactId>native-maven-plugin</artifactId>
-  <version>0.10.0</version>
+  <version>[latest-version]</version>
   <extensions>true</extensions>
   <executions>
     <execution>
@@ -77,7 +77,7 @@ Add the GraalVM Native Build Tools plugin to `build.gradle`:
 
 ```groovy
 plugins {
-  id 'org.graalvm.buildtools.native' version '0.10.0'
+  id 'org.graalvm.buildtools.native' version '[latest-version]'
 }
 
 graalvmNative {
@@ -94,7 +94,7 @@ Or for Kotlin DSL (`build.gradle.kts`):
 
 ```kotlin
 plugins {
-  id("org.graalvm.buildtools.native") version "0.10.0"
+  id("org.graalvm.buildtools.native") version "[latest-version]"
 }
 
 graalvmNative {
@@ -235,10 +235,10 @@ public class MyRuntimeHints implements RuntimeHintsRegistrar {
             hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                                      MemberCategory.INVOKE_DECLARED_METHODS)
         );
-        
+
         // Register resource hints
         hints.resources().registerPattern("custom-config/*.properties");
-        
+
         // Register serialization hints
         hints.serialization().registerType(MySerializableClass.class);
     }
@@ -264,7 +264,7 @@ public class Application {
    # Disable Logback's shutdown hook in native images
    logging.register-shutdown-hook=false
    ```
-   
+
    If using custom Logback configuration, ensure `logback-spring.xml` is in resources and add to `RuntimeHints`:
    ```java
    hints.resources().registerPattern("logback-spring.xml");
@@ -282,7 +282,7 @@ public class Application {
        )
    );
    ```
-   
+
    Add Jackson mix-ins to reflection hints if used:
    ```java
    hints.reflection().registerType(MyMixIn.class);
@@ -309,7 +309,7 @@ public class Application {
    public class ReflectionConfiguration {
    }
    ```
-   
+
    Or register entire packages:
    ```java
    @RegisterForReflection(classNames = {"com.example.package.*"})
@@ -357,7 +357,7 @@ public class Application {
        // getters and setters
    }
    ```
-   
+
    Or enable package-wide introspection in `application.yml`:
    ```yaml
    micronaut:
