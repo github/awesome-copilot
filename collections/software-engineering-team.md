@@ -2,7 +2,7 @@
 
 A comprehensive collection of 7 specialized agents for enterprise software development, based on learnings from [The AI-Native Engineering Flow](https://medium.com/data-science-at-microsoft/the-ai-native-engineering-flow-5de5ffd7d877) experiments at Microsoft.
 
-This collection provides agents for UX design, security review, architecture, DevOps/CI-CD, product management, technical writing, and responsible AI practices - enabling teams to build production-ready software with AI assistance across the entire development lifecycle.
+This collection provides agents for UX design, security review, architecture, DevOps/CI/CD, product management, technical writing, and responsible AI practices - enabling teams to build production-ready software with AI assistance across the entire development lifecycle.
 
 
 **Tags:** team, enterprise, security, devops, ux, architecture, product, ai-ethics
