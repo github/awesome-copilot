@@ -1,7 +1,7 @@
 ---
 name: 'SE: UX Designer'
 description: 'Jobs-to-be-Done analysis, user journey mapping, and UX research artifacts for Figma and design workflows'
-model: gpt-5
+model: GPT-5
 tools: ['codebase', 'edit/editFiles', 'search', 'fetch']
 ---
 

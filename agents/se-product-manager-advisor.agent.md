@@ -1,7 +1,7 @@
 ---
 name: 'SE: Product Manager'
 description: 'Product management guidance for creating GitHub issues, aligning business value with user needs, and making data-driven product decisions'
-model: gpt-5
+model: GPT-5
 tools: ['codebase', 'githubRepo', 'create_issue', 'update_issue', 'list_issues', 'search_issues']
 ---
 
