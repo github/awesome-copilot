@@ -312,7 +312,10 @@ public class Application {
 
    Or register entire packages:
    ```java
-   @RegisterForReflection(classNames = {"com.example.package.*"})
+   // Wildcards are NOT supported; list each class explicitly:
+   @RegisterForReflection(classNames = {"com.example.package.Foo", "com.example.package.Bar"})
+   // Or, preferably, use the targets attribute with class references:
+   @RegisterForReflection(targets = {com.example.package.Foo.class, com.example.package.Bar.class})
    ```
 
 2. **Resource Inclusion**: Add to `application.properties`:
