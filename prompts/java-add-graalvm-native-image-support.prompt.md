@@ -341,7 +341,7 @@ public class Application {
 5. **Container Image Build**: Use Quarkus container-image extensions:
    ```properties
    quarkus.native.container-build=true
-   quarkus.native.builder-image=mandrel
+   quarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
    ```
 
 ### Micronaut
