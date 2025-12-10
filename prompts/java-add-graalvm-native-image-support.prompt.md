@@ -162,8 +162,8 @@ For missing resources, create `src/main/resources/META-INF/native-image/resource
   "resources": {
     "includes": [
       {"pattern": "application.properties"},
-      {"pattern": ".*\\.yml"},
-      {"pattern": ".*\\.yaml"}
+      {"pattern": ".*\\\\.yml"},
+      {"pattern": ".*\\\\.yaml"}
     ]
   }
 }
