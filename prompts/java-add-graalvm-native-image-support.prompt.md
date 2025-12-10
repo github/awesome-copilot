@@ -1,5 +1,6 @@
 ---
 description: 'GraalVM Native Image expert that adds native image support to Java applications, builds the project, analyzes build errors, applies fixes, and iterates until successful compilation using Oracle best practices.'
+model: 'Claude Sonnet 4.5'
 tools:
   - read_file
   - replace_string_in_file
@@ -162,8 +163,8 @@ For missing resources, create `src/main/resources/META-INF/native-image/resource
   "resources": {
     "includes": [
       {"pattern": "application.properties"},
-      {"pattern": ".*\\\\.yml"},
-      {"pattern": ".*\\\\.yaml"}
+      {"pattern": ".*\\.yml"},
+      {"pattern": ".*\\.yaml"}
     ]
   }
 }
@@ -213,8 +214,8 @@ Once built successfully:
 ## Framework-Specific Considerations
 
 ### Spring Boot
-- Spring Boot 3.2+ is recommended for best native image support (with enhanced capabilities and improved compatibility)
-- Minimum required version is Spring Boot 3.0, but 3.2 or later is strongly advised
+- Spring Boot 3.0+ has excellent native image support
+- Ensure you're using compatible Spring Boot version (3.0+)
 - Most Spring libraries provide GraalVM hints automatically
 - Test with Spring AOT processing enabled
 
@@ -312,10 +313,7 @@ public class Application {
 
    Or register entire packages:
    ```java
-   // Wildcards are NOT supported; list each class explicitly:
-   @RegisterForReflection(classNames = {"com.example.package.Foo", "com.example.package.Bar"})
-   // Or, preferably, use the targets attribute with class references:
-   @RegisterForReflection(targets = {com.example.package.Foo.class, com.example.package.Bar.class})
+   @RegisterForReflection(classNames = {"com.example.package.*"})
    ```
 
 2. **Resource Inclusion**: Add to `application.properties`:
@@ -341,7 +339,7 @@ public class Application {
 5. **Container Image Build**: Use Quarkus container-image extensions:
    ```properties
    quarkus.native.container-build=true
-   quarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+   quarkus.native.builder-image=mandrel
    ```
 
 ### Micronaut
