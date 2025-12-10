@@ -51,7 +51,7 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 - Strongly recommended to specify `model` field
 
 #### Prompt Files (*.prompt.md)
-- Must have `mode` field (either `agent` or `ask`)
+- Must have `agent` field (value should be `'agent'` wrapped in single quotes)
 - Must have `description` field (wrapped in single quotes, not empty)
 - File names should be lower case with words separated by hyphens
 - Recommended to specify `tools` if applicable
@@ -130,7 +130,7 @@ Before submitting your PR, ensure you have:
 
 For prompt files (*.prompt.md):
 - [ ] Has markdown front matter
-- [ ] Has `mode` field (`agent` or `ask`)
+- [ ] Has `agent` field (value should be `'agent'` wrapped in single quotes)
 - [ ] Has non-empty `description` field wrapped in single quotes
 - [ ] File name is lower case with hyphens
 - [ ] Includes `model` field (strongly recommended)
