@@ -79,12 +79,16 @@ npm run collection:validate
 
 # Build and verify README generation
 npm run build
+
+# Fix line endings (required before committing)
+bash scripts/fix-line-endings.sh
 ```
 
 Before committing:
 - Ensure all markdown front matter is correctly formatted
 - Verify file names follow the lower-case-with-hyphens convention
 - Run `npm run build` to update the README
+- **Always run `bash scripts/fix-line-endings.sh`** to normalize line endings (CRLF → LF)
 - Check that your new resource appears correctly in the README
 
 ## Code Style Guidelines
@@ -108,8 +112,19 @@ When creating a pull request:
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields
 3. **File naming**: Verify all new files follow the lower-case-with-hyphens naming convention
 4. **Build check**: Run `npm run build` before committing to verify README generation
-5. **Description**: Provide a clear description of what your agent/prompt/instruction does
-6. **Testing**: If adding a collection, run `npm run collection:validate` to ensure validity
+5. **Line endings**: **Always run `bash scripts/fix-line-endings.sh`** to normalize line endings to LF (Unix-style)
+6. **Description**: Provide a clear description of what your agent/prompt/instruction does
+7. **Testing**: If adding a collection, run `npm run collection:validate` to ensure validity
+
+### Pre-commit Checklist
+
+Before submitting your PR, ensure you have:
+- [ ] Run `npm install` (or `npm ci`) to install dependencies
+- [ ] Run `npm run build` to generate the updated README.md
+- [ ] Run `bash scripts/fix-line-endings.sh` to normalize line endings
+- [ ] Verified that all new files have proper front matter
+- [ ] Tested that your contribution works with GitHub Copilot
+- [ ] Checked that file names follow the naming convention
 
 ### Code Review Checklist
 
