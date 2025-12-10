@@ -427,7 +427,7 @@ public class Application {
 2. **Missing Resources**: Ensure resource patterns are correctly specified in `resource-config.json`
 3. **ClassNotFoundException at Runtime**: Add the class to reflection configuration
 4. **Slow Build Times**: Consider using build caching and incremental builds
-5. **Large Image Size**: Use `--gc=G1` or `--gc=serial` and analyze dependencies
+5. **Large Image Size**: Use `--gc=serial` (default) or `--gc=epsilon` (no-op GC for testing) and analyze dependencies
 
 ## References
 
