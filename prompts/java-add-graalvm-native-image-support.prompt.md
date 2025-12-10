@@ -213,8 +213,8 @@ Once built successfully:
 ## Framework-Specific Considerations
 
 ### Spring Boot
-- Spring Boot 3.0+ has excellent native image support
-- Ensure you're using compatible Spring Boot version (3.0+)
+- Spring Boot 3.2+ is recommended for best native image support (with enhanced capabilities and improved compatibility)
+- Minimum required version is Spring Boot 3.0, but 3.2 or later is strongly advised
 - Most Spring libraries provide GraalVM hints automatically
 - Test with Spring AOT processing enabled
 
