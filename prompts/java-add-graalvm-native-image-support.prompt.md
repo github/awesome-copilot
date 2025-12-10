@@ -38,39 +38,53 @@ Follow Oracle's best practices for GraalVM native images and use an iterative ap
 
 #### For Maven Projects
 
-Add the GraalVM Native Build Tools plugin to `pom.xml`:
+Add the GraalVM Native Build Tools plugin within a `native` profile in `pom.xml`:
 
 ```xml
-<plugin>
-  <groupId>org.graalvm.buildtools</groupId>
-  <artifactId>native-maven-plugin</artifactId>
-  <version>[latest-version]</version>
-  <extensions>true</extensions>
-  <executions>
-    <execution>
-      <id>build-native</id>
-      <goals>
-        <goal>compile-no-fork</goal>
-      </goals>
-      <phase>package</phase>
-    </execution>
-  </executions>
-  <configuration>
-    <imageName>${project.artifactId}</imageName>
-    <buildArgs>
-      <buildArg>--no-fallback</buildArg>
-    </buildArgs>
-  </configuration>
-</plugin>
+<profiles>
+  <profile>
+    <id>native</id>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>[latest-version]</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <id>build-native</id>
+              <goals>
+                <goal>compile-no-fork</goal>
+              </goals>
+              <phase>package</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <imageName>${project.artifactId}</imageName>
+            <mainClass>${main.class}</mainClass>
+            <buildArgs>
+              <buildArg>--no-fallback</buildArg>
+            </buildArgs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
+</profiles>
 ```
 
-For Spring Boot projects, also ensure the Spring Boot Maven plugin is configured:
+For Spring Boot projects, ensure the Spring Boot Maven plugin is in the main build section:
 
 ```xml
-<plugin>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-maven-plugin</artifactId>
-</plugin>
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-maven-plugin</artifactId>
+    </plugin>
+  </plugins>
+</build>
 ```
 
 #### For Gradle Projects
@@ -86,6 +100,7 @@ graalvmNative {
   binaries {
     main {
       imageName = project.name
+      mainClass = application.mainClass.get()
       buildArgs.add('--no-fallback')
     }
   }
@@ -103,6 +118,7 @@ graalvmNative {
   binaries {
     named("main") {
       imageName.set(project.name)
+      mainClass.set(application.mainClass.get())
       buildArgs.add("--no-fallback")
     }
   }
