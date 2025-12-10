@@ -38,13 +38,13 @@ Build reliable CI/CD pipelines, debug deployment failures quickly, and ensure ev
 ## Step 2: Common Failure Patterns & Solutions
 
 ### **Build Failures**
-```yaml
-# Problem: Dependency version conflicts
-# Solution: Lock all dependency versions
-# package.json
+```json
+// Problem: Dependency version conflicts
+// Solution: Lock all dependency versions
+// package.json
 {
   "dependencies": {
-    "express": "4.18.2",  # Exact version, not ^4.18.2
+    "express": "4.18.2",  // Exact version, not ^4.18.2
     "mongoose": "7.0.3"
   }
 }
