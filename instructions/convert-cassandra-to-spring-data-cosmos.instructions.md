@@ -270,7 +270,9 @@ entity1.setField1("value1");
 entity1.setField2("value2");
 ```
 
-**Common files to check**: DataSeeder, DatabaseInitializer, TestDataLoader, or any `@Component` implementing `CommandLineRunner`erEntity owner1 = new OwnerEntity();
+**Common files to check**: DataSeeder, DatabaseInitializer, TestDataLoader, or any `@Component` implementing `CommandLineRunner`
+```java
+OwnerEntity owner1 = new OwnerEntity();
 owner1.setId("owner-1");
 ```
 
