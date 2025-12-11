@@ -964,7 +964,7 @@ az cosmosdb sql role assignment create \
 **Root Cause**: Different data distribution strategies
 **Solution**: Choose appropriate partition key based on query patterns, typically the most frequently queried field
 
-#### Issue 9: UUID to String conversion issues
+#### Issue 10: UUID to String conversion issues
 **Problem**: Test files and controllers still using UUID types
 **Error**: `Cannot convert UUID to String` or type mismatch errors
 **Root Cause**: Not all occurrences of UUID were converted to String
