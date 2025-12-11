@@ -817,12 +817,6 @@ public class MappingUtils {
 **Critical**: All test files must be updated to work with String IDs and Cosmos repositories:
 
 ```java
-### 8. Test Updates
-
-#### Update Test Classes
-
-**CRITICAL**: All test files must be updated to work with String IDs and Cosmos repositories
-
 **If your application has unit tests:**
 
 ```java
