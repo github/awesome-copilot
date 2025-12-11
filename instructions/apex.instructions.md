@@ -67,9 +67,51 @@ public static void updateAccountRating(Account account) {
 }
 ```
 
+### Maps for O(1) Lookup
+
+- **Use Maps for efficient lookups** - Convert lists to maps for O(1) constant-time lookups instead of O(n) list iterations.
+- Use `Map<Id, SObject>` constructor to quickly convert query results to a map.
+- Ideal for matching related records, lookups, and avoiding nested loops.
+
+```apex
+// Good Example - Using Map for O(1) lookup
+Map<Id, Account> accountMap = new Map<Id, Account>([
+    SELECT Id, Name, Industry FROM Account WHERE Id IN :accountIds
+]);
+
+for (Contact con : contacts) {
+    Account acc = accountMap.get(con.AccountId);
+    if (acc != null) {
+        con.Industry__c = acc.Industry;
+    }
+}
+
+// Bad Example - Nested loop with O(n²) complexity
+List<Account> accounts = [SELECT Id, Name, Industry FROM Account WHERE Id IN :accountIds];
+
+for (Contact con : contacts) {
+    for (Account acc : accounts) {
+        if (con.AccountId == acc.Id) {
+            con.Industry__c = acc.Industry;
+            break;
+        }
+    }
+}
+
+// Good Example - Map for grouping records
+Map<Id, List<Contact>> contactsByAccountId = new Map<Id, List<Contact>>();
+for (Contact con : contacts) {
+    if (!contactsByAccountId.containsKey(con.AccountId)) {
+        contactsByAccountId.put(con.AccountId, new List<Contact>());
+    }
+    contactsByAccountId.get(con.AccountId).add(con);
+}
+```
+
 ### Governor Limits
 
 - Be aware of Salesforce governor limits: SOQL queries (100), DML statements (150), heap size (6MB), CPU time (10s).
+- **Monitor governor limits proactively** using `System.Limits` class to check consumption before hitting limits.
 - Use efficient SOQL queries with selective filters and appropriate indexes.
 - Implement **SOQL for loops** for processing large data sets.
 - Use **Batch Apex** for operations on large data volumes (>50,000 records).
@@ -156,6 +198,9 @@ public class AccountService {
 - Use relationship queries to minimize the number of SOQL queries.
 - Order queries by indexed fields when possible.
 - **Always use `String.escapeSingleQuotes()`** when using user input in SOQL queries to prevent SOQL injection attacks.
+- **Check query selectivity** - Aim for >10% selectivity (filters reduce results to <10% of total records).
+- Use **Query Plan** to verify query efficiency and index usage.
+- Test queries with realistic data volumes to ensure performance.
 
 ```apex
 // Good Example - Selective query with indexed fields
@@ -176,6 +221,26 @@ List<Account> accounts = Database.query('SELECT Id, Name FROM Account WHERE Name
 
 // Bad Example - Direct user input without escaping (SECURITY RISK)
 List<Account> accounts = Database.query('SELECT Id, Name FROM Account WHERE Name LIKE \'%' + userInput + '%\'');
+
+// Good Example - Selective query with indexed fields (high selectivity)
+List<Account> accounts = [
+    SELECT Id, Name FROM Account
+    WHERE OwnerId = :UserInfo.getUserId()
+    AND CreatedDate = TODAY
+    LIMIT 100
+];
+
+// Bad Example - Non-selective query (scans entire table)
+List<Account> accounts = [
+    SELECT Id, Name FROM Account
+    WHERE Description LIKE '%test%'  // Non-indexed field
+];
+
+// Check query performance in Developer Console:
+// 1. Enable 'Use Query Plan' in Developer Console
+// 2. Run SOQL query and review 'Query Plan' tab
+// 3. Look for 'Index' usage vs 'TableScan'
+// 4. Ensure selectivity > 10% for optimal performance
 ```
 
 ### Trigger Best Practices
@@ -228,8 +293,46 @@ public class AccountTriggerHandler extends TriggerHandler {
 - **Avoid using `+` for string concatenation in loops** - Use `String.join()` for better performance.
 - **Use Collection methods** - Leverage `List.clone()`, `Set.addAll()`, `Map.keySet()` for cleaner code.
 - **Use ternary operators** - For simple conditional assignments to improve readability.
+- **Use switch expressions** - Modern alternative to if-else chains for better readability and performance.
+- **Use SObject clone methods** - Properly clone SObjects when needed to avoid unintended references.
 
 ```apex
+// Good Example - Switch expression (modern Apex)
+String rating = switch on account.AnnualRevenue {
+    when 0 { 'Cold'; }
+    when 1, 2, 3 { 'Warm'; }
+    when else { 'Hot'; }
+};
+
+// Good Example - Switch on SObjectType
+String objectLabel = switch on record {
+    when Account a { 'Account: ' + a.Name; }
+    when Contact c { 'Contact: ' + c.LastName; }
+    when else { 'Unknown'; }
+};
+
+// Bad Example - if-else chain
+String rating;
+if (account.AnnualRevenue == 0) {
+    rating = 'Cold';
+} else if (account.AnnualRevenue >= 1 && account.AnnualRevenue <= 3) {
+    rating = 'Warm';
+} else {
+    rating = 'Hot';
+}
+
+// Good Example - SObject clone methods
+Account original = new Account(Name = 'Acme', Industry = 'Technology');
+
+// Shallow clone with ID and relationships
+Account clone1 = original.clone(true, true);
+
+// Shallow clone without ID or relationships
+Account clone2 = original.clone(false, false);
+
+// Deep clone with all relationships
+Account clone3 = original.deepClone(true, true, true);
+
 // Good Example - isEmpty() instead of size comparison
 if (accountList.isEmpty()) {
     System.debug('No accounts found');
@@ -317,9 +420,105 @@ List<Account> accountsCopy = accountList.clone();
 Set<Id> accountIds = new Set<Id>(accountMap.keySet());
 ```
 
+### Recursion Prevention
+
+- **Use static variables** to track recursive calls and prevent infinite loops.
+- Implement a **circuit breaker** pattern to stop execution after a threshold.
+- Document recursion limits and potential risks.
+
+```apex
+// Good Example - Recursion prevention with static variable
+public class AccountTriggerHandler extends TriggerHandler {
+    private static Boolean hasRun = false;
+
+    public override void afterUpdate() {
+        if (!hasRun) {
+            hasRun = true;
+            AccountService.updateRelatedContacts(Trigger.newMap.keySet());
+        }
+    }
+}
+
+// Good Example - Circuit breaker with counter
+public class OpportunityService {
+    private static Integer recursionCount = 0;
+    private static final Integer MAX_RECURSION_DEPTH = 5;
+
+    public static void processOpportunity(Id oppId) {
+        recursionCount++;
+
+        if (recursionCount > MAX_RECURSION_DEPTH) {
+            System.debug(LoggingLevel.ERROR, 'Max recursion depth exceeded');
+            return;
+        }
+
+        try {
+            // Process opportunity logic
+        } finally {
+            recursionCount--;
+        }
+    }
+}
+```
+
+### Method Visibility and Encapsulation
+
+- **Use `private` by default** - Only expose methods that need to be public.
+- Use `protected` for methods that subclasses need to access.
+- Use `public` only for APIs that other classes need to call.
+- **Use `final` keyword** to prevent method override when appropriate.
+- Mark classes as `final` if they should not be extended.
+
+```apex
+// Good Example - Proper encapsulation
+public class AccountService {
+    // Public API
+    public static void updateAccounts(List<Account> accounts) {
+        validateAccounts(accounts);
+        performUpdate(accounts);
+    }
+
+    // Private helper - not exposed
+    private static void validateAccounts(List<Account> accounts) {
+        for (Account acc : accounts) {
+            if (String.isBlank(acc.Name)) {
+                throw new IllegalArgumentException('Account name is required');
+            }
+        }
+    }
+
+    // Private implementation - not exposed
+    private static void performUpdate(List<Account> accounts) {
+        update accounts;
+    }
+}
+
+// Good Example - Final keyword to prevent extension
+public final class UtilityHelper {
+    // Cannot be extended
+    public static String formatCurrency(Decimal amount) {
+        return '$' + amount.setScale(2);
+    }
+}
+
+// Good Example - Final method to prevent override
+public virtual class BaseService {
+    // Can be overridden
+    public virtual void process() {
+        // Implementation
+    }
+
+    // Cannot be overridden
+    public final void validateInput() {
+        // Critical validation that must not be changed
+    }
+}
+```
+
 ### Design Patterns
 
 - **Service Layer Pattern**: Encapsulate business logic in service classes.
+- **Circuit Breaker Pattern**: Prevent repeated failures by stopping execution after threshold.
 - **Selector Pattern**: Create dedicated classes for SOQL queries.
 - **Domain Layer Pattern**: Implement domain classes for record-specific logic.
 - **Trigger Handler Pattern**: Use a consistent framework for trigger management.
@@ -349,6 +548,66 @@ public class AccountService {
     }
 }
 
+// Good Example - Circuit Breaker Pattern
+public class ExternalServiceCircuitBreaker {
+    private static Integer failureCount = 0;
+    private static final Integer FAILURE_THRESHOLD = 3;
+    private static DateTime circuitOpenedTime;
+    private static final Integer RETRY_TIMEOUT_MINUTES = 5;
+
+    public static Boolean isCircuitOpen() {
+        if (circuitOpenedTime != null) {
+            // Check if retry timeout has passed
+            if (DateTime.now() > circuitOpenedTime.addMinutes(RETRY_TIMEOUT_MINUTES)) {
+                // Reset circuit
+                failureCount = 0;
+                circuitOpenedTime = null;
+                return false;
+            }
+            return true;
+        }
+        return failureCount >= FAILURE_THRESHOLD;
+    }
+
+    public static void recordFailure() {
+        failureCount++;
+        if (failureCount >= FAILURE_THRESHOLD) {
+            circuitOpenedTime = DateTime.now();
+            System.debug(LoggingLevel.ERROR, 'Circuit breaker opened due to failures');
+        }
+    }
+
+    public static void recordSuccess() {
+        failureCount = 0;
+        circuitOpenedTime = null;
+    }
+
+    public static HttpResponse makeCallout(String endpoint) {
+        if (isCircuitOpen()) {
+            throw new CircuitBreakerException('Circuit is open. Service unavailable.');
+        }
+
+        try {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(endpoint);
+            req.setMethod('GET');
+            HttpResponse res = new Http().send(req);
+
+            if (res.getStatusCode() == 200) {
+                recordSuccess();
+            } else {
+                recordFailure();
+            }
+            return res;
+        } catch (Exception e) {
+            recordFailure();
+            throw e;
+        }
+    }
+
+    public class CircuitBreakerException extends Exception {}
+}
+
 // Good Example - Selector Pattern
 public class AccountSelector {
     public static List<Account> selectByIds(Set<Id> accountIds) {
@@ -371,6 +630,178 @@ public class AccountSelector {
 }
 ```
 
+### Configuration Management
+
+#### Custom Metadata Types vs Custom Settings
+
+- **Prefer Custom Metadata Types (CMT)** for configuration data that can be deployed.
+- Use **Custom Settings** for user-specific or org-specific data that varies by environment.
+- CMT is packageable, deployable, and can be used in validation rules and formulas.
+- Custom Settings support hierarchy (Org, Profile, User) but are not deployable.
+
+```apex
+// Good Example - Using Custom Metadata Type
+List<API_Configuration__mdt> configs = [
+    SELECT Endpoint__c, Timeout__c, Max_Retries__c
+    FROM API_Configuration__mdt
+    WHERE DeveloperName = 'Production_API'
+    LIMIT 1
+];
+
+if (!configs.isEmpty()) {
+    String endpoint = configs[0].Endpoint__c;
+    Integer timeout = Integer.valueOf(configs[0].Timeout__c);
+}
+
+// Good Example - Using Custom Settings (user-specific)
+User_Preferences__c prefs = User_Preferences__c.getInstance(UserInfo.getUserId());
+Boolean darkMode = prefs.Dark_Mode_Enabled__c;
+
+// Good Example - Using Custom Settings (org-level)
+Org_Settings__c orgSettings = Org_Settings__c.getOrgDefaults();
+Integer maxRecords = Integer.valueOf(orgSettings.Max_Records_Per_Query__c);
+```
+
+#### Named Credentials and HTTP Callouts
+
+- **Always use Named Credentials** for external API endpoints and authentication.
+- Avoid hardcoding URLs, tokens, or credentials in code.
+- Use `callout:NamedCredential` syntax for secure, deployable integrations.
+- **Always check HTTP status codes** and handle errors gracefully.
+- Set appropriate timeouts to prevent long-running callouts.
+- Use `Database.AllowsCallouts` interface for Queueable and Batchable classes.
+
+```apex
+// Good Example - Using Named Credentials
+public class ExternalAPIService {
+    private static final String NAMED_CREDENTIAL = 'callout:External_API';
+    private static final Integer TIMEOUT_MS = 120000; // 120 seconds
+
+    public static Map<String, Object> getExternalData(String recordId) {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint(NAMED_CREDENTIAL + '/api/records/' + recordId);
+        req.setMethod('GET');
+        req.setTimeout(TIMEOUT_MS);
+        req.setHeader('Content-Type', 'application/json');
+
+        try {
+            Http http = new Http();
+            HttpResponse res = http.send(req);
+
+            if (res.getStatusCode() == 200) {
+                return (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+            } else if (res.getStatusCode() == 404) {
+                throw new NotFoundException('Record not found: ' + recordId);
+            } else if (res.getStatusCode() >= 500) {
+                throw new ServiceUnavailableException('External service error: ' + res.getStatus());
+            } else {
+                throw new CalloutException('Unexpected response: ' + res.getStatusCode());
+            }
+        } catch (System.CalloutException e) {
+            System.debug(LoggingLevel.ERROR, 'Callout failed: ' + e.getMessage());
+            throw new ExternalAPIException('Failed to retrieve data', e);
+        }
+    }
+
+    public class ExternalAPIException extends Exception {}
+    public class NotFoundException extends Exception {}
+    public class ServiceUnavailableException extends Exception {}
+}
+
+// Good Example - POST request with JSON body
+public static String createExternalRecord(Map<String, Object> data) {
+    HttpRequest req = new HttpRequest();
+    req.setEndpoint(NAMED_CREDENTIAL + '/api/records');
+    req.setMethod('POST');
+    req.setTimeout(TIMEOUT_MS);
+    req.setHeader('Content-Type', 'application/json');
+    req.setBody(JSON.serialize(data));
+
+    HttpResponse res = new Http().send(req);
+
+    if (res.getStatusCode() == 201) {
+        Map<String, Object> result = (Map<String, Object>) JSON.deserializeUntyped(res.getBody());
+        return (String) result.get('id');
+    } else {
+        throw new CalloutException('Failed to create record: ' + res.getStatus());
+    }
+}
+```
+
+### Common Annotations
+
+- `@AuraEnabled` - Expose methods to Lightning Web Components and Aura Components.
+- `@AuraEnabled(cacheable=true)` - Enable client-side caching for read-only methods.
+- `@InvocableMethod` - Make methods callable from Flow and Process Builder.
+- `@InvocableVariable` - Define input/output parameters for invocable methods.
+- `@TestVisible` - Expose private members to test classes only.
+- `@SuppressWarnings('PMD.RuleName')` - Suppress specific PMD warnings.
+- `@RemoteAction` - Expose methods for Visualforce JavaScript remoting (legacy).
+- `@Future` - Execute methods asynchronously.
+- `@Future(callout=true)` - Allow HTTP callouts in future methods.
+
+```apex
+// Good Example - AuraEnabled for LWC
+public with sharing class AccountController {
+    @AuraEnabled(cacheable=true)
+    public static List<Account> getAccounts() {
+        return [SELECT Id, Name FROM Account WITH SECURITY_ENFORCED LIMIT 10];
+    }
+
+    @AuraEnabled
+    public static void updateAccount(Id accountId, String newName) {
+        Account acc = new Account(Id = accountId, Name = newName);
+        update acc;
+    }
+}
+
+// Good Example - InvocableMethod for Flow
+public class FlowActions {
+    @InvocableMethod(label='Send Email Notification' description='Sends email to account owner')
+    public static List<Result> sendNotification(List<Request> requests) {
+        List<Result> results = new List<Result>();
+
+        for (Request req : requests) {
+            Result result = new Result();
+            try {
+                // Send email logic
+                result.success = true;
+                result.message = 'Email sent successfully';
+            } catch (Exception e) {
+                result.success = false;
+                result.message = e.getMessage();
+            }
+            results.add(result);
+        }
+        return results;
+    }
+
+    public class Request {
+        @InvocableVariable(required=true label='Account ID')
+        public Id accountId;
+
+        @InvocableVariable(label='Email Template')
+        public String templateName;
+    }
+
+    public class Result {
+        @InvocableVariable
+        public Boolean success;
+
+        @InvocableVariable
+        public String message;
+    }
+}
+
+// Good Example - TestVisible for testing private methods
+public class AccountService {
+    @TestVisible
+    private static Boolean validateAccountName(String name) {
+        return String.isNotBlank(name) && name.length() > 3;
+    }
+}
+```
+
 ### Asynchronous Apex
 
 - Use **@future** methods for simple asynchronous operations and callouts.
@@ -382,9 +813,111 @@ public class AccountSelector {
 - Use **Scheduled Apex** for recurring operations.
   - Create a separate **Schedulable class** to schedule batch jobs.
   - Never implement both `Database.Batchable` and `Schedulable` in the same class.
-- Use **Platform Events** for event-driven architecture.
+- Use **Platform Events** for event-driven architecture and decoupled integrations.
+  - Publish events using `EventBus.publish()` for asynchronous, fire-and-forget communication.
+  - Subscribe to events using triggers on platform event objects.
+  - Ideal for integrations, microservices, and cross-org communication.
+- **Optimize batch size** based on processing complexity and governor limits.
+  - Default batch size is 200, but can be adjusted from 1 to 2000.
+  - Smaller batches (50-100) for complex processing or callouts.
+  - Larger batches (200) for simple DML operations.
+  - Test with realistic data volumes to find optimal size.
 
 ```apex
+// Good Example - Platform Events for decoupled communication
+public class OrderEventPublisher {
+    public static void publishOrderCreated(List<Order> orders) {
+        List<Order_Created__e> events = new List<Order_Created__e>();
+
+        for (Order ord : orders) {
+            Order_Created__e event = new Order_Created__e(
+                Order_Id__c = ord.Id,
+                Order_Amount__c = ord.TotalAmount,
+                Customer_Id__c = ord.AccountId
+            );
+            events.add(event);
+        }
+
+        // Publish events
+        List<Database.SaveResult> results = EventBus.publish(events);
+
+        // Check for errors
+        for (Database.SaveResult result : results) {
+            if (!result.isSuccess()) {
+                for (Database.Error error : result.getErrors()) {
+                    System.debug('Error publishing event: ' + error.getMessage());
+                }
+            }
+        }
+    }
+}
+
+// Good Example - Platform Event Trigger (Subscriber)
+trigger OrderCreatedTrigger on Order_Created__e (after insert) {
+    List<Task> tasksToCreate = new List<Task>();
+
+    for (Order_Created__e event : Trigger.new) {
+        Task t = new Task(
+            Subject = 'Follow up on order',
+            WhatId = event.Order_Id__c,
+            Priority = 'High'
+        );
+        tasksToCreate.add(t);
+    }
+
+    if (!tasksToCreate.isEmpty()) {
+        insert tasksToCreate;
+    }
+}
+
+// Good Example - Batch size optimization based on complexity
+public class ComplexProcessingBatch implements Database.Batchable<SObject>, Database.AllowsCallouts {
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Name FROM Account WHERE IsActive__c = true
+        ]);
+    }
+
+    public void execute(Database.BatchableContext bc, List<Account> scope) {
+        // Complex processing with callouts - use smaller batch size
+        for (Account acc : scope) {
+            // Make HTTP callout
+            HttpResponse res = ExternalAPIService.getAccountData(acc.Id);
+            // Process response
+        }
+    }
+
+    public void finish(Database.BatchableContext bc) {
+        System.debug('Batch completed');
+    }
+}
+
+// Execute with smaller batch size for callout-heavy processing
+Database.executeBatch(new ComplexProcessingBatch(), 50);
+
+// Good Example - Simple DML batch with default size
+public class SimpleDMLBatch implements Database.Batchable<SObject> {
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Status__c FROM Order WHERE Status__c = 'Draft'
+        ]);
+    }
+
+    public void execute(Database.BatchableContext bc, List<Order> scope) {
+        for (Order ord : scope) {
+            ord.Status__c = 'Pending';
+        }
+        update scope;
+    }
+
+    public void finish(Database.BatchableContext bc) {
+        System.debug('Batch completed');
+    }
+}
+
+// Execute with larger batch size for simple DML
+Database.executeBatch(new SimpleDMLBatch(), 200);
+
 // Good Example - Queueable Apex
 public class EmailNotificationQueueable implements Queueable, Database.AllowsCallouts {
     private List<Id> accountIds;
@@ -436,7 +969,7 @@ public class AccountCleanupBatch implements Database.Batchable<SObject> {
 public class AccountStatsBatch implements Database.Batchable<SObject>, Database.Stateful {
     private Integer recordsProcessed = 0;
     private Integer totalRevenue = 0;
-    
+
     public Database.QueryLocator start(Database.BatchableContext bc) {
         return Database.getQueryLocator([
             SELECT Id, Name, AnnualRevenue FROM Account WHERE IsActive__c = true
@@ -454,7 +987,7 @@ public class AccountStatsBatch implements Database.Batchable<SObject>, Database.
         // State is maintained: recordsProcessed and totalRevenue retain their values
         System.debug('Total records processed: ' + recordsProcessed);
         System.debug('Total revenue: ' + totalRevenue);
-        
+
         // Send summary email or create summary record
     }
 }
@@ -679,10 +1212,77 @@ sf code-analyzer run --view detail                        # Show detailed violat
 
 - Use **selective SOQL queries** with indexed fields.
 - Implement **lazy loading** for expensive operations.
-- Leverage **platform cache** to reduce database queries.
 - Use **asynchronous processing** for long-running operations.
 - Monitor with **Debug Logs** and **Event Monitoring**.
 - Use **ApexGuru** and **Scale Center** for performance insights.
+
+### Platform Cache
+
+- Use **Platform Cache** to store frequently accessed data and reduce SOQL queries.
+- `Cache.OrgPartition` - Shared across all users and sessions in the org.
+- `Cache.SessionPartition` - Specific to a user's session.
+- Implement proper cache invalidation strategies.
+- Handle cache misses gracefully with fallback to database queries.
+
+```apex
+// Good Example - Using Org Cache
+public class AccountCacheService {
+    private static final String CACHE_PARTITION = 'local.AccountCache';
+    private static final Integer TTL_SECONDS = 3600; // 1 hour
+
+    public static Account getAccount(Id accountId) {
+        Cache.OrgPartition orgPart = Cache.Org.getPartition(CACHE_PARTITION);
+        String cacheKey = 'Account_' + accountId;
+
+        // Try to get from cache
+        Account acc = (Account) orgPart.get(cacheKey);
+
+        if (acc == null) {
+            // Cache miss - query database
+            acc = [
+                SELECT Id, Name, Industry, AnnualRevenue
+                FROM Account
+                WHERE Id = :accountId
+                LIMIT 1
+            ];
+
+            // Store in cache with TTL
+            orgPart.put(cacheKey, acc, TTL_SECONDS);
+        }
+
+        return acc;
+    }
+
+    public static void invalidateCache(Id accountId) {
+        Cache.OrgPartition orgPart = Cache.Org.getPartition(CACHE_PARTITION);
+        String cacheKey = 'Account_' + accountId;
+        orgPart.remove(cacheKey);
+    }
+}
+
+// Good Example - Using Session Cache
+public class UserPreferenceCache {
+    private static final String CACHE_PARTITION = 'local.UserPrefs';
+
+    public static Map<String, Object> getUserPreferences() {
+        Cache.SessionPartition sessionPart = Cache.Session.getPartition(CACHE_PARTITION);
+        String cacheKey = 'UserPrefs_' + UserInfo.getUserId();
+
+        Map<String, Object> prefs = (Map<String, Object>) sessionPart.get(cacheKey);
+
+        if (prefs == null) {
+            // Load preferences from database or custom settings
+            prefs = new Map<String, Object>{
+                'theme' => 'dark',
+                'language' => 'en_US'
+            };
+            sessionPart.put(cacheKey, prefs);
+        }
+
+        return prefs;
+    }
+}
+```
 
 ## Build and Verification
 
