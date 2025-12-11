@@ -278,7 +278,7 @@ owner1.setId("owner-1");
 **Problem**: Test files reference old Cassandra DAOs and use UUID constructors.
 **Critical Files to Update**:
 1. Remove `MockReactiveResultSet.java` (Cassandra-specific)
-2. Update `*ReactiveSer vicesTest.java` - replace DAO references with Cosmos repositories
+2. Update `*ReactiveServicesTest.java` - replace DAO references with Cosmos repositories
 3. Update `*ReactiveControllerTest.java` - replace DAO references with Cosmos repositories
 4. Replace all `UUID.fromString()` with String IDs
 5. Replace constructor calls: `new Owner(UUID.fromString(...))` with setter pattern
