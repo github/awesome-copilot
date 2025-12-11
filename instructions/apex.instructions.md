@@ -572,13 +572,15 @@ if (accounts.size() > MAX_BATCH_SIZE) {
 
 ```apex
 /**
- * @description Service class for managing Account records
  * @author Your Name
  * @date 2025-01-01
+ * @description Service class for managing Account records
  */
 public with sharing class AccountService {
 
     /**
+     * @author Your Name
+     * @date 2025-01-01
      * @description Updates the rating for accounts based on annual revenue
      * @param accountIds Set of Account IDs to update
      * @throws AccountServiceException if user lacks update permissions
