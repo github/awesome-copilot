@@ -1,5 +1,5 @@
 ---
-description: 'Guidelines for building Apex applications on the Salesforce Platform'
+description: 'Guidelines and best practices for Apex development on the Salesforce Platform'
 applyTo: '**/*.cls, **/*.trigger'
 ---
 
