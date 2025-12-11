@@ -155,6 +155,7 @@ public class AccountService {
 - Avoid `SELECT *` - always specify required fields.
 - Use relationship queries to minimize the number of SOQL queries.
 - Order queries by indexed fields when possible.
+- **Always use `String.escapeSingleQuotes()`** when using user input in SOQL queries to prevent SOQL injection attacks.
 
 ```apex
 // Good Example - Selective query with indexed fields
@@ -168,6 +169,13 @@ List<Account> accounts = [
 
 // Good Example - LIMIT 1 for single record
 Account account = [SELECT Id, Name FROM Account WHERE Name = 'Acme' LIMIT 1];
+
+// Good Example - escapeSingleQuotes() to prevent SOQL injection
+String searchTerm = String.escapeSingleQuotes(userInput);
+List<Account> accounts = Database.query('SELECT Id, Name FROM Account WHERE Name LIKE \'%' + searchTerm + '%\'');
+
+// Bad Example - Direct user input without escaping (SECURITY RISK)
+List<Account> accounts = Database.query('SELECT Id, Name FROM Account WHERE Name LIKE \'%' + userInput + '%\'');
 ```
 
 ### Trigger Best Practices
@@ -368,7 +376,12 @@ public class AccountSelector {
 - Use **@future** methods for simple asynchronous operations and callouts.
 - Use **Queueable Apex** for complex asynchronous operations that require chaining.
 - Use **Batch Apex** for processing large data volumes (>50,000 records).
+  - Use `Database.Stateful` to maintain state across batch executions (e.g., counters, aggregations).
+  - Without `Database.Stateful`, batch classes are stateless and instance variables reset between batches.
+  - Be mindful of governor limits when using stateful batches.
 - Use **Scheduled Apex** for recurring operations.
+  - Create a separate **Schedulable class** to schedule batch jobs.
+  - Never implement both `Database.Batchable` and `Schedulable` in the same class.
 - Use **Platform Events** for event-driven architecture.
 
 ```apex
@@ -402,7 +415,7 @@ public class EmailNotificationQueueable implements Queueable, Database.AllowsCal
     }
 }
 
-// Good Example - Batch Apex
+// Good Example - Stateless Batch Apex (default)
 public class AccountCleanupBatch implements Database.Batchable<SObject> {
     public Database.QueryLocator start(Database.BatchableContext bc) {
         return Database.getQueryLocator([
@@ -418,6 +431,46 @@ public class AccountCleanupBatch implements Database.Batchable<SObject> {
         System.debug('Batch completed');
     }
 }
+
+// Good Example - Stateful Batch Apex (maintains state across batches)
+public class AccountStatsBatch implements Database.Batchable<SObject>, Database.Stateful {
+    private Integer recordsProcessed = 0;
+    private Integer totalRevenue = 0;
+    
+    public Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Name, AnnualRevenue FROM Account WHERE IsActive__c = true
+        ]);
+    }
+
+    public void execute(Database.BatchableContext bc, List<Account> scope) {
+        for (Account acc : scope) {
+            recordsProcessed++;
+            totalRevenue += (Integer) acc.AnnualRevenue;
+        }
+    }
+
+    public void finish(Database.BatchableContext bc) {
+        // State is maintained: recordsProcessed and totalRevenue retain their values
+        System.debug('Total records processed: ' + recordsProcessed);
+        System.debug('Total revenue: ' + totalRevenue);
+        
+        // Send summary email or create summary record
+    }
+}
+
+// Good Example - Schedulable class to schedule a batch
+public class AccountCleanupScheduler implements Schedulable {
+    public void execute(SchedulableContext sc) {
+        // Execute the batch with batch size of 200
+        Database.executeBatch(new AccountCleanupBatch(), 200);
+    }
+}
+
+// Schedule the batch to run daily at 2 AM
+// Execute this in Anonymous Apex or in setup code:
+// String cronExp = '0 0 2 * * ?';
+// System.schedule('Daily Account Cleanup', cronExp, new AccountCleanupScheduler());
 ```
 
 ## Testing
