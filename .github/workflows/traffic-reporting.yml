@@ -1,8 +1,9 @@
 name: Traffic Reporting
 
 on:
-  # Run on-demand only
-  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *' # Daily at 1AM UTC
+  workflow_dispatch: # Manual trigger
 
 jobs:
   report-traffic:
