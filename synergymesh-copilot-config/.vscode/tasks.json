@@ -1,0 +1,90 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "npm",
+            "script": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$tsc-watch"],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Start Dev Server",
+            "type": "npm",
+            "script": "start:site:dev",
+            "group": "none",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "webpack",
+                    "endsPattern": "Compiled successfully"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "dev"
+            }
+        },
+        {
+            "label": "Start Networking Server",
+            "type": "npm",
+            "script": "start:networking:dev",
+            "group": "none",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "nodemon",
+                    "endsPattern": "listening"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "group": "dev"
+            }
+        },
+        {
+            "label": "Start All (Dev)",
+            "dependsOn": [
+                "Start Dev Server",
+                "Start Networking Server"
+            ],
+            "dependsOrder": "parallel",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Install Dependencies",
+            "type": "npm",
+            "script": "install:dev",
+            "group": "none",
+            "problemMatcher": []
+        },
+        {
+            "label": "Generate Docs",
+            "type": "npm",
+            "script": "doc",
+            "group": "none",
+            "problemMatcher": []
+        }
+    ]
+}

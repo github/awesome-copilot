@@ -1,0 +1,45 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "editor.tabSize": 4,
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.paths": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+
+    "files.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/dist": true
+    },
+
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/*.js.map": true
+    },
+
+    "emmet.includeLanguages": {
+        "typescript": "html"
+    },
+
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+
+    "[html]": {
+        "editor.defaultFormatter": "vscode.html-language-features",
+        "editor.tabSize": 2
+    },
+
+    "[css]": {
+        "editor.defaultFormatter": "vscode.css-language-features",
+        "editor.tabSize": 2
+    },
+
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features",
+        "editor.tabSize": 2
+    }
+}
