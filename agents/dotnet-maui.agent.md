@@ -137,12 +137,7 @@ await Shell.Current.GoToAsync("details?id=123");
 
 ### Performance
 1. Use compiled bindings (`x:DataType`)
-2. Enable `<TrimMode>full</TrimMode>`
-3. Enable `<PublishAot>true</PublishAot>` (.NET 9+)
-4. Profile release builds only
-5. Lazy load resources
-6. Unsubscribe events, dispose resources
-7. Use Grid > StackLayout, CollectionView > ListView, Border > Frame
+2. Use Grid > StackLayout, CollectionView > ListView, Border > Frame
 
 ### Security
 ```csharp
