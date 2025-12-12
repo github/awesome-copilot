@@ -101,7 +101,7 @@ Instructions for building high-quality VueJS 3 applications with the Composition
 - Implement breadcrumb data via route meta fields
 
 ### Testing
-- Write unit tests with Vue Test Utils and Jest
+- Write unit tests with Vue Test Utils and Vitest
 - Focus on behavior, not implementation details
 - Use `mount` and `shallowMount` for component isolation
 - Mock global plugins (router, Pinia) as needed
