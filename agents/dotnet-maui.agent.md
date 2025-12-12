@@ -133,7 +133,7 @@ await Shell.Current.GoToAsync("details?id=123");
 #elif MACCATALYST
 #endif
 ```
-- Use `MainThread.BeginInvokeOnMainThread()` for UI updates from background threads
+- Prefer `BindableObject.Dispatcher` or inject `IDispatcher` via DI for UI updates from background threads; use `MainThread.BeginInvokeOnMainThread()` as a fallback
 
 ### Performance
 1. Use compiled bindings (`x:DataType`)
