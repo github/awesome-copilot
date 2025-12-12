@@ -13,46 +13,50 @@ modifications.
 
 ## Instruction Sections and Configuration
 
+The following parts of this section, `Instruction Sections and Configurable Instruction Sections`
+and `Instruction Configuration` are only relevant to THIS instruction file, and are meant to be a
+method to easily modify how the Copilot instructions are implemented. Essentially the two parts
+are meant to turn portions or sections of the actual Copilot instructions on or off, and allow for
+custom cases and conditions for when and how to implement certain sections of this document.
+
 ### Instruction Sections and Configurable Instruction Sections
 
 There are several instruction sections in this document. The start of an instruction section is
-indicated by a level two header. Call this an **INSTRUCTION SECTIONS**. But not all instruction
-sections are configurable.
+indicated by a level two header. Call this an **INSTRUCTION SECTION**.  Some instruction
+sections are configurable. Some are not configurable and will always be used.
 
-Instruction sections that are not configurable or have an identifying configuration property should
-ALWAYS be applied, utilized, or followed. Call these **CONSTANT INSTRUCTION SECTIONS**.
-
-Instruction sections that are configurable are not required, and are subject to additional context
-or conditions. Call these **CONFIGURABLE INSTRUCTION SECTIONS**. Like all instructions sections,
-configurable instructions sections will begin with a level two header. But will have one
-distinguishable feature.
+Instruction sections that ARE configurable are not required, and are subject to additional context
+and/or conditions. Call these **CONFIGURABLE INSTRUCTION SECTIONS**.
 
 **Configurable instruction sections** will have the section's configuration property appended to
 the level two header, wrapped in backticks (e.g., `apply-this`). Call this the
 **CONFIGURABLE PROPERTY**.
 
-The **configurable properties** will be declared and defined in the **Instruction Configuration**
-portion of this section.
+The **configurable property** will be declared and defined in the **Instruction Configuration**
+portion of this section. They are booleans. If `true`, then apply, utilize, and/or follow the
+instructions in that section.
 
 Each **configurable instruction section** will also have a sentence that follows the section's
-level two header with the section's configuration details. Call this the **CONFIGURATION DETAILS**.
+level two header with the section's configuration details. Call this the **CONFIGURATION DETAIL**.
 
-The **configuration details** are a subset of rules that expand upon the configurable instruction
-section. Most (if not all) will be boolean-based. If `true`, then apply, utilize, or follow these
-instructions as well.
+The **configuration detail** is a subset of rules that expand upon the configurable instruction
+section. This allows for custom cases and/or conditions to be checked that will determine the final
+implementation for that **configurable instruction section**.
 
-If the section's **configurable property** is set as specified in the **configuration details**,
-then apply that instruction section. If not, then ignore that instruction set. But before applying
-the **configurable instruction section**, check the **configurable property** for a nested or
-corresponding `apply-condition`, and utilize the `apply-condition` when settling on the final
-approach for the **configurable instruction section**.
+Before resolving on how to apply a **configurable instruction section**, check the
+**configurable property** for a nested and/or corresponding `apply-condition`, and utilize the `apply-condition` when settling on the final approach for the **configurable instruction section**. By
+default the `apply-condition` for each **configurable property** is unset, but an example of a set
+`apply-condition` could be something like:
+
+    - **apply-condition** :
+      ` this.parent.property = (git.branch == "master") ? this.parent.property = true : this.parent.property = false; `
 
 The sum of all the **constant instructions sections**, and **configurable instruction sections**
 will determine the complete instructions to follow. Call this the **COMPILED INSTRUCTIONS**.
 
 The **compiled instructions** are dependent on the configuration. Each instruction section
-included in the **compiled instructions** will be interpreted and utilized as a separate and
-temporary instruction file independent of the entirety of this instruction file. Call this the
+included in the **compiled instructions** will be interpreted and utilized AS IF a separate set
+of instructions that are independent of the entirety of this instruction file. Call this the
 **FINAL PROCEDURE**.
 
 ### Instruction Configuration
@@ -76,6 +80,19 @@ temporary instruction file independent of the entirety of this instruction file.
 - **apply-git-integration** : false
   - **apply-condition** : unset
 
+<!--
+| Configuration Property         | Default | Description                                                                 | When to Enable/Disable                                      |
+|-------------------------------|---------|-----------------------------------------------------------------------------|-------------------------------------------------------------|
+| apply-doc-file-structure      | true    | Ensures documentation follows a consistent file structure.                  | Disable if you want to allow free-form doc organization.    |
+| apply-doc-verification        | true    | Verifies that documentation matches code changes.                           | Disable if verification is handled elsewhere.               |
+| apply-doc-quality-standard    | true    | Enforces documentation quality standards.                                   | Disable if quality standards are not required.              |
+| apply-automation-tooling      | true    | Uses automation tools to update documentation.                              | Disable if you prefer manual documentation updates.         |
+| apply-doc-patterns            | true    | Applies common documentation patterns and templates.                        | Disable for custom or unconventional documentation styles.  |
+| apply-best-practices          | true    | Enforces best practices in documentation.                                   | Disable if best practices are not a priority.               |
+| apply-validation-commands     | true    | Runs validation commands to check documentation correctness.                 | Disable if validation is not needed.                        |
+| apply-maintenance-schedule    | true    | Schedules regular documentation maintenance.                                | Disable if maintenance is managed differently.              |
+| apply-git-integration         | false   | Integrates documentation updates with Git workflows.                        | Enable if you want automatic Git integration.               |
+-->
 ## When to Update Documentation
 
 ### Trigger Conditions
