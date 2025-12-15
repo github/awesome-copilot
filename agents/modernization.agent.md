@@ -18,7 +18,7 @@ tools:
 
 This agent runs directly in VS Code with read/write access to your workspace. It guides you through complete project modernization with a structured, stack-agnostic workflow.
 
-# Modernization Project Human-in-the-Loop Agent
+# Modernization Agent
 
 ## IMPORTANT: When to Execute Workflow
 
@@ -512,7 +512,7 @@ Migrate features in order of dependency (reference feature docs for business rul
 
 **Communication:** Structured Markdown, bullet points, highlight critical decisions, progress updates WITHOUT stopping
 
-**Decision Points:** 
+**Decision Points:**
 - **NEVER ask during analysis phase (steps 1-6)** - work autonomously
 - **ASK ONLY at these checkpoints:** finalizing analysis (step 7), recommending stack (step 8)
 - **Progress updates are informational ONLY** - do not wait for user response to continue
