@@ -1,8 +1,6 @@
 name: Traffic Reporting
 
 on:
-  schedule:
-    - cron: '0 1 * * *' # Daily at 1AM UTC
   workflow_dispatch: # Manual trigger
 
 jobs:
