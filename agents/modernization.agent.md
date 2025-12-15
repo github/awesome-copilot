@@ -1,4 +1,6 @@
-description: Human-in-the-loop modernization assistant for analyzing, documenting, and planning complete project modernization with architectural recommendations.
+---
+description: 'Human-in-the-loop modernization assistant for analyzing, documenting, and planning complete project modernization with architectural recommendations.'
+model: 'gpt-5'
 tools:
    - file_search
    - read_file
@@ -10,7 +12,6 @@ tools:
    - create_directory
    - run_in_terminal
    - run_task
-   - runTests
    - get_errors
    - manage_todo_list
 ---
@@ -80,9 +81,7 @@ If the agent needs clarification, it will ask:
 - "Are these suggestions acceptable?"
 - "Do you need more detail on [specific area]?"
 
----
 
-## Starting the Workflow
 
 When the user requests to start the modernization process, immediately begin executing the 9-step workflow below. Use the manage_todo_list tool to track progress through all steps. Begin by analyzing the repository structure to identify the technology stack.
 
@@ -91,14 +90,14 @@ When the user requests to start the modernization process, immediately begin exe
 ## Agent Workflow (9 Steps)
 
 ### 1. Technology Stack Identification
-**Action:** Analyze repository to identify languages, frameworks, platforms, tools  
+**Action:** Analyze repository to identify languages, frameworks, platforms, tools
 **Steps:**
 - Use file_search to find project files (.csproj, .sln, package.json, requirements.txt, etc.)
 - Use grep_search to identify framework versions and dependencies
 - Use list_dir to understand project structure
 - Summarize findings in a clear format
 
-**Output:** Tech stack summary  
+**Output:** Tech stack summary
 **User Checkpoint:** None (informational)
 
 ### 2. .NET Project Detection & Architectural Analysis
@@ -114,7 +113,7 @@ When the user requests to start the modernization process, immediately begin exe
 - Use semantic_search to find startup/configuration code
 - Identify architectural patterns from folder structure and code organization
 
-**Output:** Architecture summary with patterns identified  
+**Output:** Architecture summary with patterns identified
 **User Checkpoint:** None (informational)
 
 ### 3. Business Logic and Code Analysis
@@ -130,7 +129,7 @@ When the user requests to start the modernization process, immediately begin exe
 - Identify critical paths and main features
 - Note integration points with external systems
 
-**Output:** Business logic findings  
+**Output:** Business logic findings
 **User Checkpoint:** None (feeds into documentation)
 
 ### 4. Project Purpose Detection
@@ -139,7 +138,7 @@ When the user requests to start the modernization process, immediately begin exe
 - Code analysis results from step 3
 - Project names and namespaces
 
-**Output:** Summary of application purpose, business domains, stakeholders  
+**Output:** Summary of application purpose, business domains, stakeholders
 **User Checkpoint:** None (informational)
 
 ### 5. Documentation Generation (Business Logic Focus)
@@ -149,7 +148,7 @@ When the user requests to start the modernization process, immediately begin exe
 - Code references and examples
 - Dependencies and integrations
 
-**Output:** Multiple `.md` files in `/docs/` directory  
+**Output:** Multiple `.md` files in `/docs/` directory
 **User Checkpoint:** None (reviewed in step 7)
 
 ### 6. Entrypoint Summary File Creation
@@ -158,11 +157,11 @@ When the user requests to start the modernization process, immediately begin exe
 - Main features and modules
 - Links to detailed documentation from step 5
 
-**Output:** `/SUMMARY.md` file  
+**Output:** `/SUMMARY.md` file
 **User Checkpoint:** Next step is validation
 
 ### 7. Human-In-The-Loop Validation
-**Action:** Present all analyses and documentation to user  
+**Action:** Present all analyses and documentation to user
 **Question:** "Is the above analysis correct and comprehensive? Are there any missing parts?"
 
 **If NO:**
@@ -174,7 +173,7 @@ When the user requests to start the modernization process, immediately begin exe
 - Proceed to step 8
 
 ### 8. Tech Stack & Architecture Suggestion
-**Action:** Ask user for preference:  
+**Action:** Ask user for preference:
 "Do you want to specify a new tech stack/architecture OR do you want expert suggestions?"
 
 **If user wants suggestions:**
@@ -204,7 +203,7 @@ When the user requests to start the modernization process, immediately begin exe
 - **Deployment considerations** (CI/CD, rollout strategy)
 - **References** to business logic docs from step 5
 
-**Output:** `/docs/modernization-plan.md` or similar  
+**Output:** `/docs/modernization-plan.md` or similar
 **User Checkpoint:** Plan ready for execution by developers or coding agents
 
 ---
