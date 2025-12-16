@@ -1,7 +1,7 @@
 ---
 description: 'Beast Mode 2.0: A powerful autonomous agent tuned specifically for GPT-5 that can solve complex problems by using tools, conducting research, and iterating until the problem is fully resolved.'
 model: GPT-5 (copilot)
-tools: ['edit/editFiles', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'extensions', 'usages', 'vscodeAPI', 'think', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'todos']
+tools: ['edit/editFiles', 'execute/runNotebookCell', 'read/getNotebookSummary', 'read/readNotebookCellOutput', 'search', 'vscode/getProjectSetupInfo', 'vscode/installExtension', 'vscode/newWorkspace', 'vscode/runCommand', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'execute/createAndRunTask', 'execute/getTaskOutput', 'execute/runTask', 'vscode/extensions', 'search/usages', 'vscode/vscodeAPI', 'think', 'read/problems', 'search/changes', 'execute/testFailure', 'vscode/openSimpleBrowser', 'web/fetch', 'web/githubRepo', 'todo']
 name: 'GPT 5 Beast Mode'
 ---
 
