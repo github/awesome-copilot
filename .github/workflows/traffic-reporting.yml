@@ -1,0 +1,88 @@
+name: Traffic Reporting
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  report-traffic:
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: none
+      checks: none
+      contents: read
+      deployments: none
+      issues: none
+      discussions: none
+      packages: none
+      pages: none
+      pull-requests: none
+      repository-projects: none
+      security-events: none
+      statuses: none
+
+    steps:
+      - name: Fetch GitHub traffic statistics
+        id: traffic
+        env:
+          GH_TOKEN: ${{ secrets.REPORTING_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Fetch page views for the last 14 days
+          echo "Fetching traffic statistics for ${REPO}..."
+
+          # Get views data
+          VIEWS_DATA=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${REPO}/traffic/views)
+
+          echo "Views data retrieved successfully"
+          echo "$VIEWS_DATA" | jq '.'
+
+          # Save the data to a file for the next step
+          echo "$VIEWS_DATA" > "$RUNNER_TEMP/traffic_data.json"
+
+      - name: Output traffic data to console
+        run: |
+          echo "📊 Traffic data JSON (for debugging):"
+          echo "========================================"
+          cat "$RUNNER_TEMP/traffic_data.json" | jq '.'
+          echo "========================================"
+          echo "✅ Traffic data output complete!"
+
+      - name: Send traffic data to reporting endpoint
+        env:
+          REPORTING_URL: ${{ vars.REPORTING_POST_URL }}
+          API_KEY: ${{ secrets.REPORTING_API_KEY }}
+        run: |
+          echo "📤 Sending traffic data to reporting endpoint..."
+          
+          # Validate that REPORTING_URL is set
+          if [ -z "${REPORTING_URL}" ]; then
+            echo "❌ Error: REPORTING_URL environment variable is not set. Please configure vars.REPORTING_POST_URL."
+            exit 1
+          fi
+          
+          # Validate that REPORTING_URL uses HTTPS
+          if [[ ! "${REPORTING_URL}" =~ ^https:// ]]; then
+            echo "❌ Error: REPORTING_URL must start with https:// to ensure secure transmission of sensitive traffic data."
+            exit 1
+          fi
+          
+          # Send POST request with API key header, reading file directly
+          HTTP_STATUS=$(curl -f --max-time 30 --retry 3 -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-API-KEY: ${API_KEY}" \
+            --data-binary "@${RUNNER_TEMP}/traffic_data.json" \
+            "${REPORTING_URL}")
+          
+          echo "HTTP Status Code: ${HTTP_STATUS}"
+          
+          if [ "${HTTP_STATUS}" -ge 200 ] && [ "${HTTP_STATUS}" -lt 300 ]; then
+            echo "✅ Traffic data sent successfully!"
+          else
+            echo "❌ Error: Failed to send traffic data. Received HTTP status ${HTTP_STATUS}"
+            exit 1
+          fi

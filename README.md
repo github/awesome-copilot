@@ -87,6 +87,8 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Improve existing content
 - Report issues or suggest enhancements
 
+For AI coding agents working with this project, refer to [AGENTS.md](AGENTS.md) for detailed technical guidance on development workflows, setup commands, and contribution standards.
+
 ### Quick Contribution Guide
 
 1. Follow our file naming conventions and frontmatter requirements
