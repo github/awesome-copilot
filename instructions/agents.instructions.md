@@ -1,5 +1,5 @@
 ---
-description: 'Guidelines for creating high-quality custom agent files for GitHub Copilot'
+description: 'Guidelines for creating custom agent files for GitHub Copilot'
 applyTo: '**/*.agent.md'
 ---
 
