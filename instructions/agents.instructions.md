@@ -339,23 +339,115 @@ ${error ? `**Error:** ${error}` : ''}
 - Verify input files/folders exist
 - Log skip reasons
 
+Define conditions in markdown format before invoking sub-agents:
+
+```markdown
+#### Step X: Agent Name
+
+**Condition:** Check if specific files or folders exist
+- Only if `formation/transcripts/` folder exists and contains `.transcript` files
+- Only if `formation/course.md` file already exists
+- At least ONE of these exists: `dumps/transform/` or `formation/course.md`
+
+**Action:** Invoke `@agent-name` agent via `runSubagent` (if condition met)
+**Priority:** Specify if critical, optional, or has dependencies
+
+**Execution:**
 ```javascript
-// Pattern: Conditional execution
-async function conditionalPipelineStep(stepNumber, params) {
-  const inputPath = `${params.basePath}/${params.inputFolder}`;
+const stepResult = await runSubagent({
+  description: 'Step description',
+  prompt: `You are the Agent Name specialist...`
+});
 
-  // Check if input exists
-  if (!await fileExists(inputPath)) {
-    logStep(stepNumber, 'SKIPPED', 'Input folder does not exist');
-    return { status: 'skipped', reason: 'Input not found' };
-  }
+logStepCompletion(stepNumber, 'Agent Name', stepResult);
+```
 
-  // Proceed with sub-agent invocation
-  return await runSubagent({
-    description: `Execute Step ${stepNumber}`,
-    prompt: buildPromptForStep(stepNumber, params)
-  });
-}
+**Log Entry:**
+```markdown
+## Step X: Agent Name
+**Status:** ✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED
+**Reason:** [Why skipped if applicable]
+**Started:** [timestamp]
+**Completed:** [timestamp]
+**Duration:** [HH:mm:ss]
+**Output:** [Summary of results]
+```
+
+**Real-world example from pipeline:**
+
+```markdown
+#### Step 1: Resume Transcript
+**Condition:** Only if `formation/transcripts/` folder exists and contains `.transcript` files
+**Action:** Invoke `@resume-transcript` agent via `runSubagent`
+
+#### Step 2: Course Add
+**Condition:** Only if `formation/` folder exists AND `formation/course.md` exists
+**Action:** Invoke `@course-add` agent via `runSubagent` (OPTIONAL)
+
+#### Step 3: Create Set Questions
+**Condition:** At least ONE of these exists:
+- `dumps/transform/` with `.dump.txt` files
+- `formation/course.md` file
+
+**Action:** Invoke `@create-set` agent via `runSubagent`
+**Priority:** Process dumps first, then course
+
+#### Step 4: Add Explanation
+**Condition:** `imports/` folder contains `.csv` files
+**Action:** Invoke `@add-explanation` agent via `runSubagent`
+
+#### Step 5: Verify Question
+**Condition:** `imports/` folder contains `.csv` files with explanations
+**Action:** Invoke `@verify-question` agent via `runSubagent`
+```
+
+**Orchestration flow pattern:**
+
+```markdown
+## Pipeline Execution
+
+Execute steps sequentially, checking conditions before each invocation:
+
+For each step:
+1. **Check Condition**: Verify if prerequisites are met
+2. **Log Decision**: Document if executing or skipping
+3. **Execute or Skip**: Invoke sub-agent if condition true
+4. **Log Result**: Track success/failure with timestamp and duration
+5. **Continue**: Proceed to next step
+
+### Critical vs Non-Critical Steps
+
+**Critical steps** (must succeed):
+- Step 4 (Create Set Questions) - at least 1 CSV file generated
+- Step 5 (Add Explanation) - explanations added to questions
+- Step 6 (Verify Question) - validation completed
+
+**Non-critical steps** (can be skipped):
+- Step 1 (Resume Transcript) - if course.md already exists
+- Step 2 (Course Add) - optional enrichment
+- Step 3 (Dump Transform) - if no original dumps available
+
+### Status Tracking
+
+For each step, log the outcome:
+
+```markdown
+## Step 1: Resume Transcript
+**Status:** ✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED
+**Condition Check:** ✅ Input folder exists (20 files)
+**Started:** 2025-12-17T10:30:15Z
+**Completed:** 2025-12-17T10:32:48Z
+**Duration:** 2m 33s
+**Output:** formation/course.md created with 3 sections, 24 subsections
+**Issues:** None
+
+## Step 2: Course Add
+**Status:** ⚠️ SKIPPED
+**Condition Check:** Course file exists but enrichment optional
+**Reason:** User chose standard processing mode
+**Started:** N/A
+**Completed:** N/A
+**Duration:** 0s
 ```
 
 ### Sub-Agent Communication Pattern
