@@ -481,96 +481,124 @@ For each task:
 5. Generate final summary
 ```
 
-### Real-World Example: Question Generation Pipeline
+### Real-World Example: API Documentation Pipeline
 
-Based on the Orchestrator agent example:
+A practical example of an orchestrator managing multiple specialized agents to auto-generate comprehensive API documentation:
 
 ```javascript
-// Orchestrator invokes multiple specialized agents
-async function questionGenerationPipeline(certificationName) {
-  const basePath = `certifications/${certificationName}`;
+// Orchestrator invokes multiple specialized agents for API documentation
+async function apiDocumentationPipeline(projectName) {
+  const basePath = `projects/${projectName}`;
 
-  // Step 1: Resume Transcripts
-  const transcriptResult = await runSubagent({
-    description: 'Generate course from transcripts',
-    prompt: `You are the Resume Transcript specialist.
+  // Step 1: Analyze API Endpoints
+  const analysisResult = await runSubagent({
+    description: 'Scan and catalog all API endpoints',
+    prompt: `You are the API Analyzer specialist.
 
-Process: ${certificationName}
-Input: ${basePath}/formation/transcripts/
-Output: ${basePath}/formation/course.md
+Project: ${projectName}
+Input: ${basePath}/src/api/
+Output: ${basePath}/docs/endpoints.json
 
 Task:
-1. Read all .transcript files
-2. Organize by topic (##) and subtopic (###)
-3. Create structured course document
-4. Preserve all technical accuracy
+1. Scan all route files and controllers
+2. Extract endpoints: methods, paths, parameters
+3. Identify request/response schemas
+4. Catalog authentication requirements
+5. Generate structured endpoint catalog
 
-Return: Summary of sections and files processed`
+Return: Number of endpoints found and schemas identified`
   });
 
-  // Step 2: Create Question Sets
-  const setResult = await runSubagent({
-    description: 'Generate CSV question sets',
-    prompt: `You are the Create Set specialist.
+  // Step 2: Extract Code Documentation
+  const docResult = await runSubagent({
+    description: 'Extract JSDoc and inline code comments',
+    prompt: `You are the Documentation Extractor specialist.
 
-Process: ${certificationName}
-Input: ${basePath}/dumps/ and ${basePath}/formation/
-Output: ${basePath}/imports/ (CSV files)
+Project: ${projectName}
+Input: ${basePath}/src/api/
+Output: ${basePath}/docs/raw-comments.md
 
 Task:
-1. Convert dumps to CSV format (max 30 questions per file)
-2. Generate questions from course material
-3. Apply proper formatting
-4. Save all to imports folder
+1. Parse all JSDoc comments from route handlers
+2. Extract parameter descriptions and types
+3. Collect error scenarios and status codes
+4. Gather usage examples if present
+5. Compile into structured format
 
-Return: List of CSV files created with counts`
+Return: Total endpoints with documentation coverage`
   });
 
-  // Step 3: Add Explanations
-  const explResult = await runSubagent({
-    description: 'Add explanations to all questions',
-    prompt: `You are the Add Explanation specialist.
+  // Step 3: Generate Markdown Documentation
+  const mdResult = await runSubagent({
+    description: 'Create formatted API documentation',
+    prompt: `You are the Documentation Generator specialist.
 
-Process: ${certificationName}
-Input: ${basePath}/imports/ (CSV files)
-Output: ${basePath}/imports/ (updated CSV files)
+Project: ${projectName}
+Input: ${basePath}/docs/endpoints.json and ${basePath}/docs/raw-comments.md
+Output: ${basePath}/docs/api-reference.md
 
 Task:
-1. Read all CSV files
-2. For each question, use MCP Context7 to find official documentation
-3. Write detailed explanations with references
-4. Update CSV files
+1. Create markdown documentation structure
+2. Organize endpoints by resource/module
+3. Include request/response examples
+4. Add authentication sections
+5. Create table of contents and search index
+6. Apply consistent formatting and style
 
-Return: Summary of explanations added`
+Return: Documentation file created with page count`
   });
 
-  // Step 4: Verify Questions
-  const verifyResult = await runSubagent({
-    description: 'Validate all questions and generate reports',
-    prompt: `You are the Verify Question specialist.
+  // Step 4: Generate OpenAPI/Swagger Spec
+  const specResult = await runSubagent({
+    description: 'Create machine-readable API spec',
+    prompt: `You are the Spec Generator specialist.
 
-Process: ${certificationName}
-Input: ${basePath}/imports/ (CSV files with explanations)
-Output: ${basePath}/imports/report/ (validation reports)
+Project: ${projectName}
+Input: ${basePath}/docs/endpoints.json
+Output: ${basePath}/docs/openapi.yaml
 
 Task:
-1. Validate each question against official documentation
-2. Check answer accuracy
-3. Verify explanation quality
-4. Generate detailed validation reports
+1. Generate OpenAPI 3.0 specification
+2. Map all endpoints with full details
+3. Include request/response schemas
+4. Add security definitions
+5. Create example requests/responses
+6. Validate spec for compliance
 
-Return: Summary of issues found and reports generated`
+Return: Spec file generated and validated`
+  });
+
+  // Step 5: Validate Documentation Completeness
+  const validateResult = await runSubagent({
+    description: 'Check documentation quality and coverage',
+    prompt: `You are the Documentation Validator specialist.
+
+Project: ${projectName}
+Input: ${basePath}/docs/ (all generated files)
+Output: ${basePath}/docs/validation-report.md
+
+Task:
+1. Compare documented endpoints vs actual code
+2. Check for missing parameter descriptions
+3. Verify all status codes are documented
+4. Validate example request formats
+5. Check for outdated or broken links
+6. Generate quality report with scores
+
+Return: Summary of issues found and coverage percentage`
   });
 
   // Generate final summary
-  generatePipelineSummary(certificationName, {
-    transcriptResult,
-    setResult,
-    explResult,
-    verifyResult
+  generateDocumentationSummary(projectName, {
+    analysisResult,
+    docResult,
+    mdResult,
+    specResult,
+    validateResult
   });
 }
 ```
+
 
 ### Common Sub-Agent Patterns
 
@@ -740,68 +768,118 @@ Return: Summary of analysis`
 
 ### Real-World Example: Parameterized Orchestrator Agent
 
+Example of a code review orchestrator that validates pull requests across multiple dimensions:
+
 ```markdown
-# Orchestrator Agent - Question Generation Pipeline
+# Code Review Orchestrator Agent
 
 ## Dynamic Parameters
 
-- **Certification Name**: Extracted from user prompt (e.g., "Platform Sharing Architect")
-- **Base Path**: Derived as `certifications/[Certification Name]/`
-- **Log File**: Set to `certifications/[Certification Name]/.pipeline-log.md`
+- **Repository Name**: Extracted from user prompt (e.g., "my-awesome-app")
+- **Pull Request ID**: Provided in user request (e.g., "PR #42")
+- **Base Path**: Derived as `projects/${repositoryName}/pr-${prNumber}/`
+- **Review Report**: Set to `projects/${repositoryName}/pr-${prNumber}/review-report.md`
 
 ## Your Mission
 
-Execute the complete question generation pipeline for the **${certificationName}** certification by invoking specialized agents without human validation between steps.
+Execute a comprehensive multi-aspect code review for **PR #${prNumber}** on **${repositoryName}** by invoking specialized agents without requiring manual coordination between steps.
 
 ### Initial Setup
 
-If no certification name is provided in your request, **ASK THE USER** which certification to process.
+If repository or PR details are not provided, **ASK THE USER** for:
+- Repository name or identifier
+- Pull request number
+- Review scope (all aspects or specific areas)
 
 ## Pre-flight Checks
 
-Verify the certification structure at `${basePath}`:
-- ✅ presentation.md exists
-- ✅ formation/transcripts/ exists (checking for .transcript files)
-- ℹ️ formation/course.md will be created
-- ✅ dumps/ exists
-- ℹ️ imports/ directory will be created
+Verify the pull request structure at `${basePath}`:
+- ✅ PR metadata exists
+- ✅ Changed files are accessible
+- ℹ️ Review reports will be generated
+- ✅ Code quality tools configured
 
-## Pipeline Execution
+## Review Pipeline Execution
 
-### Step 1: Resume Transcript
-Invoke `@resume-transcript` agent:
+### Step 1: Security Analysis
+Invoke `@security-reviewer` agent:
 
-Parameters to pass:
-- Certification: ${certificationName}
-- Input: ${basePath}/formation/transcripts/
-- Output: ${basePath}/formation/course.md
-
-### Step 2: Dump Transform
-Invoke `@dump-transform` agent:
+**Condition:** Always execute for code reviews
 
 Parameters to pass:
-- Certification: ${certificationName}
-- Input: ${basePath}/dumps/original/
-- Output: ${basePath}/dumps/transform/
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/changes/
+- Output: ${basePath}/security-review.md
 
-### Step 3: Create Question Sets
-Invoke `@create-set` agent:
+### Step 2: Performance Audit
+Invoke `@performance-analyzer` agent:
+
+**Condition:** Only if code contains computational components or database queries
 
 Parameters to pass:
-- Certification: ${certificationName}
-- Inputs: ${basePath}/dumps/transform/ and ${basePath}/formation/
-- Output: ${basePath}/imports/
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/changes/
+- Output: ${basePath}/performance-report.md
+
+### Step 3: Test Coverage Analysis
+Invoke `@test-coverage-checker` agent:
+
+**Condition:** Always execute
+
+Parameters to pass:
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/changes/ and test configuration
+- Output: ${basePath}/coverage-analysis.md
+
+### Step 4: Code Style Validation
+Invoke `@style-validator` agent:
+
+**Condition:** Only if style rules are configured for repository
+
+Parameters to pass:
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/changes/
+- Output: ${basePath}/style-report.md
+
+### Step 5: Documentation Validation
+Invoke `@documentation-reviewer` agent:
+
+**Condition:** Only if API/public methods were modified
+
+Parameters to pass:
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/changes/
+- Output: ${basePath}/documentation-review.md
+
+### Step 6: Compile Final Review
+Invoke `@review-aggregator` agent:
+
+**Condition:** Always execute after individual reviews
+
+Parameters to pass:
+- Repository: ${repositoryName}
+- PR: ${prNumber}
+- Input: ${basePath}/ (all review reports)
+- Output: ${basePath}/review-report.md
 
 ## Logging
 
-All operations logged to: `${logFile}`
+All review operations logged to: `${reviewReport}`
 
-Track for each step:
-- Status (✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED)
+Track for each review aspect:
+- Status (✅ APPROVED / ⚠️ NEEDS FIXES / ❌ BLOCKED)
+- Critical issues count
+- Warnings count
+- Recommendations count
 - Timestamps for start and completion
-- Duration of execution
-- Summary of results
+- Duration of review
 ```
+
 
 ### Variable Best Practices
 
