@@ -1,6 +1,6 @@
 # 🤖 Awesome GitHub Copilot Customizations
 
-[![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
+[![Powered by 𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈 Copilot](https://img.shields.io/badge/Powered_by-𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-93-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -11,10 +11,10 @@ A community created collection of custom agents, prompts, and instructions to su
 
 This repository provides a comprehensive toolkit for enhancing GitHub Copilot with specialized:
 
-- **👉 [Awesome Agents](docs/README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
-- **👉 [Awesome Prompts](docs/README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
-- **👉 [Awesome Instructions](docs/README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
-- **👉 [Awesome Collections](docs/README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
+- **👉 [𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈](docs/README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
+- **👉 [𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈](docs/README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
+- **👉 [𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈](docs/README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
+- **👉 [𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈](docs/𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
 
 ## 🌟 Featured Collections
 
@@ -22,7 +22,7 @@ Discover our curated collections of prompts, instructions, and agents organized 
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [Awesome Copilot](collections/awesome-copilot.md) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
+| [𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈](𝐈𝐒_𝐌𝐄_𝐔𝐍𝐍𝐈_𝗠𝗗_𝗕𝗢𝗧/awesome-𝐔𝐍𝐍𝐈_𝗠𝗗_𝗕𝗢𝗧) | Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents. | 6 items | github-copilot, discovery, meta, prompt-engineering, agents |
 | [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 20 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
@@ -135,7 +135,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://www.aaron-powell.com/"><img src="https://avatars.githubusercontent.com/u/434140?v=4?s=100" width="100px;" alt="Aaron Powell"/><br /><sub><b>Aaron Powell</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=aaronpowell" title="Code">💻</a> <a href="#maintenance-aaronpowell" title="Maintenance">🚧</a> <a href="#projectManagement-aaronpowell" title="Project Management">📆</a> <a href="#promotion-aaronpowell" title="Promotion">📣</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://mubaidr.js.org/"><img src="https://avatars.githubusercontent.com/u/2222702?v=4?s=100" width="100px;" alt="Muhammad Ubaid Raza"/><br /><sub><b>Muhammad Ubaid Raza</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=mubaidr" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mubaidr.js.org/"><img src="https://avatars.githubusercontent.com/u/2222702?v=4?s=100" width="100px;" alt="vysakh"/><br /><sub><b>𝐔𝐍𝐍𝐈_𝗠𝗗_𝗕𝗢𝗧</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=mubaidr" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://digitarald.de/"><img src="https://avatars.githubusercontent.com/u/8599?v=4?s=100" width="100px;" alt="Harald Kirschner"/><br /><sub><b>Harald Kirschner</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=digitarald" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mbianchidev"><img src="https://avatars.githubusercontent.com/u/37507190?v=4?s=100" width="100px;" alt="Matteo Bianchi"/><br /><sub><b>Matteo Bianchi</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=mbianchidev" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AungMyoKyaw"><img src="https://avatars.githubusercontent.com/u/9404824?v=4?s=100" width="100px;" alt="Aung Myo Kyaw"/><br /><sub><b>Aung Myo Kyaw</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=AungMyoKyaw" title="Code">💻</a></td>
