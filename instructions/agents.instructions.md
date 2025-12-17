@@ -505,6 +505,294 @@ Input → Agent1 (primary) → Success? → Output
                    Agent2 (fallback) → Output
 ```
 
+## Variable Definition and Extraction
+
+Agents can define dynamic parameters to extract values from user input and use them throughout the agent's behavior and sub-agent communications. This enables flexible, context-aware agents that adapt to user-provided data.
+
+### When to Use Variables
+
+**Use variables when**:
+- Agent behavior depends on user input
+- Need to pass dynamic values to sub-agents
+- Want to make agents reusable across different contexts
+- Require parameterized workflows
+- Need to track or reference user-provided context
+
+**Examples**:
+- Extract project name from user prompt
+- Capture certification name for pipeline processing
+- Identify file paths or directories
+- Extract configuration options
+- Parse feature names or module identifiers
+
+### Variable Declaration Pattern
+
+Define variables section early in the agent prompt to document expected parameters:
+
+```markdown
+# Agent Name
+
+## Dynamic Parameters
+
+- **Parameter Name**: Description and usage
+- **Another Parameter**: How it's extracted and used
+
+## Your Mission
+
+Process [PARAMETER_NAME] to accomplish [task].
+```
+
+### Variable Extraction Methods
+
+#### 1. **Explicit User Input**
+Ask the user to provide the variable if not detected in the prompt:
+
+```markdown
+## Your Mission
+
+Process the project by analyzing your codebase.
+
+### Step 1: Identify Project
+If no project name is provided, **ASK THE USER** for:
+- Project name or identifier
+- Base path or directory location
+- Configuration type (if applicable)
+
+Use this information to contextualize all subsequent tasks.
+```
+
+#### 2. **Implicit Extraction from Prompt**
+Automatically extract variables from the user's natural language input:
+
+```javascript
+// Example: Extract certification name from user input
+const userInput = "Process My Certification";
+
+// Extract key information
+const certificationName = extractCertificationName(userInput);
+// Result: "My Certification"
+
+const basePath = `certifications/${certificationName}`;
+// Result: "certifications/My Certification"
+```
+
+#### 3. **Contextual Variable Resolution**
+Use file context or workspace information to derive variables:
+
+```markdown
+## Variable Resolution Strategy
+
+1. **From User Prompt**: First, look for explicit mentions in user input
+2. **From File Context**: Check current file name or path
+3. **From Workspace**: Use workspace folder or active project
+4. **From Settings**: Reference configuration files
+5. **Ask User**: If all else fails, request missing information
+```
+
+### Using Variables in Agent Prompts
+
+#### Variable Substitution in Instructions
+
+Use template variables in agent prompts to make them dynamic:
+
+```markdown
+# Agent Name
+
+## Dynamic Parameters
+- **Project Name**: ${projectName}
+- **Base Path**: ${basePath}
+- **Output Directory**: ${outputDir}
+
+## Your Mission
+
+Process the **${projectName}** project located at `${basePath}`.
+
+## Process Steps
+
+1. Read input from: `${basePath}/input/`
+2. Process files according to project configuration
+3. Write results to: `${outputDir}/`
+4. Generate summary report
+
+## Quality Standards
+
+- Maintain project-specific coding standards for **${projectName}**
+- Follow directory structure: `${basePath}/[structure]`
+```
+
+#### Passing Variables to Sub-Agents
+
+Use extracted variables when invoking sub-agents:
+
+```javascript
+// Example: Pass projectName and basePath to sub-agent
+const basePath = `projects/${projectName}`;
+
+// Pass to sub-agent with variable
+const result = await runSubagent({
+  description: 'Process project files',
+  prompt: `You are the Project Processor specialist.
+
+Process: ${projectName}
+Location: ${basePath}
+
+Task:
+1. Read all files from ${basePath}/src/
+2. Analyze project structure
+3. Generate documentation
+4. Save to ${basePath}/docs/
+
+Return: Summary of analysis`
+});
+```
+
+### Real-World Example: Parameterized Orchestrator Agent
+
+```markdown
+# Orchestrator Agent - Question Generation Pipeline
+
+## Dynamic Parameters
+
+- **Certification Name**: Extracted from user prompt (e.g., "Platform Sharing Architect")
+- **Base Path**: Derived as `certifications/[Certification Name]/`
+- **Log File**: Set to `certifications/[Certification Name]/.pipeline-log.md`
+
+## Your Mission
+
+Execute the complete question generation pipeline for the **${certificationName}** certification by invoking specialized agents without human validation between steps.
+
+### Initial Setup
+
+If no certification name is provided in your request, **ASK THE USER** which certification to process.
+
+## Pre-flight Checks
+
+Verify the certification structure at `${basePath}`:
+- ✅ presentation.md exists
+- ✅ formation/transcripts/ exists (checking for .transcript files)
+- ℹ️ formation/course.md will be created
+- ✅ dumps/ exists
+- ℹ️ imports/ directory will be created
+
+## Pipeline Execution
+
+### Step 1: Resume Transcript
+Invoke `@resume-transcript` agent:
+
+Parameters to pass:
+- Certification: ${certificationName}
+- Input: ${basePath}/formation/transcripts/
+- Output: ${basePath}/formation/course.md
+
+### Step 2: Dump Transform
+Invoke `@dump-transform` agent:
+
+Parameters to pass:
+- Certification: ${certificationName}
+- Input: ${basePath}/dumps/original/
+- Output: ${basePath}/dumps/transform/
+
+### Step 3: Create Question Sets
+Invoke `@create-set` agent:
+
+Parameters to pass:
+- Certification: ${certificationName}
+- Inputs: ${basePath}/dumps/transform/ and ${basePath}/formation/
+- Output: ${basePath}/imports/
+
+## Logging
+
+All operations logged to: `${logFile}`
+
+Track for each step:
+- Status (✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED)
+- Timestamps for start and completion
+- Duration of execution
+- Summary of results
+```
+
+### Variable Best Practices
+
+#### 1. **Clear Documentation**
+Always document what variables are expected:
+
+```markdown
+## Required Variables
+- **projectName**: The name of the project (string, required)
+- **basePath**: Root directory for project files (path, required)
+
+## Optional Variables
+- **mode**: Processing mode - quick/standard/detailed (enum, default: standard)
+- **outputFormat**: Output format - markdown/json/html (enum, default: markdown)
+
+## Derived Variables
+- **outputDir**: Automatically set to ${basePath}/output
+- **logFile**: Automatically set to ${basePath}/.log.md
+```
+
+#### 2. **Consistent Naming**
+Use consistent variable naming conventions:
+
+```javascript
+// Good: Clear, descriptive naming
+const variables = {
+  projectName,          // What project to work on
+  basePath,            // Where project files are located
+  outputDirectory,     // Where to save results
+  processingMode,      // How to process (detail level)
+  configurationPath    // Where config files are
+};
+
+// Avoid: Ambiguous or inconsistent
+const bad_variables = {
+  name,     // Too generic
+  path,     // Unclear which path
+  mode,     // Too short
+  config    // Too vague
+};
+```
+
+#### 3. **Validation and Constraints**
+Document valid values and constraints:
+
+```markdown
+## Variable Constraints
+
+**projectName**:
+- Type: string (alphanumeric, hyphens, underscores allowed)
+- Length: 1-100 characters
+- Required: yes
+- Pattern: `/^[a-zA-Z0-9_-]+$/`
+
+**processingMode**:
+- Type: enum
+- Valid values: "quick" (< 5min), "standard" (5-15min), "detailed" (15+ min)
+- Default: "standard"
+- Required: no
+```
+
+#### 4. **Variable Scope**
+Be clear about variable scope and lifetime:
+
+```markdown
+## Variable Scope
+
+### Global Variables (used throughout agent execution)
+- ${projectName}: Available in all prompts and sub-agents
+- ${basePath}: Used for all file operations
+- ${timestamp}: Available for logging
+
+### Local Variables (used in specific sections)
+- ${currentStep}: Only in step-specific prompts
+- ${stepResult}: Only after step completion
+- ${errorMessage}: Only in error handling
+
+### Sub-Agent Variables (passed to child agents)
+- ${projectName}: Always pass to maintain context
+- ${basePath}: Critical for file operations
+- ${mode}: Inherit from parent agent
+```
+
 ## Agent Prompt Structure
 
 The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions. Maximum length: 30,000 characters.
