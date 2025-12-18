@@ -80,6 +80,12 @@ npm run collection:validate
 # Build and verify README generation
 npm run build
 
+# Test MCP server functionality
+npm run test:mcp
+
+# Test MCP server with coverage report
+npm run test:mcp:coverage
+
 # Fix line endings (required before committing)
 bash scripts/fix-line-endings.sh
 ```
@@ -121,6 +127,7 @@ When creating a pull request:
 Before submitting your PR, ensure you have:
 - [ ] Run `npm install` (or `npm ci`) to install dependencies
 - [ ] Run `npm run build` to generate the updated README.md
+- [ ] Run `npm run test:mcp` to verify MCP server tests pass
 - [ ] Run `bash scripts/fix-line-endings.sh` to normalize line endings
 - [ ] Verified that all new files have proper front matter
 - [ ] Tested that your contribution works with GitHub Copilot

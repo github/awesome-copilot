@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and chat modes",
   "main": "./eng/update-readme.js",
+  "bin": {
+    "awesome-copilot-mcp": "eng/mcp-server/dist/index.js"
+  },
   "private": true,
   "scripts": {
     "start": "npm run build",
@@ -11,7 +14,13 @@
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
     "collection:validate": "node ./eng/validate-collections.mjs",
-    "collection:create": "node ./eng/create-collection.mjs"
+    "collection:create": "node ./eng/create-collection.mjs",
+    "build:mcp": "cd eng/mcp-server && npm run build",
+    "start:mcp": "cd eng/mcp-server && npm start",
+    "dev:mcp": "cd eng/mcp-server && npx tsx src/index.ts",
+    "test:mcp": "cd eng/mcp-server && npm test",
+    "test:mcp:coverage": "cd eng/mcp-server && npm run test:coverage",
+    "test:mcp:watch": "cd eng/mcp-server && npm run test:watch"
   },
   "repository": {
     "type": "git",
@@ -27,7 +36,10 @@
   "author": "GitHub",
   "license": "MIT",
   "devDependencies": {
-    "all-contributors-cli": "^6.26.1"
+    "@types/node": "^25.0.3",
+    "all-contributors-cli": "^6.26.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "js-yaml": "^4.1.1",
