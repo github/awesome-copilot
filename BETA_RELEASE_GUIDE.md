@@ -1,52 +1,52 @@
 # Awesome Copilot MCP Server - Beta Release Guide
 
-## 🎯 发布目标
+## 🎯 Release Objectives
 
-发布MCP服务器的beta版本，让社区用户可以测试完整性和稳定性。
+Release the beta version of the MCP server to allow community users to test completeness and stability.
 
-## 📋 前置条件
+## 📋 Prerequisites
 
-1. **npm账户**: 需要有发布权限的npm账户
-2. **测试通过**: 所有测试必须通过 (54/54 ✅)
-3. **构建成功**: MCP服务器必须成功构建
-4. **代码审查**: 确保代码质量和安全性
+1. **npm Account**: Requires an npm account with publishing permissions
+2. **Tests Passed**: All tests must pass (54/54 ✅)
+3. **Build Success**: MCP server must build successfully
+4. **Code Review**: Ensure code quality and security
 
-## 🚀 发布步骤
+## 🚀 Release Steps
 
-### 自动发布 (推荐)
+### Automated Release (Recommended)
 
 ```bash
-# 从项目根目录运行
+# Run from project root directory
 ./scripts/publish-beta.sh
 ```
 
-脚本会自动执行：
-- 运行完整测试套件
-- 构建MCP服务器
-- 检查npm登录状态
-- 发布beta版本到npm
+The script will automatically execute:
+- Run complete test suite
+- Build MCP server
+- Check npm login status
+- Publish beta version to npm
 
-### 手动发布
+### Manual Release
 
 ```bash
-# 1. 运行测试
+# 1. Run tests
 npm run test:mcp
 
-# 2. 构建服务器
+# 2. Build server
 npm run build:mcp
 
-# 3. 发布beta版本
+# 3. Publish beta version
 npm run publish:mcp:beta
 ```
 
-## 📦 包信息
+## 📦 Package Information
 
-- **包名**: `@github/awesome-copilot-mcp`
-- **版本**: `1.0.0-beta.1`
-- **标签**: `beta`
-- **安装**: `npm install @github/awesome-copilot-mcp@beta`
+- **Package Name**: `@github/awesome-copilot-mcp`
+- **Version**: `1.0.0-beta.1`
+- **Tag**: `beta`
+- **Installation**: `npm install @github/awesome-copilot-mcp@beta`
 
-## 🔧 VS Code配置
+## 🔧 VS Code Configuration
 
 ```json
 {
@@ -64,64 +64,64 @@ npm run publish:mcp:beta
 }
 ```
 
-## 🧪 测试计划
+## 🧪 Testing Plan
 
-### 功能测试
-- [ ] MCP服务器启动正常
-- [ ] 搜索agents功能正常
-- [ ] 搜索prompts功能正常
-- [ ] 搜索instructions功能正常
-- [ ] 加载资源功能正常
-- [ ] 集合浏览功能正常
+### Functional Testing
+- [ ] MCP server starts normally
+- [ ] Search agents functionality works
+- [ ] Search prompts functionality works
+- [ ] Search instructions functionality works
+- [ ] Load resources functionality works
+- [ ] Collection browsing functionality works
 
-### 性能测试
-- [ ] 响应时间合理 (< 2秒)
-- [ ] 内存使用正常
-- [ ] 大量请求处理正常
+### Performance Testing
+- [ ] Reasonable response time (< 2 seconds)
+- [ ] Normal memory usage
+- [ ] Large request handling works
 
-### 兼容性测试
-- [ ] VS Code稳定版兼容
-- [ ] VS Code Insiders兼容
-- [ ] 不同操作系统测试
+### Compatibility Testing
+- [ ] VS Code stable version compatibility
+- [ ] VS Code Insiders compatibility
+- [ ] Different operating system testing
 
-## 📊 质量指标
+## 📊 Quality Metrics
 
-- **测试覆盖率**: 96.15%
-- **测试用例**: 54个
-- **代码质量**: TypeScript严格模式
-- **依赖管理**: 锁定版本
+- **Test Coverage**: 96.15%
+- **Test Cases**: 54 tests
+- **Code Quality**: TypeScript strict mode
+- **Dependency Management**: Locked versions
 
-## 🐛 问题跟踪
+## 🐛 Issue Tracking
 
 - **Issues**: https://github.com/github/awesome-copilot/issues
-- **Beta标签**: 为beta相关issues添加 `beta` 标签
-- **优先级**: 严重bug优先处理
+- **Beta Tag**: Add `beta` tag to beta-related issues
+- **Priority**: Handle critical bugs with priority
 
-## 📈 反馈收集
+## 📈 Feedback Collection
 
-1. **GitHub Issues**: 收集用户反馈和bug报告
-2. **使用统计**: 监控npm下载量
-3. **社区讨论**: Discord/GitHub Discussions
+1. **GitHub Issues**: Collect user feedback and bug reports
+2. **Usage Statistics**: Monitor npm download counts
+3. **Community Discussion**: Discord/GitHub Discussions
 
-## 🔄 后续计划
+## 🔄 Future Plans
 
-### Beta反馈期
-- 收集用户反馈 (2-4周)
-- 修复严重bug
-- 优化性能问题
+### Beta Feedback Period
+- Collect user feedback (2-4 weeks)
+- Fix critical bugs
+- Optimize performance issues
 
-### 稳定版发布
-- 解决所有已知问题
-- 更新文档
-- 发布 `1.0.0` 正式版
+### Stable Release
+- Resolve all known issues
+- Update documentation
+- Release `1.0.0` stable version
 
-### 持续改进
-- 添加新功能
-- 性能优化
-- 用户体验改进
+### Continuous Improvement
+- Add new features
+- Performance optimization
+- User experience improvement
 
-## 📞 联系方式
+## 📞 Contact Information
 
-- **项目主页**: https://github.com/github/awesome-copilot
-- **MCP文档**: `eng/mcp-server/BETA_README.md`
-- **维护者**: GitHub团队
+- **Project Homepage**: https://github.com/github/awesome-copilot
+- **MCP Documentation**: `eng/mcp-server/BETA_README.md`
+- **Maintainers**: GitHub Team
