@@ -4,10 +4,8 @@ import {
   CallToolRequestSchema,
   ErrorCode,
   ListPromptsRequestSchema,
-  ListResourcesRequestSchema,
   ListToolsRequestSchema,
   McpError,
-  ReadResourceRequestSchema,
   GetPromptRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
