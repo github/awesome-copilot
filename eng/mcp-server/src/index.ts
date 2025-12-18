@@ -12,7 +12,6 @@ import {
 import { GitHubAdapter } from './adapters/github-adapter';
 import { SearchTools } from './tools/search';
 import { LoadTools } from './tools/load';
-import { ContentItem, SearchResult } from './types';
 
 export class AwesomeCopilotServer {
   private server: Server;
