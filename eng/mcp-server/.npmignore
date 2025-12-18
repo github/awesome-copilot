@@ -14,7 +14,9 @@ coverage/
 # Config files
 jest.config.js
 tsconfig.json
-.npmrc
+
+# Package files
+package-lock.json
 
 # Development files
 *.log
