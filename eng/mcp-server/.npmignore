@@ -1,0 +1,21 @@
+# MCP Server .npmignore
+# Source files
+src/
+tests/
+*.test.ts
+*.test.js
+
+# Build artifacts (keep dist/)
+*.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Config files
+jest.config.js
+tsconfig.json
+.npmrc
+
+# Development files
+*.log
+.DS_Store

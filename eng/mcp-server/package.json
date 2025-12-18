@@ -1,19 +1,33 @@
 {
-  "name": "mcp-server",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@github/awesome-copilot-mcp",
+  "version": "1.0.0-beta.1",
+  "description": "MCP server for accessing awesome-copilot resources",
   "main": "dist/index.js",
+  "bin": {
+    "awesome-copilot-mcp": "dist/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "npx tsx src/index.ts",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "prepublishOnly": "npm run build && npm test",
+    "publish:beta": "npm publish --tag beta"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["mcp", "model-context-protocol", "github-copilot", "ai", "prompts", "agents"],
+  "author": "GitHub",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/github/awesome-copilot.git",
+    "directory": "eng/mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/github/awesome-copilot/issues"
+  },
+  "homepage": "https://github.com/github/awesome-copilot#readme",
   "type": "commonjs",
   "devDependencies": {
     "@types/jest": "^29.5.12",

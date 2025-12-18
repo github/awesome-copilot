@@ -54,6 +54,33 @@ To make it easy to add these customizations to your editor, we have created a [M
 
 </details>
 
+### 🚀 MCP Server Beta (npm package)
+
+A beta version of the MCP server is now available as an npm package for easier installation and testing:
+
+```bash
+npm install @github/awesome-copilot-mcp@beta
+```
+
+**VS Code Configuration:**
+```json
+{
+  "mcp": {
+    "servers": {
+      "awesome-copilot": {
+        "command": "npx",
+        "args": ["awesome-copilot-mcp"],
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    }
+  }
+}
+```
+
+> **Note**: This is a beta release. Please report any issues to [GitHub Issues](https://github.com/github/awesome-copilot/issues).
+
 ## 🔧 How to Use
 
 ### 🤖 Custom Agents

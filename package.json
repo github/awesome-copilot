@@ -20,7 +20,8 @@
     "dev:mcp": "cd eng/mcp-server && npx tsx src/index.ts",
     "test:mcp": "cd eng/mcp-server && npm test",
     "test:mcp:coverage": "cd eng/mcp-server && npm run test:coverage",
-    "test:mcp:watch": "cd eng/mcp-server && npm run test:watch"
+    "test:mcp:watch": "cd eng/mcp-server && npm run test:watch",
+    "publish:mcp:beta": "cd eng/mcp-server && npm run prepublishOnly && npm run publish:beta"
   },
   "repository": {
     "type": "git",
