@@ -9,6 +9,12 @@ dist/
 build/
 *.tsbuildinfo
 
+# Compiled test artifacts
+*.test.js
+*.test.js.map
+*.test.d.ts
+*.test.d.ts.map
+
 # Test coverage
 coverage/
 .nyc_output/
