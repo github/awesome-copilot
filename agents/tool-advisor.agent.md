@@ -1,7 +1,7 @@
 ﻿---
 description: 'Interactive conversational advisor that helps users discover, select, and install awesome-copilot tools through dialogue - ask questions, get explanations, explore options'
 tools: ['codebase', 'terminalLastCommand', 'githubRepo', 'fetch']
-model: 'gpt-4o'
+model: 'claude-sonnet-4'
 ---
 
 # Awesome Copilot Tool Advisor

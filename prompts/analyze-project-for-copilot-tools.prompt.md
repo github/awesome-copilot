@@ -2,7 +2,7 @@
 agent: 'agent'
 description: 'One-shot project scanner - detects tech stack, recommends best tools for review, installs approved tools, saves report to assessments/'
 tools: ['codebase', 'terminalLastCommand', 'githubRepo', 'fetch', 'edit', 'createFile', 'runCommands', 'todos']
-model: 'gpt-4o'
+model: 'claude-sonnet-4'
 ---
 
 # Analyze Project and Install Copilot Tools

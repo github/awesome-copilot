@@ -2,7 +2,7 @@
 agent: 'agent'
 description: 'Assess your software project against CMMI (Capability Maturity Model Integration) - outputs versioned report to assessments/ folder'
 tools: ['codebase', 'terminalLastCommand', 'fetch', 'read_file', 'edit', 'createFile']
-model: 'gpt-4o'
+model: 'claude-sonnet-4'
 ---
 
 # CMMI Maturity Assessment

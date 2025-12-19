@@ -2,7 +2,7 @@
 agent: 'agent'
 description: 'Assess your software project against The Open Group Architecture Framework (TOGAF) - outputs versioned report to assessments/ folder'
 tools: ['codebase', 'terminalLastCommand', 'fetch', 'read_file', 'edit', 'createFile']
-model: 'gpt-4o'
+model: 'claude-sonnet-4'
 ---
 
 # TOGAF Enterprise Architecture Assessment
