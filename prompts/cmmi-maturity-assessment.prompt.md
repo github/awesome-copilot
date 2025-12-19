@@ -1,7 +1,7 @@
 ﻿---
-agent: 'agent'
-description: 'Assess software projects against CMMI v2.0 - tracks changes over time, compares to previous assessments, shows maturity delta'
-tools: ['codebase', 'terminalLastCommand', 'fetch', 'read_file', 'edit', 'createFile']
+mode: 'agent'
+description: 'Assess software projects against CMMI v2.0 - tracks changes over time, compares to previous assessments, shows maturity level progression'
+tools: ['codebase', 'terminal', 'fetch']
 model: 'claude-sonnet-4'
 ---
 
@@ -56,7 +56,7 @@ status: complete
 
 ### Step 1: Initialize
 ```
-1. Determine collection name
+1. Ask user for collection name (or auto-detect from folder)
 2. Set report path: assessments/{collection}/cmmi-assessment.md
 3. Check if previous report exists
 ```
@@ -64,114 +64,117 @@ status: complete
 ### Step 2: Load Previous Assessment (if exists)
 ```
 If previous report exists:
+  - Read the file
   - Parse YAML frontmatter
-  - Extract: version, maturity_level, scores, scoring_sheet
+  - Extract: version, maturity_level, scores, each criterion
   - Store as baseline for comparison
   - Increment version (1.0.0 -> 1.0.1)
-Else:
+If not exists:
   - Start fresh at version 1.0.0
-  - No baseline (first assessment)
+  - No baseline (all deltas will be "NEW")
 ```
 
 ### Step 3: Scan Project Structure
-Always scan these paths in this order:
+Always scan these paths in this exact order:
 ```
-1. Root files: README.md, CONTRIBUTING.md, SECURITY.md, CODEOWNERS
-2. Documentation: docs/, doc/, documentation/
-3. Source code: src/, lib/, app/
+1. Root: README.md, CONTRIBUTING.md, SECURITY.md, CODEOWNERS
+2. Docs: docs/, doc/, documentation/
+3. Source: src/, lib/, app/
 4. Tests: tests/, test/, __tests__/
 5. CI/CD: .github/workflows/, azure-pipelines*
-6. Configuration: *.json, *.yaml, package.json
-7. Issue tracking: .github/ISSUE_TEMPLATE/, .github/PULL_REQUEST_TEMPLATE
+6. Config: *.json, *.yaml, package.json
+7. Templates: .github/ISSUE_TEMPLATE/, .github/PULL_REQUEST_TEMPLATE
 ```
 
 ### Step 4: Score Each Criterion (30 total)
 For EVERY criterion, record:
-- Score: 0 or 1
-- Evidence: What was found (or "MISSING")
-- Previous: Score from last assessment (if exists)
-- Delta: Change (+1, -1, or 0)
+- Score: 0 or 1 (no partial credit)
+- Evidence: What was found (file path) or "MISSING"
+- Previous: Score from last assessment (or "NEW" if first run)
+- Delta: Change (+1 improved, -1 regressed, 0 unchanged)
 
 ### Step 5: Calculate Maturity Level
 ```
-Level 0: Initial (< 2.0 avg)
-Level 1: Managed (2.0-2.4 avg)
-Level 2: Defined (2.5-3.4 avg)
-Level 3: Quantitatively Managed (3.5-4.4 avg)
-Level 4: Optimizing (4.5+ avg)
+Average Score = Sum of all 30 criteria / 30 * 5
+
+Level 0: Initial       (< 2.0 average)
+Level 1: Managed       (2.0 - 2.4 average)
+Level 2: Defined       (2.5 - 3.4 average)
+Level 3: Quantitative  (3.5 - 4.4 average)
+Level 4: Optimizing    (4.5+ average)
 ```
 
 ### Step 6: Generate Report with Deltas
 
-### Step 7: Save and Confirm
+### Step 7: Save Report and Confirm
 
 ---
 
 ## Scoring Rubric (30 Criteria)
 
-### DEV: Developing (D1-D5)
+### DEV: Development (D1-D5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
-| D1 | Requirements defined | docs/requirements*, README.md, specs/ |
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
+| D1 | Requirements defined | docs/requirements*, README.md with specs |
 | D2 | Design documented | docs/design*, ARCHITECTURE.md, docs/adr/ |
-| D3 | Build automation | package.json, Makefile, build scripts |
-| D4 | Code review process | CODEOWNERS, PR templates, .github/PULL* |
-| D5 | Testing standards | tests/, coverage config, test scripts |
+| D3 | Build automation | package.json scripts, Makefile, build scripts |
+| D4 | Code review process | CODEOWNERS, PR templates, .github/PULL_REQUEST* |
+| D5 | Testing standards | tests/, coverage config, test scripts defined |
 
 ### SVC: Services (S1-S5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
 | S1 | Service agreements | docs/sla*, SLA.md, docs/agreements/ |
 | S2 | Incident management | docs/incident*, docs/runbooks/, SUPPORT.md |
-| S3 | Service delivery docs | docs/deployment*, docs/release* |
-| S4 | Service monitoring | monitoring config, alerts, healthchecks |
-| S5 | Capacity planning | docs/scaling*, docs/capacity* |
+| S3 | Service delivery | docs/deployment*, docs/release*, release process |
+| S4 | Service monitoring | monitoring config, healthchecks, alerts |
+| S5 | Capacity planning | docs/scaling*, docs/capacity*, performance docs |
 
 ### SPM: Supplier Management (SM1-SM5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
 | SM1 | Dependency tracking | *lock files, requirements.txt, go.mod |
-| SM2 | Version pinning | exact versions in deps, not ranges |
-| SM3 | License compliance | LICENSE, NOTICE, license checker |
-| SM4 | Security scanning | dependabot, snyk, .github/workflows/*security* |
-| SM5 | Update process | SECURITY.md, update documentation |
+| SM2 | Version pinning | exact versions (not ranges) in dependencies |
+| SM3 | License compliance | LICENSE file, NOTICE, license checker config |
+| SM4 | Security scanning | dependabot.yml, snyk config, security workflows |
+| SM5 | Update process | SECURITY.md with update instructions |
 
 ### PPL: People (P1-P5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
 | P1 | Contribution guide | CONTRIBUTING.md, docs/contributing* |
-| P2 | Onboarding docs | docs/onboarding*, docs/setup*, README setup |
+| P2 | Onboarding docs | docs/onboarding*, docs/setup*, README setup section |
 | P3 | Code of conduct | CODE_OF_CONDUCT.md |
-| P4 | Team structure | CODEOWNERS, docs/team*, org chart |
+| P4 | Team structure | CODEOWNERS with team refs, docs/team* |
 | P5 | Training docs | docs/training*, tutorials/, learning/ |
 
 ### MGT: Managing (M1-M5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
-| M1 | Project planning | docs/roadmap*, ROADMAP.md, milestones |
-| M2 | Risk management | docs/risks*, docs/decision* |
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
+| M1 | Project planning | docs/roadmap*, ROADMAP.md, GitHub milestones |
+| M2 | Risk management | docs/risks*, docs/decisions* |
 | M3 | Progress tracking | CHANGELOG.md, release notes |
 | M4 | Stakeholder communication | docs/status*, reports/ |
 | M5 | Resource allocation | CODEOWNERS, team assignments |
 
 ### SUP: Supporting (SP1-SP5)
 
-| ID | Criterion | Evidence Locations |
-|----|-----------|-------------------|
+| ID | Criterion | What to Look For |
+|----|-----------|------------------|
 | SP1 | Configuration management | .env.example, config/, settings/ |
-| SP2 | Quality assurance | linters, formatters, pre-commit |
-| SP3 | Documentation standards | docs/, consistent READMEs |
-| SP4 | Measurement and analysis | metrics, analytics, coverage |
+| SP2 | Quality assurance | linter config, formatter config, pre-commit |
+| SP3 | Documentation standards | docs/ with consistent READMEs |
+| SP4 | Measurement and analysis | metrics config, coverage reports, analytics |
 | SP5 | Process improvement | docs/retrospectives*, docs/improvements* |
 
 ---
 
-## Report Template with Delta Tracking
+## Report Template
 
 ```markdown
 ---
@@ -181,7 +184,7 @@ assessment_date: 2025-12-19
 previous_date: 2025-12-12
 collection: terprint
 project_name: terprint-python
-project_path: C:/path/to/repo
+project_path: /path/to/repo
 maturity_level: 2
 previous_level: 1
 level_delta: +1
@@ -224,20 +227,20 @@ MATURITY PROGRESSION:
 Level 0  Initial
 Level 1  Managed           Previous
 Level 2  Defined           CURRENT 
-Level 3  Quantitatively
+Level 3  Quantitative
 Level 4  Optimizing
 ```
 
 ### Practice Area Scores
 
-| Practice Area | Current | Previous | Delta | Status |
-|---------------|---------|----------|-------|--------|
-| DEV: Development | 4/5 | 4/5 | 0 |  |
-| SVC: Services | 2/5 | 1/5 | **+1** |  |
-| SPM: Supplier | 3/5 | 3/5 | 0 |  |
-| PPL: People | 3/5 | 3/5 | 0 |  |
-| MGT: Managing | 2/5 | 2/5 | 0 |  |
-| SUP: Supporting | 2/5 | 1/5 | **+1** |  |
+| Practice Area | Current | Previous | Delta |
+|---------------|---------|----------|-------|
+| DEV: Development | 4/5 | 4/5 | 0 |
+| SVC: Services | 2/5 | 1/5 | **+1**  |
+| SPM: Supplier | 3/5 | 3/5 | 0 |
+| PPL: People | 3/5 | 3/5 | 0 |
+| MGT: Managing | 2/5 | 2/5 | 0 |
+| SUP: Supporting | 2/5 | 1/5 | **+1**  |
 
 ### Progress Summary
 -  **Gaps Fixed:** 2
@@ -246,7 +249,7 @@ Level 4  Optimizing
 
 ---
 
-## Detailed Scoring Sheet with Deltas
+## Detailed Scoring Sheet
 
 ### DEV: Development (4/5) - No Change
 
@@ -258,8 +261,6 @@ Level 4  Optimizing
 | D4 | Code review |  1 |  1 | 0 | CODEOWNERS |
 | D5 | Testing |  0 |  0 | 0 | **MISSING** |
 | | **Subtotal** | **4** | **4** | **0** | |
-
----
 
 ### SVC: Services (2/5) - +1 
 
@@ -274,8 +275,6 @@ Level 4  Optimizing
 
 ** Fixed:** S2 - Added incident runbooks
 
----
-
 ### SPM: Supplier Management (3/5) - No Change
 
 | ID | Criterion | Now | Prev | Δ | Evidence |
@@ -286,8 +285,6 @@ Level 4  Optimizing
 | SM4 | Security scan |  0 |  0 | 0 | **MISSING** |
 | SM5 | Update process |  0 |  0 | 0 | **MISSING** |
 | | **Subtotal** | **3** | **3** | **0** | |
-
----
 
 ### PPL: People (3/5) - No Change
 
@@ -300,8 +297,6 @@ Level 4  Optimizing
 | P5 | Training |  0 |  0 | 0 | **MISSING** |
 | | **Subtotal** | **3** | **3** | **0** | |
 
----
-
 ### MGT: Managing (2/5) - No Change
 
 | ID | Criterion | Now | Prev | Δ | Evidence |
@@ -312,8 +307,6 @@ Level 4  Optimizing
 | M4 | Communication |  0 |  0 | 0 | **MISSING** |
 | M5 | Resources |  1 |  1 | 0 | CODEOWNERS |
 | | **Subtotal** | **2** | **2** | **0** | |
-
----
 
 ### SUP: Supporting (2/5) - +1 
 
@@ -330,15 +323,15 @@ Level 4  Optimizing
 
 ---
 
-## Change Log (This Version)
+## Change Log
 
-###  Improvements Made
+###  Improvements This Version
 | ID | Criterion | Change | Impact |
 |----|-----------|--------|--------|
 | S2 | Incidents | Added docs/runbooks/ | +1 to Services |
 | SP2 | QA | Added pre-commit hooks | +1 to Supporting |
 
-###  Regressions
+###  Regressions This Version
 None
 
 ###  Unchanged Gaps (Still Missing)
@@ -347,17 +340,8 @@ None
 | D5 | Testing standards | High | Add test coverage |
 | S1 | SLA | Medium | Document SLA |
 | S4 | Monitoring | High | Add health checks |
-| S5 | Capacity | Low | Document scaling |
 | SM4 | Security scan | High | Add Dependabot |
-| SM5 | Update process | Medium | Document updates |
-| P4 | Team structure | Low | Document team |
-| P5 | Training | Low | Add tutorials |
 | M1 | Planning | Medium | Add ROADMAP.md |
-| M2 | Risk mgmt | Medium | Document risks |
-| M4 | Communication | Low | Add status docs |
-| SP3 | Doc standards | Medium | Standardize docs |
-| SP4 | Metrics | High | Add coverage |
-| SP5 | Improvement | Low | Add retrospectives |
 
 ---
 
@@ -367,33 +351,25 @@ None
 Version  Date        Level  Score   Delta
 
 1.0.0    2025-12-12  1      2.33    -
-1.0.1    2025-12-19  2      2.67    +0.34    Level Up!
-```
-
-```
-Maturity History:
-L1  2.33  v1.0.0
-L2  2.67  v1.0.1 
-         0         1         2         3         4         5
+1.0.1    2025-12-19  2      2.67    +0.34 
 ```
 
 ---
 
-## Path to Next Level
+## Path to Level 3
 
 **Current:** Level 2 (Defined) @ 2.67
-**Target:** Level 3 (Quantitatively Managed) @ 3.50
+**Target:** Level 3 (Quantitative) @ 3.50
 
-To reach Level 3, improve:
-| ID | Criterion | Points | Effort | Impact |
-|----|-----------|--------|--------|--------|
-| D5 | Testing | +0.17 | Medium | Quality |
-| SM4 | Security scan | +0.17 | Low | Security |
-| SP4 | Metrics | +0.17 | Medium | Visibility |
-| S4 | Monitoring | +0.17 | Medium | Reliability |
-| M1 | Planning | +0.17 | Low | Governance |
+To reach Level 3, fix these gaps:
+| ID | Criterion | Points | Effort |
+|----|-----------|--------|--------|
+| D5 | Testing | +0.17 | Medium |
+| SM4 | Security scan | +0.17 | Low |
+| S4 | Monitoring | +0.17 | Medium |
 
-**Fix all 5 = +0.85  3.52 = Level 3**
+**Fix all 3 = +0.51  3.18**
+**Need 2 more criteria to reach 3.50**
 
 ---
 
@@ -407,94 +383,17 @@ To reach Level 3, improve:
 
 ---
 
-## Process Flow
-
-```
-START
-  
-  
-
- 1. Determine collection name    
-
-  
-  
-
- 2. Check for previous report    
-    assessments/{collection}/    
-    cmmi-assessment.md           
-
-  
-   EXISTS 
-                                  
-                                  
-    
- No baseline          Parse previous:     
- version: 1.0.0       - version           
- level: TBD           - maturity_level    
-                      - scores            
-                      - each criterion    
-                      Increment version   
-    
-                                  
-  
-               
-               
-
- 3. Scan project (same order):   
-    - Root files                 
-    - docs/                      
-    - src/                       
-    - tests/                     
-    - .github/workflows/         
-    - config                     
-
-  
-  
-
- 4. Score 30 criteria            
-    Record: current, previous, Δ 
-
-  
-  
-
- 5. Calculate maturity level     
-    L0: <2.0  L1: 2.0-2.4       
-    L2: 2.5-3.4  L3: 3.5-4.4    
-    L4: 4.5+                     
-
-  
-  
-
- 6. Generate report with:        
-    - Scoring sheet              
-    - Delta columns              
-    - Change log                 
-    - Level progression          
-    - Path to next level         
-
-  
-  
-
- 7. Save to assessments/         
-    {collection}/cmmi-assessment 
-
-  
-  
-
- 8. Confirm:                     
-    "Saved v1.0.1 Level 2 (+1)"  
-
-  
-  
- END
-```
-
 ## Begin
 
-1. What collection name? (or auto-detect from folder)
-2. I will check for previous assessment
-3. Scan the project using the standard order
-4. Score all 30 criteria with deltas
+Ask user:
+1. "What collection name should I use?" (or auto-detect from parent folder)
+
+Then execute the repeatable process:
+1. Check for previous report in `assessments/{collection}/cmmi-assessment.md`
+2. Scan project using standard paths (always same order)
+3. Score all 30 criteria
+4. Compare to previous (if exists)
 5. Calculate maturity level
-6. Generate report showing what changed
-7. Save and confirm
+6. Generate report with delta columns
+7. Save to `assessments/{collection}/cmmi-assessment.md`
+8. Confirm: "Saved v1.0.1 (Level 2, Score: 2.67, +0.34 from previous)"
