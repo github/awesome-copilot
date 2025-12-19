@@ -142,488 +142,76 @@ tools: ['playwright/navigate', 'playwright/screenshot']  # Specific tools
 
 ## Sub-Agent Invocation (Agent Orchestration)
 
-Agents can invoke other agents using the `runSubagent` function. This enables complex workflows where a coordinator agent orchestrates multiple specialized agents to accomplish multi-step tasks.
+Agents can invoke other agents using `runSubagent` to orchestrate multi-step workflows.
 
-### When to Use Sub-Agents
+### How It Works
 
-**Use sub-agents when**:
-- Breaking complex tasks into specialized subtasks
-- Creating orchestration/workflow agents
-- Delegating specific responsibilities to expert agents
-- Enabling agent composition and reusability
-- Implementing pipeline or sequential workflows
-
-**Examples**:
-- An orchestrator agent managing a multi-step question generation pipeline
-- A CI/CD coordinator delegating tasks to specialized agents
-- A project manager agent breaking down work across technical specialists
-- A code review system with different agents for security, performance, style
-
-### Sub-Agent Configuration
-
-To enable sub-agent invocation, include `agent` in the tools list:
+Include `agent` in tools list, then invoke other agents with detailed prompts:
 
 ```yaml
----
-description: 'Orchestrates specialized agents for multi-step workflows'
-name: 'Orchestrator Agent'
 tools: ['read', 'edit', 'search', 'agent']
----
 ```
 
-### Sub-Agent Invocation Syntax
-
-Use `runSubagent` to invoke another agent with a detailed prompt:
+### Example: Code Review Pipeline
 
 ```javascript
-const result = await runSubagent({
-  description: 'Brief description of what this sub-task accomplishes',
-  prompt: `You are the [Agent Name] specialist.
+async function codeReviewPipeline(repositoryName, prNumber) {
+  const basePath = `projects/${repositoryName}/pr-${prNumber}`;
 
-Your task:
-1. [Step 1 description]
-2. [Step 2 description]
-3. [Step 3 description]
+  // Step 1: Security Review
+  const security = await runSubagent({
+    description: 'Analyze security issues in pull request',
+    prompt: `You are the Security Reviewer specialist.
+Repository: ${repositoryName}
+PR: ${prNumber}
+Files: ${basePath}/changes/
 
-Input parameters:
-- Parameter 1: [value]
-- Parameter 2: [value]
-
-Expected output:
-[Specify format and location of results]
-
-Quality standards:
-- [Standard 1]
-- [Standard 2]
-- [Standard 3]`
-});
-```
-
-### Best Practices for Sub-Agent Orchestration
-
-#### 1. **Clear Task Definition**
-- Provide explicit, unambiguous instructions
-- Define inputs and outputs clearly
-- Specify expected file locations and formats
-- Include quality standards and validation criteria
-
-```javascript
-// Good: Clear and specific
-const result = await runSubagent({
-  description: 'Generate course materials from transcripts',
-  prompt: `Process certification: ${certName}
-
-Read all .transcript files from: certifications/${certName}/formation/transcripts/
-Create organized course document at: certifications/${certName}/formation/course.md
-
-Structure requirements:
-- Use ## for sections, ### for subsections
-- Include code blocks for formulas and examples
-- Preserve all technical terminology
-- No additional information beyond transcripts
-
-Return: Summary of sections created and files processed`
-});
-```
-
-#### 2. **Parameter Passing**
-- Pass all necessary context to sub-agents
-- Use consistent naming conventions
-- Include file paths, configuration details, and constraints
-- Specify output format and location explicitly
-
-```javascript
-// Pattern: Context-aware parameters
-const step1Result = await runSubagent({
-  description: 'Step 1: Data preparation',
-  prompt: `Parameters:
-- Project: ${projectName}
-- Base path: ${basePath}
-- Input files: ${inputDir}
-- Output location: ${outputDir}
-
-Task: [detailed instructions]`
-});
-```
-
-#### 3. **Error Handling and Recovery**
-- Capture and log results from each sub-agent call
-- Handle failures gracefully (continue if non-critical)
-- Log timestamps and durations for troubleshooting
-- Provide fallback strategies
-
-```javascript
-// Pattern: Error handling with logging
-try {
-  const result = await runSubagent({
-    description: 'Process data',
-    prompt: buildPromptForSubAgent(params)
+Scan for OWASP Top 10, injection attacks, auth flaws, and report findings in ${basePath}/security-review.md`
   });
 
-  const duration = calculateDuration(startTime, new Date());
-  logStepCompletion(stepNumber, 'SUCCESS', duration, result);
-  return { status: 'success', result };
+  // Step 2: Performance Analysis (if applicable)
+  if (hasComputationalCode(basePath)) {
+    const performance = await runSubagent({
+      description: 'Check performance and optimization opportunities',
+      prompt: `You are the Performance Analyzer specialist.
+Repository: ${repositoryName}
+Files: ${basePath}/changes/
 
-} catch (error) {
-  const duration = calculateDuration(startTime, new Date());
-  logStepCompletion(stepNumber, 'FAILED', duration, error.message);
+Analyze database queries, algorithms, and memory usage. Report in ${basePath}/performance-report.md`
+    });
+  }
 
-  if (isComposingStep) throw error;  // Critical step
-  return { status: 'failed', error: error.message };
+  // Step 3: Test Coverage
+  const coverage = await runSubagent({
+    description: 'Verify test coverage for changed code',
+    prompt: `You are the Test Coverage Checker specialist.
+Repository: ${repositoryName}
+PR: ${prNumber}
+Changes: ${basePath}/changes/
+
+Check test coverage and suggest missing tests. Report in ${basePath}/coverage-analysis.md`
+  });
+
+  // Step 4: Compile Results
+  const finalReport = await runSubagent({
+    description: 'Aggregate all review findings',
+    prompt: `You are the Review Aggregator specialist.
+Repository: ${repositoryName}
+Reviews: ${basePath}/*.md
+
+Combine all reviews into final report at ${basePath}/final-review.md with verdict (APPROVED/NEEDS_FIXES/BLOCKED)`
+  });
+
+  return finalReport;
 }
 ```
 
-#### 4. **Sequential vs Parallel Execution**
-- Execute critical steps sequentially
-- Ensure each step receives correct input from previous step
-- Log completion before proceeding to next step
-- Wait for results before using them as input to next agent
-
-```javascript
-// Sequential execution pattern
-async function executeWorkflow(params) {
-  // Step 1: Requires no prior output
-  const step1 = await runSubagent({
-    description: 'Step 1: Data ingestion',
-    prompt: buildStep1Prompt(params)
-  });
-  logStep(1, step1);
-
-  // Step 2: Depends on Step 1
-  const step2 = await runSubagent({
-    description: 'Step 2: Data processing',
-    prompt: buildStep2Prompt(params, step1.result)
-  });
-  logStep(2, step2);
-
-  // Step 3: Depends on Step 2
-  const step3 = await runSubagent({
-    description: 'Step 3: Validation',
-    prompt: buildStep3Prompt(params, step2.result)
-  });
-  logStep(3, step3);
-
-  return { step1, step2, step3 };
-}
-```
-
-#### 5. **Result Logging and Tracking**
-- Create detailed logs for pipeline execution
-- Track timestamps (start, complete, duration)
-- Document agent responses and outputs
-- Include statistics and summaries
-
-```javascript
-// Pattern: Comprehensive logging
-function logStepCompletion(stepNum, stepName, status, startTime, endTime,
-                          result, error = null) {
-  const duration = calculateDuration(startTime, endTime);
-
-  const logEntry = `
-## Step ${stepNum}: ${stepName}
-**Status:** ${status}
-**Started:** ${startTime.toISOString()}
-**Completed:** ${endTime.toISOString()}
-**Duration:** ${duration}
-**Output:** ${result ? result.summary : 'N/A'}
-${error ? `**Error:** ${error}` : ''}
-`;
-
-  appendToLog(logEntry);
-}
-```
-
-#### 6. **Conditional Sub-Agent Invocation**
-- Check prerequisites before invoking sub-agents
-- Skip optional steps if conditions not met
-- Verify input files/folders exist
-- Log skip reasons
-
-Define conditions in markdown format before invoking sub-agents:
-
-```markdown
-#### Step X: Agent Name
-
-**Condition:** Check if specific files or folders exist
-- Only if `formation/transcripts/` folder exists and contains `.transcript` files
-- Only if `formation/course.md` file already exists
-- At least ONE of these exists: `dumps/transform/` or `formation/course.md`
-
-**Action:** Invoke `@agent-name` agent via `runSubagent` (if condition met)
-**Priority:** Specify if critical, optional, or has dependencies
-
-**Execution:**
-```javascript
-const stepResult = await runSubagent({
-  description: 'Step description',
-  prompt: `You are the Agent Name specialist...`
-});
-
-logStepCompletion(stepNumber, 'Agent Name', stepResult);
-```
-
-**Log Entry:**
-```markdown
-## Step X: Agent Name
-**Status:** ✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED
-**Reason:** [Why skipped if applicable]
-**Started:** [timestamp]
-**Completed:** [timestamp]
-**Duration:** [HH:mm:ss]
-**Output:** [Summary of results]
-```
-
-**Real-world example from pipeline:**
-
-```markdown
-#### Step 1: Resume Transcript
-**Condition:** Only if `formation/transcripts/` folder exists and contains `.transcript` files
-**Action:** Invoke `@resume-transcript` agent via `runSubagent`
-
-#### Step 2: Course Add
-**Condition:** Only if `formation/` folder exists AND `formation/course.md` exists
-**Action:** Invoke `@course-add` agent via `runSubagent` (OPTIONAL)
-
-#### Step 3: Create Set Questions
-**Condition:** At least ONE of these exists:
-- `dumps/transform/` with `.dump.txt` files
-- `formation/course.md` file
-
-**Action:** Invoke `@create-set` agent via `runSubagent`
-**Priority:** Process dumps first, then course
-
-#### Step 4: Add Explanation
-**Condition:** `imports/` folder contains `.csv` files
-**Action:** Invoke `@add-explanation` agent via `runSubagent`
-
-#### Step 5: Verify Question
-**Condition:** `imports/` folder contains `.csv` files with explanations
-**Action:** Invoke `@verify-question` agent via `runSubagent`
-```
-
-**Orchestration flow pattern:**
-
-```markdown
-## Pipeline Execution
-
-Execute steps sequentially, checking conditions before each invocation:
-
-For each step:
-1. **Check Condition**: Verify if prerequisites are met
-2. **Log Decision**: Document if executing or skipping
-3. **Execute or Skip**: Invoke sub-agent if condition true
-4. **Log Result**: Track success/failure with timestamp and duration
-5. **Continue**: Proceed to next step
-
-### Critical vs Non-Critical Steps
-
-**Critical steps** (must succeed):
-- Step 4 (Create Set Questions) - at least 1 CSV file generated
-- Step 5 (Add Explanation) - explanations added to questions
-- Step 6 (Verify Question) - validation completed
-
-**Non-critical steps** (can be skipped):
-- Step 1 (Resume Transcript) - if course.md already exists
-- Step 2 (Course Add) - optional enrichment
-- Step 3 (Dump Transform) - if no original dumps available
-
-### Status Tracking
-
-For each step, log the outcome:
-
-```markdown
-## Step 1: Resume Transcript
-**Status:** ✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED
-**Condition Check:** ✅ Input folder exists (20 files)
-**Started:** 2025-12-17T10:30:15Z
-**Completed:** 2025-12-17T10:32:48Z
-**Duration:** 2m 33s
-**Output:** formation/course.md created with 3 sections, 24 subsections
-**Issues:** None
-
-## Step 2: Course Add
-**Status:** ⚠️ SKIPPED
-**Condition Check:** Course file exists but enrichment optional
-**Reason:** User chose standard processing mode
-**Started:** N/A
-**Completed:** N/A
-**Duration:** 0s
-```
-
-### Sub-Agent Communication Pattern
-
-**Orchestrator Agent Structure**:
-
-```markdown
-# Orchestrator Agent
-
-You are a workflow coordinator that manages specialized agents.
-
-## Responsibilities
-- Break complex tasks into focused subtasks
-- Invoke specialized agents via runSubagent
-- Log and track each step
-- Handle errors and recovery
-- Generate summary reports
-
-## Sub-agents Managed
-- @specialized-agent-1: Handles task X
-- @specialized-agent-2: Handles task Y
-- @specialized-agent-3: Handles task Z
-
-## Workflow Pattern
-
-For each task:
-1. Validate prerequisites
-2. Invoke appropriate sub-agent with detailed prompt
-3. Log results with timestamps
-4. Proceed to next step or handle failure
-5. Generate final summary
-```
-
-### Real-World Example: API Documentation Pipeline
-
-A practical example of an orchestrator managing multiple specialized agents to auto-generate comprehensive API documentation:
-
-```javascript
-// Orchestrator invokes multiple specialized agents for API documentation
-async function apiDocumentationPipeline(projectName) {
-  const basePath = `projects/${projectName}`;
-
-  // Step 1: Analyze API Endpoints
-  const analysisResult = await runSubagent({
-    description: 'Scan and catalog all API endpoints',
-    prompt: `You are the API Analyzer specialist.
-
-Project: ${projectName}
-Input: ${basePath}/src/api/
-Output: ${basePath}/docs/endpoints.json
-
-Task:
-1. Scan all route files and controllers
-2. Extract endpoints: methods, paths, parameters
-3. Identify request/response schemas
-4. Catalog authentication requirements
-5. Generate structured endpoint catalog
-
-Return: Number of endpoints found and schemas identified`
-  });
-
-  // Step 2: Extract Code Documentation
-  const docResult = await runSubagent({
-    description: 'Extract JSDoc and inline code comments',
-    prompt: `You are the Documentation Extractor specialist.
-
-Project: ${projectName}
-Input: ${basePath}/src/api/
-Output: ${basePath}/docs/raw-comments.md
-
-Task:
-1. Parse all JSDoc comments from route handlers
-2. Extract parameter descriptions and types
-3. Collect error scenarios and status codes
-4. Gather usage examples if present
-5. Compile into structured format
-
-Return: Total endpoints with documentation coverage`
-  });
-
-  // Step 3: Generate Markdown Documentation
-  const mdResult = await runSubagent({
-    description: 'Create formatted API documentation',
-    prompt: `You are the Documentation Generator specialist.
-
-Project: ${projectName}
-Input: ${basePath}/docs/endpoints.json and ${basePath}/docs/raw-comments.md
-Output: ${basePath}/docs/api-reference.md
-
-Task:
-1. Create markdown documentation structure
-2. Organize endpoints by resource/module
-3. Include request/response examples
-4. Add authentication sections
-5. Create table of contents and search index
-6. Apply consistent formatting and style
-
-Return: Documentation file created with page count`
-  });
-
-  // Step 4: Generate OpenAPI/Swagger Spec
-  const specResult = await runSubagent({
-    description: 'Create machine-readable API spec',
-    prompt: `You are the Spec Generator specialist.
-
-Project: ${projectName}
-Input: ${basePath}/docs/endpoints.json
-Output: ${basePath}/docs/openapi.yaml
-
-Task:
-1. Generate OpenAPI 3.0 specification
-2. Map all endpoints with full details
-3. Include request/response schemas
-4. Add security definitions
-5. Create example requests/responses
-6. Validate spec for compliance
-
-Return: Spec file generated and validated`
-  });
-
-  // Step 5: Validate Documentation Completeness
-  const validateResult = await runSubagent({
-    description: 'Check documentation quality and coverage',
-    prompt: `You are the Documentation Validator specialist.
-
-Project: ${projectName}
-Input: ${basePath}/docs/ (all generated files)
-Output: ${basePath}/docs/validation-report.md
-
-Task:
-1. Compare documented endpoints vs actual code
-2. Check for missing parameter descriptions
-3. Verify all status codes are documented
-4. Validate example request formats
-5. Check for outdated or broken links
-6. Generate quality report with scores
-
-Return: Summary of issues found and coverage percentage`
-  });
-
-  // Generate final summary
-  generateDocumentationSummary(projectName, {
-    analysisResult,
-    docResult,
-    mdResult,
-    specResult,
-    validateResult
-  });
-}
-```
-
-
-### Common Sub-Agent Patterns
-
-**Pattern 1: Sequential Data Processing**
-```
-Input → Agent1 (transform) → Agent2 (enrich) → Agent3 (validate) → Output
-```
-
-**Pattern 2: Parallel Task Distribution**
-```
-Input → Agent1 (task A)  → Agent3 (combine)
-      → Agent2 (task B)  → Output
-```
-
-**Pattern 3: Conditional Branching**
-```
-Input → Check condition → Agent1 or Agent2 → Output
-```
-
-**Pattern 4: Error Recovery**
-```
-Input → Agent1 (primary) → Success? → Output
-                     ↓ Failure
-                   Agent2 (fallback) → Output
-```
+### Key Points
+
+- Pass all context via `${variables}` in the prompt
+- Use `try/catch` for error handling
+- Sequential execution (await each step) when results depend on prior steps
+- Log results with timestamps for troubleshooting
 
 ## Variable Definition and Extraction
 
