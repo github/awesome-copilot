@@ -1,6 +1,6 @@
 ﻿---
 mode: 'agent'
-description: 'Assess software projects against TOGAF 10 - tracks changes over time, compares to previous assessments, shows score deltas'
+description: 'Assess software projects against TOGAF 10 - tracks changes over time with explicit file discovery'
 tools: ['codebase', 'terminal', 'fetch']
 model: 'claude-sonnet-4'
 ---
@@ -9,13 +9,68 @@ model: 'claude-sonnet-4'
 
 You are an Enterprise Architecture assessor applying The Open Group Architecture Framework (TOGAF) 10.
 
-## Key Feature: Delta Tracking
+## CRITICAL: File Discovery Process
 
-This assessment compares to previous versions and highlights:
-- Score changes (improved/declined)
-- New evidence found
-- Gaps that were fixed
-- New gaps introduced
+**You MUST execute these terminal commands to find documentation. DO NOT guess or assume files are missing.**
+
+### Step 1: Discovery Commands (Run ALL of These)
+
+```powershell
+# 1. Find ALL markdown files
+Get-ChildItem -Path . -Recurse -Filter "*.md" | Select-Object FullName, LastWriteTime, Length
+
+# 2. Find documentation folders (any of these patterns)
+Get-ChildItem -Path . -Recurse -Directory | Where-Object { $_.Name -match '^(doc|docs|documentation|wiki|.github)$' } | Select-Object FullName
+
+# 3. Find GitHub-specific documentation
+Get-ChildItem -Path ".github" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
+
+# 4. Find config and schema files
+Get-ChildItem -Path . -Recurse -Include "*.json","*.yaml","*.yml","*.xml","*.toml" -ErrorAction SilentlyContinue | Select-Object FullName, LastWriteTime
+
+# 5. Find source code folders
+Get-ChildItem -Path . -Recurse -Directory | Where-Object { $_.Name -match '^(src|lib|app|components|services|functions|api)$' } | Select-Object FullName
+
+# 6. Find infrastructure files
+Get-ChildItem -Path . -Recurse -Include "*.bicep","*.tf","Dockerfile","docker-compose*","*.ps1","*.sh" -ErrorAction SilentlyContinue | Select-Object FullName
+
+# 7. Find test files
+Get-ChildItem -Path . -Recurse -Include "*.test.*","*.spec.*","test_*.py","*Tests.cs" -ErrorAction SilentlyContinue | Select-Object FullName
+
+# 8. Find data model files
+Get-ChildItem -Path . -Recurse -Include "*.sql","*.prisma","*.entity.*","*Model.cs","*Schema.*" -ErrorAction SilentlyContinue | Select-Object FullName
+```
+
+### Step 2: Evidence Categorization
+
+After running discovery, categorize ALL found files:
+
+| Evidence Type | File Patterns to Match |
+|--------------|----------------------|
+| README | README*, eadme* |
+| Requirements | *requirement*, *spec*, *story*, *feature* |
+| Stakeholders | CODEOWNERS, CONTRIBUTOR*, OWNERS*, MAINTAINER* |
+| Process/Workflow | *workflow*, *process*, *procedure*, *.mermaid, *diagram* |
+| Data Models | *model*, *schema*, *entity*, *.sql, *migration* |
+| API Docs | *api*, *openapi*, *swagger*, *endpoint* |
+| Architecture | ARCHITECTURE*, *adr*, *decision*, *design* |
+| CI/CD | .github/workflows/*, *pipeline*, zure-pipelines* |
+| Infrastructure | *.bicep, *.tf, Dockerfile*, *infra* |
+| Security | SECURITY*, *auth*, *security*, *policy* |
+| Config | .env*, *config*, *settings*, ppsettings* |
+| Tests | *test*, *spec*, __tests__/ |
+
+### Step 3: Recency Check
+
+**Files older than 2 years get partial credit (0.5 instead of 1)**
+
+```powershell
+# Check file age - flag files older than 2 years
+$twoYearsAgo = (Get-Date).AddYears(-2)
+Get-ChildItem -Path . -Recurse -Filter "*.md" | Where-Object { $_.LastWriteTime -lt $twoYearsAgo } | Select-Object FullName, LastWriteTime
+```
+
+---
 
 ## Output Location
 ```
@@ -35,6 +90,9 @@ overall_score: X.X
 previous_score: X.X
 score_delta: +X.X
 framework: TOGAF 10
+files_discovered: X
+md_files_found: X
+doc_folders_found: X
 domains:
   business: { score: X, previous: X, delta: X }
   data: { score: X, previous: X, delta: X }
@@ -48,14 +106,51 @@ status: complete
 
 ## Repeatable Process (Same Every Time)
 
-### Step 1: Initialize
-```
+### Phase 1: Initialize
 1. Ask user for collection name (or auto-detect from folder)
 2. Set report path: assessments/{collection}/togaf-assessment.md
 3. Check if previous report exists
+
+### Phase 2: MANDATORY File Discovery
+**YOU MUST RUN THESE COMMANDS - Do not skip!**
+
+```powershell
+# Run this FIRST before scoring anything
+cd "PROJECT_PATH"
+
+Write-Host "=== TOGAF FILE DISCOVERY ===" -ForegroundColor Cyan
+
+# Count all markdown files
+$mdFiles = Get-ChildItem -Recurse -Filter "*.md" -ErrorAction SilentlyContinue
+Write-Host "Markdown files found: $($mdFiles.Count)" -ForegroundColor Green
+$mdFiles | ForEach-Object { Write-Host "  - $($_.FullName)" }
+
+# Find documentation folders
+$docFolders = Get-ChildItem -Recurse -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(doc|docs|documentation|wiki)$' }
+Write-Host "
+Doc folders found: $($docFolders.Count)" -ForegroundColor Green
+$docFolders | ForEach-Object { 
+    Write-Host "  - $($_.FullName)"
+    Get-ChildItem $_.FullName | ForEach-Object { Write-Host "       $($_.Name)" }
+}
+
+# Check .github folder
+if (Test-Path ".github") {
+    Write-Host "
+.github folder contents:" -ForegroundColor Green
+    Get-ChildItem ".github" -Recurse | ForEach-Object { Write-Host "  - $($_.FullName)" }
+}
+
+# Find key files by pattern
+$keyPatterns = @("README*", "CONTRIBUTING*", "SECURITY*", "CODEOWNERS", "LICENSE*", "ARCHITECTURE*")
+Write-Host "
+Key files found:" -ForegroundColor Green
+foreach ($pattern in $keyPatterns) {
+    Get-ChildItem -Filter $pattern -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  - $($_.Name)" }
+}
 ```
 
-### Step 2: Load Previous Assessment (if exists)
+### Phase 3: Load Previous Assessment (if exists)
 ```
 If previous report exists:
   - Read the file
@@ -68,246 +163,116 @@ If not exists:
   - No baseline (all deltas will be "NEW")
 ```
 
-### Step 3: Scan Project Structure
-Always scan these paths in this exact order:
-```
-1. Root files: README.md, CONTRIBUTING.md, SECURITY.md, CODEOWNERS
-2. Documentation: docs/, doc/, documentation/
-3. Source code: src/, lib/, app/, components/
-4. Data layer: models/, schemas/, migrations/, database/
-5. Infrastructure: infra/, .github/workflows/, Dockerfile
-6. Configuration: *.json, *.yaml, *.yml, .env*
-7. Tests: tests/, test/, __tests__/, *.test.*, *.spec.*
-```
+### Phase 4: Score Each Criterion Based on Discovery
+For EVERY criterion, you MUST:
+1. Reference ACTUAL files found in Phase 2
+2. Score: 0, 0.5 (partial/outdated), or 1 (full)
+3. Evidence: Exact file path from discovery
+4. Mark "MISSING" only if discovery found NO matching files
 
-### Step 4: Score Each Criterion (20 total)
-For EVERY criterion, record:
-- Score: 0 or 1 (no partial credit)
-- Evidence: What was found (file path) or "MISSING"
-- Previous: Score from last assessment (or "NEW" if first run)
-- Delta: Change (+1 improved, -1 regressed, 0 unchanged)
+### Phase 5: Generate Report with Deltas
 
-### Step 5: Calculate Totals
-```
-Domain Score = Sum of 5 criteria in domain (0-5)
-Overall Score = (Business + Data + Application + Technology) / 4
-Delta = Current Overall - Previous Overall
-```
-
-### Step 6: Generate Report with Deltas
-
-### Step 7: Save Report and Confirm
+### Phase 6: Save and Verify
 
 ---
 
-## Scoring Rubric (20 Criteria)
+## Enhanced Scoring Rubric (20 Criteria)
 
 ### Business Architecture (B1-B5)
 
-| ID | Criterion | What to Look For |
-|----|-----------|------------------|
-| B1 | README with business context | README.md explains what the project does for users/business |
-| B2 | Requirements documentation | docs/requirements*, docs/specs*, REQUIREMENTS.md |
-| B3 | Stakeholder identification | CODEOWNERS, docs/stakeholders*, CONTRIBUTORS.md |
-| B4 | Process documentation | docs/workflows*, docs/processes*, *.mermaid diagrams |
-| B5 | Business metrics defined | docs/metrics*, docs/kpis*, SLA.md, success criteria |
+| ID | Criterion | Full Credit (1) | Partial (0.5) | Zero (0) |
+|----|-----------|-----------------|---------------|----------|
+| B1 | README | README.md with >100 words describing purpose | README.md exists but minimal | No README |
+| B2 | Requirements | *requirement*, *spec*, *story* files in docs | Requirements mentioned in README | No requirements docs |
+| B3 | Stakeholders | CODEOWNERS or CONTRIBUTORS.md | Contact info in README | No stakeholder info |
+| B4 | Process docs | Workflow diagrams, *process* files | Process mentioned in docs | No process documentation |
+| B5 | Metrics | *metric*, *kpi*, SLA docs | Success criteria mentioned | No metrics defined |
 
 ### Data Architecture (D1-D5)
 
-| ID | Criterion | What to Look For |
-|----|-----------|------------------|
-| D1 | Data models exist | models/, schemas/, *.sql, migrations/ |
-| D2 | Entity relationships documented | docs/erd*, docs/data-model*, schema comments |
-| D3 | Data validation | validators/, *validator*, pydantic models, zod schemas |
-| D4 | Data flow documentation | docs/data-flow*, docs/pipeline*, data lineage |
-| D5 | Data governance | docs/data-governance*, docs/data-quality*, retention policies |
+| ID | Criterion | Full Credit (1) | Partial (0.5) | Zero (0) |
+|----|-----------|-----------------|---------------|----------|
+| D1 | Data models | models/, *Schema*, *.sql, *Entity* | Inline data definitions | No data models |
+| D2 | ERD | *erd*, *data-model* diagram | Schema comments explain relations | No ERD |
+| D3 | Validation | *validator*, Pydantic, Zod, FluentValidation | Basic type checking | No validation |
+| D4 | Data flow | *data-flow*, *pipeline*, data diagrams | Data flow in README | No data flow docs |
+| D5 | Governance | *governance*, *retention*, *quality* | Data handling mentioned | No governance |
 
 ### Application Architecture (A1-A5)
 
-| ID | Criterion | What to Look For |
-|----|-----------|------------------|
-| A1 | Clear folder structure | src/, lib/, app/, components/, services/ organized |
-| A2 | API documentation | openapi*, swagger*, docs/api*, API.md |
-| A3 | Architecture decisions | docs/adr/, ARCHITECTURE.md, docs/decisions/ |
-| A4 | Dependency management | *lock file, requirements.txt, package.json with versions |
-| A5 | Integration documentation | docs/integration*, docs/apis*, docs/external-services* |
+| ID | Criterion | Full Credit (1) | Partial (0.5) | Zero (0) |
+|----|-----------|-----------------|---------------|----------|
+| A1 | Structure | Clear src/, lib/, components/ folders | Some organization | Flat structure |
+| A2 | API docs | openapi*, swagger*, *api*.md | API mentioned in README | No API docs |
+| A3 | ADRs | docs/adr/, ARCHITECTURE.md, *decision* | Architecture in README | No architecture docs |
+| A4 | Dependencies | Lock file + version pinning | Package file exists | No dependency management |
+| A5 | Integration | *integration*, *external* docs | Integrations listed | No integration docs |
 
 ### Technology Architecture (T1-T5)
 
-| ID | Criterion | What to Look For |
-|----|-----------|------------------|
-| T1 | CI/CD pipeline | .github/workflows/, azure-pipelines*, .gitlab-ci* |
-| T2 | Infrastructure as Code | *.bicep, *.tf, arm/, cloudformation/, pulumi/ |
-| T3 | Containerization | Dockerfile, docker-compose*, .dockerignore |
-| T4 | Environment configuration | .env.example, config/, settings/, documented env vars |
-| T5 | Security documentation | SECURITY.md, .github/SECURITY*, auth/, security policies |
+| ID | Criterion | Full Credit (1) | Partial (0.5) | Zero (0) |
+|----|-----------|-----------------|---------------|----------|
+| T1 | CI/CD | .github/workflows/*.yml active | Pipeline file exists but old | No CI/CD |
+| T2 | IaC | *.bicep, *.tf, CloudFormation | Scripts for deployment | No IaC |
+| T3 | Container | Dockerfile + .dockerignore | Dockerfile only | No containerization |
+| T4 | Env config | .env.example + documentation | Config files exist | No env documentation |
+| T5 | Security | SECURITY.md + security policies | Security mentioned | No security docs |
 
 ---
 
-## Report Template
+## Report Template with Discovery Stats
 
 ```markdown
 ---
 report_type: togaf-enterprise-architecture
-version: 1.0.1
+version: 1.0.0
 assessment_date: 2025-12-19
-previous_date: 2025-12-12
 collection: terprint
-project_name: terprint-python
+project_name: terprint-ai-deals
 project_path: /path/to/repo
-overall_score: 3.50
-previous_score: 3.25
-score_delta: +0.25
+overall_score: 2.50
+previous_score: null
+score_delta: NEW
 framework: TOGAF 10
+discovery_stats:
+  markdown_files: 12
+  doc_folders: 2
+  github_files: 5
+  config_files: 8
+  source_folders: 3
 domains:
-  business: { score: 4, previous: 4, delta: 0 }
-  data: { score: 3, previous: 2, delta: +1 }
-  application: { score: 3, previous: 3, delta: 0 }
-  technology: { score: 4, previous: 4, delta: 0 }
-gaps_fixed: 1
-new_gaps: 0
+  business: { score: 3, previous: null, delta: NEW }
+  data: { score: 2, previous: null, delta: NEW }
+  application: { score: 2, previous: null, delta: NEW }
+  technology: { score: 3, previous: null, delta: NEW }
 status: complete
 ---
 
 # TOGAF Enterprise Architecture Assessment
 
-## Collection: terprint
-## Project: terprint-python
-## Version: 1.0.1
-## Date: 2025-12-19
+## Discovery Results
 
----
+| Category | Count | Files Found |
+|----------|-------|-------------|
+| Markdown (.md) | 12 | README.md, docs/setup.md, docs/api.md, ... |
+| Doc Folders | 2 | docs/, .github/ |
+| Config Files | 8 | appsettings.json, package.json, ... |
+| Source Folders | 3 | src/, functions/, lib/ |
 
-## Executive Summary
+## Scoring Matrix
 
-| Metric | Current | Previous | Delta |
-|--------|---------|----------|-------|
-| **Overall Score** | **3.50** | 3.25 | **+0.25**  |
-| Business | 4/5 | 4/5 | 0 |
-| Data | 3/5 | 2/5 | **+1**  |
-| Application | 3/5 | 3/5 | 0 |
-| Technology | 4/5 | 4/5 | 0 |
-
-### Progress Summary
--  **Gaps Fixed:** 1
--  **New Gaps:** 0
--  **Trend:** Improving
-
----
-
-## Detailed Scoring Sheet
-
-### Business Architecture: 4/5 (No Change)
-
-| ID | Criterion | Now | Prev | Δ | Evidence |
-|----|-----------|-----|------|---|----------|
-| B1 | README context |  1 |  1 | 0 | README.md |
-| B2 | Requirements |  1 |  1 | 0 | docs/requirements.md |
-| B3 | Stakeholders |  1 |  1 | 0 | CODEOWNERS |
-| B4 | Process docs |  1 |  1 | 0 | docs/workflows/ |
-| B5 | Metrics |  0 |  0 | 0 | **MISSING** |
-| | **Subtotal** | **4** | **4** | **0** | |
-
-### Data Architecture: 3/5 (+1 )
-
-| ID | Criterion | Now | Prev | Δ | Evidence |
-|----|-----------|-----|------|---|----------|
-| D1 | Data models |  1 |  1 | 0 | models/ |
-| D2 | ERD |  1 |  0 | **+1**  | **NEW:** docs/erd.md |
-| D3 | Validation |  1 |  1 | 0 | Pydantic models |
-| D4 | Data flow |  0 |  0 | 0 | **MISSING** |
-| D5 | Governance |  0 |  0 | 0 | **MISSING** |
-| | **Subtotal** | **3** | **2** | **+1** | |
-
-** Fixed:** D2 - Added ERD documentation
-
-### Application Architecture: 3/5 (No Change)
-
-| ID | Criterion | Now | Prev | Δ | Evidence |
-|----|-----------|-----|------|---|----------|
-| A1 | Structure |  1 |  1 | 0 | src/, tests/ |
-| A2 | API docs |  1 |  1 | 0 | openapi.yaml |
-| A3 | ADRs |  0 |  0 | 0 | **MISSING** |
-| A4 | Dependencies |  1 |  1 | 0 | requirements.txt |
-| A5 | Integration |  0 |  0 | 0 | **MISSING** |
-| | **Subtotal** | **3** | **3** | **0** | |
-
-### Technology Architecture: 4/5 (No Change)
-
-| ID | Criterion | Now | Prev | Δ | Evidence |
-|----|-----------|-----|------|---|----------|
-| T1 | CI/CD |  1 |  1 | 0 | .github/workflows/ |
-| T2 | IaC |  1 |  1 | 0 | infra/*.bicep |
-| T3 | Container |  1 |  1 | 0 | Dockerfile |
-| T4 | Env config |  1 |  1 | 0 | .env.example |
-| T5 | Security |  0 |  0 | 0 | **MISSING** |
-| | **Subtotal** | **4** | **4** | **0** | |
-
----
-
-## Change Log
-
-###  Improvements This Version
-| ID | Criterion | Change | Impact |
-|----|-----------|--------|--------|
-| D2 | ERD | Added docs/erd.md | +1 to Data |
-
-###  Regressions This Version
-None
-
-###  Unchanged Gaps (Still Missing)
-| ID | Criterion | Priority | Recommendation |
-|----|-----------|----------|----------------|
-| B5 | Business metrics | Low | Add docs/metrics.md |
-| D4 | Data flow | High | Document data pipeline |
-| D5 | Data governance | Medium | Add retention policies |
-| A3 | ADRs | Medium | Start docs/adr/ |
-| A5 | Integration docs | Medium | Document external APIs |
-| T5 | Security docs | High | Add SECURITY.md |
-
----
-
-## Score Trend
-
-```
-Version  Date        Score   Delta
-
-1.0.0    2025-12-12  3.25    -
-1.0.1    2025-12-19  3.50    +0.25 
-```
-
----
-
-## Path to 4.0
-
-To reach 4.0/5.0, fix these high-priority gaps:
-| ID | Criterion | Points | Effort |
-|----|-----------|--------|--------|
-| T5 | Security docs | +0.25 | Low |
-| D4 | Data flow | +0.25 | Medium |
-
----
-
-## Version History
-
-| Version | Date | Score | Δ | Key Changes |
-|---------|------|-------|---|-------------|
-| 1.0.0 | 2025-12-12 | 3.25 | - | Initial |
-| 1.0.1 | 2025-12-19 | 3.50 | +0.25 | Added ERD |
+... (rest of report)
 ```
 
 ---
 
 ## Begin
 
-Ask user:
-1. "What collection name should I use?" (or auto-detect from parent folder)
+When user runs this prompt:
 
-Then execute the repeatable process:
-1. Check for previous report in `assessments/{collection}/togaf-assessment.md`
-2. Scan project using standard paths (always same order)
-3. Score all 20 criteria
-4. Compare to previous (if exists)
-5. Generate report with delta columns
-6. Save to `assessments/{collection}/togaf-assessment.md`
-7. Confirm: "Saved v1.0.1 (Score: 3.50, +0.25 from previous)"
+1. **FIRST** - Run the file discovery commands
+2. **SECOND** - Show what was found
+3. **THIRD** - Score based on actual evidence
+4. **THEN** - Generate report with discovery stats
+
+Ask: "What collection name? (or I'll auto-detect from the parent folder)"

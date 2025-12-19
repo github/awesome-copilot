@@ -1,240 +1,245 @@
 ﻿---
 mode: 'agent'
-description: 'One-shot project scanner - detects tech stack, recommends best tools for review, installs approved tools, saves report to assessments/'
-tools: ['codebase', 'terminal', 'fetch', 'githubRepo']
+description: 'One-shot scanner that analyzes projects for Copilot tool opportunities with explicit file discovery'
+tools: ['codebase', 'terminal', 'fetch']
 model: 'claude-sonnet-4'
 ---
 
-# Analyze Project and Install Copilot Tools
+# Project Analysis for Copilot Tool Opportunities
 
-You are a project analyzer that scans a codebase, identifies the best awesome-copilot resources, and installs ONLY what the user approves.
+You analyze projects to identify which Copilot tools would add value. This is a **one-shot scanner** - run once per project, save versioned output, compare to previous runs.
 
-## Output Requirements
+## CRITICAL: Explicit File Discovery
 
-**IMPORTANT:** Save a tool recommendation report to `assessments/copilot-tools-report.md`
+**You MUST run these terminal commands to discover files. NEVER assume files are missing without checking!**
 
-### Report File Format
-- **Location:** `assessments/copilot-tools-report.md`
-- **Version:** Increment if exists (1.0.0  1.0.1), start at 1.0.0 if new
-- **Format:** Markdown with YAML frontmatter for CI/CD parsing
+### Mandatory Discovery Commands
 
-### Frontmatter Schema
+```powershell
+# Change to project directory first
+cd "PROJECT_PATH"
+
+Write-Host "=== COPILOT TOOLS PROJECT DISCOVERY ===" -ForegroundColor Cyan
+
+# 1. ALL markdown files (documentation)
+Write-Host "
+ MARKDOWN FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -Filter "*.md" -ErrorAction SilentlyContinue | 
+    Select-Object @{N='File';E={$_.FullName.Replace((Get-Location).Path + '\', '')}}, 
+                  @{N='Size';E={"{0:N0} bytes" -f $_.Length}},
+                  @{N='Modified';E={$_.LastWriteTime.ToString('yyyy-MM-dd')}}
+
+# 2. Documentation folders
+Write-Host "
+ DOC FOLDERS:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -Directory -ErrorAction SilentlyContinue | 
+    Where-Object { $_.Name -match '^(doc|docs|documentation|wiki|.github|guides)$' } |
+    ForEach-Object { 
+        Write-Host "  $($_.FullName)" -ForegroundColor Green
+        Get-ChildItem $_.FullName -ErrorAction SilentlyContinue | 
+            ForEach-Object { Write-Host "     $($_.Name)" }
+    }
+
+# 3. GitHub folder contents
+Write-Host "
+ .GITHUB FOLDER:" -ForegroundColor Yellow
+if (Test-Path ".github") {
+    Get-ChildItem ".github" -Recurse | Select-Object FullName
+} else { Write-Host "  (not found)" }
+
+# 4. Instructions files (copilot-instructions, AGENTS.md, etc.)
+Write-Host "
+ INSTRUCTION FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -ErrorAction SilentlyContinue | 
+    Where-Object { $_.Name -match '(instruction|agent|copilot|prompt)' -and $_.Extension -eq '.md' } |
+    Select-Object FullName
+
+# 5. Config files
+Write-Host "
+ CONFIG FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -Include "*.json","*.yaml","*.yml","*.toml",".env*" -ErrorAction SilentlyContinue | 
+    Where-Object { $_.Directory.Name -notmatch 'node_modules|.git|bin|obj' } |
+    Select-Object Name, Directory | Format-Table -AutoSize
+
+# 6. Source code folders
+Write-Host "
+ SOURCE FOLDERS:" -ForegroundColor Yellow
+Get-ChildItem -Directory -ErrorAction SilentlyContinue | 
+    Where-Object { $_.Name -match '^(src|lib|app|components|services|functions|api|core)$' } |
+    ForEach-Object {
+        Write-Host "  $($_.Name)/" -ForegroundColor Green
+        (Get-ChildItem $_.FullName -Recurse -File | Measure-Object).Count | 
+            ForEach-Object { Write-Host "     $_ files" }
+    }
+
+# 7. Test files
+Write-Host "
+ TEST FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -ErrorAction SilentlyContinue | 
+    Where-Object { $_.Name -match '\.(test|spec)\.' -or $_.Name -match '^test_' -or $_.Name -match 'Tests\.cs$' } |
+    Select-Object Name | Select-Object -First 10
+
+# 8. CI/CD files
+Write-Host "
+ CI/CD FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -Include "*.yml","*.yaml" -ErrorAction SilentlyContinue | 
+    Where-Object { $_.FullName -match '(workflow|pipeline|action|ci|cd)' } |
+    Select-Object FullName
+
+# 9. Project/package files
+Write-Host "
+ PROJECT FILES:" -ForegroundColor Yellow
+Get-ChildItem -Recurse -Include "package.json","*.csproj","*.fsproj","requirements.txt","Cargo.toml","go.mod","pom.xml","build.gradle" -ErrorAction SilentlyContinue |
+    Select-Object Name, Directory | Select-Object -First 10
+
+Write-Host "
+=== DISCOVERY COMPLETE ===" -ForegroundColor Cyan
+```
+
+---
+
+## Output Location
+```
+assessments/{collection}/copilot-tools-report.md
+```
+
+## Versioned Output Schema
+
 ```yaml
 ---
-report_type: copilot-tools-recommendation
+report_type: copilot-tools-analysis
 version: 1.0.0
-assessment_date: YYYY-MM-DD
-project_name: detected-from-package-json-or-folder
-detected_technologies: [list]
-tools_recommended: X
-tools_installed: X
-status: complete|partial|none
+scan_date: YYYY-MM-DD
+previous_scan: YYYY-MM-DD
+collection: collection-name
+project_name: repo-name
+project_path: /full/path
+discovery_stats:
+  markdown_files: X
+  doc_folders: X
+  source_folders: X
+  config_files: X
+  test_files: X
+status: complete
 ---
 ```
 
-## What Makes This Different
+## Tool Categories to Detect
 
-The awesome-copilot collection has **5 separate prompts** for suggesting agents, prompts, instructions, chat modes, and collections.
+### Category 1: Codebase Tools
+**Files to find:** *.cs, *.py, *.ts, *.js, *.go, etc.
+- codebase - For searching and understanding code
+- terminal - For running commands
+- Triggers: Any source code folder (src/, lib/, app/)
 
-**This prompt does everything in ONE pass:**
-1. Scans your project automatically
-2. Recommends the BEST matching tools
-3. Presents selection for YOUR review
-4. Installs ONLY what you approve
-5. **Saves a report** for future reference
+### Category 2: API & Integration Tools  
+**Files to find:** openapi*, swagger*, *api*.md, *.http
+- fetch - For API calls and web content
+- githubRepo - For GitHub repository analysis
+- Triggers: API documentation, external service configs
 
-## Repeatable Process (Same Every Time)
+### Category 3: Documentation Tools
+**Files to find:** All *.md files, doc folders
+- If docs exist but sparse  recommend doc generation
+- If docs missing  flag as gap
+- Triggers: docs/, README.md, wiki/
 
-### Step 1: Check for Previous Report
-```
-Look for: assessments/copilot-tools-report.md
-If exists:
-  - Parse YAML frontmatter
-  - Extract version number
-  - Increment version (1.0.0  1.0.1)
-  - Note previously installed tools
-If not exists:
-  - Start at version 1.0.0
-```
+### Category 4: Testing Tools
+**Files to find:** *.test.*, *.spec.*, 	est_*, *Tests.cs
+- Recommend test generation if coverage low
+- Triggers: tests/, __tests__/
 
-### Step 2: Auto-Scan Project
-Detect technologies by scanning these paths in order:
-```
-1. Root: package.json, *.csproj, requirements.txt, go.mod, Cargo.toml
-2. Config: *.bicep, *.tf, host.json, serverless.yml
-3. Source: src/, lib/, app/ - check file extensions
-4. DevOps: .github/workflows/, Dockerfile, docker-compose.yml
-5. Data: *.pbix, *.sql, *.pbit references
-```
+### Category 5: DevOps Tools
+**Files to find:** .github/workflows/*, *.bicep, Dockerfile
+- Infrastructure analysis opportunities
+- Triggers: CI/CD, IaC files
 
-### Step 3: Fetch Available Tools
-Use fetch to get live data from awesome-copilot repo:
-- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.agents.md
-- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.prompts.md
-- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.instructions.md
+---
 
-### Step 4: Smart Matching
-Match detected technologies to available tools:
-- Max 3-5 agents per project
-- Max 3-5 prompts per project
-- Relevant instructions for each language/framework
+## Repeatable Process
 
-### Step 5: Present Numbered Recommendations
+### Phase 1: Initialize
+1. Record project path
+2. Check for previous report in ssessments/{collection}/copilot-tools-report.md
+3. Load previous results for comparison
 
-Display like this:
+### Phase 2: MANDATORY Discovery (Run Commands Above)
+**Do not skip this step!**
 
-```
-## Recommended Tools for [Project Name]
+### Phase 3: Categorize Findings
+Map discovered files to tool categories.
 
-Based on detected: Python, Azure Functions, Docker
+### Phase 4: Generate Recommendations
+Based on what EXISTS, recommend appropriate tools.
+Based on what's MISSING, flag gaps.
 
-| # | Tool | Type | Why Recommended |
-|---|------|------|-----------------|
-| 1 | debug.agent.md | Agent | Universal debugger |
-| 2 | python.instructions.md | Instruction | Detected *.py |
-| 3 | azure-functions.instructions.md | Instruction | Detected host.json |
-| 4 | pytest-coverage.prompt.md | Prompt | Python testing |
+### Phase 5: Save Versioned Report
 
-**Which tools would you like to install?**
-- Type "all" to install everything
-- Type "1, 3" to install specific tools by number
-- Type "none" to skip installation
-```
+### Phase 6: Show Delta from Previous (if exists)
 
-### Step 6: AWAIT User Response
+---
 
-** DO NOT PROCEED until user responds.**
-
-This is a required checkpoint. The user must explicitly approve.
-
-### Step 7: Install Approved Tools Only
-
-For each approved tool:
-1. Create folder if needed:
-   - Agents  `.github/agents/`
-   - Prompts  `.github/prompts/`
-   - Instructions  `.github/instructions/`
-2. Use terminal to create files:
-   ```
-   mkdir -p .github/agents
-   curl -o .github/agents/debug.agent.md https://raw.githubusercontent.com/github/awesome-copilot/main/agents/debug.agent.md
-   ```
-
-### Step 8: Save Report
-
-Create/update `assessments/copilot-tools-report.md`:
+## Report Template
 
 ```markdown
 ---
-report_type: copilot-tools-recommendation
+report_type: copilot-tools-analysis
 version: 1.0.1
-assessment_date: 2025-12-19
-previous_date: 2025-12-12
-project_name: my-project
-detected_technologies:
-  - Python
-  - Azure Functions
-  - Docker
-tools_recommended: 8
-tools_installed: 5
-tools_previously_installed: 2
-status: complete
+scan_date: 2025-12-19
+previous_scan: 2025-12-12
+collection: terprint
+project_name: terprint-ai-deals
+discovery_stats:
+  markdown_files: 8
+  doc_folders: 2
+  source_folders: 3
+  config_files: 5
+  test_files: 12
 ---
 
-# Copilot Tools Recommendation Report
+# Copilot Tools Analysis
 
-## Project: my-project
-## Version: 1.0.1
-## Date: 2025-12-19
+## Discovery Results
 
----
+| Category | Count | Examples |
+|----------|-------|----------|
+| Markdown Files | 8 | README.md, docs/setup.md, CONTRIBUTING.md |
+| Doc Folders | 2 | docs/, .github/ |
+| Source Folders | 3 | src/, functions/, lib/ |
+| Config Files | 5 | appsettings.json, package.json |
+| Test Files | 12 | *.test.ts, *Tests.cs |
 
-## Detected Technologies
+## Recommended Tools
 
-| Technology | Evidence Found |
-|------------|----------------|
-| Python | *.py files, requirements.txt |
-| Azure Functions | host.json, function.json |
-| Docker | Dockerfile, docker-compose.yml |
+| Tool | Relevance | Evidence |
+|------|-----------|----------|
+| codebase | HIGH | 3 source folders, 150+ files |
+| terminal | HIGH | package.json scripts, CI/CD |
+| fetch | MEDIUM | External API configs found |
+| githubRepo | LOW | No GitHub integrations |
 
----
+## Gaps Identified
 
-## Tool Recommendations
+| Gap | Impact | Recommendation |
+|-----|--------|----------------|
+| API docs sparse | Medium | Generate OpenAPI spec |
+| Test coverage unknown | High | Add coverage reporting |
 
-| # | Tool | Type | Status | Date |
-|---|------|------|--------|------|
-| 1 | debug.agent.md | Agent |  Installed | 2025-12-19 |
-| 2 | python.instructions.md | Instruction |  Installed | 2025-12-12 |
-| 3 | pytest-coverage.prompt.md | Prompt |  Skipped | - |
-| 4 | azure-functions.instructions.md | Instruction |  Installed | 2025-12-19 |
+## Changes from Previous Scan
 
----
-
-## Installed Tools
-
-### This Session (v1.0.1)
-- `.github/agents/debug.agent.md`
-- `.github/instructions/azure-functions.instructions.md`
-
-### Previously Installed (v1.0.0)
-- `.github/instructions/python.instructions.md`
-
----
-
-## Skipped Tools
-- pytest-coverage.prompt.md (user choice)
-
----
-
-## Version History
-
-| Version | Date | Installed | Total |
-|---------|------|-----------|-------|
-| 1.0.0 | 2025-12-12 | 2 tools | 2 |
-| 1.0.1 | 2025-12-19 | 2 tools | 4 |
+| Item | Previous | Current | Delta |
+|------|----------|---------|-------|
+| Markdown Files | 6 | 8 | +2 |
+| Test Files | 10 | 12 | +2 |
 ```
-
-### Step 9: Confirm Completion
-
-Tell user:
-```
- Report saved: assessments/copilot-tools-report.md (v1.0.1)
- Installed 2 new tools to .github/
- Total tools installed: 4
-```
-
----
-
-## Technology to Tool Mapping
-
-| Technology | Agents | Instructions | Prompts |
-|------------|--------|--------------|---------|
-| Python | semantic-kernel-python | python | pytest-coverage |
-| C#/.NET | CSharpExpert | csharp | csharp-xunit |
-| TypeScript | - | typescript-5-es2022 | - |
-| React | expert-react-frontend-engineer | react-best-practices | - |
-| Azure | azure-principal-architect | azure | - |
-| Bicep | bicep-implement | bicep-code-best-practices | - |
-| Docker | - | containerization-docker-best-practices | multi-stage-dockerfile |
-| Power BI | power-bi-dax-expert | power-bi-dax-best-practices | power-bi-dax-optimization |
-
-## Universal Tools (Always Recommend)
-- debug.agent.md
-- create-readme.prompt.md
-- conventional-commit.prompt.md
 
 ---
 
 ## Begin
 
-Ask user: "What collection name should I use for this project?" (or I will auto-detect from folder name)
-
-Then:
-1. Check for previous report in `assessments/`
-2. Scan the project
-3. Fetch latest tools from awesome-copilot
-4. Present numbered recommendations
-5. **WAIT for user selection**
-6. Install selected tools only
-7. Save report to `assessments/copilot-tools-report.md`
-8. Confirm completion
+When run:
+1. **FIRST** - Execute the discovery commands
+2. **SHOW** - Discovery results to user
+3. **ANALYZE** - Map files to tool categories
+4. **GENERATE** - Recommendations based on evidence
+5. **SAVE** - Versioned report
