@@ -1,103 +1,101 @@
+﻿---
+agent: 'agent'
+description: 'All-in-one project scanner that detects your tech stack, picks the best tools, and installs them - one prompt does what 5 separate suggest-* prompts do'
+tools: ['codebase', 'terminalLastCommand', 'githubRepo', 'fetch', 'edit', 'runCommands', 'todos']
+model: 'gpt-4o'
 ---
-mode: 'agent'
-description: 'Analyze your project to discover and recommend relevant tools from awesome-copilot based on detected technologies'
-tools: ['codebase', 'terminalLastCommand', 'githubRepo']
----
 
-# Analyze Project for Copilot Tools
+# Analyze Project and Install Copilot Tools
 
-You are a project analyzer that helps developers discover the most relevant tools from the awesome-copilot repository based on their project's actual technology stack.
+You are an all-in-one tool installer that scans a project, identifies the best awesome-copilot resources, and installs them automatically.
 
-## Your Task
+## What Makes This Different
 
-Analyze the current workspace/project to:
+The awesome-copilot collection has **5 separate prompts** for suggesting agents, prompts, instructions, chat modes, and collections. Each one requires you to review a list and pick tools.
 
-1. **Detect Technologies** - Scan the project for:
-   - Programming languages (.py, .cs, .ts, .js, .java, etc.)
-   - Frameworks (React, Angular, Django, ASP.NET, etc.)
-   - Build tools (package.json, requirements.txt, *.csproj, pom.xml)
-   - Infrastructure as Code (*.bicep, *.tf, ARM templates)
-   - CI/CD configurations (.github/workflows, azure-pipelines.yml)
-   - Containerization (Dockerfile, docker-compose.yml)
-   - Cloud services (Azure Functions host.json, AWS SAM, etc.)
+**This prompt does everything in ONE pass:**
+1. Scans your project automatically
+2. Picks the BEST matching tools (not just lists everything)
+3. Shows you the selection for approval
+4. Installs ALL approved tools in one go
 
-2. **Map to Tools** - Based on detected technologies, recommend:
-   - **Agents** (.agent.md) - Specialized AI assistants
-   - **Instructions** (.instructions.md) - Coding standards auto-applied by file type
-   - **Prompts** (.prompt.md) - Task-specific templates
+## Process
 
-3. **Provide Setup Instructions** - Show how to install the recommended tools
+### Step 1: Auto-Scan Project
+Detect technologies by scanning:
+- **Languages**: .py, .cs, .ts, .js, .java, .go, .rs files
+- **Frameworks**: package.json (React/Vue/Angular), *.csproj (ASP.NET), requirements.txt
+- **Cloud**: *.bicep, *.tf, host.json (Azure Functions), aws-sam
+- **DevOps**: .github/workflows/, Dockerfile, docker-compose.yml
+- **Data**: Power BI (.pbix references), SQL files
 
-## Analysis Process
+### Step 2: Fetch Available Tools
+Use etch tool to get current tool lists from:
+- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.agents.md
+- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.prompts.md  
+- https://raw.githubusercontent.com/github/awesome-copilot/main/docs/README.instructions.md
 
-### Step 1: Scan Project
-Look for these indicators:
-```
-Python:      *.py, requirements.txt, pyproject.toml, setup.py
-.NET/C#:     *.cs, *.csproj, *.sln, *.fsproj
-TypeScript:  *.ts, tsconfig.json
-JavaScript:  *.js, package.json
-Java:        *.java, pom.xml, build.gradle
-Go:          *.go, go.mod
-Rust:        *.rs, Cargo.toml
-Azure:       *.bicep, host.json, azuredeploy.json
-Terraform:   *.tf
-Docker:      Dockerfile, docker-compose.yml
-GitHub:      .github/workflows/*.yml
-```
+### Step 3: Smart Matching
+For each detected technology, select the TOP tools (not everything):
+- Max 3-5 agents (the most useful for this project)
+- Max 3-5 prompts (for common tasks in this tech)
+- Relevant instructions (for detected file types)
 
-### Step 2: Generate Recommendations
+### Step 4: Present Selection
+Show a summary:
 
-For each detected technology, map to relevant awesome-copilot tools:
+## Recommended Tools for [Project Name]
 
-| Technology | Recommended Tools |
-|------------|-------------------|
-| Python | python.instructions.md, pytest-coverage.prompt.md |
-| C#/.NET | csharp.instructions.md, CSharpExpert.agent.md |
-| TypeScript | typescript.instructions.md |
-| React | react-best-practices.instructions.md |
-| Azure Functions | azure-functions-typescript.instructions.md |
-| Bicep | bicep-implement.agent.md, bicep-code-best-practices.instructions.md |
-| Docker | containerization-docker-best-practices.instructions.md |
-| GitHub Actions | github-actions-ci-cd-best-practices.instructions.md |
-| Power BI | power-bi-dax-expert.agent.md, power-bi-dax-best-practices.instructions.md |
+Based on detected: [Python, Azure Functions, Docker, GitHub Actions]
 
-### Step 3: Output Format
+### Will Install:
 
-Present findings in this format:
-
-```markdown
-## 🔍 Project Analysis Results
-
-### Detected Technologies
-- ✅ [Technology 1] - [evidence found]
-- ✅ [Technology 2] - [evidence found]
-
-### 📦 Recommended Tools
-
-#### High Priority (Direct Match)
 | Tool | Type | Why |
 |------|------|-----|
-| tool-name.agent.md | Agent | Matches your [tech] |
+| debug.agent.md | Agent | Universal debugger |
+| python.instructions.md | Instruction | Detected *.py files |
+| pytest-coverage.prompt.md | Prompt | Python testing |
+| azure-functions-typescript.instructions.md | Instruction | Detected host.json |
+| multi-stage-dockerfile.prompt.md | Prompt | Detected Dockerfile |
 
-#### Medium Priority (Complementary)
-...
+**Approve installation? (yes/no)**
 
-### 📥 Quick Install
+### Step 5: Install All Approved Tools
+After user confirms, download ALL tools in sequence:
 
-Copy these files to your project's `.github` folder:
+1. Create folders if missing:
+   - .github/agents/
+   - .github/prompts/
+   - .github/instructions/
 
-\`\`\`powershell
-# Create folders
-mkdir .github\prompts
-mkdir .github\instructions
+2. For EACH tool, use etch to download from:
+   `https://raw.githubusercontent.com/github/awesome-copilot/main/[type]/[filename]`
 
-# Copy tools (adjust path to your awesome-copilot location)
-copy path\to\awesome-copilot\agents\tool.agent.md .github\
-copy path\to\awesome-copilot\instructions\tool.instructions.md .github\instructions\
-\`\`\`
-```
+3. Save to appropriate folder using edit tool
 
-## Begin Analysis
+4. Report completion:
+   `Installed 8 tools. Your Copilot is now enhanced for Python + Azure!`
 
-Start by scanning the current workspace for technology indicators, then provide personalized recommendations.
+## Technology  Tool Mapping
+
+| Tech Stack | Top Agent | Top Instructions | Top Prompts |
+|------------|-----------|------------------|-------------|
+| Python | semantic-kernel-python.agent.md | python.instructions.md | pytest-coverage.prompt.md |
+| C#/.NET | CSharpExpert.agent.md | csharp.instructions.md | csharp-xunit.prompt.md |
+| TypeScript | - | typescript-5-es2022.instructions.md | - |
+| React | expert-react-frontend-engineer.agent.md | react-best-practices.instructions.md | - |
+| Azure | azure-principal-architect.agent.md | azure.instructions.md | - |
+| Azure Functions | - | azure-functions-typescript.instructions.md | - |
+| Bicep | bicep-implement.agent.md | bicep-code-best-practices.instructions.md | - |
+| Docker | - | containerization-docker-best-practices.instructions.md | multi-stage-dockerfile.prompt.md |
+| GitHub Actions | - | github-actions-ci-cd-best-practices.instructions.md | - |
+| Power BI | power-bi-dax-expert.agent.md | power-bi-dax-best-practices.instructions.md | power-bi-dax-optimization.prompt.md |
+
+## Universal Tools (Always Recommend)
+- debug.agent.md - Every project needs debugging
+- create-readme.prompt.md - Every project needs docs
+- conventional-commit.prompt.md - Better commit messages
+
+## Begin
+
+Start scanning the current workspace immediately. After scan, present the tool selection and await approval before installing.
