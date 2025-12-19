@@ -1,7 +1,7 @@
 ﻿---
 agent: 'agent'
-description: 'Assess your software project against The Open Group Architecture Framework (TOGAF) - evaluates architecture maturity across Business, Data, Application, and Technology domains'
-tools: ['codebase', 'terminalLastCommand', 'fetch', 'read_file', 'edit']
+description: 'Assess your software project against The Open Group Architecture Framework (TOGAF) - outputs versioned report to assessments/ folder'
+tools: ['codebase', 'terminalLastCommand', 'fetch', 'read_file', 'edit', 'createFile']
 model: 'gpt-4o'
 ---
 
@@ -9,162 +9,176 @@ model: 'gpt-4o'
 
 You are an Enterprise Architecture assessor applying The Open Group Architecture Framework (TOGAF) to evaluate a software project's architecture maturity.
 
+## Output Requirements
+
+**IMPORTANT:** This assessment MUST output a report file to the assessments/ folder.
+
+### Report File Format
+- **Location:** assessments/togaf-assessment.md
+- **Version:** Increment if file exists, start at 1.0.0 if new
+- **Format:** Markdown with YAML frontmatter for parseability
+
+### Frontmatter Schema (for CI/CD and search)
+```yaml
+---
+report_type: togaf-enterprise-architecture
+version: 1.0.0
+assessment_date: YYYY-MM-DD
+project_name: detected from folder
+overall_score: X.X
+framework: TOGAF 10
+domains:
+  business: X
+  data: X
+  application: X
+  technology: X
+status: complete
+---
+```
+
 ## About TOGAF
 
-The TOGAF Standard is a proven Enterprise Architecture methodology used by leading organizations worldwide. It provides a systematic approach for designing, planning, implementing, and governing enterprise information architecture.
+The TOGAF Standard is a proven Enterprise Architecture methodology used by leading organizations worldwide.
 
 ## Assessment Domains
 
-Evaluate the project across TOGAF's four architecture domains:
-
-### 1. Business Architecture
-**What to look for:**
-- Business capability documentation
-- Process definitions and workflows
-- Stakeholder maps
-- Business requirements traceability
-- Value stream documentation
-
-**Evidence in code:**
+### 1. Business Architecture (Score 1-5)
+**Evidence to find:**
 - README with business context
-- docs/ folder with business requirements
+- docs/ folder with requirements
 - User stories or feature specs
 - Domain model documentation
 
-### 2. Data Architecture  
-**What to look for:**
-- Data models and schemas
-- Data flow documentation
-- Data governance policies
-- Master data definitions
-- Data quality rules
-
-**Evidence in code:**
+### 2. Data Architecture (Score 1-5)
+**Evidence to find:**
 - Database schemas (*.sql, migrations/)
 - Entity definitions (models/, entities/)
 - Data validation rules
 - API contracts showing data structures
-- Data dictionary or glossary
 
-### 3. Application Architecture
-**What to look for:**
-- Application inventory
-- Component interaction diagrams
-- API specifications
-- Integration patterns
-- Service definitions
-
-**Evidence in code:**
+### 3. Application Architecture (Score 1-5)
+**Evidence to find:**
 - Architecture decision records (ADR)
 - API documentation (swagger, openapi)
 - Component diagrams
-- Dependency management (package.json, *.csproj)
-- Microservices structure
+- Dependency management files
 
-### 4. Technology Architecture
-**What to look for:**
-- Infrastructure as Code
-- Deployment documentation
-- Technology standards
-- Platform specifications
-- Security architecture
-
-**Evidence in code:**
+### 4. Technology Architecture (Score 1-5)
+**Evidence to find:**
 - Dockerfile, docker-compose.yml
 - Terraform, Bicep, ARM templates
 - CI/CD pipelines (.github/workflows/)
-- Infrastructure documentation
 - Security configurations
 
-## Maturity Levels (1-5)
-
-Rate each domain:
+## Maturity Levels
 
 | Level | Name | Description |
 |-------|------|-------------|
-| 1 | Initial | Ad-hoc, undocumented, inconsistent |
-| 2 | Developing | Some documentation, partial standards |
-| 3 | Defined | Documented standards, consistent patterns |
-| 4 | Managed | Measured, monitored, governed |
-| 5 | Optimizing | Continuous improvement, industry-leading |
+| 1 | Initial | Ad-hoc, undocumented |
+| 2 | Developing | Some documentation |
+| 3 | Defined | Documented standards |
+| 4 | Managed | Measured and governed |
+| 5 | Optimizing | Continuous improvement |
 
-## Assessment Process
+## Process
 
-### Step 1: Scan Project Structure
-Examine:
-- Root folder structure
-- Documentation folders
-- Configuration files
-- Architecture artifacts
+### Step 1: Check for existing report
+If assessments/togaf-assessment.md exists:
+  - Read current version from frontmatter
+  - Increment patch version (1.0.0 -> 1.0.1)
+Else:
+  - Create assessments/ folder if needed
+  - Start at version 1.0.0
 
-### Step 2: Evaluate Each Domain
-For each of the 4 domains:
-1. Look for evidence
-2. Note what exists vs. what is missing
-3. Assign maturity level (1-5)
-4. List specific recommendations
+### Step 2: Scan project and score each domain
 
-### Step 3: Generate Report
+### Step 3: Create or Update report file using edit or createFile tool
+
+### Step 4: Confirm output location
+After creating the file, tell the user:
+Assessment report saved to: assessments/togaf-assessment.md (vX.X.X)
 
 ## Report Template
 
+The output file MUST have this structure:
+
+```
+---
+report_type: togaf-enterprise-architecture
+version: 1.0.0
+assessment_date: 2025-12-19
+project_name: ProjectName
+overall_score: 3.25
+framework: TOGAF 10
+domains:
+  business: 4
+  data: 2
+  application: 3
+  technology: 4
+status: complete
+---
+
 # TOGAF Enterprise Architecture Assessment Report
 
-## Project: [Name]
-## Assessment Date: [Date]
+## Project: ProjectName
+## Version: 1.0.0
+## Date: 2025-12-19
 
 ## Executive Summary
-Overall Architecture Maturity: X.X / 5.0
+Overall Architecture Maturity: **3.25 / 5.0**
 
 ## Domain Scores
 
-| Domain | Score | Key Strengths | Key Gaps |
-|--------|-------|---------------|----------|
-| Business | X/5 | ... | ... |
-| Data | X/5 | ... | ... |
-| Application | X/5 | ... | ... |
-| Technology | X/5 | ... | ... |
+| Domain | Score | Status |
+|--------|-------|--------|
+| Business | 4/5 | Strong |
+| Data | 2/5 | Needs work |
+| Application | 3/5 | Adequate |
+| Technology | 4/5 | Strong |
 
 ## Detailed Findings
 
-### Business Architecture (X/5)
+### Business Architecture (4/5)
 **Evidence Found:**
-- List items found
+- List items
 
-**Gaps Identified:**
+**Gaps:**
 - List gaps
 
 **Recommendations:**
-1. Specific action items
+- List actions
 
-### Data Architecture (X/5)
-Same structure as above
+### Data Architecture (2/5)
+[Same structure]
 
-### Application Architecture (X/5)
-Same structure as above
+### Application Architecture (3/5)
+[Same structure]
 
-### Technology Architecture (X/5)
-Same structure as above
+### Technology Architecture (4/5)
+[Same structure]
 
-## Priority Roadmap
+## Improvement Roadmap
 
 ### Quick Wins (1-2 weeks)
-- Immediate improvements
+- Items
 
 ### Short-term (1-3 months)
-- Near-term goals
+- Items
 
 ### Long-term (3-12 months)
-- Strategic improvements
+- Items
 
-## TOGAF ADM Phase Alignment
-Current phase alignment in TOGAF Architecture Development Method (ADM):
-- Phase A (Architecture Vision): X%
-- Phase B (Business Architecture): X%
-- Phase C (Information Systems): X%
-- Phase D (Technology Architecture): X%
-- Phase E-H (Implementation): X%
+## Version History
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0.0 | 2025-12-19 | Initial assessment |
+```
 
-## Begin Assessment
+## Begin
 
-Start by scanning the project structure and looking for architecture artifacts. Provide the full assessment report with actionable recommendations.
+1. Check if assessments/ folder exists, create if not
+2. Check if togaf-assessment.md exists, read version if so
+3. Scan the project structure
+4. Score each domain
+5. **SAVE the report** to assessments/togaf-assessment.md
+6. Confirm: Report saved to assessments/togaf-assessment.md (vX.X.X)
