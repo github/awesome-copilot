@@ -22,4 +22,5 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
+| [vue-to-react-converter](../skills/vue-to-react-converter/SKILL.md) | Convert Vue.js components (Composition API and Script Setup) to React components with functional components and Hooks. Use when users request converting Vue code to React, migrating Vue projects to React, or translating Vue syntax to React equivalents. Handles single components, multiple files, and dependency tracking. Supports conversion to both JavaScript and TypeScript React components based on user preference. | `references/common-patterns.md`<br />`references/conversion-guide.md`<br />`references/state-management.md` |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
