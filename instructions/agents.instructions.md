@@ -140,78 +140,195 @@ tools: ['playwright/navigate', 'playwright/screenshot']  # Specific tools
 - **Focus**: Fewer tools = clearer agent purpose and better performance
 - **Documentation**: Comment why specific tools are required for complex configurations
 
+## Agent Prompt Structure
+
+The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions.
+
+### Recommended Sections
+
+#### 1. Agent Identity and Role
+```markdown
+# Agent Name
+
+Brief introduction explaining who the agent is and its primary role.
+```
+
+#### 2. Core Responsibilities
+```markdown
+## Core Responsibilities
+
+Clear list of what the agent does:
+- Primary task 1
+- Primary task 2
+- Primary task 3
+```
+
+#### 3. Approach and Methodology
+```markdown
+## Approach
+
+Step-by-step methodology:
+1. First step
+2. Second step
+3. Third step
+```
+
+#### 4. Guidelines and Constraints
+```markdown
+## Guidelines
+
+- What the agent should always do
+- What the agent should avoid
+- Quality standards to maintain
+```
+
+#### 5. Output Expectations
+```markdown
+## Output Format
+
+Specify expected output structure, format, and quality criteria.
+```
+
+### Prompt Writing Best Practices
+
+**Be Specific and Direct**:
+- Use imperative mood ("Analyze", "Generate", "Focus on")
+- Avoid ambiguous terms ("should", "might", "possibly")
+- Provide concrete examples when appropriate
+
+**Define Boundaries**:
+- Clearly state what the agent should and shouldn't do
+- Define scope limits explicitly
+- Specify when to ask for clarification
+
+**Include Context**:
+- Explain the agent's domain expertise
+- Reference relevant frameworks, standards, or methodologies
+- Provide technical context when necessary
+
+**Focus on Behavior**:
+- Describe how the agent should think and work
+- Include decision-making criteria
+- Specify quality standards and validation steps
+
+**Use Structured Format**:
+- Break content into clear sections with headers
+- Use bullet points and numbered lists
+- Make instructions scannable and hierarchical
+
 ## Sub-Agent Invocation (Agent Orchestration)
 
 Agents can invoke other agents using `runSubagent` to orchestrate multi-step workflows.
 
 ### How It Works
 
-Include `agent` in tools list, then invoke other agents with detailed prompts:
+Include `agent` in tools list to enable sub-agent invocation:
 
 ```yaml
 tools: ['read', 'edit', 'search', 'agent']
 ```
 
-### Example: Code Review Pipeline
+Then invoke other agents with `runSubagent`:
 
 ```javascript
-async function codeReviewPipeline(repositoryName, prNumber) {
-  const basePath = `projects/${repositoryName}/pr-${prNumber}`;
+const result = await runSubagent({
+  description: 'What this step does',
+  prompt: `You are the [Specialist] specialist.
 
-  // Step 1: Security Review
-  const security = await runSubagent({
-    description: 'Analyze security issues in pull request',
-    prompt: `You are the Security Reviewer specialist.
-Repository: ${repositoryName}
-PR: ${prNumber}
-Files: ${basePath}/changes/
+Context:
+- Parameter: ${parameterValue}
+- Input: ${inputPath}
+- Output: ${outputPath}
 
-Scan for OWASP Top 10, injection attacks, auth flaws, and report findings in ${basePath}/security-review.md`
-  });
+Task:
+1. Do the specific work
+2. Write results to output location
+3. Return summary of completion`
+});
+```
 
-  // Step 2: Performance Analysis (if applicable)
-  if (hasComputationalCode(basePath)) {
-    const performance = await runSubagent({
-      description: 'Check performance and optimization opportunities',
-      prompt: `You are the Performance Analyzer specialist.
-Repository: ${repositoryName}
-Files: ${basePath}/changes/
+### Basic Pattern
 
-Analyze database queries, algorithms, and memory usage. Report in ${basePath}/performance-report.md`
-    });
-  }
+Structure each sub-agent call with:
 
-  // Step 3: Test Coverage
-  const coverage = await runSubagent({
-    description: 'Verify test coverage for changed code',
-    prompt: `You are the Test Coverage Checker specialist.
-Repository: ${repositoryName}
-PR: ${prNumber}
-Changes: ${basePath}/changes/
+1. **description**: Clear one-line purpose of the sub-agent invocation
+2. **prompt**: Detailed instructions with substituted variables
 
-Check test coverage and suggest missing tests. Report in ${basePath}/coverage-analysis.md`
-  });
+The prompt should include:
+- Who the sub-agent is (specialist role)
+- What context it needs (parameters, paths)
+- What to do (concrete tasks)
+- Where to write output
+- What to return (summary)
 
-  // Step 4: Compile Results
-  const finalReport = await runSubagent({
-    description: 'Aggregate all review findings',
-    prompt: `You are the Review Aggregator specialist.
-Repository: ${repositoryName}
-Reviews: ${basePath}/*.md
+### Example: Multi-Step Processing
 
-Combine all reviews into final report at ${basePath}/final-review.md with verdict (APPROVED/NEEDS_FIXES/BLOCKED)`
-  });
+```javascript
+// Step 1: Process data
+const processing = await runSubagent({
+  description: 'Transform raw input data',
+  prompt: `You are the Data Processor specialist.
 
-  return finalReport;
-}
+Project: ${projectName}
+Input: ${basePath}/raw/
+Output: ${basePath}/processed/
+
+Task:
+1. Read all files from input directory
+2. Apply transformations
+3. Write processed files to output
+4. Create summary: ${basePath}/processed/summary.md
+
+Return: Number of files processed and any issues found`
+});
+
+// Step 2: Analyze (depends on Step 1)
+const analysis = await runSubagent({
+  description: 'Analyze processed data',
+  prompt: `You are the Data Analyst specialist.
+
+Project: ${projectName}
+Input: ${basePath}/processed/
+Output: ${basePath}/analysis/
+
+Task:
+1. Read processed files from input
+2. Generate analysis report
+3. Write to: ${basePath}/analysis/report.md
+
+Return: Key findings and identified patterns`
+});
 ```
 
 ### Key Points
 
-- Pass all context via `${variables}` in the prompt
-- Use `try/catch` for error handling
-- Sequential execution (await each step) when results depend on prior steps
-- Log results with timestamps for troubleshooting
+- **Pass variables in prompts**: Use `${variableName}` for all dynamic values
+- **Keep prompts focused**: Clear, specific tasks for each sub-agent
+- **Return summaries**: Each sub-agent should report what it accomplished
+- **Sequential execution**: Use `await` to maintain order when steps depend on each other
+- **Error handling**: Check results before proceeding to dependent steps
+
+### ⚠️ Tool Availability Requirement
+
+**Critical**: If a sub-agent requires specific tools (e.g., `edit`, `execute`, `search`), the orchestrator must include those tools in its own `tools` list. Sub-agents cannot access tools that aren't available to their parent orchestrator.
+
+**Example**:
+```yaml
+# If your sub-agents need to edit files, execute commands, or search code
+tools: ['read', 'edit', 'search', 'execute', 'agent']
+```
+
+The orchestrator's tool permissions act as a ceiling for all invoked sub-agents. Plan your tool list carefully to ensure all sub-agents have the tools they need.
+
+### ⚠️ Important Limitation
+
+**Sub-agent orchestration is NOT suitable for large-scale data processing.** Avoid using `runSubagent` when:
+- Processing hundreds or thousands of files
+- Handling large datasets
+- Performing bulk transformations on big codebases
+- Orchestrating more than 5-10 sequential steps
+
+Each sub-agent call adds latency and context overhead. For high-volume processing, implement logic directly in a single agent instead. Use orchestration only for coordinating specialized tasks on focused, manageable datasets.
 
 ## Variable Definition and Extraction
 
@@ -330,143 +447,99 @@ Process the **${projectName}** project located at `${basePath}`.
 
 #### Passing Variables to Sub-Agents
 
-Use extracted variables when invoking sub-agents:
+When invoking a sub-agent, pass all context through template variables in the prompt:
 
 ```javascript
-// Example: Pass projectName and basePath to sub-agent
+// Extract and prepare variables
 const basePath = `projects/${projectName}`;
+const inputPath = `${basePath}/src/`;
+const outputPath = `${basePath}/docs/`;
 
-// Pass to sub-agent with variable
+// Pass to sub-agent with all variables substituted
 const result = await runSubagent({
-  description: 'Process project files',
-  prompt: `You are the Project Processor specialist.
+  description: 'Generate project documentation',
+  prompt: `You are the Documentation specialist.
 
-Process: ${projectName}
-Location: ${basePath}
+Project: ${projectName}
+Input: ${inputPath}
+Output: ${outputPath}
 
 Task:
-1. Read all files from ${basePath}/src/
-2. Analyze project structure
-3. Generate documentation
-4. Save to ${basePath}/docs/
+1. Read source files from ${inputPath}
+2. Generate comprehensive documentation
+3. Write to ${outputPath}/index.md
+4. Include code examples and usage guides
 
-Return: Summary of analysis`
+Return: Summary of documentation generated (file count, word count)`
 });
 ```
 
-### Real-World Example: Parameterized Orchestrator Agent
+The sub-agent receives all necessary context embedded in the prompt. Variables are resolved before sending the prompt, so the sub-agent works with concrete paths and values, not variable placeholders.
 
-Example of a code review orchestrator that validates pull requests across multiple dimensions:
+### Real-World Example: Code Review Orchestrator
 
-```markdown
-# Code Review Orchestrator Agent
+Example of a simple orchestrator that validates code through multiple specialized agents:
 
-## Dynamic Parameters
+```javascript
+async function reviewCodePipeline(repositoryName, prNumber) {
+  const basePath = `projects/${repositoryName}/pr-${prNumber}`;
 
-- **Repository Name**: Extracted from user prompt (e.g., "my-awesome-app")
-- **Pull Request ID**: Provided in user request (e.g., "PR #42")
-- **Base Path**: Derived as `projects/${repositoryName}/pr-${prNumber}/`
-- **Review Report**: Set to `projects/${repositoryName}/pr-${prNumber}/review-report.md`
+  // Step 1: Security Review
+  const security = await runSubagent({
+    description: 'Scan for security vulnerabilities',
+    prompt: `You are the Security Reviewer specialist.
 
-## Your Mission
+Repository: ${repositoryName}
+PR: ${prNumber}
+Code: ${basePath}/changes/
 
-Execute a comprehensive multi-aspect code review for **PR #${prNumber}** on **${repositoryName}** by invoking specialized agents without requiring manual coordination between steps.
+Task:
+1. Scan code for OWASP Top 10 vulnerabilities
+2. Check for injection attacks, auth flaws
+3. Write findings to ${basePath}/security-review.md
 
-### Initial Setup
+Return: List of critical, high, and medium issues found`
+  });
 
-If repository or PR details are not provided, **ASK THE USER** for:
-- Repository name or identifier
-- Pull request number
-- Review scope (all aspects or specific areas)
+  // Step 2: Test Coverage Check
+  const coverage = await runSubagent({
+    description: 'Verify test coverage for changes',
+    prompt: `You are the Test Coverage specialist.
 
-## Pre-flight Checks
+Repository: ${repositoryName}
+PR: ${prNumber}
+Changes: ${basePath}/changes/
 
-Verify the pull request structure at `${basePath}`:
-- ✅ PR metadata exists
-- ✅ Changed files are accessible
-- ℹ️ Review reports will be generated
-- ✅ Code quality tools configured
+Task:
+1. Analyze code coverage for modified files
+2. Identify untested critical paths
+3. Write report to ${basePath}/coverage-report.md
 
-## Review Pipeline Execution
+Return: Current coverage percentage and gaps`
+  });
 
-### Step 1: Security Analysis
-Invoke `@security-reviewer` agent:
+  // Step 3: Aggregate Results
+  const finalReport = await runSubagent({
+    description: 'Compile all review findings',
+    prompt: `You are the Review Aggregator specialist.
 
-**Condition:** Always execute for code reviews
+Repository: ${repositoryName}
+Reports: ${basePath}/*.md
 
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/changes/
-- Output: ${basePath}/security-review.md
+Task:
+1. Read all review reports from ${basePath}/
+2. Synthesize findings into single report
+3. Determine overall verdict (APPROVE/NEEDS_FIXES/BLOCK)
+4. Write to ${basePath}/final-review.md
 
-### Step 2: Performance Audit
-Invoke `@performance-analyzer` agent:
+Return: Final verdict and executive summary`
+  });
 
-**Condition:** Only if code contains computational components or database queries
-
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/changes/
-- Output: ${basePath}/performance-report.md
-
-### Step 3: Test Coverage Analysis
-Invoke `@test-coverage-checker` agent:
-
-**Condition:** Always execute
-
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/changes/ and test configuration
-- Output: ${basePath}/coverage-analysis.md
-
-### Step 4: Code Style Validation
-Invoke `@style-validator` agent:
-
-**Condition:** Only if style rules are configured for repository
-
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/changes/
-- Output: ${basePath}/style-report.md
-
-### Step 5: Documentation Validation
-Invoke `@documentation-reviewer` agent:
-
-**Condition:** Only if API/public methods were modified
-
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/changes/
-- Output: ${basePath}/documentation-review.md
-
-### Step 6: Compile Final Review
-Invoke `@review-aggregator` agent:
-
-**Condition:** Always execute after individual reviews
-
-Parameters to pass:
-- Repository: ${repositoryName}
-- PR: ${prNumber}
-- Input: ${basePath}/ (all review reports)
-- Output: ${basePath}/review-report.md
-
-## Logging
-
-All review operations logged to: `${reviewReport}`
-
-Track for each review aspect:
-- Status (✅ APPROVED / ⚠️ NEEDS FIXES / ❌ BLOCKED)
-- Critical issues count
-- Warnings count
-- Recommendations count
-- Timestamps for start and completion
-- Duration of review
+  return finalReport;
+}
 ```
+
+This pattern applies to any orchestration scenario: extract variables, call sub-agents with clear context, await results.
 
 
 ### Variable Best Practices
@@ -528,104 +601,6 @@ Document valid values and constraints:
 - Default: "standard"
 - Required: no
 ```
-
-#### 4. **Variable Scope**
-Be clear about variable scope and lifetime:
-
-```markdown
-## Variable Scope
-
-### Global Variables (used throughout agent execution)
-- ${projectName}: Available in all prompts and sub-agents
-- ${basePath}: Used for all file operations
-- ${timestamp}: Available for logging
-
-### Local Variables (used in specific sections)
-- ${currentStep}: Only in step-specific prompts
-- ${stepResult}: Only after step completion
-- ${errorMessage}: Only in error handling
-
-### Sub-Agent Variables (passed to child agents)
-- ${projectName}: Always pass to maintain context
-- ${basePath}: Critical for file operations
-- ${mode}: Inherit from parent agent
-```
-
-## Agent Prompt Structure
-
-The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions. Maximum length: 30,000 characters.
-
-### Recommended Sections
-
-#### 1. Agent Identity and Role
-```markdown
-# Agent Name
-
-Brief introduction explaining who the agent is and its primary role.
-```
-
-#### 2. Core Responsibilities
-```markdown
-## Core Responsibilities
-
-Clear list of what the agent does:
-- Primary task 1
-- Primary task 2
-- Primary task 3
-```
-
-#### 3. Approach and Methodology
-```markdown
-## Approach
-
-Step-by-step methodology:
-1. First step
-2. Second step
-3. Third step
-```
-
-#### 4. Guidelines and Constraints
-```markdown
-## Guidelines
-
-- What the agent should always do
-- What the agent should avoid
-- Quality standards to maintain
-```
-
-#### 5. Output Expectations
-```markdown
-## Output Format
-
-Specify expected output structure, format, and quality criteria.
-```
-
-### Prompt Writing Best Practices
-
-**Be Specific and Direct**:
-- Use imperative mood ("Analyze", "Generate", "Focus on")
-- Avoid ambiguous terms ("should", "might", "possibly")
-- Provide concrete examples when appropriate
-
-**Define Boundaries**:
-- Clearly state what the agent should and shouldn't do
-- Define scope limits explicitly
-- Specify when to ask for clarification
-
-**Include Context**:
-- Explain the agent's domain expertise
-- Reference relevant frameworks, standards, or methodologies
-- Provide technical context when necessary
-
-**Focus on Behavior**:
-- Describe how the agent should think and work
-- Include decision-making criteria
-- Specify quality standards and validation steps
-
-**Use Structured Format**:
-- Break content into clear sections with headers
-- Use bullet points and numbered lists
-- Make instructions scannable and hierarchical
 
 ## MCP Server Configuration (Organization/Enterprise Only)
 
