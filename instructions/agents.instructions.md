@@ -140,82 +140,6 @@ tools: ['playwright/navigate', 'playwright/screenshot']  # Specific tools
 - **Focus**: Fewer tools = clearer agent purpose and better performance
 - **Documentation**: Comment why specific tools are required for complex configurations
 
-## Agent Prompt Structure
-
-The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions.
-
-### Recommended Sections
-
-#### 1. Agent Identity and Role
-```markdown
-# Agent Name
-
-Brief introduction explaining who the agent is and its primary role.
-```
-
-#### 2. Core Responsibilities
-```markdown
-## Core Responsibilities
-
-Clear list of what the agent does:
-- Primary task 1
-- Primary task 2
-- Primary task 3
-```
-
-#### 3. Approach and Methodology
-```markdown
-## Approach
-
-Step-by-step methodology:
-1. First step
-2. Second step
-3. Third step
-```
-
-#### 4. Guidelines and Constraints
-```markdown
-## Guidelines
-
-- What the agent should always do
-- What the agent should avoid
-- Quality standards to maintain
-```
-
-#### 5. Output Expectations
-```markdown
-## Output Format
-
-Specify expected output structure, format, and quality criteria.
-```
-
-### Prompt Writing Best Practices
-
-**Be Specific and Direct**:
-- Use imperative mood ("Analyze", "Generate", "Focus on")
-- Avoid ambiguous terms ("should", "might", "possibly")
-- Provide concrete examples when appropriate
-
-**Define Boundaries**:
-- Clearly state what the agent should and shouldn't do
-- Define scope limits explicitly
-- Specify when to ask for clarification
-
-**Include Context**:
-- Explain the agent's domain expertise
-- Reference relevant frameworks, standards, or methodologies
-- Provide technical context when necessary
-
-**Focus on Behavior**:
-- Describe how the agent should think and work
-- Include decision-making criteria
-- Specify quality standards and validation steps
-
-**Use Structured Format**:
-- Break content into clear sections with headers
-- Use bullet points and numbered lists
-- Make instructions scannable and hierarchical
-
 ## Sub-Agent Invocation (Agent Orchestration)
 
 Agents can invoke other agents using `runSubagent` to orchestrate multi-step workflows.
@@ -329,6 +253,24 @@ The orchestrator's tool permissions act as a ceiling for all invoked sub-agents.
 - Orchestrating more than 5-10 sequential steps
 
 Each sub-agent call adds latency and context overhead. For high-volume processing, implement logic directly in a single agent instead. Use orchestration only for coordinating specialized tasks on focused, manageable datasets.
+
+## Agent Prompt Structure
+
+The markdown content below the frontmatter defines the agent's behavior, expertise, and instructions. Well-structured prompts typically include:
+
+1. **Agent Identity and Role**: Who the agent is and its primary role
+2. **Core Responsibilities**: What specific tasks the agent performs
+3. **Approach and Methodology**: How the agent works to accomplish tasks
+4. **Guidelines and Constraints**: What to do/avoid and quality standards
+5. **Output Expectations**: Expected output format and quality
+
+### Prompt Writing Best Practices
+
+- **Be Specific and Direct**: Use imperative mood ("Analyze", "Generate"); avoid vague terms
+- **Define Boundaries**: Clearly state scope limits and constraints
+- **Include Context**: Explain domain expertise and reference relevant frameworks
+- **Focus on Behavior**: Describe how the agent should think and work
+- **Use Structured Format**: Headers, bullets, and lists make prompts scannable
 
 ## Variable Definition and Extraction
 
