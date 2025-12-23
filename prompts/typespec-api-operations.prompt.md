@@ -1,8 +1,8 @@
 ---
-agent: 'agent'
+mode: 'agent'
 tools: ['changes', 'search/codebase', 'edit/editFiles', 'problems']
 name: Add TypeSpec API Operations
-description: Add GET, POST, PATCH, and DELETE operations to a TypeSpec API plugin with proper routing, parameters, and adaptive cards
+description: 'Add GET, POST, PATCH, and DELETE operations to a TypeSpec API plugin with proper routing, parameters, and adaptive cards'
 tags: [typespec, m365-copilot, api-plugin, rest-operations, crud]
 ---
 

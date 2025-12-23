@@ -1,5 +1,5 @@
 ---
-description: Guidelines and best practices for building TypeSpec-based declarative agents and API plugins for Microsoft 365 Copilot
+description: 'Guidelines and best practices for building TypeSpec-based declarative agents and API plugins for Microsoft 365 Copilot'
 applyTo: '**/*.tsp'
 ---
 

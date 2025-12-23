@@ -134,7 +134,7 @@ op teamsMessages is AgentCapabilities.TeamsMessages<Urls = [
 ```typescript
 op email is AgentCapabilities.Email<Folders = [
   {
-    folder_id: "Inbox",
+    folderId: "Inbox",
   }
 ]>;
 ```

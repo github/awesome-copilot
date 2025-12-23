@@ -1,8 +1,8 @@
 ---
-agent: 'agent'
+mode: 'agent'
 tools: ['changes', 'search/codebase', 'edit/editFiles', 'problems']
 name: Create TypeSpec API Plugin
-description: Generate a TypeSpec API plugin with REST operations, authentication, and Adaptive Cards for Microsoft 365 Copilot
+description: 'Generate a TypeSpec API plugin with REST operations, authentication, and Adaptive Cards for Microsoft 365 Copilot'
 tags: [typespec, m365-copilot, api-plugin, rest-api]
 ---
 
