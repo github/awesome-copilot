@@ -22,4 +22,5 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
+| [image-manipulation-image-magick](../skills/image-manipulation-image-magick/SKILL.md) | Process and manipulate images using ImageMagick. Supports resizing, format conversion, batch processing, and retrieving image metadata. Use when working with images, creating thumbnails, resizing wallpapers, or performing batch image operations. | none |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
