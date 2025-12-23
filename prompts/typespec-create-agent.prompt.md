@@ -1,8 +1,8 @@
 ---
 mode: 'agent'
 tools: ['changes', 'search/codebase', 'edit/editFiles', 'problems']
-name: Create TypeSpec Declarative Agent
 description: 'Generate a complete TypeSpec declarative agent with instructions, capabilities, and conversation starters for Microsoft 365 Copilot'
+model: 'gpt-4.1'
 tags: [typespec, m365-copilot, declarative-agent, agent-development]
 ---
 
