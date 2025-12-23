@@ -103,6 +103,15 @@ You are an expert [domain/role] with deep knowledge in [specific areas].
 - [Best practices to follow]
 ```
 
+### Adding Skills
+
+Skills are self-contained folders in the `skills/` directory that include a `SKILL.md` file (with front matter) and optional bundled assets.
+
+1. **Create a new skill folder**: Run `npm run skill:create -- --name <skill-name> --description "<skill description>"`
+2. **Edit `SKILL.md`**: Ensure the `name` matches the folder name (lowercase with hyphens) and the `description` is clear and non-empty
+3. **Add optional assets**: Keep bundled assets reasonably sized (under 5MB each) and reference them from `SKILL.md`
+4. **Validate and update docs**: Run `npm run skill:validate` and then `npm run build` to update the generated README tables
+
 ### Adding Collections
 
 Collections group related prompts, instructions, and chat modes around specific themes or workflows, making it easier for users to discover and adopt comprehensive toolkits.
