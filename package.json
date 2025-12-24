@@ -8,6 +8,7 @@
     "start": "npm run build",
     "build": "node ./eng/update-readme.mjs",
     "contributors:add": "all-contributors add",
+    "contributors:report": "node ./eng/contributor-report.mjs",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
     "collection:validate": "node ./eng/validate-collections.mjs",
@@ -24,7 +25,9 @@
     "copilot",
     "ai",
     "prompts",
-    "instructions"
+    "instructions",
+    "chat modes",
+    "agents"
   ],
   "author": "GitHub",
   "license": "MIT",

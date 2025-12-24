@@ -1,6 +1,7 @@
 node_modules
 *.orig
 Copilot-Processing.md
+reports/
 
 # macOS system files
 .DS_Store
