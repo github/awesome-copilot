@@ -22,5 +22,5 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
-| [skill-creator](../skills/skill-creator/SKILL.md) | Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations. | `references\output-patterns.md`<br />`references\workflows.md`<br />`scripts\init_skill.py`<br />`scripts\package_skill.py`<br />`scripts\quick_validate.py` |
+| [skill-creator](../skills/skill-creator/SKILL.md) | Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations. | `references/output-patterns.md`<br />`references/workflows.md`<br />`scripts/init_skill.py`<br />`scripts/package_skill.py`<br />`scripts/quick_validate.py` |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
