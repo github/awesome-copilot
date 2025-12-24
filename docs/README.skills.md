@@ -22,4 +22,5 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
+| [skill-finder](../skills/skill-finder/SKILL.md) | Full-featured Agent Skills management: Search 35+ skills, install locally, star favorites, update from sources. Supports tag search (#azure #bicep), category filtering, and similar skill recommendations. | `LICENSE.txt`<br />`README.md`<br />`assets/demo-en.mp4`<br />`assets/demo-ja.mp4`<br />`assets/demo.mp4`<br />`assets/demo.png`<br />`references/skill-index.json`<br />`references/starred-skills.json`<br />`scripts/Search-Skills.ps1`<br />`scripts/search_skills.py` |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
