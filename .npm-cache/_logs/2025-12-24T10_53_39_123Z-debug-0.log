@@ -1,0 +1,18 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.5.2
+2 info using node@v20.17.0
+3 silly config load:file:C:\Users\vainf\AppData\Roaming\nvm\v20.17.0\node_modules\npm\npmrc
+4 silly config load:file:D:\03_github\awesome-copilot\.npmrc
+5 silly config load:file:C:\Users\vainf\.npmrc
+6 silly config load:file:C:\Program Files\nodejs\etc\npmrc
+7 verbose title npm run build
+8 verbose argv "run" "build"
+9 verbose logfile logs-max:10 dir:D:\03_github\awesome-copilot\.npm-cache\_logs\2025-12-24T10_53_39_123Z-
+10 verbose logfile D:\03_github\awesome-copilot\.npm-cache\_logs\2025-12-24T10_53_39_123Z-debug-0.log
+11 silly logfile done cleaning log files
+12 verbose cwd D:\03_github\awesome-copilot
+13 verbose os Windows_NT 10.0.26200
+14 verbose node v20.17.0
+15 verbose npm  v11.5.2
+16 verbose exit 0
+17 info ok

@@ -37,9 +37,6 @@
 .PARAMETER RepoUrl
     Repository URL to add (use with -AddSource)
 
-.PARAMETER AddSkill
-    Add a new skill to the index
-
 .PARAMETER Update
     Update skills from all sources
 
@@ -114,25 +111,7 @@ param(
     [Parameter(ParameterSetName = 'AddSource')]
     [string]$RepoUrl = "",
 
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [switch]$AddSkill,
-
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [string]$SkillName = "",
-
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [string]$SkillSource = "",
-
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [string]$SkillPath = "",
-
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [string]$SkillDescription = "",
-
-    [Parameter(ParameterSetName = 'AddSkill')]
-    [string[]]$SkillCategories = @(),
-
-    [Parameter(ParameterSetName = 'Info')]
+                            [Parameter(ParameterSetName = 'Info')]
     [string]$Info = "",
 
     [Parameter(ParameterSetName = 'Install')]
@@ -803,65 +782,6 @@ if ($AddSource) {
         }
         Save-SkillIndex -Index $index
     }
-    exit 0
-}
-
-# スキルの追加
-if ($AddSkill) {
-    $index = Get-SkillIndex
-    if (-not $index) { exit 1 }
-
-    # 必要な情報をチェック
-    if (-not $SkillName) {
-        Write-Error "スキル名を指定してください: -SkillName 'my-skill'"
-        exit 1
-    }
-
-    if (-not $SkillSource) {
-        Write-Error "ソース ID を指定してください: -SkillSource 'source-id'"
-        Write-Host "`n利用可能なソース:" -ForegroundColor Cyan
-        $index.sources | ForEach-Object { Write-Host "  - $($_.id)" -ForegroundColor Gray }
-        exit 1
-    }
-
-    # 既存チェック
-    $existingSkill = $index.skills | Where-Object { $_.name -eq $SkillName -and $_.source -eq $SkillSource }
-    if ($existingSkill) {
-        Write-Warning "このスキルは既に登録されています: $SkillName (ソース: $($existingSkill.source))"
-        exit 0
-    }
-
-    # ソースの存在確認
-    $sourceInfo = $index.sources | Where-Object { $_.id -eq $SkillSource }
-    if (-not $sourceInfo) {
-        Write-Error "ソースが見つかりません: $SkillSource"
-        Write-Host "先に -AddSource でソースを追加してください" -ForegroundColor Yellow
-        exit 1
-    }
-
-    # デフォルト値を設定
-    if (-not $SkillPath) { $SkillPath = "skills/$SkillName" }
-    if (-not $SkillDescription) { $SkillDescription = "$SkillName スキル" }
-    if ($SkillCategories.Count -eq 0) { $SkillCategories = @("community") }
-
-    # スキルを追加
-    $newSkill = [PSCustomObject]@{
-        name        = $SkillName
-        source      = $SkillSource
-        path        = $SkillPath
-        categories  = $SkillCategories
-        description = $SkillDescription
-    }
-
-    $index.skills += $newSkill
-    Save-SkillIndex -Index $index
-
-    Write-Host "`n✨ 新しいスキルを追加しました:" -ForegroundColor Cyan
-    Write-Host "  名前: $SkillName" -ForegroundColor White
-    Write-Host "  ソース: $SkillSource" -ForegroundColor Gray
-    Write-Host "  パス: $SkillPath" -ForegroundColor Gray
-    Write-Host "  カテゴリ: $($SkillCategories -join ', ')" -ForegroundColor Gray
-    Write-Host "  🔗 $($sourceInfo.url)/$SkillPath" -ForegroundColor Blue
     exit 0
 }
 

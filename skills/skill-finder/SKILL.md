@@ -1,6 +1,6 @@
 ---
 name: skill-finder
-description: "Full-featured Agent Skills management: Search 35+ skills, install locally, star favorites, update from sources. Supports tag search (#azure #bicep), category filtering, and similar skill recommendations."
+description: 'Full-featured Agent Skills management: Search 35+ skills, install locally, star favorites, update from sources. Supports tag search (#azure #bicep), category filtering, and similar skill recommendations.'
 license: MIT
 metadata:
   author: yamapan (https://github.com/aktsmm)
