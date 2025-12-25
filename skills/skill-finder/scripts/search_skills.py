@@ -273,8 +273,7 @@ def update_source_skills(index: Dict, source_id: str, repo_full: str) -> None:
             print("  ❌ GitHub CLI (gh) not found.")
             break
         except Exception:
-            pass
-    
+            pass  # Silently ignore other errors, continue search
     # If no skills/ directory found, check root for SKILL.md in subdirectories
     if not found_in_subdir:
         try:
@@ -309,9 +308,9 @@ def update_source_skills(index: Dict, source_id: str, repo_full: str) -> None:
         except subprocess.TimeoutExpired:
             print("  ⚠️ Timeout checking root")
         except Exception:
-            pass
-    
-    # Add found skills
+            pass  # Silently ignore other errors, continue search
+
+        # Add found skills
     if found_skills:
         print("\n✨ Adding skills to index...")
         added = 0
@@ -679,8 +678,8 @@ def discover_new_repos(query: str) -> None:
                             repo_name = repos[idx].get("nameWithOwner", "")
                             add_source(f"https://github.com/{repo_name}")
                 except (EOFError, KeyboardInterrupt):
-                    pass
-            else:
+                    pass  # User cancelled input, skip adding repository
+                        else:
                 print("  No matching repositories found")
         else:
             print(f"  ⚠️ Search failed: {result.stderr}")
