@@ -12,6 +12,7 @@ Examples:
 """
 
 import argparse
+import os
 from pathlib import Path
 
 # Common templates (used for all patterns)
@@ -476,6 +477,361 @@ error:
 - Detect errors early
 - Report immediately when problems occur
 - Do not continue in an ambiguous state
+''',
+    
+    "prompts/review-retrospective-learnings.prompt.md": '''# Prompt: Agent Design Retro
+
+Extract reusable design insights from events (incident response, errors, fix PRs)
+and reflect them in design assets for prevention and quality improvement.
+
+## Your Role
+You are an "AI Agent Design Improvement Architect".
+
+## Premises
+- Do not make changes based on assumptions. Always read target files first.
+- Prioritize additions over new content. Use reference links for duplicates.
+- For destructive changes, always confirm first.
+
+## Input
+- Response history (timeline, logs, error messages, fixes)
+- Scope of reflection (Agents.md / *.agent.md / instructions)
+
+## Steps
+
+### Step 0: Context Collection
+1. Read target files (Agents.md, agents/*.agent.md, instructions/*.md)
+2. Summarize existing rules in 5 lines or less
+
+### Step 1: Extract and Classify Learnings
+- Design principle level (separation of concerns, idempotency)
+- Workflow level (call order, preconditions, error handling)
+- Agent-specific rules (input assumptions, prohibitions)
+
+Format: Learning (1 line) + Evidence + Impact
+
+### Step 2: Generalization Judgment
+For each learning, determine:
+- Individual response / Generalize / Strengthen existing rules
+- Check for duplicates/conflicts
+
+### Step 3: Determine Reflection Target
+- Common principles → Agents.md
+- Agent-specific → .github/agents/*.agent.md
+- Overall constraints → .github/instructions/*.md
+
+### Step 4: Present Update Content
+Show "exactly how to rewrite" in code blocks:
+- add / replace / restructure
+- Change granularity (add heading, bullet points, etc.)
+
+### Step 5: Final Check
+- Design philosophy is consistent
+- Reusability and maintainability improve
+- Same trouble is less likely to recur
+''',
+    
+    "prompts/create-agentWF.prompt.md": '''# Create Agent Workflow Prompt
+
+Hearing prompt for designing agent workflows through user dialogue.
+
+## Mode: Start Hearing
+
+You are an agent workflow design facilitator.
+
+## Step 1: Confirm Purpose
+
+```
+What kind of agent workflow do you want to create?
+
+Please tell me:
+1. **What do you want to achieve?** (report generation, automation, analysis...)
+2. **For whom?** (personal, team, customer demo...)
+3. **Trigger?** (manual, schedule, event...)
+```
+
+## Step 2: Define Input/Output
+
+```
+**Input:**
+- What will you receive? (file, API, user input...)
+- Format? (JSON, text, CLI arguments...)
+
+**Output:**
+- What to generate? (report, diagram, file...)
+- Format? (Markdown, CSV, PDF...)
+- Destination? (file, Issue, Slack...)
+```
+
+## Step 3: Confirm Tools/APIs
+
+```
+- **External API**: Azure CLI, GitHub CLI, REST API...
+- **Authentication**: Via environment variables?
+- **Existing tools**: Scripts in the project?
+```
+
+## Step 4: Consider Workflow Structure
+
+```
+1. **Complexity**: Single agent or multiple?
+2. **Steps**: How many stages?
+3. **Review**: Human confirmation points?
+4. **On error**: Retry? Report to human?
+
+Examples:
+- Simple → 1 agent
+- Medium → Orchestrator + 1-2 workers
+- Large → Orchestrator + multiple workers
+```
+
+## Step 5: Design Principles Confirmation
+
+```
+This workflow follows:
+- Two-stage architecture: Input → IR → Output
+- Idempotency: Same input → same result
+- Separation of concerns
+- Fail-safe with error handling
+- Observability with logs
+```
+
+## Step 6: Generate Deliverables
+
+```
+Deliverables:
+1. Agent definition (.github/agents/{{name}}.agent.md)
+2. IR schema (if needed)
+3. Report template (if needed)
+```
+
+## Hearing Result IR Template
+
+```yaml
+workflow:
+  name: "{{{{workflow_name}}}}"
+  purpose: "{{{{purpose}}}}"
+  trigger: "{{{{trigger}}}}"
+io:
+  input: {{ source: "", format: "" }}
+  output: {{ type: "", format: "", destination: "" }}
+architecture:
+  complexity: "simple|medium|complex"
+  agents: []
+  human_checkpoints: []
+  error_handling: ""
+```
+'''
+}
+
+# Extended instruction templates (optional, generated with --include-instructions flag)
+EXTENDED_INSTRUCTIONS = {
+    ".github/instructions/agent-design.instructions.md": '''---
+applyTo: "**"
+---
+
+# Agent Workflow Design Instructions
+
+## Part 1: Agent Design Principles
+
+### 1. Single Responsibility Principle (SRP)
+- **1 Agent, 1 Goal**: Give each agent one clearly defined role.
+- **Separation of Roles**: Separate by phase: "planning", "implementation", "review", "testing".
+
+### 2. Stateless & Idempotency
+- Design agents to judge based on file system state, not conversation history.
+- Design workflows to converge to correct state when re-run.
+
+### 3. Orchestration
+- For complex tasks, use "manager agent" delegating to "worker agents".
+- Clearly define expected deliverables for handoffs.
+
+### 4. Fail-safe & Human-in-the-loop
+- Before irreversible operations, ask human confirmation.
+- Design prompts to analyze errors and attempt fixes.
+
+### 5. Observability
+- Record decisions as Issue comments or documents.
+- For long tasks, have regular status reports.
+
+## Part 2: Workflow Architecture
+
+### 6. Two-stage Architecture
+Input → IR (Intermediate Representation) → Output
+
+### 7. IR Specification
+- Define allowed structure (JSON/YAML/structured Markdown)
+- Strict validation; do not auto-complete
+
+### 8. Separation of Concerns
+| Responsibility | Description |
+|---------------|-------------|
+| Generate | Generate IR |
+| Validate | Verify IR |
+| Transform | Convert IR to output |
+| Render | Output to final format |
+
+### 9. Determinism
+Same IR → Same output. No creativity in transformation.
+''',
+    
+    ".github/instructions/communication.instructions.md": '''---
+applyTo: "**"
+---
+
+# Communication Instructions
+
+## 1. Response Style
+- **Conclusion First**: State conclusion, then reasons and details.
+- **Conciseness**: Avoid verbose explanations.
+- **Logical Structure**: Use bullet points, tables, headings.
+
+## 2. Language Settings
+- Match user's language for dialogue
+- Follow existing comment style in code
+
+## 3. Citation of References
+- Include relative paths for file references
+- Include URLs for external resources
+
+## 4. Confirmation and Approval
+Always seek user confirmation before:
+- File deletion or large-scale changes
+- External service connections
+- Design policy decisions
+
+## 5. Error Reporting Format
+1. What happened (overview)
+2. Why (cause analysis)
+3. What to do (recommended remediation)
+''',
+    
+    ".github/instructions/git.instructions.md": '''---
+applyTo: "**"
+---
+
+# Git Commit Instructions
+
+Use **Conventional Commits** format.
+
+## Format
+```
+<type>(<scope>): <subject>
+```
+
+## Types
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation only
+- **style**: Formatting (no code change)
+- **refactor**: Code change (no feature/bug)
+- **test**: Adding/correcting tests
+- **chore**: Build/tool changes
+
+## Rules
+- Use imperative form ("add" not "added")
+- No period at end
+- Lowercase first letter
+
+## Important
+- **Push Prohibited**: No `git push` without explicit instruction
+- Split commits for multiple logical changes
+''',
+    
+    ".github/instructions/terminal.instructions.md": '''---
+applyTo: "**"
+---
+
+# Terminal Instructions
+
+## 1. Confirm Current Directory
+Always verify location before commands:
+```powershell
+Get-Location
+Set-Location "path/to/project"
+```
+
+## 2. Command Syntax (PowerShell)
+- Use `;` to chain commands (not `&&`)
+- Use pipeline `|` for data operations
+
+## 3. Destructive Operations
+- Verify paths before delete/move
+- Avoid wildcards; use specific names
+
+## 4. Long-running Processes
+- Use background execution for servers
+- Inform user about non-terminating commands
+''',
+    
+    ".github/instructions/security.instructions.md": '''---
+applyTo: "**"
+---
+
+# Security Instructions
+
+## 1. Confidential Information
+**Prohibited:**
+- Hardcoding API keys, passwords, tokens
+- Committing `.env` or secret files
+
+**Recommended:**
+- Use environment variables
+- Use secret management (Key Vault, GitHub Secrets)
+- Configure `.gitignore`
+
+## 2. External Libraries
+- Check license compatibility
+- Check for vulnerabilities (npm audit, pip-audit)
+
+## 3. API Calls
+- Principle of least privilege
+- Implement rate limiting and backoff
+
+## 4. Git Operations
+- No `git push` without instruction
+- No `--force` push
+- Use PR-based workflow
+
+## 5. Input Validation
+- Sanitize for injection attacks
+- Prevent directory traversal
+''',
+    
+    ".github/instructions/microsoft-docs.instructions.md": '''---
+applyTo: "**"
+---
+
+# Microsoft Documentation Instructions
+
+## Basic Policy
+Reference latest official documentation for Microsoft/Azure answers.
+
+## Required Procedure
+1. Use MCP tools to get latest info
+2. Always include reference URLs
+3. Note API versions
+
+## MCP Tool Workflow
+```
+1. microsoft_docs_search → Find docs
+2. microsoft_code_sample_search → Get code samples
+3. microsoft_docs_fetch → Get full content
+```
+
+## Answer Format
+```markdown
+## Answer
+[Content]
+
+### References
+- [Doc Title](URL) - Microsoft Learn
+- API Version: 2024-01-01
+```
+
+## Priority
+1. Official docs via MCP tools (highest)
+2. Official GitHub repos
+3. Official blogs/announcements
 '''
 }
 
@@ -909,8 +1265,15 @@ def create_structure(base_path: Path, structure: dict, workflow_name: str):
             path.write_text(file_content, encoding="utf-8")
 
 
-def scaffold_workflow(name: str, pattern: str = "basic", output_path: str = "."):
-    """Generate workflow directory structure"""
+def scaffold_workflow(name: str, pattern: str = "basic", output_path: str = ".", include_instructions: bool = False):
+    """Generate workflow directory structure
+    
+    Args:
+        name: Workflow name
+        pattern: Workflow pattern (basic, prompt-chaining, etc.)
+        output_path: Output directory
+        include_instructions: If True, generate extended instruction templates
+    """
     
     if pattern not in PATTERNS:
         print(f"❌ Unknown pattern: {pattern}")
@@ -958,6 +1321,14 @@ def scaffold_workflow(name: str, pattern: str = "basic", output_path: str = ".")
             bad_example=""
         )
         file_path.write_text(content, encoding="utf-8")
+    
+    # Generate extended instructions if requested
+    if include_instructions:
+        print("📋 Generating extended instructions...")
+        for filename, template in EXTENDED_INSTRUCTIONS.items():
+            file_path = base_path / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(template, encoding="utf-8")
     
     # Generate README.md
     readme_content = f'''# {name}
@@ -1075,6 +1446,11 @@ def main():
         action="store_true",
         help="List available patterns"
     )
+    parser.add_argument(
+        "--include-instructions", "-i",
+        action="store_true",
+        help="Include extended instruction templates (agent-design, git, security, etc.)"
+    )
     
     args = parser.parse_args()
     
@@ -1084,13 +1460,20 @@ def main():
             print(f"  {name}")
             print(f"    {info['description']}")
             print()
+        print("Extended instructions (use --include-instructions):")
+        print("  - agent-design.instructions.md")
+        print("  - communication.instructions.md")
+        print("  - git.instructions.md")
+        print("  - terminal.instructions.md")
+        print("  - security.instructions.md")
+        print("  - microsoft-docs.instructions.md")
         return
     
     if not args.name:
         parser.print_help()
         return
     
-    scaffold_workflow(args.name, args.pattern, args.path)
+    scaffold_workflow(args.name, args.pattern, args.path, args.include_instructions)
 
 
 if __name__ == "__main__":
