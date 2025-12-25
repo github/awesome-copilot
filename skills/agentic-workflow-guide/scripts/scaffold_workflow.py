@@ -12,7 +12,6 @@ Examples:
 """
 
 import argparse
-import os
 from pathlib import Path
 
 # Common templates (used for all patterns)
