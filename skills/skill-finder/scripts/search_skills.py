@@ -307,6 +307,8 @@ def update_source_skills(index: Dict, source_id: str, repo_full: str) -> None:
                 print("  ❌ GitHub CLI (gh) not found.")
                 break
             except Exception:
+                # Silently ignore other errors (JSON parse errors, network issues, etc.)
+                # and continue checking other paths
                 pass
         
         # If no skills/ directory found, check root for SKILL.md in subdirectories
@@ -340,6 +342,8 @@ def update_source_skills(index: Dict, source_id: str, repo_full: str) -> None:
             except subprocess.TimeoutExpired:
                 print("  ⚠️ Timeout checking root")
             except Exception:
+                # Silently ignore errors when checking root directory
+                # (e.g., rate limits, permission issues)
                 pass
 
     # Add found skills to index
