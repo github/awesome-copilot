@@ -10,11 +10,11 @@ az monitor app-insights component create --app $applicationInsightsResourceName 
 az monitor app-insights component show --app $applicationInsightsResourceName --resource-group $resourceGroupName --query connectionString --output tsv
 
 # Set environment variable of App Service
-az webapp config appsettings set --resource-group $resourceGroup --name $appName --settings $key='$value'
+az webapp config appsettings set --resource-group $resourceGroupName --name $appName --settings $key=$value
 
 # Set environment variable of Container App
 # Or update an existing container app
 az containerapp update -n $containerAppName -g $resourceGroupName --set-env-vars $key=$value
 
 # Set environment variable of Function App
-az functionapp config appsettings set --name $functionName --resource-group $myResourceGroup --settings $key=$value
+az functionapp config appsettings set --name $functionName --resource-group $ResourceGroupName --settings $key=$value

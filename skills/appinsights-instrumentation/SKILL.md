@@ -1,6 +1,6 @@
 ---
 name: appinsights-instrumentation
-description: Instrument a webapp to send useful telemetry data to Azure App Insights
+description: 'Instrument a webapp to send useful telemetry data to Azure App Insights'
 ---
 
 # AppInsights instrumentation
@@ -15,8 +15,8 @@ Use this skill when the user wants to enable telemetry for their webapp.
 
 The app in the workspace must be one of these kinds
 
-- An AspNetCore app hosted in Azure
-- A NodeJS app hosted in Azure
+- An ASP.NET Core app hosted in Azure
+- A Node.js app hosted in Azure
 
 ## Guidelines
 
@@ -26,7 +26,7 @@ Find out the (programming language, application framework, hosting) tuple of the
 
 ### Prefer auto-instrument if possible
 
-If the app is a C# AspNetCore app hosted in Azure App Service, use [AUTO.md](AUTO.md) to help user auto-instrument the app.
+If the app is a C# ASP.NET Core app hosted in Azure App Service, use [AUTO.md](AUTO.md) to help user auto-instrument the app.
 
 ### Manually instrument
 
@@ -37,12 +37,12 @@ Manually instrument the app by creating the AppInsights resource and update the 
 Use one of the following options that fits the environment.
 
 - Add AppInsights to existing Bicep template. See [examples/appinsights.bicep](examples/appinsights.bicep) for what to add. This is the best option if there are existing Bicep template files in the workspace.
-- Use Azure CLI. See [scripts/create-appinsights.ps1](scripts/create-appinsights.ps1) for what Azure CLI command to execute to create the App Insights resource.
+- Use Azure CLI. See [scripts/appinsights.ps1](scripts/appinsights.ps1) for what Azure CLI command to execute to create the App Insights resource.
 
 No matter which option you choose, recommend the user to create the App Insights resource in a meaningful resource group that makes managing resources easier. A good candidate will be the same resource group that contains the resources for the hosted app in Azure.
 
 #### Modify application code
 
-- If the app is an AspNetCore app, see [ASPNETCORE.md](ASPNETCORE.md) for how to modify the C# code.
-- If the app is a NodeJS app, see [NODEJS.md](NODEJS.md) for how to modify the JavaScript/TypeScript code.
+- If the app is an ASP.NET Core app, see [ASPNETCORE.md](ASPNETCORE.md) for how to modify the C# code.
+- If the app is a Node.js app, see [NODEJS.md](NODEJS.md) for how to modify the JavaScript/TypeScript code.
 - If the app is a Python app, see [PYTHON.md](PYTHON.md) for how to modify the Python code.

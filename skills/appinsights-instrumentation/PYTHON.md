@@ -8,7 +8,7 @@ pip install azure-monitor-opentelemetry
 ```
 
 - Configure the app to use Azure Monitor
-Python applications send telemtry via the logger class in Python standard library. Create a module that configures and creates a logger that can send telemetry.
+Python applications send telemetry via the logger class in Python standard library. Create a module that configures and creates a logger that can send telemetry.
 
 ```python
 import logging
@@ -17,7 +17,7 @@ from azure.monitor.opentelemetry import configure_azure_monitor
 configure_azure_monitor(
     logger_name="<your_logger_namespace>"
 )
-logger = logging.getLogger("<your_logger_namespace")
+logger = logging.getLogger("<your_logger_namespace>")
 ```
 
 > Note: since we modified the code of the app, it needs to be deployed to take effect.
