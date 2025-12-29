@@ -22,4 +22,5 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
+| [appinsights-instrumentation](../skills/appinsights-instrumentation/SKILL.md) | Instrument a webapp to send useful telemetry data to Azure App Insights | `ASPNETCORE.md`<br />`AUTO.md`<br />`LICENSE.txt`<br />`NODEJS.md`<br />`PYTHON.md`<br />`examples\appinsights.bicep`<br />`scripts\appinsights.ps1` |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
