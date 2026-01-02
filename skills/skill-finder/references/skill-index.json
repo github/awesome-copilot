@@ -1,0 +1,2074 @@
+{
+  "$schema": "./skill-index.schema.json",
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-31",
+  "sources": [
+    {
+      "id": "anthropics-skills",
+      "name": "Anthropic Skills (Official)",
+      "owner": "anthropics",
+      "url": "https://github.com/anthropics/skills",
+      "type": "official",
+      "description": "Anthropic 公式の Claude Skills リポジトリ"
+    },
+    {
+      "id": "github-awesome-copilot",
+      "name": "GitHub Awesome Copilot (Official)",
+      "owner": "github",
+      "url": "https://github.com/github/awesome-copilot",
+      "type": "official",
+      "description": "GitHub 公式の Copilot リソース集"
+    },
+    {
+      "id": "obra-superpowers",
+      "name": "Superpowers",
+      "owner": "obra",
+      "url": "https://github.com/obra/superpowers",
+      "type": "community",
+      "description": "高品質なスキル・エージェント・コマンド集"
+    },
+    {
+      "id": "composio-awesome",
+      "name": "Awesome Claude Skills (ComposioHQ)",
+      "owner": "ComposioHQ",
+      "url": "https://github.com/ComposioHQ/awesome-claude-skills",
+      "type": "awesome-list",
+      "description": "Claude Skills のキュレーションリスト"
+    },
+    {
+      "id": "claude-scientific-skills",
+      "name": "Claude Scientific Skills",
+      "owner": "K-Dense-AI",
+      "url": "https://github.com/K-Dense-AI/claude-scientific-skills",
+      "type": "community",
+      "description": "科学研究向けスキル集（論文、ポスター、スライド作成）"
+    },
+    {
+      "id": "playwright-skill",
+      "name": "Playwright Skill",
+      "owner": "lackeyjb",
+      "url": "https://github.com/lackeyjb/playwright-skill",
+      "type": "community",
+      "description": "Playwright によるブラウザ自動化・テスト実行"
+    },
+    {
+      "id": "aktsmm-agent-skills",
+      "name": "Agent Skills (aktsmm)",
+      "owner": "aktsmm",
+      "url": "https://github.com/aktsmm/Agent-Skills",
+      "type": "community",
+      "description": "Azure・開発系スキル by yamapan"
+    },
+    {
+      "id": "openshift-ai-helpers",
+      "name": "OpenShift AI Helpers",
+      "owner": "openshift-eng",
+      "url": "https://github.com/openshift-eng/ai-helpers",
+      "type": "community",
+      "description": "HyperShift クラスタ作成スキル (AWS/Azure/KubeVirt/OpenStack/PowerVS)"
+    },
+    {
+      "id": "claude-codex-settings",
+      "name": "Claude Codex Settings",
+      "owner": "fcakyon",
+      "url": "https://github.com/fcakyon/claude-codex-settings",
+      "type": "community",
+      "description": "Azure/GCloud/Slack/MongoDB 等の各種ツール設定スキル"
+    },
+    {
+      "id": "claude-command-control",
+      "name": "Claude Command & Control",
+      "owner": "enuno",
+      "url": "https://github.com/enuno/claude-command-and-control",
+      "type": "community",
+      "description": "並列エージェント実行・通信・ワークフロー管理スキル集"
+    },
+    {
+      "id": "claude-plugins-plus",
+      "name": "Claude Code Plugins Plus Skills",
+      "owner": "jeremylongshore",
+      "url": "https://github.com/jeremylongshore/claude-code-plugins-plus-skills",
+      "type": "community",
+      "description": "AI SDK v5 マルチエージェントシステム構築スキル"
+    },
+    {
+      "id": "claude-code-harness",
+      "name": "Claude Code Harness",
+      "owner": "Chachamaru127",
+      "url": "https://github.com/Chachamaru127/claude-code-harness",
+      "type": "community",
+      "description": "自律的 Plan→Work→Review サイクルで高品質開発を実現"
+    },
+    {
+      "id": "personal-ai-infra",
+      "name": "Personal AI Infrastructure",
+      "owner": "danielmiessler",
+      "url": "https://github.com/danielmiessler/Personal_AI_Infrastructure",
+      "type": "community",
+      "description": "AI インフラ・オブザーバビリティスキル by danielmiessler"
+    }
+  ],
+  "skills": [
+    {
+      "name": "algorithmic-art",
+      "source": "anthropics-skills",
+      "path": "skills/algorithmic-art",
+      "categories": ["creative", "art"],
+      "description": "アルゴリズミックアートの生成"
+    },
+    {
+      "name": "brand-guidelines",
+      "source": "anthropics-skills",
+      "path": "skills/brand-guidelines",
+      "categories": ["design", "branding"],
+      "description": "ブランドガイドラインの作成・管理"
+    },
+    {
+      "name": "canvas-design",
+      "source": "anthropics-skills",
+      "path": "skills/canvas-design",
+      "categories": ["design", "creative"],
+      "description": "キャンバスデザインの作成"
+    },
+    {
+      "name": "doc-coauthoring",
+      "source": "anthropics-skills",
+      "path": "skills/doc-coauthoring",
+      "categories": ["document", "collaboration"],
+      "description": "ドキュメントの共同執筆"
+    },
+    {
+      "name": "docx",
+      "source": "anthropics-skills",
+      "path": "skills/docx",
+      "categories": ["document", "office"],
+      "description": "Word ドキュメント (.docx) の処理"
+    },
+    {
+      "name": "pdf",
+      "source": "anthropics-skills",
+      "path": "skills/pdf",
+      "categories": ["document"],
+      "description": "PDF ファイルの処理"
+    },
+    {
+      "name": "pptx",
+      "source": "anthropics-skills",
+      "path": "skills/pptx",
+      "categories": ["document", "office", "presentation"],
+      "description": "PowerPoint (.pptx) の処理"
+    },
+    {
+      "name": "xlsx",
+      "source": "anthropics-skills",
+      "path": "skills/xlsx",
+      "categories": ["document", "office", "data"],
+      "description": "Excel (.xlsx) の処理"
+    },
+    {
+      "name": "frontend-design",
+      "source": "anthropics-skills",
+      "path": "skills/frontend-design",
+      "categories": ["web", "design", "frontend"],
+      "description": "フロントエンドデザインの作成"
+    },
+    {
+      "name": "web-artifacts-builder",
+      "source": "anthropics-skills",
+      "path": "skills/web-artifacts-builder",
+      "categories": ["web", "frontend"],
+      "description": "Web アーティファクトのビルド"
+    },
+    {
+      "name": "webapp-testing",
+      "source": "anthropics-skills",
+      "path": "skills/webapp-testing",
+      "categories": ["web", "testing"],
+      "description": "Web アプリケーションのテスト"
+    },
+    {
+      "name": "mcp-builder",
+      "source": "anthropics-skills",
+      "path": "skills/mcp-builder",
+      "categories": ["mcp", "development"],
+      "description": "MCP サーバーの構築"
+    },
+    {
+      "name": "skill-creator",
+      "source": "anthropics-skills",
+      "path": "skills/skill-creator",
+      "categories": ["meta", "development"],
+      "description": "新しいスキルの作成ガイド"
+    },
+    {
+      "name": "slack-gif-creator",
+      "source": "anthropics-skills",
+      "path": "skills/slack-gif-creator",
+      "categories": ["creative", "communication"],
+      "description": "Slack 用 GIF の作成"
+    },
+    {
+      "name": "theme-factory",
+      "source": "anthropics-skills",
+      "path": "skills/theme-factory",
+      "categories": ["design", "theming"],
+      "description": "テーマの作成"
+    },
+    {
+      "name": "internal-comms",
+      "source": "anthropics-skills",
+      "path": "skills/internal-comms",
+      "categories": ["communication", "business"],
+      "description": "社内コミュニケーション"
+    },
+    {
+      "name": "brainstorming",
+      "source": "obra-superpowers",
+      "path": "skills/brainstorming",
+      "categories": ["planning", "ideation"],
+      "description": "ブレインストーミングの実施"
+    },
+    {
+      "name": "writing-plans",
+      "source": "obra-superpowers",
+      "path": "skills/writing-plans",
+      "categories": ["planning", "documentation"],
+      "description": "計画書の作成"
+    },
+    {
+      "name": "executing-plans",
+      "source": "obra-superpowers",
+      "path": "skills/executing-plans",
+      "categories": ["planning", "execution"],
+      "description": "計画の実行"
+    },
+    {
+      "name": "test-driven-development",
+      "source": "obra-superpowers",
+      "path": "skills/test-driven-development",
+      "categories": ["development", "testing", "tdd"],
+      "description": "テスト駆動開発 (TDD)"
+    },
+    {
+      "name": "systematic-debugging",
+      "source": "obra-superpowers",
+      "path": "skills/systematic-debugging",
+      "categories": ["development", "debugging"],
+      "description": "体系的なデバッグ手法"
+    },
+    {
+      "name": "subagent-driven-development",
+      "source": "obra-superpowers",
+      "path": "skills/subagent-driven-development",
+      "categories": ["development", "agents"],
+      "description": "サブエージェント駆動開発"
+    },
+    {
+      "name": "dispatching-parallel-agents",
+      "source": "obra-superpowers",
+      "path": "skills/dispatching-parallel-agents",
+      "categories": ["development", "agents", "parallel"],
+      "description": "並列エージェントのディスパッチ"
+    },
+    {
+      "name": "using-git-worktrees",
+      "source": "obra-superpowers",
+      "path": "skills/using-git-worktrees",
+      "categories": ["git", "development"],
+      "description": "Git worktree の活用"
+    },
+    {
+      "name": "receiving-code-review",
+      "source": "obra-superpowers",
+      "path": "skills/receiving-code-review",
+      "categories": ["git", "code-review"],
+      "description": "コードレビューの受け取り方"
+    },
+    {
+      "name": "requesting-code-review",
+      "source": "obra-superpowers",
+      "path": "skills/requesting-code-review",
+      "categories": ["git", "code-review"],
+      "description": "コードレビューのリクエスト"
+    },
+    {
+      "name": "finishing-a-development-branch",
+      "source": "obra-superpowers",
+      "path": "skills/finishing-a-development-branch",
+      "categories": ["git", "development"],
+      "description": "開発ブランチの完了処理"
+    },
+    {
+      "name": "verification-before-completion",
+      "source": "obra-superpowers",
+      "path": "skills/verification-before-completion",
+      "categories": ["quality", "verification"],
+      "description": "完了前の検証"
+    },
+    {
+      "name": "writing-skills",
+      "source": "obra-superpowers",
+      "path": "skills/writing-skills",
+      "categories": ["meta", "development"],
+      "description": "スキルの書き方"
+    },
+    {
+      "name": "using-superpowers",
+      "source": "obra-superpowers",
+      "path": "skills/using-superpowers",
+      "categories": ["meta"],
+      "description": "Superpowers の使い方"
+    },
+    {
+      "name": "artifacts-builder",
+      "source": "composio-awesome",
+      "path": "artifacts-builder",
+      "categories": ["web", "frontend"],
+      "description": "アーティファクトビルダー"
+    },
+    {
+      "name": "changelog-generator",
+      "source": "composio-awesome",
+      "path": "changelog-generator",
+      "categories": ["documentation", "git"],
+      "description": "CHANGELOG の自動生成"
+    },
+    {
+      "name": "content-research-writer",
+      "source": "composio-awesome",
+      "path": "content-research-writer",
+      "categories": ["writing", "research"],
+      "description": "コンテンツリサーチ・ライティング"
+    },
+    {
+      "name": "developer-growth-analysis",
+      "source": "composio-awesome",
+      "path": "developer-growth-analysis",
+      "categories": ["analytics", "development"],
+      "description": "開発者成長分析"
+    },
+    {
+      "name": "document-skills",
+      "source": "composio-awesome",
+      "path": "document-skills",
+      "categories": ["document"],
+      "description": "ドキュメント処理スキル"
+    },
+    {
+      "name": "domain-name-brainstormer",
+      "source": "composio-awesome",
+      "path": "domain-name-brainstormer",
+      "categories": ["ideation", "business"],
+      "description": "ドメイン名のブレインストーミング"
+    },
+    {
+      "name": "file-organizer",
+      "source": "composio-awesome",
+      "path": "file-organizer",
+      "categories": ["utility", "organization"],
+      "description": "ファイル整理"
+    },
+    {
+      "name": "image-enhancer",
+      "source": "composio-awesome",
+      "path": "image-enhancer",
+      "categories": ["image", "creative"],
+      "description": "画像の強化・編集"
+    },
+    {
+      "name": "invoice-organizer",
+      "source": "composio-awesome",
+      "path": "invoice-organizer",
+      "categories": ["business", "finance"],
+      "description": "請求書の整理"
+    },
+    {
+      "name": "lead-research-assistant",
+      "source": "composio-awesome",
+      "path": "lead-research-assistant",
+      "categories": ["research", "business"],
+      "description": "リード調査アシスタント"
+    },
+    {
+      "name": "meeting-insights-analyzer",
+      "source": "composio-awesome",
+      "path": "meeting-insights-analyzer",
+      "categories": ["business", "analytics"],
+      "description": "会議インサイト分析"
+    },
+    {
+      "name": "raffle-winner-picker",
+      "source": "composio-awesome",
+      "path": "raffle-winner-picker",
+      "categories": ["utility"],
+      "description": "抽選ツール"
+    },
+    {
+      "name": "video-downloader",
+      "source": "composio-awesome",
+      "path": "video-downloader",
+      "categories": ["utility", "media"],
+      "description": "動画ダウンローダー"
+    },
+    {
+      "name": "competitive-ads-extractor",
+      "source": "composio-awesome",
+      "path": "competitive-ads-extractor",
+      "categories": ["business", "marketing"],
+      "description": "競合広告の抽出・分析"
+    },
+    {
+      "name": "playwright-skill",
+      "source": "playwright-skill",
+      "path": "skills/playwright-skill",
+      "categories": ["testing", "automation", "web"],
+      "description": "Playwright によるブラウザ自動化・E2E テスト実行"
+    },
+    {
+      "name": "webapp-testing",
+      "source": "github-awesome-copilot",
+      "path": "skills/webapp-testing",
+      "categories": ["web", "testing"],
+      "description": "Web アプリケーションのテスト (GitHub Copilot)"
+    },
+    {
+      "name": "azure-env-builder",
+      "source": "aktsmm-agent-skills",
+      "path": "azure-env-builder",
+      "categories": ["development", "azure"],
+      "description": "Azure 環境を Bicep で構築"
+    },
+    {
+      "name": "skill-creator",
+      "source": "aktsmm-agent-skills",
+      "path": "skill-creator",
+      "categories": ["meta", "development"],
+      "description": "新しい Agent Skills を作成"
+    },
+    {
+      "name": "skill-finder",
+      "source": "aktsmm-agent-skills",
+      "path": "skill-finder",
+      "categories": ["meta"],
+      "description": "Agent Skills を検索・発見"
+    },
+    {
+      "name": "hcp-create-agent",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-agent",
+      "categories": ["agents", "development"],
+      "description": "HyperShift Agent プロバイダでクラスタ作成"
+    },
+    {
+      "name": "hcp-create-aws",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-aws",
+      "categories": ["aws", "cloud"],
+      "description": "HyperShift で AWS EKS クラスタ作成"
+    },
+    {
+      "name": "hcp-create-azure",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-azure",
+      "categories": ["azure", "cloud"],
+      "description": "HyperShift で Azure クラスタ作成"
+    },
+    {
+      "name": "hcp-create-kubevirt",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-kubevirt",
+      "categories": ["kubernetes", "cloud"],
+      "description": "HyperShift で KubeVirt クラスタ作成"
+    },
+    {
+      "name": "hcp-create-openstack",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-openstack",
+      "categories": ["openstack", "cloud"],
+      "description": "HyperShift で OpenStack クラスタ作成"
+    },
+    {
+      "name": "hcp-create-powervs",
+      "source": "openshift-ai-helpers",
+      "path": "plugins/hcp/skills/hcp-create-powervs",
+      "categories": ["ibm", "cloud"],
+      "description": "HyperShift で IBM PowerVS クラスタ作成"
+    },
+    {
+      "name": "azure-usage",
+      "source": "claude-codex-settings",
+      "path": "plugins/azure-tools/skills/azure-usage",
+      "categories": ["azure", "cloud"],
+      "description": "Azure ツール使用ガイド"
+    },
+    {
+      "name": "gcloud-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/gcloud-tools",
+      "categories": ["gcp", "cloud"],
+      "description": "Google Cloud ツール設定"
+    },
+    {
+      "name": "mongodb-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/mongodb-tools",
+      "categories": ["database"],
+      "description": "MongoDB ツール設定"
+    },
+    {
+      "name": "slack-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/slack-tools",
+      "categories": ["communication"],
+      "description": "Slack ツール設定"
+    },
+    {
+      "name": "supabase-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/supabase-tools",
+      "categories": ["database"],
+      "description": "Supabase ツール設定"
+    },
+    {
+      "name": "playwright-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/playwright-tools",
+      "categories": ["testing", "web"],
+      "description": "Playwright テストツール設定"
+    },
+    {
+      "name": "tavily-tools",
+      "source": "claude-codex-settings",
+      "path": "plugins/tavily-tools",
+      "categories": ["search", "ai"],
+      "description": "Tavily 検索ツール設定"
+    },
+    {
+      "name": "parallel-executor-skill",
+      "source": "claude-command-control",
+      "path": "skills-templates/orchestration/parallel-executor-skill.md",
+      "categories": ["agents", "workflow", "orchestration"],
+      "description": "並列エージェント実行・進捗監視・結果集約"
+    },
+    {
+      "name": "agent-communication-skill",
+      "source": "claude-command-control",
+      "path": "skills-templates/orchestration/agent-communication-skill.md",
+      "categories": ["agents", "workflow", "communication"],
+      "description": "エージェント間メッセージング・ハンドオフ・共有コンテキスト"
+    },
+    {
+      "name": "ai-sdk-agents",
+      "source": "claude-plugins-plus",
+      "path": "plugins/ai-ml/ai-sdk-agents/skills/ai-sdk-agents",
+      "categories": ["agents", "ai", "development"],
+      "description": "AI SDK v5 マルチエージェントシステム構築"
+    },
+    {
+      "name": "workflow-guide",
+      "source": "claude-code-harness",
+      "path": "skills/workflow-guide",
+      "categories": ["workflow", "development"],
+      "description": "ワークフローガイド・開発支援"
+    },
+    {
+      "name": "observability",
+      "source": "personal-ai-infra",
+      "path": ".claude/Skills/Observability",
+      "categories": ["monitoring", "agents"],
+      "description": "AI エージェント監視・オブザーバビリティ"
+    },
+    {
+      "name": "brand-guidelines",
+      "source": "composio-awesome",
+      "path": "brand-guidelines",
+      "categories": ["community"],
+      "description": "Applies Anthropic's official brand colors and typography to any sort of artifact that may benefit..."
+    },
+    {
+      "name": "canvas-design",
+      "source": "composio-awesome",
+      "path": "canvas-design",
+      "categories": ["community"],
+      "description": "Create beautiful visual art in .png and .pdf documents using design philosophy. You should use th..."
+    },
+    {
+      "name": "internal-comms",
+      "source": "composio-awesome",
+      "path": "internal-comms",
+      "categories": ["community"],
+      "description": "A set of resources to help me write all kinds of internal communications, using the formats that ..."
+    },
+    {
+      "name": "mcp-builder",
+      "source": "composio-awesome",
+      "path": "mcp-builder",
+      "categories": ["community"],
+      "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact..."
+    },
+    {
+      "name": "skill-creator",
+      "source": "composio-awesome",
+      "path": "skill-creator",
+      "categories": ["community"],
+      "description": "Guide for creating effective skills. This skill should be used when users want to create a new sk..."
+    },
+    {
+      "name": "skill-share",
+      "source": "composio-awesome",
+      "path": "skill-share",
+      "categories": ["community"],
+      "description": "A skill that creates new Claude skills and automatically shares them on Slack using Rube for seam..."
+    },
+    {
+      "name": "slack-gif-creator",
+      "source": "composio-awesome",
+      "path": "slack-gif-creator",
+      "categories": ["community"],
+      "description": "Toolkit for creating animated GIFs optimized for Slack, with validators for size constraints and ..."
+    },
+    {
+      "name": "template-skill",
+      "source": "composio-awesome",
+      "path": "template-skill",
+      "categories": ["community"],
+      "description": "Replace with description of the skill and when Claude should use it."
+    },
+    {
+      "name": "theme-factory",
+      "source": "composio-awesome",
+      "path": "theme-factory",
+      "categories": ["community"],
+      "description": "Toolkit for styling artifacts with a theme. These artifacts can be slides, docs, reportings, HTML..."
+    },
+    {
+      "name": "webapp-testing",
+      "source": "composio-awesome",
+      "path": "webapp-testing",
+      "categories": ["community"],
+      "description": "Toolkit for interacting with and testing local web applications using Playwright. Supports verify..."
+    },
+    {
+      "name": "adaptyv",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/adaptyv",
+      "categories": ["science", "biology"],
+      "description": "Cloud laboratory platform for automated protein testing and validation. Use when designing protei..."
+    },
+    {
+      "name": "aeon",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/aeon",
+      "categories": ["science", "ml"],
+      "description": "This skill should be used for time series machine learning tasks including classification, regres..."
+    },
+    {
+      "name": "alphafold-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/alphafold-database",
+      "categories": ["science", "biology", "data-science", "database", "ml"],
+      "description": "Access AlphaFold's 200M+ AI-predicted protein structures. Retrieve structures by UniProt ID, down..."
+    },
+    {
+      "name": "anndata",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/anndata",
+      "categories": ["science", "data-science"],
+      "description": "This skill should be used when working with annotated data matrices in Python, particularly for s..."
+    },
+    {
+      "name": "arboreto",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/arboreto",
+      "categories": ["science", "biology", "data-science"],
+      "description": "Infer gene regulatory networks (GRNs) from gene expression data using scalable algorithms (GRNBoo..."
+    },
+    {
+      "name": "astropy",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/astropy",
+      "categories": ["science", "physics"],
+      "description": "Comprehensive Python library for astronomy and astrophysics. This skill should be used when worki..."
+    },
+    {
+      "name": "benchling-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/benchling-integration",
+      "categories": ["science", "biology"],
+      "description": "Benchling R&D platform integration. Access registry (DNA, proteins), inventory, ELN entries, work..."
+    },
+    {
+      "name": "biomni",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/biomni",
+      "categories": ["science", "biology", "ml", "medical"],
+      "description": "Autonomous biomedical AI agent framework for executing complex research tasks across genomics, dr..."
+    },
+    {
+      "name": "biopython",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/biopython",
+      "categories": ["science", "biology"],
+      "description": "Primary Python toolkit for molecular biology. Preferred for Python-based PubMed/NCBI queries (Bio..."
+    },
+    {
+      "name": "biorxiv-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/biorxiv-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Efficient database search tool for bioRxiv preprint server. Use this skill when searching for lif..."
+    },
+    {
+      "name": "bioservices",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/bioservices",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Primary Python tool for 40+ bioinformatics services. Preferred for multi-database workflows: UniP..."
+    },
+    {
+      "name": "brenda-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/brenda-database",
+      "categories": ["science", "data-science", "database"],
+      "description": "Access BRENDA enzyme database via SOAP API. Retrieve kinetic parameters (Km, kcat), reaction equa..."
+    },
+    {
+      "name": "cellxgene-census",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/cellxgene-census",
+      "categories": ["science", "biology", "database"],
+      "description": "Query CZ CELLxGENE Census (61M+ cells). Filter by cell type/tissue/disease, retrieve expression d..."
+    },
+    {
+      "name": "chembl-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/chembl-database",
+      "categories": [
+        "science",
+        "biology",
+        "chemistry",
+        "data-science",
+        "database"
+      ],
+      "description": "Query ChEMBL's bioactive molecules and drug discovery data. Search compounds by structure/propert..."
+    },
+    {
+      "name": "cirq",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/cirq",
+      "categories": ["science", "physics"],
+      "description": "Quantum computing framework for building, simulating, optimizing, and executing quantum circuits...."
+    },
+    {
+      "name": "citation-management",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/citation-management",
+      "categories": ["science", "research"],
+      "description": "Comprehensive citation management for academic research. Search Google Scholar and PubMed for pap..."
+    },
+    {
+      "name": "clinical-decision-support",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/clinical-decision-support",
+      "categories": ["science", "biology", "medical"],
+      "description": "Generate professional clinical decision support (CDS) documents for pharmaceutical and clinical r..."
+    },
+    {
+      "name": "clinical-reports",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/clinical-reports",
+      "categories": ["science", "medical"],
+      "description": "Write comprehensive clinical reports including case reports (CARE guidelines), diagnostic reports..."
+    },
+    {
+      "name": "clinicaltrials-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/clinicaltrials-database",
+      "categories": [
+        "science",
+        "chemistry",
+        "data-science",
+        "database",
+        "medical"
+      ],
+      "description": "Query ClinicalTrials.gov via API v2. Search trials by condition, drug, location, status, or phase..."
+    },
+    {
+      "name": "clinpgx-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/clinpgx-database",
+      "categories": [
+        "science",
+        "biology",
+        "chemistry",
+        "data-science",
+        "database"
+      ],
+      "description": "Access ClinPGx pharmacogenomics data (successor to PharmGKB). Query gene-drug interactions, CPIC ..."
+    },
+    {
+      "name": "clinvar-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/clinvar-database",
+      "categories": [
+        "science",
+        "biology",
+        "data-science",
+        "database",
+        "medical"
+      ],
+      "description": "Query NCBI ClinVar for variant clinical significance. Search by gene/position, interpret pathogen..."
+    },
+    {
+      "name": "cobrapy",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/cobrapy",
+      "categories": ["science", "biology", "ml"],
+      "description": "Constraint-based metabolic modeling (COBRA). FBA, FVA, gene knockouts, flux sampling, SBML models..."
+    },
+    {
+      "name": "cosmic-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/cosmic-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Access COSMIC cancer mutation database. Query somatic mutations, Cancer Gene Census, mutational s..."
+    },
+    {
+      "name": "dask",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/dask",
+      "categories": ["science", "data-science"],
+      "description": "Parallel/distributed computing. Scale pandas/NumPy beyond memory, parallel DataFrames/Arrays, mul..."
+    },
+    {
+      "name": "datacommons-client",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/datacommons-client",
+      "categories": ["science", "data-science"],
+      "description": "Work with Data Commons, a platform providing programmatic access to public statistical data from ..."
+    },
+    {
+      "name": "datamol",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/datamol",
+      "categories": ["science", "data-science"],
+      "description": "Pythonic wrapper around RDKit with simplified interface and sensible defaults. Preferred for stan..."
+    },
+    {
+      "name": "deepchem",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/deepchem",
+      "categories": ["science", "biology", "chemistry", "ml"],
+      "description": "Molecular machine learning toolkit. Property prediction (ADMET, toxicity), GNNs (GCN, MPNN), Mole..."
+    },
+    {
+      "name": "deeptools",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/deeptools",
+      "categories": ["science", "data-science", "ml"],
+      "description": "NGS analysis toolkit. BAM to bigWig conversion, QC (correlation, PCA, fingerprints), heatmaps/pro..."
+    },
+    {
+      "name": "denario",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/denario",
+      "categories": ["science", "ml"],
+      "description": "Multiagent AI system for scientific research assistance that automates research workflows from da..."
+    },
+    {
+      "name": "diffdock",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/diffdock",
+      "categories": ["science", "biology", "database"],
+      "description": "Diffusion-based molecular docking. Predict protein-ligand binding poses from PDB/SMILES, confiden..."
+    },
+    {
+      "name": "dnanexus-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/dnanexus-integration",
+      "categories": ["science", "biology", "data-science"],
+      "description": "DNAnexus cloud genomics platform. Build apps/applets, manage data (upload/download), dxpy Python ..."
+    },
+    {
+      "name": "document-skills",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/document-skills",
+      "categories": ["community"],
+      "description": "Scientific document processing and management utilities"
+    },
+    {
+      "name": "drugbank-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/drugbank-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Access and analyze comprehensive drug information from the DrugBank database including drug prope..."
+    },
+    {
+      "name": "ena-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/ena-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Access European Nucleotide Archive via API/FTP. Retrieve DNA/RNA sequences, raw reads (FASTQ), ge..."
+    },
+    {
+      "name": "ensembl-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/ensembl-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Query Ensembl genome database REST API for 250+ species. Gene lookups, sequence retrieval, varian..."
+    },
+    {
+      "name": "esm",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/esm",
+      "categories": ["science", "biology"],
+      "description": "Comprehensive toolkit for protein language models including ESM3 (generative multimodal protein d..."
+    },
+    {
+      "name": "etetoolkit",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/etetoolkit",
+      "categories": ["science", "biology"],
+      "description": "Phylogenetic tree toolkit (ETE). Tree manipulation (Newick/NHX), evolutionary event detection, or..."
+    },
+    {
+      "name": "exploratory-data-analysis",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/exploratory-data-analysis",
+      "categories": ["science", "data-science"],
+      "description": "Perform comprehensive exploratory data analysis on scientific data files across 200+ file formats..."
+    },
+    {
+      "name": "fda-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/fda-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Query openFDA API for drugs, devices, adverse events, recalls, regulatory submissions (510k, PMA)..."
+    },
+    {
+      "name": "flowio",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/flowio",
+      "categories": ["science", "data-science"],
+      "description": "Parse FCS (Flow Cytometry Standard) files v2.0-3.1. Extract events as NumPy arrays, read metadata..."
+    },
+    {
+      "name": "fluidsim",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/fluidsim",
+      "categories": ["science"],
+      "description": "Framework for computational fluid dynamics simulations using Python. Use when running fluid dynam..."
+    },
+    {
+      "name": "gene-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/gene-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Query NCBI Gene via E-utilities/Datasets API. Search by symbol/ID, retrieve gene info (RefSeqs, G..."
+    },
+    {
+      "name": "generate-image",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/generate-image",
+      "categories": ["science", "biology", "ml"],
+      "description": "Generate or edit images using AI models (FLUX, Gemini). Use for general-purpose image generation ..."
+    },
+    {
+      "name": "geniml",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/geniml",
+      "categories": ["science", "data-science", "ml"],
+      "description": "This skill should be used when working with genomic interval data (BED files) for machine learnin..."
+    },
+    {
+      "name": "geo-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/geo-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Access NCBI GEO for gene expression/genomics data. Search/download microarray and RNA-seq dataset..."
+    },
+    {
+      "name": "geopandas",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/geopandas",
+      "categories": ["science", "data-science"],
+      "description": "Python library for working with geospatial vector data including shapefiles, GeoJSON, and GeoPack..."
+    },
+    {
+      "name": "get-available-resources",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/get-available-resources",
+      "categories": ["science", "ml"],
+      "description": "This skill should be used at the start of any computationally intensive scientific task to detect..."
+    },
+    {
+      "name": "gget",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/gget",
+      "categories": ["science", "biology"],
+      "description": "CLI/Python toolkit for rapid bioinformatics queries. Preferred for quick BLAST searches. Access t..."
+    },
+    {
+      "name": "gtars",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/gtars",
+      "categories": ["science", "data-science"],
+      "description": "High-performance toolkit for genomic interval analysis in Rust with Python bindings. Use when wor..."
+    },
+    {
+      "name": "gwas-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/gwas-database",
+      "categories": ["science", "data-science", "database", "ml"],
+      "description": "Query NHGRI-EBI GWAS Catalog for SNP-trait associations. Search variants by rs ID, disease/trait,..."
+    },
+    {
+      "name": "histolab",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/histolab",
+      "categories": ["science"],
+      "description": "Digital pathology image processing toolkit for whole slide images (WSI). Use this skill when work..."
+    },
+    {
+      "name": "hmdb-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/hmdb-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Access Human Metabolome Database (220K+ metabolites). Search by name/ID/structure, retrieve chemi..."
+    },
+    {
+      "name": "hypogenic",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/hypogenic",
+      "categories": ["science", "biology"],
+      "description": "Automated hypothesis generation and testing using large language models. Use this skill when gene..."
+    },
+    {
+      "name": "hypothesis-generation",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/hypothesis-generation",
+      "categories": ["science", "biology"],
+      "description": "Generate testable hypotheses. Formulate from observations, design experiments, explore competing ..."
+    },
+    {
+      "name": "kegg-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/kegg-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Direct REST API access to KEGG (academic use only). Pathway analysis, gene-pathway mapping, metab..."
+    },
+    {
+      "name": "labarchive-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/labarchive-integration",
+      "categories": ["science"],
+      "description": "Electronic lab notebook API integration. Access notebooks, manage entries/attachments, backup not..."
+    },
+    {
+      "name": "lamindb",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/lamindb",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "This skill should be used when working with LaminDB, an open-source data framework for biology th..."
+    },
+    {
+      "name": "latchbio-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/latchbio-integration",
+      "categories": ["science", "biology"],
+      "description": "Latch platform for bioinformatics workflows. Build pipelines with Latch SDK, @workflow/@task deco..."
+    },
+    {
+      "name": "latex-posters",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/latex-posters",
+      "categories": ["science"],
+      "description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Suppor..."
+    },
+    {
+      "name": "literature-review",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/literature-review",
+      "categories": ["science", "data-science", "database", "research"],
+      "description": "Conduct comprehensive, systematic literature reviews using multiple academic databases (PubMed, a..."
+    },
+    {
+      "name": "market-research-reports",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/market-research-reports",
+      "categories": ["science", "biology"],
+      "description": "Generate comprehensive market research reports (50+ pages) in the style of top consulting firms (..."
+    },
+    {
+      "name": "markitdown",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/markitdown",
+      "categories": ["science"],
+      "description": "Convert files and office documents to Markdown. Supports PDF, DOCX, PPTX, XLSX, images (with OCR)..."
+    },
+    {
+      "name": "matchms",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/matchms",
+      "categories": ["science", "data-science", "ml"],
+      "description": "Mass spectrometry analysis. Process mzML/MGF/MSP, spectral similarity (cosine, modified cosine), ..."
+    },
+    {
+      "name": "matplotlib",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/matplotlib",
+      "categories": ["science", "data-science"],
+      "description": "Foundational plotting library. Create line plots, scatter, bar, histograms, heatmaps, 3D, subplot..."
+    },
+    {
+      "name": "medchem",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/medchem",
+      "categories": ["science", "chemistry", "ml"],
+      "description": "Medicinal chemistry filters. Apply drug-likeness rules (Lipinski, Veber), PAINS filters, structur..."
+    },
+    {
+      "name": "metabolomics-workbench-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/metabolomics-workbench-database",
+      "categories": ["science", "data-science", "database"],
+      "description": "Access NIH Metabolomics Workbench via REST API (4,200+ studies). Query metabolites, RefMet nomenc..."
+    },
+    {
+      "name": "modal",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/modal",
+      "categories": ["science", "ml"],
+      "description": "Run Python code in the cloud with serverless containers, GPUs, and autoscaling. Use when deployin..."
+    },
+    {
+      "name": "molfeat",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/molfeat",
+      "categories": ["science", "biology", "ml"],
+      "description": "Molecular featurization for ML (100+ featurizers). ECFP, MACCS, descriptors, pretrained models (C..."
+    },
+    {
+      "name": "networkx",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/networkx",
+      "categories": ["science"],
+      "description": "Comprehensive toolkit for creating, analyzing, and visualizing complex networks and graphs in Pyt..."
+    },
+    {
+      "name": "neurokit2",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/neurokit2",
+      "categories": ["science", "biology", "data-science"],
+      "description": "Comprehensive biosignal processing toolkit for analyzing physiological data including ECG, EEG, E..."
+    },
+    {
+      "name": "neuropixels-analysis",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/neuropixels-analysis",
+      "categories": ["science", "data-science", "ml"],
+      "description": "Neuropixels neural recording analysis. Load SpikeGLX/OpenEphys data, preprocess, motion correctio..."
+    },
+    {
+      "name": "omero-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/omero-integration",
+      "categories": ["science", "data-science"],
+      "description": "Microscopy data management platform. Access images via Python, retrieve datasets, analyze pixels,..."
+    },
+    {
+      "name": "openalex-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/openalex-database",
+      "categories": ["science", "data-science", "database", "research"],
+      "description": "Query and analyze scholarly literature using the OpenAlex database. This skill should be used whe..."
+    },
+    {
+      "name": "opentargets-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/opentargets-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Query Open Targets Platform for target-disease associations, drug target discovery, tractability/..."
+    },
+    {
+      "name": "opentrons-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/opentrons-integration",
+      "categories": ["science"],
+      "description": "Lab automation platform for Flex/OT-2 robots. Write Protocol API v2 protocols, liquid handling, h..."
+    },
+    {
+      "name": "paper-2-web",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/paper-2-web",
+      "categories": ["science", "research"],
+      "description": "This skill should be used when converting academic papers into promotional and presentation forma..."
+    },
+    {
+      "name": "pathml",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pathml",
+      "categories": ["science", "ml"],
+      "description": "Computational pathology toolkit for analyzing whole-slide images (WSI) and multiparametric imagin..."
+    },
+    {
+      "name": "pdb-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pdb-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Access RCSB PDB for 3D protein/nucleic acid structures. Search by text/sequence/structure, downlo..."
+    },
+    {
+      "name": "peer-review",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/peer-review",
+      "categories": ["science", "data-science"],
+      "description": "Systematic peer review toolkit. Evaluate methodology, statistics, design, reproducibility, ethics..."
+    },
+    {
+      "name": "pennylane",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pennylane",
+      "categories": ["science", "chemistry", "ml", "physics"],
+      "description": "Cross-platform Python library for quantum computing, quantum machine learning, and quantum chemis..."
+    },
+    {
+      "name": "perplexity-search",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/perplexity-search",
+      "categories": ["science", "ml"],
+      "description": "Perform AI-powered web searches with real-time information using Perplexity models via LiteLLM an..."
+    },
+    {
+      "name": "plotly",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/plotly",
+      "categories": ["science", "data-science"],
+      "description": "Interactive scientific and statistical data visualization library for Python. Use when creating c..."
+    },
+    {
+      "name": "polars",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/polars",
+      "categories": ["science", "data-science"],
+      "description": "Fast DataFrame library (Apache Arrow). Select, filter, group_by, joins, lazy evaluation, CSV/Parq..."
+    },
+    {
+      "name": "pptx-posters",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pptx-posters",
+      "categories": ["science"],
+      "description": "Create professional research posters in LaTeX using beamerposter, tikzposter, or baposter. Suppor..."
+    },
+    {
+      "name": "protocolsio-integration",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/protocolsio-integration",
+      "categories": ["science"],
+      "description": "Integration with protocols.io API for managing scientific protocols. This skill should be used wh..."
+    },
+    {
+      "name": "pubchem-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pubchem-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Query PubChem via PUG-REST API/PubChemPy (110M+ compounds). Search by name/CID/SMILES, retrieve p..."
+    },
+    {
+      "name": "pubmed-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pubmed-database",
+      "categories": ["science", "data-science", "database"],
+      "description": "Direct REST API access to PubMed. Advanced Boolean/MeSH queries, E-utilities API, batch processin..."
+    },
+    {
+      "name": "pufferlib",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pufferlib",
+      "categories": ["science"],
+      "description": "This skill should be used when working with reinforcement learning tasks including high-performan..."
+    },
+    {
+      "name": "pydeseq2",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pydeseq2",
+      "categories": ["science", "biology", "data-science"],
+      "description": "Differential gene expression analysis (Python DESeq2). Identify DE genes from bulk RNA-seq counts..."
+    },
+    {
+      "name": "pydicom",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pydicom",
+      "categories": ["science"],
+      "description": "Python library for working with DICOM (Digital Imaging and Communications in Medicine) files. Use..."
+    },
+    {
+      "name": "pyhealth",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pyhealth",
+      "categories": ["science", "ml", "medical"],
+      "description": "Comprehensive healthcare AI toolkit for developing, testing, and deploying machine learning model..."
+    },
+    {
+      "name": "pylabrobot",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pylabrobot",
+      "categories": ["science"],
+      "description": "Laboratory automation toolkit for controlling liquid handlers, plate readers, pumps, heater shake..."
+    },
+    {
+      "name": "pymatgen",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pymatgen",
+      "categories": ["science"],
+      "description": "Materials science toolkit. Crystal structures (CIF, POSCAR), phase diagrams, band structure, DOS,..."
+    },
+    {
+      "name": "pymc",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pymc",
+      "categories": ["science"],
+      "description": "Bayesian modeling with PyMC. Build hierarchical models, MCMC (NUTS), variational inference, LOO/W..."
+    },
+    {
+      "name": "pymoo",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pymoo",
+      "categories": ["science", "ml"],
+      "description": "Multi-objective optimization framework. NSGA-II, NSGA-III, MOEA/D, Pareto fronts, constraint hand..."
+    },
+    {
+      "name": "pyopenms",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pyopenms",
+      "categories": ["science", "data-science"],
+      "description": "Python interface to OpenMS for mass spectrometry data analysis. Use for LC-MS/MS proteomics and m..."
+    },
+    {
+      "name": "pysam",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pysam",
+      "categories": ["science", "biology"],
+      "description": "Genomic file toolkit. Read/write SAM/BAM/CRAM alignments, VCF/BCF variants, FASTA/FASTQ sequences..."
+    },
+    {
+      "name": "pytdc",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pytdc",
+      "categories": ["science", "chemistry", "data-science", "ml"],
+      "description": "Therapeutics Data Commons. AI-ready drug discovery datasets (ADME, toxicity, DTI), benchmarks, sc..."
+    },
+    {
+      "name": "pytorch-lightning",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/pytorch-lightning",
+      "categories": ["science", "ml"],
+      "description": "Deep learning framework (PyTorch Lightning). Organize PyTorch code into LightningModules, configu..."
+    },
+    {
+      "name": "qiskit",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/qiskit",
+      "categories": ["science", "physics"],
+      "description": "Comprehensive quantum computing toolkit for building, optimizing, and executing quantum circuits...."
+    },
+    {
+      "name": "qutip",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/qutip",
+      "categories": ["science", "data-science", "physics"],
+      "description": "Quantum mechanics simulations and analysis using QuTiP (Quantum Toolbox in Python). Use when work..."
+    },
+    {
+      "name": "rdkit",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/rdkit",
+      "categories": ["science", "biology", "chemistry", "ml"],
+      "description": "Cheminformatics toolkit for fine-grained molecular control. SMILES/SDF parsing, descriptors (MW, ..."
+    },
+    {
+      "name": "reactome-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/reactome-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Query Reactome REST API for pathway analysis, enrichment, gene-pathway mapping, disease pathways,..."
+    },
+    {
+      "name": "research-grants",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/research-grants",
+      "categories": ["science"],
+      "description": "Write competitive research proposals for NSF, NIH, DOE, and DARPA. Agency-specific formatting, re..."
+    },
+    {
+      "name": "research-lookup",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/research-lookup",
+      "categories": ["science"],
+      "description": "Look up current research information using Perplexity's Sonar Pro Search or Sonar Reasoning Pro m..."
+    },
+    {
+      "name": "scanpy",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scanpy",
+      "categories": ["science", "biology", "data-science"],
+      "description": "Single-cell RNA-seq analysis. Load .h5ad/10X data, QC, normalization, PCA/UMAP/t-SNE, Leiden clus..."
+    },
+    {
+      "name": "scholar-evaluation",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scholar-evaluation",
+      "categories": ["science"],
+      "description": "Systematically evaluate scholarly work using the ScholarEval framework, providing structured asse..."
+    },
+    {
+      "name": "scientific-brainstorming",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-brainstorming",
+      "categories": ["science", "biology", "ml"],
+      "description": "Research ideation partner. Generate hypotheses, explore interdisciplinary connections, challenge ..."
+    },
+    {
+      "name": "scientific-critical-thinking",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-critical-thinking",
+      "categories": ["science"],
+      "description": "Evaluate research rigor. Assess methodology, experimental design, statistical validity, biases, c..."
+    },
+    {
+      "name": "scientific-schematics",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-schematics",
+      "categories": ["science", "chemistry", "ml", "research"],
+      "description": "Create publication-quality scientific diagrams using Nano Banana Pro AI with smart iterative refi..."
+    },
+    {
+      "name": "scientific-slides",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-slides",
+      "categories": ["science"],
+      "description": "Build slide decks and presentations for research talks. Use this for making PowerPoint slides, co..."
+    },
+    {
+      "name": "scientific-visualization",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-visualization",
+      "categories": ["science", "data-science", "research"],
+      "description": "Create publication figures with matplotlib/seaborn/plotly. Multi-panel layouts, error bars, signi..."
+    },
+    {
+      "name": "scientific-writing",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scientific-writing",
+      "categories": ["science", "ml"],
+      "description": "Core skill for the deep research and writing tool. Write scientific manuscripts in full paragraph..."
+    },
+    {
+      "name": "scikit-bio",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scikit-bio",
+      "categories": ["science", "biology", "data-science"],
+      "description": "Biological data toolkit. Sequence analysis, alignments, phylogenetic trees, diversity metrics (al..."
+    },
+    {
+      "name": "scikit-learn",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scikit-learn",
+      "categories": ["science", "ml"],
+      "description": "Machine learning in Python with scikit-learn. Use when working with supervised learning (classifi..."
+    },
+    {
+      "name": "scikit-survival",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scikit-survival",
+      "categories": ["science", "data-science"],
+      "description": "Comprehensive toolkit for survival analysis and time-to-event modeling in Python using scikit-sur..."
+    },
+    {
+      "name": "scvi-tools",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/scvi-tools",
+      "categories": ["science", "biology", "data-science"],
+      "description": "This skill should be used when working with single-cell omics data analysis using scvi-tools, inc..."
+    },
+    {
+      "name": "seaborn",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/seaborn",
+      "categories": ["science", "data-science", "ml"],
+      "description": "Statistical visualization. Scatter, box, violin, heatmaps, pair plots, regression, correlation ma..."
+    },
+    {
+      "name": "shap",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/shap",
+      "categories": ["science", "ml"],
+      "description": "Model interpretability and explainability using SHAP (SHapley Additive exPlanations). Use this sk..."
+    },
+    {
+      "name": "simpy",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/simpy",
+      "categories": ["science"],
+      "description": "Process-based discrete-event simulation framework in Python. Use this skill when building simulat..."
+    },
+    {
+      "name": "stable-baselines3",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/stable-baselines3",
+      "categories": ["science", "ml"],
+      "description": "Use this skill for reinforcement learning tasks including training RL agents (PPO, SAC, DQN, TD3,..."
+    },
+    {
+      "name": "statistical-analysis",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/statistical-analysis",
+      "categories": ["science", "data-science"],
+      "description": "Statistical analysis toolkit. Hypothesis tests (t-test, ANOVA, chi-square), regression, correlati..."
+    },
+    {
+      "name": "statsmodels",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/statsmodels",
+      "categories": ["science"],
+      "description": "Statistical modeling toolkit. OLS, GLM, logistic, ARIMA, time series, hypothesis tests, diagnosti..."
+    },
+    {
+      "name": "string-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/string-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Query STRING API for protein-protein interactions (59M proteins, 20B interactions). Network analy..."
+    },
+    {
+      "name": "sympy",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/sympy",
+      "categories": ["science"],
+      "description": "Use this skill when working with symbolic mathematics in Python. This skill should be used for sy..."
+    },
+    {
+      "name": "torch-geometric",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/torch_geometric",
+      "categories": ["science", "ml"],
+      "description": "Graph Neural Networks (PyG). Node/graph classification, link prediction, GCN, GAT, GraphSAGE, het..."
+    },
+    {
+      "name": "torchdrug",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/torchdrug",
+      "categories": ["science", "biology", "chemistry"],
+      "description": "Graph-based drug discovery toolkit. Molecular property prediction (ADMET), protein modeling, know..."
+    },
+    {
+      "name": "transformers",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/transformers",
+      "categories": ["science", "ml"],
+      "description": "This skill should be used when working with pre-trained transformer models for natural language p..."
+    },
+    {
+      "name": "treatment-plans",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/treatment-plans",
+      "categories": ["science", "biology", "medical"],
+      "description": "Generate concise (3-4 page), focused medical treatment plans in LaTeX/PDF format for all clinical..."
+    },
+    {
+      "name": "umap-learn",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/umap-learn",
+      "categories": ["science", "data-science"],
+      "description": "UMAP dimensionality reduction. Fast nonlinear manifold learning for 2D/3D visualization, clusteri..."
+    },
+    {
+      "name": "uniprot-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/uniprot-database",
+      "categories": ["science", "biology", "data-science", "database"],
+      "description": "Direct REST API access to UniProt. Protein searches, FASTA retrieval, ID mapping, Swiss-Prot/TrEM..."
+    },
+    {
+      "name": "uspto-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/uspto-database",
+      "categories": ["science", "data-science", "database"],
+      "description": "Access USPTO APIs for patent/trademark searches, examination history (PEDS), assignments, citatio..."
+    },
+    {
+      "name": "vaex",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/vaex",
+      "categories": ["science", "data-science"],
+      "description": "Use this skill for processing and analyzing large tabular datasets (billions of rows) that exceed..."
+    },
+    {
+      "name": "venue-templates",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/venue-templates",
+      "categories": ["science"],
+      "description": "Access comprehensive LaTeX templates, formatting requirements, and submission guidelines for majo..."
+    },
+    {
+      "name": "zarr-python",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/zarr-python",
+      "categories": ["science"],
+      "description": "Chunked N-D arrays for cloud storage. Compressed arrays, parallel I/O, S3/GCS integration, NumPy/..."
+    },
+    {
+      "name": "zinc-database",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/zinc-database",
+      "categories": ["science", "chemistry", "data-science", "database"],
+      "description": "Access ZINC (230M+ purchasable compounds). Search by ZINC ID/SMILES, similarity searches, 3D-read..."
+    },
+    {
+      "name": "agent-skill-bridge",
+      "source": "claude-command-control",
+      "path": "skills/agent-skill-bridge",
+      "categories": ["community"],
+      "description": "Bridges and integrates multiple agent skills for coordinated task execution"
+    },
+    {
+      "name": "architect-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/architect-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "builder-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/builder-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "content-research-writer",
+      "source": "claude-command-control",
+      "path": "skills/content-research-writer",
+      "categories": ["community"],
+      "description": "Assists in writing high-quality content by conducting research, adding citations, improving hooks..."
+    },
+    {
+      "name": "devops-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/devops-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "documentation-update",
+      "source": "claude-command-control",
+      "path": "skills/documentation-update",
+      "categories": ["community"],
+      "description": "Reusable logic for updating repository documentation (README, indices, tables) with new content w..."
+    },
+    {
+      "name": "file-categorization",
+      "source": "claude-command-control",
+      "path": "skills/file-categorization",
+      "categories": ["community"],
+      "description": "Reusable logic for categorizing files as Command, Agent, Skill, or Documentation based on structu..."
+    },
+    {
+      "name": "researcher-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/researcher-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "root-cause-tracing",
+      "source": "claude-command-control",
+      "path": "skills/root-cause-tracing",
+      "categories": ["community"],
+      "description": "Use when errors occur deep in execution and you need to trace back to find the original trigger -..."
+    },
+    {
+      "name": "scribe-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/scribe-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "sharing-skills",
+      "source": "claude-command-control",
+      "path": "skills/sharing-skills",
+      "categories": ["community"],
+      "description": "Use when you've developed a broadly useful skill and want to contribute it upstream via pull requ..."
+    },
+    {
+      "name": "skill-creator",
+      "source": "claude-command-control",
+      "path": "skills/skill-creator",
+      "categories": ["community"],
+      "description": "**Version**: 1"
+    },
+    {
+      "name": "skill-orchestrator",
+      "source": "claude-command-control",
+      "path": "skills/skill-orchestrator",
+      "categories": ["community"],
+      "description": "Orchestrates and coordinates execution of multiple skills for complex workflows"
+    },
+    {
+      "name": "software-architecture",
+      "source": "claude-command-control",
+      "path": "skills/software-architecture",
+      "categories": ["community"],
+      "description": "Guide for quality focused software architecture. This skill should be used when users want to wri..."
+    },
+    {
+      "name": "subagent-driven-development",
+      "source": "claude-command-control",
+      "path": "skills/subagent-driven-development",
+      "categories": ["community"],
+      "description": "Use when executing implementation plans with independent tasks in the current session - dispatche..."
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "source": "claude-command-control",
+      "path": "skills/ui-ux-pro-max",
+      "categories": ["community"],
+      "description": "UI/UX design intelligence. 50 styles, 21 palettes, 50 font pairings, 20 charts, 8 stacks (React, ..."
+    },
+    {
+      "name": "using-git-worktrees",
+      "source": "claude-command-control",
+      "path": "skills/using-git-worktrees",
+      "categories": ["community"],
+      "description": "Use when starting feature work that needs isolation from current workspace or before executing im..."
+    },
+    {
+      "name": "using-superpowers",
+      "source": "claude-command-control",
+      "path": "skills/using-superpowers",
+      "categories": ["community"],
+      "description": "Use when starting any conversation - establishes mandatory workflows for finding and using skills..."
+    },
+    {
+      "name": "validator-role-skill",
+      "source": "claude-command-control",
+      "path": "skills/validator-role-skill",
+      "categories": ["community"],
+      "description": "|"
+    },
+    {
+      "name": "schema-optimization",
+      "source": "claude-plugins-plus",
+      "path": ".claude/skills/schema-optimization",
+      "categories": ["community"],
+      "description": "Optimizes database schemas for performance, normalization, and query efficiency"
+    },
+    {
+      "name": "2agent",
+      "source": "claude-code-harness",
+      "path": "skills/2agent",
+      "categories": ["community"],
+      "description": "Configures 2-Agent workflow between PM and implementation roles. Use when user mentions 2-Agent, ..."
+    },
+    {
+      "name": "auth",
+      "source": "claude-code-harness",
+      "path": "skills/auth",
+      "categories": ["community"],
+      "description": "Implements authentication and payment features using Clerk, Supabase Auth, or Stripe. Use when us..."
+    },
+    {
+      "name": "ci",
+      "source": "claude-code-harness",
+      "path": "skills/ci",
+      "categories": ["community"],
+      "description": "Diagnoses and fixes CI/CD pipeline failures. Use when user mentions 'CI', 'GitHub Actions', 'GitL..."
+    },
+    {
+      "name": "deploy",
+      "source": "claude-code-harness",
+      "path": "skills/deploy",
+      "categories": ["community"],
+      "description": "Sets up deployment, analytics, and health monitoring for projects. Use when user mentions デプロイ, d..."
+    },
+    {
+      "name": "docs",
+      "source": "claude-code-harness",
+      "path": "skills/docs",
+      "categories": ["community"],
+      "description": "Generates documentation files including NotebookLM YAML and slide content. Use when user mentions..."
+    },
+    {
+      "name": "impl",
+      "source": "claude-code-harness",
+      "path": "skills/impl",
+      "categories": ["community"],
+      "description": "Implements features and writes code based on Plans.md tasks. Use when user mentions 実装, implement..."
+    },
+    {
+      "name": "maintenance",
+      "source": "claude-code-harness",
+      "path": "skills/maintenance",
+      "categories": ["community"],
+      "description": "Cleans up and organizes project files. Use when user mentions '整理', 'cleanup', 'アーカイブ', 'archive'..."
+    },
+    {
+      "name": "memory",
+      "source": "claude-code-harness",
+      "path": "skills/memory",
+      "categories": ["community"],
+      "description": "Manages memory, SSOT files, and Plans.md operations. Use when user mentions メモリ, memory, SSOT, de..."
+    },
+    {
+      "name": "parallel-workflows",
+      "source": "claude-code-harness",
+      "path": "skills/parallel-workflows",
+      "categories": ["community"],
+      "description": "Optimizes parallel execution of multiple tasks. Use when user mentions 並列で実行, 同時にやって, まとめてやって, ru..."
+    },
+    {
+      "name": "plans-management",
+      "source": "claude-code-harness",
+      "path": "skills/plans-management",
+      "categories": ["community"],
+      "description": "Manages Plans.md tasks and marker operations. Use when user mentions タスクを追加, Plans.md更新, 完了マーク, タ..."
+    },
+    {
+      "name": "principles",
+      "source": "claude-code-harness",
+      "path": "skills/principles",
+      "categories": ["community"],
+      "description": "Provides development principles, guidelines, and VibeCoder guidance. Use when user mentions 原則, p..."
+    },
+    {
+      "name": "review",
+      "source": "claude-code-harness",
+      "path": "skills/review",
+      "categories": ["community"],
+      "description": "Reviews code for quality, security, performance, and accessibility issues. Use when user mentions..."
+    },
+    {
+      "name": "session-init",
+      "source": "claude-code-harness",
+      "path": "skills/session-init",
+      "categories": ["community"],
+      "description": "Initializes session with environment check and task status overview. Use when user mentions セッション..."
+    },
+    {
+      "name": "session-memory",
+      "source": "claude-code-harness",
+      "path": "skills/session-memory",
+      "categories": ["community"],
+      "description": "Manages cross-session learning and memory persistence. Use when user mentions 前回何をした, 履歴, 過去の作業, ..."
+    },
+    {
+      "name": "setup",
+      "source": "claude-code-harness",
+      "path": "skills/setup",
+      "categories": ["community"],
+      "description": "Sets up new projects and generates workflow files like CLAUDE.md, AGENTS.md, Plans.md. Use when u..."
+    },
+    {
+      "name": "troubleshoot",
+      "source": "claude-code-harness",
+      "path": "skills/troubleshoot",
+      "categories": ["community"],
+      "description": "Guides diagnosis and resolution when problems occur. Use when user mentions 動かない, エラーが出た, 壊れた, うま..."
+    },
+    {
+      "name": "ui",
+      "source": "claude-code-harness",
+      "path": "skills/ui",
+      "categories": ["community"],
+      "description": "Generates UI components and feedback forms. Use when user mentions コンポーネント, component, UI, ヒーロー, ..."
+    },
+    {
+      "name": "verify",
+      "source": "claude-code-harness",
+      "path": "skills/verify",
+      "categories": ["community"],
+      "description": "Verifies builds, recovers from errors, and applies review fixes. Use when user mentions ビルド, buil..."
+    },
+    {
+      "name": "vibecoder-guide",
+      "source": "claude-code-harness",
+      "path": "skills/vibecoder-guide",
+      "categories": ["community"],
+      "description": "Guides VibeCoder (non-technical users) through natural language development (legacy). Use when us..."
+    },
+    {
+      "name": "workflow",
+      "source": "claude-code-harness",
+      "path": "skills/workflow",
+      "categories": ["community"],
+      "description": "Manages workflow transitions including handoffs between PM and implementation roles, and auto-fix..."
+    },
+    {
+      "name": "iso-13485-certification",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/iso-13485-certification",
+      "categories": ["science", "medical"],
+      "description": "Comprehensive toolkit for preparing ISO 13485 certification documentation for medical device Qual..."
+    },
+    {
+      "name": "agentic-workflow-guide",
+      "source": "aktsmm-agent-skills",
+      "path": "agentic-workflow-guide",
+      "categories": ["community"],
+      "description": "Design, review, and improve agent workflows based on proven design principles (SSOT, SRP, Fail Fa..."
+    },
+    {
+      "name": "pdf",
+      "source": "aktsmm-agent-skills",
+      "path": "pdf",
+      "categories": ["community"],
+      "description": "Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging..."
+    },
+    {
+      "name": "braiins-ecosystem",
+      "source": "claude-command-control",
+      "path": "skills/braiins-ecosystem",
+      "categories": ["community"],
+      "description": "Unified Braiins ecosystem skill covering all Bitcoin mining tools - OS firmware, Pool, Toolbox, M..."
+    },
+    {
+      "name": "braiins-insights",
+      "source": "claude-command-control",
+      "path": "skills/braiins-insights",
+      "categories": ["community"],
+      "description": "Braiins Learn - Bitcoin mining profitability calculators, charts, and data dashboard"
+    },
+    {
+      "name": "braiins-manager",
+      "source": "claude-command-control",
+      "path": "skills/braiins-manager",
+      "categories": ["community"],
+      "description": "Braiins Manager - web-based dashboard for monitoring and managing Bitcoin mining operations with ..."
+    },
+    {
+      "name": "braiins-os",
+      "source": "claude-command-control",
+      "path": "skills/braiins-os",
+      "categories": ["community"],
+      "description": "Comprehensive Braiins OS skill covering API, feeds, and documentation"
+    },
+    {
+      "name": "braiins-pool",
+      "source": "claude-command-control",
+      "path": "skills/braiins-pool",
+      "categories": ["community"],
+      "description": "Comprehensive Braiins Pool skill - oldest Bitcoin mining pool with FPPS rewards, Lightning payout..."
+    },
+    {
+      "name": "braiins-proxy",
+      "source": "claude-command-control",
+      "path": "skills/braiins-proxy",
+      "categories": ["community"],
+      "description": "Braiins Farm Proxy - high-performance Stratum V2 mining proxy for large-scale Bitcoin mining oper..."
+    },
+    {
+      "name": "braiins-toolbox",
+      "source": "claude-command-control",
+      "path": "skills/braiins-toolbox",
+      "categories": ["community"],
+      "description": "Comprehensive Braiins Toolbox skill - batch management tool for Bitcoin mining operations with GU..."
+    },
+    {
+      "name": "farm-monitor",
+      "source": "claude-command-control",
+      "path": "skills/farm-monitor",
+      "categories": ["community"],
+      "description": "Braiins Farm Monitor - Bitcoin mining fleet monitoring and management"
+    },
+    {
+      "name": "cursor-mem",
+      "source": "claude-code-harness",
+      "path": "skills/cursor-mem",
+      "categories": ["community"],
+      "description": "Cursorでclaude-memのMCPサーバーにアクセスし、過去のセッション記録を検索・新しい観測を記録。トリガー: 'メモリ検索', 'claude-mem', '過去の判断', '記録し..."
+    }
+  ],
+  "categories": [
+    {
+      "id": "development",
+      "name": "開発",
+      "description": "ソフトウェア開発関連"
+    },
+    {
+      "id": "testing",
+      "name": "テスト",
+      "description": "テスト・品質保証"
+    },
+    {
+      "id": "document",
+      "name": "ドキュメント",
+      "description": "ドキュメント処理"
+    },
+    {
+      "id": "office",
+      "name": "Office",
+      "description": "Microsoft Office 関連"
+    },
+    {
+      "id": "web",
+      "name": "Web",
+      "description": "Web 開発"
+    },
+    {
+      "id": "frontend",
+      "name": "フロントエンド",
+      "description": "フロントエンド開発"
+    },
+    {
+      "id": "design",
+      "name": "デザイン",
+      "description": "デザイン・UI/UX"
+    },
+    {
+      "id": "creative",
+      "name": "クリエイティブ",
+      "description": "クリエイティブ・アート"
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "description": "Git・バージョン管理"
+    },
+    {
+      "id": "planning",
+      "name": "計画",
+      "description": "プロジェクト計画"
+    },
+    {
+      "id": "agents",
+      "name": "エージェント",
+      "description": "AI エージェント関連"
+    },
+    {
+      "id": "mcp",
+      "name": "MCP",
+      "description": "Model Context Protocol"
+    },
+    {
+      "id": "business",
+      "name": "ビジネス",
+      "description": "ビジネス・業務"
+    },
+    {
+      "id": "utility",
+      "name": "ユーティリティ",
+      "description": "汎用ツール"
+    },
+    {
+      "id": "meta",
+      "name": "メタ",
+      "description": "スキル作成・管理"
+    },
+    {
+      "id": "azure",
+      "name": "Azure",
+      "description": "Microsoft Azure・クラウドインフラ"
+    }
+  ]
+}

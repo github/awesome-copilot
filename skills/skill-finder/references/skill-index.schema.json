@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Skill Index",
+  "description": "Agent Skills のインデックスファイルスキーマ",
+  "type": "object",
+  "required": ["version", "lastUpdated", "sources", "skills"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema への参照"
+    },
+    "version": {
+      "type": "string",
+      "description": "インデックスのバージョン（semver形式）",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0"]
+    },
+    "lastUpdated": {
+      "type": "string",
+      "description": "最終更新日（ISO 8601形式）",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": ["2025-12-31"]
+    },
+    "sources": {
+      "type": "array",
+      "description": "スキルのソースリポジトリ一覧",
+      "items": {
+        "$ref": "#/definitions/source"
+      },
+      "minItems": 1
+    },
+    "skills": {
+      "type": "array",
+      "description": "スキル一覧",
+      "items": {
+        "$ref": "#/definitions/skill"
+      }
+    },
+    "categories": {
+      "type": "array",
+      "description": "カテゴリ定義一覧",
+      "items": {
+        "$ref": "#/definitions/category"
+      }
+    }
+  },
+  "definitions": {
+    "source": {
+      "type": "object",
+      "description": "スキルのソースリポジトリ",
+      "required": ["id", "name", "owner", "url", "type", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ソースの一意識別子",
+          "pattern": "^[a-z0-9-]+$",
+          "examples": ["anthropics-skills", "obra-superpowers"]
+        },
+        "name": {
+          "type": "string",
+          "description": "ソースの表示名",
+          "examples": ["Anthropic Skills (Official)"]
+        },
+        "owner": {
+          "type": "string",
+          "description": "GitHubオーナー名",
+          "examples": ["anthropics", "obra"]
+        },
+        "url": {
+          "type": "string",
+          "description": "リポジトリURL",
+          "format": "uri",
+          "pattern": "^https://github\\.com/",
+          "examples": ["https://github.com/anthropics/skills"]
+        },
+        "type": {
+          "type": "string",
+          "description": "ソースの種類",
+          "enum": ["official", "awesome-list", "community"]
+        },
+        "description": {
+          "type": "string",
+          "description": "ソースの説明"
+        }
+      },
+      "additionalProperties": false
+    },
+    "skill": {
+      "type": "object",
+      "description": "スキル情報",
+      "required": ["name", "source", "path", "categories", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "スキル名",
+          "pattern": "^[a-z0-9-]+$",
+          "examples": ["docx", "pdf", "azure-env-builder"]
+        },
+        "source": {
+          "type": "string",
+          "description": "ソースID（sourcesのidを参照）",
+          "examples": ["anthropics-skills", "obra-superpowers"]
+        },
+        "path": {
+          "type": "string",
+          "description": "リポジトリ内のパス",
+          "examples": ["skills/docx", ".github/skills/azure-env-builder"]
+        },
+        "categories": {
+          "type": "array",
+          "description": "カテゴリタグ",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "minItems": 1,
+          "examples": [
+            ["document", "office"],
+            ["azure", "development"]
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "スキルの説明"
+        }
+      },
+      "additionalProperties": false
+    },
+    "category": {
+      "type": "object",
+      "description": "カテゴリ定義",
+      "required": ["id", "name", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "カテゴリID",
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "カテゴリ表示名"
+        },
+        "description": {
+          "type": "string",
+          "description": "カテゴリの説明"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
