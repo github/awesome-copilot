@@ -1548,7 +1548,7 @@
       "description": "Use this skill when working with symbolic mathematics in Python. This skill should be used for sy..."
     },
     {
-      "name": "torch_geometric",
+      "name": "torch-geometric",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/torch_geometric",
       "categories": ["science", "ml"],
