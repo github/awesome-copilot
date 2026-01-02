@@ -1,11 +1,12 @@
 {
   "$schema": "./skill-index.schema.json",
   "version": "1.0.0",
-  "lastUpdated": "2025-12-25",
+  "lastUpdated": "2025-12-31",
   "sources": [
     {
       "id": "anthropics-skills",
       "name": "Anthropic Skills (Official)",
+      "owner": "anthropics",
       "url": "https://github.com/anthropics/skills",
       "type": "official",
       "description": "Anthropic 公式の Claude Skills リポジトリ"
@@ -13,6 +14,7 @@
     {
       "id": "github-awesome-copilot",
       "name": "GitHub Awesome Copilot (Official)",
+      "owner": "github",
       "url": "https://github.com/github/awesome-copilot",
       "type": "official",
       "description": "GitHub 公式の Copilot リソース集"
@@ -20,6 +22,7 @@
     {
       "id": "obra-superpowers",
       "name": "Superpowers",
+      "owner": "obra",
       "url": "https://github.com/obra/superpowers",
       "type": "community",
       "description": "高品質なスキル・エージェント・コマンド集"
@@ -27,6 +30,7 @@
     {
       "id": "composio-awesome",
       "name": "Awesome Claude Skills (ComposioHQ)",
+      "owner": "ComposioHQ",
       "url": "https://github.com/ComposioHQ/awesome-claude-skills",
       "type": "awesome-list",
       "description": "Claude Skills のキュレーションリスト"
@@ -34,6 +38,7 @@
     {
       "id": "claude-scientific-skills",
       "name": "claude-scientific-skills",
+      "owner": "K-Dense-AI",
       "url": "https://github.com/K-Dense-AI/claude-scientific-skills",
       "type": "community",
       "description": "K-Dense-AI/claude-scientific-skills からのスキル"
@@ -41,6 +46,7 @@
     {
       "id": "playwright-skill",
       "name": "playwright-skill",
+      "owner": "lackeyjb",
       "url": "https://github.com/lackeyjb/playwright-skill",
       "type": "community",
       "description": "lackeyjb/playwright-skill からのスキル"
@@ -48,6 +54,7 @@
     {
       "id": "aktsmm-agent-skills",
       "name": "Agent Skills (aktsmm)",
+      "owner": "aktsmm",
       "url": "https://github.com/aktsmm/Agent-Skills",
       "type": "community",
       "description": "Azure・開発系スキル by yamapan"
@@ -55,6 +62,7 @@
     {
       "id": "openshift-ai-helpers",
       "name": "OpenShift AI Helpers",
+      "owner": "openshift-eng",
       "url": "https://github.com/openshift-eng/ai-helpers",
       "type": "community",
       "description": "HyperShift クラスタ作成スキル (AWS/Azure/KubeVirt/OpenStack/PowerVS)"
@@ -62,6 +70,7 @@
     {
       "id": "claude-codex-settings",
       "name": "Claude Codex Settings",
+      "owner": "fcakyon",
       "url": "https://github.com/fcakyon/claude-codex-settings",
       "type": "community",
       "description": "Azure/GCloud/Slack/MongoDB 等の各種ツール設定スキル"
@@ -69,6 +78,7 @@
     {
       "id": "claude-command-control",
       "name": "Claude Command & Control",
+      "owner": "enuno",
       "url": "https://github.com/enuno/claude-command-and-control",
       "type": "community",
       "description": "並列エージェント実行・通信・ワークフロー管理スキル集"
@@ -76,6 +86,7 @@
     {
       "id": "claude-plugins-plus",
       "name": "Claude Code Plugins Plus Skills",
+      "owner": "jeremylongshore",
       "url": "https://github.com/jeremylongshore/claude-code-plugins-plus-skills",
       "type": "community",
       "description": "AI SDK v5 マルチエージェントシステム構築スキル"
@@ -83,6 +94,7 @@
     {
       "id": "claude-code-harness",
       "name": "Claude Code Harness",
+      "owner": "Chachamaru127",
       "url": "https://github.com/Chachamaru127/claude-code-harness",
       "type": "community",
       "description": "ワークフローガイド・開発支援スキル"
@@ -90,6 +102,7 @@
     {
       "id": "personal-ai-infra",
       "name": "Personal AI Infrastructure",
+      "owner": "danielmiessler",
       "url": "https://github.com/danielmiessler/Personal_AI_Infrastructure",
       "type": "community",
       "description": "AI インフラ・オブザーバビリティスキル by danielmiessler"
@@ -100,2344 +113,1856 @@
       "name": "algorithmic-art",
       "source": "anthropics-skills",
       "path": "skills/algorithmic-art",
-      "categories": [
-        "creative",
-        "art"
-      ],
+      "categories": ["creative", "art"],
       "description": "アルゴリズミックアートの生成"
     },
     {
       "name": "brand-guidelines",
       "source": "anthropics-skills",
       "path": "skills/brand-guidelines",
-      "categories": [
-        "design",
-        "branding"
-      ],
+      "categories": ["design", "branding"],
       "description": "ブランドガイドラインの作成・管理"
     },
     {
       "name": "canvas-design",
       "source": "anthropics-skills",
       "path": "skills/canvas-design",
-      "categories": [
-        "design",
-        "creative"
-      ],
+      "categories": ["design", "creative"],
       "description": "キャンバスデザインの作成"
     },
     {
       "name": "doc-coauthoring",
       "source": "anthropics-skills",
       "path": "skills/doc-coauthoring",
-      "categories": [
-        "document",
-        "collaboration"
-      ],
+      "categories": ["document", "collaboration"],
       "description": "ドキュメントの共同執筆"
     },
     {
       "name": "docx",
       "source": "anthropics-skills",
       "path": "skills/docx",
-      "categories": [
-        "document",
-        "office"
-      ],
+      "categories": ["document", "office"],
       "description": "Word ドキュメント (.docx) の処理"
     },
     {
       "name": "pdf",
       "source": "anthropics-skills",
       "path": "skills/pdf",
-      "categories": [
-        "document"
-      ],
+      "categories": ["document"],
       "description": "PDF ファイルの処理"
     },
     {
       "name": "pptx",
       "source": "anthropics-skills",
       "path": "skills/pptx",
-      "categories": [
-        "document",
-        "office",
-        "presentation"
-      ],
+      "categories": ["document", "office", "presentation"],
       "description": "PowerPoint (.pptx) の処理"
     },
     {
       "name": "xlsx",
       "source": "anthropics-skills",
       "path": "skills/xlsx",
-      "categories": [
-        "document",
-        "office",
-        "data"
-      ],
+      "categories": ["document", "office", "data"],
       "description": "Excel (.xlsx) の処理"
     },
     {
       "name": "frontend-design",
       "source": "anthropics-skills",
       "path": "skills/frontend-design",
-      "categories": [
-        "web",
-        "design",
-        "frontend"
-      ],
+      "categories": ["web", "design", "frontend"],
       "description": "フロントエンドデザインの作成"
     },
     {
       "name": "web-artifacts-builder",
       "source": "anthropics-skills",
       "path": "skills/web-artifacts-builder",
-      "categories": [
-        "web",
-        "frontend"
-      ],
+      "categories": ["web", "frontend"],
       "description": "Web アーティファクトのビルド"
     },
     {
       "name": "webapp-testing",
       "source": "anthropics-skills",
       "path": "skills/webapp-testing",
-      "categories": [
-        "web",
-        "testing"
-      ],
+      "categories": ["web", "testing"],
       "description": "Web アプリケーションのテスト"
     },
     {
       "name": "mcp-builder",
       "source": "anthropics-skills",
       "path": "skills/mcp-builder",
-      "categories": [
-        "mcp",
-        "development"
-      ],
+      "categories": ["mcp", "development"],
       "description": "MCP サーバーの構築"
     },
     {
       "name": "skill-creator",
       "source": "anthropics-skills",
       "path": "skills/skill-creator",
-      "categories": [
-        "meta",
-        "development"
-      ],
+      "categories": ["meta", "development"],
       "description": "新しいスキルの作成ガイド"
     },
     {
       "name": "slack-gif-creator",
       "source": "anthropics-skills",
       "path": "skills/slack-gif-creator",
-      "categories": [
-        "creative",
-        "communication"
-      ],
+      "categories": ["creative", "communication"],
       "description": "Slack 用 GIF の作成"
     },
     {
       "name": "theme-factory",
       "source": "anthropics-skills",
       "path": "skills/theme-factory",
-      "categories": [
-        "design",
-        "theming"
-      ],
+      "categories": ["design", "theming"],
       "description": "テーマの作成"
     },
     {
       "name": "internal-comms",
       "source": "anthropics-skills",
       "path": "skills/internal-comms",
-      "categories": [
-        "communication",
-        "business"
-      ],
+      "categories": ["communication", "business"],
       "description": "社内コミュニケーション"
     },
     {
       "name": "brainstorming",
       "source": "obra-superpowers",
       "path": "skills/brainstorming",
-      "categories": [
-        "planning",
-        "ideation"
-      ],
+      "categories": ["planning", "ideation"],
       "description": "ブレインストーミングの実施"
     },
     {
       "name": "writing-plans",
       "source": "obra-superpowers",
       "path": "skills/writing-plans",
-      "categories": [
-        "planning",
-        "documentation"
-      ],
+      "categories": ["planning", "documentation"],
       "description": "計画書の作成"
     },
     {
       "name": "executing-plans",
       "source": "obra-superpowers",
       "path": "skills/executing-plans",
-      "categories": [
-        "planning",
-        "execution"
-      ],
+      "categories": ["planning", "execution"],
       "description": "計画の実行"
     },
     {
       "name": "test-driven-development",
       "source": "obra-superpowers",
       "path": "skills/test-driven-development",
-      "categories": [
-        "development",
-        "testing",
-        "tdd"
-      ],
+      "categories": ["development", "testing", "tdd"],
       "description": "テスト駆動開発 (TDD)"
     },
     {
       "name": "systematic-debugging",
       "source": "obra-superpowers",
       "path": "skills/systematic-debugging",
-      "categories": [
-        "development",
-        "debugging"
-      ],
+      "categories": ["development", "debugging"],
       "description": "体系的なデバッグ手法"
     },
     {
       "name": "subagent-driven-development",
       "source": "obra-superpowers",
       "path": "skills/subagent-driven-development",
-      "categories": [
-        "development",
-        "agents"
-      ],
+      "categories": ["development", "agents"],
       "description": "サブエージェント駆動開発"
     },
     {
       "name": "dispatching-parallel-agents",
       "source": "obra-superpowers",
       "path": "skills/dispatching-parallel-agents",
-      "categories": [
-        "development",
-        "agents",
-        "parallel"
-      ],
+      "categories": ["development", "agents", "parallel"],
       "description": "並列エージェントのディスパッチ"
     },
     {
       "name": "using-git-worktrees",
       "source": "obra-superpowers",
       "path": "skills/using-git-worktrees",
-      "categories": [
-        "git",
-        "development"
-      ],
+      "categories": ["git", "development"],
       "description": "Git worktree の活用"
     },
     {
       "name": "receiving-code-review",
       "source": "obra-superpowers",
       "path": "skills/receiving-code-review",
-      "categories": [
-        "git",
-        "code-review"
-      ],
+      "categories": ["git", "code-review"],
       "description": "コードレビューの受け取り方"
     },
     {
       "name": "requesting-code-review",
       "source": "obra-superpowers",
       "path": "skills/requesting-code-review",
-      "categories": [
-        "git",
-        "code-review"
-      ],
+      "categories": ["git", "code-review"],
       "description": "コードレビューのリクエスト"
     },
     {
       "name": "finishing-a-development-branch",
       "source": "obra-superpowers",
       "path": "skills/finishing-a-development-branch",
-      "categories": [
-        "git",
-        "development"
-      ],
+      "categories": ["git", "development"],
       "description": "開発ブランチの完了処理"
     },
     {
       "name": "verification-before-completion",
       "source": "obra-superpowers",
       "path": "skills/verification-before-completion",
-      "categories": [
-        "quality",
-        "verification"
-      ],
+      "categories": ["quality", "verification"],
       "description": "完了前の検証"
     },
     {
       "name": "writing-skills",
       "source": "obra-superpowers",
       "path": "skills/writing-skills",
-      "categories": [
-        "meta",
-        "development"
-      ],
+      "categories": ["meta", "development"],
       "description": "スキルの書き方"
     },
     {
       "name": "using-superpowers",
       "source": "obra-superpowers",
       "path": "skills/using-superpowers",
-      "categories": [
-        "meta"
-      ],
+      "categories": ["meta"],
       "description": "Superpowers の使い方"
     },
     {
       "name": "artifacts-builder",
       "source": "composio-awesome",
       "path": "artifacts-builder",
-      "categories": [
-        "web",
-        "frontend"
-      ],
+      "categories": ["web", "frontend"],
       "description": "アーティファクトビルダー"
     },
     {
       "name": "changelog-generator",
       "source": "composio-awesome",
       "path": "changelog-generator",
-      "categories": [
-        "documentation",
-        "git"
-      ],
+      "categories": ["documentation", "git"],
       "description": "CHANGELOG の自動生成"
     },
     {
       "name": "content-research-writer",
       "source": "composio-awesome",
       "path": "content-research-writer",
-      "categories": [
-        "writing",
-        "research"
-      ],
+      "categories": ["writing", "research"],
       "description": "コンテンツリサーチ・ライティング"
     },
     {
       "name": "developer-growth-analysis",
       "source": "composio-awesome",
       "path": "developer-growth-analysis",
-      "categories": [
-        "analytics",
-        "development"
-      ],
+      "categories": ["analytics", "development"],
       "description": "開発者成長分析"
     },
     {
       "name": "document-skills",
       "source": "composio-awesome",
       "path": "document-skills",
-      "categories": [
-        "document"
-      ],
+      "categories": ["document"],
       "description": "ドキュメント処理スキル"
     },
     {
       "name": "domain-name-brainstormer",
       "source": "composio-awesome",
       "path": "domain-name-brainstormer",
-      "categories": [
-        "ideation",
-        "business"
-      ],
+      "categories": ["ideation", "business"],
       "description": "ドメイン名のブレインストーミング"
     },
     {
       "name": "file-organizer",
       "source": "composio-awesome",
       "path": "file-organizer",
-      "categories": [
-        "utility",
-        "organization"
-      ],
+      "categories": ["utility", "organization"],
       "description": "ファイル整理"
     },
     {
       "name": "image-enhancer",
       "source": "composio-awesome",
       "path": "image-enhancer",
-      "categories": [
-        "image",
-        "creative"
-      ],
+      "categories": ["image", "creative"],
       "description": "画像の強化・編集"
     },
     {
       "name": "invoice-organizer",
       "source": "composio-awesome",
       "path": "invoice-organizer",
-      "categories": [
-        "business",
-        "finance"
-      ],
+      "categories": ["business", "finance"],
       "description": "請求書の整理"
     },
     {
       "name": "lead-research-assistant",
       "source": "composio-awesome",
       "path": "lead-research-assistant",
-      "categories": [
-        "research",
-        "business"
-      ],
+      "categories": ["research", "business"],
       "description": "リード調査アシスタント"
     },
     {
       "name": "meeting-insights-analyzer",
       "source": "composio-awesome",
       "path": "meeting-insights-analyzer",
-      "categories": [
-        "business",
-        "analytics"
-      ],
+      "categories": ["business", "analytics"],
       "description": "会議インサイト分析"
     },
     {
       "name": "raffle-winner-picker",
       "source": "composio-awesome",
       "path": "raffle-winner-picker",
-      "categories": [
-        "utility"
-      ],
+      "categories": ["utility"],
       "description": "抽選ツール"
     },
     {
       "name": "video-downloader",
       "source": "composio-awesome",
       "path": "video-downloader",
-      "categories": [
-        "utility",
-        "media"
-      ],
+      "categories": ["utility", "media"],
       "description": "動画ダウンローダー"
     },
     {
       "name": "competitive-ads-extractor",
       "source": "composio-awesome",
       "path": "competitive-ads-extractor",
-      "categories": [
-        "business",
-        "marketing"
-      ],
+      "categories": ["business", "marketing"],
       "description": "競合広告の抽出・分析"
     },
     {
       "name": "playwright-skill",
       "source": "playwright-skill",
       "path": "skills/playwright-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "playwright-skill スキル"
     },
     {
       "name": "webapp-testing",
       "source": "github-awesome-copilot",
       "path": "skills/webapp-testing",
-      "categories": [
-        "web",
-        "testing"
-      ],
+      "categories": ["web", "testing"],
       "description": "Web アプリケーションのテスト (GitHub Copilot)"
     },
     {
       "name": "azure-env-builder",
       "source": "aktsmm-agent-skills",
       "path": "azure-env-builder",
-      "categories": [
-        "development",
-        "azure"
-      ],
+      "categories": ["development", "azure"],
       "description": "Azure 環境を Bicep で構築"
     },
     {
       "name": "skill-creator",
       "source": "aktsmm-agent-skills",
       "path": "skill-creator",
-      "categories": [
-        "meta",
-        "development"
-      ],
+      "categories": ["meta", "development"],
       "description": "新しい Agent Skills を作成"
     },
     {
       "name": "skill-finder",
       "source": "aktsmm-agent-skills",
       "path": "skill-finder",
-      "categories": [
-        "meta"
-      ],
+      "categories": ["meta"],
       "description": "Agent Skills を検索・発見"
     },
     {
       "name": "hcp-create-agent",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-agent",
-      "categories": [
-        "agents",
-        "development"
-      ],
+      "categories": ["agents", "development"],
       "description": "HyperShift Agent プロバイダでクラスタ作成"
     },
     {
       "name": "hcp-create-aws",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-aws",
-      "categories": [
-        "aws",
-        "cloud"
-      ],
+      "categories": ["aws", "cloud"],
       "description": "HyperShift で AWS EKS クラスタ作成"
     },
     {
       "name": "hcp-create-azure",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-azure",
-      "categories": [
-        "azure",
-        "cloud"
-      ],
+      "categories": ["azure", "cloud"],
       "description": "HyperShift で Azure クラスタ作成"
     },
     {
       "name": "hcp-create-kubevirt",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-kubevirt",
-      "categories": [
-        "kubernetes",
-        "cloud"
-      ],
+      "categories": ["kubernetes", "cloud"],
       "description": "HyperShift で KubeVirt クラスタ作成"
     },
     {
       "name": "hcp-create-openstack",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-openstack",
-      "categories": [
-        "openstack",
-        "cloud"
-      ],
+      "categories": ["openstack", "cloud"],
       "description": "HyperShift で OpenStack クラスタ作成"
     },
     {
       "name": "hcp-create-powervs",
       "source": "openshift-ai-helpers",
       "path": "plugins/hcp/skills/hcp-create-powervs",
-      "categories": [
-        "ibm",
-        "cloud"
-      ],
+      "categories": ["ibm", "cloud"],
       "description": "HyperShift で IBM PowerVS クラスタ作成"
     },
     {
       "name": "azure-usage",
       "source": "claude-codex-settings",
       "path": "plugins/azure-tools/skills/azure-usage",
-      "categories": [
-        "azure",
-        "cloud"
-      ],
+      "categories": ["azure", "cloud"],
       "description": "Azure ツール使用ガイド"
     },
     {
       "name": "gcloud-tools",
       "source": "claude-codex-settings",
       "path": "plugins/gcloud-tools",
-      "categories": [
-        "gcp",
-        "cloud"
-      ],
+      "categories": ["gcp", "cloud"],
       "description": "Google Cloud ツール設定"
     },
     {
       "name": "mongodb-tools",
       "source": "claude-codex-settings",
       "path": "plugins/mongodb-tools",
-      "categories": [
-        "database"
-      ],
+      "categories": ["database"],
       "description": "MongoDB ツール設定"
     },
     {
       "name": "slack-tools",
       "source": "claude-codex-settings",
       "path": "plugins/slack-tools",
-      "categories": [
-        "communication"
-      ],
+      "categories": ["communication"],
       "description": "Slack ツール設定"
     },
     {
       "name": "supabase-tools",
       "source": "claude-codex-settings",
       "path": "plugins/supabase-tools",
-      "categories": [
-        "database"
-      ],
+      "categories": ["database"],
       "description": "Supabase ツール設定"
     },
     {
       "name": "playwright-tools",
       "source": "claude-codex-settings",
       "path": "plugins/playwright-tools",
-      "categories": [
-        "testing",
-        "web"
-      ],
+      "categories": ["testing", "web"],
       "description": "Playwright テストツール設定"
     },
     {
       "name": "tavily-tools",
       "source": "claude-codex-settings",
       "path": "plugins/tavily-tools",
-      "categories": [
-        "search",
-        "ai"
-      ],
+      "categories": ["search", "ai"],
       "description": "Tavily 検索ツール設定"
     },
     {
       "name": "parallel-executor-skill",
       "source": "claude-command-control",
       "path": "skills-templates/orchestration/parallel-executor-skill.md",
-      "categories": [
-        "agents",
-        "workflow",
-        "orchestration"
-      ],
+      "categories": ["agents", "workflow", "orchestration"],
       "description": "並列エージェント実行・進捗監視・結果集約"
     },
     {
       "name": "agent-communication-skill",
       "source": "claude-command-control",
       "path": "skills-templates/orchestration/agent-communication-skill.md",
-      "categories": [
-        "agents",
-        "workflow",
-        "communication"
-      ],
+      "categories": ["agents", "workflow", "communication"],
       "description": "エージェント間メッセージング・ハンドオフ・共有コンテキスト"
     },
     {
       "name": "ai-sdk-agents",
       "source": "claude-plugins-plus",
       "path": "plugins/ai-ml/ai-sdk-agents/skills/ai-sdk-agents",
-      "categories": [
-        "agents",
-        "ai",
-        "development"
-      ],
+      "categories": ["agents", "ai", "development"],
       "description": "AI SDK v5 マルチエージェントシステム構築"
     },
     {
       "name": "workflow-guide",
       "source": "claude-code-harness",
       "path": "skills/workflow-guide",
-      "categories": [
-        "workflow",
-        "development"
-      ],
+      "categories": ["workflow", "development"],
       "description": "ワークフローガイド・開発支援"
     },
     {
       "name": "observability",
       "source": "personal-ai-infra",
       "path": ".claude/Skills/Observability",
-      "categories": [
-        "monitoring",
-        "agents"
-      ],
+      "categories": ["monitoring", "agents"],
       "description": "AI エージェント監視・オブザーバビリティ"
     },
     {
       "name": "brand-guidelines",
       "source": "composio-awesome",
       "path": "brand-guidelines",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "brand-guidelines skill"
     },
     {
       "name": "canvas-design",
       "source": "composio-awesome",
       "path": "canvas-design",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "canvas-design skill"
     },
     {
       "name": "internal-comms",
       "source": "composio-awesome",
       "path": "internal-comms",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "internal-comms skill"
     },
     {
       "name": "mcp-builder",
       "source": "composio-awesome",
       "path": "mcp-builder",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "mcp-builder skill"
     },
     {
       "name": "skill-creator",
       "source": "composio-awesome",
       "path": "skill-creator",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "skill-creator skill"
     },
     {
       "name": "skill-share",
       "source": "composio-awesome",
       "path": "skill-share",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "skill-share skill"
     },
     {
       "name": "slack-gif-creator",
       "source": "composio-awesome",
       "path": "slack-gif-creator",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "slack-gif-creator skill"
     },
     {
       "name": "template-skill",
       "source": "composio-awesome",
       "path": "template-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "template-skill skill"
     },
     {
       "name": "theme-factory",
       "source": "composio-awesome",
       "path": "theme-factory",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "theme-factory skill"
     },
     {
       "name": "webapp-testing",
       "source": "composio-awesome",
       "path": "webapp-testing",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "webapp-testing skill"
     },
     {
       "name": "adaptyv",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/adaptyv",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "adaptyv skill"
     },
     {
       "name": "aeon",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/aeon",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "aeon skill"
     },
     {
       "name": "alphafold-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/alphafold-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "alphafold-database skill"
     },
     {
       "name": "anndata",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/anndata",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "anndata skill"
     },
     {
       "name": "arboreto",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/arboreto",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "arboreto skill"
     },
     {
       "name": "astropy",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/astropy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "astropy skill"
     },
     {
       "name": "benchling-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/benchling-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "benchling-integration skill"
     },
     {
       "name": "biomni",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/biomni",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "biomni skill"
     },
     {
       "name": "biopython",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/biopython",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "biopython skill"
     },
     {
       "name": "biorxiv-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/biorxiv-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "biorxiv-database skill"
     },
     {
       "name": "bioservices",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/bioservices",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "bioservices skill"
     },
     {
       "name": "brenda-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/brenda-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "brenda-database skill"
     },
     {
       "name": "cellxgene-census",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/cellxgene-census",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "cellxgene-census skill"
     },
     {
       "name": "chembl-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/chembl-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "chembl-database skill"
     },
     {
       "name": "cirq",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/cirq",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "cirq skill"
     },
     {
       "name": "citation-management",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/citation-management",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "citation-management skill"
     },
     {
       "name": "clinical-decision-support",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/clinical-decision-support",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "clinical-decision-support skill"
     },
     {
       "name": "clinical-reports",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/clinical-reports",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "clinical-reports skill"
     },
     {
       "name": "clinicaltrials-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/clinicaltrials-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "clinicaltrials-database skill"
     },
     {
       "name": "clinpgx-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/clinpgx-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "clinpgx-database skill"
     },
     {
       "name": "clinvar-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/clinvar-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "clinvar-database skill"
     },
     {
       "name": "cobrapy",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/cobrapy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "cobrapy skill"
     },
     {
       "name": "cosmic-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/cosmic-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "cosmic-database skill"
     },
     {
       "name": "dask",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/dask",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "dask skill"
     },
     {
       "name": "datacommons-client",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/datacommons-client",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "datacommons-client skill"
     },
     {
       "name": "datamol",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/datamol",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "datamol skill"
     },
     {
       "name": "deepchem",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/deepchem",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "deepchem skill"
     },
     {
       "name": "deeptools",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/deeptools",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "deeptools skill"
     },
     {
       "name": "denario",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/denario",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "denario skill"
     },
     {
       "name": "diffdock",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/diffdock",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "diffdock skill"
     },
     {
       "name": "dnanexus-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/dnanexus-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "dnanexus-integration skill"
     },
     {
       "name": "document-skills",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/document-skills",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "document-skills skill"
     },
     {
       "name": "drugbank-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/drugbank-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "drugbank-database skill"
     },
     {
       "name": "ena-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/ena-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "ena-database skill"
     },
     {
       "name": "ensembl-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/ensembl-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "ensembl-database skill"
     },
     {
       "name": "esm",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/esm",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "esm skill"
     },
     {
       "name": "etetoolkit",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/etetoolkit",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "etetoolkit skill"
     },
     {
       "name": "exploratory-data-analysis",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/exploratory-data-analysis",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "exploratory-data-analysis skill"
     },
     {
       "name": "fda-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/fda-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "fda-database skill"
     },
     {
       "name": "flowio",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/flowio",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "flowio skill"
     },
     {
       "name": "fluidsim",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/fluidsim",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "fluidsim skill"
     },
     {
       "name": "gene-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/gene-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "gene-database skill"
     },
     {
       "name": "generate-image",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/generate-image",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "generate-image skill"
     },
     {
       "name": "geniml",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/geniml",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "geniml skill"
     },
     {
       "name": "geo-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/geo-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "geo-database skill"
     },
     {
       "name": "geopandas",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/geopandas",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "geopandas skill"
     },
     {
       "name": "get-available-resources",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/get-available-resources",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "get-available-resources skill"
     },
     {
       "name": "gget",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/gget",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "gget skill"
     },
     {
       "name": "gtars",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/gtars",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "gtars skill"
     },
     {
       "name": "gwas-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/gwas-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "gwas-database skill"
     },
     {
       "name": "histolab",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/histolab",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "histolab skill"
     },
     {
       "name": "hmdb-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/hmdb-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "hmdb-database skill"
     },
     {
       "name": "hypogenic",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/hypogenic",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "hypogenic skill"
     },
     {
       "name": "hypothesis-generation",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/hypothesis-generation",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "hypothesis-generation skill"
     },
     {
       "name": "kegg-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/kegg-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "kegg-database skill"
     },
     {
       "name": "labarchive-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/labarchive-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "labarchive-integration skill"
     },
     {
       "name": "lamindb",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/lamindb",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "lamindb skill"
     },
     {
       "name": "latchbio-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/latchbio-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "latchbio-integration skill"
     },
     {
       "name": "latex-posters",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/latex-posters",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "latex-posters skill"
     },
     {
       "name": "literature-review",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/literature-review",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "literature-review skill"
     },
     {
       "name": "market-research-reports",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/market-research-reports",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "market-research-reports skill"
     },
     {
       "name": "markitdown",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/markitdown",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "markitdown skill"
     },
     {
       "name": "matchms",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/matchms",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "matchms skill"
     },
     {
       "name": "matplotlib",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/matplotlib",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "matplotlib skill"
     },
     {
       "name": "medchem",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/medchem",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "medchem skill"
     },
     {
       "name": "metabolomics-workbench-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/metabolomics-workbench-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "metabolomics-workbench-database skill"
     },
     {
       "name": "modal",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/modal",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "modal skill"
     },
     {
       "name": "molfeat",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/molfeat",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "molfeat skill"
     },
     {
       "name": "networkx",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/networkx",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "networkx skill"
     },
     {
       "name": "neurokit2",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/neurokit2",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "neurokit2 skill"
     },
     {
       "name": "neuropixels-analysis",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/neuropixels-analysis",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "neuropixels-analysis skill"
     },
     {
       "name": "omero-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/omero-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "omero-integration skill"
     },
     {
       "name": "openalex-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/openalex-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "openalex-database skill"
     },
     {
       "name": "opentargets-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/opentargets-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "opentargets-database skill"
     },
     {
       "name": "opentrons-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/opentrons-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "opentrons-integration skill"
     },
     {
       "name": "paper-2-web",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/paper-2-web",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "paper-2-web skill"
     },
     {
       "name": "pathml",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pathml",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pathml skill"
     },
     {
       "name": "pdb-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pdb-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pdb-database skill"
     },
     {
       "name": "peer-review",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/peer-review",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "peer-review skill"
     },
     {
       "name": "pennylane",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pennylane",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pennylane skill"
     },
     {
       "name": "perplexity-search",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/perplexity-search",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "perplexity-search skill"
     },
     {
       "name": "plotly",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/plotly",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "plotly skill"
     },
     {
       "name": "polars",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/polars",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "polars skill"
     },
     {
       "name": "pptx-posters",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pptx-posters",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pptx-posters skill"
     },
     {
       "name": "protocolsio-integration",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/protocolsio-integration",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "protocolsio-integration skill"
     },
     {
       "name": "pubchem-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pubchem-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pubchem-database skill"
     },
     {
       "name": "pubmed-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pubmed-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pubmed-database skill"
     },
     {
       "name": "pufferlib",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pufferlib",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pufferlib skill"
     },
     {
       "name": "pydeseq2",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pydeseq2",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pydeseq2 skill"
     },
     {
       "name": "pydicom",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pydicom",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pydicom skill"
     },
     {
       "name": "pyhealth",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pyhealth",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pyhealth skill"
     },
     {
       "name": "pylabrobot",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pylabrobot",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pylabrobot skill"
     },
     {
       "name": "pymatgen",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pymatgen",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pymatgen skill"
     },
     {
       "name": "pymc",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pymc",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pymc skill"
     },
     {
       "name": "pymoo",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pymoo",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pymoo skill"
     },
     {
       "name": "pyopenms",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pyopenms",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pyopenms skill"
     },
     {
       "name": "pysam",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pysam",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pysam skill"
     },
     {
       "name": "pytdc",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pytdc",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pytdc skill"
     },
     {
       "name": "pytorch-lightning",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/pytorch-lightning",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "pytorch-lightning skill"
     },
     {
       "name": "qiskit",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/qiskit",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "qiskit skill"
     },
     {
       "name": "qutip",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/qutip",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "qutip skill"
     },
     {
       "name": "rdkit",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/rdkit",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "rdkit skill"
     },
     {
       "name": "reactome-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/reactome-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "reactome-database skill"
     },
     {
       "name": "research-grants",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/research-grants",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "research-grants skill"
     },
     {
       "name": "research-lookup",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/research-lookup",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "research-lookup skill"
     },
     {
       "name": "scanpy",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scanpy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scanpy skill"
     },
     {
       "name": "scholar-evaluation",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scholar-evaluation",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scholar-evaluation skill"
     },
     {
       "name": "scientific-brainstorming",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-brainstorming",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-brainstorming skill"
     },
     {
       "name": "scientific-critical-thinking",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-critical-thinking",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-critical-thinking skill"
     },
     {
       "name": "scientific-schematics",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-schematics",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-schematics skill"
     },
     {
       "name": "scientific-slides",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-slides",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-slides skill"
     },
     {
       "name": "scientific-visualization",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-visualization",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-visualization skill"
     },
     {
       "name": "scientific-writing",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scientific-writing",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scientific-writing skill"
     },
     {
       "name": "scikit-bio",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scikit-bio",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scikit-bio skill"
     },
     {
       "name": "scikit-learn",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scikit-learn",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scikit-learn skill"
     },
     {
       "name": "scikit-survival",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scikit-survival",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scikit-survival skill"
     },
     {
       "name": "scvi-tools",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/scvi-tools",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scvi-tools skill"
     },
     {
       "name": "seaborn",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/seaborn",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "seaborn skill"
     },
     {
       "name": "shap",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/shap",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "shap skill"
     },
     {
       "name": "simpy",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/simpy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "simpy skill"
     },
     {
       "name": "stable-baselines3",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/stable-baselines3",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "stable-baselines3 skill"
     },
     {
       "name": "statistical-analysis",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/statistical-analysis",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "statistical-analysis skill"
     },
     {
       "name": "statsmodels",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/statsmodels",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "statsmodels skill"
     },
     {
       "name": "string-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/string-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "string-database skill"
     },
     {
       "name": "sympy",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/sympy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "sympy skill"
     },
     {
       "name": "torch_geometric",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/torch_geometric",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "torch_geometric skill"
     },
     {
       "name": "torchdrug",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/torchdrug",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "torchdrug skill"
     },
     {
       "name": "transformers",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/transformers",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "transformers skill"
     },
     {
       "name": "treatment-plans",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/treatment-plans",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "treatment-plans skill"
     },
     {
       "name": "umap-learn",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/umap-learn",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "umap-learn skill"
     },
     {
       "name": "uniprot-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/uniprot-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "uniprot-database skill"
     },
     {
       "name": "uspto-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/uspto-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "uspto-database skill"
     },
     {
       "name": "vaex",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/vaex",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "vaex skill"
     },
     {
       "name": "venue-templates",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/venue-templates",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "venue-templates skill"
     },
     {
       "name": "zarr-python",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/zarr-python",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "zarr-python skill"
     },
     {
       "name": "zinc-database",
       "source": "claude-scientific-skills",
       "path": "scientific-skills/zinc-database",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "zinc-database skill"
     },
     {
       "name": "agent-skill-bridge",
       "source": "claude-command-control",
       "path": "skills/agent-skill-bridge",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "agent-skill-bridge skill"
     },
     {
       "name": "architect-role-skill",
       "source": "claude-command-control",
       "path": "skills/architect-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "architect-role-skill skill"
     },
     {
       "name": "builder-role-skill",
       "source": "claude-command-control",
       "path": "skills/builder-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "builder-role-skill skill"
     },
     {
       "name": "content-research-writer",
       "source": "claude-command-control",
       "path": "skills/content-research-writer",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "content-research-writer skill"
     },
     {
       "name": "devops-role-skill",
       "source": "claude-command-control",
       "path": "skills/devops-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "devops-role-skill skill"
     },
     {
       "name": "documentation-update",
       "source": "claude-command-control",
       "path": "skills/documentation-update",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "documentation-update skill"
     },
     {
       "name": "file-categorization",
       "source": "claude-command-control",
       "path": "skills/file-categorization",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "file-categorization skill"
     },
     {
       "name": "researcher-role-skill",
       "source": "claude-command-control",
       "path": "skills/researcher-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "researcher-role-skill skill"
     },
     {
       "name": "root-cause-tracing",
       "source": "claude-command-control",
       "path": "skills/root-cause-tracing",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "root-cause-tracing skill"
     },
     {
       "name": "scribe-role-skill",
       "source": "claude-command-control",
       "path": "skills/scribe-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "scribe-role-skill skill"
     },
     {
       "name": "sharing-skills",
       "source": "claude-command-control",
       "path": "skills/sharing-skills",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "sharing-skills skill"
     },
     {
       "name": "skill-creator",
       "source": "claude-command-control",
       "path": "skills/skill-creator",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "skill-creator skill"
     },
     {
       "name": "skill-orchestrator",
       "source": "claude-command-control",
       "path": "skills/skill-orchestrator",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "skill-orchestrator skill"
     },
     {
       "name": "software-architecture",
       "source": "claude-command-control",
       "path": "skills/software-architecture",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "software-architecture skill"
     },
     {
       "name": "subagent-driven-development",
       "source": "claude-command-control",
       "path": "skills/subagent-driven-development",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "subagent-driven-development skill"
     },
     {
       "name": "ui-ux-pro-max",
       "source": "claude-command-control",
       "path": "skills/ui-ux-pro-max",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "ui-ux-pro-max skill"
     },
     {
       "name": "using-git-worktrees",
       "source": "claude-command-control",
       "path": "skills/using-git-worktrees",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "using-git-worktrees skill"
     },
     {
       "name": "using-superpowers",
       "source": "claude-command-control",
       "path": "skills/using-superpowers",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "using-superpowers skill"
     },
     {
       "name": "validator-role-skill",
       "source": "claude-command-control",
       "path": "skills/validator-role-skill",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "validator-role-skill skill"
     },
     {
       "name": "schema-optimization",
       "source": "claude-plugins-plus",
       "path": ".claude/skills/schema-optimization",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "schema-optimization skill"
     },
     {
       "name": "2agent",
       "source": "claude-code-harness",
       "path": "skills/2agent",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "2agent skill"
     },
     {
       "name": "auth",
       "source": "claude-code-harness",
       "path": "skills/auth",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "auth skill"
     },
     {
       "name": "ci",
       "source": "claude-code-harness",
       "path": "skills/ci",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "ci skill"
     },
     {
       "name": "deploy",
       "source": "claude-code-harness",
       "path": "skills/deploy",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "deploy skill"
     },
     {
       "name": "docs",
       "source": "claude-code-harness",
       "path": "skills/docs",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "docs skill"
     },
     {
       "name": "impl",
       "source": "claude-code-harness",
       "path": "skills/impl",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "impl skill"
     },
     {
       "name": "maintenance",
       "source": "claude-code-harness",
       "path": "skills/maintenance",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "maintenance skill"
     },
     {
       "name": "memory",
       "source": "claude-code-harness",
       "path": "skills/memory",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "memory skill"
     },
     {
       "name": "parallel-workflows",
       "source": "claude-code-harness",
       "path": "skills/parallel-workflows",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "parallel-workflows skill"
     },
     {
       "name": "plans-management",
       "source": "claude-code-harness",
       "path": "skills/plans-management",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "plans-management skill"
     },
     {
       "name": "principles",
       "source": "claude-code-harness",
       "path": "skills/principles",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "principles skill"
     },
     {
       "name": "review",
       "source": "claude-code-harness",
       "path": "skills/review",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "review skill"
     },
     {
       "name": "session-init",
       "source": "claude-code-harness",
       "path": "skills/session-init",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "session-init skill"
     },
     {
       "name": "session-memory",
       "source": "claude-code-harness",
       "path": "skills/session-memory",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "session-memory skill"
     },
     {
       "name": "setup",
       "source": "claude-code-harness",
       "path": "skills/setup",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "setup skill"
     },
     {
       "name": "troubleshoot",
       "source": "claude-code-harness",
       "path": "skills/troubleshoot",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "troubleshoot skill"
     },
     {
       "name": "ui",
       "source": "claude-code-harness",
       "path": "skills/ui",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "ui skill"
     },
     {
       "name": "verify",
       "source": "claude-code-harness",
       "path": "skills/verify",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "verify skill"
     },
     {
       "name": "vibecoder-guide",
       "source": "claude-code-harness",
       "path": "skills/vibecoder-guide",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "vibecoder-guide skill"
     },
     {
       "name": "workflow",
       "source": "claude-code-harness",
       "path": "skills/workflow",
-      "categories": [
-        "community"
-      ],
+      "categories": ["community"],
       "description": "workflow skill"
+    },
+    {
+      "name": "iso-13485-certification",
+      "source": "claude-scientific-skills",
+      "path": "scientific-skills/iso-13485-certification",
+      "categories": ["community"],
+      "description": "iso-13485-certification skill"
+    },
+    {
+      "name": "agentic-workflow-guide",
+      "source": "aktsmm-agent-skills",
+      "path": "agentic-workflow-guide",
+      "categories": ["community"],
+      "description": "agentic-workflow-guide skill"
+    },
+    {
+      "name": "pdf",
+      "source": "aktsmm-agent-skills",
+      "path": "pdf",
+      "categories": ["community"],
+      "description": "pdf skill"
+    },
+    {
+      "name": "braiins-ecosystem",
+      "source": "claude-command-control",
+      "path": "skills/braiins-ecosystem",
+      "categories": ["community"],
+      "description": "braiins-ecosystem skill"
+    },
+    {
+      "name": "braiins-insights",
+      "source": "claude-command-control",
+      "path": "skills/braiins-insights",
+      "categories": ["community"],
+      "description": "braiins-insights skill"
+    },
+    {
+      "name": "braiins-manager",
+      "source": "claude-command-control",
+      "path": "skills/braiins-manager",
+      "categories": ["community"],
+      "description": "braiins-manager skill"
+    },
+    {
+      "name": "braiins-os",
+      "source": "claude-command-control",
+      "path": "skills/braiins-os",
+      "categories": ["community"],
+      "description": "braiins-os skill"
+    },
+    {
+      "name": "braiins-pool",
+      "source": "claude-command-control",
+      "path": "skills/braiins-pool",
+      "categories": ["community"],
+      "description": "braiins-pool skill"
+    },
+    {
+      "name": "braiins-proxy",
+      "source": "claude-command-control",
+      "path": "skills/braiins-proxy",
+      "categories": ["community"],
+      "description": "braiins-proxy skill"
+    },
+    {
+      "name": "braiins-toolbox",
+      "source": "claude-command-control",
+      "path": "skills/braiins-toolbox",
+      "categories": ["community"],
+      "description": "braiins-toolbox skill"
+    },
+    {
+      "name": "farm-monitor",
+      "source": "claude-command-control",
+      "path": "skills/farm-monitor",
+      "categories": ["community"],
+      "description": "farm-monitor skill"
+    },
+    {
+      "name": "cursor-mem",
+      "source": "claude-code-harness",
+      "path": "skills/cursor-mem",
+      "categories": ["community"],
+      "description": "cursor-mem skill"
     }
   ],
   "categories": [
