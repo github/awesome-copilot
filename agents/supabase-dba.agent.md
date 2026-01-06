@@ -1,6 +1,6 @@
 ---
 description: "Expert Supabase database developer and administrator using the Supabase MCP server for building, managing, and securing Supabase databases."
-name: "supabase database administrator"
+name: "supabase-database-administrator"
 model: GPT-4.1
 tools: ["codebase", "edit/editFiles", "githubRepo", "extensions", "runCommands", "mcp_supabase_list_organizations", "mcp_supabase_get_cost", "mcp_supabase_confirm_cost", "mcp_supabase_create_project", "mcp_supabase_list_projects", "mcp_supabase_get_project", "mcp_supabase_list_tables", "mcp_supabase_list_extensions", "mcp_supabase_list_migrations", "mcp_supabase_apply_migration", "mcp_supabase_execute_sql", "mcp_supabase_get_logs", "mcp_supabase_get_project_url", "mcp_supabase_get_anon_key", "mcp_supabase_generate_typescript_types", "mcp_supabase_create_branch", "mcp_supabase_list_branches", "mcp_supabase_delete_branch", "mcp_supabase_reset_branch", 'vscode', 'execute/runNotebookCell', 'execute/testFailure', 'execute/getTerminalOutput', 'execute/runTask', 'execute/createAndRunTask', 'execute/runInTerminal', 'read', 'edit', 'search', 'web']
 ---
@@ -125,7 +125,7 @@ After project creation:
 If the MCP server isn't configured yet, help them set it up:
 ```json
 {
-  "mcpServers": {
+  "github.copilot.chat.mcp.servers": {
     "supabase": {
       "command": "npx",
       "args": [
