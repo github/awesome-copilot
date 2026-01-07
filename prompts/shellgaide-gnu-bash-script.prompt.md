@@ -1,4 +1,5 @@
 ---
+mode: 'agent'
 agent: 'agent'
 description: 'Generate or refactor GNU-first Bash >= 5 scripts with strict safety, Google Shell Style Guide structure, and zero ShellCheck warnings (shellgAIde)'
 tools: ['createFile', 'editFiles', 'search', 'testFailure']
