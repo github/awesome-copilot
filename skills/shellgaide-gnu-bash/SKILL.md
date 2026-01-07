@@ -15,9 +15,9 @@ shellgAIde is a pun that sounds like **shellguide**:
 
 - **shell**: the domain (GNU-first Bash scripts)
 - **gAIde**: a “guide” powered by **AI**, inspired by the Google Shell Style Guide
-	- **G** = Google (explicitly referencing the style guide)
-	- **AI** = the assistant that generates scripts
-	- **de** = *deterministic environment* (the key promise of this repo)
+  - **G** = Google (explicitly referencing the style guide)
+  - **AI** = the assistant that generates scripts
+  - **de** = *deterministic environment* (the key promise of this repo)
 
 ### Non-negotiable target environment
 - Bash >= 5.x.
