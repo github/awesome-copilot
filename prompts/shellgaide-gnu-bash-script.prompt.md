@@ -99,5 +99,3 @@ To get the best result, provide:
 
 - shellgAIde repository: https://github.com/fragolinux/shellgAIde
 - Google Shell Style Guide: https://google.github.io/styleguide/shellguide.html
-
-
