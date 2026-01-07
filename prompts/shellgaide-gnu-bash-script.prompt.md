@@ -1,6 +1,5 @@
 ---
 mode: 'agent'
-agent: 'agent'
 description: 'Generate or refactor GNU-first Bash >= 5 scripts with strict safety, Google Shell Style Guide structure, and zero ShellCheck warnings (shellgAIde)'
 tools: ['createFile', 'editFiles', 'search', 'testFailure']
 ---
@@ -10,7 +9,7 @@ tools: ['createFile', 'editFiles', 'search', 'testFailure']
 Repository: https://github.com/fragolinux/shellgAIde
 
 Companion agent definition (reference):
-- [agents/shellgaide-gnu-bash.agent.md](../agents/shellgaide-gnu-bash.agent.md)
+- [../agents/shellgaide-gnu-bash.agent.md](../agents/shellgaide-gnu-bash.agent.md)
 
 Follow these instructions:
 - [instructions/shellgaide-gnu-bash.instructions.md](../instructions/shellgaide-gnu-bash.instructions.md)

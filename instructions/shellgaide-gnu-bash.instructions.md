@@ -11,7 +11,7 @@ Repository: https://github.com/fragolinux/shellgAIde
 
 shellgAIde is a pun that sounds like **shellguide**:
 
-- **shell**: the domain (bash, portable scripts)
+- **shell**: the domain (GNU-first Bash / shell scripting)
 - **gAIde**: a “guide” powered by **AI**, inspired by the Google Shell Style Guide
   - **G** = Google (explicitly referencing the style guide)
   - **AI** = the assistant that generates scripts
@@ -65,7 +65,7 @@ Executable code outside functions is forbidden (except minimal setup).
 ## Scope note: executable vs sourced files
 
 - The mandatory executable structure above applies to executable scripts.
-- For sourced library files, do not force the full template, but keep the same safety/style rules that apply (quoting, no `eval`, no `[` ).
+- For sourced library files, do not force the full template, but keep the same safety/style rules that apply (quoting, no `eval`, no `[`).
 
 ## Naming and style (Google Shell Style Guide)
 
