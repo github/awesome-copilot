@@ -32,7 +32,7 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 
 ```
 owner: repository owner (org or user)
-repo: repository name  
+repo: repository name
 title: clear, actionable title
 body: structured markdown content
 ```
