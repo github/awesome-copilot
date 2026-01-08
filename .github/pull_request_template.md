@@ -1,7 +1,7 @@
 ## Pull Request Checklist
 
 - [ ] I have read and followed the [CONTRIBUTING.md](https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md) guidelines.
-- [ ] My contribution adds a new instruction, prompt, or chat mode file in the correct directory.
+- [ ] My contribution adds a new instruction, prompt, agent or skill file(s) in the correct directory.
 - [ ] The file follows the required naming convention.
 - [ ] The content is clearly structured and follows the example format.
 - [ ] I have tested my instructions, prompt, or chat mode with GitHub Copilot.
@@ -19,9 +19,10 @@
 
 - [ ] New instruction file.
 - [ ] New prompt file.
-- [ ] New chat mode file.
+- [ ] New agent file.
+- [ ] New skill folder.
 - [ ] New collection file.
-- [ ] Update to existing instruction, prompt, chat mode, or collection.
+- [ ] Update to existing instruction, prompt, agent, skill or collection.
 - [ ] Other (please specify):
 
 ---
