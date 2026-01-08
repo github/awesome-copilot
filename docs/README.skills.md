@@ -22,4 +22,6 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 
 | Name | Description | Bundled Assets |
 | ---- | ----------- | -------------- |
+| [azure-role-selector](../skills/azure-role-selector/SKILL.md) | When user is asking for guidance for which role to assign to an identity given desired permissions, this agent helps them understand the role that will meet the requirements with least privilege access and how to apply that role. | `LICENSE.txt` |
+| [snowflake-semanticview](../skills/snowflake-semanticview/SKILL.md) | Create, alter, and validate Snowflake semantic views using Snowflake CLI (snow). Use when asked to build or troubleshoot semantic views/semantic layer definitions with CREATE/ALTER SEMANTIC VIEW, to validate semantic-view DDL against Snowflake via CLI, or to guide Snowflake CLI installation and connection setup. | None |
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |

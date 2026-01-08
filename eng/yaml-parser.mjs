@@ -161,14 +161,27 @@ function parseSkillMetadata(skillPath) {
         return null;
       }
 
-      // List bundled assets (all files except SKILL.md)
-      const assets = fs
-        .readdirSync(skillPath)
-        .filter((file) => {
-          const filePath = path.join(skillPath, file);
-          return file !== "SKILL.md" && fs.statSync(filePath).isFile();
-        })
-        .sort();
+      // List bundled assets (all files except SKILL.md), recursing through subdirectories
+      const getAllFiles = (dirPath, arrayOfFiles = []) => {
+        const files = fs.readdirSync(dirPath);
+
+        files.forEach((file) => {
+          const filePath = path.join(dirPath, file);
+          if (fs.statSync(filePath).isDirectory()) {
+            arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
+          } else {
+            const relativePath = path.relative(skillPath, filePath);
+            if (relativePath !== "SKILL.md") {
+              // Normalize path separators to forward slashes for cross-platform consistency
+              arrayOfFiles.push(relativePath.replace(/\\/g, '/'));
+            }
+          }
+        });
+
+        return arrayOfFiles;
+      };
+
+      const assets = getAllFiles(skillPath).sort();
 
       return {
         name: frontmatter.name,
