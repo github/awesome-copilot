@@ -50,13 +50,13 @@
           "path": {
             "type": "string",
             "description": "Relative path from repository root to the item file",
-            "pattern": "^(prompts|instructions|agents)/[^/]+\\.(prompt|instructions|agent)\\.md$",
+            "pattern": "^(?:skills/[^/]+/SKILL\\.md|(prompts|instructions|agents)/[^/]+\\.(prompt|instructions|agent)\\.md)$",
             "minLength": 1
           },
           "kind": {
             "type": "string",
             "description": "Type of the item",
-            "enum": ["prompt", "instruction", "agent"]
+            "enum": ["prompt", "instruction", "agent", "skill"]
           },
           "usage": {
             "type": "string",

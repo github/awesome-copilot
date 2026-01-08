@@ -77,6 +77,29 @@ Custom agents for GitHub Copilot, making it easy for users and organizations to 
 - Access installed agents through the VS Code Chat interface, assign them in CCA, or through Copilot CLI (coming soon)
 - Agents will have access to tools from configured MCP servers
 - Follow agent-specific instructions for optimal usage`,
+
+  skillsSection: `## 🎯 Agent Skills
+
+Agent Skills are self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks. Based on the [Agent Skills specification](https://agentskills.io/specification), each skill contains a \`SKILL.md\` file with detailed instructions that agents load on-demand.
+
+Skills differ from other primitives by supporting bundled assets (scripts, code samples, reference data) that agents can utilize when performing specialized tasks.`,
+
+  skillsUsage: `### How to Use Agent Skills
+
+**What's Included:**
+- Each skill is a folder containing a \`SKILL.md\` instruction file
+- Skills may include helper scripts, code templates, or reference data
+- Skills follow the Agent Skills specification for maximum compatibility
+
+**When to Use:**
+- Skills are ideal for complex, repeatable workflows that benefit from bundled resources
+- Use skills when you need code templates, helper utilities, or reference data alongside instructions
+- Skills provide progressive disclosure - loaded only when needed for specific tasks
+
+**Usage:**
+- Browse the skills table below to find relevant capabilities
+- Copy the skill folder to your local skills directory
+- Reference skills in your prompts or let the agent discover them automatically`,
 };
 
 const vscodeInstallImage =
@@ -98,8 +121,15 @@ const ROOT_FOLDER = path.join(__dirname, "..");
 const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
+const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
 const MAX_COLLECTION_ITEMS = 50;
+
+// Agent Skills validation constants
+const SKILL_NAME_MIN_LENGTH = 1;
+const SKILL_NAME_MAX_LENGTH = 64;
+const SKILL_DESCRIPTION_MIN_LENGTH = 10;
+const SKILL_DESCRIPTION_MAX_LENGTH = 1024;
 
 const DOCS_DIR = path.join(ROOT_FOLDER, "docs");
 
@@ -113,8 +143,13 @@ export {
   INSTRUCTIONS_DIR,
   PROMPTS_DIR,
   AGENTS_DIR,
+  SKILLS_DIR,
   COLLECTIONS_DIR,
   MAX_COLLECTION_ITEMS,
+  SKILL_NAME_MIN_LENGTH,
+  SKILL_NAME_MAX_LENGTH,
+  SKILL_DESCRIPTION_MIN_LENGTH,
+  SKILL_DESCRIPTION_MAX_LENGTH,
   DOCS_DIR,
 };
 

@@ -41,8 +41,32 @@
         "${input:tags}"
       ],
       "problemMatcher": [],
-      "group": "build",
+      "group": "none",
       "detail": "Creates a new collection manifest template.",
+      "dependsOn": "npm install"
+    },
+    {
+      "label": "create-skill",
+      "type": "shell",
+      "command": "npm run skill:create",
+      "args": [
+        "--name",
+        "${input:skillName}",
+        "--description",
+        "${input:skillDescription}"
+      ],
+      "problemMatcher": [],
+      "group": "none",
+      "detail": "Creates a new skill template.",
+      "dependsOn": "npm install"
+    },
+    {
+      "label": "validate-skills",
+      "type": "shell",
+      "command": "npm run skill:validate",
+      "problemMatcher": [],
+      "group": "build",
+      "detail": "Validates all skill manifest files.",
       "dependsOn": "npm install"
     }
   ],
@@ -57,6 +81,18 @@
       "id": "tags",
       "description": "Comma separated list of tags",
       "default": "tag1,tag2",
+      "type": "promptString"
+    },
+    {
+      "id": "skillName",
+      "description": "Skill name (PascalCase)",
+      "default": "MySkill",
+      "type": "promptString"
+    },
+    {
+      "id": "skillDescription",
+      "description": "Brief description of the skill",
+      "default": "A brief description of my skill.",
       "type": "promptString"
     }
   ]

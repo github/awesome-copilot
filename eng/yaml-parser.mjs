@@ -1,5 +1,6 @@
 // YAML parser for collection files and frontmatter parsing using vfile-matter
 import fs from "fs";
+import path from "path";
 import yaml from "js-yaml";
 import { VFile } from "vfile";
 import { matter } from "vfile-matter";
@@ -137,11 +138,69 @@ function extractMcpServerConfigs(filePath) {
   });
 }
 
+/**
+ * Parse SKILL.md frontmatter and list bundled assets in a skill folder
+ * @param {string} skillPath - Path to skill folder
+ * @returns {object|null} Skill metadata with name, description, and assets array
+ */
+function parseSkillMetadata(skillPath) {
+  return safeFileOperation(
+    () => {
+      const skillFile = path.join(skillPath, "SKILL.md");
+      if (!fs.existsSync(skillFile)) {
+        return null;
+      }
+
+      const frontmatter = parseFrontmatter(skillFile);
+
+      // Validate required fields
+      if (!frontmatter?.name || !frontmatter?.description) {
+        console.warn(
+          `Invalid skill at ${skillPath}: missing name or description in frontmatter`
+        );
+        return null;
+      }
+
+      // List bundled assets (all files except SKILL.md), recursing through subdirectories
+      const getAllFiles = (dirPath, arrayOfFiles = []) => {
+        const files = fs.readdirSync(dirPath);
+
+        files.forEach((file) => {
+          const filePath = path.join(dirPath, file);
+          if (fs.statSync(filePath).isDirectory()) {
+            arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
+          } else {
+            const relativePath = path.relative(skillPath, filePath);
+            if (relativePath !== "SKILL.md") {
+              // Normalize path separators to forward slashes for cross-platform consistency
+              arrayOfFiles.push(relativePath.replace(/\\/g, '/'));
+            }
+          }
+        });
+
+        return arrayOfFiles;
+      };
+
+      const assets = getAllFiles(skillPath).sort();
+
+      return {
+        name: frontmatter.name,
+        description: frontmatter.description,
+        assets,
+        path: skillPath,
+      };
+    },
+    skillPath,
+    null
+  );
+}
+
 export {
   parseCollectionYaml,
   parseFrontmatter,
   extractAgentMetadata,
   extractMcpServers,
   extractMcpServerConfigs,
+  parseSkillMetadata,
   safeFileOperation,
 };

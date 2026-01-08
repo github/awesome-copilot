@@ -11,7 +11,9 @@
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
     "collection:validate": "node ./eng/validate-collections.mjs",
-    "collection:create": "node ./eng/create-collection.mjs"
+    "collection:create": "node ./eng/create-collection.mjs",
+    "skill:validate": "node ./eng/validate-skills.mjs",
+    "skill:create": "node ./eng/create-skill.mjs"
   },
   "repository": {
     "type": "git",

@@ -7,6 +7,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Agents** - Specialized GitHub Copilot agents that integrate with MCP servers
 - **Prompts** - Task-specific prompts for code generation and problem-solving
 - **Instructions** - Coding standards and best practices applied to specific file patterns
+- **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Collections** - Curated collections organized around specific themes and workflows
 
 ## Repository Structure
@@ -16,6 +17,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── agents/           # Custom GitHub Copilot agent definitions (.agent.md files)
 ├── prompts/          # Task-specific prompts (.prompt.md files)
 ├── instructions/     # Coding standards and guidelines (.instructions.md files)
+├── skills/           # Agent Skills folders (each with SKILL.md and optional bundled assets)
 ├── collections/      # Curated collections of resources (.md files)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
@@ -36,13 +38,19 @@ npm run collection:validate
 
 # Create a new collection
 npm run collection:create -- --id <collection-id> --tags <tags>
+
+# Validate agent skills
+npm run skill:validate
+
+# Create a new skill
+npm run skill:create -- --name <skill-name>
 ```
 
 ## Development Workflow
 
-### Working with Agents, Prompts, and Instructions
+### Working with Agents, Prompts, Instructions, and Skills
 
-All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction files (`*.instructions.md`) must include proper markdown front matter:
+All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets:
 
 #### Agent Files (*.agent.md)
 - Must have `description` field (wrapped in single quotes)
@@ -62,20 +70,40 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 - Must have `applyTo` field specifying file patterns (e.g., `'**.js, **.ts'`)
 - File names should be lower case with words separated by hyphens
 
+#### Agent Skills (skills/*/SKILL.md)
+- Each skill is a folder containing a `SKILL.md` file
+- SKILL.md must have `name` field (lowercase with hyphens, matching folder name, max 64 characters)
+- SKILL.md must have `description` field (wrapped in single quotes, 10-1024 characters)
+- Folder names should be lower case with words separated by hyphens
+- Skills can include bundled assets (scripts, templates, data files)
+- Bundled assets should be referenced in the SKILL.md instructions
+- Asset files should be reasonably sized (under 5MB per file)
+- Skills follow the [Agent Skills specification](https://agentskills.io/specification)
+
 ### Adding New Resources
 
-When adding a new agent, prompt, or instruction file:
+When adding a new agent, prompt, instruction, or skill:
 
+**For Agents, Prompts, and Instructions:**
 1. Create the file with proper front matter
 2. Add the file to the appropriate directory
 3. Update the README.md by running: `npm run build`
 4. Verify the resource appears in the generated README
+
+**For Skills:**
+1. Run `npm run skill:create` to scaffold a new skill folder
+2. Edit the generated SKILL.md file with your instructions
+3. Add any bundled assets (scripts, templates, data) to the skill folder
+4. Run `npm run skill:validate` to validate the skill structure
+5. Update the README.md by running: `npm run build`
+6. Verify the skill appears in the generated README
 
 ### Testing Instructions
 
 ```bash
 # Run all validation checks
 npm run collection:validate
+npm run skill:validate
 
 # Build and verify README generation
 npm run build
@@ -147,6 +175,15 @@ For agent files (*.agent.md):
 - [ ] File name is lower case with hyphens
 - [ ] Includes `model` field (strongly recommended)
 - [ ] Considers using `tools` field
+
+For skills (skills/*/):
+- [ ] Folder contains a SKILL.md file
+- [ ] SKILL.md has markdown front matter
+- [ ] Has `name` field matching folder name (lowercase with hyphens, max 64 characters)
+- [ ] Has non-empty `description` field wrapped in single quotes (10-1024 characters)
+- [ ] Folder name is lower case with hyphens
+- [ ] Any bundled assets are referenced in SKILL.md
+- [ ] Bundled assets are under 5MB per file
 
 ## Contributing
 

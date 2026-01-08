@@ -151,7 +151,7 @@ First Class Collections: a class that contains an array as an attribute should n
    ```
 
 5. **One Dot per Line**:
-   - Limit the number of method calls in a single line to improve readability and maintainability.
+   - Avoid violating Law of Demeter by only having a single dot per line.
 
    ```csharp
    // Bad Example - Multiple dots in a single line
@@ -160,11 +160,20 @@ First Class Collections: a class that contains an array as an attribute should n
        // Do something with userEmail
    }
    // Good Example - One dot per line
+   public class User {
+     public NormalizedEmail GetEmail() {
+       return NormalizedEmail.Create(/*...*/);       
+     }
+   }
+   public class Order {
+     /*...*/
+     public NormalizedEmail ConfirmationEmail() {
+       return User.GetEmail();         
+     }
+   }
    public void ProcessOrder(Order order) {
-       var user = order.User;
-       var email = user.GetEmail();
-       var userEmail = email.ToUpper().Trim();
-       // Do something with userEmail
+       var confirmationEmail = order.ConfirmationEmail();
+       // Do something with confirmationEmail
    }
    ```
 
