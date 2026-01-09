@@ -13,10 +13,25 @@ Instructions for creating effective and maintainable prompt files that guide Git
 - Primary references: VS Code documentation on prompt files and organization-specific conventions.
 
 ## Frontmatter Requirements
-- Include `description` (single sentence, actionable outcome), `mode` (explicitly choose `ask`, `edit`, or `agent`), and `tools` (minimal set of tool bundles required to fulfill the prompt).
-- Declare `model` when the prompt depends on a specific capability tier; otherwise inherit the active model.
-- Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization.
-- Use consistent quoting (single quotes recommended) and keep one field per line for readability and version control clarity.
+
+Every prompt file should include YAML frontmatter with the following fields:
+
+### Required/Recommended Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `description` | Recommended | A short description of the prompt (single sentence, actionable outcome) |
+| `name` | Optional | The name shown after typing `/` in chat. Defaults to filename if not specified |
+| `agent` | Recommended | The agent to use: `ask`, `edit`, `agent`, or a custom agent name. Defaults to current agent |
+| `model` | Optional | The language model to use. Defaults to the currently selected model |
+| `tools` | Optional | List of tool/tool set names available for this prompt |
+| `argument-hint` | Optional | Hint text shown in chat input to guide user interaction |
+
+### Guidelines
+
+- Use consistent quoting (single quotes recommended) and keep one field per line for readability and version control clarity
+- If `tools` are specified and the current agent is `ask` or `edit`, the default agent becomes `agent`
+- Preserve any additional metadata (`language`, `tags`, `visibility`, etc.) required by your organization
 
 ## File Naming and Placement
 - Use kebab-case filenames ending with `.prompt.md` and store them under `.github/prompts/` unless your workspace standard specifies another directory.

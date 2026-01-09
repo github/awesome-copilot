@@ -21,7 +21,8 @@
 - [ ] New prompt file.
 - [ ] New chat mode file.
 - [ ] New collection file.
-- [ ] Update to existing instruction, prompt, chat mode, or collection.
+- [ ] New skill file.
+- [ ] Update to existing instruction, prompt, chat mode, collection or skill.
 - [ ] Other (please specify):
 
 ---
