@@ -1,4 +1,5 @@
 ---
+name: "Microsoft Agent Framework Python Mode Instructions"
 description: "Create, update, refactor, explain or work with code using the Python version of Microsoft Agent Framework."
 tools: ["changes", "search/codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runNotebooks", "runTasks", "runTests", "search", "search/searchResults", "runCommands/terminalLastCommand", "runCommands/terminalSelection", "testFailure", "usages", "vscodeAPI", "microsoft.docs.mcp", "github", "configurePythonEnvironment", "getPythonEnvironmentInfo", "getPythonExecutableCommand", "installPythonPackage"]
 model: 'claude-sonnet-4'

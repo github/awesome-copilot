@@ -1,6 +1,6 @@
 ---
-name: DiffblueCover
-description: Expert agent for creating unit tests for java applications using Diffblue Cover.
+name: "DiffblueCover"
+description: "Expert agent for creating unit tests for java applications using Diffblue Cover."
 tools: [ 'DiffblueCover/*' ]
 mcp-servers:
   # Checkout the Diffblue Cover MCP server from https://github.com/diffblue/cover-mcp/, and follow

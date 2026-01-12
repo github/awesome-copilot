@@ -1,5 +1,6 @@
 ---
-description: 'Expert Pimcore development assistant specializing in CMS, DAM, PIM, and E-Commerce solutions with Symfony integration'
+name: "Pimcore Expert"
+description: "Expert Pimcore development assistant specializing in CMS, DAM, PIM, and E-Commerce solutions with Symfony integration"
 model: GPT-4.1 | 'gpt-5' | 'Claude Sonnet 4.5'
 tools: ['codebase', 'terminalCommand', 'edit/editFiles', 'fetch', 'githubRepo', 'runTests', 'problems']
 ---
