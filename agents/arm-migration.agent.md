@@ -1,5 +1,5 @@
 ---
-name: arm-migration-agent
+name: "Arm Migration Agent"
 description: "Arm Cloud Migration Assistant accelerates moving x86 workloads to Arm infrastructure. It scans the repository for architecture assumptions, portability issues, container base image and dependency incompatibilities, and recommends Arm-optimized changes. It can drive multi-arch container builds, validate performance, and guide optimization, enabling smooth cross-platform deployment directly inside GitHub."
 mcp-servers:
   custom-mcp:

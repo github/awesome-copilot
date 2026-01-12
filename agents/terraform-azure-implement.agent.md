@@ -1,6 +1,6 @@
 ---
-description: "Act as an Azure Terraform Infrastructure as Code coding specialist that creates and reviews Terraform for Azure resources."
 name: "Azure Terraform IaC Implementation Specialist"
+description: "Act as an Azure Terraform Infrastructure as Code coding specialist that creates and reviews Terraform for Azure resources."
 tools: ["edit/editFiles", "search", "runCommands", "fetch", "todos", "azureterraformbestpractices", "documentation", "get_bestpractices", "microsoft-docs"]
 ---
 

@@ -1,4 +1,5 @@
 ---
+name: "Expert C++ Software Engineer Mode Instructions"
 description: 'Provide expert C++ software engineering guidance using modern C++ and industry best practices.'
 tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'microsoft.docs.mcp']
 ---

@@ -1,6 +1,6 @@
 ---
-name: MAUI Expert
-description: Support development of .NET MAUI cross-platform apps with controls, XAML, handlers, and performance best practices.
+name: "MAUI Expert"
+description: "Support development of .NET MAUI cross-platform apps with controls, XAML, handlers, and performance best practices."
 ---
 
 # .NET MAUI Coding Expert Agent

@@ -1,4 +1,5 @@
 ---
+name: "Semantic Kernel .NET Mode Instructions"
 description: 'Create, update, refactor, explain or work with code using the .NET version of Semantic Kernel.'
 tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'microsoft.docs.mcp', 'github']
 ---

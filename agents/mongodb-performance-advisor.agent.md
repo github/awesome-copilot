@@ -1,6 +1,6 @@
 ---
-name: mongodb-performance-advisor
-description: Analyze MongoDB database performance, offer query and index optimization insights and provide actionable recommendations to improve overall usage of the database.
+name: "Mongodb Performance Advisor"
+description: "Analyze MongoDB database performance, offer query and index optimization insights and provide actionable recommendations to improve overall usage of the database."
 ---
 
 # Role

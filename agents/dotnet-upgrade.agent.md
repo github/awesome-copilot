@@ -1,4 +1,5 @@
 ---
+name: ".NET Upgrade Collection"
 description: 'Perform janitorial tasks on C#/.NET code including cleanup, modernization, and tech debt remediation.'
 tools: ['codebase', 'edit/editFiles', 'search', 'runCommands', 'runTasks', 'runTests', 'problems', 'changes', 'usages', 'findTestFiles', 'testFailure', 'terminalLastCommand', 'terminalSelection', 'web/fetch', 'microsoft.docs.mcp']
 ---
@@ -20,7 +21,7 @@ Discover and plan your .NET upgrade journey!
 mode: dotnet-upgrade
 title: Analyze current .NET framework versions and create upgrade plan
 ---
-Analyze the repository and list each project's current TargetFramework 
+Analyze the repository and list each project's current TargetFramework
 along with the latest available LTS version from Microsoft's release schedule.
 Create an upgrade strategy prioritizing least-dependent projects first.
 ```
