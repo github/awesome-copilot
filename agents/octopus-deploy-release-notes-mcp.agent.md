@@ -1,5 +1,5 @@
 ---
-name: "Octopus Release Notes With Mcp"
+name: "Octopus Release Notes With MCP"
 description: "Generate release notes for a release in Octopus Deploy. The tools for this MCP server provide access to the Octopus Deploy APIs."
 mcp-servers:
   octopus:
