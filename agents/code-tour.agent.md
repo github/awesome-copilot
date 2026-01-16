@@ -1,6 +1,6 @@
 ---
-description: 'Expert agent for creating and maintaining VSCode CodeTour files with comprehensive schema support and best practices'
-name: 'VSCode Tour Expert'
+name: "VSCode Tour Expert"
+description: "Expert agent for creating and maintaining VSCode CodeTour files with comprehensive schema support and best practices"
 ---
 
 # VSCode Tour Expert 🗺️

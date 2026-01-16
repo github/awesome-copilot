@@ -1,5 +1,6 @@
 ---
-description: 'Validate user understanding of code, design patterns, and implementation details through guided questioning.'
+name: "Demonstrate Understanding Mode Instructions"
+description: "Validate user understanding of code, design patterns, and implementation details through guided questioning."
 tools: ['codebase', 'web/fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
 ---
 # Demonstrate Understanding mode instructions

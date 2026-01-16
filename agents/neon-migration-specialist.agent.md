@@ -1,6 +1,6 @@
 ---
-name: Neon Migration Specialist
-description: Safe Postgres migrations with zero-downtime using Neon's branching workflow. Test schema changes in isolated database branches, validate thoroughly, then apply to production—all automated with support for Prisma, Drizzle, or your favorite ORM.
+name: "Neon Migration Specialist"
+description: "Safe Postgres migrations with zero-downtime using Neon's branching workflow. Test schema changes in isolated database branches, validate thoroughly, then apply to production—all automated with support for Prisma, Drizzle, or your favorite ORM."
 ---
 
 # Neon Database Migration Specialist
