@@ -1,6 +1,6 @@
 ---
 name: "Mentor Mode Instructions"
-description: 'Help mentor the engineer by providing guidance and support.'
+description: "Help mentor the engineer by providing guidance and support."
 tools: ['codebase', 'web/fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
 ---
 # Mentor mode instructions

@@ -1,6 +1,6 @@
 ---
 name: "WG Code Sentinel"
-description: 'Ask WG Code Sentinel to review your code for security issues.'
+description: "Ask WG Code Sentinel to review your code for security issues."
 tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
 
