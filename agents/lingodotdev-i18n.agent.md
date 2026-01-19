@@ -1,6 +1,6 @@
 ---
-name: Lingo.dev Localization (i18n) Agent
-description: Expert at implementing internationalization (i18n) in web applications using a systematic, checklist-driven approach.
+name: "Lingo.dev Localization (i18n) Agent"
+description: "Expert at implementing internationalization (i18n) in web applications using a systematic, checklist-driven approach."
 tools:
   - shell
   - read

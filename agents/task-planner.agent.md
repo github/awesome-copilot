@@ -1,6 +1,6 @@
 ---
-description: "Task planner for creating actionable implementation plans - Brought to you by microsoft/edge-ai"
 name: "Task Planner Instructions"
+description: "Task planner for creating actionable implementation plans - Brought to you by microsoft/edge-ai"
 tools: ["changes", "search/codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runNotebooks", "runTests", "search", "search/searchResults", "runCommands/terminalLastCommand", "runCommands/terminalSelection", "testFailure", "usages", "vscodeAPI", "terraform", "Microsoft Docs", "azure_get_schema_for_Bicep", "context7"]
 ---
 

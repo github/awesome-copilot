@@ -1,7 +1,6 @@
 ---
-
-name: Senior Cloud Architect
-description: Expert in modern architecture design patterns, NFR requirements, and creating comprehensive architectural diagrams and documentation
+name: "Senior Cloud Architect"
+description: "Expert in modern architecture design patterns, NFR requirements, and creating comprehensive architectural diagrams and documentation"
 ---
 
 # Senior Cloud Architect Agent

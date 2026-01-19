@@ -1,4 +1,5 @@
 ---
+name: "Microsoft Agent Framework .NET Mode Instructions"
 description: "Create, update, refactor, explain or work with code using the .NET version of Microsoft Agent Framework."
 tools: ["changes", "codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runNotebooks", "runTasks", "runTests", "search", "searchResults", "terminalLastCommand", "terminalSelection", "testFailure", "usages", "vscodeAPI", "microsoft.docs.mcp", "github"]
 model: 'claude-sonnet-4'

@@ -1,6 +1,6 @@
 ---
-description: "Expert assistance for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration."
 name: "Ruby MCP Expert"
+description: "Expert assistance for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration."
 model: GPT-4.1
 ---
 

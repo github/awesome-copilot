@@ -1,5 +1,5 @@
 ---
-name: apify-integration-expert
+name: "Apify Integration Expert"
 description: "Expert agent for integrating Apify Actors into codebases. Handles Actor selection, workflow design, implementation across JavaScript/TypeScript and Python, testing, and production-ready deployment."
 mcp-servers:
   apify:

@@ -1,10 +1,6 @@
 ---
-name: launchdarkly-flag-cleanup
-description: >
-  A specialized GitHub Copilot agent that uses the LaunchDarkly MCP server to safely
-  automate feature flag cleanup workflows. This agent determines removal readiness,
-  identifies the correct forward value, and creates PRs that preserve production behavior
-  while removing obsolete flags and updating stale defaults.
+name: "Launchdarkly Flag Cleanup"
+description: "A specialized GitHub Copilot agent that uses the LaunchDarkly MCP server to safely automate feature flag cleanup workflows. This agent determines removal readiness, identifies the correct forward value, and creates PRs that preserve production behavior while removing obsolete flags and updating stale defaults."
 tools: ['*']
 mcp-servers:
   launchdarkly:
@@ -129,7 +125,7 @@ Search the codebase for all references to the flag key and remove them:
    - `featureFlags['flag-key']`
    - Any other sdk-specific patterns
 
-2. **Replace with forward value**: 
+2. **Replace with forward value**:
    - If the flag was used in conditionals, preserve the branch corresponding to the forward value
    - Remove the alternate branch and any dead code
    - If the flag was assigned to a variable, replace with the forward value directly
@@ -201,7 +197,7 @@ Create a PR with a clear, structured description:
   - SDK methods: `variation()`, `boolVariation()`, `variationDetail()`, `allFlags()`
   - Constants/enums that reference the flag
   - Wrapper functions (e.g., `featureFlagService.isEnabled('flag-key')`)
-  - Ensure all patterns are updated and flag different default values as inconsistencies  
+  - Ensure all patterns are updated and flag different default values as inconsistencies
 - **Dynamic flag keys**: If flag keys are constructed dynamically (e.g., `flag-${id}`), warn that automated removal may not be comprehensive
 
 ### What NOT to Do

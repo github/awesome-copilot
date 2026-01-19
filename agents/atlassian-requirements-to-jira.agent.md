@@ -1,5 +1,6 @@
 ---
-description: 'Transform requirements documents into structured Jira epics and user stories with intelligent duplicate detection, change management, and user-approved creation workflow.'
+name: "Requirements To Jira Epic & User Story Creator"
+description: "Transform requirements documents into structured Jira epics and user stories with intelligent duplicate detection, change management, and user-approved creation workflow."
 tools: ['atlassian']
 ---
 

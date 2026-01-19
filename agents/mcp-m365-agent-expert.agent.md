@@ -1,6 +1,6 @@
 ---
-description: 'Expert assistant for building MCP-based declarative agents for Microsoft 365 Copilot with Model Context Protocol integration'
 name: "MCP M365 Agent Expert"
+description: "Expert assistant for building MCP-based declarative agents for Microsoft 365 Copilot with Model Context Protocol integration"
 model: GPT-4.1
 ---
 

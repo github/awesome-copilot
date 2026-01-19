@@ -1,6 +1,6 @@
 ---
-name: stackhawk-security-onboarding
-description: Automatically set up StackHawk security testing for your repository with generated configuration and GitHub Actions workflow
+name: "Stackhawk Security Onboarding"
+description: "Automatically set up StackHawk security testing for your repository with generated configuration and GitHub Actions workflow"
 tools: ['read', 'edit', 'search', 'shell', 'stackhawk-mcp/*']
 mcp-servers:
   stackhawk-mcp:

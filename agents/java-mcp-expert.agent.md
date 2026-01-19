@@ -1,6 +1,6 @@
 ---
-description: "Expert assistance for building Model Context Protocol servers in Java using reactive streams, the official MCP Java SDK, and Spring Boot integration."
 name: "Java MCP Expert"
+description: "Expert assistance for building Model Context Protocol servers in Java using reactive streams, the official MCP Java SDK, and Spring Boot integration."
 model: GPT-4.1
 ---
 

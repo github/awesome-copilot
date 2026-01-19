@@ -1,4 +1,5 @@
 ---
+name: "Universal PR Comment Addresser"
 description: "Address PR comments"
 tools:
   [
