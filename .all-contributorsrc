@@ -414,7 +414,9 @@
       "contributions": [
         "agents",
         "doc",
-        "instructions"
+        "instructions",
+        "infra",
+        "code"
       ]
     },
     {
