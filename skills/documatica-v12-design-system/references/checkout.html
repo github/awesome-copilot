@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="checkout.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● ECOMMERCE</span>
+            <h1 class="hero__title">CHECK<br><span>OUT</span></h1>
+            <p class="hero__desc">Оформление заказа: шаги, формы, оплата и подтверждение.</p>
+        </header>
+
+        <!-- ============================================
+             01. CHECKOUT STEPS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">STEPS PROGRESS</h2>
+            </div>
+            
+            <div class="steps-card">
+                <div class="steps">
+                    <div class="step step--completed">
+                        <div class="step__indicator">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                        <div class="step__content">
+                            <span class="step__number">01</span>
+                            <span class="step__label">КОРЗИНА</span>
+                        </div>
+                    </div>
+                    <div class="step__line step__line--completed"></div>
+                    <div class="step step--active">
+                        <div class="step__indicator">2</div>
+                        <div class="step__content">
+                            <span class="step__number">02</span>
+                            <span class="step__label">ДОСТАВКА</span>
+                        </div>
+                    </div>
+                    <div class="step__line"></div>
+                    <div class="step">
+                        <div class="step__indicator">3</div>
+                        <div class="step__content">
+                            <span class="step__number">03</span>
+                            <span class="step__label">ОПЛАТА</span>
+                        </div>
+                    </div>
+                    <div class="step__line"></div>
+                    <div class="step">
+                        <div class="step__indicator">4</div>
+                        <div class="step__content">
+                            <span class="step__number">04</span>
+                            <span class="step__label">ГОТОВО</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. CHECKOUT FORM
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">CHECKOUT FORM</h2>
+            </div>
+            
+            <div class="checkout-wrapper">
+                <div class="checkout-main">
+                    <!-- Contact Info -->
+                    <div class="form-section">
+                        <div class="form-section__header">
+                            <span class="form-section__number">01</span>
+                            <h3 class="form-section__title">КОНТАКТНЫЕ ДАННЫЕ</h3>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="form-label">ИМЯ</label>
+                                <input type="text" class="form-input" placeholder="Введите имя" value="Алексей">
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">ФАМИЛИЯ</label>
+                                <input type="text" class="form-input" placeholder="Введите фамилию" value="Петров">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label class="form-label">EMAIL</label>
+                                <input type="email" class="form-input" placeholder="email@example.com" value="alex@example.com">
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">ТЕЛЕФОН</label>
+                                <input type="tel" class="form-input" placeholder="+7 (___) ___-__-__" value="+7 (999) 123-45-67">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="form-section">
+                        <div class="form-section__header">
+                            <span class="form-section__number">02</span>
+                            <h3 class="form-section__title">АДРЕС ДОСТАВКИ</h3>
+                        </div>
+                        
+                        <div class="form-field">
+                            <label class="form-label">ГОРОД</label>
+                            <div class="form-select-wrapper">
+                                <select class="form-select">
+                                    <option>Москва</option>
+                                    <option>Санкт-Петербург</option>
+                                    <option>Новосибирск</option>
+                                    <option>Екатеринбург</option>
+                                </select>
+                                <svg class="form-select__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">АДРЕС</label>
+                            <input type="text" class="form-input" placeholder="Улица, дом, квартира" value="ул. Тверская, д. 12, кв. 45">
+                        </div>
+                        <div class="form-row form-row--3">
+                            <div class="form-field">
+                                <label class="form-label">ИНДЕКС</label>
+                                <input type="text" class="form-input" placeholder="123456" value="125009">
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">ПОДЪЕЗД</label>
+                                <input type="text" class="form-input" placeholder="—">
+                            </div>
+                            <div class="form-field">
+                                <label class="form-label">ЭТАЖ</label>
+                                <input type="text" class="form-input" placeholder="—">
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">КОММЕНТАРИЙ</label>
+                            <textarea class="form-textarea" rows="3" placeholder="Комментарий к заказу..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Method -->
+                    <div class="form-section">
+                        <div class="form-section__header">
+                            <span class="form-section__number">03</span>
+                            <h3 class="form-section__title">СПОСОБ ДОСТАВКИ</h3>
+                        </div>
+                        
+                        <div class="shipping-cards">
+                            <label class="shipping-card shipping-card--selected">
+                                <input type="radio" name="shipping" checked>
+                                <div class="shipping-card__radio"></div>
+                                <div class="shipping-card__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                                        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                                    </svg>
+                                </div>
+                                <div class="shipping-card__content">
+                                    <span class="shipping-card__title">Курьер</span>
+                                    <span class="shipping-card__desc">2-3 дня · 299 ₽</span>
+                                </div>
+                            </label>
+
+                            <label class="shipping-card">
+                                <input type="radio" name="shipping">
+                                <div class="shipping-card__radio"></div>
+                                <div class="shipping-card__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                </div>
+                                <div class="shipping-card__content">
+                                    <span class="shipping-card__title">Самовывоз</span>
+                                    <span class="shipping-card__desc">Сегодня · Бесплатно</span>
+                                </div>
+                            </label>
+
+                            <label class="shipping-card">
+                                <input type="radio" name="shipping">
+                                <div class="shipping-card__radio"></div>
+                                <div class="shipping-card__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                                    </svg>
+                                </div>
+                                <div class="shipping-card__content">
+                                    <span class="shipping-card__title">Экспресс</span>
+                                    <span class="shipping-card__desc">Сегодня · 799 ₽</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="form-section">
+                        <div class="form-section__header">
+                            <span class="form-section__number">04</span>
+                            <h3 class="form-section__title">СПОСОБ ОПЛАТЫ</h3>
+                        </div>
+                        
+                        <div class="payment-methods">
+                            <label class="payment-method payment-method--selected">
+                                <input type="radio" name="payment" checked>
+                                <div class="payment-method__radio"></div>
+                                <div class="payment-method__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                        <line x1="1" y1="10" x2="23" y2="10"/>
+                                    </svg>
+                                </div>
+                                <span class="payment-method__label">Банковская карта</span>
+                            </label>
+
+                            <label class="payment-method">
+                                <input type="radio" name="payment">
+                                <div class="payment-method__radio"></div>
+                                <div class="payment-method__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 12h.01"/>
+                                        <path d="M17 12h.01"/><path d="M7 12h.01"/>
+                                    </svg>
+                                </div>
+                                <span class="payment-method__label">СБП</span>
+                            </label>
+
+                            <label class="payment-method">
+                                <input type="radio" name="payment">
+                                <div class="payment-method__radio"></div>
+                                <div class="payment-method__icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-1"/>
+                                        <path d="M15 8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l4-4h4"/>
+                                    </svg>
+                                </div>
+                                <span class="payment-method__label">При получении</span>
+                            </label>
+                        </div>
+
+                        <!-- Card Form -->
+                        <div class="card-form">
+                            <div class="form-field">
+                                <label class="form-label">НОМЕР КАРТЫ</label>
+                                <div class="form-input-icon">
+                                    <input type="text" class="form-input" placeholder="0000 0000 0000 0000" value="4276 •••• •••• 1234">
+                                    <div class="card-brands">
+                                        <span class="card-brand">VISA</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label class="form-label">СРОК</label>
+                                    <input type="text" class="form-input" placeholder="MM / YY" value="12 / 28">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">CVV</label>
+                                    <input type="password" class="form-input" placeholder="•••" value="•••">
+                                </div>
+                            </div>
+                            <label class="checkbox">
+                                <input type="checkbox" checked>
+                                <span class="checkbox__mark"></span>
+                                <span class="checkbox__text">Сохранить карту для будущих покупок</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <aside class="order-summary">
+                    <h3 class="order-summary__title">ВАШ ЗАКАЗ</h3>
+                    
+                    <div class="order-items">
+                        <div class="order-item">
+                            <div class="order-item__image">
+                                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop" alt="">
+                                <span class="order-item__qty">1</span>
+                            </div>
+                            <div class="order-item__info">
+                                <span class="order-item__name">Smart Watch Series X</span>
+                                <span class="order-item__meta">Чёрный · M</span>
+                            </div>
+                            <span class="order-item__price">24 990 ₽</span>
+                        </div>
+                        <div class="order-item">
+                            <div class="order-item__image">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&h=80&fit=crop" alt="">
+                                <span class="order-item__qty">2</span>
+                            </div>
+                            <div class="order-item__info">
+                                <span class="order-item__name">Headphones Pro Max</span>
+                                <span class="order-item__meta">Серебро</span>
+                            </div>
+                            <span class="order-item__price">69 980 ₽</span>
+                        </div>
+                    </div>
+
+                    <div class="order-summary__rows">
+                        <div class="order-summary__row">
+                            <span>Товары (3)</span>
+                            <span>94 970 ₽</span>
+                        </div>
+                        <div class="order-summary__row">
+                            <span>Доставка</span>
+                            <span>299 ₽</span>
+                        </div>
+                        <div class="order-summary__row order-summary__row--discount">
+                            <span>Промокод WELCOME20</span>
+                            <span>−5 000 ₽</span>
+                        </div>
+                    </div>
+
+                    <div class="order-summary__total">
+                        <span>ИТОГО</span>
+                        <span class="order-summary__total-value">90 269 ₽</span>
+                    </div>
+
+                    <button class="btn btn--primary btn--full btn--lg">
+                        Подтвердить заказ
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </button>
+
+                    <div class="order-summary__legal">
+                        <label class="checkbox checkbox--sm">
+                            <input type="checkbox" checked>
+                            <span class="checkbox__mark"></span>
+                            <span class="checkbox__text">Согласен с <a href="#">условиями</a> и <a href="#">политикой конфиденциальности</a></span>
+                        </label>
+                    </div>
+
+                    <div class="order-summary__secure">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                        Безопасная оплата SSL
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. SUCCESS STATE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">SUCCESS STATE</h2>
+            </div>
+            
+            <div class="success-card">
+                <div class="success-card__icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <h2 class="success-card__title">ЗАКАЗ <span>ОФОРМЛЕН!</span></h2>
+                <p class="success-card__text">Номер заказа: <strong>#2026-0125-7842</strong></p>
+                <p class="success-card__desc">Мы отправили подтверждение на alex@example.com. Вы также можете отслеживать статус заказа в личном кабинете.</p>
+                
+                <div class="success-card__delivery">
+                    <div class="success-card__delivery-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                            <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="success-card__delivery-info">
+                        <span class="success-card__delivery-label">ОЖИДАЕМАЯ ДАТА ДОСТАВКИ</span>
+                        <span class="success-card__delivery-date">28 - 30 января 2026</span>
+                    </div>
+                </div>
+
+                <div class="success-card__actions">
+                    <a href="#" class="btn btn--primary btn--lg">Отслеживать заказ</a>
+                    <a href="#" class="btn btn--outline btn--lg">Продолжить покупки</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. ORDER TRACKING
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">ORDER TRACKING</h2>
+            </div>
+            
+            <div class="tracking-card">
+                <div class="tracking-header">
+                    <div class="tracking-header__info">
+                        <span class="tracking-header__label">ЗАКАЗ</span>
+                        <span class="tracking-header__number">#2026-0125-7842</span>
+                    </div>
+                    <span class="tracking-status tracking-status--transit">● В ПУТИ</span>
+                </div>
+
+                <div class="tracking-timeline">
+                    <div class="tracking-step tracking-step--completed">
+                        <div class="tracking-step__dot"></div>
+                        <div class="tracking-step__content">
+                            <span class="tracking-step__title">Заказ оформлен</span>
+                            <span class="tracking-step__date">25 янв, 14:32</span>
+                        </div>
+                    </div>
+                    <div class="tracking-step tracking-step--completed">
+                        <div class="tracking-step__dot"></div>
+                        <div class="tracking-step__content">
+                            <span class="tracking-step__title">Оплата подтверждена</span>
+                            <span class="tracking-step__date">25 янв, 14:33</span>
+                        </div>
+                    </div>
+                    <div class="tracking-step tracking-step--completed">
+                        <div class="tracking-step__dot"></div>
+                        <div class="tracking-step__content">
+                            <span class="tracking-step__title">Отправлен со склада</span>
+                            <span class="tracking-step__date">26 янв, 09:15</span>
+                        </div>
+                    </div>
+                    <div class="tracking-step tracking-step--active">
+                        <div class="tracking-step__dot"></div>
+                        <div class="tracking-step__content">
+                            <span class="tracking-step__title">В пути к вам</span>
+                            <span class="tracking-step__date">Сегодня</span>
+                        </div>
+                    </div>
+                    <div class="tracking-step">
+                        <div class="tracking-step__dot"></div>
+                        <div class="tracking-step__content">
+                            <span class="tracking-step__title">Доставлен</span>
+                            <span class="tracking-step__date">Ожидается 28 янв</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- Нумерованные секции формы --&gt;
+&lt;div class="form-section"&gt;
+  &lt;div class="form-section__header"&gt;
+    &lt;span class="form-section__number"&gt;01&lt;/span&gt;
+    &lt;h3 class="form-section__title"&gt;ЗАГОЛОВОК&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;!-- Поля формы --&gt;
+&lt;/div&gt;
+
+&lt;!-- Steps --&gt;
+&lt;div class="step step--completed"&gt;...&lt;/div&gt;
+&lt;div class="step step--active"&gt;...&lt;/div&gt;
+&lt;div class="step"&gt;...&lt;/div&gt;
+
+&lt;!-- Tracking statuses --&gt;
+.tracking-status--pending   /* Ожидание */
+.tracking-status--transit   /* В пути */
+.tracking-status--delivered /* Доставлен */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inputs — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="inputs.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Forms Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                Поля <span class="text-primary">ввода</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: БАЗОВЫЕ ИНПУТЫ -->
+        <section class="section">
+            <p class="section__label">01. Basic Inputs</p>
+            <div class="showcase-grid">
+                
+                <!-- Standard Input -->
+                <div class="showcase">
+                    <label class="input-label">Наименование проекта</label>
+                    <input type="text" class="input" placeholder="Напр. DocuCore Integration">
+                    <span class="showcase__label">Standard Input</span>
+                </div>
+
+                <!-- Input with Value -->
+                <div class="showcase">
+                    <label class="input-label">ID контрагента</label>
+                    <input type="text" class="input input--filled" value="7707083893">
+                    <span class="showcase__label">Filled State</span>
+                </div>
+
+                <!-- Input Focused -->
+                <div class="showcase">
+                    <label class="input-label">Email</label>
+                    <input type="email" class="input" placeholder="user@documatica.io">
+                    <span class="input-hint">Корпоративная почта для уведомлений</span>
+                    <span class="showcase__label">With Hint</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: СОСТОЯНИЯ -->
+        <section class="section">
+            <p class="section__label">02. Input States</p>
+            <div class="showcase-grid">
+                
+                <!-- Disabled -->
+                <div class="showcase">
+                    <label class="input-label input-label--disabled">Системный ID</label>
+                    <input type="text" class="input" value="DOC-2026-AUTO" disabled>
+                    <span class="showcase__label">Disabled</span>
+                </div>
+
+                <!-- Error State -->
+                <div class="showcase">
+                    <label class="input-label">ИНН</label>
+                    <input type="text" class="input input--error" value="123456">
+                    <span class="input-error">ИНН должен содержать 10 или 12 цифр</span>
+                    <span class="showcase__label">Error State</span>
+                </div>
+
+                <!-- Success State -->
+                <div class="showcase">
+                    <label class="input-label">ИНН</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="input input--success" value="7707083893">
+                        <svg class="input-icon input-icon--right input-icon--success" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <span class="input-success">Верифицировано в ЕГРЮЛ</span>
+                    <span class="showcase__label">Success State</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: С ИКОНКАМИ -->
+        <section class="section">
+            <p class="section__label">03. Inputs with Icons</p>
+            <div class="showcase-grid">
+                
+                <!-- Search -->
+                <div class="showcase">
+                    <label class="input-label">Поиск документов</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon input-icon--left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" class="input input--icon-left" placeholder="Введите запрос...">
+                    </div>
+                    <span class="showcase__label">Search Input</span>
+                </div>
+
+                <!-- Password -->
+                <div class="showcase">
+                    <label class="input-label">Пароль</label>
+                    <div class="input-wrapper">
+                        <input type="password" class="input input--icon-right" placeholder="••••••••">
+                        <button type="button" class="input-icon-btn input-icon--right">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <span class="showcase__label">Password Toggle</span>
+                </div>
+
+                <!-- Currency -->
+                <div class="showcase">
+                    <label class="input-label">Сумма контракта</label>
+                    <div class="input-wrapper">
+                        <span class="input-addon input-addon--left">₽</span>
+                        <input type="text" class="input input--addon-left" placeholder="0.00" value="450,000.00">
+                    </div>
+                    <span class="showcase__label">With Addon</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: AI INPUT -->
+        <section class="section">
+            <p class="section__label">04. AI Smart Input</p>
+            <div class="showcase-grid showcase-grid--wide">
+                
+                <!-- AI Prompt Input -->
+                <div class="showcase showcase--wide">
+                    <label class="input-label input-label--smart">
+                        <svg class="input-label__icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM10 5a5 5 0 100 10 5 5 0 000-10z"></path>
+                        </svg>
+                        Запрос к ИИ
+                    </label>
+                    <div class="input-wrapper input-wrapper--smart">
+                        <div class="input-smart-dot"></div>
+                        <input type="text" class="input input--smart" placeholder="Запрос к ИИ...">
+                    </div>
+                    <span class="showcase__label">AI Prompt Input</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TEXTAREA -->
+        <section class="section">
+            <p class="section__label">05. Textarea</p>
+            <div class="showcase-grid">
+                
+                <!-- Standard Textarea -->
+                <div class="showcase showcase--wide">
+                    <label class="input-label">AI Описание (Textarea)</label>
+                    <textarea class="textarea" rows="4" placeholder="Введите технические требования к документу..."></textarea>
+                    <span class="showcase__label">Standard Textarea</span>
+                </div>
+
+                <!-- Textarea with Counter -->
+                <div class="showcase showcase--wide">
+                    <label class="input-label">Комментарий</label>
+                    <textarea class="textarea" rows="3" maxlength="500" placeholder="Добавьте комментарий к документу...">Требуется проверка банковских реквизитов контрагента перед подписанием.</textarea>
+                    <div class="textarea-footer">
+                        <span class="input-hint">Максимум 500 символов</span>
+                        <span class="textarea-counter">78/500</span>
+                    </div>
+                    <span class="showcase__label">With Character Counter</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIZES -->
+        <section class="section">
+            <p class="section__label">06. Size Variants</p>
+            <div class="showcase-grid showcase-grid--align-end">
+                
+                <div class="showcase">
+                    <label class="input-label">Small</label>
+                    <input type="text" class="input input--sm" placeholder="SM Input">
+                    <span class="showcase__label">Small</span>
+                </div>
+
+                <div class="showcase">
+                    <label class="input-label">Medium (Default)</label>
+                    <input type="text" class="input" placeholder="MD Input">
+                    <span class="showcase__label">Medium</span>
+                </div>
+
+                <div class="showcase">
+                    <label class="input-label">Large</label>
+                    <input type="text" class="input input--lg" placeholder="LG Input">
+                    <span class="showcase__label">Large</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: GROUPED -->
+        <section class="section">
+            <p class="section__label">07. Input Groups</p>
+            
+            <!-- Two Column Group -->
+            <div class="input-group">
+                <div class="input-group__item">
+                    <label class="input-label">ИНН</label>
+                    <input type="text" class="input" placeholder="10 или 12 цифр">
+                </div>
+                <div class="input-group__item">
+                    <label class="input-label">КПП</label>
+                    <input type="text" class="input" placeholder="9 цифр">
+                </div>
+            </div>
+
+            <!-- Three Column Group -->
+            <div class="input-group input-group--3">
+                <div class="input-group__item">
+                    <label class="input-label">Статус</label>
+                    <input type="text" class="input" value="1 — Счёт-фактура" readonly>
+                </div>
+                <div class="input-group__item">
+                    <label class="input-label">Номер УПД</label>
+                    <input type="text" class="input" value="УПД-2026/01-99">
+                </div>
+                <div class="input-group__item">
+                    <label class="input-label">Дата составления</label>
+                    <div class="input-wrapper">
+                        <input type="text" class="input input--icon-right" value="19.01.2026">
+                        <svg class="input-icon input-icon--right" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Input Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

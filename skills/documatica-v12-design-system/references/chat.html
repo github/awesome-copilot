@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="chat.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Chat Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Chat</span>
+            </h1>
+        </header>
+
+        <!-- BASIC BUBBLES -->
+        <section class="section">
+            <p class="section__label">01. Basic Chat Bubbles</p>
+            <div class="chat-window">
+                <div class="chat-message chat-message--received">
+                    <div class="chat-bubble">
+                        <p>Привет! Чем могу помочь?</p>
+                    </div>
+                    <span class="chat-time">10:30</span>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Как загрузить документы?</p>
+                    </div>
+                    <span class="chat-time">10:31</span>
+                </div>
+                <div class="chat-message chat-message--received">
+                    <div class="chat-bubble">
+                        <p>Просто перетащите файлы в окно загрузки или нажмите кнопку "Загрузить"</p>
+                    </div>
+                    <span class="chat-time">10:31</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH AVATARS -->
+        <section class="section">
+            <p class="section__label">02. With Avatars</p>
+            <div class="chat-window">
+                <div class="chat-message chat-message--received chat-message--with-avatar">
+                    <div class="chat-avatar">АП</div>
+                    <div class="chat-content">
+                        <span class="chat-name">Анна Петрова</span>
+                        <div class="chat-bubble">
+                            <p>Документы готовы к проверке</p>
+                        </div>
+                        <span class="chat-time">Вчера, 15:45</span>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Отлично, сейчас посмотрю!</p>
+                    </div>
+                    <span class="chat-time">Вчера, 15:47</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- MESSAGE STATES -->
+        <section class="section">
+            <p class="section__label">03. Message States</p>
+            <div class="chat-window">
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Отправлено</p>
+                    </div>
+                    <div class="chat-status">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>10:32</span>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Доставлено</p>
+                    </div>
+                    <div class="chat-status chat-status--delivered">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>10:32</span>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Прочитано</p>
+                    </div>
+                    <div class="chat-status chat-status--read">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>10:32</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH ATTACHMENTS -->
+        <section class="section">
+            <p class="section__label">04. With Attachments</p>
+            <div class="chat-window">
+                <div class="chat-message chat-message--received">
+                    <div class="chat-bubble">
+                        <p>Высылаю договор</p>
+                        <div class="chat-attachment">
+                            <div class="attachment-icon">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="attachment-info">
+                                <span class="attachment-name">Договор_v2.pdf</span>
+                                <span class="attachment-size">2.4 MB</span>
+                            </div>
+                            <button class="attachment-download">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <div class="chat-image">
+                            <div class="image-placeholder">📷 Скриншот</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TYPING INDICATOR -->
+        <section class="section">
+            <p class="section__label">05. Typing Indicator</p>
+            <div class="chat-window">
+                <div class="chat-message chat-message--received">
+                    <div class="chat-bubble">
+                        <p>Секунду, проверяю информацию...</p>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--received">
+                    <div class="chat-bubble chat-bubble--typing">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI CHAT -->
+        <section class="section">
+            <p class="section__label">06. AI Assistant Chat</p>
+            <div class="chat-window chat-window--ai">
+                <div class="chat-message chat-message--ai">
+                    <div class="chat-avatar chat-avatar--ai">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="chat-content">
+                        <span class="chat-name chat-name--ai">Documatica AI</span>
+                        <div class="chat-bubble chat-bubble--ai">
+                            <p>Привет! Я AI-ассистент Documatica. Могу помочь с поиском документов, ответами на вопросы и анализом данных.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--sent">
+                    <div class="chat-bubble">
+                        <p>Найди все договоры за 2024 год</p>
+                    </div>
+                </div>
+                <div class="chat-message chat-message--ai">
+                    <div class="chat-avatar chat-avatar--ai">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="chat-content">
+                        <div class="chat-bubble chat-bubble--ai">
+                            <p>Нашёл <strong>24 договора</strong> за 2024 год:</p>
+                            <div class="ai-results">
+                                <div class="ai-result">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span>Договор_ООО_Альфа.pdf</span>
+                                </div>
+                                <div class="ai-result">
+                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span>Договор_ИП_Бета.pdf</span>
+                                </div>
+                                <div class="ai-result ai-result--more">
+                                    +22 ещё...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAT INPUT -->
+        <section class="section">
+            <p class="section__label">07. Chat Input</p>
+            <div class="chat-input-wrapper">
+                <div class="chat-input">
+                    <button class="chat-input__action">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                        </svg>
+                    </button>
+                    <input type="text" placeholder="Введите сообщение...">
+                    <button class="chat-input__action">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </button>
+                    <button class="chat-input__send">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHAT HEADER -->
+        <section class="section">
+            <p class="section__label">08. Chat Header</p>
+            <div class="chat-header">
+                <div class="chat-header__user">
+                    <div class="chat-avatar">
+                        <span>АП</span>
+                        <div class="status-indicator status-indicator--online"></div>
+                    </div>
+                    <div class="chat-header__info">
+                        <span class="chat-header__name">Анна Петрова</span>
+                        <span class="chat-header__status">В сети</span>
+                    </div>
+                </div>
+                <div class="chat-header__actions">
+                    <button class="chat-header__btn">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                    </button>
+                    <button class="chat-header__btn">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                    <button class="chat-header__btn">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Chat Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

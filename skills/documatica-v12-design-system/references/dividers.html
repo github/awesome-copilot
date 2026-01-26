@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividers — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="dividers.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Divider Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Dividers</span>
+            </h1>
+        </header>
+
+        <!-- BASIC -->
+        <section class="section">
+            <p class="section__label">01. Basic Divider</p>
+            <div class="demo-box">
+                <p class="demo-text">Контент до разделителя</p>
+                <hr class="divider">
+                <p class="demo-text">Контент после разделителя</p>
+            </div>
+        </section>
+
+        <!-- WEIGHTS -->
+        <section class="section">
+            <p class="section__label">02. Weights</p>
+            <div class="demo-box">
+                <p class="demo-label">Light (1px)</p>
+                <hr class="divider divider--light">
+                
+                <p class="demo-label">Base (2px)</p>
+                <hr class="divider">
+                
+                <p class="demo-label">Medium (3px)</p>
+                <hr class="divider divider--medium">
+                
+                <p class="demo-label">Bold (4px)</p>
+                <hr class="divider divider--bold">
+            </div>
+        </section>
+
+        <!-- COLORS -->
+        <section class="section">
+            <p class="section__label">03. Colors</p>
+            <div class="demo-box">
+                <p class="demo-label">Default (Slate)</p>
+                <hr class="divider">
+                
+                <p class="demo-label">Primary</p>
+                <hr class="divider divider--primary">
+                
+                <p class="demo-label">Smart Gold</p>
+                <hr class="divider divider--smart">
+                
+                <p class="demo-label">Success</p>
+                <hr class="divider divider--success">
+                
+                <p class="demo-label">Danger</p>
+                <hr class="divider divider--danger">
+            </div>
+        </section>
+
+        <!-- STYLES -->
+        <section class="section">
+            <p class="section__label">04. Styles</p>
+            <div class="demo-box">
+                <p class="demo-label">Solid</p>
+                <hr class="divider">
+                
+                <p class="demo-label">Dashed</p>
+                <hr class="divider divider--dashed">
+                
+                <p class="demo-label">Dotted</p>
+                <hr class="divider divider--dotted">
+            </div>
+        </section>
+
+        <!-- WITH TEXT -->
+        <section class="section">
+            <p class="section__label">05. With Text</p>
+            <div class="demo-box">
+                <div class="divider-text">
+                    <span>ИЛИ</span>
+                </div>
+                
+                <div class="divider-text divider-text--left">
+                    <span>Глава 1</span>
+                </div>
+                
+                <div class="divider-text divider-text--right">
+                    <span>Продолжение</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH ICON -->
+        <section class="section">
+            <p class="section__label">06. With Icon</p>
+            <div class="demo-box">
+                <div class="divider-icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                
+                <div class="divider-icon divider-icon--smart">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERTICAL -->
+        <section class="section">
+            <p class="section__label">07. Vertical Divider</p>
+            <div class="demo-box demo-box--horizontal">
+                <span class="demo-item">Главная</span>
+                <span class="divider-v"></span>
+                <span class="demo-item">Документы</span>
+                <span class="divider-v"></span>
+                <span class="demo-item">Настройки</span>
+            </div>
+            
+            <div class="demo-box demo-box--horizontal" style="margin-top: var(--spacing-6);">
+                <span class="demo-item">Файл</span>
+                <span class="divider-v divider-v--tall"></span>
+                <span class="demo-item">Редактирование</span>
+                <span class="divider-v divider-v--tall"></span>
+                <span class="demo-item">Вид</span>
+                <span class="divider-v divider-v--tall"></span>
+                <span class="demo-item">Справка</span>
+            </div>
+        </section>
+
+        <!-- SPACING -->
+        <section class="section">
+            <p class="section__label">08. Spacing Variants</p>
+            <div class="demo-box">
+                <p class="demo-label">Compact (8px)</p>
+                <hr class="divider divider--compact">
+                <p class="demo-text">Контент</p>
+                
+                <p class="demo-label">Base (16px)</p>
+                <hr class="divider">
+                <p class="demo-text">Контент</p>
+                
+                <p class="demo-label">Loose (32px)</p>
+                <hr class="divider divider--loose">
+                <p class="demo-text">Контент</p>
+            </div>
+        </section>
+
+        <!-- GRADIENT -->
+        <section class="section">
+            <p class="section__label">09. Gradient Dividers</p>
+            <div class="demo-box">
+                <hr class="divider divider--gradient">
+                <br>
+                <hr class="divider divider--gradient-gold">
+                <br>
+                <hr class="divider divider--fade">
+            </div>
+        </section>
+
+        <!-- DECORATIVE -->
+        <section class="section">
+            <p class="section__label">10. Decorative</p>
+            <div class="demo-box">
+                <div class="divider-decorative">
+                    <span class="divider-decorative__dot"></span>
+                    <span class="divider-decorative__dot"></span>
+                    <span class="divider-decorative__dot"></span>
+                </div>
+                
+                <div class="divider-decorative divider-decorative--stars">
+                    <span>✦</span>
+                    <span>✦</span>
+                    <span>✦</span>
+                </div>
+                
+                <div class="divider-wave">
+                    <svg viewBox="0 0 1200 60" preserveAspectRatio="none">
+                        <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30" stroke="currentColor" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Dividers Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

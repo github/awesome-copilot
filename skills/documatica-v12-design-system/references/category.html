@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="category.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">CATALOG</span>
+            <h1 class="hero__title">Category <span>Page</span></h1>
+            <p class="hero__desc">Компоненты каталога: категории, фильтры, сортировка, сетки товаров.</p>
+        </header>
+
+        <!-- ============================================
+             01. CATEGORY CARDS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">Category Cards</h2>
+            </div>
+            
+            <div class="category-grid">
+                <a href="#" class="category-card">
+                    <div class="category-card__icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <h3 class="category-card__title">Электроника</h3>
+                    <span class="category-card__count">1,240 товаров</span>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-card__icon category-card__icon--gold">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                            <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                    </div>
+                    <h3 class="category-card__title">Одежда</h3>
+                    <span class="category-card__count">3,890 товаров</span>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-card__icon category-card__icon--green">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                    </div>
+                    <h3 class="category-card__title">Дом и сад</h3>
+                    <span class="category-card__count">2,150 товаров</span>
+                </a>
+                <a href="#" class="category-card">
+                    <div class="category-card__icon category-card__icon--purple">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                        </svg>
+                    </div>
+                    <h3 class="category-card__title">Спорт</h3>
+                    <span class="category-card__count">876 товаров</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. CATEGORY WITH IMAGE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">Category with Image</h2>
+            </div>
+            
+            <div class="category-image-grid">
+                <a href="#" class="category-image">
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop" alt="Watches">
+                    <div class="category-image__overlay">
+                        <h3 class="category-image__title">Часы</h3>
+                        <span class="category-image__count">320 товаров</span>
+                    </div>
+                </a>
+                <a href="#" class="category-image">
+                    <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=300&fit=crop" alt="Skincare">
+                    <div class="category-image__overlay">
+                        <h3 class="category-image__title">Косметика</h3>
+                        <span class="category-image__count">890 товаров</span>
+                    </div>
+                </a>
+                <a href="#" class="category-image">
+                    <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&h=300&fit=crop" alt="Sneakers">
+                    <div class="category-image__overlay">
+                        <h3 class="category-image__title">Обувь</h3>
+                        <span class="category-image__count">1,250 товаров</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. BREADCRUMBS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">Breadcrumbs</h2>
+            </div>
+            
+            <nav class="breadcrumbs" aria-label="Breadcrumb">
+                <a href="#" class="breadcrumbs__link">Главная</a>
+                <svg class="breadcrumbs__sep" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+                <a href="#" class="breadcrumbs__link">Электроника</a>
+                <svg class="breadcrumbs__sep" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+                <a href="#" class="breadcrumbs__link">Смартфоны</a>
+                <svg class="breadcrumbs__sep" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+                <span class="breadcrumbs__current">Apple iPhone</span>
+            </nav>
+        </section>
+
+        <!-- ============================================
+             04. FILTER BAR
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">Filter Bar</h2>
+            </div>
+            
+            <div class="filter-bar">
+                <div class="filter-bar__info">
+                    <span class="filter-bar__count">1,240 товаров</span>
+                </div>
+                <div class="filter-bar__actions">
+                    <button class="filter-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                        Фильтры
+                    </button>
+                    <div class="sort-dropdown">
+                        <select class="sort-select">
+                            <option>По популярности</option>
+                            <option>По возрастанию цены</option>
+                            <option>По убыванию цены</option>
+                            <option>По рейтингу</option>
+                            <option>Новинки</option>
+                        </select>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="view-toggle__btn view-toggle__btn--active" title="Сетка">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                        </button>
+                        <button class="view-toggle__btn" title="Список">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                                <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
+                                <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. ACTIVE FILTERS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">Active Filters</h2>
+            </div>
+            
+            <div class="active-filters">
+                <div class="active-filters__list">
+                    <span class="filter-tag">
+                        Apple
+                        <button class="filter-tag__remove">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </span>
+                    <span class="filter-tag">
+                        от 50 000 ₽
+                        <button class="filter-tag__remove">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </span>
+                    <span class="filter-tag">
+                        В наличии
+                        <button class="filter-tag__remove">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                        </button>
+                    </span>
+                </div>
+                <button class="active-filters__clear">Сбросить всё</button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. FILTER SIDEBAR
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">Filter Sidebar</h2>
+            </div>
+            
+            <div class="filter-sidebar">
+                <div class="filter-group">
+                    <h4 class="filter-group__title">Категория</h4>
+                    <ul class="filter-list">
+                        <li class="filter-list__item filter-list__item--active">
+                            <a href="#">Все смартфоны</a>
+                            <span class="filter-list__count">1,240</span>
+                        </li>
+                        <li class="filter-list__item">
+                            <a href="#">Apple iPhone</a>
+                            <span class="filter-list__count">256</span>
+                        </li>
+                        <li class="filter-list__item">
+                            <a href="#">Samsung Galaxy</a>
+                            <span class="filter-list__count">312</span>
+                        </li>
+                        <li class="filter-list__item">
+                            <a href="#">Xiaomi</a>
+                            <span class="filter-list__count">428</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-group__title">Цена</h4>
+                    <div class="price-range">
+                        <input type="number" class="price-range__input" placeholder="От" value="50000">
+                        <span class="price-range__sep">—</span>
+                        <input type="number" class="price-range__input" placeholder="До" value="150000">
+                    </div>
+                    <div class="price-slider">
+                        <div class="price-slider__track">
+                            <div class="price-slider__fill" style="left: 20%; width: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-group__title">Бренд</h4>
+                    <div class="filter-checkbox-list">
+                        <label class="filter-checkbox">
+                            <input type="checkbox" checked>
+                            <span class="filter-checkbox__mark"></span>
+                            <span class="filter-checkbox__label">Apple</span>
+                            <span class="filter-checkbox__count">256</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox">
+                            <span class="filter-checkbox__mark"></span>
+                            <span class="filter-checkbox__label">Samsung</span>
+                            <span class="filter-checkbox__count">312</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox">
+                            <span class="filter-checkbox__mark"></span>
+                            <span class="filter-checkbox__label">Xiaomi</span>
+                            <span class="filter-checkbox__count">428</span>
+                        </label>
+                        <label class="filter-checkbox">
+                            <input type="checkbox">
+                            <span class="filter-checkbox__mark"></span>
+                            <span class="filter-checkbox__label">Google Pixel</span>
+                            <span class="filter-checkbox__count">89</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h4 class="filter-group__title">Наличие</h4>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="toggle-switch__slider"></span>
+                        <span class="toggle-switch__label">Только в наличии</span>
+                    </label>
+                </div>
+
+                <button class="btn btn--primary btn--full">Применить</button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. PRODUCT GRID
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">Product Grid</h2>
+            </div>
+            
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-card__badge">Хит</div>
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=300&h=300&fit=crop" alt="iPhone">
+                        <button class="product-card__favorite">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__content">
+                        <span class="product-card__category">Смартфоны</span>
+                        <h3 class="product-card__title">iPhone 15 Pro 256GB</h3>
+                        <div class="product-card__rating">
+                            <span class="rating-stars">★★★★★</span>
+                            <span class="rating-count">4.9 (128)</span>
+                        </div>
+                        <div class="product-card__prices">
+                            <span class="product-card__price">124 990 ₽</span>
+                        </div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card__badge product-card__badge--sale">-20%</div>
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=300&h=300&fit=crop" alt="Samsung">
+                        <button class="product-card__favorite product-card__favorite--active">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__content">
+                        <span class="product-card__category">Смартфоны</span>
+                        <h3 class="product-card__title">Samsung Galaxy S24 Ultra</h3>
+                        <div class="product-card__rating">
+                            <span class="rating-stars">★★★★☆</span>
+                            <span class="rating-count">4.7 (89)</span>
+                        </div>
+                        <div class="product-card__prices">
+                            <span class="product-card__price">99 990 ₽</span>
+                            <span class="product-card__old-price">124 990 ₽</span>
+                        </div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card__badge product-card__badge--new">New</div>
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=300&h=300&fit=crop" alt="Xiaomi">
+                        <button class="product-card__favorite">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__content">
+                        <span class="product-card__category">Смартфоны</span>
+                        <h3 class="product-card__title">Xiaomi 14 Pro</h3>
+                        <div class="product-card__rating">
+                            <span class="rating-stars">★★★★★</span>
+                            <span class="rating-count">4.8 (52)</span>
+                        </div>
+                        <div class="product-card__prices">
+                            <span class="product-card__price">74 990 ₽</span>
+                        </div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. PRODUCT LIST VIEW
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">Product List View</h2>
+            </div>
+            
+            <div class="product-list">
+                <div class="product-row">
+                    <div class="product-row__image">
+                        <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=200&h=200&fit=crop" alt="iPhone">
+                    </div>
+                    <div class="product-row__content">
+                        <span class="product-row__category">Смартфоны</span>
+                        <h3 class="product-row__title">iPhone 15 Pro 256GB</h3>
+                        <p class="product-row__desc">Титановый корпус, камера 48 Мп, чип A17 Pro, Dynamic Island. Самый мощный iPhone.</p>
+                        <div class="product-row__rating">
+                            <span class="rating-stars">★★★★★</span>
+                            <span class="rating-count">4.9 (128 отзывов)</span>
+                        </div>
+                    </div>
+                    <div class="product-row__actions">
+                        <div class="product-row__prices">
+                            <span class="product-row__price">124 990 ₽</span>
+                        </div>
+                        <button class="btn btn--primary">В корзину</button>
+                        <button class="btn btn--outline btn--icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             09. EMPTY STATE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">09</span>
+                <h2 class="section__title">Empty State</h2>
+            </div>
+            
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Ничего не найдено</h3>
+                <p class="empty-state__desc">Попробуйте изменить параметры поиска или сбросить фильтры</p>
+                <button class="btn btn--primary">Сбросить фильтры</button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             10. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">10</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>/* Карточки категорий */
+&lt;div class="category-grid"&gt;
+  &lt;a class="category-card"&gt;...&lt;/a&gt;
+&lt;/div&gt;
+
+&lt;div class="category-image-grid"&gt;
+  &lt;a class="category-image"&gt;...&lt;/a&gt;
+&lt;/div&gt;
+
+/* Навигация */
+&lt;nav class="breadcrumbs"&gt;...&lt;/nav&gt;
+&lt;div class="filter-bar"&gt;...&lt;/div&gt;
+&lt;div class="active-filters"&gt;...&lt;/div&gt;
+
+/* Фильтры */
+&lt;div class="filter-sidebar"&gt;
+  &lt;div class="filter-group"&gt;...&lt;/div&gt;
+&lt;/div&gt;
+
+/* Товары */
+&lt;div class="product-grid"&gt;...&lt;/div&gt;
+&lt;div class="product-list"&gt;...&lt;/div&gt;
+
+/* Пустое состояние */
+&lt;div class="empty-state"&gt;...&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

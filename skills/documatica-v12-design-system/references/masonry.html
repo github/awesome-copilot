@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masonry — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="masonry.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">LAYOUT SYSTEM</span>
+            <h1 class="hero__title">Masonry <span>Grid</span></h1>
+            <p class="hero__desc">Pinterest-style раскладка с помощью CSS Columns и CSS Grid. Адаптивная, производительная, без JavaScript.</p>
+        </header>
+
+        <!-- ============================================
+             01. CSS COLUMNS MASONRY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">CSS Columns (2-5 колонок)</h2>
+            </div>
+            
+            <div class="subsection">
+                <p class="subsection__label">2 Columns</p>
+                <div class="masonry masonry--2">
+                    <div class="masonry__item"><div class="card card--h-200"></div></div>
+                    <div class="masonry__item"><div class="card card--h-280"></div></div>
+                    <div class="masonry__item"><div class="card card--h-160"></div></div>
+                    <div class="masonry__item"><div class="card card--h-240"></div></div>
+                    <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    <div class="masonry__item"><div class="card card--h-220"></div></div>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <p class="subsection__label">3 Columns</p>
+                <div class="masonry masonry--3">
+                    <div class="masonry__item"><div class="card card--h-240"></div></div>
+                    <div class="masonry__item"><div class="card card--h-160"></div></div>
+                    <div class="masonry__item"><div class="card card--h-300"></div></div>
+                    <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    <div class="masonry__item"><div class="card card--h-260"></div></div>
+                    <div class="masonry__item"><div class="card card--h-140"></div></div>
+                    <div class="masonry__item"><div class="card card--h-220"></div></div>
+                    <div class="masonry__item"><div class="card card--h-200"></div></div>
+                    <div class="masonry__item"><div class="card card--h-280"></div></div>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <p class="subsection__label">4 Columns</p>
+                <div class="masonry masonry--4">
+                    <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    <div class="masonry__item"><div class="card card--h-260"></div></div>
+                    <div class="masonry__item"><div class="card card--h-140"></div></div>
+                    <div class="masonry__item"><div class="card card--h-220"></div></div>
+                    <div class="masonry__item"><div class="card card--h-200"></div></div>
+                    <div class="masonry__item"><div class="card card--h-280"></div></div>
+                    <div class="masonry__item"><div class="card card--h-160"></div></div>
+                    <div class="masonry__item"><div class="card card--h-240"></div></div>
+                    <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    <div class="masonry__item"><div class="card card--h-300"></div></div>
+                    <div class="masonry__item"><div class="card card--h-160"></div></div>
+                    <div class="masonry__item"><div class="card card--h-200"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. WITH CONTENT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">Cards with Content</h2>
+            </div>
+            
+            <div class="masonry masonry--3">
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--tall" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Card Title</h4>
+                            <p class="pin-card__text">Short description text</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Another Card</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--medium" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Third Card</h4>
+                            <p class="pin-card__text">With longer description that wraps to multiple lines</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--tall" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Tall Image</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Warm Gradient</h4>
+                            <p class="pin-card__text">Description text</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--medium" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                        <div class="pin-card__body">
+                            <h4 class="pin-card__title">Soft Colors</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. WITH HOVER OVERLAY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">Hover Overlay Actions</h2>
+            </div>
+            
+            <div class="masonry masonry--4">
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image pin-card__image--tall" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon" title="Сохранить">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                                <button class="pin-btn pin-btn--icon" title="Поделиться">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon pin-btn--active" title="Сохранено">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image pin-card__image--medium" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image pin-card__image--tall" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card pin-card--hoverable">
+                        <div class="pin-card__image pin-card__image--medium" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                        <div class="pin-card__overlay">
+                            <div class="pin-card__actions">
+                                <button class="pin-btn pin-btn--icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <a href="#" class="pin-btn pin-btn--primary">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. WITH AUTHOR
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">With Author Info</h2>
+            </div>
+            
+            <div class="masonry masonry--3">
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--tall" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <div class="pin-card__footer">
+                            <div class="pin-author">
+                                <div class="pin-author__avatar">А</div>
+                                <span class="pin-author__name">Anna K.</span>
+                            </div>
+                            <span class="pin-stats">1.2k</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                        <div class="pin-card__footer">
+                            <div class="pin-author">
+                                <div class="pin-author__avatar">М</div>
+                                <span class="pin-author__name">Max P.</span>
+                            </div>
+                            <span class="pin-stats">856</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image pin-card__image--medium" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                        <div class="pin-card__footer">
+                            <div class="pin-author">
+                                <div class="pin-author__avatar">О</div>
+                                <span class="pin-author__name">Olga S.</span>
+                            </div>
+                            <span class="pin-stats">2.3k</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="masonry__item">
+                    <div class="pin-card">
+                        <div class="pin-card__image" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                        <div class="pin-card__footer">
+                            <div class="pin-author">
+                                <div class="pin-author__avatar">Д</div>
+                                <span class="pin-author__name">Dmitry N.</span>
+                            </div>
+                            <span class="pin-stats">445</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. CSS GRID MASONRY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">CSS Grid Alternative</h2>
+            </div>
+            <p class="section__desc">Использование CSS Grid с grid-row: span для контроля высоты.</p>
+            
+            <div class="grid-masonry">
+                <div class="grid-item grid-item--tall" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                <div class="grid-item" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                <div class="grid-item grid-item--wide" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                <div class="grid-item" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);"></div>
+                <div class="grid-item grid-item--tall" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);"></div>
+                <div class="grid-item" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);"></div>
+                <div class="grid-item grid-item--wide" style="background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%);"></div>
+                <div class="grid-item" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);"></div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. GAP VARIANTS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">Gap Sizes</h2>
+            </div>
+            
+            <div class="demo-row">
+                <div class="demo-col">
+                    <p class="subsection__label">gap-sm (8px)</p>
+                    <div class="masonry masonry--3 masonry--gap-sm">
+                        <div class="masonry__item"><div class="card card--h-120"></div></div>
+                        <div class="masonry__item"><div class="card card--h-160"></div></div>
+                        <div class="masonry__item"><div class="card card--h-100"></div></div>
+                        <div class="masonry__item"><div class="card card--h-140"></div></div>
+                        <div class="masonry__item"><div class="card card--h-120"></div></div>
+                        <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    </div>
+                </div>
+                <div class="demo-col">
+                    <p class="subsection__label">gap-lg (24px)</p>
+                    <div class="masonry masonry--3 masonry--gap-lg">
+                        <div class="masonry__item"><div class="card card--h-120"></div></div>
+                        <div class="masonry__item"><div class="card card--h-160"></div></div>
+                        <div class="masonry__item"><div class="card card--h-100"></div></div>
+                        <div class="masonry__item"><div class="card card--h-140"></div></div>
+                        <div class="masonry__item"><div class="card card--h-120"></div></div>
+                        <div class="masonry__item"><div class="card card--h-180"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. IMAGE GALLERY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">Image Gallery</h2>
+            </div>
+            
+            <div class="masonry masonry--4 masonry--gap-sm">
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 200px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); height: 280px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); height: 160px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); height: 240px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); height: 180px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); height: 220px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%); height: 260px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); height: 140px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%); height: 200px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%); height: 300px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); height: 160px;"></div></div>
+                <div class="masonry__item"><div class="gallery-item" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); height: 220px;"></div></div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- CSS Columns Masonry --&gt;
+&lt;div class="masonry masonry--3"&gt;
+  &lt;div class="masonry__item"&gt;...&lt;/div&gt;
+  &lt;div class="masonry__item"&gt;...&lt;/div&gt;
+&lt;/div&gt;
+
+/* Модификаторы колонок */
+.masonry--2   /* 2 колонки */
+.masonry--3   /* 3 колонки */
+.masonry--4   /* 4 колонки */
+.masonry--5   /* 5 колонок */
+
+/* Модификаторы отступов */
+.masonry--gap-sm   /* 8px */
+.masonry--gap-md   /* 16px (default) */
+.masonry--gap-lg   /* 24px */
+
+/* CSS Grid альтернатива */
+&lt;div class="grid-masonry"&gt;
+  &lt;div class="grid-item"&gt;...&lt;/div&gt;
+  &lt;div class="grid-item grid-item--tall"&gt;...&lt;/div&gt;
+  &lt;div class="grid-item grid-item--wide"&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

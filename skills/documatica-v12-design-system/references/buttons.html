@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documatica Button Kit v12.0</title>
+    <link rel="stylesheet" href="buttons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Interactive Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                Библиотека <br> <span class="text-primary">контролов</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: ГЛАВНЫЕ ДЕЙСТВИЯ -->
+        <section class="section">
+            <p class="section__label">01. Core Action Buttons</p>
+            <div class="button-grid">
+                
+                <!-- 1. Massive CTA -->
+                <div class="button-showcase">
+                    <button class="btn btn--massive btn--primary">
+                        Развернуть систему
+                    </button>
+                    <span class="button-showcase__label">Massive CTA</span>
+                </div>
+
+                <!-- 2. Primary Standard -->
+                <div class="button-showcase">
+                    <button class="btn btn--primary">
+                        Начать работу
+                    </button>
+                    <span class="button-showcase__label">Primary Action</span>
+                </div>
+
+                <!-- 3. AI Smart Action -->
+                <div class="button-showcase">
+                    <button class="btn btn--smart">
+                        <svg class="btn__icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1a1 1 0 112 0v1a1 1 0 11-2 0zM13.536 14.95a1 1 0 010-1.414l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM6.464 14.95a1 1 0 01-1.414 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM10 5a5 5 0 100 10 5 5 0 000-10z"></path>
+                        </svg>
+                        Аудит ИИ
+                    </button>
+                    <span class="button-showcase__label">AI Smart Action</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: ВТОРОСТЕПЕННЫЕ И СИСТЕМНЫЕ -->
+        <section class="section">
+            <p class="section__label">02. Secondary & Functional</p>
+            <div class="button-grid">
+                
+                <!-- 4. Secondary Soft -->
+                <div class="button-showcase">
+                    <button class="btn btn--secondary">
+                        Параметры
+                    </button>
+                    <span class="button-showcase__label">Secondary Soft</span>
+                </div>
+
+                <!-- 5. Outline v12 -->
+                <div class="button-showcase">
+                    <button class="btn btn--outline">
+                        Инструкция
+                    </button>
+                    <span class="button-showcase__label">Outline Style</span>
+                </div>
+
+                <!-- 6. Dark Inverse -->
+                <div class="button-showcase">
+                    <button class="btn btn--dark">
+                        Терминал
+                    </button>
+                    <span class="button-showcase__label">Dark Inverse</span>
+                </div>
+
+                <!-- 7. Danger Action -->
+                <div class="button-showcase">
+                    <button class="btn btn--danger">
+                        Удалить узел
+                    </button>
+                    <span class="button-showcase__label">Danger State</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: ИНЛАЙН И НАВИГАЦИЯ -->
+        <section class="section">
+            <p class="section__label">03. Inline & Navigation</p>
+            <div class="button-grid button-grid--wide">
+                
+                <!-- 8. Inline Arrow Link -->
+                <div class="button-showcase button-showcase--left">
+                    <a href="#" class="btn btn--link">
+                        Перейти в архив
+                        <svg class="btn__arrow" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </a>
+                    <span class="button-showcase__label">Inline Link</span>
+                </div>
+
+                <!-- 9. Icon Only Square -->
+                <div class="button-showcase">
+                    <button class="btn btn--icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                    <span class="button-showcase__label">Icon Button</span>
+                </div>
+
+                <!-- 10. Success Verified -->
+                <div class="button-showcase">
+                    <button class="btn btn--success btn--small">
+                        <svg class="btn__icon" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Верифицировано
+                    </button>
+                    <span class="button-showcase__label">Status Button</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: СПЕЦ-СОСТОЯНИЯ -->
+        <section class="section">
+            <p class="section__label">04. Special States</p>
+            <div class="button-grid">
+                
+                <!-- 11. Loading State -->
+                <div class="button-showcase">
+                    <button disabled class="btn btn--primary btn--loading">
+                        <svg class="btn__spinner" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Обработка
+                    </button>
+                    <span class="button-showcase__label">Loading State</span>
+                </div>
+
+                <!-- 12. Disabled State -->
+                <div class="button-showcase">
+                    <button disabled class="btn btn--disabled">
+                        Заблокировано
+                    </button>
+                    <span class="button-showcase__label">Disabled State</span>
+                </div>
+
+                <!-- 13. Ghost Hover -->
+                <div class="button-showcase">
+                    <button class="btn btn--ghost">
+                        Отмена
+                    </button>
+                    <span class="button-showcase__label">Ghost Style</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: РАЗМЕРЫ -->
+        <section class="section">
+            <p class="section__label">05. Size Variants</p>
+            <div class="button-grid button-grid--align-end">
+                
+                <div class="button-showcase">
+                    <button class="btn btn--primary btn--xs">
+                        Extra Small
+                    </button>
+                    <span class="button-showcase__label">XS Size</span>
+                </div>
+
+                <div class="button-showcase">
+                    <button class="btn btn--primary btn--sm">
+                        Small
+                    </button>
+                    <span class="button-showcase__label">SM Size</span>
+                </div>
+
+                <div class="button-showcase">
+                    <button class="btn btn--primary">
+                        Medium (Default)
+                    </button>
+                    <span class="button-showcase__label">MD Size</span>
+                </div>
+
+                <div class="button-showcase">
+                    <button class="btn btn--primary btn--lg">
+                        Large
+                    </button>
+                    <span class="button-showcase__label">LG Size</span>
+                </div>
+
+                <div class="button-showcase">
+                    <button class="btn btn--primary btn--xl">
+                        Extra Large
+                    </button>
+                    <span class="button-showcase__label">XL Size</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER SIGNATURE -->
+        <footer class="footer">
+            <p class="footer__text">
+                Component library v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,451 @@
+/**
+ * Documatica Design System v12.0
+ * Colors & Palette Showcase
+ */
+
+/* =========================================================================
+   LAYOUT
+   ========================================================================= */
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--spacing-20) var(--spacing-6);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-10);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    transition: var(--transition-base);
+}
+
+.back-link svg {
+    width: 20px;
+    height: 20px;
+    transition: var(--transition-arrow);
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+.header {
+    margin-bottom: var(--spacing-16);
+}
+
+.header__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-smart);
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.status-label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-ultra);
+}
+
+.header__title {
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--line-height-tight);
+    color: var(--color-dark);
+}
+
+.section {
+    margin-bottom: var(--spacing-16);
+}
+
+.section__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mega);
+    margin-bottom: var(--spacing-8);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.footer {
+    margin-top: var(--spacing-20);
+    padding-top: var(--spacing-10);
+    border-top: 1px solid var(--color-slate-200);
+    text-align: center;
+}
+
+.footer__text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-200);
+    text-transform: uppercase;
+    letter-spacing: 1em;
+}
+
+/* =========================================================================
+   BRAND COLORS
+   ========================================================================= */
+
+.colors-grid {
+    display: grid;
+    gap: var(--spacing-6);
+}
+
+.colors-grid--brand {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.colors-grid--semantic {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.color-card {
+    background: var(--color-white);
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-spring);
+}
+
+.color-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.color-card--large .color-swatch {
+    height: 160px;
+}
+
+.color-swatch {
+    height: 100px;
+}
+
+.color-info {
+    padding: var(--spacing-5);
+}
+
+.color-name {
+    display: block;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-black);
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-1);
+}
+
+.color-role {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-500);
+    margin-bottom: var(--spacing-4);
+}
+
+.color-values {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-1);
+}
+
+.color-values code,
+.color-info code {
+    font-family: 'SF Mono', monospace;
+    font-size: var(--font-size-xs);
+    color: var(--color-slate-500);
+}
+
+/* =========================================================================
+   COLOR SCALES
+   ========================================================================= */
+
+.color-scale {
+    display: flex;
+    border-radius: var(--radius-2xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.scale-item {
+    flex: 1;
+    padding: var(--spacing-6) var(--spacing-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-2);
+    min-height: 120px;
+    position: relative;
+}
+
+.scale-name {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    color: var(--color-dark);
+}
+
+.scale-item code {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--color-slate-700);
+}
+
+.scale-item--light .scale-name,
+.scale-item--light code {
+    color: var(--color-white);
+}
+
+.scale-item--primary {
+    position: relative;
+}
+
+.scale-badge {
+    position: absolute;
+    bottom: var(--spacing-3);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 8px;
+    font-size: 8px;
+    font-weight: var(--font-weight-black);
+    letter-spacing: 0.1em;
+    background: var(--color-white);
+    color: var(--color-dark);
+    border-radius: var(--radius-full);
+}
+
+.scale-item--light .scale-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--color-white);
+}
+
+/* =========================================================================
+   GRADIENTS
+   ========================================================================= */
+
+.gradients-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+}
+
+.gradient-card {
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.gradient-swatch {
+    height: 100px;
+}
+
+.gradient-info {
+    padding: var(--spacing-4);
+}
+
+.gradient-name {
+    display: block;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-2);
+}
+
+.gradient-info code {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--color-slate-400);
+    word-break: break-all;
+}
+
+/* =========================================================================
+   PATTERNS
+   ========================================================================= */
+
+.patterns-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-4);
+}
+
+.pattern-card {
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.pattern-swatch {
+    height: 120px;
+}
+
+.pattern-swatch--dots {
+    background-color: #f8fafc;
+    background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.pattern-swatch--dots-dark {
+    background-color: #0f172a;
+    background-image: radial-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.pattern-swatch--lines {
+    background-color: #f8fafc;
+    background-image: 
+        linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.pattern-info {
+    padding: var(--spacing-4);
+}
+
+.pattern-name {
+    display: block;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-2);
+}
+
+.pattern-info code {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--color-slate-400);
+}
+
+/* =========================================================================
+   SHADOWS
+   ========================================================================= */
+
+.shadows-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-6);
+}
+
+.shadow-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.shadow-box {
+    width: 100px;
+    height: 100px;
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+}
+
+.shadow-box--sm {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-box--base {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-box--md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-box--lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-box--xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-box--2xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-info {
+    text-align: center;
+}
+
+.shadow-name {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: var(--spacing-1);
+}
+
+.shadow-info code {
+    font-family: 'SF Mono', monospace;
+    font-size: 10px;
+    color: var(--color-slate-400);
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-10) var(--spacing-4);
+    }
+
+    .colors-grid--brand,
+    .colors-grid--semantic {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .color-scale {
+        flex-wrap: wrap;
+    }
+
+    .scale-item {
+        flex: 0 0 20%;
+    }
+
+    .gradients-grid,
+    .patterns-grid,
+    .shadows-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .colors-grid--brand,
+    .colors-grid--semantic {
+        grid-template-columns: 1fr;
+    }
+
+    .scale-item {
+        flex: 0 0 50%;
+    }
+
+    .gradients-grid,
+    .patterns-grid,
+    .shadows-grid {
+        grid-template-columns: 1fr;
+    }
+}

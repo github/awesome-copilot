@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkboxes & Toggles — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="checkboxes.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Selection Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                Чекбоксы и <span class="text-primary">переключатели</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: CHECKBOX -->
+        <section class="section">
+            <p class="section__label">01. Checkboxes</p>
+            <div class="showcase-grid">
+                
+                <!-- Default Checkbox -->
+                <div class="showcase">
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input">
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Стандартный чекбокс</span>
+                    </label>
+                    <span class="showcase__label">Default</span>
+                </div>
+
+                <!-- Checked -->
+                <div class="showcase">
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input" checked>
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Шифрование AES-256</span>
+                    </label>
+                    <span class="checkbox__hint">System Default Active</span>
+                    <span class="showcase__label">Checked</span>
+                </div>
+
+                <!-- Disabled Unchecked -->
+                <div class="showcase">
+                    <label class="checkbox checkbox--disabled">
+                        <input type="checkbox" class="checkbox__input" disabled>
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Анонимизация данных</span>
+                    </label>
+                    <span class="checkbox__hint">Requires Pro License</span>
+                    <span class="showcase__label">Disabled</span>
+                </div>
+
+                <!-- Disabled Checked -->
+                <div class="showcase">
+                    <label class="checkbox checkbox--disabled">
+                        <input type="checkbox" class="checkbox__input" checked disabled>
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Базовая защита</span>
+                    </label>
+                    <span class="checkbox__hint">Всегда активно</span>
+                    <span class="showcase__label">Disabled Checked</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CHECKBOX GROUP -->
+        <section class="section">
+            <p class="section__label">02. Checkbox Group</p>
+            <div class="checkbox-group">
+                <p class="checkbox-group__title">Выберите модули</p>
+                <div class="checkbox-group__items">
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input" checked>
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Автоматизация</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input" checked>
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Аналитика</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input">
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">AI Батлер</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" class="checkbox__input">
+                        <span class="checkbox__box">
+                            <svg class="checkbox__icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </span>
+                        <span class="checkbox__label">Интеграции</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: RADIO -->
+        <section class="section">
+            <p class="section__label">03. Radio Buttons</p>
+            <div class="showcase-grid">
+                
+                <!-- Default Radio -->
+                <div class="showcase">
+                    <label class="radio">
+                        <input type="radio" name="priority-demo" class="radio__input">
+                        <span class="radio__circle"></span>
+                        <span class="radio__label">Normal</span>
+                    </label>
+                    <span class="showcase__label">Default</span>
+                </div>
+
+                <!-- Checked Radio -->
+                <div class="showcase">
+                    <label class="radio">
+                        <input type="radio" name="priority-demo" class="radio__input" checked>
+                        <span class="radio__circle"></span>
+                        <span class="radio__label">High</span>
+                    </label>
+                    <span class="showcase__label">Checked</span>
+                </div>
+
+                <!-- Disabled Radio -->
+                <div class="showcase">
+                    <label class="radio radio--disabled">
+                        <input type="radio" name="priority-disabled" class="radio__input" disabled>
+                        <span class="radio__circle"></span>
+                        <span class="radio__label">Critical</span>
+                    </label>
+                    <span class="showcase__label">Disabled</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: RADIO GROUP -->
+        <section class="section">
+            <p class="section__label">04. Radio Group</p>
+            <div class="radio-group">
+                <p class="radio-group__title">Приоритет узла</p>
+                <div class="radio-group__items radio-group__items--inline">
+                    <label class="radio">
+                        <input type="radio" name="priority" class="radio__input" checked>
+                        <span class="radio__circle"></span>
+                        <span class="radio__label">High</span>
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="priority" class="radio__input">
+                        <span class="radio__circle"></span>
+                        <span class="radio__label">Normal</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TOGGLE -->
+        <section class="section">
+            <p class="section__label">05. Toggle Switches</p>
+            <div class="showcase-grid">
+                
+                <!-- Default Toggle Off -->
+                <div class="showcase">
+                    <label class="toggle">
+                        <input type="checkbox" class="toggle__input">
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                        <span class="toggle__label">Уведомления</span>
+                    </label>
+                    <span class="showcase__label">Default Off</span>
+                </div>
+
+                <!-- Toggle On -->
+                <div class="showcase">
+                    <label class="toggle">
+                        <input type="checkbox" class="toggle__input" checked>
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                        <span class="toggle__label">Automation Active</span>
+                    </label>
+                    <span class="showcase__label">Active</span>
+                </div>
+
+                <!-- Toggle Disabled -->
+                <div class="showcase">
+                    <label class="toggle toggle--disabled">
+                        <input type="checkbox" class="toggle__input" disabled>
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                        <span class="toggle__label">Beta Features</span>
+                    </label>
+                    <span class="showcase__label">Disabled</span>
+                </div>
+
+                <!-- Toggle Smart (AI) -->
+                <div class="showcase">
+                    <label class="toggle toggle--smart">
+                        <input type="checkbox" class="toggle__input" checked>
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                        <span class="toggle__label">Smart Mode</span>
+                    </label>
+                    <span class="showcase__label">AI Smart Toggle</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TOGGLE LIST -->
+        <section class="section">
+            <p class="section__label">06. Settings Toggle List</p>
+            <div class="toggle-list">
+                
+                <div class="toggle-item">
+                    <div class="toggle-item__content">
+                        <span class="toggle-item__label">Автосохранение</span>
+                        <span class="toggle-item__hint">Сохранять изменения каждые 30 секунд</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" class="toggle__input" checked>
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-item__content">
+                        <span class="toggle-item__label">Email уведомления</span>
+                        <span class="toggle-item__hint">Получать сводку по документам</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" class="toggle__input" checked>
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="toggle-item">
+                    <div class="toggle-item__content">
+                        <span class="toggle-item__label">Двухфакторная аутентификация</span>
+                        <span class="toggle-item__hint">Дополнительный уровень защиты</span>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" class="toggle__input">
+                        <span class="toggle__track">
+                            <span class="toggle__thumb"></span>
+                        </span>
+                    </label>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CHIP SELECT -->
+        <section class="section">
+            <p class="section__label">07. Chip Select (Tabs Style)</p>
+            <div class="chip-select">
+                <label class="chip">
+                    <input type="radio" name="status" class="chip__input" checked>
+                    <span class="chip__label">Активный</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="status" class="chip__input">
+                    <span class="chip__label">Черновик</span>
+                </label>
+                <label class="chip">
+                    <input type="radio" name="status" class="chip__input">
+                    <span class="chip__label">Архив</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Selection Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

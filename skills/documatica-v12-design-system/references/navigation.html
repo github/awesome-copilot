@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Navigation Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Навигация</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: NAVBAR -->
+        <section class="section">
+            <p class="section__label">01. Navbar</p>
+            
+            <!-- Light Navbar -->
+            <nav class="navbar">
+                <a href="#" class="navbar__logo">
+                    <span class="navbar__logo-icon">D</span>
+                    <span class="navbar__logo-text">Documatica</span>
+                </a>
+                <div class="navbar__menu">
+                    <a href="#" class="navbar__link navbar__link--active">Документы</a>
+                    <a href="#" class="navbar__link">Аналитика</a>
+                    <a href="#" class="navbar__link">API</a>
+                    <a href="#" class="navbar__link">Настройки</a>
+                </div>
+                <div class="navbar__actions">
+                    <button class="navbar__btn navbar__btn--icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </button>
+                    <div class="navbar__avatar">AI</div>
+                </div>
+            </nav>
+
+            <!-- Dark Navbar -->
+            <nav class="navbar navbar--dark" style="margin-top: var(--spacing-4);">
+                <a href="#" class="navbar__logo">
+                    <span class="navbar__logo-icon navbar__logo-icon--smart">D</span>
+                    <span class="navbar__logo-text">Documatica</span>
+                </a>
+                <div class="navbar__menu">
+                    <a href="#" class="navbar__link navbar__link--active">Dashboard</a>
+                    <a href="#" class="navbar__link">Projects</a>
+                    <a href="#" class="navbar__link">Team</a>
+                </div>
+                <div class="navbar__actions">
+                    <button class="navbar__btn-primary">Upgrade</button>
+                </div>
+            </nav>
+
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIDEBAR -->
+        <section class="section">
+            <p class="section__label">02. Sidebar</p>
+            <div class="sidebar-demo">
+                
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar__header">
+                        <span class="sidebar__logo">D</span>
+                        <span class="sidebar__title">Documatica</span>
+                    </div>
+                    
+                    <nav class="sidebar__nav">
+                        <span class="sidebar__section">Главное</span>
+                        <a href="#" class="sidebar__link sidebar__link--active">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Dashboard
+                        </a>
+                        <a href="#" class="sidebar__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Документы
+                            <span class="sidebar__badge">12</span>
+                        </a>
+                        <a href="#" class="sidebar__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Аналитика
+                        </a>
+                        
+                        <span class="sidebar__section">Система</span>
+                        <a href="#" class="sidebar__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Настройки
+                        </a>
+                        <a href="#" class="sidebar__link sidebar__link--smart">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            AI Помощник
+                            <span class="sidebar__dot"></span>
+                        </a>
+                    </nav>
+                    
+                    <div class="sidebar__footer">
+                        <div class="sidebar__user">
+                            <div class="sidebar__user-avatar">АИ</div>
+                            <div class="sidebar__user-info">
+                                <span class="sidebar__user-name">Алексей</span>
+                                <span class="sidebar__user-role">Admin</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TABS -->
+        <section class="section">
+            <p class="section__label">03. Tabs</p>
+            
+            <!-- Underline Tabs -->
+            <div class="tabs-demo">
+                <div class="tabs tabs--underline">
+                    <button class="tabs__item tabs__item--active">Все</button>
+                    <button class="tabs__item">Активные</button>
+                    <button class="tabs__item">Черновики</button>
+                    <button class="tabs__item">Архив</button>
+                </div>
+            </div>
+
+            <!-- Pill Tabs -->
+            <div class="tabs-demo" style="margin-top: var(--spacing-6);">
+                <div class="tabs tabs--pills">
+                    <button class="tabs__pill tabs__pill--active">Документы</button>
+                    <button class="tabs__pill">Контракты</button>
+                    <button class="tabs__pill">Счета</button>
+                    <button class="tabs__pill">Акты</button>
+                </div>
+            </div>
+
+            <!-- Boxed Tabs -->
+            <div class="tabs-demo" style="margin-top: var(--spacing-6);">
+                <div class="tabs tabs--boxed">
+                    <button class="tabs__box tabs__box--active">День</button>
+                    <button class="tabs__box">Неделя</button>
+                    <button class="tabs__box">Месяц</button>
+                    <button class="tabs__box">Год</button>
+                </div>
+            </div>
+
+            <!-- With Icons -->
+            <div class="tabs-demo" style="margin-top: var(--spacing-6);">
+                <div class="tabs tabs--underline">
+                    <button class="tabs__item tabs__item--active">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        Список
+                    </button>
+                    <button class="tabs__item">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                        Сетка
+                    </button>
+                    <button class="tabs__item">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Таблица
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- КАТЕГОРИЯ: BREADCRUMBS -->
+        <section class="section">
+            <p class="section__label">04. Breadcrumbs</p>
+            
+            <nav class="breadcrumbs">
+                <a href="#" class="breadcrumbs__item">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </a>
+                <span class="breadcrumbs__separator">/</span>
+                <a href="#" class="breadcrumbs__item">Документы</a>
+                <span class="breadcrumbs__separator">/</span>
+                <a href="#" class="breadcrumbs__item">Контракты</a>
+                <span class="breadcrumbs__separator">/</span>
+                <span class="breadcrumbs__item breadcrumbs__item--current">Договор_ООО_ТехПром</span>
+            </nav>
+
+            <!-- Pill Breadcrumbs -->
+            <nav class="breadcrumbs breadcrumbs--pills" style="margin-top: var(--spacing-6);">
+                <a href="#" class="breadcrumbs__pill">Главная</a>
+                <svg class="breadcrumbs__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 5l7 7-7 7"></path>
+                </svg>
+                <a href="#" class="breadcrumbs__pill">Проекты</a>
+                <svg class="breadcrumbs__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 5l7 7-7 7"></path>
+                </svg>
+                <span class="breadcrumbs__pill breadcrumbs__pill--active">Documatica v12.0</span>
+            </nav>
+
+        </section>
+
+        <!-- КАТЕГОРИЯ: PAGINATION -->
+        <section class="section">
+            <p class="section__label">05. Pagination</p>
+            
+            <nav class="pagination">
+                <button class="pagination__btn" disabled>
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <button class="pagination__page pagination__page--active">1</button>
+                <button class="pagination__page">2</button>
+                <button class="pagination__page">3</button>
+                <span class="pagination__dots">...</span>
+                <button class="pagination__page">12</button>
+                <button class="pagination__btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </nav>
+
+            <!-- Compact Pagination -->
+            <nav class="pagination pagination--compact" style="margin-top: var(--spacing-6);">
+                <button class="pagination__btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <span class="pagination__info">Страница 3 из 12</span>
+                <button class="pagination__btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </nav>
+
+        </section>
+
+        <!-- КАТЕГОРИЯ: STEPS -->
+        <section class="section">
+            <p class="section__label">06. Steps</p>
+            
+            <div class="steps">
+                <div class="step step--completed">
+                    <div class="step__circle">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <span class="step__label">Загрузка</span>
+                </div>
+                <div class="step__line step__line--completed"></div>
+                <div class="step step--completed">
+                    <div class="step__circle">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <span class="step__label">AI Анализ</span>
+                </div>
+                <div class="step__line step__line--active"></div>
+                <div class="step step--active">
+                    <div class="step__circle">3</div>
+                    <span class="step__label">Проверка</span>
+                </div>
+                <div class="step__line"></div>
+                <div class="step">
+                    <div class="step__circle">4</div>
+                    <span class="step__label">Готово</span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Navigation Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

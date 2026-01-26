@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="stats.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Stats Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Stats</span>
+            </h1>
+        </header>
+
+        <!-- BASIC STATS -->
+        <section class="section">
+            <p class="section__label">01. Basic Stats Grid</p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Всего документов</span>
+                    <span class="stat-value">12,847</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Активных пользователей</span>
+                    <span class="stat-value">1,253</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Обработано сегодня</span>
+                    <span class="stat-value">847</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Точность AI</span>
+                    <span class="stat-value">98.7%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH ICONS -->
+        <section class="section">
+            <p class="section__label">02. With Icons</p>
+            <div class="stats-grid stats-grid--3">
+                <div class="stat-card stat-card--icon">
+                    <div class="stat-icon stat-icon--primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">8,456</span>
+                        <span class="stat-label">Документов</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card--icon">
+                    <div class="stat-icon stat-icon--success">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">2,347</span>
+                        <span class="stat-label">Пользователей</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card--icon">
+                    <div class="stat-icon stat-icon--smart">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <span class="stat-value">156K</span>
+                        <span class="stat-label">AI запросов</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH CHANGE INDICATOR -->
+        <section class="section">
+            <p class="section__label">03. With Change Indicator</p>
+            <div class="stats-grid">
+                <div class="stat-card stat-card--change">
+                    <span class="stat-label">Выручка</span>
+                    <span class="stat-value">$124,500</span>
+                    <div class="stat-change stat-change--up">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        </svg>
+                        <span>+12.5%</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card--change">
+                    <span class="stat-label">Конверсия</span>
+                    <span class="stat-value">3.24%</span>
+                    <div class="stat-change stat-change--up">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        </svg>
+                        <span>+0.8%</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card--change">
+                    <span class="stat-label">Отток</span>
+                    <span class="stat-value">2.1%</span>
+                    <div class="stat-change stat-change--down">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                        </svg>
+                        <span>-0.3%</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-card--change">
+                    <span class="stat-label">Время ответа</span>
+                    <span class="stat-value">1.2s</span>
+                    <div class="stat-change stat-change--neutral">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 12h14"></path>
+                        </svg>
+                        <span>0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH PROGRESS -->
+        <section class="section">
+            <p class="section__label">04. With Progress</p>
+            <div class="stats-grid stats-grid--2">
+                <div class="stat-card stat-card--progress">
+                    <div class="stat-header">
+                        <span class="stat-label">Использование хранилища</span>
+                        <span class="stat-percent">72%</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-bar__fill" style="width: 72%;"></div>
+                    </div>
+                    <span class="stat-detail">36 GB из 50 GB</span>
+                </div>
+                <div class="stat-card stat-card--progress">
+                    <div class="stat-header">
+                        <span class="stat-label">API лимит</span>
+                        <span class="stat-percent">45%</span>
+                    </div>
+                    <div class="stat-bar stat-bar--success">
+                        <div class="stat-bar__fill" style="width: 45%;"></div>
+                    </div>
+                    <span class="stat-detail">4,500 из 10,000 запросов</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- LARGE HERO STAT -->
+        <section class="section">
+            <p class="section__label">05. Hero Stat</p>
+            <div class="stat-hero">
+                <div class="stat-hero__badge">На этой неделе</div>
+                <div class="stat-hero__value">
+                    <span class="stat-hero__number">2,847</span>
+                    <span class="stat-hero__unit">документов</span>
+                </div>
+                <p class="stat-hero__description">обработано с помощью AI</p>
+                <div class="stat-hero__footer">
+                    <div class="stat-change stat-change--up">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                        </svg>
+                        <span>+23% к прошлой неделе</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INLINE STATS -->
+        <section class="section">
+            <p class="section__label">06. Inline Stats</p>
+            <div class="stats-inline">
+                <div class="stat-inline">
+                    <span class="stat-inline__value">1.2M</span>
+                    <span class="stat-inline__label">Загрузок</span>
+                </div>
+                <div class="stat-inline__divider"></div>
+                <div class="stat-inline">
+                    <span class="stat-inline__value">4.9</span>
+                    <span class="stat-inline__label">Рейтинг</span>
+                </div>
+                <div class="stat-inline__divider"></div>
+                <div class="stat-inline">
+                    <span class="stat-inline__value">50+</span>
+                    <span class="stat-inline__label">Стран</span>
+                </div>
+                <div class="stat-inline__divider"></div>
+                <div class="stat-inline">
+                    <span class="stat-inline__value">24/7</span>
+                    <span class="stat-inline__label">Поддержка</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPARISON -->
+        <section class="section">
+            <p class="section__label">07. Comparison Stats</p>
+            <div class="stats-comparison">
+                <div class="stat-compare">
+                    <div class="stat-compare__header">
+                        <span class="stat-compare__label">Этот месяц</span>
+                        <span class="stat-compare__period">Янв 2024</span>
+                    </div>
+                    <span class="stat-compare__value stat-compare__value--current">$48,200</span>
+                </div>
+                <div class="stat-compare__arrow">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </div>
+                <div class="stat-compare">
+                    <div class="stat-compare__header">
+                        <span class="stat-compare__label">Прошлый месяц</span>
+                        <span class="stat-compare__period">Дек 2023</span>
+                    </div>
+                    <span class="stat-compare__value stat-compare__value--previous">$42,100</span>
+                </div>
+                <div class="stat-compare__diff stat-compare__diff--up">+14.5%</div>
+            </div>
+        </section>
+
+        <!-- DARK STATS -->
+        <section class="section">
+            <p class="section__label">08. Dark AI Stats</p>
+            <div class="stats-dark">
+                <div class="stat-dark">
+                    <div class="stat-dark__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <span class="stat-dark__value">98.7%</span>
+                    <span class="stat-dark__label">AI Точность</span>
+                </div>
+                <div class="stat-dark">
+                    <div class="stat-dark__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="stat-dark__value">0.3s</span>
+                    <span class="stat-dark__label">Время ответа</span>
+                </div>
+                <div class="stat-dark">
+                    <div class="stat-dark__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                    <span class="stat-dark__value">256-bit</span>
+                    <span class="stat-dark__label">Шифрование</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Stats Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

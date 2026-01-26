@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="docs-container">
+        
+        <a href="index.html" class="back-link">
+            ← Вернуться к компонентам
+        </a>
+
+        <header class="docs-header">
+            <div class="docs-header__badge">
+                <span class="status-dot status-dot--active"></span>
+                SIDEBAR PROTOCOL V12.0
+            </div>
+            <h1 class="docs-header__title">
+                БОКОВЫЕ<br>
+                <span class="text-primary">ПАНЕЛИ.</span>
+            </h1>
+            <p class="docs-header__desc">
+                Навигационные сайдбары в стиле Documatica.<br>
+                Секции, иконки, статусы и адаптивность.
+            </p>
+        </header>
+
+        <!-- ======================= BASIC SIDEBAR ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">01</span>
+                <h2 class="section-title">Базовый сайдбар</h2>
+            </div>
+            <p class="section-desc">Стандартный сайдбар Documatica с секциями и навигацией.</p>
+
+            <div class="layout-demo">
+                <aside class="sidebar">
+                    <div class="sidebar__header">
+                        <div class="sidebar__logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect width="24" height="24" rx="6" fill="#3b82f6"/>
+                                <path d="M7 8h10M7 12h6M7 16h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sidebar__brand">docu<span>matica</span></span>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar__nav">
+                        <div class="sidebar__section">
+                            <span class="sidebar__section-label">ОСНОВНОЕ УПРАВЛЕНИЕ</span>
+                            <a href="#" class="sidebar__link sidebar__link--active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Дашборд
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                </svg>
+                                Документы
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
+                                AI Аудит
+                            </a>
+                        </div>
+
+                        <div class="sidebar__section">
+                            <span class="sidebar__section-label">СИСТЕМА</span>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                </svg>
+                                Безопасность
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                                </svg>
+                                Настройки
+                            </a>
+                        </div>
+                    </nav>
+
+                    <div class="sidebar__footer">
+                        <div class="sidebar__status">
+                            <span class="status-dot status-dot--active"></span>
+                            AI CORE ACTIVE
+                        </div>
+                        <div class="sidebar__user">
+                            <div class="sidebar__avatar">JD</div>
+                            <div class="sidebar__user-info">
+                                <span class="sidebar__user-name">JOHN DOCUMATICA</span>
+                                <span class="sidebar__user-role">ADMINISTRATOR</span>
+                            </div>
+                            <button class="sidebar__user-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="main-content">
+                    <div class="main-content__placeholder">
+                        <span>Основной контент</span>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <!-- ======================= WITH BADGES ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">02</span>
+                <h2 class="section-title">С бейджами и уведомлениями</h2>
+            </div>
+
+            <div class="layout-demo layout-demo--small">
+                <aside class="sidebar">
+                    <div class="sidebar__header">
+                        <div class="sidebar__logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect width="24" height="24" rx="6" fill="#3b82f6"/>
+                                <path d="M7 8h10M7 12h6M7 16h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sidebar__brand">docu<span>matica</span></span>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar__nav">
+                        <div class="sidebar__section">
+                            <span class="sidebar__section-label">УПРАВЛЕНИЕ</span>
+                            <a href="#" class="sidebar__link sidebar__link--active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Дашборд
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path d="M14 2v6h6"/>
+                                </svg>
+                                Документы
+                                <span class="sidebar__badge">24</span>
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                                </svg>
+                                Сообщения
+                                <span class="sidebar__badge sidebar__badge--danger">3</span>
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
+                                AI Анализ
+                                <span class="sidebar__badge sidebar__badge--smart">NEW</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ======================= COLLAPSED SIDEBAR ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">03</span>
+                <h2 class="section-title">Свёрнутый сайдбар</h2>
+            </div>
+            <p class="section-desc">Компактный режим только с иконками.</p>
+
+            <div class="layout-demo">
+                <aside class="sidebar sidebar--collapsed">
+                    <div class="sidebar__header">
+                        <div class="sidebar__logo sidebar__logo--icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                                <rect width="24" height="24" rx="6" fill="#3b82f6"/>
+                                <path d="M7 8h10M7 12h6M7 16h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar__nav">
+                        <a href="#" class="sidebar__link sidebar__link--active" title="Дашборд">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="sidebar__link" title="Документы">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                <path d="M14 2v6h6"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="sidebar__link" title="AI Аудит">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="sidebar__link" title="Безопасность">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="sidebar__link" title="Настройки">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+                            </svg>
+                        </a>
+                    </nav>
+
+                    <div class="sidebar__footer">
+                        <div class="sidebar__status">
+                            <span class="status-dot status-dot--active"></span>
+                        </div>
+                        <div class="sidebar__user">
+                            <div class="sidebar__avatar">JD</div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="main-content main-content--wide">
+                    <div class="main-content__placeholder">
+                        <span>Расширенная область контента</span>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <!-- ======================= DARK SIDEBAR ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">04</span>
+                <h2 class="section-title">Тёмный сайдбар</h2>
+            </div>
+
+            <div class="layout-demo">
+                <aside class="sidebar sidebar--dark">
+                    <div class="sidebar__header">
+                        <div class="sidebar__logo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <rect width="24" height="24" rx="6" fill="#3b82f6"/>
+                                <path d="M7 8h10M7 12h6M7 16h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="sidebar__brand">docu<span>matica</span></span>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar__nav">
+                        <div class="sidebar__section">
+                            <span class="sidebar__section-label">УПРАВЛЕНИЕ</span>
+                            <a href="#" class="sidebar__link sidebar__link--active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Дашборд
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path d="M14 2v6h6"/>
+                                </svg>
+                                Документы
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                    <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                                </svg>
+                                AI Анализ
+                            </a>
+                        </div>
+
+                        <div class="sidebar__section">
+                            <span class="sidebar__section-label">СИСТЕМА</span>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                </svg>
+                                Безопасность
+                            </a>
+                            <a href="#" class="sidebar__link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06"/>
+                                </svg>
+                                Настройки
+                            </a>
+                        </div>
+                    </nav>
+
+                    <div class="sidebar__footer">
+                        <div class="sidebar__status">
+                            <span class="status-dot status-dot--active"></span>
+                            AI CORE ACTIVE
+                        </div>
+                        <div class="sidebar__user">
+                            <div class="sidebar__avatar">JD</div>
+                            <div class="sidebar__user-info">
+                                <span class="sidebar__user-name">JOHN DOCUMATICA</span>
+                                <span class="sidebar__user-role">ADMINISTRATOR</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <main class="main-content">
+                    <div class="main-content__placeholder">
+                        <span>Основной контент</span>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <!-- ======================= ECOMMERCE FILTERS ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">05</span>
+                <h2 class="section-title">Фильтры (E-Commerce)</h2>
+            </div>
+            <p class="section-desc">Сайдбар для фильтрации товаров в каталоге.</p>
+
+            <div class="layout-demo">
+                <aside class="sidebar sidebar--filters">
+                    <div class="sidebar__header">
+                        <h3 class="filters__title">Фильтры</h3>
+                        <button class="filters__clear">Сбросить</button>
+                    </div>
+
+                    <div class="filters__content">
+                        <div class="filter-group">
+                            <div class="filter-group__header">
+                                <span class="filter-group__title">Категории</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </div>
+                            <div class="filter-group__body">
+                                <label class="filter-option">
+                                    <input type="checkbox" checked>
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Электроника</span>
+                                    <span class="filter-option__count">324</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="checkbox">
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Одежда</span>
+                                    <span class="filter-option__count">512</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="checkbox">
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Дом и сад</span>
+                                    <span class="filter-option__count">198</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="checkbox">
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Спорт</span>
+                                    <span class="filter-option__count">87</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-group__header">
+                                <span class="filter-group__title">Цена</span>
+                            </div>
+                            <div class="filter-group__body">
+                                <div class="price-range">
+                                    <div class="price-range__input">
+                                        <label>От</label>
+                                        <input type="number" value="0" placeholder="0">
+                                    </div>
+                                    <span class="price-range__sep">—</span>
+                                    <div class="price-range__input">
+                                        <label>До</label>
+                                        <input type="number" value="50000" placeholder="50000">
+                                    </div>
+                                </div>
+                                <div class="price-slider">
+                                    <div class="price-slider__track">
+                                        <div class="price-slider__fill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-group__header">
+                                <span class="filter-group__title">Рейтинг</span>
+                            </div>
+                            <div class="filter-group__body">
+                                <label class="filter-option">
+                                    <input type="radio" name="rating" checked>
+                                    <span class="filter-option__radio"></span>
+                                    <span class="filter-option__stars">★★★★★</span>
+                                    <span class="filter-option__count">89</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="radio" name="rating">
+                                    <span class="filter-option__radio"></span>
+                                    <span class="filter-option__stars">★★★★☆</span>
+                                    <span class="filter-option__count">156</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="radio" name="rating">
+                                    <span class="filter-option__radio"></span>
+                                    <span class="filter-option__stars">★★★☆☆</span>
+                                    <span class="filter-option__count">72</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-group__header">
+                                <span class="filter-group__title">Бренды</span>
+                            </div>
+                            <div class="filter-group__body">
+                                <div class="filter-search">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"/>
+                                        <path d="M21 21l-4.35-4.35"/>
+                                    </svg>
+                                    <input type="text" placeholder="Поиск бренда...">
+                                </div>
+                                <label class="filter-option">
+                                    <input type="checkbox" checked>
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Apple</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="checkbox">
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Samsung</span>
+                                </label>
+                                <label class="filter-option">
+                                    <input type="checkbox">
+                                    <span class="filter-option__check"></span>
+                                    <span class="filter-option__label">Sony</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar__footer">
+                        <button class="btn btn--primary btn--block">Применить фильтры</button>
+                    </div>
+                </aside>
+
+                <main class="main-content">
+                    <div class="main-content__placeholder">
+                        <span>Сетка товаров</span>
+                    </div>
+                </main>
+            </div>
+        </section>
+
+        <!-- ======================= BLOG SIDEBAR ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">06</span>
+                <h2 class="section-title">Сайдбар блога</h2>
+            </div>
+
+            <div class="layout-demo layout-demo--reverse">
+                <main class="main-content main-content--article">
+                    <div class="main-content__placeholder">
+                        <span>Статья блога</span>
+                    </div>
+                </main>
+
+                <aside class="sidebar sidebar--blog">
+                    <div class="blog-widget">
+                        <h4 class="blog-widget__title">Поиск</h4>
+                        <div class="blog-search">
+                            <input type="text" placeholder="Найти статью...">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="blog-widget">
+                        <h4 class="blog-widget__title">Категории</h4>
+                        <ul class="blog-categories">
+                            <li><a href="#">Дизайн <span>(24)</span></a></li>
+                            <li><a href="#">Разработка <span>(18)</span></a></li>
+                            <li><a href="#">AI & ML <span>(15)</span></a></li>
+                            <li><a href="#">Бизнес <span>(9)</span></a></li>
+                            <li><a href="#">Маркетинг <span>(12)</span></a></li>
+                        </ul>
+                    </div>
+
+                    <div class="blog-widget">
+                        <h4 class="blog-widget__title">Популярное</h4>
+                        <div class="blog-popular">
+                            <a href="#" class="popular-post">
+                                <div class="popular-post__image"></div>
+                                <div class="popular-post__content">
+                                    <span class="popular-post__title">10 трендов UI/UX в 2026</span>
+                                    <span class="popular-post__date">15 янв, 2026</span>
+                                </div>
+                            </a>
+                            <a href="#" class="popular-post">
+                                <div class="popular-post__image"></div>
+                                <div class="popular-post__content">
+                                    <span class="popular-post__title">AI в документообороте</span>
+                                    <span class="popular-post__date">12 янв, 2026</span>
+                                </div>
+                            </a>
+                            <a href="#" class="popular-post">
+                                <div class="popular-post__image"></div>
+                                <div class="popular-post__content">
+                                    <span class="popular-post__title">Как выбрать шрифт</span>
+                                    <span class="popular-post__date">8 янв, 2026</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="blog-widget">
+                        <h4 class="blog-widget__title">Теги</h4>
+                        <div class="blog-tags">
+                            <a href="#" class="blog-tag">UI/UX</a>
+                            <a href="#" class="blog-tag">CSS</a>
+                            <a href="#" class="blog-tag">React</a>
+                            <a href="#" class="blog-tag">Figma</a>
+                            <a href="#" class="blog-tag">AI</a>
+                            <a href="#" class="blog-tag">Typography</a>
+                            <a href="#" class="blog-tag">Design System</a>
+                        </div>
+                    </div>
+
+                    <div class="blog-widget blog-widget--cta">
+                        <span class="blog-cta__badge">NEWSLETTER</span>
+                        <h4 class="blog-cta__title">Подпишитесь на обновления</h4>
+                        <p class="blog-cta__desc">Получайте лучшие статьи раз в неделю</p>
+                        <div class="blog-cta__form">
+                            <input type="email" placeholder="Email...">
+                            <button class="btn btn--primary">→</button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ======================= MOBILE SIDEBAR ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">07</span>
+                <h2 class="section-title">Мобильный сайдбар</h2>
+            </div>
+            <p class="section-desc">Off-canvas меню для мобильных устройств.</p>
+
+            <div class="mobile-demo">
+                <div class="mobile-frame">
+                    <div class="mobile-header">
+                        <button class="mobile-hamburger">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
+                        <span class="mobile-title">Documatica</span>
+                        <div class="mobile-avatar">JD</div>
+                    </div>
+
+                    <div class="mobile-overlay"></div>
+
+                    <aside class="mobile-sidebar">
+                        <div class="mobile-sidebar__header">
+                            <span>Меню</span>
+                            <button class="mobile-close">×</button>
+                        </div>
+                        <nav class="mobile-sidebar__nav">
+                            <a href="#" class="mobile-link mobile-link--active">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                                </svg>
+                                Дашборд
+                            </a>
+                            <a href="#" class="mobile-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path d="M14 2v6h6"/>
+                                </svg>
+                                Документы
+                            </a>
+                            <a href="#" class="mobile-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                                </svg>
+                                Корзина
+                            </a>
+                            <a href="#" class="mobile-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                                Профиль
+                            </a>
+                            <a href="#" class="mobile-link">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="3"/>
+                                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06"/>
+                                </svg>
+                                Настройки
+                            </a>
+                        </nav>
+                    </aside>
+
+                    <div class="mobile-content">
+                        <span>Tap hamburger →</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= CODE ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">08</span>
+                <h2 class="section-title">Код</h2>
+            </div>
+
+            <div class="code-block">
+                <div class="code-block__header">
+                    <span>HTML</span>
+                </div>
+                <pre><code>&lt;aside class="sidebar"&gt;
+    &lt;div class="sidebar__header"&gt;
+        &lt;div class="sidebar__logo"&gt;
+            &lt;svg&gt;...&lt;/svg&gt;
+            &lt;span class="sidebar__brand"&gt;docu&lt;span&gt;matica&lt;/span&gt;&lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;nav class="sidebar__nav"&gt;
+        &lt;div class="sidebar__section"&gt;
+            &lt;span class="sidebar__section-label"&gt;ОСНОВНОЕ УПРАВЛЕНИЕ&lt;/span&gt;
+            &lt;a class="sidebar__link sidebar__link--active"&gt;
+                &lt;svg&gt;...&lt;/svg&gt;
+                Дашборд
+            &lt;/a&gt;
+            &lt;a class="sidebar__link"&gt;
+                &lt;svg&gt;...&lt;/svg&gt;
+                Документы
+                &lt;span class="sidebar__badge"&gt;24&lt;/span&gt;
+            &lt;/a&gt;
+        &lt;/div&gt;
+    &lt;/nav&gt;
+
+    &lt;div class="sidebar__footer"&gt;
+        &lt;div class="sidebar__status"&gt;
+            &lt;span class="status-dot status-dot--active"&gt;&lt;/span&gt;
+            AI CORE ACTIVE
+        &lt;/div&gt;
+        &lt;div class="sidebar__user"&gt;
+            &lt;div class="sidebar__avatar"&gt;JD&lt;/div&gt;
+            &lt;div class="sidebar__user-info"&gt;
+                &lt;span class="sidebar__user-name"&gt;JOHN DOCUMATICA&lt;/span&gt;
+                &lt;span class="sidebar__user-role"&gt;ADMINISTRATOR&lt;/span&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/aside&gt;
+
+&lt;!-- Варианты --&gt;
+&lt;aside class="sidebar sidebar--collapsed"&gt;...&lt;/aside&gt;
+&lt;aside class="sidebar sidebar--dark"&gt;...&lt;/aside&gt;
+&lt;aside class="sidebar sidebar--filters"&gt;...&lt;/aside&gt;
+&lt;aside class="sidebar sidebar--blog"&gt;...&lt;/aside&gt;</code></pre>
+            </div>
+        </section>
+
+        <footer class="docs-footer">
+            <div class="docs-footer__inner">
+                <div class="ai-status">
+                    <span class="status-dot status-dot--active"></span>
+                    AI CORE ACTIVE
+                </div>
+                <p>Sidebar v12.0 — Documatica Design System</p>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

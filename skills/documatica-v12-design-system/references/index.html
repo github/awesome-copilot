@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documatica Design System v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+        }
+
+        .hub {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing-20) var(--spacing-6);
+        }
+
+        /* Header */
+        .hub-header {
+            margin-bottom: var(--spacing-16);
+        }
+
+        .hub-header__status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-6);
+        }
+
+        .hub-header__dot {
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-smart);
+            border-radius: var(--radius-full);
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hub-header__label {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-black);
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-ultra);
+        }
+
+        .hub-header__title {
+            font-size: clamp(48px, 10vw, 96px);
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-tight);
+            line-height: var(--line-height-tight);
+            color: var(--color-dark);
+        }
+
+        .hub-header__subtitle {
+            margin-top: var(--spacing-6);
+            font-size: var(--font-size-2xl);
+            color: var(--color-slate-500);
+            max-width: 600px;
+        }
+
+        /* Stats */
+        .hub-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-4);
+            margin-bottom: var(--spacing-16);
+        }
+
+        .hub-stat {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            padding: var(--spacing-4) var(--spacing-6);
+            background: var(--color-white);
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--radius-2xl);
+        }
+
+        .hub-stat__value {
+            font-size: var(--font-size-4xl);
+            font-weight: var(--font-weight-black);
+            color: var(--color-dark);
+        }
+
+        .hub-stat__label {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-black);
+            color: var(--color-slate-400);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wider);
+        }
+
+        /* Grid */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--spacing-6);
+            margin-bottom: var(--spacing-16);
+        }
+
+        /* Card */
+        .hub-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: var(--spacing-8);
+            background: var(--color-white);
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--radius-2xl);
+            text-decoration: none;
+            color: inherit;
+            transition: var(--transition-spring);
+        }
+
+        .hub-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--color-primary);
+        }
+
+        .hub-card--dark {
+            background: var(--color-dark);
+            border-color: var(--color-slate-700);
+        }
+
+        .hub-card--dark:hover {
+            border-color: var(--color-smart);
+        }
+
+        .hub-card--primary {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+        }
+
+        .hub-card--primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .hub-card__icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--spacing-6);
+            background: var(--color-slate-50);
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--radius-xl);
+            color: var(--color-primary);
+        }
+
+        .hub-card--dark .hub-card__icon {
+            background: var(--color-slate-800);
+            border-color: var(--color-slate-700);
+            color: var(--color-smart);
+        }
+
+        .hub-card--primary .hub-card__icon {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+            color: var(--color-white);
+        }
+
+        .hub-card__icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .hub-card__tag {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-black);
+            color: var(--color-primary);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-mega);
+            margin-bottom: var(--spacing-2);
+        }
+
+        .hub-card--dark .hub-card__tag {
+            color: var(--color-smart);
+        }
+
+        .hub-card--primary .hub-card__tag {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .hub-card__title {
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-tight);
+            color: var(--color-dark);
+            margin-bottom: var(--spacing-3);
+        }
+
+        .hub-card--dark .hub-card__title,
+        .hub-card--primary .hub-card__title {
+            color: var(--color-white);
+        }
+
+        .hub-card__description {
+            font-size: var(--font-size-xl);
+            color: var(--color-slate-500);
+            line-height: var(--line-height-relaxed);
+            flex-grow: 1;
+        }
+
+        .hub-card--dark .hub-card__description {
+            color: var(--color-slate-400);
+        }
+
+        .hub-card--primary .hub-card__description {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .hub-card__arrow {
+            position: absolute;
+            top: var(--spacing-8);
+            right: var(--spacing-8);
+            width: 24px;
+            height: 24px;
+            color: var(--color-slate-300);
+            transition: var(--transition-arrow);
+        }
+
+        .hub-card:hover .hub-card__arrow {
+            color: var(--color-primary);
+            transform: translateX(4px);
+        }
+
+        .hub-card--dark .hub-card__arrow,
+        .hub-card--primary .hub-card__arrow {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .hub-card--dark:hover .hub-card__arrow {
+            color: var(--color-smart);
+        }
+
+        .hub-card--primary:hover .hub-card__arrow {
+            color: var(--color-white);
+        }
+
+        .hub-card__count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: var(--spacing-6);
+            padding: var(--spacing-2) var(--spacing-4);
+            background: var(--color-slate-100);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-slate-600);
+        }
+
+        .hub-card--dark .hub-card__count {
+            background: var(--color-slate-800);
+            color: var(--color-slate-400);
+        }
+
+        .hub-card--primary .hub-card__count {
+            background: rgba(255,255,255,0.2);
+            color: var(--color-white);
+        }
+
+        /* Section Title */
+        .hub-section-title {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-black);
+            color: var(--color-slate-400);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-mega);
+            margin-bottom: var(--spacing-8);
+            padding-bottom: var(--spacing-4);
+            border-bottom: 1px solid var(--color-slate-200);
+        }
+
+        /* Footer */
+        .hub-footer {
+            text-align: center;
+            padding-top: var(--spacing-10);
+            border-top: 1px solid var(--color-slate-200);
+        }
+
+        .hub-footer__text {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-black);
+            color: var(--color-slate-200);
+            text-transform: uppercase;
+            letter-spacing: 1em;
+        }
+
+        /* Status badges */
+        .hub-card__status {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            margin-top: var(--spacing-4);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-black);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wider);
+        }
+
+        .hub-card__status--ready {
+            color: var(--color-success);
+        }
+
+        .hub-card__status--soon {
+            color: var(--color-smart);
+        }
+
+        .hub-card__status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-full);
+            background: currentColor;
+        }
+
+        @media (max-width: 768px) {
+            .hub {
+                padding: var(--spacing-10) var(--spacing-4);
+            }
+
+            .hub-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hub-stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body class="pattern-light">
+
+    <div class="hub">
+        
+        <!-- Header -->
+        <header class="hub-header">
+            <div class="hub-header__status">
+                <div class="hub-header__dot"></div>
+                <span class="hub-header__label">Design System v12.0</span>
+            </div>
+            <h1 class="hub-header__title">
+                Documatica<br>
+                <span class="text-primary">UI Kit</span>
+            </h1>
+            <p class="hub-header__subtitle">
+                Полная библиотека компонентов для создания интерфейсов в стиле инженерного терминала.
+            </p>
+        </header>
+
+        <!-- Stats -->
+        <div class="hub-stats">
+            <div class="hub-stat">
+                <span class="hub-stat__value">48</span>
+                <span class="hub-stat__label">Компонентов</span>
+            </div>
+            <div class="hub-stat">
+                <span class="hub-stat__value">300+</span>
+                <span class="hub-stat__label">Вариантов</span>
+            </div>
+            <div class="hub-stat">
+                <span class="hub-stat__value">4</span>
+                <span class="hub-stat__label">Цвета бренда</span>
+            </div>
+        </div>
+
+        <!-- Foundation Section -->
+        <p class="hub-section-title">01. Foundation</p>
+        <div class="hub-grid">
+            
+            <!-- Colors -->
+            <a href="colors.html" class="hub-card hub-card--primary">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Brand</span>
+                <h2 class="hub-card__title">Цвета</h2>
+                <p class="hub-card__description">
+                    Core Blue, Smart Gold, Dark Slate и полная палитра оттенков.
+                </p>
+                <span class="hub-card__count">4 основных + 10 оттенков</span>
+            </a>
+
+            <!-- Typography -->
+            <a href="typography.html" class="hub-card hub-card--dark">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Type</span>
+                <h2 class="hub-card__title">Типографика</h2>
+                <p class="hub-card__description">
+                    Inter Black, заголовки, подписи и стили текста.
+                </p>
+                <span class="hub-card__count">7 размеров + 4 начертания</span>
+            </a>
+
+            <!-- Icons -->
+            <a href="icons.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Assets</span>
+                <h2 class="hub-card__title">Иконки</h2>
+                <p class="hub-card__description">
+                    Библиотека иконок для навигации и действий.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Components Section -->
+        <p class="hub-section-title">02. Components</p>
+        <div class="hub-grid">
+
+            <!-- Buttons -->
+            <a href="buttons.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Interactive</span>
+                <h2 class="hub-card__title">Кнопки</h2>
+                <p class="hub-card__description">
+                    Primary, Secondary, Smart, Outline и специальные состояния.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Inputs -->
+            <a href="inputs.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Поля ввода</h2>
+                <p class="hub-card__description">
+                    Text input, Textarea, поиск и поля с иконками.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Selects -->
+            <a href="selects.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Селекты</h2>
+                <p class="hub-card__description">
+                    Dropdown, мультиселект и кастомные списки.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Checkboxes & Radio -->
+            <a href="checkboxes.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Чекбоксы</h2>
+                <p class="hub-card__description">
+                    Checkbox, Radio и Toggle переключатели.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Cards -->
+            <a href="cards.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Карточки</h2>
+                <p class="hub-card__description">
+                    Feature cards, статистика и информационные блоки.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Badges -->
+            <a href="badges.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Data</span>
+                <h2 class="hub-card__title">Бейджи</h2>
+                <p class="hub-card__description">
+                    Tags, статусы и метки данных.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Alerts -->
+            <a href="alerts.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Feedback</span>
+                <h2 class="hub-card__title">Алерты</h2>
+                <p class="hub-card__description">
+                    Уведомления, предупреждения и сообщения об ошибках.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Tables -->
+            <a href="tables.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Data</span>
+                <h2 class="hub-card__title">Таблицы</h2>
+                <p class="hub-card__description">
+                    Data tables с сортировкой и статусами.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Progress -->
+            <a href="progress.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Feedback</span>
+                <h2 class="hub-card__title">Прогресс</h2>
+                <p class="hub-card__description">
+                    Progress bars, спиннеры и skeleton loaders.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Avatars -->
+            <a href="avatars.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">User</span>
+                <h2 class="hub-card__title">Аватары</h2>
+                <p class="hub-card__description">
+                    Фото пользователей, инициалы и групповые аватары.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- File Upload -->
+            <a href="file-upload.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Загрузка файлов</h2>
+                <p class="hub-card__description">
+                    Dropzone, drag-and-drop и превью файлов.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Sliders -->
+            <a href="sliders.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Слайдеры</h2>
+                <p class="hub-card__description">
+                    Range sliders и ползунки настроек.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Rating -->
+            <a href="rating.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Feedback</span>
+                <h2 class="hub-card__title">Рейтинг</h2>
+                <p class="hub-card__description">
+                    Звёзды, оценки и лайки.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Timeline -->
+            <a href="timeline.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Data</span>
+                <h2 class="hub-card__title">Таймлайн</h2>
+                <p class="hub-card__description">
+                    История событий и хронология.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Stats -->
+            <a href="stats.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Data</span>
+                <h2 class="hub-card__title">Статистика</h2>
+                <p class="hub-card__description">
+                    Карточки метрик и счётчики.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- List Group -->
+            <a href="list-group.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Списки</h2>
+                <p class="hub-card__description">
+                    Группы элементов и меню действий.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Dividers -->
+            <a href="dividers.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20 12H4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Разделители</h2>
+                <p class="hub-card__description">
+                    Линии и декоративные разделители.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Date Picker -->
+            <a href="datepicker.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Forms</span>
+                <h2 class="hub-card__title">Календарь</h2>
+                <p class="hub-card__description">
+                    Date picker и выбор диапазонов.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Gallery -->
+            <a href="gallery.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Media</span>
+                <h2 class="hub-card__title">Галерея</h2>
+                <p class="hub-card__description">
+                    Сетки изображений и lightbox.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Comments -->
+            <a href="comments.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Social</span>
+                <h2 class="hub-card__title">Комментарии</h2>
+                <p class="hub-card__description">
+                    Обсуждения и треды комментариев.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Patterns Section -->
+        <p class="hub-section-title">03. Patterns</p>
+        <div class="hub-grid">
+
+            <!-- Navigation -->
+            <a href="navigation.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Navigation</span>
+                <h2 class="hub-card__title">Навигация</h2>
+                <p class="hub-card__description">
+                    Navbar, Sidebar, Tabs и Breadcrumbs.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Modals -->
+            <a href="modals.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Overlay</span>
+                <h2 class="hub-card__title">Модалки</h2>
+                <p class="hub-card__description">
+                    Dialogs, confirmation и AI Butler интерфейс.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- FAQ -->
+            <a href="accordion.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Content</span>
+                <h2 class="hub-card__title">Аккордеон</h2>
+                <p class="hub-card__description">
+                    FAQ секции и раскрывающиеся блоки.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Empty States -->
+            <a href="empty-states.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Feedback</span>
+                <h2 class="hub-card__title">Пустые состояния</h2>
+                <p class="hub-card__description">
+                    Экраны «нет данных» и первый запуск.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Error Pages -->
+            <a href="error-pages.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Pages</span>
+                <h2 class="hub-card__title">Страницы ошибок</h2>
+                <p class="hub-card__description">
+                    404, 500, maintenance и offline.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Hero -->
+            <a href="hero.html" class="hub-card hub-card--dark">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Sections</span>
+                <h2 class="hub-card__title">Hero</h2>
+                <p class="hub-card__description">
+                    Главные секции лендингов.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Footer -->
+            <a href="footer.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Sections</span>
+                <h2 class="hub-card__title">Footer</h2>
+                <p class="hub-card__description">
+                    Подвалы сайтов разных типов.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Pricing -->
+            <a href="pricing.html" class="hub-card hub-card--primary">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Marketing</span>
+                <h2 class="hub-card__title">Pricing</h2>
+                <p class="hub-card__description">
+                    Таблицы тарифов и сравнения.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Testimonials -->
+            <a href="testimonials.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Marketing</span>
+                <h2 class="hub-card__title">Отзывы</h2>
+                <p class="hub-card__description">
+                    Testimonials и цитаты клиентов.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+            <!-- Chat -->
+            <a href="chat.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Communication</span>
+                <h2 class="hub-card__title">Чат</h2>
+                <p class="hub-card__description">
+                    Сообщения и AI-ассистент.
+                </p>
+                <span class="hub-card__status hub-card__status--ready">
+                    <span class="hub-card__status-dot"></span>
+                    Ready
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Layout Section -->
+        <p class="hub-section-title">04. Layout & Grid</p>
+        <div class="hub-grid">
+
+            <!-- Grid System -->
+            <a href="grid.html" class="hub-card hub-card--dark">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Grid System</h2>
+                <p class="hub-card__description">
+                    Сетка, контейнеры и колонки.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Containers -->
+            <a href="containers.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Containers</h2>
+                <p class="hub-card__description">
+                    Резиновый и центрированный.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Sidebar -->
+            <a href="sidebar.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4 6h16M4 12h16M4 18h7"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Sidebar</h2>
+                <p class="hub-card__description">
+                    Боковые панели для блога и магазина.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Masonry -->
+            <a href="masonry.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Layout</span>
+                <h2 class="hub-card__title">Masonry</h2>
+                <p class="hub-card__description">
+                    Pinterest-стиль плитка.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Pagination -->
+            <a href="pagination.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M7 16l-4-4m0 0l4-4m-4 4h18M17 8l4 4m0 0l-4 4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Navigation</span>
+                <h2 class="hub-card__title">Pagination</h2>
+                <p class="hub-card__description">
+                    Постраничная навигация.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Tabs -->
+            <a href="tabs.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Navigation</span>
+                <h2 class="hub-card__title">Tabs</h2>
+                <p class="hub-card__description">
+                    Вкладки и табы.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Pages Section -->
+        <p class="hub-section-title">05. Page Templates</p>
+        <div class="hub-grid">
+
+            <!-- Blog Article -->
+            <a href="blog-article.html" class="hub-card hub-card--dark">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Pages</span>
+                <h2 class="hub-card__title">Blog Article</h2>
+                <p class="hub-card__description">
+                    Статья блога с сайдбаром и без.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Service Page -->
+            <a href="service-page.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Pages</span>
+                <h2 class="hub-card__title">Service Page</h2>
+                <p class="hub-card__description">
+                    Страница услуги.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Profile -->
+            <a href="profile.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Pages</span>
+                <h2 class="hub-card__title">Profile</h2>
+                <p class="hub-card__description">
+                    Профиль пользователя.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+        </div>
+
+        <!-- E-Commerce Section -->
+        <p class="hub-section-title">06. E-Commerce</p>
+        <div class="hub-grid">
+
+            <!-- Category -->
+            <a href="category.html" class="hub-card hub-card--primary">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Category</h2>
+                <p class="hub-card__description">
+                    Страница категории товаров.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Product -->
+            <a href="product.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Product</h2>
+                <p class="hub-card__description">
+                    Карточка товара.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Cart -->
+            <a href="cart.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Cart</h2>
+                <p class="hub-card__description">
+                    Корзина покупок.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Checkout -->
+            <a href="checkout.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Checkout</h2>
+                <p class="hub-card__description">
+                    Оформление заказа.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Favorites -->
+            <a href="favorites.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Favorites</h2>
+                <p class="hub-card__description">
+                    Избранное и wishlist.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Compare -->
+            <a href="compare.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Compare</h2>
+                <p class="hub-card__description">
+                    Сравнение товаров.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Reviews -->
+            <a href="reviews.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Shop</span>
+                <h2 class="hub-card__title">Reviews</h2>
+                <p class="hub-card__description">
+                    Отзывы о товарах.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Social & Maps Section -->
+        <p class="hub-section-title">07. Social & Maps</p>
+        <div class="hub-grid">
+
+            <!-- Social -->
+            <a href="social.html" class="hub-card hub-card--dark">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Social</span>
+                <h2 class="hub-card__title">Social Media</h2>
+                <p class="hub-card__description">
+                    Иконки и виджеты соцсетей.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+            <!-- Map -->
+            <a href="map.html" class="hub-card">
+                <svg class="hub-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+                <div class="hub-card__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <span class="hub-card__tag">Location</span>
+                <h2 class="hub-card__title">Map</h2>
+                <p class="hub-card__description">
+                    Карты и геолокация.
+                </p>
+                <span class="hub-card__status hub-card__status--soon">
+                    <span class="hub-card__status-dot"></span>
+                    Soon
+                </span>
+            </a>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="hub-footer">
+            <p class="hub-footer__text">
+                Documatica v12.0
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

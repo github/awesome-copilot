@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="map.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● LOCATION</span>
+            <h1 class="hero__title">MAP<br><span>CARDS</span></h1>
+            <p class="hero__desc">Карты, маркеры, карточки локаций и контактная информация.</p>
+        </header>
+
+        <!-- ============================================
+             01. MAP CONTAINER
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">MAP CONTAINER</h2>
+            </div>
+            
+            <div class="map-container">
+                <div class="map-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span>Карта загружается...</span>
+                </div>
+                <div class="map-controls">
+                    <button class="map-control">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                    <button class="map-control">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. LOCATION CARD
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">LOCATION CARD</h2>
+            </div>
+            
+            <div class="location-cards">
+                <div class="location-card">
+                    <div class="location-card__map">
+                        <div class="location-card__marker">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3" fill="white"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="location-card__body">
+                        <span class="location-card__badge">● ГЛАВНЫЙ ОФИС</span>
+                        <h3 class="location-card__title">Москва</h3>
+                        <p class="location-card__address">ул. Тверская, 12, стр. 1<br>Бизнес-центр «Метрополь», 5 этаж</p>
+                        <div class="location-card__details">
+                            <div class="location-card__detail">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                                </svg>
+                                +7 (495) 123-45-67
+                            </div>
+                            <div class="location-card__detail">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                Пн–Пт: 9:00–18:00
+                            </div>
+                        </div>
+                        <button class="btn btn--primary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                            </svg>
+                            Построить маршрут
+                        </button>
+                    </div>
+                </div>
+
+                <div class="location-card location-card--horizontal">
+                    <div class="location-card__map location-card__map--sm">
+                        <div class="location-card__marker">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3" fill="white"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="location-card__body">
+                        <span class="location-card__badge">● ФИЛИАЛ</span>
+                        <h3 class="location-card__title">Санкт-Петербург</h3>
+                        <p class="location-card__address">Невский пр., 28</p>
+                        <a href="#" class="location-card__link">Подробнее →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. MARKER STYLES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">MARKER STYLES</h2>
+            </div>
+            
+            <div class="markers-demo">
+                <div class="marker-item">
+                    <div class="marker marker--primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3" fill="white"/>
+                        </svg>
+                    </div>
+                    <span>Primary</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--success">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3" fill="white"/>
+                        </svg>
+                    </div>
+                    <span>Success</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--warning">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3" fill="white"/>
+                        </svg>
+                    </div>
+                    <span>Warning</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--danger">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3" fill="white"/>
+                        </svg>
+                    </div>
+                    <span>Danger</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--numbered">1</div>
+                    <span>Numbered</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--numbered">2</div>
+                    <span>Numbered</span>
+                </div>
+                <div class="marker-item">
+                    <div class="marker marker--cluster">5+</div>
+                    <span>Cluster</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. INFO WINDOW
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">INFO WINDOW</h2>
+            </div>
+            
+            <div class="info-window-demo">
+                <div class="info-window">
+                    <button class="info-window__close">×</button>
+                    <div class="info-window__image" style="background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=300&h=150&fit=crop')"></div>
+                    <div class="info-window__body">
+                        <h4 class="info-window__title">Бизнес-центр «Метрополь»</h4>
+                        <p class="info-window__address">ул. Тверская, 12, стр. 1</p>
+                        <div class="info-window__tags">
+                            <span class="info-window__tag">Офис</span>
+                            <span class="info-window__tag">Парковка</span>
+                        </div>
+                        <a href="#" class="info-window__link">Подробнее →</a>
+                    </div>
+                    <div class="info-window__arrow"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. STORE LOCATOR
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">STORE LOCATOR</h2>
+            </div>
+            
+            <div class="store-locator">
+                <div class="store-locator__sidebar">
+                    <div class="store-locator__search">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" placeholder="Город или адрес...">
+                    </div>
+                    <div class="store-locator__list">
+                        <div class="store-item store-item--active">
+                            <div class="store-item__marker">1</div>
+                            <div class="store-item__info">
+                                <h4 class="store-item__name">ТЦ «Мега»</h4>
+                                <p class="store-item__address">МКАД 24 км, корп. 1</p>
+                                <span class="store-item__distance">2.3 км</span>
+                            </div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item__marker">2</div>
+                            <div class="store-item__info">
+                                <h4 class="store-item__name">ТЦ «Европейский»</h4>
+                                <p class="store-item__address">пл. Киевского вокзала, 2</p>
+                                <span class="store-item__distance">4.1 км</span>
+                            </div>
+                        </div>
+                        <div class="store-item">
+                            <div class="store-item__marker">3</div>
+                            <div class="store-item__info">
+                                <h4 class="store-item__name">ТЦ «Атриум»</h4>
+                                <p class="store-item__address">ул. Земляной Вал, 33</p>
+                                <span class="store-item__distance">5.8 км</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="store-locator__map">
+                    <div class="map-placeholder map-placeholder--lg">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. CONTACT BLOCK
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">CONTACT BLOCK</h2>
+            </div>
+            
+            <div class="contact-block">
+                <div class="contact-block__map">
+                    <div class="map-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="contact-block__info">
+                    <div class="contact-block__header">
+                        <span class="contact-block__number">01</span>
+                        <h3 class="contact-block__title">КОНТАКТЫ</h3>
+                    </div>
+                    <div class="contact-items">
+                        <div class="contact-item">
+                            <div class="contact-item__icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </div>
+                            <div class="contact-item__content">
+                                <span class="contact-item__label">Адрес</span>
+                                <span class="contact-item__value">г. Москва, ул. Тверская, 12</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-item__icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                                </svg>
+                            </div>
+                            <div class="contact-item__content">
+                                <span class="contact-item__label">Телефон</span>
+                                <span class="contact-item__value">+7 (495) 123-45-67</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-item__icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                    <polyline points="22,6 12,13 2,6"/>
+                                </svg>
+                            </div>
+                            <div class="contact-item__content">
+                                <span class="contact-item__label">Email</span>
+                                <span class="contact-item__value">info@company.ru</span>
+                            </div>
+                        </div>
+                        <div class="contact-item">
+                            <div class="contact-item__icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </div>
+                            <div class="contact-item__content">
+                                <span class="contact-item__label">Часы работы</span>
+                                <span class="contact-item__value">Пн–Пт: 9:00–18:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. ADDRESS AUTOCOMPLETE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">ADDRESS AUTOCOMPLETE</h2>
+            </div>
+            
+            <div class="address-autocomplete">
+                <div class="address-input">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" placeholder="Введите адрес..." value="Москва, ул. Тверская">
+                </div>
+                <div class="address-dropdown">
+                    <div class="address-option address-option--active">
+                        <div class="address-option__icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="address-option__text">
+                            <span class="address-option__main">ул. Тверская, 12</span>
+                            <span class="address-option__sub">Москва, Центральный район</span>
+                        </div>
+                    </div>
+                    <div class="address-option">
+                        <div class="address-option__icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="address-option__text">
+                            <span class="address-option__main">ул. Тверская, 24</span>
+                            <span class="address-option__sub">Москва, Центральный район</span>
+                        </div>
+                    </div>
+                    <div class="address-option">
+                        <div class="address-option__icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="address-option__text">
+                            <span class="address-option__main">Тверская-Ямская ул., 5</span>
+                            <span class="address-option__sub">Москва, Тверской район</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- Контейнер карты --&gt;
+&lt;div class="map-container"&gt;
+  &lt;div id="map"&gt;&lt;/div&gt;
+  &lt;div class="map-controls"&gt;...&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Маркеры --&gt;
+&lt;div class="marker marker--primary"&gt;...&lt;/div&gt;
+&lt;div class="marker marker--numbered"&gt;1&lt;/div&gt;
+
+&lt;!-- Карточка локации --&gt;
+&lt;div class="location-card"&gt;
+  &lt;div class="location-card__map"&gt;...&lt;/div&gt;
+  &lt;div class="location-card__body"&gt;...&lt;/div&gt;
+&lt;/div&gt;
+
+/* Модификаторы маркеров */
+.marker--primary   /* Синий */
+.marker--success   /* Зелёный */
+.marker--warning   /* Жёлтый */
+.marker--danger    /* Красный */
+.marker--numbered  /* С цифрой */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

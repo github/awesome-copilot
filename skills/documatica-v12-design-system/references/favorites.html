@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="favorites.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● WISHLIST</span>
+            <h1 class="hero__title">FAVO<br><span>RITES</span></h1>
+            <p class="hero__desc">Списки желаний, избранное, закладки и сохранённые элементы.</p>
+        </header>
+
+        <!-- ============================================
+             01. FAVORITES GRID
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">FAVORITES GRID</h2>
+            </div>
+            
+            <div class="favorites-header">
+                <div class="favorites-header__info">
+                    <span class="favorites-header__count">12</span>
+                    <span class="favorites-header__label">ТОВАРОВ В ИЗБРАННОМ</span>
+                </div>
+                <div class="favorites-header__actions">
+                    <button class="btn btn--outline btn--sm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                        </svg>
+                        Очистить всё
+                    </button>
+                    <button class="btn btn--primary btn--sm">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                        </svg>
+                        Добавить всё в корзину
+                    </button>
+                </div>
+            </div>
+
+            <div class="favorites-grid">
+                <div class="fav-card">
+                    <button class="fav-card__remove" aria-label="Удалить">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="fav-card__image">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop" alt="Product">
+                    </div>
+                    <div class="fav-card__body">
+                        <span class="fav-card__category">АКСЕССУАРЫ</span>
+                        <h3 class="fav-card__title">Smart Watch Series X</h3>
+                        <div class="fav-card__price">24 990 ₽</div>
+                        <span class="fav-card__status fav-card__status--success">● В наличии</span>
+                    </div>
+                    <button class="fav-card__cart">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                        </svg>
+                        В корзину
+                    </button>
+                </div>
+
+                <div class="fav-card">
+                    <button class="fav-card__remove" aria-label="Удалить">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="fav-card__badge">-30%</div>
+                    <div class="fav-card__image">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop" alt="Product">
+                    </div>
+                    <div class="fav-card__body">
+                        <span class="fav-card__category">AUDIO</span>
+                        <h3 class="fav-card__title">Headphones Pro Max</h3>
+                        <div class="fav-card__prices">
+                            <span class="fav-card__price">24 490 ₽</span>
+                            <span class="fav-card__old-price">34 990 ₽</span>
+                        </div>
+                        <span class="fav-card__status fav-card__status--success">● В наличии</span>
+                    </div>
+                    <button class="fav-card__cart">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                        </svg>
+                        В корзину
+                    </button>
+                </div>
+
+                <div class="fav-card fav-card--unavailable">
+                    <button class="fav-card__remove" aria-label="Удалить">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="fav-card__image">
+                        <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=300&h=300&fit=crop" alt="Product">
+                    </div>
+                    <div class="fav-card__body">
+                        <span class="fav-card__category">ОБУВЬ</span>
+                        <h3 class="fav-card__title">Running Pro Max</h3>
+                        <div class="fav-card__price">16 990 ₽</div>
+                        <span class="fav-card__status fav-card__status--danger">● Нет в наличии</span>
+                    </div>
+                    <button class="fav-card__notify">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+                        </svg>
+                        Уведомить
+                    </button>
+                </div>
+
+                <div class="fav-card">
+                    <button class="fav-card__remove" aria-label="Удалить">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="fav-card__badge fav-card__badge--new">● NEW</div>
+                    <div class="fav-card__image">
+                        <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300&h=300&fit=crop" alt="Product">
+                    </div>
+                    <div class="fav-card__body">
+                        <span class="fav-card__category">УХОД</span>
+                        <h3 class="fav-card__title">Premium Skincare Set</h3>
+                        <div class="fav-card__price">8 490 ₽</div>
+                        <span class="fav-card__status fav-card__status--warning">● Осталось 3 шт</span>
+                    </div>
+                    <button class="fav-card__cart">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                        </svg>
+                        В корзину
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. WISHLIST COMPACT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">COMPACT LIST</h2>
+            </div>
+            
+            <div class="wishlist-compact">
+                <div class="wish-item">
+                    <div class="wish-item__image">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop" alt="">
+                    </div>
+                    <div class="wish-item__info">
+                        <h4 class="wish-item__title">Smart Watch Series X</h4>
+                        <span class="wish-item__meta">Добавлено 3 дня назад</span>
+                    </div>
+                    <div class="wish-item__price">24 990 ₽</div>
+                    <div class="wish-item__actions">
+                        <button class="wish-item__btn wish-item__btn--cart">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                            </svg>
+                        </button>
+                        <button class="wish-item__btn wish-item__btn--remove">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="wish-item">
+                    <div class="wish-item__image">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&h=80&fit=crop" alt="">
+                    </div>
+                    <div class="wish-item__info">
+                        <h4 class="wish-item__title">Headphones Pro Max</h4>
+                        <span class="wish-item__meta">Добавлено неделю назад</span>
+                    </div>
+                    <div class="wish-item__price">34 990 ₽</div>
+                    <div class="wish-item__actions">
+                        <button class="wish-item__btn wish-item__btn--cart">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                            </svg>
+                        </button>
+                        <button class="wish-item__btn wish-item__btn--remove">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. WISHLIST COLLECTIONS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">COLLECTIONS</h2>
+            </div>
+            
+            <div class="collections-grid">
+                <div class="collection-card">
+                    <div class="collection-card__images">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop" alt="">
+                        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop" alt="">
+                        <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=100&h=100&fit=crop" alt="">
+                        <span class="collection-card__more">+5</span>
+                    </div>
+                    <div class="collection-card__body">
+                        <h3 class="collection-card__title">Для работы</h3>
+                        <span class="collection-card__count">8 товаров</span>
+                    </div>
+                    <button class="collection-card__btn">→</button>
+                </div>
+
+                <div class="collection-card">
+                    <div class="collection-card__images">
+                        <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=100&h=100&fit=crop" alt="">
+                        <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=100&h=100&fit=crop" alt="">
+                    </div>
+                    <div class="collection-card__body">
+                        <h3 class="collection-card__title">Подарки</h3>
+                        <span class="collection-card__count">2 товара</span>
+                    </div>
+                    <button class="collection-card__btn">→</button>
+                </div>
+
+                <div class="collection-card collection-card--add">
+                    <div class="collection-card__add-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </div>
+                    <span class="collection-card__add-text">Новая коллекция</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. HEART BUTTONS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">HEART BUTTONS</h2>
+            </div>
+            
+            <div class="hearts-demo">
+                <button class="heart-btn" aria-label="Добавить в избранное">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </button>
+
+                <button class="heart-btn heart-btn--active" aria-label="В избранном">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </button>
+
+                <button class="heart-btn heart-btn--outline" aria-label="Добавить в избранное">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </button>
+
+                <button class="heart-btn heart-btn--lg" aria-label="Добавить в избранное">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </button>
+
+                <button class="heart-btn heart-btn--lg heart-btn--active" aria-label="В избранном">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. EMPTY STATE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">EMPTY STATE</h2>
+            </div>
+            
+            <div class="empty-favorites">
+                <div class="empty-favorites__icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                    </svg>
+                </div>
+                <h3 class="empty-favorites__title">ИЗБРАННОЕ <span>ПУСТО</span></h3>
+                <p class="empty-favorites__text">Добавляйте товары в избранное, нажимая на ♡</p>
+                <a href="#" class="btn btn--primary btn--lg">Перейти в каталог</a>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- Кнопка сердечко --&gt;
+&lt;button class="heart-btn"&gt;♡&lt;/button&gt;
+&lt;button class="heart-btn heart-btn--active"&gt;♥&lt;/button&gt;
+
+&lt;!-- Карточка избранного --&gt;
+&lt;div class="fav-card"&gt;
+  &lt;button class="fav-card__remove"&gt;×&lt;/button&gt;
+  &lt;div class="fav-card__image"&gt;...&lt;/div&gt;
+  &lt;div class="fav-card__body"&gt;
+    &lt;span class="fav-card__status fav-card__status--success"&gt;● В наличии&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;button class="fav-card__cart"&gt;В корзину&lt;/button&gt;
+&lt;/div&gt;
+
+/* Модификаторы */
+.fav-card--unavailable    /* Недоступен */
+.fav-card__status--success
+.fav-card__status--warning
+.fav-card__status--danger</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

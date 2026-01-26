@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">USER</span>
+            <h1 class="hero__title">Profile <span>Components</span></h1>
+            <p class="hero__desc">Карточки профилей, аватары, шапки пользователей, настройки аккаунта.</p>
+        </header>
+
+        <!-- ============================================
+             01. PROFILE HEADER
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">Profile Header</h2>
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-header__cover"></div>
+                <div class="profile-header__content">
+                    <img src="https://i.pravatar.cc/160?img=12" alt="Avatar" class="profile-header__avatar">
+                    <div class="profile-header__info">
+                        <h1 class="profile-header__name">Александр Петров</h1>
+                        <p class="profile-header__role">Lead Product Designer</p>
+                        <p class="profile-header__bio">Создаю дизайн-системы и интерфейсы для технологических стартапов. 10+ лет опыта.</p>
+                    </div>
+                    <div class="profile-header__actions">
+                        <button class="btn btn--primary">Подписаться</button>
+                        <button class="btn btn--outline">Написать</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. PROFILE CARD COMPACT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">Profile Card Compact</h2>
+            </div>
+            
+            <div class="cards-row">
+                <div class="profile-compact">
+                    <img src="https://i.pravatar.cc/80?img=15" alt="Avatar" class="profile-compact__avatar">
+                    <div class="profile-compact__info">
+                        <h4 class="profile-compact__name">Мария Иванова</h4>
+                        <p class="profile-compact__role">Frontend Developer</p>
+                    </div>
+                    <button class="btn btn--sm btn--outline">Подписаться</button>
+                </div>
+                
+                <div class="profile-compact">
+                    <img src="https://i.pravatar.cc/80?img=33" alt="Avatar" class="profile-compact__avatar">
+                    <div class="profile-compact__info">
+                        <h4 class="profile-compact__name">Дмитрий Козлов</h4>
+                        <p class="profile-compact__role">Product Manager</p>
+                    </div>
+                    <button class="btn btn--sm btn--primary">Подписки</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. AVATAR SIZES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">Avatar Sizes</h2>
+            </div>
+            
+            <div class="demo-row">
+                <div class="demo-item">
+                    <p class="demo-label">XS (24px)</p>
+                    <img src="https://i.pravatar.cc/48?img=1" alt="Avatar" class="avatar avatar--xs">
+                </div>
+                <div class="demo-item">
+                    <p class="demo-label">SM (32px)</p>
+                    <img src="https://i.pravatar.cc/64?img=2" alt="Avatar" class="avatar avatar--sm">
+                </div>
+                <div class="demo-item">
+                    <p class="demo-label">MD (48px)</p>
+                    <img src="https://i.pravatar.cc/96?img=3" alt="Avatar" class="avatar avatar--md">
+                </div>
+                <div class="demo-item">
+                    <p class="demo-label">LG (64px)</p>
+                    <img src="https://i.pravatar.cc/128?img=4" alt="Avatar" class="avatar avatar--lg">
+                </div>
+                <div class="demo-item">
+                    <p class="demo-label">XL (96px)</p>
+                    <img src="https://i.pravatar.cc/192?img=5" alt="Avatar" class="avatar avatar--xl">
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. AVATAR WITH STATUS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">Avatar with Status</h2>
+            </div>
+            
+            <div class="demo-row">
+                <div class="avatar-wrap">
+                    <img src="https://i.pravatar.cc/96?img=10" alt="Avatar" class="avatar avatar--md">
+                    <span class="avatar-status avatar-status--online"></span>
+                </div>
+                <div class="avatar-wrap">
+                    <img src="https://i.pravatar.cc/96?img=11" alt="Avatar" class="avatar avatar--md">
+                    <span class="avatar-status avatar-status--away"></span>
+                </div>
+                <div class="avatar-wrap">
+                    <img src="https://i.pravatar.cc/96?img=13" alt="Avatar" class="avatar avatar--md">
+                    <span class="avatar-status avatar-status--busy"></span>
+                </div>
+                <div class="avatar-wrap">
+                    <img src="https://i.pravatar.cc/96?img=14" alt="Avatar" class="avatar avatar--md">
+                    <span class="avatar-status avatar-status--offline"></span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. AVATAR INITIALS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">Avatar Initials</h2>
+            </div>
+            
+            <div class="demo-row">
+                <div class="avatar-initials avatar-initials--blue">АП</div>
+                <div class="avatar-initials avatar-initials--green">МИ</div>
+                <div class="avatar-initials avatar-initials--gold">ДК</div>
+                <div class="avatar-initials avatar-initials--purple">ОС</div>
+                <div class="avatar-initials avatar-initials--red">ВН</div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. AVATAR GROUP
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">Avatar Group</h2>
+            </div>
+            
+            <div class="demo-stack">
+                <div class="avatar-group">
+                    <img src="https://i.pravatar.cc/80?img=20" alt="Avatar" class="avatar avatar--md">
+                    <img src="https://i.pravatar.cc/80?img=21" alt="Avatar" class="avatar avatar--md">
+                    <img src="https://i.pravatar.cc/80?img=22" alt="Avatar" class="avatar avatar--md">
+                    <img src="https://i.pravatar.cc/80?img=23" alt="Avatar" class="avatar avatar--md">
+                    <span class="avatar-group__more">+12</span>
+                </div>
+
+                <div class="avatar-group avatar-group--sm">
+                    <img src="https://i.pravatar.cc/64?img=25" alt="Avatar" class="avatar avatar--sm">
+                    <img src="https://i.pravatar.cc/64?img=26" alt="Avatar" class="avatar avatar--sm">
+                    <img src="https://i.pravatar.cc/64?img=27" alt="Avatar" class="avatar avatar--sm">
+                    <span class="avatar-group__more avatar-group__more--sm">+5</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. USER CARD DETAILED
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">User Card Detailed</h2>
+            </div>
+            
+            <div class="user-card">
+                <div class="user-card__header">
+                    <img src="https://i.pravatar.cc/120?img=45" alt="Avatar" class="user-card__avatar">
+                    <div class="user-card__badge">PRO</div>
+                </div>
+                <div class="user-card__body">
+                    <h3 class="user-card__name">Елена Смирнова</h3>
+                    <p class="user-card__role">UX Researcher</p>
+                    <p class="user-card__bio">Помогаю компаниям понять своих пользователей через исследования и тестирование.</p>
+                    <div class="user-card__stats">
+                        <div class="user-card__stat">
+                            <span class="user-card__stat-value">1.2K</span>
+                            <span class="user-card__stat-label">Подписчиков</span>
+                        </div>
+                        <div class="user-card__stat">
+                            <span class="user-card__stat-value">86</span>
+                            <span class="user-card__stat-label">Проектов</span>
+                        </div>
+                        <div class="user-card__stat">
+                            <span class="user-card__stat-value">4.9</span>
+                            <span class="user-card__stat-label">Рейтинг</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-card__footer">
+                    <button class="btn btn--primary btn--full">Подписаться</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. TEAM GRID
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">Team Grid</h2>
+            </div>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="https://i.pravatar.cc/160?img=50" alt="Avatar" class="team-member__avatar">
+                    <h4 class="team-member__name">Игорь Волков</h4>
+                    <p class="team-member__role">CEO & Founder</p>
+                    <div class="team-member__social">
+                        <a href="#" class="team-member__link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 100-4 2 2 0 000 4z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="team-member__link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <img src="https://i.pravatar.cc/160?img=47" alt="Avatar" class="team-member__avatar">
+                    <h4 class="team-member__name">Анна Белова</h4>
+                    <p class="team-member__role">Head of Design</p>
+                    <div class="team-member__social">
+                        <a href="#" class="team-member__link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 100-4 2 2 0 000 4z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <img src="https://i.pravatar.cc/160?img=59" alt="Avatar" class="team-member__avatar">
+                    <h4 class="team-member__name">Павел Новиков</h4>
+                    <p class="team-member__role">Tech Lead</p>
+                    <div class="team-member__social">
+                        <a href="#" class="team-member__link">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.387.6.113.82-.258.82-.577v-2.17c-3.338.726-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.082-.73.082-.73 1.205.086 1.84 1.238 1.84 1.238 1.07 1.834 2.807 1.304 3.492.997.108-.775.42-1.305.763-1.605-2.665-.305-5.466-1.334-5.466-5.932 0-1.31.467-2.382 1.235-3.222-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23A11.5 11.5 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.29-1.553 3.296-1.23 3.296-1.23.653 1.653.242 2.873.118 3.176.77.84 1.233 1.912 1.233 3.222 0 4.61-2.804 5.624-5.475 5.92.43.372.815 1.103.815 2.222v3.293c0 .322.217.694.825.576C20.565 21.796 24 17.297 24 12c0-6.63-5.37-12-12-12z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             09. ACCOUNT SETTINGS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">09</span>
+                <h2 class="section__title">Account Settings</h2>
+            </div>
+            
+            <div class="settings-card">
+                <div class="settings-card__header">
+                    <h3>Личные данные</h3>
+                </div>
+                <div class="settings-card__body">
+                    <div class="settings-field">
+                        <div class="settings-field__avatar-wrap">
+                            <img src="https://i.pravatar.cc/120?img=12" alt="Avatar" class="settings-field__avatar">
+                            <button class="settings-field__avatar-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-row">
+                        <div class="settings-field">
+                            <label class="settings-label">Имя</label>
+                            <input type="text" class="settings-input" value="Александр">
+                        </div>
+                        <div class="settings-field">
+                            <label class="settings-label">Фамилия</label>
+                            <input type="text" class="settings-input" value="Петров">
+                        </div>
+                    </div>
+                    
+                    <div class="settings-field">
+                        <label class="settings-label">Email</label>
+                        <input type="email" class="settings-input" value="alex@example.com">
+                    </div>
+                    
+                    <div class="settings-field">
+                        <label class="settings-label">О себе</label>
+                        <textarea class="settings-textarea" rows="3">Lead Product Designer с опытом более 10 лет. Специализируюсь на дизайн-системах и продуктовом дизайне.</textarea>
+                    </div>
+                </div>
+                <div class="settings-card__footer">
+                    <button class="btn btn--outline">Отмена</button>
+                    <button class="btn btn--primary">Сохранить</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             10. ACTIVITY LIST
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">10</span>
+                <h2 class="section__title">Activity List</h2>
+            </div>
+            
+            <div class="activity-list">
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/80?img=12" alt="Avatar" class="activity-item__avatar">
+                    <div class="activity-item__content">
+                        <p class="activity-item__text"><strong>Александр</strong> прокомментировал ваш дизайн</p>
+                        <span class="activity-item__time">2 минуты назад</span>
+                    </div>
+                    <div class="activity-item__preview">
+                        <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=80&h=60&fit=crop" alt="Preview">
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/80?img=33" alt="Avatar" class="activity-item__avatar">
+                    <div class="activity-item__content">
+                        <p class="activity-item__text"><strong>Мария</strong> подписалась на вас</p>
+                        <span class="activity-item__time">1 час назад</span>
+                    </div>
+                    <button class="btn btn--sm btn--outline">Подписаться</button>
+                </div>
+                <div class="activity-item">
+                    <img src="https://i.pravatar.cc/80?img=45" alt="Avatar" class="activity-item__avatar">
+                    <div class="activity-item__content">
+                        <p class="activity-item__text"><strong>Дмитрий</strong> добавил вас в проект «UI Kit»</p>
+                        <span class="activity-item__time">Вчера в 18:30</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             11. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">11</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>/* Аватары */
+&lt;img class="avatar avatar--xs"&gt;   /* 24px */
+&lt;img class="avatar avatar--sm"&gt;   /* 32px */
+&lt;img class="avatar avatar--md"&gt;   /* 48px */
+&lt;img class="avatar avatar--lg"&gt;   /* 64px */
+&lt;img class="avatar avatar--xl"&gt;   /* 96px */
+
+/* Со статусом */
+&lt;div class="avatar-wrap"&gt;
+  &lt;img class="avatar avatar--md"&gt;
+  &lt;span class="avatar-status avatar-status--online"&gt;&lt;/span&gt;
+&lt;/div&gt;
+
+/* Инициалы */
+&lt;div class="avatar-initials avatar-initials--blue"&gt;АП&lt;/div&gt;
+
+/* Группа */
+&lt;div class="avatar-group"&gt;
+  &lt;img class="avatar avatar--md"&gt;...
+  &lt;span class="avatar-group__more"&gt;+5&lt;/span&gt;
+&lt;/div&gt;
+
+/* Профиль */
+&lt;div class="profile-header"&gt;...&lt;/div&gt;
+&lt;div class="profile-compact"&gt;...&lt;/div&gt;
+&lt;div class="user-card"&gt;...&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

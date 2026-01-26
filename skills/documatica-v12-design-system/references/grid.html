@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid System — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="grid.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="docs-container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Grid System Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Grid System</span>
+            </h1>
+        </header>
+
+        <!-- 12 COLUMN GRID -->
+        <section class="section">
+            <p class="section__label">01. 12-Column Grid</p>
+            <div class="grid-demo">
+                <div class="row">
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                    <div class="col-1"><span>1</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><span>col-6</span></div>
+                    <div class="col-6"><span>col-6</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-4"><span>col-4</span></div>
+                    <div class="col-4"><span>col-4</span></div>
+                    <div class="col-4"><span>col-4</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-3"><span>col-3</span></div>
+                    <div class="col-3"><span>col-3</span></div>
+                    <div class="col-3"><span>col-3</span></div>
+                    <div class="col-3"><span>col-3</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-8"><span>col-8</span></div>
+                    <div class="col-4"><span>col-4</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-2"><span>col-2</span></div>
+                    <div class="col-8"><span>col-8</span></div>
+                    <div class="col-2"><span>col-2</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESPONSIVE GRID -->
+        <section class="section">
+            <p class="section__label">02. Responsive Breakpoints</p>
+            <div class="breakpoints-table">
+                <div class="breakpoint-row breakpoint-row--header">
+                    <span>Breakpoint</span>
+                    <span>Class</span>
+                    <span>Width</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">xs</span>
+                    <span class="breakpoint-class">.col-xs-*</span>
+                    <span class="breakpoint-value">&lt; 576px</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">sm</span>
+                    <span class="breakpoint-class">.col-sm-*</span>
+                    <span class="breakpoint-value">≥ 576px</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">md</span>
+                    <span class="breakpoint-class">.col-md-*</span>
+                    <span class="breakpoint-value">≥ 768px</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">lg</span>
+                    <span class="breakpoint-class">.col-lg-*</span>
+                    <span class="breakpoint-value">≥ 992px</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">xl</span>
+                    <span class="breakpoint-class">.col-xl-*</span>
+                    <span class="breakpoint-value">≥ 1200px</span>
+                </div>
+                <div class="breakpoint-row">
+                    <span class="breakpoint-name">xxl</span>
+                    <span class="breakpoint-class">.col-xxl-*</span>
+                    <span class="breakpoint-value">≥ 1400px</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- GAP VARIANTS -->
+        <section class="section">
+            <p class="section__label">03. Grid Gap Variants</p>
+            <p class="section__desc">gap-0 (no gap)</p>
+            <div class="grid-demo">
+                <div class="row gap-0">
+                    <div class="col-3"><span>1</span></div>
+                    <div class="col-3"><span>2</span></div>
+                    <div class="col-3"><span>3</span></div>
+                    <div class="col-3"><span>4</span></div>
+                </div>
+            </div>
+            <p class="section__desc">gap-sm (8px)</p>
+            <div class="grid-demo">
+                <div class="row gap-sm">
+                    <div class="col-3"><span>1</span></div>
+                    <div class="col-3"><span>2</span></div>
+                    <div class="col-3"><span>3</span></div>
+                    <div class="col-3"><span>4</span></div>
+                </div>
+            </div>
+            <p class="section__desc">gap-md (16px) — default</p>
+            <div class="grid-demo">
+                <div class="row gap-md">
+                    <div class="col-3"><span>1</span></div>
+                    <div class="col-3"><span>2</span></div>
+                    <div class="col-3"><span>3</span></div>
+                    <div class="col-3"><span>4</span></div>
+                </div>
+            </div>
+            <p class="section__desc">gap-lg (24px)</p>
+            <div class="grid-demo">
+                <div class="row gap-lg">
+                    <div class="col-3"><span>1</span></div>
+                    <div class="col-3"><span>2</span></div>
+                    <div class="col-3"><span>3</span></div>
+                    <div class="col-3"><span>4</span></div>
+                </div>
+            </div>
+            <p class="section__desc">gap-xl (32px)</p>
+            <div class="grid-demo">
+                <div class="row gap-xl">
+                    <div class="col-3"><span>1</span></div>
+                    <div class="col-3"><span>2</span></div>
+                    <div class="col-3"><span>3</span></div>
+                    <div class="col-3"><span>4</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALIGNMENT -->
+        <section class="section">
+            <p class="section__label">04. Vertical Alignment</p>
+            <div class="grid-demo">
+                <div class="row align-items-start" style="min-height: 120px;">
+                    <div class="col-4"><span>align-start</span></div>
+                    <div class="col-4"><span>align-start</span></div>
+                    <div class="col-4"><span>align-start</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row align-items-center" style="min-height: 120px;">
+                    <div class="col-4"><span>align-center</span></div>
+                    <div class="col-4"><span>align-center</span></div>
+                    <div class="col-4"><span>align-center</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row align-items-end" style="min-height: 120px;">
+                    <div class="col-4"><span>align-end</span></div>
+                    <div class="col-4"><span>align-end</span></div>
+                    <div class="col-4"><span>align-end</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HORIZONTAL ALIGNMENT -->
+        <section class="section">
+            <p class="section__label">05. Horizontal Alignment</p>
+            <div class="grid-demo">
+                <div class="row justify-start">
+                    <div class="col-3"><span>start</span></div>
+                    <div class="col-3"><span>start</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row justify-center">
+                    <div class="col-3"><span>center</span></div>
+                    <div class="col-3"><span>center</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row justify-end">
+                    <div class="col-3"><span>end</span></div>
+                    <div class="col-3"><span>end</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row justify-between">
+                    <div class="col-3"><span>between</span></div>
+                    <div class="col-3"><span>between</span></div>
+                </div>
+            </div>
+            <div class="grid-demo">
+                <div class="row justify-around">
+                    <div class="col-3"><span>around</span></div>
+                    <div class="col-3"><span>around</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- OFFSET -->
+        <section class="section">
+            <p class="section__label">06. Column Offset</p>
+            <div class="grid-demo">
+                <div class="row">
+                    <div class="col-4"><span>col-4</span></div>
+                    <div class="col-4 offset-4"><span>col-4 offset-4</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-3 offset-3"><span>col-3 offset-3</span></div>
+                    <div class="col-3 offset-3"><span>col-3 offset-3</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-6 offset-3"><span>col-6 offset-3 (centered)</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AUTO WIDTH -->
+        <section class="section">
+            <p class="section__label">07. Auto-Width Columns</p>
+            <div class="grid-demo">
+                <div class="row">
+                    <div class="col-auto"><span>auto</span></div>
+                    <div class="col"><span>fill</span></div>
+                    <div class="col-auto"><span>auto</span></div>
+                </div>
+                <div class="row">
+                    <div class="col"><span>equal</span></div>
+                    <div class="col"><span>equal</span></div>
+                    <div class="col"><span>equal</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- NESTED GRID -->
+        <section class="section">
+            <p class="section__label">08. Nested Grid</p>
+            <div class="grid-demo">
+                <div class="row">
+                    <div class="col-8">
+                        <span class="nested-label">col-8</span>
+                        <div class="row nested">
+                            <div class="col-6"><span>nested 6</span></div>
+                            <div class="col-6"><span>nested 6</span></div>
+                        </div>
+                    </div>
+                    <div class="col-4"><span>col-4</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ORDER -->
+        <section class="section">
+            <p class="section__label">09. Column Order</p>
+            <div class="grid-demo">
+                <div class="row">
+                    <div class="col-4 order-3"><span>First (order-3)</span></div>
+                    <div class="col-4 order-1"><span>Second (order-1)</span></div>
+                    <div class="col-4 order-2"><span>Third (order-2)</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CSS CODE -->
+        <section class="section">
+            <p class="section__label">10. CSS Usage</p>
+            <div class="code-block">
+                <pre><code>&lt;div class="container"&gt;
+  &lt;div class="row gap-md"&gt;
+    &lt;div class="col-12 col-md-6 col-lg-4"&gt;
+      Responsive column
+    &lt;/div&gt;
+    &lt;div class="col-12 col-md-6 col-lg-4"&gt;
+      Responsive column
+    &lt;/div&gt;
+    &lt;div class="col-12 col-md-12 col-lg-4"&gt;
+      Responsive column
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Grid System v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empty States — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="empty-states.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Empty State Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Empty States</span>
+            </h1>
+        </header>
+
+        <!-- BASIC -->
+        <section class="section">
+            <p class="section__label">01. Basic Empty State</p>
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Нет документов</h3>
+                <p class="empty-state__text">Начните добавлять документы, чтобы увидеть их здесь</p>
+            </div>
+        </section>
+
+        <!-- WITH ACTION -->
+        <section class="section">
+            <p class="section__label">02. With Action Button</p>
+            <div class="empty-state">
+                <div class="empty-state__icon empty-state__icon--primary">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Папка пуста</h3>
+                <p class="empty-state__text">Эта папка ещё не содержит файлов. Загрузите первый документ!</p>
+                <button class="empty-state__btn">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Загрузить файл
+                </button>
+            </div>
+        </section>
+
+        <!-- SEARCH NO RESULTS -->
+        <section class="section">
+            <p class="section__label">03. Search No Results</p>
+            <div class="empty-state">
+                <div class="empty-state__icon empty-state__icon--muted">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Ничего не найдено</h3>
+                <p class="empty-state__text">По запросу <strong>"договор аренды 2025"</strong> результатов не найдено</p>
+                <div class="empty-state__suggestions">
+                    <span class="suggestion-label">Попробуйте:</span>
+                    <div class="suggestion-tags">
+                        <span class="suggestion-tag">договор</span>
+                        <span class="suggestion-tag">аренда</span>
+                        <span class="suggestion-tag">2024</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INBOX ZERO -->
+        <section class="section">
+            <p class="section__label">04. Inbox Zero</p>
+            <div class="empty-state empty-state--success">
+                <div class="empty-state__icon empty-state__icon--success">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Всё готово!</h3>
+                <p class="empty-state__text">Вы обработали все входящие сообщения. Отличная работа!</p>
+            </div>
+        </section>
+
+        <!-- NO NOTIFICATIONS -->
+        <section class="section">
+            <p class="section__label">05. No Notifications</p>
+            <div class="empty-state empty-state--compact">
+                <div class="empty-state__icon empty-state__icon--sm">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Нет уведомлений</h3>
+                <p class="empty-state__text">Когда появятся новые уведомления, они будут здесь</p>
+            </div>
+        </section>
+
+        <!-- AI SMART -->
+        <section class="section">
+            <p class="section__label">06. AI Ready State</p>
+            <div class="empty-state empty-state--ai">
+                <div class="empty-state__glow"></div>
+                <div class="empty-state__icon empty-state__icon--smart">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">AI готов к работе</h3>
+                <p class="empty-state__text">Загрузите документы, и AI автоматически их проанализирует, классифицирует и создаст умный индекс</p>
+                <div class="empty-state__actions">
+                    <button class="empty-state__btn empty-state__btn--smart">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        Загрузить документы
+                    </button>
+                    <button class="empty-state__btn empty-state__btn--outline">
+                        Узнать больше
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TABLE EMPTY -->
+        <section class="section">
+            <p class="section__label">07. Empty Table</p>
+            <div class="table-empty">
+                <div class="table-empty__header">
+                    <span>Название</span>
+                    <span>Дата</span>
+                    <span>Статус</span>
+                    <span>Действия</span>
+                </div>
+                <div class="table-empty__body">
+                    <div class="empty-state empty-state--inline">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                        </svg>
+                        <span>Нет данных для отображения</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FIRST TIME USER -->
+        <section class="section">
+            <p class="section__label">08. First Time / Onboarding</p>
+            <div class="empty-state empty-state--onboarding">
+                <div class="onboarding-illustration">
+                    <div class="onboarding-circle onboarding-circle--1"></div>
+                    <div class="onboarding-circle onboarding-circle--2"></div>
+                    <div class="onboarding-circle onboarding-circle--3"></div>
+                    <svg class="onboarding-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Добро пожаловать в Documatica!</h3>
+                <p class="empty-state__text">Давайте настроим ваше рабочее пространство за несколько простых шагов</p>
+                <div class="onboarding-steps">
+                    <div class="onboarding-step">
+                        <span class="onboarding-step__num">1</span>
+                        <span class="onboarding-step__text">Загрузите документы</span>
+                    </div>
+                    <div class="onboarding-step">
+                        <span class="onboarding-step__num">2</span>
+                        <span class="onboarding-step__text">AI проанализирует</span>
+                    </div>
+                    <div class="onboarding-step">
+                        <span class="onboarding-step__num">3</span>
+                        <span class="onboarding-step__text">Начните работу</span>
+                    </div>
+                </div>
+                <button class="empty-state__btn empty-state__btn--primary">Начать настройку</button>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Empty States Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

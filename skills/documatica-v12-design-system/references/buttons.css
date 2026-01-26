@@ -1,0 +1,571 @@
+/**
+ * Documatica Button Kit v12.0
+ * Design System for Client Websites
+ * 
+ * Philosophy: "The v12.0 Spring"
+ * - Materiality: Buttons feel like physical objects with weight
+ * - Response: Hover = float up, Active = spring press down
+ */
+
+/* ==========================================================================
+   CSS CUSTOM PROPERTIES (Design Tokens)
+   ========================================================================== */
+
+:root {
+    /* Colors - Primary */
+    --color-primary: #3b82f6;
+    --color-primary-hover: #2563eb;
+    --color-primary-shadow: rgba(59, 130, 246, 0.3);
+    --color-primary-shadow-hover: rgba(59, 130, 246, 0.5);
+
+    /* Colors - Smart Gold (AI) */
+    --color-smart: #fbbf24;
+    --color-smart-hover: #f59e0b;
+    --color-smart-shadow: rgba(251, 191, 36, 0.3);
+    --color-smart-shadow-hover: rgba(251, 191, 36, 0.5);
+
+    /* Colors - Success */
+    --color-success: #10b981;
+    --color-success-hover: #059669;
+    --color-success-shadow: rgba(16, 185, 129, 0.2);
+
+    /* Colors - Danger */
+    --color-danger: #dc2626;
+    --color-danger-bg: #fef2f2;
+    --color-danger-border: #fecaca;
+    --color-danger-hover: #dc2626;
+
+    /* Colors - Neutral */
+    --color-dark: #0f172a;
+    --color-dark-shadow: rgba(15, 23, 42, 0.1);
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-600: #475569;
+    --color-slate-900: #0f172a;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+
+    /* Spacing */
+    --spacing-xs: 0.5rem;
+    --spacing-sm: 0.75rem;
+    --spacing-md: 1.25rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 4rem;
+
+    /* Border Radius */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-massive: 2.5rem;
+
+    /* Transitions */
+    --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-fast: all 0.15s ease;
+    --transition-arrow: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Shadows */
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+    color: var(--color-slate-900);
+}
+
+.pattern-light {
+    background-color: #f8fafc;
+    background-image: radial-gradient(var(--color-primary) 1px, transparent 1px);
+    background-size: 32px 32px;
+    min-height: 100vh;
+    padding: 5rem 1.5rem;
+}
+
+.container {
+    max-width: 64rem;
+    margin: 0 auto;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.header {
+    margin-bottom: 5rem;
+    text-align: left;
+}
+
+.header__status {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.status-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: var(--color-smart);
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.status-label {
+    font-size: 10px;
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+}
+
+.header__title {
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    color: var(--color-slate-900);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+/* ==========================================================================
+   SECTIONS
+   ========================================================================== */
+
+.section {
+    margin-bottom: 6rem;
+}
+
+.section__label {
+    font-size: 9px;
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.button-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.button-grid--wide {
+    gap: 4rem;
+}
+
+.button-grid--align-end {
+    align-items: flex-end;
+}
+
+.button-showcase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.button-showcase--left {
+    align-items: flex-start;
+}
+
+.button-showcase__label {
+    font-size: 8px;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-slate-300);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* ==========================================================================
+   BUTTON BASE
+   ========================================================================== */
+
+.btn {
+    /* Reset */
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-decoration: none;
+
+    /* Layout */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+
+    /* Typography */
+    font-family: var(--font-family);
+    font-size: 10px;
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+
+    /* Spacing (2:1 ratio horizontal:vertical) */
+    padding: var(--spacing-md) var(--spacing-xl);
+
+    /* Visual */
+    border-radius: var(--radius-xl);
+    transition: var(--transition-spring);
+}
+
+/* Hover: Float up */
+.btn:hover:not(:disabled) {
+    transform: translateY(-4px);
+}
+
+/* Active: Spring press */
+.btn:active:not(:disabled) {
+    transform: translateY(1px) scale(0.96);
+    transition-duration: 0.1s;
+}
+
+/* Focus visible for accessibility */
+.btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   BUTTON VARIANTS
+   ========================================================================== */
+
+/* Primary */
+.btn--primary {
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 15px 30px -5px var(--color-primary-shadow);
+}
+
+.btn--primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    box-shadow: 0 25px 50px -12px var(--color-primary-shadow-hover);
+}
+
+/* Massive CTA */
+.btn--massive {
+    padding: 2rem 4rem;
+    border-radius: var(--radius-massive);
+    font-size: 12px;
+    letter-spacing: 0.3em;
+}
+
+/* Smart (AI Gold) */
+.btn--smart {
+    background-color: var(--color-smart);
+    color: var(--color-slate-900);
+    box-shadow: 0 15px 30px -5px var(--color-smart-shadow);
+}
+
+.btn--smart:hover:not(:disabled) {
+    background-color: var(--color-smart-hover);
+    box-shadow: 0 25px 50px -12px var(--color-smart-shadow-hover);
+}
+
+/* Secondary Soft */
+.btn--secondary {
+    background-color: var(--color-slate-100);
+    color: var(--color-slate-600);
+}
+
+.btn--secondary:hover:not(:disabled) {
+    background-color: var(--color-slate-200);
+}
+
+/* Outline */
+.btn--outline {
+    background-color: transparent;
+    color: var(--color-slate-400);
+    border: 2px solid var(--color-slate-200);
+    padding: calc(var(--spacing-md) - 2px) calc(var(--spacing-xl) - 2px);
+}
+
+.btn--outline:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+/* Dark Inverse */
+.btn--dark {
+    background-color: var(--color-dark);
+    color: white;
+    box-shadow: 0 20px 25px -5px var(--color-dark-shadow);
+}
+
+.btn--dark:hover:not(:disabled) {
+    box-shadow: 0 25px 50px -12px var(--color-dark-shadow);
+}
+
+/* Danger */
+.btn--danger {
+    background-color: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger-border);
+}
+
+.btn--danger:hover:not(:disabled) {
+    background-color: var(--color-danger);
+    color: white;
+    border-color: var(--color-danger);
+}
+
+/* Success */
+.btn--success {
+    background-color: var(--color-success);
+    color: white;
+    box-shadow: 0 15px 30px -5px var(--color-success-shadow);
+}
+
+.btn--success:hover:not(:disabled) {
+    background-color: var(--color-success-hover);
+}
+
+/* Ghost */
+.btn--ghost {
+    background-color: transparent;
+    color: var(--color-slate-400);
+    border: 1px solid transparent;
+}
+
+.btn--ghost:hover:not(:disabled) {
+    background-color: var(--color-slate-100);
+    border-color: var(--color-slate-100);
+    color: var(--color-slate-900);
+}
+
+/* Link */
+.btn--link {
+    background: none;
+    color: var(--color-slate-900);
+    padding: 0;
+    letter-spacing: 0.3em;
+    font-size: 11px;
+}
+
+.btn--link:hover {
+    transform: none;
+}
+
+.btn--link .btn__arrow {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--color-primary);
+    transition: var(--transition-arrow);
+}
+
+.btn--link:hover .btn__arrow {
+    transform: translateX(0.75rem);
+}
+
+/* Icon Only */
+.btn--icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0;
+    background-color: #eff6ff;
+    color: var(--color-primary);
+    border: 1px solid #dbeafe;
+}
+
+.btn--icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.btn--icon:hover:not(:disabled) {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   BUTTON SIZES
+   ========================================================================== */
+
+.btn--xs {
+    padding: 0.5rem 1rem;
+    font-size: 8px;
+    border-radius: var(--radius-md);
+}
+
+.btn--sm {
+    padding: 0.75rem 1.5rem;
+    font-size: 9px;
+    border-radius: var(--radius-lg);
+}
+
+/* Default is MD - no modifier needed */
+
+.btn--lg {
+    padding: 1.5rem 3rem;
+    font-size: 11px;
+}
+
+.btn--xl {
+    padding: 1.75rem 3.5rem;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+}
+
+.btn--small {
+    padding: 1rem 2rem;
+    font-size: 9px;
+    border-radius: var(--radius-lg);
+}
+
+/* ==========================================================================
+   BUTTON STATES
+   ========================================================================== */
+
+/* Disabled */
+.btn:disabled,
+.btn--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(1);
+    background-color: var(--color-slate-200);
+    color: var(--color-slate-400);
+    box-shadow: none;
+}
+
+.btn:disabled:hover,
+.btn--disabled:hover {
+    transform: none;
+}
+
+/* Loading */
+.btn--loading {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   BUTTON ICONS
+   ========================================================================== */
+
+.btn__icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.btn__spinner {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.footer {
+    margin-top: 5rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--color-slate-200);
+    text-align: center;
+}
+
+.footer__text {
+    font-size: 10px;
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-200);
+    text-transform: uppercase;
+    letter-spacing: 1em;
+}
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .pattern-light {
+        padding: 3rem 1rem;
+    }
+
+    .header {
+        margin-bottom: 3rem;
+    }
+
+    .section {
+        margin-bottom: 4rem;
+    }
+
+    .button-grid {
+        gap: 1.5rem;
+    }
+
+    .btn--massive {
+        padding: 1.5rem 2.5rem;
+        font-size: 10px;
+    }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    .btn {
+        transition: none;
+    }
+
+    .btn:hover:not(:disabled) {
+        transform: none;
+    }
+
+    .btn:active:not(:disabled) {
+        transform: none;
+    }
+
+    .status-dot {
+        animation: none;
+    }
+
+    .btn__spinner {
+        animation: none;
+    }
+}

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accordion — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="accordion.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Expand Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Accordion</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: BASIC ACCORDION -->
+        <section class="section">
+            <p class="section__label">01. Basic Accordion</p>
+            <div class="accordion">
+                <details class="accordion__item" open>
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Что такое Documatica?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Documatica — это интеллектуальная платформа управления документами на базе AI. Система автоматически анализирует, классифицирует и организует ваши документы, обеспечивая мгновенный доступ к нужной информации.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Какие типы документов поддерживаются?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Мы поддерживаем более 50 форматов: PDF, DOCX, XLSX, изображения, сканы, электронные письма и многое другое. AI-модуль умеет распознавать текст на 40+ языках.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Как обеспечивается безопасность данных?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Все данные шифруются по стандарту AES-256 в транзите и при хранении. Мы сертифицированы по ISO 27001 и SOC 2 Type II. Данные хранятся в дата-центрах на территории ЕС.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH ICONS -->
+        <section class="section">
+            <p class="section__label">02. With Icons</p>
+            <div class="accordion accordion--icons">
+                <details class="accordion__item" open>
+                    <summary class="accordion__header">
+                        <span class="accordion__icon-left">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                        </span>
+                        <span class="accordion__title">Безопасность и шифрование</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>End-to-end шифрование для всех документов. Двухфакторная аутентификация и аудит логов доступа. Соответствие GDPR и локальным требованиям.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__icon-left">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </span>
+                        <span class="accordion__title">AI-обработка документов</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Автоматическое распознавание типа документа, извлечение ключевых данных, классификация и тегирование. Обучение на ваших данных для повышения точности.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__icon-left">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                        </span>
+                        <span class="accordion__title">Интеграции и API</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>REST API и webhook-уведомления. Готовые интеграции с Slack, Teams, Salesforce, 1C и другими системами. SDK для Python, JavaScript и .NET.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: BORDERED -->
+        <section class="section">
+            <p class="section__label">03. Bordered</p>
+            <div class="accordion accordion--bordered">
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Как начать работу?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Зарегистрируйтесь на сайте, загрузите первые документы и система автоматически начнёт их анализировать. Полный онбординг занимает около 5 минут.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Какие есть тарифные планы?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Starter (бесплатно, до 100 документов), Pro (990₽/мес, до 10 000 документов), Enterprise (индивидуально, безлимит + выделенный сервер).</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Есть ли мобильное приложение?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Да, приложения для iOS и Android доступны в App Store и Google Play. Полная синхронизация с веб-версией, сканирование документов через камеру.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: FLUSH -->
+        <section class="section">
+            <p class="section__label">04. Flush (No Border)</p>
+            <div class="accordion accordion--flush">
+                <details class="accordion__item" open>
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Можно ли отменить подписку?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Да, подписку можно отменить в любой момент. Документы останутся доступны до конца оплаченного периода. После отмены данные хранятся ещё 30 дней.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Как экспортировать документы?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Выберите документы → Экспорт → Формат (оригинал, PDF, ZIP-архив). Массовый экспорт через API или раздел "Настройки → Данные".</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Как связаться с поддержкой?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Чат поддержки в приложении (24/7), email support@documatica.io, телефон +7 (495) 123-45-67 (пн-пт 9:00-18:00 МСК).</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DARK -->
+        <section class="section">
+            <p class="section__label">05. Dark Variant</p>
+            <div class="accordion accordion--dark">
+                <details class="accordion__item" open>
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Что такое Smart Analysis?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Функция AI-анализа для автоматического выявления рисков, аномалий и важных положений в документах. Особенно полезна для юридических и финансовых документов.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Как работает OCR?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Оптическое распознавание символов на базе нейросетей. Точность 99.2% для печатного текста, 95% для рукописного. Поддержка 40+ языков включая кириллицу.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__title">Есть ли версия On-Premise?</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Да, для Enterprise-клиентов доступна установка на собственные серверы. Docker-контейнеры, Kubernetes Helm Charts, поддержка major облачных провайдеров.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: NUMBERED -->
+        <section class="section">
+            <p class="section__label">06. Numbered Steps</p>
+            <div class="accordion accordion--numbered">
+                <details class="accordion__item" open>
+                    <summary class="accordion__header">
+                        <span class="accordion__number">01</span>
+                        <span class="accordion__title">Создайте аккаунт</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Зарегистрируйтесь через email или войдите через Google/Microsoft SSO. Подтвердите email и заполните профиль компании.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__number">02</span>
+                        <span class="accordion__title">Загрузите документы</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Перетащите файлы или подключите облачное хранилище. Поддерживаются папки и ZIP-архивы для массовой загрузки.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__number">03</span>
+                        <span class="accordion__title">Настройте рабочее пространство</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Создайте папки и теги, настройте права доступа для команды, подключите интеграции с вашими инструментами.</p>
+                    </div>
+                </details>
+                <details class="accordion__item">
+                    <summary class="accordion__header">
+                        <span class="accordion__number">04</span>
+                        <span class="accordion__title">Начните работу</span>
+                        <span class="accordion__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="accordion__content">
+                        <p>Используйте умный поиск, автоматические workflows и AI-аналитику для эффективной работы с документами.</p>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: COLLAPSIBLE LIST -->
+        <section class="section">
+            <p class="section__label">07. Collapsible List</p>
+            <div class="collapsible-list">
+                <details class="collapsible-list__item" open>
+                    <summary class="collapsible-list__header">
+                        <span class="collapsible-list__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="collapsible-list__title">Финансовые документы</span>
+                        <span class="collapsible-list__badge">24</span>
+                        <span class="collapsible-list__arrow">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="collapsible-list__content">
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Счёт-фактура Q4 2024.pdf
+                        </a>
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Баланс 2024.xlsx
+                        </a>
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Налоговая декларация.pdf
+                        </a>
+                    </div>
+                </details>
+                <details class="collapsible-list__item">
+                    <summary class="collapsible-list__header">
+                        <span class="collapsible-list__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="collapsible-list__title">Юридические</span>
+                        <span class="collapsible-list__badge">12</span>
+                        <span class="collapsible-list__arrow">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="collapsible-list__content">
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Договор аренды.docx
+                        </a>
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            NDA с партнёром.pdf
+                        </a>
+                    </div>
+                </details>
+                <details class="collapsible-list__item">
+                    <summary class="collapsible-list__header">
+                        <span class="collapsible-list__icon">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                            </svg>
+                        </span>
+                        <span class="collapsible-list__title">Кадровые</span>
+                        <span class="collapsible-list__badge">8</span>
+                        <span class="collapsible-list__arrow">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </span>
+                    </summary>
+                    <div class="collapsible-list__content">
+                        <a href="#" class="collapsible-list__link">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Штатное расписание.xlsx
+                        </a>
+                    </div>
+                </details>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Accordion Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

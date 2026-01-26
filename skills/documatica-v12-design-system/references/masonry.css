@@ -1,0 +1,478 @@
+/**
+ * UI Kit v12.0 — Masonry Grid
+ * Pinterest-style layout with CSS Columns & Grid
+ */
+
+/* =========================================================================
+   BASE LAYOUT
+   ========================================================================= */
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 48px;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link svg {
+    transition: transform 0.2s ease;
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+
+.hero {
+    margin-bottom: 64px;
+}
+
+.hero__badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    margin-bottom: 24px;
+}
+
+.hero__title {
+    font-size: clamp(48px, 8vw, 72px);
+    font-weight: 900;
+    color: var(--color-dark);
+    line-height: 1.0;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.hero__title span {
+    color: var(--color-primary);
+}
+
+.hero__desc {
+    font-size: 18px;
+    color: var(--color-slate-500);
+    max-width: 600px;
+    margin: 0;
+}
+
+/* =========================================================================
+   SECTIONS
+   ========================================================================= */
+
+.section {
+    margin-bottom: 80px;
+}
+
+.section__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-slate-100);
+}
+
+.section__number {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.section__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin: 0;
+}
+
+.section__desc {
+    font-size: 15px;
+    color: var(--color-slate-500);
+    margin: -16px 0 24px 0;
+}
+
+.subsection {
+    margin-bottom: 48px;
+}
+
+.subsection__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+}
+
+/* =========================================================================
+   CSS COLUMNS MASONRY
+   ========================================================================= */
+
+.masonry {
+    column-gap: 16px;
+}
+
+.masonry--2 { column-count: 2; }
+.masonry--3 { column-count: 3; }
+.masonry--4 { column-count: 4; }
+.masonry--5 { column-count: 5; }
+
+.masonry--gap-sm { column-gap: 8px; }
+.masonry--gap-md { column-gap: 16px; }
+.masonry--gap-lg { column-gap: 24px; }
+
+.masonry__item {
+    break-inside: avoid;
+    margin-bottom: 16px;
+}
+
+.masonry--gap-sm .masonry__item { margin-bottom: 8px; }
+.masonry--gap-lg .masonry__item { margin-bottom: 24px; }
+
+/* =========================================================================
+   PLACEHOLDER CARDS
+   ========================================================================= */
+
+.card {
+    background: var(--color-slate-100);
+    border-radius: 16px;
+    width: 100%;
+}
+
+.card--h-100 { height: 100px; }
+.card--h-120 { height: 120px; }
+.card--h-140 { height: 140px; }
+.card--h-160 { height: 160px; }
+.card--h-180 { height: 180px; }
+.card--h-200 { height: 200px; }
+.card--h-220 { height: 220px; }
+.card--h-240 { height: 240px; }
+.card--h-260 { height: 260px; }
+.card--h-280 { height: 280px; }
+.card--h-300 { height: 300px; }
+
+/* =========================================================================
+   PIN CARDS
+   ========================================================================= */
+
+.pin-card {
+    position: relative;
+    background: var(--color-white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.pin-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.pin-card__image {
+    width: 100%;
+    height: 160px;
+    background: var(--color-slate-200);
+}
+
+.pin-card__image--medium { height: 220px; }
+.pin-card__image--tall { height: 280px; }
+
+.pin-card__body {
+    padding: 16px;
+}
+
+.pin-card__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-dark);
+    margin: 0 0 4px 0;
+}
+
+.pin-card__text {
+    font-size: 13px;
+    color: var(--color-slate-500);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* =========================================================================
+   PIN CARD OVERLAY
+   ========================================================================= */
+
+.pin-card--hoverable {
+    cursor: pointer;
+}
+
+.pin-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, 
+        rgba(0,0,0,0.4) 0%, 
+        transparent 40%, 
+        transparent 60%, 
+        rgba(0,0,0,0.5) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px;
+}
+
+.pin-card--hoverable:hover .pin-card__overlay {
+    opacity: 1;
+}
+
+.pin-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.pin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.pin-btn--icon {
+    width: 36px;
+    height: 36px;
+    background: var(--color-white);
+    border-radius: 50%;
+    color: var(--color-dark);
+}
+
+.pin-btn--icon:hover {
+    transform: scale(1.1);
+}
+
+.pin-btn--icon.pin-btn--active {
+    background: var(--color-danger);
+    color: var(--color-white);
+}
+
+.pin-btn--primary {
+    padding: 10px 20px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 100px;
+}
+
+.pin-btn--primary:hover {
+    background: #2563eb;
+}
+
+/* =========================================================================
+   PIN CARD FOOTER
+   ========================================================================= */
+
+.pin-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--color-slate-100);
+}
+
+.pin-author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pin-author__avatar {
+    width: 28px;
+    height: 28px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.pin-author__name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-dark);
+}
+
+.pin-stats {
+    font-size: 12px;
+    color: var(--color-slate-400);
+}
+
+/* =========================================================================
+   CSS GRID MASONRY
+   ========================================================================= */
+
+.grid-masonry {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 80px;
+    gap: 16px;
+}
+
+.grid-item {
+    border-radius: 16px;
+    background: var(--color-slate-100);
+    grid-row: span 2;
+}
+
+.grid-item--tall {
+    grid-row: span 4;
+}
+
+.grid-item--wide {
+    grid-column: span 2;
+}
+
+/* =========================================================================
+   GALLERY ITEMS
+   ========================================================================= */
+
+.gallery-item {
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================================================
+   DEMO LAYOUT
+   ========================================================================= */
+
+.demo-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+}
+
+.demo-col {
+    min-width: 0;
+}
+
+/* =========================================================================
+   CODE BLOCK
+   ========================================================================= */
+
+.code-block {
+    background: var(--color-dark);
+    border-radius: 16px;
+    padding: 24px;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+}
+
+.code-block code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--color-slate-300);
+    line-height: 1.7;
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+    .masonry--5 { column-count: 4; }
+    .masonry--4 { column-count: 3; }
+    
+    .grid-masonry {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 32px 16px;
+    }
+
+    .masonry--5,
+    .masonry--4,
+    .masonry--3 { column-count: 2; }
+
+    .grid-masonry {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 60px;
+    }
+
+    .grid-item--wide {
+        grid-column: span 1;
+    }
+
+    .demo-row {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+}
+
+@media (max-width: 480px) {
+    .masonry--5,
+    .masonry--4,
+    .masonry--3,
+    .masonry--2 { column-count: 1; }
+
+    .grid-masonry {
+        grid-template-columns: 1fr;
+    }
+
+    .hero__title {
+        font-size: 32px;
+    }
+}

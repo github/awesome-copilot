@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Table — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="pricing.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Pricing Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Pricing Table</span>
+            </h1>
+        </header>
+
+        <!-- BASIC 3-COLUMN -->
+        <section class="section">
+            <p class="section__label">01. Basic 3-Column</p>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-card__header">
+                        <h3 class="pricing-card__name">Starter</h3>
+                        <p class="pricing-card__desc">Для небольших команд</p>
+                    </div>
+                    <div class="pricing-card__price">
+                        <span class="price-amount">₽1,990</span>
+                        <span class="price-period">/месяц</span>
+                    </div>
+                    <ul class="pricing-card__features">
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            До 5 пользователей
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            10 ГБ хранилища
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            Базовая аналитика
+                        </li>
+                        <li class="feature feature--disabled">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                            AI функции
+                        </li>
+                    </ul>
+                    <button class="pricing-card__btn">Выбрать план</button>
+                </div>
+
+                <div class="pricing-card pricing-card--featured">
+                    <div class="pricing-card__badge">Популярный</div>
+                    <div class="pricing-card__header">
+                        <h3 class="pricing-card__name">Professional</h3>
+                        <p class="pricing-card__desc">Для растущих компаний</p>
+                    </div>
+                    <div class="pricing-card__price">
+                        <span class="price-amount">₽4,990</span>
+                        <span class="price-period">/месяц</span>
+                    </div>
+                    <ul class="pricing-card__features">
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            До 20 пользователей
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            100 ГБ хранилища
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            Расширенная аналитика
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            AI анализ документов
+                        </li>
+                    </ul>
+                    <button class="pricing-card__btn pricing-card__btn--primary">Выбрать план</button>
+                </div>
+
+                <div class="pricing-card">
+                    <div class="pricing-card__header">
+                        <h3 class="pricing-card__name">Enterprise</h3>
+                        <p class="pricing-card__desc">Для крупного бизнеса</p>
+                    </div>
+                    <div class="pricing-card__price">
+                        <span class="price-amount">Custom</span>
+                    </div>
+                    <ul class="pricing-card__features">
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            Неограниченные пользователи
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            Неограниченное хранилище
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            Персональный менеджер
+                        </li>
+                        <li class="feature">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                            SLA 99.99%
+                        </li>
+                    </ul>
+                    <button class="pricing-card__btn">Связаться</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH TOGGLE -->
+        <section class="section">
+            <p class="section__label">02. With Monthly/Annual Toggle</p>
+            <div class="pricing-toggle-wrapper">
+                <div class="pricing-toggle">
+                    <span class="toggle-label toggle-label--active">Месяц</span>
+                    <div class="toggle-switch">
+                        <div class="toggle-knob"></div>
+                    </div>
+                    <span class="toggle-label">Год</span>
+                    <span class="toggle-badge">-20%</span>
+                </div>
+            </div>
+            <div class="pricing-grid pricing-grid--2">
+                <div class="pricing-card pricing-card--compact">
+                    <h3 class="pricing-card__name">Basic</h3>
+                    <div class="pricing-card__price">
+                        <span class="price-amount">₽990</span>
+                        <span class="price-period">/месяц</span>
+                    </div>
+                    <p class="pricing-card__desc">Всё необходимое для старта</p>
+                    <button class="pricing-card__btn">Начать</button>
+                </div>
+                <div class="pricing-card pricing-card--compact pricing-card--featured">
+                    <div class="pricing-card__badge">Лучшее</div>
+                    <h3 class="pricing-card__name">Pro</h3>
+                    <div class="pricing-card__price">
+                        <span class="price-amount">₽2,490</span>
+                        <span class="price-period">/месяц</span>
+                    </div>
+                    <p class="pricing-card__desc">Максимальные возможности</p>
+                    <button class="pricing-card__btn pricing-card__btn--primary">Начать</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HORIZONTAL -->
+        <section class="section">
+            <p class="section__label">03. Horizontal Pricing</p>
+            <div class="pricing-horizontal">
+                <div class="pricing-horizontal__info">
+                    <h3>Starter Plan</h3>
+                    <p>Идеально для фрилансеров и небольших проектов</p>
+                </div>
+                <div class="pricing-horizontal__features">
+                    <span>5 проектов</span>
+                    <span>10 ГБ</span>
+                    <span>Email поддержка</span>
+                </div>
+                <div class="pricing-horizontal__action">
+                    <span class="price-amount">₽990</span>
+                    <button class="pricing-card__btn pricing-card__btn--sm">Выбрать</button>
+                </div>
+            </div>
+            <div class="pricing-horizontal pricing-horizontal--featured">
+                <div class="pricing-horizontal__info">
+                    <h3>Pro Plan <span class="inline-badge">Рекомендуем</span></h3>
+                    <p>Для команд и агентств</p>
+                </div>
+                <div class="pricing-horizontal__features">
+                    <span>∞ проектов</span>
+                    <span>100 ГБ</span>
+                    <span>24/7 поддержка</span>
+                </div>
+                <div class="pricing-horizontal__action">
+                    <span class="price-amount">₽2,990</span>
+                    <button class="pricing-card__btn pricing-card__btn--primary pricing-card__btn--sm">Выбрать</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DARK PRICING -->
+        <section class="section">
+            <p class="section__label">04. Dark AI Pricing</p>
+            <div class="pricing-card pricing-card--dark pricing-card--ai">
+                <div class="pricing-card__glow"></div>
+                <div class="pricing-card__ai-badge">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    AI Powered
+                </div>
+                <h3 class="pricing-card__name">Documatica AI</h3>
+                <p class="pricing-card__desc">Полный набор AI-инструментов для документооборота</p>
+                <div class="pricing-card__price">
+                    <span class="price-amount price-amount--smart">₽9,990</span>
+                    <span class="price-period">/месяц</span>
+                </div>
+                <div class="pricing-card__ai-features">
+                    <div class="ai-feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Умный анализ документов
+                    </div>
+                    <div class="ai-feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Автоматическая классификация
+                    </div>
+                    <div class="ai-feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Извлечение данных (OCR)
+                    </div>
+                    <div class="ai-feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Семантический поиск
+                    </div>
+                </div>
+                <button class="pricing-card__btn pricing-card__btn--smart">
+                    Подключить AI
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- COMPARISON TABLE -->
+        <section class="section">
+            <p class="section__label">05. Feature Comparison Table</p>
+            <div class="pricing-comparison">
+                <div class="comparison-header">
+                    <div class="comparison-cell comparison-cell--feature">Функции</div>
+                    <div class="comparison-cell">Starter</div>
+                    <div class="comparison-cell comparison-cell--featured">Pro</div>
+                    <div class="comparison-cell">Enterprise</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-cell--feature">Пользователи</div>
+                    <div class="comparison-cell">5</div>
+                    <div class="comparison-cell comparison-cell--featured">20</div>
+                    <div class="comparison-cell">Unlimited</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-cell--feature">Хранилище</div>
+                    <div class="comparison-cell">10 ГБ</div>
+                    <div class="comparison-cell comparison-cell--featured">100 ГБ</div>
+                    <div class="comparison-cell">1 ТБ+</div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-cell--feature">AI анализ</div>
+                    <div class="comparison-cell">
+                        <svg class="check-no" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div class="comparison-cell comparison-cell--featured">
+                        <svg class="check-yes" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="comparison-cell">
+                        <svg class="check-yes" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-cell--feature">API доступ</div>
+                    <div class="comparison-cell">
+                        <svg class="check-no" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                    <div class="comparison-cell comparison-cell--featured">
+                        <svg class="check-yes" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                    <div class="comparison-cell">
+                        <svg class="check-yes" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                    </div>
+                </div>
+                <div class="comparison-row">
+                    <div class="comparison-cell comparison-cell--feature">Поддержка</div>
+                    <div class="comparison-cell">Email</div>
+                    <div class="comparison-cell comparison-cell--featured">Приоритет</div>
+                    <div class="comparison-cell">Выделенная</div>
+                </div>
+                <div class="comparison-row comparison-row--footer">
+                    <div class="comparison-cell comparison-cell--feature"></div>
+                    <div class="comparison-cell">
+                        <button class="comparison-btn">Выбрать</button>
+                    </div>
+                    <div class="comparison-cell comparison-cell--featured">
+                        <button class="comparison-btn comparison-btn--primary">Выбрать</button>
+                    </div>
+                    <div class="comparison-cell">
+                        <button class="comparison-btn">Связаться</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Pricing Table Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

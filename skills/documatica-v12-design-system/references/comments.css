@@ -1,0 +1,541 @@
+/**
+ * Documatica Design System v12.0
+ * Comments Components
+ */
+
+.container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: var(--spacing-20) var(--spacing-6);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-10);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    transition: var(--transition-base);
+}
+
+.back-link svg {
+    width: 20px;
+    height: 20px;
+    transition: var(--transition-arrow);
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+.header {
+    margin-bottom: var(--spacing-16);
+}
+
+.header__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-smart);
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.status-label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-ultra);
+}
+
+.header__title {
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--line-height-tight);
+    color: var(--color-dark);
+}
+
+.section {
+    margin-bottom: var(--spacing-16);
+}
+
+.section__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mega);
+    margin-bottom: var(--spacing-8);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.footer {
+    margin-top: var(--spacing-20);
+    padding-top: var(--spacing-10);
+    border-top: 1px solid var(--color-slate-200);
+    text-align: center;
+}
+
+.footer__text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-200);
+    text-transform: uppercase;
+    letter-spacing: 1em;
+}
+
+/* =========================================================================
+   COMMENT BASE
+   ========================================================================= */
+
+.comment {
+    display: flex;
+    gap: var(--spacing-4);
+    padding: var(--spacing-5);
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-xl);
+}
+
+.comment__avatar {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+.comment__avatar--sm {
+    width: 32px;
+    height: 32px;
+    font-size: var(--font-size-xs);
+}
+
+.comment__avatar--resolved {
+    background: var(--color-success);
+}
+
+.comment__avatar--resolved svg {
+    width: 20px;
+    height: 20px;
+}
+
+.comment__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-2);
+    flex-wrap: wrap;
+}
+
+.comment__author {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+}
+
+.comment__badge {
+    padding: 2px var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-full);
+}
+
+.comment__badge--resolved {
+    color: var(--color-success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.comment__time {
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-400);
+}
+
+.comment__text {
+    margin: 0;
+    font-size: var(--font-size-base);
+    color: var(--color-slate-700);
+    line-height: var(--line-height-relaxed);
+}
+
+/* =========================================================================
+   COMMENT ACTIONS
+   ========================================================================= */
+
+.comment__actions {
+    display: flex;
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-3);
+}
+
+.comment__action {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: var(--spacing-1) var(--spacing-2);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-400);
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.comment__action:hover {
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.comment__action--active {
+    color: var(--color-primary);
+}
+
+.comment__action svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* =========================================================================
+   THREADED COMMENTS
+   ========================================================================= */
+
+.comments-thread {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.comment--reply {
+    margin-left: var(--spacing-12);
+    border-left: 2px solid var(--color-slate-200);
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+}
+
+/* =========================================================================
+   COMMENT INPUT
+   ========================================================================= */
+
+.comment-input {
+    display: flex;
+    gap: var(--spacing-4);
+    padding: var(--spacing-5);
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-xl);
+}
+
+.comment-input__field {
+    flex: 1;
+}
+
+.comment-input__field textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: var(--spacing-3);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-dark);
+    background: var(--color-slate-50);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-lg);
+    resize: vertical;
+    outline: none;
+    transition: var(--transition-base);
+}
+
+.comment-input__field textarea::placeholder {
+    color: var(--color-slate-400);
+}
+
+.comment-input__field textarea:focus {
+    border-color: var(--color-primary);
+    background: var(--color-white);
+}
+
+.comment-input__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--spacing-3);
+}
+
+.comment-input__tools {
+    display: flex;
+    gap: var(--spacing-1);
+}
+
+.input-tool {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: var(--radius-lg);
+    color: var(--color-slate-400);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.input-tool:hover {
+    background: var(--color-slate-100);
+    color: var(--color-primary);
+}
+
+.input-tool svg {
+    width: 20px;
+    height: 20px;
+}
+
+.comment-input__submit {
+    padding: var(--spacing-2) var(--spacing-5);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+    background: var(--color-primary);
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.comment-input__submit:hover {
+    background: #2563eb;
+}
+
+/* =========================================================================
+   RESOLVED COMMENT
+   ========================================================================= */
+
+.comment--resolved {
+    background: rgba(16, 185, 129, 0.03);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.comment--resolved .comment__text {
+    text-decoration: line-through;
+    color: var(--color-slate-400);
+}
+
+.comment__resolution {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-top: var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-success);
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--radius-lg);
+}
+
+.comment__resolution svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* =========================================================================
+   ACTIVITY FEED
+   ========================================================================= */
+
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-4);
+    padding: var(--spacing-4) var(--spacing-5);
+    border-bottom: 1px solid var(--color-slate-100);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    flex-shrink: 0;
+}
+
+.activity-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.activity-icon--comment {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+.activity-icon--edit {
+    background: rgba(251, 191, 36, 0.1);
+    color: var(--color-smart);
+}
+
+.activity-icon--resolve {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--color-success);
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content p {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-600);
+}
+
+.activity-content strong {
+    color: var(--color-dark);
+}
+
+.activity-time {
+    font-size: var(--font-size-xs);
+    color: var(--color-slate-400);
+}
+
+/* =========================================================================
+   MENTIONS
+   ========================================================================= */
+
+.mention {
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0 var(--spacing-1);
+    border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
+   INLINE COMMENT
+   ========================================================================= */
+
+.inline-comment-demo {
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.document-text {
+    padding: var(--spacing-6);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-slate-700);
+}
+
+.highlighted-text {
+    position: relative;
+    background: rgba(251, 191, 36, 0.2);
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+}
+
+.comment-marker {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+    background: var(--color-smart);
+    border-radius: var(--radius-full);
+}
+
+.inline-comment-popup {
+    padding: var(--spacing-4);
+    background: var(--color-slate-50);
+    border-top: 1px solid var(--color-slate-200);
+}
+
+.comment--inline {
+    padding: var(--spacing-3);
+    background: var(--color-white);
+    margin-bottom: var(--spacing-3);
+}
+
+.inline-comment-reply input {
+    width: 100%;
+    padding: var(--spacing-3);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    color: var(--color-dark);
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: var(--radius-lg);
+    outline: none;
+    transition: var(--transition-base);
+}
+
+.inline-comment-reply input::placeholder {
+    color: var(--color-slate-400);
+}
+
+.inline-comment-reply input:focus {
+    border-color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-10) var(--spacing-4);
+    }
+
+    .comment--reply {
+        margin-left: var(--spacing-6);
+    }
+}

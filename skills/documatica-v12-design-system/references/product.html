@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="product.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● CATALOG</span>
+            <h1 class="hero__title">PRODUCT<br><span>PAGE</span></h1>
+            <p class="hero__desc">Карточки товаров, галереи, варианты, характеристики и действия.</p>
+        </header>
+
+        <!-- ============================================
+             01. PRODUCT CARD BASIC
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">PRODUCT CARD BASIC</h2>
+            </div>
+            
+            <div class="cards-grid">
+                <div class="product-card">
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop" alt="Product">
+                        <button class="product-card__fav" aria-label="В избранное">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__body">
+                        <span class="product-card__category">АКСЕССУАРЫ</span>
+                        <h3 class="product-card__title">Смарт-часы Series X</h3>
+                        <div class="product-card__price">24 990 ₽</div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card__badge">● NEW</div>
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop" alt="Product">
+                        <button class="product-card__fav" aria-label="В избранное">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__body">
+                        <span class="product-card__category">КОСМЕТИКА</span>
+                        <h3 class="product-card__title">Premium Skincare Set</h3>
+                        <div class="product-card__price">8 490 ₽</div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card__badge product-card__badge--sale">-30%</div>
+                    <div class="product-card__image">
+                        <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=400&h=400&fit=crop" alt="Product">
+                        <button class="product-card__fav product-card__fav--active" aria-label="В избранном">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="product-card__body">
+                        <span class="product-card__category">ОБУВЬ</span>
+                        <h3 class="product-card__title">Running Pro Max</h3>
+                        <div class="product-card__prices">
+                            <span class="product-card__price">11 990 ₽</span>
+                            <span class="product-card__old-price">16 990 ₽</span>
+                        </div>
+                        <button class="btn btn--primary btn--full">В корзину</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. PRODUCT DETAIL
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">PRODUCT DETAIL</h2>
+            </div>
+            
+            <div class="product-detail">
+                <div class="product-gallery">
+                    <div class="product-gallery__main">
+                        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&h=600&fit=crop" alt="Product">
+                        <span class="product-gallery__zoom">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="product-gallery__thumbs">
+                        <button class="product-gallery__thumb product-gallery__thumb--active">
+                            <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100&h=100&fit=crop" alt="Thumb">
+                        </button>
+                        <button class="product-gallery__thumb">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop" alt="Thumb">
+                        </button>
+                        <button class="product-gallery__thumb">
+                            <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=100&h=100&fit=crop" alt="Thumb">
+                        </button>
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <span class="product-info__badge">● IN STOCK</span>
+                    <h1 class="product-info__title">SMART WATCH<br><span>SERIES X</span></h1>
+                    <p class="product-info__sku">SKU: SW-2026-PRO</p>
+                    
+                    <div class="product-info__rating">
+                        <span class="rating-stars">★★★★★</span>
+                        <span class="rating-text">4.9 (128 отзывов)</span>
+                    </div>
+
+                    <div class="product-info__price-block">
+                        <span class="product-info__price">24 990 ₽</span>
+                        <span class="product-info__old-price">29 990 ₽</span>
+                        <span class="product-info__discount">-17%</span>
+                    </div>
+
+                    <p class="product-info__desc">Премиальные смарт-часы с AMOLED дисплеем, мониторингом здоровья и автономностью до 14 дней.</p>
+
+                    <div class="product-options">
+                        <div class="product-option">
+                            <label class="product-option__label">ЦВЕТ</label>
+                            <div class="color-swatches">
+                                <button class="color-swatch color-swatch--active" style="background: #0f172a;" title="Чёрный"></button>
+                                <button class="color-swatch" style="background: #e2e8f0;" title="Серебро"></button>
+                                <button class="color-swatch" style="background: #fbbf24;" title="Золото"></button>
+                            </div>
+                        </div>
+
+                        <div class="product-option">
+                            <label class="product-option__label">РАЗМЕР РЕМЕШКА</label>
+                            <div class="size-buttons">
+                                <button class="size-btn">S</button>
+                                <button class="size-btn size-btn--active">M</button>
+                                <button class="size-btn">L</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-actions">
+                        <div class="quantity-selector">
+                            <button class="quantity-btn">−</button>
+                            <input type="number" value="1" min="1" class="quantity-input">
+                            <button class="quantity-btn">+</button>
+                        </div>
+                        <button class="btn btn--primary btn--lg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                            </svg>
+                            Добавить в корзину
+                        </button>
+                        <button class="btn btn--outline btn--icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="product-meta">
+                        <div class="product-meta__item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                                <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                            </svg>
+                            <span>Бесплатная доставка от 5000 ₽</span>
+                        </div>
+                        <div class="product-meta__item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                                <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                            </svg>
+                            <span>Возврат в течение 14 дней</span>
+                        </div>
+                        <div class="product-meta__item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <span>Гарантия 2 года</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. SPECIFICATIONS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">SPECIFICATIONS</h2>
+            </div>
+            
+            <div class="specs-card">
+                <div class="specs-group">
+                    <h4 class="specs-group__title">ОСНОВНЫЕ</h4>
+                    <table class="specs-table">
+                        <tr>
+                            <td>Дисплей</td>
+                            <td>AMOLED, 1.9", 484×396 px</td>
+                        </tr>
+                        <tr>
+                            <td>Процессор</td>
+                            <td>Apple S9 SiP</td>
+                        </tr>
+                        <tr>
+                            <td>Память</td>
+                            <td>64 ГБ</td>
+                        </tr>
+                        <tr>
+                            <td>Батарея</td>
+                            <td>До 14 дней</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="specs-group">
+                    <h4 class="specs-group__title">ДАТЧИКИ</h4>
+                    <table class="specs-table">
+                        <tr>
+                            <td>Пульсометр</td>
+                            <td>Оптический + ЭКГ</td>
+                        </tr>
+                        <tr>
+                            <td>SpO2</td>
+                            <td>Да</td>
+                        </tr>
+                        <tr>
+                            <td>GPS</td>
+                            <td>GPS + GLONASS</td>
+                        </tr>
+                        <tr>
+                            <td>Водозащита</td>
+                            <td>5 ATM</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. PRODUCT CARD HORIZONTAL
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">HORIZONTAL LAYOUT</h2>
+            </div>
+            
+            <div class="product-horizontal">
+                <div class="product-horizontal__image">
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop" alt="Product">
+                </div>
+                <div class="product-horizontal__content">
+                    <span class="product-horizontal__category">● AUDIO</span>
+                    <h3 class="product-horizontal__title">HEADPHONES PRO MAX</h3>
+                    <p class="product-horizontal__desc">Беспроводные наушники с активным шумоподавлением и пространственным звуком.</p>
+                    <div class="product-horizontal__footer">
+                        <span class="product-horizontal__price">34 990 ₽</span>
+                        <div class="product-horizontal__actions">
+                            <button class="btn btn--primary">В корзину</button>
+                            <button class="btn btn--outline">Подробнее →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. QUICK VIEW MODAL
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">QUICK VIEW</h2>
+            </div>
+            
+            <div class="quick-view">
+                <div class="quick-view__image">
+                    <img src="https://images.unsplash.com/photo-1491553895911-0055uj8d0o76?w=400&h=400&fit=crop" alt="Product">
+                </div>
+                <div class="quick-view__content">
+                    <button class="quick-view__close">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <span class="quick-view__badge">● BESTSELLER</span>
+                    <h2 class="quick-view__title">WIRELESS<br><span>EARBUDS</span></h2>
+                    <div class="quick-view__price">12 990 ₽</div>
+                    <div class="quick-view__colors">
+                        <span class="quick-view__label">ЦВЕТ:</span>
+                        <div class="color-swatches">
+                            <button class="color-swatch color-swatch--active" style="background: #fff;"></button>
+                            <button class="color-swatch" style="background: #0f172a;"></button>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--full btn--lg">Добавить в корзину</button>
+                    <a href="#" class="quick-view__link">Перейти к товару →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. STATUS BADGES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">STATUS BADGES</h2>
+            </div>
+            
+            <div class="status-demo">
+                <span class="status-badge status-badge--success">● В НАЛИЧИИ</span>
+                <span class="status-badge status-badge--warning">● МАЛО</span>
+                <span class="status-badge status-badge--danger">● НЕТ В НАЛИЧИИ</span>
+                <span class="status-badge status-badge--info">● ПРЕДЗАКАЗ</span>
+                <span class="status-badge status-badge--new">● NEW</span>
+                <span class="status-badge status-badge--sale">-30%</span>
+                <span class="status-badge status-badge--hot">🔥 ХИТ</span>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;div class="product-card"&gt;
+  &lt;div class="product-card__badge"&gt;● NEW&lt;/div&gt;
+  &lt;div class="product-card__image"&gt;...&lt;/div&gt;
+  &lt;div class="product-card__body"&gt;
+    &lt;span class="product-card__category"&gt;КАТЕГОРИЯ&lt;/span&gt;
+    &lt;h3 class="product-card__title"&gt;Название&lt;/h3&gt;
+    &lt;div class="product-card__price"&gt;24 990 ₽&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+/* Статусы */
+.status-badge--success   /* Зелёный */
+.status-badge--warning   /* Жёлтый */
+.status-badge--danger    /* Красный */
+.status-badge--info      /* Синий */
+.status-badge--new       /* Синий NEW */
+.status-badge--sale      /* Красный скидка */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

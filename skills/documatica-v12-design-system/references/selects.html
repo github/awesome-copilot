@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selects — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="selects.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Selection Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Селекты</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: BASIC SELECTS -->
+        <section class="section">
+            <p class="section__label">01. Basic Select</p>
+            <div class="component-grid">
+                
+                <!-- Default Select -->
+                <div class="component-box">
+                    <div class="select-wrapper">
+                        <select class="select">
+                            <option value="">Выберите опцию</option>
+                            <option value="1">Договор купли-продажи</option>
+                            <option value="2">Договор аренды</option>
+                            <option value="3">Договор подряда</option>
+                            <option value="4">Договор займа</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">Default</span>
+                </div>
+
+                <!-- Select with Value -->
+                <div class="component-box">
+                    <div class="select-wrapper">
+                        <select class="select">
+                            <option value="1">Договор купли-продажи</option>
+                            <option value="2">Договор аренды</option>
+                            <option value="3">Договор подряда</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">With Value</span>
+                </div>
+
+                <!-- Disabled Select -->
+                <div class="component-box">
+                    <div class="select-wrapper select-wrapper--disabled">
+                        <select class="select" disabled>
+                            <option value="">Недоступно</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">Disabled</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: LABELED SELECTS -->
+        <section class="section">
+            <p class="section__label">02. With Labels</p>
+            <div class="component-grid component-grid--2">
+                
+                <!-- Standard Label -->
+                <div class="form-group">
+                    <label class="form-label">Тип документа</label>
+                    <div class="select-wrapper">
+                        <select class="select">
+                            <option value="">Выберите тип...</option>
+                            <option value="1">Договор</option>
+                            <option value="2">Счёт-фактура</option>
+                            <option value="3">Акт</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- With Helper Text -->
+                <div class="form-group">
+                    <label class="form-label">Контрагент</label>
+                    <div class="select-wrapper">
+                        <select class="select">
+                            <option value="">Выберите компанию...</option>
+                            <option value="1">ООО «ТехПром»</option>
+                            <option value="2">АО «ИнвестГрупп»</option>
+                            <option value="3">ИП Иванов</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="form-helper">Начните вводить название</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: STATES -->
+        <section class="section">
+            <p class="section__label">03. States</p>
+            <div class="component-grid">
+                
+                <!-- Error State -->
+                <div class="form-group">
+                    <label class="form-label">Регион</label>
+                    <div class="select-wrapper select-wrapper--error">
+                        <select class="select select--error">
+                            <option value="">Не выбран</option>
+                            <option value="1">Москва</option>
+                            <option value="2">Санкт-Петербург</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="form-error">Обязательное поле</span>
+                </div>
+
+                <!-- Success State -->
+                <div class="form-group">
+                    <label class="form-label">Валюта</label>
+                    <div class="select-wrapper select-wrapper--success">
+                        <select class="select select--success">
+                            <option value="1">RUB — Российский рубль</option>
+                            <option value="2">USD — Доллар США</option>
+                            <option value="3">EUR — Евро</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="form-success">Валюта подтверждена</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIZES -->
+        <section class="section">
+            <p class="section__label">04. Sizes</p>
+            <div class="component-grid">
+                
+                <!-- Small -->
+                <div class="component-box">
+                    <div class="select-wrapper">
+                        <select class="select select--sm">
+                            <option value="">Small Select</option>
+                            <option value="1">Option 1</option>
+                        </select>
+                        <svg class="select__chevron select__chevron--sm" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">Small</span>
+                </div>
+
+                <!-- Medium (Default) -->
+                <div class="component-box">
+                    <div class="select-wrapper">
+                        <select class="select">
+                            <option value="">Medium Select</option>
+                            <option value="1">Option 1</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">Medium</span>
+                </div>
+
+                <!-- Large -->
+                <div class="component-box">
+                    <div class="select-wrapper">
+                        <select class="select select--lg">
+                            <option value="">Large Select</option>
+                            <option value="1">Option 1</option>
+                        </select>
+                        <svg class="select__chevron select__chevron--lg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                    <span class="component-label">Large</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH ICON -->
+        <section class="section">
+            <p class="section__label">05. With Icon</p>
+            <div class="component-grid component-grid--2">
+                
+                <!-- Icon Left -->
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <div class="select-wrapper select-wrapper--icon-left">
+                        <svg class="select__icon-left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        <select class="select select--icon-left">
+                            <option value="">Выберите категорию</option>
+                            <option value="1">Финансы</option>
+                            <option value="2">Юридические</option>
+                            <option value="3">Технические</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Icon Status -->
+                <div class="form-group">
+                    <label class="form-label">Статус</label>
+                    <div class="select-wrapper select-wrapper--icon-left">
+                        <svg class="select__icon-left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <select class="select select--icon-left">
+                            <option value="">Любой статус</option>
+                            <option value="1">Активный</option>
+                            <option value="2">На проверке</option>
+                            <option value="3">Отклонён</option>
+                        </select>
+                        <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DARK VARIANT -->
+        <section class="section">
+            <p class="section__label">06. Dark Variant</p>
+            <div class="dark-zone">
+                <div class="component-grid component-grid--2">
+                    
+                    <!-- Dark Select -->
+                    <div class="form-group">
+                        <label class="form-label form-label--light">AI Модель</label>
+                        <div class="select-wrapper select-wrapper--dark">
+                            <svg class="select__icon-left" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <select class="select select--dark select--icon-left">
+                                <option value="">Выберите модель</option>
+                                <option value="1">Documatica AI v3.0</option>
+                                <option value="2">GPT-4 Turbo</option>
+                                <option value="3">Claude 3 Opus</option>
+                            </select>
+                            <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                            <span class="select__smart-dot"></span>
+                        </div>
+                    </div>
+
+                    <!-- Dark Select 2 -->
+                    <div class="form-group">
+                        <label class="form-label form-label--light">Язык анализа</label>
+                        <div class="select-wrapper select-wrapper--dark">
+                            <select class="select select--dark">
+                                <option value="1">Русский</option>
+                                <option value="2">English</option>
+                                <option value="3">Deutsch</option>
+                            </select>
+                            <svg class="select__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CUSTOM DROPDOWN -->
+        <section class="section">
+            <p class="section__label">07. Custom Dropdown (CSS Only)</p>
+            <div class="component-grid component-grid--2">
+                
+                <!-- Dropdown Menu -->
+                <div class="dropdown">
+                    <button class="dropdown__trigger">
+                        <span>Действия</span>
+                        <svg class="dropdown__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown__menu">
+                        <a href="#" class="dropdown__item">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                            Редактировать
+                        </a>
+                        <a href="#" class="dropdown__item">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            Дублировать
+                        </a>
+                        <div class="dropdown__divider"></div>
+                        <a href="#" class="dropdown__item dropdown__item--danger">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Удалить
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Dropdown with Checkmarks -->
+                <div class="dropdown">
+                    <button class="dropdown__trigger">
+                        <span>Фильтры (3)</span>
+                        <svg class="dropdown__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="dropdown__menu">
+                        <label class="dropdown__check">
+                            <input type="checkbox" checked>
+                            <span class="dropdown__check-box"></span>
+                            Активные
+                        </label>
+                        <label class="dropdown__check">
+                            <input type="checkbox" checked>
+                            <span class="dropdown__check-box"></span>
+                            На проверке
+                        </label>
+                        <label class="dropdown__check">
+                            <input type="checkbox" checked>
+                            <span class="dropdown__check-box"></span>
+                            Черновики
+                        </label>
+                        <label class="dropdown__check">
+                            <input type="checkbox">
+                            <span class="dropdown__check-box"></span>
+                            Архив
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Selects Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comments — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="comments.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Comments Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Comments</span>
+            </h1>
+        </header>
+
+        <!-- BASIC COMMENT -->
+        <section class="section">
+            <p class="section__label">01. Basic Comment</p>
+            <div class="comment">
+                <div class="comment__avatar">АП</div>
+                <div class="comment__content">
+                    <div class="comment__header">
+                        <span class="comment__author">Анна Петрова</span>
+                        <span class="comment__time">2 часа назад</span>
+                    </div>
+                    <p class="comment__text">Отличная работа! Документ готов к подписанию.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH ACTIONS -->
+        <section class="section">
+            <p class="section__label">02. With Actions</p>
+            <div class="comment">
+                <div class="comment__avatar">МС</div>
+                <div class="comment__content">
+                    <div class="comment__header">
+                        <span class="comment__author">Михаил Сидоров</span>
+                        <span class="comment__badge">Модератор</span>
+                        <span class="comment__time">5 мин назад</span>
+                    </div>
+                    <p class="comment__text">Пожалуйста, проверьте пункт 3.2 — там есть опечатка в названии компании.</p>
+                    <div class="comment__actions">
+                        <button class="comment__action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                            </svg>
+                            <span>12</span>
+                        </button>
+                        <button class="comment__action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <span>Ответить</span>
+                        </button>
+                        <button class="comment__action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THREADED -->
+        <section class="section">
+            <p class="section__label">03. Threaded Comments</p>
+            <div class="comments-thread">
+                <div class="comment">
+                    <div class="comment__avatar">ИК</div>
+                    <div class="comment__content">
+                        <div class="comment__header">
+                            <span class="comment__author">Игорь Козлов</span>
+                            <span class="comment__time">1 день назад</span>
+                        </div>
+                        <p class="comment__text">Нужно добавить раздел про условия оплаты.</p>
+                        <div class="comment__actions">
+                            <button class="comment__action comment__action--active">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                </svg>
+                                <span>5</span>
+                            </button>
+                            <button class="comment__action">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                                <span>2 ответа</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="comment comment--reply">
+                    <div class="comment__avatar comment__avatar--sm">АП</div>
+                    <div class="comment__content">
+                        <div class="comment__header">
+                            <span class="comment__author">Анна Петрова</span>
+                            <span class="comment__time">1 день назад</span>
+                        </div>
+                        <p class="comment__text">Добавила в раздел 4. Посмотрите, пожалуйста.</p>
+                    </div>
+                </div>
+                <div class="comment comment--reply">
+                    <div class="comment__avatar comment__avatar--sm">ИК</div>
+                    <div class="comment__content">
+                        <div class="comment__header">
+                            <span class="comment__author">Игорь Козлов</span>
+                            <span class="comment__time">23 часа назад</span>
+                        </div>
+                        <p class="comment__text">Отлично, спасибо! 👍</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMMENT INPUT -->
+        <section class="section">
+            <p class="section__label">04. Comment Input</p>
+            <div class="comment-input">
+                <div class="comment__avatar">ВС</div>
+                <div class="comment-input__field">
+                    <textarea placeholder="Написать комментарий..."></textarea>
+                    <div class="comment-input__actions">
+                        <div class="comment-input__tools">
+                            <button class="input-tool">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                </svg>
+                            </button>
+                            <button class="input-tool">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </button>
+                            <button class="input-tool">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="comment-input__submit">Отправить</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESOLVED COMMENT -->
+        <section class="section">
+            <p class="section__label">05. Resolved Comment</p>
+            <div class="comment comment--resolved">
+                <div class="comment__avatar comment__avatar--resolved">
+                    <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="comment__content">
+                    <div class="comment__header">
+                        <span class="comment__author">Елена Волкова</span>
+                        <span class="comment__badge comment__badge--resolved">Решено</span>
+                        <span class="comment__time">3 дня назад</span>
+                    </div>
+                    <p class="comment__text">Исправить дату подписания на 15 января 2025.</p>
+                    <div class="comment__resolution">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Исправлено Анной Петровой</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTIVITY COMMENTS -->
+        <section class="section">
+            <p class="section__label">06. Activity Feed Style</p>
+            <div class="activity-feed">
+                <div class="activity-item">
+                    <div class="activity-icon activity-icon--comment">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <p><strong>Анна Петрова</strong> добавила комментарий</p>
+                        <span class="activity-time">10 мин назад</span>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon activity-icon--edit">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <p><strong>Михаил Сидоров</strong> отредактировал документ</p>
+                        <span class="activity-time">1 час назад</span>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-icon activity-icon--resolve">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <p><strong>Игорь Козлов</strong> пометил комментарий как решённый</p>
+                        <span class="activity-time">2 часа назад</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MENTION -->
+        <section class="section">
+            <p class="section__label">07. With Mentions</p>
+            <div class="comment">
+                <div class="comment__avatar">ДВ</div>
+                <div class="comment__content">
+                    <div class="comment__header">
+                        <span class="comment__author">Дмитрий Воронов</span>
+                        <span class="comment__time">30 мин назад</span>
+                    </div>
+                    <p class="comment__text">
+                        <span class="mention">@Анна Петрова</span>, можешь проверить раздел 2? 
+                        <span class="mention">@Игорь Козлов</span> уже одобрил.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- INLINE COMMENT -->
+        <section class="section">
+            <p class="section__label">08. Inline Document Comment</p>
+            <div class="inline-comment-demo">
+                <div class="document-text">
+                    <p>Настоящий Договор вступает в силу с момента его подписания обеими Сторонами и действует до <span class="highlighted-text">31 декабря 2025 года<span class="comment-marker">2</span></span>.</p>
+                </div>
+                <div class="inline-comment-popup">
+                    <div class="comment comment--inline">
+                        <div class="comment__avatar comment__avatar--sm">АП</div>
+                        <div class="comment__content">
+                            <div class="comment__header">
+                                <span class="comment__author">Анна Петрова</span>
+                            </div>
+                            <p class="comment__text">Нужно уточнить дату с юристом</p>
+                        </div>
+                    </div>
+                    <div class="inline-comment-reply">
+                        <input type="text" placeholder="Ответить...">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Comments Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

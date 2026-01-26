@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="reviews.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● FEEDBACK</span>
+            <h1 class="hero__title">RE<br><span>VIEWS</span></h1>
+            <p class="hero__desc">Отзывы, рейтинги, оценки и обратная связь пользователей.</p>
+        </header>
+
+        <!-- ============================================
+             01. RATING SUMMARY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">RATING SUMMARY</h2>
+            </div>
+            
+            <div class="rating-summary">
+                <div class="rating-summary__score">
+                    <span class="rating-summary__number">4.8</span>
+                    <div class="rating-summary__stars">★★★★★</div>
+                    <span class="rating-summary__count">На основе 256 отзывов</span>
+                </div>
+                <div class="rating-summary__bars">
+                    <div class="rating-bar">
+                        <span class="rating-bar__label">5 ★</span>
+                        <div class="rating-bar__track">
+                            <div class="rating-bar__fill" style="width: 78%;"></div>
+                        </div>
+                        <span class="rating-bar__count">200</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span class="rating-bar__label">4 ★</span>
+                        <div class="rating-bar__track">
+                            <div class="rating-bar__fill" style="width: 15%;"></div>
+                        </div>
+                        <span class="rating-bar__count">38</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span class="rating-bar__label">3 ★</span>
+                        <div class="rating-bar__track">
+                            <div class="rating-bar__fill" style="width: 5%;"></div>
+                        </div>
+                        <span class="rating-bar__count">12</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span class="rating-bar__label">2 ★</span>
+                        <div class="rating-bar__track">
+                            <div class="rating-bar__fill" style="width: 1.5%;"></div>
+                        </div>
+                        <span class="rating-bar__count">4</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span class="rating-bar__label">1 ★</span>
+                        <div class="rating-bar__track">
+                            <div class="rating-bar__fill" style="width: 0.8%;"></div>
+                        </div>
+                        <span class="rating-bar__count">2</span>
+                    </div>
+                </div>
+                <div class="rating-summary__action">
+                    <button class="btn btn--primary btn--lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        Написать отзыв
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. REVIEW CARDS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">REVIEW CARDS</h2>
+            </div>
+            
+            <div class="reviews-list">
+                <div class="review-card">
+                    <div class="review-card__header">
+                        <div class="review-card__author">
+                            <div class="review-card__avatar">АП</div>
+                            <div class="review-card__info">
+                                <span class="review-card__name">Алексей Петров</span>
+                                <span class="review-card__badge">● ПРОВЕРЕННАЯ ПОКУПКА</span>
+                            </div>
+                        </div>
+                        <div class="review-card__meta">
+                            <div class="review-card__stars">★★★★★</div>
+                            <span class="review-card__date">2 дня назад</span>
+                        </div>
+                    </div>
+                    <h4 class="review-card__title">Отличные часы, рекомендую!</h4>
+                    <p class="review-card__text">Пользуюсь уже месяц, батарея держит реально 14 дней. Экран яркий, видно даже на солнце. Синхронизация со смартфоном работает отлично. Единственный минус — ремешок немного жестковат, но это решается заменой.</p>
+                    <div class="review-card__images">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop" alt="">
+                        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=100&h=100&fit=crop" alt="">
+                    </div>
+                    <div class="review-card__footer">
+                        <div class="review-card__helpful">
+                            <span>Был ли отзыв полезен?</span>
+                            <button class="helpful-btn helpful-btn--active">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+                                </svg>
+                                24
+                            </button>
+                            <button class="helpful-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/>
+                                </svg>
+                                2
+                            </button>
+                        </div>
+                        <button class="review-card__reply">Ответить</button>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-card__header">
+                        <div class="review-card__author">
+                            <div class="review-card__avatar review-card__avatar--img">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt="">
+                            </div>
+                            <div class="review-card__info">
+                                <span class="review-card__name">Мария Сидорова</span>
+                                <span class="review-card__badge">● ПРОВЕРЕННАЯ ПОКУПКА</span>
+                            </div>
+                        </div>
+                        <div class="review-card__meta">
+                            <div class="review-card__stars">★★★★☆</div>
+                            <span class="review-card__date">Неделю назад</span>
+                        </div>
+                    </div>
+                    <h4 class="review-card__title">Хорошие часы, но есть нюансы</h4>
+                    <p class="review-card__text">В целом довольна покупкой. Функционал богатый, дизайн стильный. Снимаю звезду за то, что приложение иногда глючит и требует перезапуска. Надеюсь, исправят в обновлениях.</p>
+                    <div class="review-card__footer">
+                        <div class="review-card__helpful">
+                            <span>Был ли отзыв полезен?</span>
+                            <button class="helpful-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/>
+                                </svg>
+                                15
+                            </button>
+                            <button class="helpful-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/>
+                                </svg>
+                                1
+                            </button>
+                        </div>
+                        <button class="review-card__reply">Ответить</button>
+                    </div>
+
+                    <!-- Seller Response -->
+                    <div class="review-response">
+                        <div class="review-response__header">
+                            <span class="review-response__badge">● ОТВЕТ ПРОДАВЦА</span>
+                            <span class="review-response__date">5 дней назад</span>
+                        </div>
+                        <p class="review-response__text">Спасибо за отзыв! Мы передали информацию о багах в приложении команде разработки. В ближайшем обновлении всё будет исправлено.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. STAR RATINGS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">STAR RATINGS</h2>
+            </div>
+            
+            <div class="stars-demo">
+                <div class="stars-row">
+                    <span class="stars-label">5 звёзд</span>
+                    <div class="stars-display stars-display--5">★★★★★</div>
+                </div>
+                <div class="stars-row">
+                    <span class="stars-label">4 звезды</span>
+                    <div class="stars-display stars-display--4">★★★★☆</div>
+                </div>
+                <div class="stars-row">
+                    <span class="stars-label">3 звезды</span>
+                    <div class="stars-display stars-display--3">★★★☆☆</div>
+                </div>
+                <div class="stars-row">
+                    <span class="stars-label">2 звезды</span>
+                    <div class="stars-display stars-display--2">★★☆☆☆</div>
+                </div>
+                <div class="stars-row">
+                    <span class="stars-label">1 звезда</span>
+                    <div class="stars-display stars-display--1">★☆☆☆☆</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. INTERACTIVE RATING
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">INTERACTIVE RATING</h2>
+            </div>
+            
+            <div class="rating-input-card">
+                <h3 class="rating-input-card__title">Оцените товар</h3>
+                <div class="rating-input">
+                    <button class="star-btn star-btn--active">★</button>
+                    <button class="star-btn star-btn--active">★</button>
+                    <button class="star-btn star-btn--active">★</button>
+                    <button class="star-btn star-btn--active">★</button>
+                    <button class="star-btn">★</button>
+                </div>
+                <span class="rating-input__label">Хорошо</span>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. REVIEW FORM
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">REVIEW FORM</h2>
+            </div>
+            
+            <div class="review-form">
+                <div class="review-form__header">
+                    <span class="review-form__number">01</span>
+                    <h3 class="review-form__title">НАПИСАТЬ ОТЗЫВ</h3>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ВАША ОЦЕНКА</label>
+                    <div class="rating-input rating-input--lg">
+                        <button class="star-btn star-btn--lg">★</button>
+                        <button class="star-btn star-btn--lg">★</button>
+                        <button class="star-btn star-btn--lg">★</button>
+                        <button class="star-btn star-btn--lg">★</button>
+                        <button class="star-btn star-btn--lg">★</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ЗАГОЛОВОК</label>
+                    <input type="text" class="form-input" placeholder="Кратко опишите ваш опыт">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ОТЗЫВ</label>
+                    <textarea class="form-textarea" rows="5" placeholder="Расскажите подробнее о достоинствах и недостатках..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ФОТО (НЕОБЯЗАТЕЛЬНО)</label>
+                    <div class="photo-upload">
+                        <div class="photo-upload__item">
+                            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop" alt="">
+                            <button class="photo-upload__remove">×</button>
+                        </div>
+                        <button class="photo-upload__add">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="review-form__footer">
+                    <label class="checkbox">
+                        <input type="checkbox">
+                        <span class="checkbox__mark"></span>
+                        <span class="checkbox__text">Я рекомендую этот товар</span>
+                    </label>
+                    <button class="btn btn--primary btn--lg">Отправить отзыв</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. COMPACT REVIEWS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">COMPACT REVIEWS</h2>
+            </div>
+            
+            <div class="compact-reviews">
+                <div class="compact-review">
+                    <div class="compact-review__stars">★★★★★</div>
+                    <p class="compact-review__text">"Отличный товар, доставка быстрая!"</p>
+                    <span class="compact-review__author">— Иван К.</span>
+                </div>
+                <div class="compact-review">
+                    <div class="compact-review__stars">★★★★☆</div>
+                    <p class="compact-review__text">"Качество хорошее, но упаковка могла быть лучше."</p>
+                    <span class="compact-review__author">— Анна М.</span>
+                </div>
+                <div class="compact-review">
+                    <div class="compact-review__stars">★★★★★</div>
+                    <p class="compact-review__text">"Превзошёл все ожидания! Буду заказывать ещё."</p>
+                    <span class="compact-review__author">— Дмитрий С.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. TESTIMONIAL
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">TESTIMONIAL</h2>
+            </div>
+            
+            <div class="testimonial">
+                <div class="testimonial__quote">"</div>
+                <p class="testimonial__text">Это лучшие смарт-часы, которые у меня когда-либо были. Отслеживание здоровья невероятно точное, батарея держит две недели, а дизайн просто великолепен.</p>
+                <div class="testimonial__author">
+                    <div class="testimonial__avatar">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" alt="">
+                    </div>
+                    <div class="testimonial__info">
+                        <span class="testimonial__name">Сергей Волков</span>
+                        <span class="testimonial__role">Фитнес-тренер</span>
+                    </div>
+                    <div class="testimonial__stars">★★★★★</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- Карточка отзыва --&gt;
+&lt;div class="review-card"&gt;
+  &lt;div class="review-card__header"&gt;
+    &lt;div class="review-card__author"&gt;...&lt;/div&gt;
+    &lt;div class="review-card__stars"&gt;★★★★★&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;h4 class="review-card__title"&gt;Заголовок&lt;/h4&gt;
+  &lt;p class="review-card__text"&gt;Текст отзыва&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Звёздный рейтинг --&gt;
+&lt;div class="stars-display stars-display--5"&gt;★★★★★&lt;/div&gt;
+&lt;div class="stars-display stars-display--4"&gt;★★★★☆&lt;/div&gt;
+
+/* Модификаторы */
+.stars-display--5  /* Все звёзды жёлтые */
+.stars-display--4  /* 4 жёлтые, 1 серая */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

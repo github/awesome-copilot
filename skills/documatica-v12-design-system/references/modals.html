@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modals — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="modals.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Overlay Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Модалы</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: BASIC MODAL -->
+        <section class="section">
+            <p class="section__label">01. Basic Modal</p>
+            <div class="modal-demo">
+                <div class="modal">
+                    <div class="modal__header">
+                        <h3 class="modal__title">Подтверждение действия</h3>
+                        <button class="modal__close">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal__body">
+                        <p class="modal__text">Вы уверены, что хотите выполнить это действие? Изменения нельзя будет отменить.</p>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn btn--ghost">Отмена</button>
+                        <button class="btn btn--primary">Подтвердить</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH ICON -->
+        <section class="section">
+            <p class="section__label">02. With Icon</p>
+            <div class="modals-row">
+                
+                <!-- Success Modal -->
+                <div class="modal-demo modal-demo--sm">
+                    <div class="modal modal--centered">
+                        <div class="modal__icon modal__icon--success">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="modal__title modal__title--center">Успешно!</h3>
+                        <p class="modal__text modal__text--center">Документ успешно загружен и добавлен в архив.</p>
+                        <div class="modal__footer modal__footer--center">
+                            <button class="btn btn--primary">Готово</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danger Modal -->
+                <div class="modal-demo modal-demo--sm">
+                    <div class="modal modal--centered">
+                        <div class="modal__icon modal__icon--danger">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="modal__title modal__title--center">Удалить документ?</h3>
+                        <p class="modal__text modal__text--center">Это действие нельзя отменить. Документ будет удалён навсегда.</p>
+                        <div class="modal__footer modal__footer--center">
+                            <button class="btn btn--ghost">Отмена</button>
+                            <button class="btn btn--danger">Удалить</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: FORM MODAL -->
+        <section class="section">
+            <p class="section__label">03. Form Modal</p>
+            <div class="modal-demo">
+                <div class="modal modal--md">
+                    <div class="modal__header">
+                        <h3 class="modal__title">Новый документ</h3>
+                        <button class="modal__close">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="modal__body">
+                        <div class="form-group">
+                            <label class="form-label">Название документа</label>
+                            <input type="text" class="form-input" placeholder="Введите название...">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Тип</label>
+                                <select class="form-select">
+                                    <option>Договор</option>
+                                    <option>Счёт-фактура</option>
+                                    <option>Акт</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Категория</label>
+                                <select class="form-select">
+                                    <option>Финансы</option>
+                                    <option>Юридические</option>
+                                    <option>Технические</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-textarea" rows="3" placeholder="Опишите документ..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal__footer">
+                        <button class="btn btn--ghost">Отмена</button>
+                        <button class="btn btn--primary">Создать</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIZES -->
+        <section class="section">
+            <p class="section__label">04. Sizes</p>
+            <div class="sizes-demo">
+                
+                <!-- Small -->
+                <div class="size-box">
+                    <span class="size-label">Small (360px)</span>
+                    <div class="modal-demo modal-demo--xs">
+                        <div class="modal modal--sm">
+                            <div class="modal__header">
+                                <h3 class="modal__title">Малый модал</h3>
+                            </div>
+                            <div class="modal__body">
+                                <p class="modal__text">Компактное сообщение.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medium -->
+                <div class="size-box">
+                    <span class="size-label">Medium (480px)</span>
+                    <div class="modal-demo modal-demo--xs">
+                        <div class="modal modal--md">
+                            <div class="modal__header">
+                                <h3 class="modal__title">Средний модал</h3>
+                            </div>
+                            <div class="modal__body">
+                                <p class="modal__text">Стандартный размер.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Large -->
+                <div class="size-box">
+                    <span class="size-label">Large (640px)</span>
+                    <div class="modal-demo modal-demo--xs">
+                        <div class="modal modal--lg">
+                            <div class="modal__header">
+                                <h3 class="modal__title">Большой модал</h3>
+                            </div>
+                            <div class="modal__body">
+                                <p class="modal__text">Для сложных форм.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DRAWER -->
+        <section class="section">
+            <p class="section__label">05. Drawer (Side Panel)</p>
+            <div class="drawer-demo">
+                <div class="drawer">
+                    <div class="drawer__header">
+                        <h3 class="drawer__title">Фильтры</h3>
+                        <button class="drawer__close">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="drawer__body">
+                        <div class="form-group">
+                            <label class="form-label">Статус</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" checked>
+                                    <span class="checkbox__box"></span>
+                                    Активные
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" checked>
+                                    <span class="checkbox__box"></span>
+                                    На проверке
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox">
+                                    <span class="checkbox__box"></span>
+                                    Архив
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Дата</label>
+                            <select class="form-select">
+                                <option>За всё время</option>
+                                <option>Сегодня</option>
+                                <option>Эта неделя</option>
+                                <option>Этот месяц</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="drawer__footer">
+                        <button class="btn btn--ghost btn--full">Сбросить</button>
+                        <button class="btn btn--primary btn--full">Применить</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TOOLTIP -->
+        <section class="section">
+            <p class="section__label">06. Tooltips</p>
+            <div class="tooltips-row">
+                
+                <div class="tooltip-demo">
+                    <div class="tooltip tooltip--top">
+                        <span class="tooltip__content">Подсказка сверху</span>
+                    </div>
+                    <button class="tooltip-trigger">Top</button>
+                </div>
+
+                <div class="tooltip-demo">
+                    <div class="tooltip tooltip--right">
+                        <span class="tooltip__content">Подсказка справа</span>
+                    </div>
+                    <button class="tooltip-trigger">Right</button>
+                </div>
+
+                <div class="tooltip-demo">
+                    <div class="tooltip tooltip--bottom">
+                        <span class="tooltip__content">Подсказка снизу</span>
+                    </div>
+                    <button class="tooltip-trigger">Bottom</button>
+                </div>
+
+                <div class="tooltip-demo">
+                    <div class="tooltip tooltip--left">
+                        <span class="tooltip__content">Подсказка слева</span>
+                    </div>
+                    <button class="tooltip-trigger">Left</button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: POPOVER -->
+        <section class="section">
+            <p class="section__label">07. Popover</p>
+            <div class="popover-demo">
+                <div class="popover">
+                    <div class="popover__header">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="popover__title">AI Анализ</span>
+                    </div>
+                    <p class="popover__text">Documatica использует нейросети для автоматического анализа документов и выявления потенциальных рисков.</p>
+                    <a href="#" class="popover__link">Подробнее →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: COMMAND PALETTE -->
+        <section class="section">
+            <p class="section__label">08. Command Palette</p>
+            <div class="modal-demo">
+                <div class="command-palette">
+                    <div class="command-palette__search">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" class="command-palette__input" placeholder="Поиск команд..." value="document">
+                        <kbd class="command-palette__kbd">ESC</kbd>
+                    </div>
+                    <div class="command-palette__results">
+                        <div class="command-palette__group">
+                            <span class="command-palette__group-label">Документы</span>
+                            <a href="#" class="command-palette__item command-palette__item--active">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                <span>Создать документ</span>
+                                <kbd>Ctrl+N</kbd>
+                            </a>
+                            <a href="#" class="command-palette__item">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                <span>Загрузить документ</span>
+                                <kbd>Ctrl+U</kbd>
+                            </a>
+                            <a href="#" class="command-palette__item">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <span>Поиск в документах</span>
+                                <kbd>Ctrl+F</kbd>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Modals Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

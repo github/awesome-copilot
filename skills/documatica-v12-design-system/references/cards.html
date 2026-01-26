@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cards — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="cards.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Layout Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Карточки</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: STAT CARDS -->
+        <section class="section">
+            <p class="section__label">01. Stat Cards</p>
+            <div class="card-grid card-grid--3">
+                
+                <!-- Stat Card Default -->
+                <div class="stat-card">
+                    <span class="stat-card__label">Всего документов</span>
+                    <span class="stat-card__value">1,284</span>
+                    <span class="stat-card__change stat-card__change--up">+12% за неделю</span>
+                </div>
+
+                <!-- Stat Card -->
+                <div class="stat-card">
+                    <span class="stat-card__label">AI Аудиты</span>
+                    <span class="stat-card__value">856</span>
+                    <span class="stat-card__change">99.8% точность</span>
+                </div>
+
+                <!-- Stat Card Smart -->
+                <div class="stat-card stat-card--smart">
+                    <span class="stat-card__label">Статус API</span>
+                    <span class="stat-card__value">Active</span>
+                    <span class="stat-card__change">34.2 ms response</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: FEATURE CARDS -->
+        <section class="section">
+            <p class="section__label">02. Feature Cards</p>
+            <div class="card-grid card-grid--3">
+                
+                <!-- Feature Card Default -->
+                <a href="#" class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <svg class="feature-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                    <span class="feature-card__tag">Automation</span>
+                    <h3 class="feature-card__title">Автоматизация</h3>
+                    <p class="feature-card__description">Интеллектуальные сценарии обработки входящей документации.</p>
+                </a>
+
+                <!-- Feature Card -->
+                <a href="#" class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <svg class="feature-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                    <span class="feature-card__tag">Analytics</span>
+                    <h3 class="feature-card__title">Аналитика</h3>
+                    <p class="feature-card__description">Глубокий анализ финансовых потоков и юридических метрик.</p>
+                </a>
+
+                <!-- Feature Card -->
+                <a href="#" class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <svg class="feature-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                    <span class="feature-card__tag">Security</span>
+                    <h3 class="feature-card__title">Безопасность</h3>
+                    <p class="feature-card__description">Шифрование данных по военным стандартам AES-256.</p>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: PROMO CARDS -->
+        <section class="section">
+            <p class="section__label">03. Promo Cards</p>
+            <div class="card-grid card-grid--2">
+                
+                <!-- Promo Card Light -->
+                <div class="promo-card">
+                    <span class="promo-card__bar"></span>
+                    <h3 class="promo-card__title">Ваш бизнес<br>в потоке.</h3>
+                    <p class="promo-card__description">Умная генерация контрактов и отчетов за 30 секунд.</p>
+                    <div class="promo-card__visual">
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <a href="#" class="promo-card__link">
+                        <span class="promo-card__link-icon">→</span>
+                        Узнать больше
+                    </a>
+                </div>
+
+                <!-- Promo Card Primary -->
+                <div class="promo-card promo-card--primary">
+                    <div class="promo-card__badge">
+                        <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                            <path d="M4 4h6v6H4V4zm10 0h6v6h-6V4zM4 14h6v6H4v-6zm10 0h6v6h-6v-6z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="promo-card__title">Безупречная<br>структура</h3>
+                    <p class="promo-card__description">Никаких ошибок. Только логика.</p>
+                    <span class="promo-card__footer">Documatica 2.0</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CONTENT CARDS -->
+        <section class="section">
+            <p class="section__label">04. Content Cards</p>
+            <div class="card-grid card-grid--2">
+                
+                <!-- Article Card -->
+                <a href="#" class="article-card">
+                    <div class="article-card__header">
+                        <span class="article-card__tag">Featured Guide</span>
+                        <svg class="article-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                        </svg>
+                    </div>
+                    <span class="article-card__meta">Налоговая оптимизация 2026</span>
+                    <h3 class="article-card__title">Как ИИ меняет<br>архитектуру <span class="text-primary">УСН</span></h3>
+                    <p class="article-card__description">Полный разбор алгоритмов автоматического заполнения деклараций и минимизации рисков при камеральных проверках.</p>
+                </a>
+
+                <!-- Info Cards Stack -->
+                <div class="info-cards-stack">
+                    <a href="#" class="info-card">
+                        <span class="info-card__tag">Protocol Update</span>
+                        <h4 class="info-card__title">Валидация по ИНН за 0.2с</h4>
+                        <span class="info-card__meta">Интеграция с ЕГРЮЛ v12.0</span>
+                    </a>
+                    <a href="#" class="info-card">
+                        <span class="info-card__tag">AI Insights</span>
+                        <h4 class="info-card__title">Риски в договорах: NLP Аудит</h4>
+                        <span class="info-card__meta">Технический разбор кейсов</span>
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CTA CARD -->
+        <section class="section">
+            <p class="section__label">05. CTA Card</p>
+            <div class="cta-card">
+                <div class="cta-card__content">
+                    <h3 class="cta-card__title">Больше знаний</h3>
+                    <p class="cta-card__description">Перейти в архив публикаций Documatica</p>
+                </div>
+                <a href="#" class="cta-card__button">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: LIST ITEM CARDS -->
+        <section class="section">
+            <p class="section__label">06. List Item Cards</p>
+            <div class="list-cards">
+                
+                <a href="#" class="list-card">
+                    <div class="list-card__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <svg class="list-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                    <span class="list-card__tag">Security</span>
+                    <h4 class="list-card__title">Шифрование AES-256</h4>
+                    <p class="list-card__description">Защита налоговых данных</p>
+                </a>
+
+                <a href="#" class="list-card">
+                    <div class="list-card__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                    </div>
+                    <svg class="list-card__arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                    <span class="list-card__tag">Tutorial</span>
+                    <h4 class="list-card__title">API для разработчиков</h4>
+                    <p class="list-card__description">SDK на Python и Node.js</p>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Cards Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

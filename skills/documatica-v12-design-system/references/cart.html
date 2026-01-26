@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="cart.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● ECOMMERCE</span>
+            <h1 class="hero__title">SHOPPING<br><span>CART</span></h1>
+            <p class="hero__desc">Корзина покупок: список товаров, количество, промокоды и итог.</p>
+        </header>
+
+        <!-- ============================================
+             01. CART TABLE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">CART TABLE</h2>
+            </div>
+            
+            <div class="cart-wrapper">
+                <div class="cart-main">
+                    <div class="cart-header">
+                        <span class="cart-header__title">ТОВАР</span>
+                        <span class="cart-header__col">ЦЕНА</span>
+                        <span class="cart-header__col">КОЛ-ВО</span>
+                        <span class="cart-header__col">ИТОГО</span>
+                        <span class="cart-header__action"></span>
+                    </div>
+
+                    <div class="cart-item">
+                        <div class="cart-item__product">
+                            <div class="cart-item__image">
+                                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=120&h=120&fit=crop" alt="Product">
+                            </div>
+                            <div class="cart-item__info">
+                                <h3 class="cart-item__name">Smart Watch Series X</h3>
+                                <span class="cart-item__meta">Цвет: Чёрный · Размер: M</span>
+                                <span class="cart-item__status cart-item__status--success">● В наличии</span>
+                            </div>
+                        </div>
+                        <div class="cart-item__price">24 990 ₽</div>
+                        <div class="cart-item__quantity">
+                            <div class="qty-control">
+                                <button class="qty-btn">−</button>
+                                <span class="qty-value">1</span>
+                                <button class="qty-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="cart-item__total">24 990 ₽</div>
+                        <button class="cart-item__remove" aria-label="Удалить">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="cart-item">
+                        <div class="cart-item__product">
+                            <div class="cart-item__image">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop" alt="Product">
+                            </div>
+                            <div class="cart-item__info">
+                                <h3 class="cart-item__name">Headphones Pro Max</h3>
+                                <span class="cart-item__meta">Цвет: Серебро</span>
+                                <span class="cart-item__status cart-item__status--success">● В наличии</span>
+                            </div>
+                        </div>
+                        <div class="cart-item__price">34 990 ₽</div>
+                        <div class="cart-item__quantity">
+                            <div class="qty-control">
+                                <button class="qty-btn">−</button>
+                                <span class="qty-value">2</span>
+                                <button class="qty-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="cart-item__total">69 980 ₽</div>
+                        <button class="cart-item__remove" aria-label="Удалить">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="cart-item">
+                        <div class="cart-item__product">
+                            <div class="cart-item__image">
+                                <img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=120&h=120&fit=crop" alt="Product">
+                            </div>
+                            <div class="cart-item__info">
+                                <h3 class="cart-item__name">Running Pro Max</h3>
+                                <span class="cart-item__meta">Размер: 42</span>
+                                <span class="cart-item__status cart-item__status--warning">● Осталось 2 шт</span>
+                            </div>
+                        </div>
+                        <div class="cart-item__price">
+                            <span class="cart-item__price--sale">11 990 ₽</span>
+                            <span class="cart-item__price--old">16 990 ₽</span>
+                        </div>
+                        <div class="cart-item__quantity">
+                            <div class="qty-control">
+                                <button class="qty-btn">−</button>
+                                <span class="qty-value">1</span>
+                                <button class="qty-btn">+</button>
+                            </div>
+                        </div>
+                        <div class="cart-item__total">11 990 ₽</div>
+                        <button class="cart-item__remove" aria-label="Удалить">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <aside class="cart-summary">
+                    <h3 class="cart-summary__title">СВОДКА</h3>
+                    
+                    <div class="cart-summary__row">
+                        <span>Товаров (4)</span>
+                        <span>106 960 ₽</span>
+                    </div>
+                    <div class="cart-summary__row">
+                        <span>Скидка</span>
+                        <span class="text-danger">−5 000 ₽</span>
+                    </div>
+                    <div class="cart-summary__row">
+                        <span>Доставка</span>
+                        <span class="text-success">Бесплатно</span>
+                    </div>
+                    
+                    <div class="cart-summary__promo">
+                        <input type="text" class="promo-input" placeholder="Промокод">
+                        <button class="promo-btn">OK</button>
+                    </div>
+
+                    <div class="cart-summary__total">
+                        <span>ИТОГО</span>
+                        <span class="cart-summary__total-value">101 960 ₽</span>
+                    </div>
+
+                    <button class="btn btn--primary btn--full btn--lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        Оформить заказ
+                    </button>
+
+                    <div class="cart-summary__secure">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Безопасная оплата
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. MINI CART
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">MINI CART</h2>
+            </div>
+            
+            <div class="mini-cart-demo">
+                <div class="mini-cart">
+                    <div class="mini-cart__header">
+                        <h4 class="mini-cart__title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                            </svg>
+                            Корзина
+                        </h4>
+                        <span class="mini-cart__count">3</span>
+                    </div>
+
+                    <div class="mini-cart__items">
+                        <div class="mini-item">
+                            <div class="mini-item__image">
+                                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=80&h=80&fit=crop" alt="">
+                            </div>
+                            <div class="mini-item__info">
+                                <span class="mini-item__name">Smart Watch Series X</span>
+                                <span class="mini-item__meta">1 × 24 990 ₽</span>
+                            </div>
+                            <button class="mini-item__remove">×</button>
+                        </div>
+                        <div class="mini-item">
+                            <div class="mini-item__image">
+                                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&h=80&fit=crop" alt="">
+                            </div>
+                            <div class="mini-item__info">
+                                <span class="mini-item__name">Headphones Pro Max</span>
+                                <span class="mini-item__meta">2 × 34 990 ₽</span>
+                            </div>
+                            <button class="mini-item__remove">×</button>
+                        </div>
+                    </div>
+
+                    <div class="mini-cart__footer">
+                        <div class="mini-cart__total">
+                            <span>Итого:</span>
+                            <span class="mini-cart__total-value">94 970 ₽</span>
+                        </div>
+                        <div class="mini-cart__actions">
+                            <a href="#" class="btn btn--outline btn--sm">Корзина</a>
+                            <a href="#" class="btn btn--primary btn--sm">Оформить</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. CART ITEM STATES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">ITEM STATES</h2>
+            </div>
+            
+            <div class="states-grid">
+                <div class="state-card">
+                    <span class="state-card__badge state-card__badge--success">● В НАЛИЧИИ</span>
+                    <p class="state-card__text">Товар готов к отправке</p>
+                </div>
+                <div class="state-card">
+                    <span class="state-card__badge state-card__badge--warning">● МАЛО</span>
+                    <p class="state-card__text">Осталось менее 5 штук</p>
+                </div>
+                <div class="state-card">
+                    <span class="state-card__badge state-card__badge--danger">● НЕТ В НАЛИЧИИ</span>
+                    <p class="state-card__text">Ожидается поставка</p>
+                </div>
+                <div class="state-card">
+                    <span class="state-card__badge state-card__badge--info">● ПРЕДЗАКАЗ</span>
+                    <p class="state-card__text">Доступен для предзаказа</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. EMPTY CART
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">EMPTY STATE</h2>
+            </div>
+            
+            <div class="empty-cart">
+                <div class="empty-cart__icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                    </svg>
+                </div>
+                <h3 class="empty-cart__title">КОРЗИНА <span>ПУСТА</span></h3>
+                <p class="empty-cart__text">Добавьте товары, чтобы оформить заказ</p>
+                <a href="#" class="btn btn--primary btn--lg">Перейти в каталог</a>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. PROMO CODES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">PROMO CODES</h2>
+            </div>
+            
+            <div class="promo-cards">
+                <div class="promo-card promo-card--applied">
+                    <div class="promo-card__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div class="promo-card__content">
+                        <span class="promo-card__code">WELCOME20</span>
+                        <span class="promo-card__desc">Скидка 20% на первый заказ</span>
+                    </div>
+                    <span class="promo-card__value">−5 000 ₽</span>
+                </div>
+
+                <div class="promo-card">
+                    <div class="promo-card__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="promo-card__content">
+                        <span class="promo-card__code">SUMMER15</span>
+                        <span class="promo-card__desc">Скидка 15% на летнюю коллекцию</span>
+                    </div>
+                    <button class="promo-card__apply">Применить</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. SHIPPING OPTIONS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">SHIPPING OPTIONS</h2>
+            </div>
+            
+            <div class="shipping-options">
+                <label class="shipping-option shipping-option--selected">
+                    <input type="radio" name="shipping" checked>
+                    <div class="shipping-option__radio"></div>
+                    <div class="shipping-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                            <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                    </div>
+                    <div class="shipping-option__content">
+                        <span class="shipping-option__title">Стандартная доставка</span>
+                        <span class="shipping-option__desc">3-5 рабочих дней</span>
+                    </div>
+                    <span class="shipping-option__price">Бесплатно</span>
+                </label>
+
+                <label class="shipping-option">
+                    <input type="radio" name="shipping">
+                    <div class="shipping-option__radio"></div>
+                    <div class="shipping-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                    </div>
+                    <div class="shipping-option__content">
+                        <span class="shipping-option__title">Экспресс-доставка</span>
+                        <span class="shipping-option__desc">1-2 рабочих дня</span>
+                    </div>
+                    <span class="shipping-option__price">499 ₽</span>
+                </label>
+
+                <label class="shipping-option">
+                    <input type="radio" name="shipping">
+                    <div class="shipping-option__radio"></div>
+                    <div class="shipping-option__icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="shipping-option__content">
+                        <span class="shipping-option__title">Самовывоз</span>
+                        <span class="shipping-option__desc">Пункт выдачи на ул. Ленина, 42</span>
+                    </div>
+                    <span class="shipping-option__price">Бесплатно</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. FLOATING CART BUTTON
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">FLOATING BUTTON</h2>
+            </div>
+            
+            <div class="floating-demo">
+                <button class="cart-floating">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                    </svg>
+                    <span class="cart-floating__count">3</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;div class="cart-item"&gt;
+  &lt;div class="cart-item__product"&gt;
+    &lt;div class="cart-item__image"&gt;...&lt;/div&gt;
+    &lt;div class="cart-item__info"&gt;
+      &lt;h3 class="cart-item__name"&gt;Название&lt;/h3&gt;
+      &lt;span class="cart-item__status cart-item__status--success"&gt;● В наличии&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="cart-item__price"&gt;24 990 ₽&lt;/div&gt;
+  &lt;div class="cart-item__quantity"&gt;...&lt;/div&gt;
+  &lt;div class="cart-item__total"&gt;24 990 ₽&lt;/div&gt;
+&lt;/div&gt;
+
+/* Модификаторы статусов */
+.cart-item__status--success   /* Зелёный */
+.cart-item__status--warning   /* Жёлтый */
+.cart-item__status--danger    /* Красный */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

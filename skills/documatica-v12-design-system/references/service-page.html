@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Page — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="service-page.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">PAGES</span>
+            <h1 class="hero__title">Service <span>Page</span></h1>
+            <p class="hero__desc">Шаблоны страниц услуг. Hero-секции, преимущества, процессы, цены, FAQ, CTA.</p>
+        </header>
+
+        <!-- ============================================
+             01. SERVICE HERO
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">Service Hero</h2>
+            </div>
+            
+            <div class="service-hero">
+                <div class="service-hero__content">
+                    <span class="service-hero__badge">Веб-разработка</span>
+                    <h1 class="service-hero__title">Создаём <span>сайты</span>, которые продают</h1>
+                    <p class="service-hero__desc">Разработка современных веб-приложений с фокусом на конверсию, производительность и удобство использования.</p>
+                    <div class="service-hero__actions">
+                        <button class="btn btn--primary btn--lg">Заказать проект</button>
+                        <button class="btn btn--outline btn--lg">Смотреть портфолио</button>
+                    </div>
+                    <div class="service-hero__stats">
+                        <div class="stat">
+                            <span class="stat__value">150+</span>
+                            <span class="stat__label">Проектов</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat__value">98%</span>
+                            <span class="stat__label">Довольных клиентов</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat__value">7 лет</span>
+                            <span class="stat__label">На рынке</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="service-hero__visual">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=500&fit=crop" alt="Service">
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. SERVICE FEATURES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">Features Grid</h2>
+            </div>
+            
+            <div class="features">
+                <div class="features__header">
+                    <h2 class="features__title">Что мы <span>предлагаем</span></h2>
+                    <p class="features__desc">Полный спектр услуг для создания успешного веб-присутствия</p>
+                </div>
+                <div class="features__grid">
+                    <div class="feature-card">
+                        <div class="feature-card__icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-card__title">Дизайн интерфейсов</h3>
+                        <p class="feature-card__desc">Создаём удобные и красивые интерфейсы, которые помогают достигать бизнес-целей.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card__icon feature-card__icon--gold">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-card__title">Разработка</h3>
+                        <p class="feature-card__desc">Фронтенд и бэкенд на современных технологиях: React, Next.js, Node.js, Python.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card__icon feature-card__icon--green">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-card__title">Оптимизация</h3>
+                        <p class="feature-card__desc">SEO, производительность, Core Web Vitals — всё для высоких позиций в поиске.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card__icon feature-card__icon--purple">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+                            </svg>
+                        </div>
+                        <h3 class="feature-card__title">Интеграции</h3>
+                        <p class="feature-card__desc">Подключение CRM, платёжных систем, аналитики и любых внешних сервисов.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. PROCESS STEPS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">Process Steps</h2>
+            </div>
+            
+            <div class="process">
+                <div class="process__header">
+                    <h2 class="process__title">Как мы <span>работаем</span></h2>
+                </div>
+                <div class="process__steps">
+                    <div class="process__step">
+                        <div class="process__number">01</div>
+                        <div class="process__content">
+                            <h3 class="process__step-title">Анализ</h3>
+                            <p class="process__step-desc">Изучаем ваш бизнес, конкурентов, целевую аудиторию и формируем техническое задание.</p>
+                        </div>
+                    </div>
+                    <div class="process__step">
+                        <div class="process__number">02</div>
+                        <div class="process__content">
+                            <h3 class="process__step-title">Проектирование</h3>
+                            <p class="process__step-desc">Создаём структуру сайта, прототипы страниц и продумываем пользовательские сценарии.</p>
+                        </div>
+                    </div>
+                    <div class="process__step">
+                        <div class="process__number">03</div>
+                        <div class="process__content">
+                            <h3 class="process__step-title">Дизайн</h3>
+                            <p class="process__step-desc">Разрабатываем визуальную концепцию и детальный дизайн всех страниц и состояний.</p>
+                        </div>
+                    </div>
+                    <div class="process__step">
+                        <div class="process__number">04</div>
+                        <div class="process__content">
+                            <h3 class="process__step-title">Разработка</h3>
+                            <p class="process__step-desc">Верстаем, программируем, интегрируем и тестируем — готовим к запуску.</p>
+                        </div>
+                    </div>
+                    <div class="process__step">
+                        <div class="process__number">05</div>
+                        <div class="process__content">
+                            <h3 class="process__step-title">Запуск</h3>
+                            <p class="process__step-desc">Выкатываем проект, настраиваем аналитику и обучаем вашу команду.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. PRICING CARDS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">Pricing Cards</h2>
+            </div>
+            
+            <div class="pricing">
+                <div class="pricing__header">
+                    <h2 class="pricing__title">Тарифы и <span>цены</span></h2>
+                    <p class="pricing__desc">Выберите подходящий пакет или закажите индивидуальный расчёт</p>
+                </div>
+                <div class="pricing__grid">
+                    <div class="pricing-card">
+                        <div class="pricing-card__header">
+                            <h3 class="pricing-card__name">Старт</h3>
+                            <p class="pricing-card__desc">Для малого бизнеса</p>
+                        </div>
+                        <div class="pricing-card__price">
+                            <span class="pricing-card__amount">150 000</span>
+                            <span class="pricing-card__currency">₽</span>
+                        </div>
+                        <ul class="pricing-card__features">
+                            <li>До 5 страниц</li>
+                            <li>Адаптивный дизайн</li>
+                            <li>Базовое SEO</li>
+                            <li>Форма обратной связи</li>
+                            <li>1 месяц поддержки</li>
+                        </ul>
+                        <button class="btn btn--outline btn--full">Выбрать</button>
+                    </div>
+                    
+                    <div class="pricing-card pricing-card--featured">
+                        <div class="pricing-card__badge">Популярный</div>
+                        <div class="pricing-card__header">
+                            <h3 class="pricing-card__name">Бизнес</h3>
+                            <p class="pricing-card__desc">Для среднего бизнеса</p>
+                        </div>
+                        <div class="pricing-card__price">
+                            <span class="pricing-card__amount">350 000</span>
+                            <span class="pricing-card__currency">₽</span>
+                        </div>
+                        <ul class="pricing-card__features">
+                            <li>До 15 страниц</li>
+                            <li>Уникальный дизайн</li>
+                            <li>Полное SEO</li>
+                            <li>CMS-система</li>
+                            <li>Интеграция CRM</li>
+                            <li>3 месяца поддержки</li>
+                        </ul>
+                        <button class="btn btn--primary btn--full">Выбрать</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="pricing-card__header">
+                            <h3 class="pricing-card__name">Корпоратив</h3>
+                            <p class="pricing-card__desc">Для крупных компаний</p>
+                        </div>
+                        <div class="pricing-card__price">
+                            <span class="pricing-card__amount">от 700 000</span>
+                            <span class="pricing-card__currency">₽</span>
+                        </div>
+                        <ul class="pricing-card__features">
+                            <li>Неограниченно страниц</li>
+                            <li>Дизайн-система</li>
+                            <li>Мультиязычность</li>
+                            <li>Личный кабинет</li>
+                            <li>Кастомная CMS</li>
+                            <li>Годовая поддержка</li>
+                        </ul>
+                        <button class="btn btn--outline btn--full">Обсудить</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. WHY US
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">Why Choose Us</h2>
+            </div>
+            
+            <div class="why-us">
+                <div class="why-us__content">
+                    <h2 class="why-us__title">Почему <span>выбирают</span> нас</h2>
+                    <div class="why-us__list">
+                        <div class="why-us__item">
+                            <div class="why-us__check">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Фиксированная цена</h4>
+                                <p>Стоимость проекта не меняется после согласования ТЗ</p>
+                            </div>
+                        </div>
+                        <div class="why-us__item">
+                            <div class="why-us__check">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Гарантия сроков</h4>
+                                <p>Работаем по договору с пеней за просрочку</p>
+                            </div>
+                        </div>
+                        <div class="why-us__item">
+                            <div class="why-us__check">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Прозрачный процесс</h4>
+                                <p>Доступ к Trello/Notion с задачами и статусами</p>
+                            </div>
+                        </div>
+                        <div class="why-us__item">
+                            <div class="why-us__check">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Поддержка после запуска</h4>
+                                <p>Бесплатные правки в течение гарантийного периода</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="why-us__image">
+                    <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=500&fit=crop" alt="Team">
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. FAQ
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">FAQ Accordion</h2>
+            </div>
+            
+            <div class="faq">
+                <div class="faq__header">
+                    <h2 class="faq__title">Частые <span>вопросы</span></h2>
+                </div>
+                <div class="faq__list">
+                    <details class="faq__item" open>
+                        <summary class="faq__question">
+                            Сколько времени занимает разработка сайта?
+                            <svg class="faq__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </summary>
+                        <div class="faq__answer">
+                            <p>Сроки зависят от сложности проекта. Лендинг — 2-3 недели, корпоративный сайт — 1-2 месяца, интернет-магазин или портал — от 2 до 6 месяцев. Точные сроки определяем после изучения требований.</p>
+                        </div>
+                    </details>
+                    <details class="faq__item">
+                        <summary class="faq__question">
+                            Какие технологии вы используете?
+                            <svg class="faq__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </summary>
+                        <div class="faq__answer">
+                            <p>На фронтенде — React, Next.js, Vue.js. На бэкенде — Node.js, Python, PHP. Для CMS используем 1С-Битрикс, WordPress или собственные решения в зависимости от задач.</p>
+                        </div>
+                    </details>
+                    <details class="faq__item">
+                        <summary class="faq__question">
+                            Можно ли вносить правки в процессе работы?
+                            <svg class="faq__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </summary>
+                        <div class="faq__answer">
+                            <p>Да, на каждом этапе предусмотрены итерации правок. Мы согласовываем прототипы и дизайн перед разработкой, чтобы минимизировать изменения на поздних стадиях.</p>
+                        </div>
+                    </details>
+                    <details class="faq__item">
+                        <summary class="faq__question">
+                            Что входит в стоимость поддержки?
+                            <svg class="faq__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </summary>
+                        <div class="faq__answer">
+                            <p>Хостинг, SSL-сертификат, резервное копирование, мониторинг работоспособности, мелкие правки контента, обновление CMS и плагинов, консультации по работе с сайтом.</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. CTA SECTION
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">CTA Section</h2>
+            </div>
+            
+            <div class="cta-box">
+                <div class="cta-box__content">
+                    <h2 class="cta-box__title">Готовы начать <span>проект</span>?</h2>
+                    <p class="cta-box__desc">Оставьте заявку, и мы свяжемся с вами в течение 2 часов для бесплатной консультации.</p>
+                    <div class="cta-box__actions">
+                        <button class="btn btn--white btn--lg">Оставить заявку</button>
+                        <button class="btn btn--ghost btn--lg">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                            </svg>
+                            +7 (999) 123-45-67
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. TESTIMONIAL
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">Testimonial</h2>
+            </div>
+            
+            <div class="testimonial">
+                <div class="testimonial__quote">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.1">
+                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+                    </svg>
+                </div>
+                <blockquote class="testimonial__text">
+                    «Работа с командой превзошла все ожидания. Сайт был готов в срок, конверсия выросла на 40% уже в первый месяц после запуска. Рекомендую!»
+                </blockquote>
+                <div class="testimonial__author">
+                    <img src="https://i.pravatar.cc/64?img=32" alt="Author" class="testimonial__avatar">
+                    <div>
+                        <div class="testimonial__name">Мария Иванова</div>
+                        <div class="testimonial__role">CEO, TechStart</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             09. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">09</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>/* Секции страницы услуги */
+&lt;div class="service-hero"&gt;...&lt;/div&gt;
+&lt;div class="features"&gt;...&lt;/div&gt;
+&lt;div class="process"&gt;...&lt;/div&gt;
+&lt;div class="pricing"&gt;...&lt;/div&gt;
+&lt;div class="why-us"&gt;...&lt;/div&gt;
+&lt;div class="faq"&gt;...&lt;/div&gt;
+&lt;div class="cta-box"&gt;...&lt;/div&gt;
+&lt;div class="testimonial"&gt;...&lt;/div&gt;
+
+/* Карточки цен */
+.pricing-card              /* Обычная */
+.pricing-card--featured    /* Выделенная */
+
+/* Feature иконки */
+.feature-card__icon           /* Синяя (default) */
+.feature-card__icon--gold     /* Жёлтая */
+.feature-card__icon--green    /* Зелёная */
+.feature-card__icon--purple   /* Фиолетовая */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

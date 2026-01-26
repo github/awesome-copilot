@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Section — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="hero.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Hero Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Hero Section</span>
+            </h1>
+        </header>
+
+        <!-- CENTERED HERO -->
+        <section class="section">
+            <p class="section__label">01. Centered Hero</p>
+            <div class="hero hero--centered">
+                <div class="hero__badge">Новинка 2025</div>
+                <h1 class="hero__title">Умный документооборот<br><span class="text-primary">нового поколения</span></h1>
+                <p class="hero__text">AI анализирует, классифицирует и индексирует ваши документы за секунды. Экономьте до 80% времени на обработке.</p>
+                <div class="hero__actions">
+                    <button class="hero__btn hero__btn--primary">
+                        Попробовать бесплатно
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+                    <button class="hero__btn hero__btn--outline">Узнать больше</button>
+                </div>
+                <div class="hero__stats">
+                    <div class="hero__stat">
+                        <span class="hero__stat-value">10K+</span>
+                        <span class="hero__stat-label">Компаний</span>
+                    </div>
+                    <div class="hero__stat">
+                        <span class="hero__stat-value">1M+</span>
+                        <span class="hero__stat-label">Документов</span>
+                    </div>
+                    <div class="hero__stat">
+                        <span class="hero__stat-value">99.9%</span>
+                        <span class="hero__stat-label">Uptime</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SPLIT HERO -->
+        <section class="section">
+            <p class="section__label">02. Split Hero (Text + Image)</p>
+            <div class="hero hero--split">
+                <div class="hero__content">
+                    <div class="hero__badge hero__badge--smart">AI Powered</div>
+                    <h1 class="hero__title hero__title--left">Документы работают<br>на вас</h1>
+                    <p class="hero__text hero__text--left">Загрузите документы — AI сделает остальное. Умный поиск, автоматическая классификация, мгновенный доступ.</p>
+                    <div class="hero__actions hero__actions--left">
+                        <button class="hero__btn hero__btn--smart">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Начать сейчас
+                        </button>
+                        <button class="hero__btn hero__btn--ghost">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Смотреть демо
+                        </button>
+                    </div>
+                </div>
+                <div class="hero__visual">
+                    <div class="hero-mockup">
+                        <div class="mockup-bar">
+                            <span class="mockup-dot"></span>
+                            <span class="mockup-dot"></span>
+                            <span class="mockup-dot"></span>
+                        </div>
+                        <div class="mockup-content">
+                            <div class="mockup-sidebar">
+                                <div class="mockup-item"></div>
+                                <div class="mockup-item mockup-item--active"></div>
+                                <div class="mockup-item"></div>
+                            </div>
+                            <div class="mockup-main">
+                                <div class="mockup-card"></div>
+                                <div class="mockup-card mockup-card--sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DARK HERO -->
+        <section class="section">
+            <p class="section__label">03. Dark Hero</p>
+            <div class="hero hero--dark">
+                <div class="hero__glow"></div>
+                <div class="hero__badge hero__badge--glow">Enterprise Ready</div>
+                <h1 class="hero__title">Безопасность<br><span class="text-smart">корпоративного уровня</span></h1>
+                <p class="hero__text">End-to-end шифрование, SOC 2, GDPR compliance. Ваши данные под надёжной защитой.</p>
+                <div class="hero__features">
+                    <div class="hero__feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                        <span>SOC 2 Type II</span>
+                    </div>
+                    <div class="hero__feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <span>E2E Encryption</span>
+                    </div>
+                    <div class="hero__feature">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>GDPR Ready</span>
+                    </div>
+                </div>
+                <div class="hero__actions">
+                    <button class="hero__btn hero__btn--light">Связаться с продажами</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- GRADIENT HERO -->
+        <section class="section">
+            <p class="section__label">04. Gradient Hero</p>
+            <div class="hero hero--gradient">
+                <h1 class="hero__title hero__title--large">Будущее уже здесь</h1>
+                <p class="hero__text">Присоединяйтесь к тысячам компаний, которые уже используют Documatica для автоматизации документооборота</p>
+                <div class="hero__input-group">
+                    <input type="email" class="hero__input" placeholder="Введите email">
+                    <button class="hero__btn hero__btn--primary">Получить доступ</button>
+                </div>
+                <p class="hero__disclaimer">Бесплатно на 14 дней. Без карты.</p>
+            </div>
+        </section>
+
+        <!-- MINIMAL HERO -->
+        <section class="section">
+            <p class="section__label">05. Minimal Hero</p>
+            <div class="hero hero--minimal">
+                <h1 class="hero__title hero__title--mega">DOCUMATICA</h1>
+                <p class="hero__tagline">Smart Document Intelligence</p>
+                <button class="hero__btn hero__btn--underline">
+                    Explore
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- VIDEO HERO -->
+        <section class="section">
+            <p class="section__label">06. Video Background Hero</p>
+            <div class="hero hero--video">
+                <div class="hero__video-bg">
+                    <div class="video-placeholder">
+                        <div class="video-grid"></div>
+                    </div>
+                </div>
+                <div class="hero__overlay"></div>
+                <div class="hero__content-video">
+                    <h1 class="hero__title">Смотрите как<br>это работает</h1>
+                    <button class="hero__play-btn">
+                        <svg fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                    </button>
+                    <p class="hero__text">2:30 минут</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Hero Section Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

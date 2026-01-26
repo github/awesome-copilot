@@ -1,0 +1,602 @@
+/**
+ * UI Kit v12.0 — Tabs
+ * Tab navigation components
+ */
+
+/* =========================================================================
+   BASE LAYOUT
+   ========================================================================= */
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 48px;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link svg {
+    transition: transform 0.2s ease;
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+
+.hero {
+    margin-bottom: 64px;
+}
+
+.hero__badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    margin-bottom: 24px;
+}
+
+.hero__title {
+    font-size: clamp(48px, 8vw, 72px);
+    font-weight: 900;
+    color: var(--color-dark);
+    line-height: 1.0;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.hero__title span {
+    color: var(--color-primary);
+}
+
+.hero__desc {
+    font-size: 18px;
+    color: var(--color-slate-500);
+    max-width: 600px;
+    margin: 0;
+}
+
+/* =========================================================================
+   SECTIONS
+   ========================================================================= */
+
+.section {
+    margin-bottom: 64px;
+}
+
+.section__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.section__number {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.section__title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin: 0;
+}
+
+/* =========================================================================
+   DEMO
+   ========================================================================= */
+
+.demo-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.demo-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.demo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.dark-box {
+    background: var(--color-dark);
+    border-radius: 16px;
+    padding: 32px;
+}
+
+/* =========================================================================
+   TABS BASE
+   ========================================================================= */
+
+.tabs {
+    width: 100%;
+}
+
+.tabs__list {
+    display: flex;
+    gap: 4px;
+}
+
+.tabs__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: var(--color-slate-500);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tabs__tab:hover {
+    color: var(--color-dark);
+    background: var(--color-slate-100);
+}
+
+.tabs__tab--active {
+    color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.tabs__tab--active:hover {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+.tabs__tab--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tabs__tab--disabled:hover {
+    color: var(--color-slate-500);
+    background: transparent;
+}
+
+.tabs__panel {
+    padding: 24px 0;
+    color: var(--color-slate-600);
+}
+
+.tabs__panel p {
+    margin: 0;
+}
+
+/* =========================================================================
+   UNDERLINE TABS
+   ========================================================================= */
+
+.tabs--underline .tabs__list {
+    gap: 0;
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.tabs--underline .tabs__tab {
+    border-radius: 0;
+    padding: 12px 20px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+}
+
+.tabs--underline .tabs__tab:hover {
+    background: transparent;
+    border-bottom-color: var(--color-slate-300);
+}
+
+.tabs--underline .tabs__tab--active {
+    background: transparent;
+    border-bottom-color: var(--color-primary);
+}
+
+/* =========================================================================
+   PILLS TABS
+   ========================================================================= */
+
+.tabs--pills .tabs__list {
+    gap: 8px;
+    background: var(--color-slate-100);
+    padding: 4px;
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.tabs--pills .tabs__tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.tabs--pills .tabs__tab:hover {
+    background: var(--color-white);
+}
+
+.tabs--pills .tabs__tab--active {
+    background: var(--color-white);
+    color: var(--color-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================================================
+   BOXED TABS
+   ========================================================================= */
+
+.tabs--boxed {
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.tabs--boxed .tabs__list {
+    gap: 0;
+    border-bottom: 1px solid var(--color-slate-200);
+    background: var(--color-slate-50);
+}
+
+.tabs--boxed .tabs__tab {
+    border-radius: 0;
+    flex: 1;
+    justify-content: center;
+    border-right: 1px solid var(--color-slate-200);
+}
+
+.tabs--boxed .tabs__tab:last-child {
+    border-right: none;
+}
+
+.tabs--boxed .tabs__tab:hover {
+    background: var(--color-white);
+}
+
+.tabs--boxed .tabs__tab--active {
+    background: var(--color-white);
+}
+
+.tabs--boxed .tabs__panel {
+    padding: 24px;
+}
+
+/* =========================================================================
+   ICON ONLY TABS
+   ========================================================================= */
+
+.tabs--icons .tabs__list {
+    gap: 4px;
+}
+
+.tabs--icons .tabs__tab {
+    padding: 12px;
+}
+
+/* =========================================================================
+   WITH BADGE
+   ========================================================================= */
+
+.tabs__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--color-slate-200);
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-slate-600);
+}
+
+.tabs__badge--primary {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.tabs__badge--warning {
+    background: var(--color-smart);
+    color: var(--color-dark);
+}
+
+/* =========================================================================
+   SIZE VARIANTS
+   ========================================================================= */
+
+.tabs--sm .tabs__tab {
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
+.tabs--lg .tabs__tab {
+    padding: 16px 24px;
+    font-size: 16px;
+}
+
+/* =========================================================================
+   FULL WIDTH
+   ========================================================================= */
+
+.tabs--full .tabs__list {
+    width: 100%;
+}
+
+.tabs--full .tabs__tab {
+    flex: 1;
+    justify-content: center;
+}
+
+/* =========================================================================
+   VERTICAL TABS
+   ========================================================================= */
+
+.tabs--vertical {
+    display: flex;
+    gap: 32px;
+}
+
+.tabs--vertical .tabs__list {
+    flex-direction: column;
+    width: 220px;
+    flex-shrink: 0;
+    gap: 4px;
+}
+
+.tabs--vertical .tabs__tab {
+    justify-content: flex-start;
+    border-radius: 12px;
+}
+
+.tabs__panel--vertical {
+    flex: 1;
+    padding: 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.tabs__panel--vertical h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+.tabs__panel--vertical p {
+    margin: 0;
+    color: var(--color-slate-500);
+}
+
+/* =========================================================================
+   CARD STYLE TABS
+   ========================================================================= */
+
+.tabs--cards .tabs__list {
+    gap: 12px;
+}
+
+.tabs--cards .tabs__tab {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 16px 24px;
+    background: var(--color-white);
+    border: 2px solid var(--color-slate-200);
+    border-radius: 16px;
+    min-width: 140px;
+}
+
+.tabs--cards .tabs__tab:hover {
+    border-color: var(--color-slate-300);
+}
+
+.tabs--cards .tabs__tab--active {
+    border-color: var(--color-primary);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.tabs__tab-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+.tabs__tab-desc {
+    font-size: 13px;
+    color: var(--color-slate-500);
+}
+
+/* =========================================================================
+   SEGMENTED CONTROL
+   ========================================================================= */
+
+.segmented {
+    display: inline-flex;
+    background: var(--color-slate-100);
+    padding: 4px;
+    border-radius: 12px;
+    gap: 4px;
+}
+
+.segmented__btn {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--color-slate-600);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.segmented__btn:hover {
+    color: var(--color-dark);
+}
+
+.segmented__btn--active {
+    background: var(--color-white);
+    color: var(--color-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================================================================
+   DARK THEME
+   ========================================================================= */
+
+.tabs--dark .tabs__tab {
+    color: var(--color-slate-400);
+}
+
+.tabs--dark .tabs__tab:hover {
+    color: var(--color-white);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tabs--dark .tabs__tab--active {
+    color: var(--color-white);
+}
+
+.tabs--dark.tabs--underline .tabs__list {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.tabs--dark.tabs--underline .tabs__tab {
+    background: transparent;
+}
+
+.tabs--dark.tabs--underline .tabs__tab:hover {
+    background: transparent;
+    border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+.tabs--dark.tabs--underline .tabs__tab--active {
+    background: transparent;
+    border-bottom-color: var(--color-primary);
+}
+
+.tabs--dark.tabs--pills .tabs__list {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tabs--dark.tabs--pills .tabs__tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tabs--dark.tabs--pills .tabs__tab--active {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* =========================================================================
+   CODE BLOCK
+   ========================================================================= */
+
+.code-block {
+    background: var(--color-dark);
+    border-radius: 16px;
+    padding: 24px;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+}
+
+.code-block code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--color-slate-300);
+    line-height: 1.7;
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 32px 16px;
+    }
+
+    .tabs--vertical {
+        flex-direction: column;
+    }
+
+    .tabs--vertical .tabs__list {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .tabs--cards .tabs__list {
+        flex-direction: column;
+    }
+
+    .tabs--cards .tabs__tab {
+        width: 100%;
+    }
+
+    .demo-row {
+        flex-direction: column;
+    }
+}
