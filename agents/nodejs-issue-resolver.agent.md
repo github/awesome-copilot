@@ -1,18 +1,18 @@
 ---
 title: Node.js Agentic Issue Resolver
-description: A resilient agentic workflow for autonomous codebase exploration and fixing using the Copilot SDK.
+description: 'A resilient agentic workflow for autonomous codebase exploration and fixing, optimized for the Copilot SDK Technical Preview.'
 url: https://github.com/Impesud/nodejs-copilot-issue-resolver
 author: Impesud
-tags: [nodejs, sdk, agents, automation]
+tags: [nodejs, copilot-sdk, agents, automation]
 ---
 
 # Node.js Agentic Issue Resolver
 
-This sample demonstrates a robust implementation of an autonomous developer agent. 
+This sample demonstrates a robust developer agent built with the GitHub Copilot SDK. 
 
 ### Key Features
-- **Resilient Strategy**: Specifically designed to overcome string-matching failures in the Technical Preview by using `write_file` for full-content updates.
-- **Real-time Monitoring**: Streams assistant deltas and tool execution events for high observability.
-- **Autonomous Workflow**: Capable of exploring directory structures and applying fixes based on task descriptions.
+- **Resilient Strategy**: Specifically uses `write_file` for full-content updates to avoid string-matching errors.
+- **Observability**: Streams real-time reasoning and tool execution logs.
+- **Autonomous**: Explores project structures and applies fixes based on natural language tasks.
 
-For more details, check the [official repository](https://github.com/Impesud/nodejs-copilot-issue-resolver) or read the technical deep-dive on [our blog](https://www.impesud.it/github-copilot-sdk-agenti-ai-impesud/).
+[View Repository](https://github.com/Impesud/nodejs-copilot-issue-resolver) | [Read Technical Blog](https://www.impesud.it/github-copilot-sdk-agenti-ai-impesud/)
