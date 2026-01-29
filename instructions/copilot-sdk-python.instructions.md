@@ -31,10 +31,14 @@ uv add copilot-sdk
 
 ```python
 from copilot import CopilotClient
+import asyncio
 
-async with CopilotClient() as client:
-    # Use client...
-    pass
+async def main():
+    async with CopilotClient() as client:
+        # Use client...
+        pass
+
+asyncio.run(main())
 ```
 
 ### Client Configuration Options
@@ -56,10 +60,16 @@ When creating a CopilotClient, use a dict with these keys:
 For explicit control:
 
 ```python
-client = CopilotClient({"auto_start": False})
-await client.start()
-# Use client...
-await client.stop()
+from copilot import CopilotClient
+import asyncio
+
+async def main():
+    client = CopilotClient({"auto_start": False})
+    await client.start()
+    # Use client...
+    await client.stop()
+
+asyncio.run(main())
 ```
 
 Use `force_stop()` when `stop()` takes too long.

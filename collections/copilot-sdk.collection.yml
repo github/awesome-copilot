@@ -11,6 +11,8 @@ items:
     kind: instruction
   - path: instructions/copilot-sdk-python.instructions.md
     kind: instruction
+  - path: skills/copilot-sdk/SKILL.md
+    kind: skill
 display:
   ordering: manual
   show_badge: true
