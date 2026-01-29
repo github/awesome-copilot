@@ -1,0 +1,154 @@
+{
+    "metadata": {
+        "description": "AzureRM Provider Set-type attribute definitions",
+        "lastUpdated": "2026-01-28",
+        "source": "Terraform Registry documentation and AzureRM Provider source code"
+    },
+    "resources": {
+        "azurerm_application_gateway": {
+            "backend_address_pool": "name",
+            "backend_http_settings": "name",
+            "custom_error_configuration": "status_code",
+            "frontend_ip_configuration": "name",
+            "frontend_port": "name",
+            "gateway_ip_configuration": "name",
+            "http_listener": "name",
+            "probe": "name",
+            "private_link_configuration": "name",
+            "redirect_configuration": "name",
+            "request_routing_rule": "name",
+            "rewrite_rule_set": {
+                "_key": "name",
+                "rewrite_rule": {
+                    "_key": "name",
+                    "condition": "variable",
+                    "request_header_configuration": "header_name",
+                    "response_header_configuration": "header_name"
+                }
+            },
+            "ssl_certificate": "name",
+            "ssl_profile": "name",
+            "trusted_client_certificate": "name",
+            "trusted_root_certificate": "name",
+            "url_path_map": {
+                "_key": "name",
+                "path_rule": {
+                    "_key": "name",
+                    "paths": null
+                }
+            }
+        },
+        "azurerm_lb": {
+            "frontend_ip_configuration": "name"
+        },
+        "azurerm_lb_backend_address_pool": {
+            "backend_address": "name"
+        },
+        "azurerm_lb_rule": {
+            "backend_address_pool_ids": null
+        },
+        "azurerm_firewall": {
+            "ip_configuration": "name",
+            "management_ip_configuration": "name",
+            "virtual_hub": null
+        },
+        "azurerm_firewall_policy_rule_collection_group": {
+            "application_rule_collection": {
+                "_key": "name",
+                "rule": {
+                    "_key": "name",
+                    "protocols": null,
+                    "destination_fqdns": null
+                }
+            },
+            "network_rule_collection": {
+                "_key": "name",
+                "rule": {
+                    "_key": "name",
+                    "destination_addresses": null,
+                    "destination_ports": null
+                }
+            },
+            "nat_rule_collection": {
+                "_key": "name",
+                "rule": "name"
+            }
+        },
+        "azurerm_frontdoor": {
+            "backend_pool": {
+                "_key": "name",
+                "backend": "address"
+            },
+            "backend_pool_health_probe": "name",
+            "backend_pool_load_balancing": "name",
+            "frontend_endpoint": "name",
+            "routing_rule": "name"
+        },
+        "azurerm_cdn_frontdoor_origin_group": {
+            "health_probe": null,
+            "load_balancing": null
+        },
+        "azurerm_network_security_group": {
+            "security_rule": "name"
+        },
+        "azurerm_route_table": {
+            "route": "name"
+        },
+        "azurerm_virtual_network": {
+            "subnet": "name"
+        },
+        "azurerm_virtual_network_gateway": {
+            "ip_configuration": "name",
+            "vpn_client_configuration": {
+                "_key": null,
+                "root_certificate": "name",
+                "revoked_certificate": "name",
+                "radius_server": "address"
+            },
+            "policy_group": "name"
+        },
+        "azurerm_virtual_network_gateway_connection": {
+            "ipsec_policy": null
+        },
+        "azurerm_nat_gateway": {
+            "public_ip_address_ids": null,
+            "public_ip_prefix_ids": null
+        },
+        "azurerm_private_endpoint": {
+            "ip_configuration": "name",
+            "private_dns_zone_group": "name",
+            "private_service_connection": "name"
+        },
+        "azurerm_api_management": {
+            "additional_location": "location",
+            "certificate": "encoded_certificate",
+            "hostname_configuration": {
+                "_key": null,
+                "management": "host_name",
+                "portal": "host_name",
+                "developer_portal": "host_name",
+                "proxy": "host_name",
+                "scm": "host_name"
+            }
+        },
+        "azurerm_storage_account": {
+            "network_rules": null,
+            "blob_properties": null
+        },
+        "azurerm_key_vault": {
+            "network_acls": null
+        },
+        "azurerm_cosmosdb_account": {
+            "geo_location": "location",
+            "capabilities": "name",
+            "virtual_network_rule": "id"
+        },
+        "azurerm_kubernetes_cluster": {
+            "default_node_pool": null
+        },
+        "azurerm_kubernetes_cluster_node_pool": {
+            "node_labels": null,
+            "node_taints": null
+        }
+    }
+}
