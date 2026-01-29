@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliders — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="sliders.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Slider Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Sliders</span>
+            </h1>
+        </header>
+
+        <!-- BASIC -->
+        <section class="section">
+            <p class="section__label">01. Basic Slider</p>
+            <div class="slider-group">
+                <label class="slider-label">Громкость</label>
+                <div class="slider-wrap">
+                    <input type="range" class="slider" min="0" max="100" value="50">
+                </div>
+                <span class="slider-value">50%</span>
+            </div>
+        </section>
+
+        <!-- WITH LABELS -->
+        <section class="section">
+            <p class="section__label">02. With Min/Max Labels</p>
+            <div class="slider-group">
+                <label class="slider-label">Бюджет проекта</label>
+                <div class="slider-wrap slider-wrap--labeled">
+                    <span class="slider-min">$0</span>
+                    <input type="range" class="slider" min="0" max="100000" value="35000" step="1000">
+                    <span class="slider-max">$100K</span>
+                </div>
+                <span class="slider-value slider-value--highlight">$35,000</span>
+            </div>
+        </section>
+
+        <!-- RANGE (DUAL) -->
+        <section class="section">
+            <p class="section__label">03. Range Slider (Dual Handles)</p>
+            <div class="slider-group">
+                <label class="slider-label">Ценовой диапазон</label>
+                <div class="range-slider">
+                    <div class="range-slider__track">
+                        <div class="range-slider__fill" style="left: 20%; width: 50%;"></div>
+                    </div>
+                    <input type="range" class="range-slider__input range-slider__input--min" min="0" max="1000" value="200">
+                    <input type="range" class="range-slider__input range-slider__input--max" min="0" max="1000" value="700">
+                </div>
+                <div class="slider-range-values">
+                    <span class="slider-range-value">$200</span>
+                    <span class="slider-range-sep">—</span>
+                    <span class="slider-range-value">$700</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SIZES -->
+        <section class="section">
+            <p class="section__label">04. Sizes</p>
+            <div class="sliders-list">
+                <div class="slider-group">
+                    <label class="slider-label">Small (4px)</label>
+                    <input type="range" class="slider slider--sm" min="0" max="100" value="40">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Base (8px)</label>
+                    <input type="range" class="slider" min="0" max="100" value="60">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Large (12px)</label>
+                    <input type="range" class="slider slider--lg" min="0" max="100" value="80">
+                </div>
+            </div>
+        </section>
+
+        <!-- COLORS -->
+        <section class="section">
+            <p class="section__label">05. Color Variants</p>
+            <div class="sliders-list">
+                <div class="slider-group">
+                    <label class="slider-label">Primary</label>
+                    <input type="range" class="slider slider--primary" min="0" max="100" value="75">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Smart Gold</label>
+                    <input type="range" class="slider slider--smart" min="0" max="100" value="60">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Success</label>
+                    <input type="range" class="slider slider--success" min="0" max="100" value="90">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Danger</label>
+                    <input type="range" class="slider slider--danger" min="0" max="100" value="30">
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH STEPS -->
+        <section class="section">
+            <p class="section__label">06. With Steps / Markers</p>
+            <div class="slider-group">
+                <label class="slider-label">Качество экспорта</label>
+                <div class="slider-wrap">
+                    <input type="range" class="slider slider--stepped" min="1" max="5" value="3" step="1">
+                </div>
+                <div class="slider-steps">
+                    <span class="slider-step">Низкое</span>
+                    <span class="slider-step">Среднее</span>
+                    <span class="slider-step">Высокое</span>
+                    <span class="slider-step">Отличное</span>
+                    <span class="slider-step">Макс</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATES -->
+        <section class="section">
+            <p class="section__label">07. States</p>
+            <div class="sliders-list">
+                <div class="slider-group">
+                    <label class="slider-label">Default</label>
+                    <input type="range" class="slider" min="0" max="100" value="50">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Hover (наведите)</label>
+                    <input type="range" class="slider slider--hover-demo" min="0" max="100" value="50">
+                </div>
+                <div class="slider-group">
+                    <label class="slider-label">Disabled</label>
+                    <input type="range" class="slider" min="0" max="100" value="50" disabled>
+                </div>
+            </div>
+        </section>
+
+        <!-- VERTICAL -->
+        <section class="section">
+            <p class="section__label">08. Vertical Slider</p>
+            <div class="vertical-sliders">
+                <div class="vertical-slider-group">
+                    <input type="range" class="slider slider--vertical" min="0" max="100" value="70">
+                    <span class="slider-label">Bass</span>
+                </div>
+                <div class="vertical-slider-group">
+                    <input type="range" class="slider slider--vertical" min="0" max="100" value="50">
+                    <span class="slider-label">Mid</span>
+                </div>
+                <div class="vertical-slider-group">
+                    <input type="range" class="slider slider--vertical slider--smart" min="0" max="100" value="85">
+                    <span class="slider-label">Treble</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH TOOLTIP -->
+        <section class="section">
+            <p class="section__label">09. With Tooltip</p>
+            <div class="slider-group">
+                <label class="slider-label">Прозрачность</label>
+                <div class="slider-tooltip-wrap">
+                    <input type="range" class="slider slider--tooltip" min="0" max="100" value="75">
+                    <div class="slider-tooltip" style="left: 75%;">75%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI SMART SLIDER -->
+        <section class="section">
+            <p class="section__label">10. AI Smart Slider</p>
+            <div class="smart-slider">
+                <div class="smart-slider__header">
+                    <span class="smart-slider__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </span>
+                    <span class="smart-slider__label">AI Уровень креативности</span>
+                </div>
+                <div class="slider-wrap">
+                    <input type="range" class="slider slider--smart" min="0" max="100" value="65">
+                </div>
+                <div class="smart-slider__hints">
+                    <span class="smart-slider__hint">Точный</span>
+                    <span class="smart-slider__hint smart-slider__hint--active">Баланс</span>
+                    <span class="smart-slider__hint">Креативный</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Sliders Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

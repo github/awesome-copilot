@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Article — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="blog-article.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">CONTENT</span>
+            <h1 class="hero__title">Blog <span>Article</span></h1>
+            <p class="hero__desc">Шаблоны статей блога. Заголовки, типографика, цитаты, изображения, авторы.</p>
+        </header>
+
+        <!-- ============================================
+             01. ARTICLE HEADER
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">Article Header</h2>
+            </div>
+            
+            <article class="article">
+                <header class="article__header">
+                    <div class="article__meta">
+                        <span class="article__category">Дизайн</span>
+                        <span class="article__date">24 января 2026</span>
+                        <span class="article__read">8 мин чтения</span>
+                    </div>
+                    <h1 class="article__title">Как создать идеальную дизайн-систему для вашего продукта</h1>
+                    <p class="article__lead">Пошаговое руководство по созданию масштабируемой и консистентной дизайн-системы, которая объединит дизайнеров и разработчиков.</p>
+                    <div class="article__author">
+                        <img src="https://i.pravatar.cc/80?img=12" alt="Avatar" class="article__author-avatar">
+                        <div class="article__author-info">
+                            <span class="article__author-name">Александр Петров</span>
+                            <span class="article__author-role">Lead Product Designer</span>
+                        </div>
+                    </div>
+                </header>
+            </article>
+        </section>
+
+        <!-- ============================================
+             02. ARTICLE WITH HERO IMAGE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">With Hero Image</h2>
+            </div>
+            
+            <article class="article">
+                <figure class="article__hero">
+                    <img src="https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200&h=600&fit=crop" alt="Hero">
+                </figure>
+                <header class="article__header">
+                    <div class="article__meta">
+                        <span class="article__category article__category--blue">Технологии</span>
+                        <span class="article__date">20 января 2026</span>
+                    </div>
+                    <h1 class="article__title">Будущее искусственного интеллекта в веб-разработке</h1>
+                </header>
+            </article>
+        </section>
+
+        <!-- ============================================
+             03. TYPOGRAPHY
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">Typography</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <h2>Заголовок второго уровня</h2>
+                    <p>Основной текст статьи. Здесь мы используем шрифт Inter с размером 18px и высотой строки 1.8 для комфортного чтения длинных текстов. <strong>Жирный текст</strong> выделяется для акцентов, а <em>курсив</em> — для терминов и названий.</p>
+                    
+                    <p>Второй параграф следует с отступом сверху. Ссылки выглядят <a href="#">вот так</a> и имеют подчёркивание при наведении. Код в тексте: <code>const design = 'system';</code></p>
+
+                    <h3>Заголовок третьего уровня</h3>
+                    <p>Подзаголовки структурируют контент и помогают читателю ориентироваться в статье. Каждый раздел должен быть логически связан с предыдущим.</p>
+
+                    <h4>Заголовок четвёртого уровня</h4>
+                    <p>Используется для мелких подразделов и деталей.</p>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             04. LISTS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">Lists</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <h3>Маркированный список</h3>
+                    <ul>
+                        <li>Первый пункт с важной информацией</li>
+                        <li>Второй пункт описывает ещё одну особенность</li>
+                        <li>Третий пункт завершает перечисление</li>
+                        <li>Вложенные списки:
+                            <ul>
+                                <li>Подпункт первый</li>
+                                <li>Подпункт второй</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h3>Нумерованный список</h3>
+                    <ol>
+                        <li>Определите цели дизайн-системы</li>
+                        <li>Проведите аудит существующего дизайна</li>
+                        <li>Создайте токены: цвета, типографику, отступы</li>
+                        <li>Разработайте базовые компоненты</li>
+                        <li>Задокументируйте правила использования</li>
+                    </ol>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             05. BLOCKQUOTE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">Blockquote</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <blockquote class="quote">
+                        <p>«Дизайн-система — это не библиотека компонентов. Это общий язык, на котором говорят дизайнеры и разработчики, чтобы создавать последовательный пользовательский опыт».</p>
+                    </blockquote>
+
+                    <blockquote class="quote quote--author">
+                        <p>«Хороший дизайн невидим. Пользователь не должен думать о том, как взаимодействовать с интерфейсом — всё должно быть интуитивно понятно».</p>
+                        <footer>
+                            <cite>— Дитер Рамс, промышленный дизайнер</cite>
+                        </footer>
+                    </blockquote>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             06. CALLOUT / NOTE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">Callout / Note</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <div class="callout callout--info">
+                        <div class="callout__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                        </div>
+                        <div class="callout__content">
+                            <strong>Примечание:</strong> Этот подход особенно эффективен для команд, работающих над несколькими продуктами одновременно.
+                        </div>
+                    </div>
+
+                    <div class="callout callout--warning">
+                        <div class="callout__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <div class="callout__content">
+                            <strong>Внимание:</strong> Не забудьте протестировать компоненты на разных разрешениях экрана перед релизом.
+                        </div>
+                    </div>
+
+                    <div class="callout callout--success">
+                        <div class="callout__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="callout__content">
+                            <strong>Совет:</strong> Используйте CSS-переменные для всех значений цветов — это упростит поддержку тёмной темы.
+                        </div>
+                    </div>
+
+                    <div class="callout callout--danger">
+                        <div class="callout__icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <div class="callout__content">
+                            <strong>Важно:</strong> Никогда не используйте !important в CSS дизайн-системы.
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             07. IMAGES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">Images</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <figure class="article__figure">
+                        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=900&h=500&fit=crop" alt="Workspace">
+                        <figcaption>Рабочее место дизайнера с несколькими мониторами для эффективной работы</figcaption>
+                    </figure>
+
+                    <p>Изображения в статье имеют скруглённые углы и подпись снизу.</p>
+
+                    <div class="article__gallery">
+                        <figure class="article__figure article__figure--half">
+                            <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop" alt="Code">
+                        </figure>
+                        <figure class="article__figure article__figure--half">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop" alt="Analytics">
+                        </figure>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             08. CODE BLOCK
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">Code Block</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <p>Пример кода с подсветкой синтаксиса:</p>
+
+                    <div class="article__code">
+                        <div class="article__code-header">
+                            <span class="article__code-lang">JavaScript</span>
+                            <button class="article__code-copy">Копировать</button>
+                        </div>
+                        <pre><code>// Создание дизайн-токенов
+const tokens = {
+  colors: {
+    primary: '#3b82f6',
+    secondary: '#0f172a',
+    accent: '#fbbf24'
+  },
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px'
+  }
+};</code></pre>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             09. TABLE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">09</span>
+                <h2 class="section__title">Table</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <div class="article__table-wrap">
+                        <table class="article__table">
+                            <thead>
+                                <tr>
+                                    <th>Токен</th>
+                                    <th>Значение</th>
+                                    <th>Применение</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>--color-primary</code></td>
+                                    <td>#3b82f6</td>
+                                    <td>Основные действия, ссылки</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--color-dark</code></td>
+                                    <td>#0f172a</td>
+                                    <td>Заголовки, основной текст</td>
+                                </tr>
+                                <tr>
+                                    <td><code>--color-smart</code></td>
+                                    <td>#fbbf24</td>
+                                    <td>Акценты, уведомления</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             10. AUTHOR BIO
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">10</span>
+                <h2 class="section__title">Author Bio</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <div class="author-bio">
+                        <img src="https://i.pravatar.cc/120?img=12" alt="Author" class="author-bio__avatar">
+                        <div class="author-bio__content">
+                            <h4 class="author-bio__name">Александр Петров</h4>
+                            <p class="author-bio__role">Lead Product Designer</p>
+                            <p class="author-bio__desc">Более 10 лет в продуктовом дизайне. Специализируется на дизайн-системах, UX-исследованиях и построении дизайн-процессов в крупных командах.</p>
+                            <div class="author-bio__social">
+                                <a href="#" class="author-bio__link">Twitter</a>
+                                <a href="#" class="author-bio__link">LinkedIn</a>
+                                <a href="#" class="author-bio__link">Dribbble</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             11. TAGS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">11</span>
+                <h2 class="section__title">Tags</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <div class="article__tags">
+                        <span class="article__tag">Дизайн</span>
+                        <span class="article__tag">UI/UX</span>
+                        <span class="article__tag">Дизайн-система</span>
+                        <span class="article__tag">Компоненты</span>
+                        <span class="article__tag">Токены</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             12. SHARE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">12</span>
+                <h2 class="section__title">Share</h2>
+            </div>
+            
+            <article class="article">
+                <div class="article__content">
+                    <div class="share">
+                        <span class="share__label">Поделиться:</span>
+                        <div class="share__buttons">
+                            <a href="#" class="share__btn share__btn--twitter">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="share__btn share__btn--facebook">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="share__btn share__btn--linkedin">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zM4 6a2 2 0 100-4 2 2 0 000 4z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="share__btn share__btn--telegram">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M11.944 0A12 12 0 1 0 24 12.056A12.01 12.01 0 0 0 11.944 0Zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635Z"/>
+                                </svg>
+                            </a>
+                            <button class="share__btn share__btn--copy">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- ============================================
+             13. RELATED ARTICLES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">13</span>
+                <h2 class="section__title">Related Articles</h2>
+            </div>
+            
+            <div class="related">
+                <div class="related__grid">
+                    <a href="#" class="related__card">
+                        <img src="https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=400&h=250&fit=crop" alt="" class="related__img">
+                        <div class="related__content">
+                            <span class="related__category">Разработка</span>
+                            <h3 class="related__title">CSS Grid vs Flexbox: что выбрать для вашего проекта</h3>
+                            <span class="related__date">22 января 2026</span>
+                        </div>
+                    </a>
+                    <a href="#" class="related__card">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=250&fit=crop" alt="" class="related__img">
+                        <div class="related__content">
+                            <span class="related__category">Дизайн</span>
+                            <h3 class="related__title">Цветовые палитры для современных интерфейсов</h3>
+                            <span class="related__date">18 января 2026</span>
+                        </div>
+                    </a>
+                    <a href="#" class="related__card">
+                        <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=250&fit=crop" alt="" class="related__img">
+                        <div class="related__content">
+                            <span class="related__category">Процессы</span>
+                            <h3 class="related__title">Как наладить коммуникацию дизайнеров и разработчиков</h3>
+                            <span class="related__date">15 января 2026</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             14. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">14</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;article class="article"&gt;
+  &lt;header class="article__header"&gt;
+    &lt;div class="article__meta"&gt;
+      &lt;span class="article__category"&gt;Дизайн&lt;/span&gt;
+      &lt;span class="article__date"&gt;24 января 2026&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;h1 class="article__title"&gt;Заголовок статьи&lt;/h1&gt;
+    &lt;p class="article__lead"&gt;Лид-параграф&lt;/p&gt;
+    &lt;div class="article__author"&gt;...&lt;/div&gt;
+  &lt;/header&gt;
+  &lt;div class="article__content"&gt;
+    &lt;h2&gt;Подзаголовок&lt;/h2&gt;
+    &lt;p&gt;Текст...&lt;/p&gt;
+    &lt;blockquote class="quote"&gt;...&lt;/blockquote&gt;
+    &lt;div class="callout callout--info"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/article&gt;
+
+/* Callout варианты */
+.callout--info     /* Синий */
+.callout--warning  /* Жёлтый */
+.callout--success  /* Зелёный */
+.callout--danger   /* Красный */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

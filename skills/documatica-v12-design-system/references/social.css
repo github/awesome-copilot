@@ -1,0 +1,800 @@
+/**
+ * UI Kit v12.0 — Social Media
+ * Share buttons, social widgets, profiles
+ */
+
+/* =========================================================================
+   BASE LAYOUT
+   ========================================================================= */
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 48px;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+
+.hero {
+    margin-bottom: 64px;
+}
+
+.hero__badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-smart);
+    letter-spacing: 0.15em;
+    margin-bottom: 16px;
+}
+
+.hero__title {
+    font-size: clamp(48px, 10vw, 80px);
+    font-weight: 900;
+    color: var(--color-dark);
+    line-height: 0.95;
+    margin: 0 0 24px 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.hero__title span {
+    color: var(--color-primary);
+}
+
+.hero__desc {
+    font-size: 18px;
+    color: var(--color-slate-500);
+    max-width: 500px;
+    margin: 0;
+}
+
+/* =========================================================================
+   SECTIONS
+   ========================================================================= */
+
+.section {
+    margin-bottom: 80px;
+}
+
+.section__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.section__number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.1em;
+}
+
+.section__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-slate-400);
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+/* =========================================================================
+   BUTTONS
+   ========================================================================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: var(--color-slate-100);
+    border: none;
+    border-radius: 14px;
+    color: var(--color-dark);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn--primary {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.btn--primary:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.btn--full {
+    width: 100%;
+}
+
+/* =========================================================================
+   SHARE BUTTONS
+   ========================================================================= */
+
+.share-block {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--color-white);
+    border-radius: 20px;
+    padding: 24px 32px;
+}
+
+.share-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-slate-500);
+}
+
+.share-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.share-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-slate-100);
+    border: none;
+    border-radius: 14px;
+    color: var(--color-slate-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.share-btn:hover {
+    transform: translateY(-3px);
+}
+
+.share-btn--telegram {
+    background: #26A5E4;
+    color: white;
+}
+
+.share-btn--telegram:hover {
+    background: #1e96d2;
+    box-shadow: 0 8px 20px rgba(38, 165, 228, 0.3);
+}
+
+.share-btn--whatsapp {
+    background: #25D366;
+    color: white;
+}
+
+.share-btn--whatsapp:hover {
+    background: #20bd5a;
+    box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
+}
+
+.share-btn--vk {
+    background: #0077FF;
+    color: white;
+}
+
+.share-btn--vk:hover {
+    background: #006ae6;
+    box-shadow: 0 8px 20px rgba(0, 119, 255, 0.3);
+}
+
+.share-btn--twitter {
+    background: var(--color-dark);
+    color: white;
+}
+
+.share-btn--twitter:hover {
+    background: #1a1a1a;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.share-btn--copy:hover {
+    background: var(--color-primary);
+    color: white;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* =========================================================================
+   SOCIAL ICONS
+   ========================================================================= */
+
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.demo-card {
+    background: var(--color-white);
+    border-radius: 20px;
+    padding: 28px;
+    text-align: center;
+}
+
+.demo-card__label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-slate-400);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.social-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-slate-100);
+    color: var(--color-slate-500);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+    transform: translateY(-3px);
+}
+
+/* Circle */
+.social-icons--circle .social-icon {
+    border-radius: 50%;
+}
+
+/* Square */
+.social-icons--square .social-icon {
+    border-radius: 12px;
+}
+
+/* Minimal */
+.social-icons--minimal .social-icon {
+    background: transparent;
+    border-radius: 12px;
+}
+
+.social-icons--minimal .social-icon:hover {
+    background: var(--color-slate-100);
+}
+
+/* Colors */
+.social-icon--telegram:hover {
+    background: #26A5E4;
+    color: white;
+}
+
+.social-icon--whatsapp:hover {
+    background: #25D366;
+    color: white;
+}
+
+.social-icon--vk:hover {
+    background: #0077FF;
+    color: white;
+}
+
+.social-icon--youtube:hover {
+    background: #FF0000;
+    color: white;
+}
+
+/* =========================================================================
+   FOLLOW BUTTONS
+   ========================================================================= */
+
+.follow-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.follow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 28px;
+    background: var(--color-white);
+    border: none;
+    border-radius: 16px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-dark);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.follow-btn:hover {
+    transform: translateY(-3px);
+}
+
+.follow-btn--telegram:hover {
+    background: #26A5E4;
+    color: white;
+    box-shadow: 0 12px 24px rgba(38, 165, 228, 0.25);
+}
+
+.follow-btn--youtube:hover {
+    background: #FF0000;
+    color: white;
+    box-shadow: 0 12px 24px rgba(255, 0, 0, 0.25);
+}
+
+.follow-btn--vk:hover {
+    background: #0077FF;
+    color: white;
+    box-shadow: 0 12px 24px rgba(0, 119, 255, 0.25);
+}
+
+/* =========================================================================
+   SOCIAL CARDS
+   ========================================================================= */
+
+.social-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.social-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--color-white);
+    border-radius: 24px;
+    padding: 28px;
+    transition: all 0.2s ease;
+}
+
+.social-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+}
+
+.social-card__icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    flex-shrink: 0;
+}
+
+.social-card--telegram .social-card__icon {
+    background: rgba(38, 165, 228, 0.12);
+    color: #26A5E4;
+}
+
+.social-card--youtube .social-card__icon {
+    background: rgba(255, 0, 0, 0.1);
+    color: #FF0000;
+}
+
+.social-card__content {
+    flex: 1;
+}
+
+.social-card__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin: 0 0 4px 0;
+}
+
+.social-card__desc {
+    font-size: 14px;
+    color: var(--color-slate-500);
+    margin: 0 0 8px 0;
+}
+
+.social-card__stats {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+}
+
+.social-card__btn {
+    padding: 12px 20px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.social-card__btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+/* =========================================================================
+   SOCIAL POST
+   ========================================================================= */
+
+.social-post {
+    background: var(--color-white);
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 560px;
+}
+
+.social-post__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.social-post__author {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.social-post__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.social-post__info {
+    display: flex;
+    flex-direction: column;
+}
+
+.social-post__name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+.social-post__meta {
+    font-size: 13px;
+    color: var(--color-slate-400);
+}
+
+.social-post__more {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--color-slate-400);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.social-post__more:hover {
+    background: var(--color-slate-100);
+}
+
+.social-post__body p {
+    font-size: 15px;
+    color: var(--color-dark);
+    line-height: 1.6;
+    margin: 0 0 16px 0;
+}
+
+.social-post__image {
+    width: 100%;
+    border-radius: 16px;
+    object-fit: cover;
+}
+
+.social-post__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-slate-100);
+}
+
+.social-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-slate-500);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.social-action:hover {
+    background: var(--color-slate-100);
+    color: var(--color-primary);
+}
+
+.social-action:last-child {
+    margin-left: auto;
+}
+
+/* =========================================================================
+   PROFILE WIDGET
+   ========================================================================= */
+
+.profile-widget {
+    max-width: 360px;
+    background: var(--color-white);
+    border-radius: 28px;
+    overflow: hidden;
+}
+
+.profile-widget__cover {
+    height: 120px;
+    background-size: cover;
+    background-position: center;
+}
+
+.profile-widget__body {
+    padding: 0 28px 28px;
+    text-align: center;
+}
+
+.profile-widget__avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 4px solid var(--color-white);
+    margin-top: -44px;
+    object-fit: cover;
+}
+
+.profile-widget__name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin: 12px 0 4px 0;
+}
+
+.profile-widget__username {
+    font-size: 14px;
+    color: var(--color-slate-400);
+}
+
+.profile-widget__bio {
+    font-size: 14px;
+    color: var(--color-slate-600);
+    line-height: 1.6;
+    margin: 16px 0;
+}
+
+.profile-widget__stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 24px;
+}
+
+.profile-widget__stat {
+    text-align: center;
+}
+
+.profile-widget__stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+.profile-widget__stat-label {
+    font-size: 12px;
+    color: var(--color-slate-400);
+}
+
+/* =========================================================================
+   MESSENGER WIDGET
+   ========================================================================= */
+
+.messenger-widgets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.messenger-widget {
+    background: var(--color-white);
+    border-radius: 24px;
+    padding: 24px;
+    border-left: 4px solid;
+}
+
+.messenger-widget--telegram {
+    border-color: #26A5E4;
+}
+
+.messenger-widget--whatsapp {
+    border-color: #25D366;
+}
+
+.messenger-widget__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.messenger-widget--telegram .messenger-widget__header {
+    color: #26A5E4;
+}
+
+.messenger-widget--whatsapp .messenger-widget__header {
+    color: #25D366;
+}
+
+.messenger-widget__header span {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+.messenger-widget__body {
+    margin-bottom: 20px;
+}
+
+.messenger-widget__status {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-success);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.messenger-widget__text {
+    font-size: 14px;
+    color: var(--color-slate-600);
+    margin: 0;
+}
+
+.messenger-widget__btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.messenger-widget--telegram .messenger-widget__btn {
+    background: #26A5E4;
+}
+
+.messenger-widget--telegram .messenger-widget__btn:hover {
+    background: #1e96d2;
+}
+
+.messenger-widget--whatsapp .messenger-widget__btn {
+    background: #25D366;
+}
+
+.messenger-widget--whatsapp .messenger-widget__btn:hover {
+    background: #20bd5a;
+}
+
+/* =========================================================================
+   CODE BLOCK
+   ========================================================================= */
+
+.code-block {
+    background: var(--color-dark);
+    border-radius: 20px;
+    padding: 28px;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+}
+
+.code-block code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--color-slate-300);
+    line-height: 1.8;
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+    .demo-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .social-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .messenger-widgets {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 32px 16px;
+    }
+
+    .share-block {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .follow-buttons {
+        flex-direction: column;
+    }
+
+    .social-card {
+        flex-direction: column;
+        text-align: center;
+    }
+}

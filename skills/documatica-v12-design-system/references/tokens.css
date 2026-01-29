@@ -1,0 +1,324 @@
+/**
+ * Documatica Design System v12.0
+ * Design Tokens - Single Source of Truth
+ * 
+ * Философия: "The v12.0 Spring"
+ * - Материальность: Элементы имеют вес и объем
+ * - Отклик: Hover = всплытие, Active = вдавливание
+ */
+
+:root {
+    /* =========================================================================
+       COLORS - Цветовая палитра
+       ========================================================================= */
+    
+    /* Brand - Core Blue */
+    --color-primary: #3b82f6;
+    --color-primary-hover: #2563eb;
+    --color-primary-light: #eff6ff;
+    --color-primary-border: #dbeafe;
+    --color-primary-shadow: rgba(59, 130, 246, 0.3);
+    --color-primary-shadow-hover: rgba(59, 130, 246, 0.5);
+
+    /* Action - Smart Gold (AI) */
+    --color-smart: #fbbf24;
+    --color-smart-hover: #f59e0b;
+    --color-smart-light: #fef3c7;
+    --color-smart-shadow: rgba(251, 191, 36, 0.3);
+    --color-smart-shadow-hover: rgba(251, 191, 36, 0.5);
+
+    /* Ink - Dark Slate */
+    --color-dark: #0f172a;
+    --color-dark-hover: #1e293b;
+    --color-dark-shadow: rgba(15, 23, 42, 0.1);
+
+    /* Semantic - Success */
+    --color-success: #10b981;
+    --color-success-hover: #059669;
+    --color-success-light: #ecfdf5;
+    --color-success-border: #a7f3d0;
+    --color-success-shadow: rgba(16, 185, 129, 0.2);
+
+    /* Semantic - Danger */
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+    --color-danger-light: #fef2f2;
+    --color-danger-border: #fecaca;
+    --color-danger-shadow: rgba(220, 38, 38, 0.2);
+
+    /* Semantic - Warning */
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-warning-light: #fffbeb;
+    --color-warning-border: #fde68a;
+
+    /* Semantic - Info */
+    --color-info: #3b82f6;
+    --color-info-light: #eff6ff;
+    --color-info-border: #bfdbfe;
+
+    /* Base - Soft Grey Scale */
+    --color-white: #ffffff;
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+
+    /* =========================================================================
+       TYPOGRAPHY - Типографика
+       ========================================================================= */
+    
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Font Weights */
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+
+    /* Font Sizes */
+    --font-size-xs: 8px;
+    --font-size-sm: 9px;
+    --font-size-base: 10px;
+    --font-size-md: 11px;
+    --font-size-lg: 12px;
+    --font-size-xl: 14px;
+    --font-size-2xl: 16px;
+    --font-size-3xl: 20px;
+    --font-size-4xl: 24px;
+    --font-size-5xl: 32px;
+    --font-size-6xl: 48px;
+    --font-size-7xl: 64px;
+
+    /* Line Heights */
+    --line-height-tight: 0.9;
+    --line-height-snug: 1.1;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Letter Spacing */
+    --tracking-tight: -0.05em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.1em;
+    --tracking-wider: 0.2em;
+    --tracking-widest: 0.3em;
+    --tracking-ultra: 0.4em;
+    --tracking-mega: 0.5em;
+
+    /* =========================================================================
+       SPACING - Отступы
+       ========================================================================= */
+    
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;   /* 4px */
+    --spacing-2: 0.5rem;    /* 8px */
+    --spacing-3: 0.75rem;   /* 12px */
+    --spacing-4: 1rem;      /* 16px */
+    --spacing-5: 1.25rem;   /* 20px */
+    --spacing-6: 1.5rem;    /* 24px */
+    --spacing-8: 2rem;      /* 32px */
+    --spacing-10: 2.5rem;   /* 40px */
+    --spacing-12: 3rem;     /* 48px */
+    --spacing-16: 4rem;     /* 64px */
+    --spacing-20: 5rem;     /* 80px */
+    --spacing-24: 6rem;     /* 96px */
+
+    /* =========================================================================
+       BORDER RADIUS - Скругления
+       ========================================================================= */
+    
+    --radius-none: 0;
+    --radius-sm: 0.375rem;  /* 6px */
+    --radius-md: 0.5rem;    /* 8px */
+    --radius-lg: 0.75rem;   /* 12px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-2xl: 1.5rem;   /* 24px */
+    --radius-3xl: 2rem;     /* 32px */
+    --radius-full: 9999px;
+    --radius-massive: 2.5rem; /* 40px */
+
+    /* =========================================================================
+       SHADOWS - Тени
+       ========================================================================= */
+    
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+    /* Colored Shadows */
+    --shadow-primary: 0 15px 30px -5px var(--color-primary-shadow);
+    --shadow-primary-hover: 0 25px 50px -12px var(--color-primary-shadow-hover);
+    --shadow-smart: 0 15px 30px -5px var(--color-smart-shadow);
+    --shadow-smart-hover: 0 25px 50px -12px var(--color-smart-shadow-hover);
+    --shadow-dark: 0 20px 25px -5px var(--color-dark-shadow);
+
+    /* =========================================================================
+       TRANSITIONS - Анимации
+       ========================================================================= */
+    
+    --transition-fast: all 0.15s ease;
+    --transition-base: all 0.2s ease;
+    --transition-slow: all 0.3s ease;
+    --transition-spring: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-arrow: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* =========================================================================
+       Z-INDEX - Слои
+       ========================================================================= */
+    
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-toast: 1080;
+
+    /* =========================================================================
+       BORDERS - Границы
+       ========================================================================= */
+    
+    --border-width-thin: 1px;
+    --border-width-base: 2px;
+    --border-width-thick: 3px;
+
+    /* =========================================================================
+       COMPONENT SPECIFIC
+       ========================================================================= */
+    
+    /* Input Heights */
+    --input-height-sm: 2.5rem;   /* 40px */
+    --input-height-md: 3rem;     /* 48px */
+    --input-height-lg: 3.5rem;   /* 56px */
+
+    /* Sidebar */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+
+    /* Navbar */
+    --navbar-height: 64px;
+
+    /* Card */
+    --card-padding: var(--spacing-6);
+    --card-radius: var(--radius-2xl);
+}
+
+/* =========================================================================
+   GLOBAL RESETS & BASE
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-normal);
+    color: var(--color-slate-900);
+    background-color: var(--color-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================================
+   PATTERN BACKGROUNDS
+   ========================================================================= */
+
+.pattern-light {
+    background-color: var(--color-slate-50);
+    background-image: radial-gradient(var(--color-primary) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+.pattern-dark {
+    background-color: var(--color-dark);
+    background-image: radial-gradient(var(--color-slate-700) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+/* =========================================================================
+   UTILITY CLASSES
+   ========================================================================= */
+
+/* Text Colors */
+.text-primary { color: var(--color-primary); }
+.text-smart { color: var(--color-smart); }
+.text-success { color: var(--color-success); }
+.text-danger { color: var(--color-danger); }
+.text-warning { color: var(--color-warning); }
+.text-dark { color: var(--color-dark); }
+.text-muted { color: var(--color-slate-400); }
+.text-light { color: var(--color-slate-300); }
+
+/* Background Colors */
+.bg-primary { background-color: var(--color-primary); }
+.bg-smart { background-color: var(--color-smart); }
+.bg-dark { background-color: var(--color-dark); }
+.bg-white { background-color: var(--color-white); }
+.bg-slate-50 { background-color: var(--color-slate-50); }
+.bg-slate-100 { background-color: var(--color-slate-100); }
+
+/* Font Weights */
+.font-regular { font-weight: var(--font-weight-regular); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-bold { font-weight: var(--font-weight-bold); }
+.font-black { font-weight: var(--font-weight-black); }
+
+/* Text Transform */
+.uppercase { text-transform: uppercase; }
+.lowercase { text-transform: lowercase; }
+.capitalize { text-transform: capitalize; }
+
+/* Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus Visible */
+.focus-ring:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* =========================================================================
+   REDUCED MOTION
+   ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

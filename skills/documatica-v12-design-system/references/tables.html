@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tables — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="tables.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Data Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Таблицы</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: BASIC TABLE -->
+        <section class="section">
+            <p class="section__label">01. Basic Table</p>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Документ</th>
+                            <th>Тип</th>
+                            <th>Дата</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Договор_ООО_ТехПром.pdf</td>
+                            <td>Контракт</td>
+                            <td>15.06.2026</td>
+                            <td>125,000 ₽</td>
+                            <td><span class="badge badge--success">Готов</span></td>
+                        </tr>
+                        <tr>
+                            <td>Счёт-фактура_№1284.pdf</td>
+                            <td>Счёт</td>
+                            <td>14.06.2026</td>
+                            <td>45,500 ₽</td>
+                            <td><span class="badge badge--warning">На проверке</span></td>
+                        </tr>
+                        <tr>
+                            <td>Акт_выполненных_работ.pdf</td>
+                            <td>Акт</td>
+                            <td>12.06.2026</td>
+                            <td>89,000 ₽</td>
+                            <td><span class="badge badge--success">Готов</span></td>
+                        </tr>
+                        <tr>
+                            <td>Накладная_№456.pdf</td>
+                            <td>Накладная</td>
+                            <td>10.06.2026</td>
+                            <td>15,200 ₽</td>
+                            <td><span class="badge badge--danger">Отклонён</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: STRIPED TABLE -->
+        <section class="section">
+            <p class="section__label">02. Striped Table</p>
+            <div class="table-wrapper">
+                <table class="table table--striped">
+                    <thead>
+                        <tr>
+                            <th>ИНН</th>
+                            <th>Организация</th>
+                            <th>Регион</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table__mono">7707083893</td>
+                            <td>ПАО Сбербанк</td>
+                            <td>Москва</td>
+                            <td><span class="badge badge--success">Активен</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">7710140679</td>
+                            <td>ПАО ВТБ</td>
+                            <td>Москва</td>
+                            <td><span class="badge badge--success">Активен</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">7728168971</td>
+                            <td>ПАО Газпром</td>
+                            <td>Санкт-Петербург</td>
+                            <td><span class="badge badge--success">Активен</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">7736050003</td>
+                            <td>ПАО Роснефть</td>
+                            <td>Москва</td>
+                            <td><span class="badge badge--warning">Проверка</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH ACTIONS -->
+        <section class="section">
+            <p class="section__label">03. With Actions</p>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <label class="table-check">
+                                    <input type="checkbox">
+                                    <span class="table-check__box"></span>
+                                </label>
+                            </th>
+                            <th>Название</th>
+                            <th>Размер</th>
+                            <th>Изменён</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <label class="table-check">
+                                    <input type="checkbox">
+                                    <span class="table-check__box"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <div class="table-file">
+                                    <svg class="table-file__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span>Договор_поставки_2026.pdf</span>
+                                </div>
+                            </td>
+                            <td class="table__muted">2.4 MB</td>
+                            <td class="table__muted">2 часа назад</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action" title="Скачать">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="table-action" title="Редактировать">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="table-action table-action--danger" title="Удалить">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label class="table-check">
+                                    <input type="checkbox" checked>
+                                    <span class="table-check__box"></span>
+                                </label>
+                            </td>
+                            <td>
+                                <div class="table-file">
+                                    <svg class="table-file__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span>Счёт-фактура_№1285.pdf</span>
+                                </div>
+                            </td>
+                            <td class="table__muted">856 KB</td>
+                            <td class="table__muted">Вчера</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="table-action" title="Скачать">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="table-action" title="Редактировать">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                        </svg>
+                                    </button>
+                                    <button class="table-action table-action--danger" title="Удалить">
+                                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SORTABLE -->
+        <section class="section">
+            <p class="section__label">04. Sortable Headers</p>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="table__sortable table__sortable--active">
+                                Дата
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </th>
+                            <th class="table__sortable">
+                                Контрагент
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                </svg>
+                            </th>
+                            <th class="table__sortable">
+                                Сумма
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                </svg>
+                            </th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>18.06.2026</td>
+                            <td>ООО «ТехПром»</td>
+                            <td>250,000 ₽</td>
+                            <td><span class="badge badge--success">Оплачен</span></td>
+                        </tr>
+                        <tr>
+                            <td>17.06.2026</td>
+                            <td>АО «ИнвестГрупп»</td>
+                            <td>89,500 ₽</td>
+                            <td><span class="badge badge--warning">Ожидает</span></td>
+                        </tr>
+                        <tr>
+                            <td>15.06.2026</td>
+                            <td>ИП Иванов А.С.</td>
+                            <td>45,000 ₽</td>
+                            <td><span class="badge badge--success">Оплачен</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: COMPACT -->
+        <section class="section">
+            <p class="section__label">05. Compact Table</p>
+            <div class="table-wrapper">
+                <table class="table table--compact">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Операция</th>
+                            <th>Время</th>
+                            <th>Результат</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table__mono">#1284</td>
+                            <td>AI Анализ документа</td>
+                            <td class="table__muted">0.34s</td>
+                            <td><span class="badge badge--sm badge--success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">#1283</td>
+                            <td>Валидация ИНН</td>
+                            <td class="table__muted">0.12s</td>
+                            <td><span class="badge badge--sm badge--success">OK</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">#1282</td>
+                            <td>Синхронизация API</td>
+                            <td class="table__muted">1.45s</td>
+                            <td><span class="badge badge--sm badge--danger">Fail</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">#1281</td>
+                            <td>Экспорт в PDF</td>
+                            <td class="table__muted">2.18s</td>
+                            <td><span class="badge badge--sm badge--success">OK</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH AVATAR -->
+        <section class="section">
+            <p class="section__label">06. With Avatar</p>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Пользователь</th>
+                            <th>Роль</th>
+                            <th>Email</th>
+                            <th>Последний вход</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="table-user__avatar">АИ</div>
+                                    <div class="table-user__info">
+                                        <span class="table-user__name">Алексей Иванов</span>
+                                        <span class="table-user__role">Администратор</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--pill badge--primary">Admin</span></td>
+                            <td class="table__muted">a.ivanov@company.ru</td>
+                            <td class="table__muted">Сейчас</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="table-user__avatar table-user__avatar--blue">МС</div>
+                                    <div class="table-user__info">
+                                        <span class="table-user__name">Мария Смирнова</span>
+                                        <span class="table-user__role">Бухгалтер</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--pill badge--neutral">User</span></td>
+                            <td class="table__muted">m.smirnova@company.ru</td>
+                            <td class="table__muted">2 часа назад</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="table-user__avatar table-user__avatar--green">ДП</div>
+                                    <div class="table-user__info">
+                                        <span class="table-user__name">Дмитрий Петров</span>
+                                        <span class="table-user__role">Юрист</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge badge--pill badge--smart">Pro</span></td>
+                            <td class="table__muted">d.petrov@company.ru</td>
+                            <td class="table__muted">Вчера</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: PAGINATION -->
+        <section class="section">
+            <p class="section__label">07. With Pagination</p>
+            <div class="table-wrapper">
+                <div class="table-header">
+                    <span class="table-header__count">Показано 1-10 из 156</span>
+                    <div class="table-header__actions">
+                        <select class="table-select">
+                            <option>10 записей</option>
+                            <option>25 записей</option>
+                            <option>50 записей</option>
+                        </select>
+                    </div>
+                </div>
+                <table class="table table--striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Транзакция</th>
+                            <th>Сумма</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table__mono">001</td>
+                            <td>Входящий платёж</td>
+                            <td class="table__success">+125,000 ₽</td>
+                            <td class="table__muted">18.06.2026</td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">002</td>
+                            <td>Исходящий платёж</td>
+                            <td class="table__danger">-45,000 ₽</td>
+                            <td class="table__muted">17.06.2026</td>
+                        </tr>
+                        <tr>
+                            <td class="table__mono">003</td>
+                            <td>Входящий платёж</td>
+                            <td class="table__success">+89,500 ₽</td>
+                            <td class="table__muted">15.06.2026</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    <nav class="pagination">
+                        <button class="pagination__btn pagination__btn--prev" disabled>
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button class="pagination__page pagination__page--active">1</button>
+                        <button class="pagination__page">2</button>
+                        <button class="pagination__page">3</button>
+                        <span class="pagination__dots">...</span>
+                        <button class="pagination__page">16</button>
+                        <button class="pagination__btn pagination__btn--next">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Tables Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

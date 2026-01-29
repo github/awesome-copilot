@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="alerts.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Notification Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Алерты</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: BASIC ALERTS -->
+        <section class="section">
+            <p class="section__label">01. Basic Alerts</p>
+            <div class="alerts-stack">
+                
+                <!-- Info Alert -->
+                <div class="alert alert--info">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__text">Синхронизация с API успешно завершена. Все данные актуальны.</span>
+                    </div>
+                </div>
+
+                <!-- Success Alert -->
+                <div class="alert alert--success">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__text">Документ успешно верифицирован и добавлен в архив.</span>
+                    </div>
+                </div>
+
+                <!-- Warning Alert -->
+                <div class="alert alert--warning">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__text">Истекает срок действия лицензии. Осталось 7 дней.</span>
+                    </div>
+                </div>
+
+                <!-- Danger Alert -->
+                <div class="alert alert--danger">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__text">Ошибка валидации ИНН. Проверьте введённые данные.</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH TITLE -->
+        <section class="section">
+            <p class="section__label">02. With Title</p>
+            <div class="alerts-stack">
+                
+                <!-- Info with Title -->
+                <div class="alert alert--info">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__title">Информация</span>
+                        <span class="alert__text">Система перейдёт в режим технического обслуживания 15.06.2026 с 02:00 до 04:00 МСК.</span>
+                    </div>
+                </div>
+
+                <!-- Success with Title -->
+                <div class="alert alert--success">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__title">Оплата получена</span>
+                        <span class="alert__text">Счёт №1284 успешно оплачен. Сумма: 125,000 ₽</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DISMISSIBLE -->
+        <section class="section">
+            <p class="section__label">03. Dismissible</p>
+            <div class="alerts-stack">
+                
+                <div class="alert alert--info alert--dismissible">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__title">Новое обновление доступно</span>
+                        <span class="alert__text">Documatica v12.1 включает улучшения производительности AI-анализа.</span>
+                    </div>
+                    <button class="alert__close" aria-label="Закрыть">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="alert alert--warning alert--dismissible">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__text">Квота API приближается к лимиту: использовано 85%</span>
+                    </div>
+                    <button class="alert__close" aria-label="Закрыть">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH ACTIONS -->
+        <section class="section">
+            <p class="section__label">04. With Actions</p>
+            <div class="alerts-stack">
+                
+                <div class="alert alert--info">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__title">Подтвердите действие</span>
+                        <span class="alert__text">Вы уверены, что хотите удалить 15 документов?</span>
+                        <div class="alert__actions">
+                            <button class="alert__btn alert__btn--primary">Подтвердить</button>
+                            <button class="alert__btn alert__btn--ghost">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert--danger">
+                    <svg class="alert__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="alert__content">
+                        <span class="alert__title">Сессия истекла</span>
+                        <span class="alert__text">Ваша сессия была завершена из-за бездействия.</span>
+                        <div class="alert__actions">
+                            <button class="alert__btn alert__btn--danger">Войти снова</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: ACCENT BORDER -->
+        <section class="section">
+            <p class="section__label">05. Accent Border (Left)</p>
+            <div class="alerts-stack">
+                
+                <div class="alert alert--info alert--accent">
+                    <div class="alert__content">
+                        <span class="alert__title">Подсказка</span>
+                        <span class="alert__text">Используйте комбинацию Ctrl+K для быстрого поиска документов.</span>
+                    </div>
+                </div>
+
+                <div class="alert alert--success alert--accent">
+                    <div class="alert__content">
+                        <span class="alert__title">Резервное копирование</span>
+                        <span class="alert__text">Автоматическое резервное копирование выполнено успешно.</span>
+                    </div>
+                </div>
+
+                <div class="alert alert--warning alert--accent">
+                    <div class="alert__content">
+                        <span class="alert__title">Внимание</span>
+                        <span class="alert__text">Некоторые поля содержат устаревшие данные.</span>
+                    </div>
+                </div>
+
+                <div class="alert alert--danger alert--accent">
+                    <div class="alert__content">
+                        <span class="alert__title">Критическая ошибка</span>
+                        <span class="alert__text">Не удалось установить соединение с базой данных.</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: INLINE ALERTS -->
+        <section class="section">
+            <p class="section__label">06. Inline Alerts</p>
+            <div class="alerts-inline">
+                <span class="alert-inline alert-inline--info">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Минимум 8 символов
+                </span>
+                <span class="alert-inline alert-inline--success">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Пароль надёжный
+                </span>
+                <span class="alert-inline alert-inline--danger">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Поле обязательно
+                </span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: TOAST NOTIFICATIONS -->
+        <section class="section">
+            <p class="section__label">07. Toast Notifications</p>
+            <div class="toasts-demo">
+                
+                <div class="toast toast--success">
+                    <div class="toast__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="toast__content">
+                        <span class="toast__title">Сохранено</span>
+                        <span class="toast__text">Изменения успешно сохранены</span>
+                    </div>
+                    <button class="toast__close" aria-label="Закрыть">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="toast toast--danger">
+                    <div class="toast__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    <div class="toast__content">
+                        <span class="toast__title">Ошибка загрузки</span>
+                        <span class="toast__text">Не удалось загрузить файл</span>
+                    </div>
+                    <button class="toast__close" aria-label="Закрыть">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="toast toast--info">
+                    <div class="toast__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </div>
+                    <div class="toast__content">
+                        <span class="toast__title">Синхронизация</span>
+                        <span class="toast__text">Обновление данных...</span>
+                    </div>
+                    <div class="toast__progress"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: BANNER -->
+        <section class="section">
+            <p class="section__label">08. Banner</p>
+            
+            <div class="banner banner--info">
+                <svg class="banner__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                </svg>
+                <span class="banner__text">
+                    <strong>Новая версия!</strong> Documatica v12.0 уже доступна. Обновитесь для улучшенного AI-анализа.
+                </span>
+                <a href="#" class="banner__link">Подробнее →</a>
+            </div>
+
+            <div class="banner banner--warning" style="margin-top: var(--spacing-4);">
+                <svg class="banner__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span class="banner__text">
+                    <strong>Плановые работы.</strong> 20.06.2026 с 03:00 до 05:00 МСК система будет недоступна.
+                </span>
+                <button class="banner__close" aria-label="Закрыть">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Alerts Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

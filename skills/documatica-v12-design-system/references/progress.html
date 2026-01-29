@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="progress.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Loading Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Прогресс</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: PROGRESS BARS -->
+        <section class="section">
+            <p class="section__label">01. Progress Bars</p>
+            <div class="progress-stack">
+                
+                <!-- Default -->
+                <div class="progress-group">
+                    <div class="progress-header">
+                        <span class="progress-label">Загрузка файла</span>
+                        <span class="progress-value">45%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress__bar" style="width: 45%;"></div>
+                    </div>
+                </div>
+
+                <!-- Success -->
+                <div class="progress-group">
+                    <div class="progress-header">
+                        <span class="progress-label">AI Анализ</span>
+                        <span class="progress-value">100%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress__bar progress__bar--success" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="progress-group">
+                    <div class="progress-header">
+                        <span class="progress-label">Квота API</span>
+                        <span class="progress-value">85%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress__bar progress__bar--warning" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <!-- Danger -->
+                <div class="progress-group">
+                    <div class="progress-header">
+                        <span class="progress-label">Хранилище</span>
+                        <span class="progress-value">95%</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress__bar progress__bar--danger" style="width: 95%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIZES -->
+        <section class="section">
+            <p class="section__label">02. Sizes</p>
+            <div class="progress-stack">
+                
+                <div class="progress-group">
+                    <span class="progress-label">Small (4px)</span>
+                    <div class="progress progress--sm">
+                        <div class="progress__bar" style="width: 60%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-group">
+                    <span class="progress-label">Default (8px)</span>
+                    <div class="progress">
+                        <div class="progress__bar" style="width: 60%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-group">
+                    <span class="progress-label">Large (12px)</span>
+                    <div class="progress progress--lg">
+                        <div class="progress__bar" style="width: 60%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: ANIMATED -->
+        <section class="section">
+            <p class="section__label">03. Animated</p>
+            <div class="progress-stack">
+                
+                <div class="progress-group">
+                    <span class="progress-label">Indeterminate (бесконечный)</span>
+                    <div class="progress">
+                        <div class="progress__bar progress__bar--indeterminate"></div>
+                    </div>
+                </div>
+
+                <div class="progress-group">
+                    <span class="progress-label">Striped Animated</span>
+                    <div class="progress">
+                        <div class="progress__bar progress__bar--striped" style="width: 75%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: WITH LABEL INSIDE -->
+        <section class="section">
+            <p class="section__label">04. With Label Inside</p>
+            <div class="progress-stack">
+                
+                <div class="progress progress--lg progress--labeled">
+                    <div class="progress__bar" style="width: 68%;">
+                        <span class="progress__label">68%</span>
+                    </div>
+                </div>
+
+                <div class="progress progress--lg progress--labeled">
+                    <div class="progress__bar progress__bar--success" style="width: 100%;">
+                        <span class="progress__label">Завершено</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SPINNERS -->
+        <section class="section">
+            <p class="section__label">05. Spinners</p>
+            <div class="spinners-row">
+                
+                <!-- Default Spinner -->
+                <div class="spinner-box">
+                    <div class="spinner"></div>
+                    <span class="spinner-label">Default</span>
+                </div>
+
+                <!-- Primary Spinner -->
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary"></div>
+                    <span class="spinner-label">Primary</span>
+                </div>
+
+                <!-- Smart Spinner -->
+                <div class="spinner-box">
+                    <div class="spinner spinner--smart"></div>
+                    <span class="spinner-label">Smart</span>
+                </div>
+
+                <!-- Dark Spinner -->
+                <div class="spinner-box spinner-box--dark">
+                    <div class="spinner spinner--white"></div>
+                    <span class="spinner-label spinner-label--light">White</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SPINNER SIZES -->
+        <section class="section">
+            <p class="section__label">06. Spinner Sizes</p>
+            <div class="spinners-row spinners-row--align-end">
+                
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary spinner--xs"></div>
+                    <span class="spinner-label">XS (16px)</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary spinner--sm"></div>
+                    <span class="spinner-label">SM (24px)</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary"></div>
+                    <span class="spinner-label">MD (32px)</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary spinner--lg"></div>
+                    <span class="spinner-label">LG (48px)</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="spinner spinner--primary spinner--xl"></div>
+                    <span class="spinner-label">XL (64px)</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DOTS LOADER -->
+        <section class="section">
+            <p class="section__label">07. Dots Loader</p>
+            <div class="spinners-row">
+                
+                <div class="spinner-box">
+                    <div class="dots-loader">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="spinner-label">Default</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="dots-loader dots-loader--primary">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="spinner-label">Primary</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="dots-loader dots-loader--smart">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="spinner-label">Smart</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SKELETON -->
+        <section class="section">
+            <p class="section__label">08. Skeleton Loaders</p>
+            <div class="skeletons-demo">
+                
+                <!-- Card Skeleton -->
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton--circle"></div>
+                    <div class="skeleton-card__content">
+                        <div class="skeleton skeleton--title"></div>
+                        <div class="skeleton skeleton--text"></div>
+                        <div class="skeleton skeleton--text skeleton--short"></div>
+                    </div>
+                </div>
+
+                <!-- Row Skeleton -->
+                <div class="skeleton-row">
+                    <div class="skeleton skeleton--avatar"></div>
+                    <div class="skeleton-row__content">
+                        <div class="skeleton skeleton--line"></div>
+                        <div class="skeleton skeleton--line skeleton--short"></div>
+                    </div>
+                    <div class="skeleton skeleton--button"></div>
+                </div>
+
+                <!-- Table Skeleton -->
+                <div class="skeleton-table">
+                    <div class="skeleton-table__row">
+                        <div class="skeleton skeleton--cell"></div>
+                        <div class="skeleton skeleton--cell skeleton--wide"></div>
+                        <div class="skeleton skeleton--cell"></div>
+                        <div class="skeleton skeleton--cell"></div>
+                    </div>
+                    <div class="skeleton-table__row">
+                        <div class="skeleton skeleton--cell"></div>
+                        <div class="skeleton skeleton--cell skeleton--wide"></div>
+                        <div class="skeleton skeleton--cell"></div>
+                        <div class="skeleton skeleton--cell"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CIRCULAR PROGRESS -->
+        <section class="section">
+            <p class="section__label">09. Circular Progress</p>
+            <div class="spinners-row">
+                
+                <div class="spinner-box">
+                    <div class="circular-progress" style="--progress: 75;">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="circular-progress__bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="circular-progress__bar" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <span class="circular-progress__value">75%</span>
+                    </div>
+                    <span class="spinner-label">75%</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="circular-progress circular-progress--success" style="--progress: 100;">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="circular-progress__bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="circular-progress__bar" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <span class="circular-progress__value">✓</span>
+                    </div>
+                    <span class="spinner-label">Complete</span>
+                </div>
+
+                <div class="spinner-box">
+                    <div class="circular-progress circular-progress--warning" style="--progress: 45;">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="circular-progress__bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="circular-progress__bar" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <span class="circular-progress__value">45%</span>
+                    </div>
+                    <span class="spinner-label">45%</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Progress Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

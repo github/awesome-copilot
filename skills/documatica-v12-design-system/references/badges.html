@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badges — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="badges.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <!-- Back Link -->
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Status Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Бейджи</span>
+            </h1>
+        </header>
+
+        <!-- КАТЕГОРИЯ: STATUS BADGES -->
+        <section class="section">
+            <p class="section__label">01. Status Badges</p>
+            <div class="badges-row">
+                <span class="badge badge--success">Готов</span>
+                <span class="badge badge--warning">На проверке</span>
+                <span class="badge badge--danger">Отклонён</span>
+                <span class="badge badge--info">Черновик</span>
+                <span class="badge badge--neutral">Архив</span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: OUTLINE BADGES -->
+        <section class="section">
+            <p class="section__label">02. Outline Badges</p>
+            <div class="badges-row">
+                <span class="badge badge--outline badge--outline-primary">Primary</span>
+                <span class="badge badge--outline badge--outline-success">Success</span>
+                <span class="badge badge--outline badge--outline-warning">Warning</span>
+                <span class="badge badge--outline badge--outline-danger">Danger</span>
+                <span class="badge badge--outline badge--outline-neutral">Neutral</span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: DOT BADGES -->
+        <section class="section">
+            <p class="section__label">03. With Dot Indicator</p>
+            <div class="badges-row">
+                <span class="badge badge--dot badge--success">
+                    <span class="badge__dot"></span>
+                    Активен
+                </span>
+                <span class="badge badge--dot badge--warning">
+                    <span class="badge__dot"></span>
+                    Ожидание
+                </span>
+                <span class="badge badge--dot badge--danger">
+                    <span class="badge__dot"></span>
+                    Offline
+                </span>
+                <span class="badge badge--dot badge--info">
+                    <span class="badge__dot badge__dot--pulse"></span>
+                    Обработка
+                </span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: SIZES -->
+        <section class="section">
+            <p class="section__label">04. Sizes</p>
+            <div class="badges-row badges-row--align-center">
+                <span class="badge badge--sm badge--success">Small</span>
+                <span class="badge badge--success">Default</span>
+                <span class="badge badge--lg badge--success">Large</span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: PILL BADGES -->
+        <section class="section">
+            <p class="section__label">05. Pill Badges</p>
+            <div class="badges-row">
+                <span class="badge badge--pill badge--primary">Новый</span>
+                <span class="badge badge--pill badge--smart">AI Анализ</span>
+                <span class="badge badge--pill badge--dark">Pro</span>
+                <span class="badge badge--pill badge--success">Верифицирован</span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: ICON BADGES -->
+        <section class="section">
+            <p class="section__label">06. With Icons</p>
+            <div class="badges-row">
+                <span class="badge badge--icon badge--success">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Подтверждено
+                </span>
+                <span class="badge badge--icon badge--danger">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Ошибка
+                </span>
+                <span class="badge badge--icon badge--warning">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Внимание
+                </span>
+                <span class="badge badge--icon badge--info">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Инфо
+                </span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: COUNTER BADGES -->
+        <section class="section">
+            <p class="section__label">07. Counter Badges</p>
+            <div class="badges-row">
+                <span class="badge badge--counter badge--primary">3</span>
+                <span class="badge badge--counter badge--danger">99+</span>
+                <span class="badge badge--counter badge--success">12</span>
+                <span class="badge badge--counter badge--smart">★</span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: REMOVABLE TAGS -->
+        <section class="section">
+            <p class="section__label">08. Removable Tags</p>
+            <div class="badges-row">
+                <span class="tag">
+                    Финансы
+                    <button class="tag__remove" aria-label="Удалить">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </span>
+                <span class="tag">
+                    Юридические
+                    <button class="tag__remove" aria-label="Удалить">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </span>
+                <span class="tag tag--primary">
+                    AI Аудит
+                    <button class="tag__remove" aria-label="Удалить">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: CATEGORY TAGS -->
+        <section class="section">
+            <p class="section__label">09. Category Tags</p>
+            <div class="badges-row">
+                <span class="category-tag">
+                    <span class="category-tag__dot category-tag__dot--blue"></span>
+                    Контракты
+                </span>
+                <span class="category-tag">
+                    <span class="category-tag__dot category-tag__dot--green"></span>
+                    Счета
+                </span>
+                <span class="category-tag">
+                    <span class="category-tag__dot category-tag__dot--yellow"></span>
+                    Акты
+                </span>
+                <span class="category-tag">
+                    <span class="category-tag__dot category-tag__dot--red"></span>
+                    Срочные
+                </span>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: LABEL BADGES -->
+        <section class="section">
+            <p class="section__label">10. Label Badges</p>
+            <div class="badges-row">
+                <div class="label-badge">
+                    <span class="label-badge__key">Статус</span>
+                    <span class="label-badge__value label-badge__value--success">Активен</span>
+                </div>
+                <div class="label-badge">
+                    <span class="label-badge__key">Версия</span>
+                    <span class="label-badge__value label-badge__value--primary">v12.0</span>
+                </div>
+                <div class="label-badge">
+                    <span class="label-badge__key">Лицензия</span>
+                    <span class="label-badge__value">MIT</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- КАТЕГОРИЯ: USAGE EXAMPLES -->
+        <section class="section">
+            <p class="section__label">11. Usage Examples</p>
+            
+            <!-- Example: Document Row -->
+            <div class="example-card">
+                <div class="example-row">
+                    <div class="example-row__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="example-row__content">
+                        <span class="example-row__title">Договор_ООО_ТехПром.pdf</span>
+                        <span class="example-row__meta">Обновлён 2 часа назад</span>
+                    </div>
+                    <div class="example-row__badges">
+                        <span class="badge badge--dot badge--success">
+                            <span class="badge__dot"></span>
+                            Готов
+                        </span>
+                        <span class="badge badge--pill badge--smart">AI Анализ</span>
+                    </div>
+                </div>
+
+                <div class="example-row">
+                    <div class="example-row__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="example-row__content">
+                        <span class="example-row__title">Счёт-фактура_№1284.pdf</span>
+                        <span class="example-row__meta">Обновлён вчера</span>
+                    </div>
+                    <div class="example-row__badges">
+                        <span class="badge badge--dot badge--warning">
+                            <span class="badge__dot badge__dot--pulse"></span>
+                            На проверке
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example: Avatar with Badge -->
+            <div class="example-avatars">
+                <div class="avatar-badge-wrap">
+                    <div class="avatar">DN</div>
+                    <span class="avatar-badge avatar-badge--online"></span>
+                </div>
+                <div class="avatar-badge-wrap">
+                    <div class="avatar avatar--primary">AI</div>
+                    <span class="avatar-badge avatar-badge--busy"></span>
+                </div>
+                <div class="avatar-badge-wrap">
+                    <div class="avatar avatar--dark">?</div>
+                    <span class="avatar-badge avatar-badge--away"></span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer__text">
+                Badges Kit v12.0 // documatica systems
+            </p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

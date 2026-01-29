@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="compare.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">● ANALYSIS</span>
+            <h1 class="hero__title">COM<br><span>PARE</span></h1>
+            <p class="hero__desc">Сравнение товаров, характеристик и спецификаций.</p>
+        </header>
+
+        <!-- ============================================
+             01. COMPARE TABLE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">COMPARE TABLE</h2>
+            </div>
+            
+            <div class="compare-wrapper">
+                <div class="compare-table">
+                    <!-- Header Row -->
+                    <div class="compare-row compare-row--header">
+                        <div class="compare-cell compare-cell--label"></div>
+                        <div class="compare-cell compare-cell--product">
+                            <button class="compare-remove">×</button>
+                            <div class="compare-product">
+                                <div class="compare-product__image">
+                                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" alt="">
+                                </div>
+                                <h3 class="compare-product__title">Smart Watch<br>Series X</h3>
+                                <div class="compare-product__price">24 990 ₽</div>
+                                <button class="btn btn--primary btn--sm">В корзину</button>
+                            </div>
+                        </div>
+                        <div class="compare-cell compare-cell--product">
+                            <button class="compare-remove">×</button>
+                            <div class="compare-product">
+                                <div class="compare-product__image">
+                                    <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop" alt="">
+                                </div>
+                                <h3 class="compare-product__title">Smart Watch<br>Ultra Pro</h3>
+                                <div class="compare-product__price">34 990 ₽</div>
+                                <button class="btn btn--primary btn--sm">В корзину</button>
+                            </div>
+                        </div>
+                        <div class="compare-cell compare-cell--product">
+                            <button class="compare-remove">×</button>
+                            <div class="compare-product">
+                                <div class="compare-product__image">
+                                    <img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=200&h=200&fit=crop" alt="">
+                                </div>
+                                <h3 class="compare-product__title">Smart Watch<br>Lite</h3>
+                                <div class="compare-product__price">14 990 ₽</div>
+                                <button class="btn btn--primary btn--sm">В корзину</button>
+                            </div>
+                        </div>
+                        <div class="compare-cell compare-cell--add">
+                            <button class="compare-add">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                <span>Добавить</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Specs Group -->
+                    <div class="compare-group">
+                        <div class="compare-group__title">ОСНОВНЫЕ</div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Дисплей</div>
+                        <div class="compare-cell">AMOLED, 1.9"</div>
+                        <div class="compare-cell compare-cell--best">AMOLED, 2.1"</div>
+                        <div class="compare-cell">LCD, 1.5"</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Разрешение</div>
+                        <div class="compare-cell">484×396 px</div>
+                        <div class="compare-cell compare-cell--best">520×420 px</div>
+                        <div class="compare-cell">320×280 px</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Процессор</div>
+                        <div class="compare-cell">Apple S9</div>
+                        <div class="compare-cell compare-cell--best">Apple S9 Ultra</div>
+                        <div class="compare-cell">Apple S7</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Память</div>
+                        <div class="compare-cell">64 ГБ</div>
+                        <div class="compare-cell compare-cell--best">128 ГБ</div>
+                        <div class="compare-cell">32 ГБ</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <!-- Specs Group -->
+                    <div class="compare-group">
+                        <div class="compare-group__title">БАТАРЕЯ</div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Ёмкость</div>
+                        <div class="compare-cell">410 mAh</div>
+                        <div class="compare-cell compare-cell--best">542 mAh</div>
+                        <div class="compare-cell">280 mAh</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Автономность</div>
+                        <div class="compare-cell compare-cell--best">До 14 дней</div>
+                        <div class="compare-cell">До 10 дней</div>
+                        <div class="compare-cell">До 7 дней</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Быстрая зарядка</div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--no">—</span></div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <!-- Specs Group -->
+                    <div class="compare-group">
+                        <div class="compare-group__title">ДАТЧИКИ</div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">GPS</div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">ЭКГ</div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--yes">✓</span></div>
+                        <div class="compare-cell"><span class="check check--no">—</span></div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+
+                    <div class="compare-row">
+                        <div class="compare-cell compare-cell--label">Водозащита</div>
+                        <div class="compare-cell">5 ATM</div>
+                        <div class="compare-cell compare-cell--best">10 ATM</div>
+                        <div class="compare-cell">3 ATM</div>
+                        <div class="compare-cell compare-cell--add"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. COMPARE CARDS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">COMPARE CARDS</h2>
+            </div>
+            
+            <div class="compare-cards">
+                <div class="compare-card compare-card--winner">
+                    <span class="compare-card__badge">★ ЛУЧШИЙ ВЫБОР</span>
+                    <div class="compare-card__image">
+                        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" alt="">
+                    </div>
+                    <h3 class="compare-card__title">Smart Watch Series X</h3>
+                    <div class="compare-card__price">24 990 ₽</div>
+                    <ul class="compare-card__features">
+                        <li><span class="check check--yes">✓</span> AMOLED дисплей</li>
+                        <li><span class="check check--yes">✓</span> 14 дней автономности</li>
+                        <li><span class="check check--yes">✓</span> ЭКГ + SpO2</li>
+                        <li><span class="check check--yes">✓</span> Быстрая зарядка</li>
+                    </ul>
+                    <button class="btn btn--primary btn--full">Выбрать</button>
+                </div>
+
+                <div class="compare-card">
+                    <div class="compare-card__image">
+                        <img src="https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=200&h=200&fit=crop" alt="">
+                    </div>
+                    <h3 class="compare-card__title">Smart Watch Lite</h3>
+                    <div class="compare-card__price">14 990 ₽</div>
+                    <ul class="compare-card__features">
+                        <li><span class="check check--no">—</span> LCD дисплей</li>
+                        <li><span class="check check--no">—</span> 7 дней автономности</li>
+                        <li><span class="check check--no">—</span> Нет ЭКГ</li>
+                        <li><span class="check check--no">—</span> Нет быстрой зарядки</li>
+                    </ul>
+                    <button class="btn btn--outline btn--full">Выбрать</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. DIFFERENCE HIGHLIGHT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">DIFFERENCE HIGHLIGHT</h2>
+            </div>
+            
+            <div class="diff-card">
+                <div class="diff-header">
+                    <label class="diff-toggle">
+                        <input type="checkbox" checked>
+                        <span class="diff-toggle__slider"></span>
+                        <span class="diff-toggle__label">Только различия</span>
+                    </label>
+                </div>
+                
+                <div class="diff-items">
+                    <div class="diff-item diff-item--different">
+                        <span class="diff-item__label">Дисплей</span>
+                        <div class="diff-item__values">
+                            <span class="diff-item__value diff-item__value--a">AMOLED</span>
+                            <span class="diff-item__vs">VS</span>
+                            <span class="diff-item__value diff-item__value--b">LCD</span>
+                        </div>
+                    </div>
+                    <div class="diff-item diff-item--different">
+                        <span class="diff-item__label">Батарея</span>
+                        <div class="diff-item__values">
+                            <span class="diff-item__value diff-item__value--a diff-item__value--better">14 дней</span>
+                            <span class="diff-item__vs">VS</span>
+                            <span class="diff-item__value diff-item__value--b">7 дней</span>
+                        </div>
+                    </div>
+                    <div class="diff-item diff-item--different">
+                        <span class="diff-item__label">Цена</span>
+                        <div class="diff-item__values">
+                            <span class="diff-item__value diff-item__value--a">24 990 ₽</span>
+                            <span class="diff-item__vs">VS</span>
+                            <span class="diff-item__value diff-item__value--b diff-item__value--better">14 990 ₽</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. COMPARE BUTTON
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">COMPARE BUTTONS</h2>
+            </div>
+            
+            <div class="compare-buttons-demo">
+                <button class="compare-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Сравнить
+                </button>
+
+                <button class="compare-btn compare-btn--active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    В сравнении
+                </button>
+
+                <button class="compare-btn compare-btn--icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                </button>
+
+                <button class="compare-btn compare-btn--icon compare-btn--active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <span class="compare-btn__count">2</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. EMPTY STATE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">EMPTY STATE</h2>
+            </div>
+            
+            <div class="empty-compare">
+                <div class="empty-compare__icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                </div>
+                <h3 class="empty-compare__title">СРАВНЕНИЕ <span>ПУСТО</span></h3>
+                <p class="empty-compare__text">Добавьте товары для сравнения характеристик</p>
+                <a href="#" class="btn btn--primary btn--lg">Перейти в каталог</a>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">ИСПОЛЬЗОВАНИЕ</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;!-- Таблица сравнения --&gt;
+&lt;div class="compare-table"&gt;
+  &lt;div class="compare-row compare-row--header"&gt;
+    &lt;div class="compare-cell compare-cell--product"&gt;...&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="compare-row"&gt;
+    &lt;div class="compare-cell compare-cell--label"&gt;Характеристика&lt;/div&gt;
+    &lt;div class="compare-cell compare-cell--best"&gt;Лучшее значение&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+/* Модификаторы */
+.compare-cell--best       /* Лучшее значение */
+.compare-card--winner     /* Лучший товар */
+.check--yes / .check--no  /* Галочки */</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

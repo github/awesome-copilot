@@ -1,0 +1,604 @@
+/**
+ * UI Kit v12.0 — Pagination
+ * Page navigation components
+ */
+
+/* =========================================================================
+   BASE LAYOUT
+   ========================================================================= */
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-dark);
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 48px 24px;
+}
+
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 48px;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link svg {
+    transition: transform 0.2s ease;
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+
+.hero {
+    margin-bottom: 64px;
+}
+
+.hero__badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-radius: 100px;
+    margin-bottom: 24px;
+}
+
+.hero__title {
+    font-size: clamp(48px, 8vw, 72px);
+    font-weight: 900;
+    color: var(--color-dark);
+    line-height: 1.0;
+    margin: 0 0 16px 0;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.hero__title span {
+    color: var(--color-primary);
+}
+
+.hero__desc {
+    font-size: 18px;
+    color: var(--color-slate-500);
+    max-width: 600px;
+    margin: 0;
+}
+
+/* =========================================================================
+   SECTIONS
+   ========================================================================= */
+
+.section {
+    margin-bottom: 64px;
+}
+
+.section__header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-slate-100);
+}
+
+.section__number {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.section__title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-dark);
+    margin: 0;
+}
+
+/* =========================================================================
+   DEMO
+   ========================================================================= */
+
+.demo-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.demo-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.demo-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.dark-box {
+    background: var(--color-dark);
+    border-radius: 16px;
+    padding: 32px;
+}
+
+/* =========================================================================
+   PAGINATION BASE
+   ========================================================================= */
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pagination__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 12px;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 10px;
+    color: var(--color-slate-600);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.pagination__btn:hover {
+    background: var(--color-slate-50);
+    border-color: var(--color-slate-300);
+    color: var(--color-dark);
+}
+
+.pagination__btn--active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.pagination__btn--active:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: var(--color-white);
+}
+
+.pagination__btn--nav {
+    color: var(--color-slate-400);
+}
+
+.pagination__btn[aria-disabled="true"] {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.pagination__btn--text {
+    gap: 6px;
+    padding: 0 16px;
+}
+
+.pagination__ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    color: var(--color-slate-400);
+    font-size: 14px;
+}
+
+/* =========================================================================
+   SIZE VARIANTS
+   ========================================================================= */
+
+.pagination--sm .pagination__btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+.pagination--sm .pagination__ellipsis {
+    min-width: 32px;
+    height: 32px;
+}
+
+.pagination--lg .pagination__btn {
+    min-width: 48px;
+    height: 48px;
+    padding: 0 16px;
+    font-size: 16px;
+    border-radius: 12px;
+}
+
+.pagination--lg .pagination__ellipsis {
+    min-width: 48px;
+    height: 48px;
+}
+
+/* =========================================================================
+   SHAPE VARIANTS
+   ========================================================================= */
+
+.pagination--pill .pagination__btn {
+    border-radius: 100px;
+}
+
+.pagination--square .pagination__btn {
+    border-radius: 0;
+}
+
+/* =========================================================================
+   STYLE VARIANTS
+   ========================================================================= */
+
+/* Outlined */
+.pagination--outlined .pagination__btn {
+    background: transparent;
+}
+
+.pagination--outlined .pagination__btn:hover {
+    background: var(--color-slate-50);
+}
+
+.pagination--outlined .pagination__btn--active {
+    background: transparent;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.pagination--outlined .pagination__btn--active:hover {
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* Ghost */
+.pagination--ghost .pagination__btn {
+    background: transparent;
+    border-color: transparent;
+}
+
+.pagination--ghost .pagination__btn:hover {
+    background: var(--color-slate-100);
+}
+
+.pagination--ghost .pagination__btn--active {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+/* Minimal */
+.pagination--minimal .pagination__btn {
+    background: transparent;
+    border-color: transparent;
+    min-width: 32px;
+}
+
+.pagination--minimal .pagination__btn:hover {
+    color: var(--color-primary);
+}
+
+.pagination--minimal .pagination__btn--active {
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+/* =========================================================================
+   DARK THEME
+   ========================================================================= */
+
+.pagination--dark .pagination__btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--color-slate-300);
+}
+
+.pagination--dark .pagination__btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--color-white);
+}
+
+.pagination--dark .pagination__btn--active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+.pagination--dark .pagination__ellipsis {
+    color: var(--color-slate-500);
+}
+
+/* =========================================================================
+   PAGINATION WRAPPER
+   ========================================================================= */
+
+.pagination-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.pagination-wrapper--between {
+    justify-content: space-between;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: var(--color-slate-500);
+}
+
+/* Per page */
+.per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.per-page__label {
+    font-size: 14px;
+    color: var(--color-slate-500);
+}
+
+.per-page__select {
+    padding: 8px 12px;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--color-dark);
+    cursor: pointer;
+}
+
+.per-page__select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+/* Go to */
+.go-to {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.go-to__label {
+    font-size: 14px;
+    color: var(--color-slate-500);
+}
+
+.go-to__input {
+    width: 64px;
+    padding: 8px 12px;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.go-to__input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.go-to__btn {
+    padding: 8px 16px;
+    background: var(--color-primary);
+    border: none;
+    border-radius: 8px;
+    color: var(--color-white);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.go-to__btn:hover {
+    background: #2563eb;
+}
+
+/* =========================================================================
+   SIMPLE PAGINATION
+   ========================================================================= */
+
+.pagination-simple {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.pagination-simple__link {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    flex: 1;
+    max-width: 48%;
+}
+
+.pagination-simple__link:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+}
+
+.pagination-simple__link--prev {
+    justify-content: flex-start;
+}
+
+.pagination-simple__link--next {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.pagination-simple__link svg {
+    color: var(--color-slate-400);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.pagination-simple__link:hover svg {
+    color: var(--color-primary);
+}
+
+.pagination-simple__link--prev:hover svg {
+    transform: translateX(-4px);
+}
+
+.pagination-simple__link--next:hover svg {
+    transform: translateX(4px);
+}
+
+.pagination-simple__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pagination-simple__content small {
+    font-size: 12px;
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pagination-simple__content strong {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-dark);
+}
+
+.pagination-simple__link:hover .pagination-simple__content strong {
+    color: var(--color-primary);
+}
+
+/* =========================================================================
+   COMPACT PAGINATION
+   ========================================================================= */
+
+.pagination-compact {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pagination-compact__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--color-white);
+    border: 1px solid var(--color-slate-200);
+    border-radius: 10px;
+    color: var(--color-slate-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.pagination-compact__btn:hover {
+    background: var(--color-slate-50);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.pagination-compact__info {
+    font-size: 14px;
+    color: var(--color-slate-500);
+}
+
+/* =========================================================================
+   CODE BLOCK
+   ========================================================================= */
+
+.code-block {
+    background: var(--color-dark);
+    border-radius: 16px;
+    padding: 24px;
+    overflow-x: auto;
+}
+
+.code-block pre {
+    margin: 0;
+}
+
+.code-block code {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    color: var(--color-slate-300);
+    line-height: 1.7;
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .container {
+        padding: 32px 16px;
+    }
+
+    .pagination-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .pagination-wrapper--between {
+        gap: 16px;
+    }
+
+    .pagination-simple {
+        flex-direction: column;
+    }
+
+    .pagination-simple__link {
+        max-width: 100%;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+}

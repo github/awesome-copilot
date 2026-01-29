@@ -1,0 +1,509 @@
+/**
+ * Documatica Design System v12.0
+ * Accordion & Collapsible Components
+ */
+
+/* =========================================================================
+   LAYOUT
+   ========================================================================= */
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-20) var(--spacing-6);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-10);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    transition: var(--transition-base);
+}
+
+.back-link svg {
+    width: 20px;
+    height: 20px;
+    transition: var(--transition-arrow);
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+}
+
+.back-link:hover svg {
+    transform: translateX(-4px);
+}
+
+.header {
+    margin-bottom: var(--spacing-16);
+}
+
+.header__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    margin-bottom: var(--spacing-6);
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    background-color: var(--color-smart);
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.status-label {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-ultra);
+}
+
+.header__title {
+    font-size: clamp(48px, 8vw, 80px);
+    font-weight: var(--font-weight-black);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-tight);
+    line-height: var(--line-height-tight);
+    color: var(--color-dark);
+}
+
+.section {
+    margin-bottom: var(--spacing-16);
+}
+
+.section__label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-400);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mega);
+    margin-bottom: var(--spacing-8);
+    padding-bottom: var(--spacing-4);
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.footer {
+    margin-top: var(--spacing-20);
+    padding-top: var(--spacing-10);
+    border-top: 1px solid var(--color-slate-200);
+    text-align: center;
+}
+
+.footer__text {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-200);
+    text-transform: uppercase;
+    letter-spacing: 1em;
+}
+
+/* =========================================================================
+   BASIC ACCORDION
+   ========================================================================= */
+
+.accordion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-3);
+}
+
+.accordion__item {
+    background: var(--color-white);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition-base);
+}
+
+.accordion__item:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.accordion__item[open] {
+    box-shadow: var(--shadow-lg);
+}
+
+.accordion__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+    padding: var(--spacing-5) var(--spacing-6);
+    cursor: pointer;
+    list-style: none;
+    transition: var(--transition-base);
+}
+
+.accordion__header::-webkit-details-marker {
+    display: none;
+}
+
+.accordion__header:hover {
+    background: var(--color-slate-50);
+}
+
+.accordion__title {
+    flex: 1;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+}
+
+.accordion__icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-slate-400);
+    transition: var(--transition-spring);
+}
+
+.accordion__icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.accordion__item[open] .accordion__icon {
+    transform: rotate(180deg);
+    color: var(--color-primary);
+}
+
+.accordion__content {
+    padding: 0 var(--spacing-6) var(--spacing-6);
+}
+
+.accordion__content p {
+    font-size: var(--font-size-base);
+    color: var(--color-slate-600);
+    line-height: var(--line-height-relaxed);
+}
+
+/* =========================================================================
+   WITH ICONS
+   ========================================================================= */
+
+.accordion--icons .accordion__icon-left {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-lg);
+    color: var(--color-primary);
+    flex-shrink: 0;
+}
+
+.accordion--icons .accordion__icon-left svg {
+    width: 20px;
+    height: 20px;
+}
+
+.accordion--icons .accordion__content {
+    padding-left: calc(var(--spacing-6) + 40px + var(--spacing-4));
+}
+
+/* =========================================================================
+   BORDERED
+   ========================================================================= */
+
+.accordion--bordered .accordion__item {
+    background: transparent;
+    border: 2px solid var(--color-slate-200);
+    box-shadow: none;
+}
+
+.accordion--bordered .accordion__item:hover {
+    border-color: var(--color-slate-300);
+    box-shadow: none;
+}
+
+.accordion--bordered .accordion__item[open] {
+    border-color: var(--color-primary);
+    box-shadow: none;
+}
+
+.accordion--bordered .accordion__icon svg {
+    transition: var(--transition-spring);
+}
+
+.accordion--bordered .accordion__item[open] .accordion__icon svg {
+    transform: rotate(45deg);
+}
+
+/* =========================================================================
+   FLUSH
+   ========================================================================= */
+
+.accordion--flush .accordion__item {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid var(--color-slate-200);
+}
+
+.accordion--flush .accordion__item:first-child {
+    border-top: 1px solid var(--color-slate-200);
+}
+
+.accordion--flush .accordion__item:hover,
+.accordion--flush .accordion__item[open] {
+    box-shadow: none;
+}
+
+.accordion--flush .accordion__header {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.accordion--flush .accordion__content {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* =========================================================================
+   DARK VARIANT
+   ========================================================================= */
+
+.accordion--dark {
+    background: var(--color-dark);
+    padding: var(--spacing-6);
+    border-radius: var(--radius-2xl);
+}
+
+.accordion--dark .accordion__item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+
+.accordion--dark .accordion__item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+}
+
+.accordion--dark .accordion__item[open] {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: none;
+}
+
+.accordion--dark .accordion__header:hover {
+    background: transparent;
+}
+
+.accordion--dark .accordion__title {
+    color: var(--color-white);
+}
+
+.accordion--dark .accordion__icon {
+    color: var(--color-slate-400);
+}
+
+.accordion--dark .accordion__item[open] .accordion__icon {
+    color: var(--color-primary);
+}
+
+.accordion--dark .accordion__content p {
+    color: var(--color-slate-300);
+}
+
+/* =========================================================================
+   NUMBERED STEPS
+   ========================================================================= */
+
+.accordion--numbered .accordion__number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-slate-100);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    color: var(--color-slate-600);
+    flex-shrink: 0;
+    transition: var(--transition-base);
+}
+
+.accordion--numbered .accordion__item[open] .accordion__number {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.accordion--numbered .accordion__content {
+    padding-left: calc(var(--spacing-6) + 40px + var(--spacing-4));
+}
+
+/* =========================================================================
+   COLLAPSIBLE LIST
+   ========================================================================= */
+
+.collapsible-list {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-white);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.collapsible-list__item {
+    border-bottom: 1px solid var(--color-slate-100);
+}
+
+.collapsible-list__item:last-child {
+    border-bottom: none;
+}
+
+.collapsible-list__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-4) var(--spacing-5);
+    cursor: pointer;
+    list-style: none;
+    transition: var(--transition-base);
+}
+
+.collapsible-list__header::-webkit-details-marker {
+    display: none;
+}
+
+.collapsible-list__header:hover {
+    background: var(--color-slate-50);
+}
+
+.collapsible-list__icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-slate-100);
+    border-radius: var(--radius-lg);
+    color: var(--color-slate-500);
+    flex-shrink: 0;
+    transition: var(--transition-base);
+}
+
+.collapsible-list__icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.collapsible-list__item[open] .collapsible-list__icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--color-primary);
+}
+
+.collapsible-list__title {
+    flex: 1;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+}
+
+.collapsible-list__badge {
+    padding: var(--spacing-1) var(--spacing-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-slate-500);
+    background: var(--color-slate-100);
+    border-radius: var(--radius-full);
+}
+
+.collapsible-list__arrow {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-slate-400);
+    transition: var(--transition-spring);
+}
+
+.collapsible-list__arrow svg {
+    width: 16px;
+    height: 16px;
+}
+
+.collapsible-list__item[open] .collapsible-list__arrow {
+    transform: rotate(90deg);
+    color: var(--color-primary);
+}
+
+.collapsible-list__content {
+    padding: 0 var(--spacing-5) var(--spacing-4);
+    padding-left: calc(var(--spacing-5) + 36px + var(--spacing-3));
+}
+
+.collapsible-list__link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    padding: var(--spacing-2) var(--spacing-3);
+    font-size: var(--font-size-sm);
+    color: var(--color-slate-600);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    transition: var(--transition-base);
+}
+
+.collapsible-list__link:hover {
+    background: var(--color-slate-100);
+    color: var(--color-primary);
+}
+
+.collapsible-list__link svg {
+    width: 16px;
+    height: 16px;
+    color: var(--color-slate-400);
+    flex-shrink: 0;
+}
+
+.collapsible-list__link:hover svg {
+    color: var(--color-primary);
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .container {
+        padding: var(--spacing-10) var(--spacing-4);
+    }
+
+    .accordion__header {
+        padding: var(--spacing-4);
+    }
+
+    .accordion__title {
+        font-size: var(--font-size-base);
+    }
+
+    .accordion__content {
+        padding: 0 var(--spacing-4) var(--spacing-4);
+    }
+
+    .accordion--icons .accordion__content,
+    .accordion--numbered .accordion__content {
+        padding-left: var(--spacing-4);
+    }
+
+    .collapsible-list__content {
+        padding-left: var(--spacing-5);
+    }
+}

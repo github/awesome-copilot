@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="timeline.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Timeline Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Timeline</span>
+            </h1>
+        </header>
+
+        <!-- BASIC TIMELINE -->
+        <section class="section">
+            <p class="section__label">01. Basic Timeline</p>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Сегодня</span>
+                        <h4 class="timeline-title">Проект запущен в продакшн</h4>
+                        <p class="timeline-text">Все системы работают корректно. Нагрузка в пределах нормы.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">Вчера</span>
+                        <h4 class="timeline-title">Финальное тестирование</h4>
+                        <p class="timeline-text">Пройдено 1,247 тестов. Все критические баги исправлены.</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">2 дня назад</span>
+                        <h4 class="timeline-title">Code Review завершён</h4>
+                        <p class="timeline-text">Команда провела ревью всех pull request-ов.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH ICONS -->
+        <section class="section">
+            <p class="section__label">02. With Icons</p>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--success">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">12:45</span>
+                        <h4 class="timeline-title">Оплата получена</h4>
+                        <p class="timeline-text">Счёт #INV-2024-001 оплачен клиентом</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">11:30</span>
+                        <h4 class="timeline-title">Документ создан</h4>
+                        <p class="timeline-text">Договор_2024.pdf добавлен в систему</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--smart">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">10:15</span>
+                        <h4 class="timeline-title">AI анализ завершён</h4>
+                        <p class="timeline-text">Документ классифицирован и проиндексирован</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--danger">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">09:00</span>
+                        <h4 class="timeline-title">Обнаружена проблема</h4>
+                        <p class="timeline-text">Ошибка валидации в форме регистрации</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ALTERNATING -->
+        <section class="section">
+            <p class="section__label">03. Alternating (Centered)</p>
+            <div class="timeline timeline--centered">
+                <div class="timeline-item timeline-item--left">
+                    <div class="timeline-marker timeline-marker--lg"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">2024</span>
+                        <h4 class="timeline-title">Запуск v12.0</h4>
+                        <p class="timeline-text">Полный редизайн платформы</p>
+                    </div>
+                </div>
+                <div class="timeline-item timeline-item--right">
+                    <div class="timeline-marker timeline-marker--lg"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">2023</span>
+                        <h4 class="timeline-title">AI интеграция</h4>
+                        <p class="timeline-text">Добавлен Smart Assistant</p>
+                    </div>
+                </div>
+                <div class="timeline-item timeline-item--left">
+                    <div class="timeline-marker timeline-marker--lg"></div>
+                    <div class="timeline-content">
+                        <span class="timeline-date">2022</span>
+                        <h4 class="timeline-title">Первая версия</h4>
+                        <p class="timeline-text">MVP запущен для бета-тестеров</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HORIZONTAL -->
+        <section class="section">
+            <p class="section__label">04. Horizontal Timeline</p>
+            <div class="timeline-horizontal">
+                <div class="timeline-h-item">
+                    <div class="timeline-h-marker timeline-h-marker--done"></div>
+                    <div class="timeline-h-content">
+                        <span class="timeline-h-label">Заказ создан</span>
+                        <span class="timeline-h-date">10 янв</span>
+                    </div>
+                </div>
+                <div class="timeline-h-item">
+                    <div class="timeline-h-marker timeline-h-marker--done"></div>
+                    <div class="timeline-h-content">
+                        <span class="timeline-h-label">Оплачен</span>
+                        <span class="timeline-h-date">10 янв</span>
+                    </div>
+                </div>
+                <div class="timeline-h-item">
+                    <div class="timeline-h-marker timeline-h-marker--active"></div>
+                    <div class="timeline-h-content">
+                        <span class="timeline-h-label">В обработке</span>
+                        <span class="timeline-h-date">11 янв</span>
+                    </div>
+                </div>
+                <div class="timeline-h-item">
+                    <div class="timeline-h-marker"></div>
+                    <div class="timeline-h-content">
+                        <span class="timeline-h-label">Отправлен</span>
+                        <span class="timeline-h-date">—</span>
+                    </div>
+                </div>
+                <div class="timeline-h-item">
+                    <div class="timeline-h-marker"></div>
+                    <div class="timeline-h-content">
+                        <span class="timeline-h-label">Доставлен</span>
+                        <span class="timeline-h-date">—</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH CARDS -->
+        <section class="section">
+            <p class="section__label">05. With Cards</p>
+            <div class="timeline timeline--cards">
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-card">
+                        <div class="timeline-card__header">
+                            <h4 class="timeline-card__title">Новый офис открыт</h4>
+                            <span class="timeline-card__date">15 января 2024</span>
+                        </div>
+                        <p class="timeline-card__text">
+                            Мы открыли новый офис в Москва-Сити. Теперь команда работает в современном 
+                            пространстве площадью 500 м².
+                        </p>
+                        <div class="timeline-card__footer">
+                            <span class="timeline-card__tag">Компания</span>
+                            <span class="timeline-card__tag">Расширение</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker timeline-marker--icon timeline-marker--success">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="timeline-card">
+                        <div class="timeline-card__header">
+                            <h4 class="timeline-card__title">Команда выросла до 50 человек</h4>
+                            <span class="timeline-card__date">1 декабря 2023</span>
+                        </div>
+                        <p class="timeline-card__text">
+                            За последний квартал мы наняли 15 новых специалистов в отделы разработки, 
+                            дизайна и маркетинга.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACTIVITY FEED -->
+        <section class="section">
+            <p class="section__label">06. Activity Feed</p>
+            <div class="activity-feed">
+                <div class="activity-item">
+                    <div class="activity-avatar">
+                        <img src="https://i.pravatar.cc/150?img=10" alt="User">
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Алексей Петров</strong> прокомментировал <a href="#">Документ #2451</a>
+                        </p>
+                        <span class="activity-time">5 минут назад</span>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-avatar">
+                        <img src="https://i.pravatar.cc/150?img=20" alt="User">
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>Мария Иванова</strong> загрузила 3 новых файла в <a href="#">Проект Alpha</a>
+                        </p>
+                        <span class="activity-time">15 минут назад</span>
+                    </div>
+                </div>
+                <div class="activity-item">
+                    <div class="activity-avatar activity-avatar--icon activity-avatar--smart">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div class="activity-content">
+                        <p class="activity-text">
+                            <strong>AI Assistant</strong> автоматически классифицировал 24 документа
+                        </p>
+                        <span class="activity-time">1 час назад</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Timeline Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Pages — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="error-pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Error Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Error Pages</span>
+            </h1>
+        </header>
+
+        <!-- 404 -->
+        <section class="section">
+            <p class="section__label">01. 404 — Not Found</p>
+            <div class="error-page">
+                <div class="error-code">404</div>
+                <h2 class="error-title">Страница не найдена</h2>
+                <p class="error-text">Возможно, страница была перемещена или удалена. Проверьте URL или вернитесь на главную.</p>
+                <div class="error-actions">
+                    <a href="#" class="error-btn error-btn--primary">На главную</a>
+                    <a href="#" class="error-btn error-btn--outline">Назад</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 500 -->
+        <section class="section">
+            <p class="section__label">02. 500 — Server Error</p>
+            <div class="error-page error-page--dark">
+                <div class="error-code error-code--glitch">500</div>
+                <h2 class="error-title">Ошибка сервера</h2>
+                <p class="error-text">Что-то пошло не так на нашей стороне. Мы уже работаем над исправлением.</p>
+                <div class="error-status">
+                    <div class="error-status__dot error-status__dot--warning"></div>
+                    <span>Статус: Работаем над проблемой</span>
+                </div>
+                <div class="error-actions">
+                    <button class="error-btn error-btn--smart">Обновить страницу</button>
+                    <a href="#" class="error-btn error-btn--ghost">Статус сервисов</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 403 -->
+        <section class="section">
+            <p class="section__label">03. 403 — Forbidden</p>
+            <div class="error-page">
+                <div class="error-icon error-icon--danger">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 15v2m0 0v2m0-2h2m-2 0H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="error-code error-code--sm">403</div>
+                <h2 class="error-title">Доступ запрещён</h2>
+                <p class="error-text">У вас нет прав для просмотра этой страницы. Обратитесь к администратору.</p>
+                <div class="error-actions">
+                    <a href="#" class="error-btn error-btn--primary">Запросить доступ</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAINTENANCE -->
+        <section class="section">
+            <p class="section__label">04. Maintenance</p>
+            <div class="error-page error-page--maintenance">
+                <div class="maintenance-animation">
+                    <div class="gear gear--1">⚙</div>
+                    <div class="gear gear--2">⚙</div>
+                </div>
+                <h2 class="error-title">Технические работы</h2>
+                <p class="error-text">Мы обновляем систему для улучшения работы. Ожидаемое время завершения:</p>
+                <div class="maintenance-timer">
+                    <div class="timer-block">
+                        <span class="timer-value">01</span>
+                        <span class="timer-label">час</span>
+                    </div>
+                    <span class="timer-sep">:</span>
+                    <div class="timer-block">
+                        <span class="timer-value">24</span>
+                        <span class="timer-label">мин</span>
+                    </div>
+                    <span class="timer-sep">:</span>
+                    <div class="timer-block">
+                        <span class="timer-value">35</span>
+                        <span class="timer-label">сек</span>
+                    </div>
+                </div>
+                <div class="error-actions">
+                    <a href="#" class="error-btn error-btn--outline">Подписаться на обновления</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- OFFLINE -->
+        <section class="section">
+            <p class="section__label">05. Offline</p>
+            <div class="error-page">
+                <div class="error-icon error-icon--muted">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                    </svg>
+                </div>
+                <h2 class="error-title">Нет подключения</h2>
+                <p class="error-text">Проверьте интернет-соединение и попробуйте снова</p>
+                <div class="error-actions">
+                    <button class="error-btn error-btn--primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Попробовать снова
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SESSION EXPIRED -->
+        <section class="section">
+            <p class="section__label">06. Session Expired</p>
+            <div class="error-page">
+                <div class="error-icon error-icon--warning">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="error-title">Сессия истекла</h2>
+                <p class="error-text">Ваша сессия истекла по причине бездействия. Войдите снова для продолжения.</p>
+                <div class="error-actions">
+                    <button class="error-btn error-btn--primary">Войти снова</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MINI INLINE ERROR -->
+        <section class="section">
+            <p class="section__label">07. Inline Error (Compact)</p>
+            <div class="error-inline">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <span>Произошла ошибка при загрузке данных</span>
+                <button class="error-inline__btn">Повторить</button>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Error Pages Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
