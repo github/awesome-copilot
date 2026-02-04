@@ -296,7 +296,7 @@ Use this skill when:
 +   return processOrder(order);
 + }
 
-# EVEN BETER: Using Result type
+# EVEN BETTER: Using Result type
 + function process(order): Result<ProcessedOrder, Error> {
 +   return Result.combine([
 +     validateOrderExists(order),

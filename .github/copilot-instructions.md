@@ -25,7 +25,7 @@ The following instructions are only to be applied when performing a code review.
 - [ ] The instruction has a `description` field.
 - [ ] The `description` field is not empty.
 - [ ] The file name is lower case, with words separated by hyphens.
-- [ ] The instruction has an `applyTo` field that specifies the file or files to which the instructions apply. If they wish to specify multiple file paths they should formated like `'**.js, **.ts'`.
+- [ ] The instruction has an `applyTo` field that specifies the file or files to which the instructions apply. If they wish to specify multiple file paths they should formatted like `'**.js, **.ts'`.
 
 ## Agent file guide
 

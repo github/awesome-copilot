@@ -41,7 +41,7 @@ Purpose: Capture all details, evolving thoughts, and design considerations as th
 - **Domain**: [e.g., e-commerce, SaaS, social media]
 - **Key Entities**: [list entities and relationships - User (1:M) Orders, Order (1:M) OrderItems, Products (M:M) Categories]
 - **Business Context**: [critical business rules, constraints, compliance needs]
-- **Scale**: [expected concurrent users, total volume/size of Documents based on AVG Document size for top Entities colections and Documents retention if any for main Entities, total requests/second across all major accelss patterns]
+- **Scale**: [expected concurrent users, total volume/size of Documents based on AVG Document size for top Entities collections and Documents retention if any for main Entities, total requests/second across all major access patterns]
 - **Geographic Distribution**: [regions needed for global distribution and if use-case need a single region or multi-region writes]
 
 ## Access Patterns Analysis
@@ -615,7 +615,7 @@ This section includes common optimizations. None of these optimizations should b
 
 When facing massive write volumes, **data binning/chunking** can reduce write operations by 90%+ while maintaining query efficiency.
 
-**Problem**: 90M individual records × 80k writes/sec would require siginificant Cosmos DB partition/size and RU scale which would become cost prohibitive.
+**Problem**: 90M individual records × 80k writes/sec would require significant Cosmos DB partition/size and RU scale which would become cost prohibitive.
 **Solution**: Group records into chunks (e.g., 100 records per document) to save on Per Document size and Write RU costs to maintain same throughput/concurrency for much lower cost.
 **Result**: 90M records → 900k documents (95.7% reduction)
 

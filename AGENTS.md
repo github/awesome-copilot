@@ -172,6 +172,7 @@ For instruction files (*.instructions.md):
 For agent files (*.agent.md):
 - [ ] Has markdown front matter
 - [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has `name` field with human-readable name (e.g., "Address Comments" not "address-comments")
 - [ ] File name is lower case with hyphens
 - [ ] Includes `model` field (strongly recommended)
 - [ ] Considers using `tools` field

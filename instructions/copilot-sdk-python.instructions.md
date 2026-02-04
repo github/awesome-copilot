@@ -18,11 +18,11 @@ name: "GitHub Copilot SDK Python Instructions"
 Always install via pip:
 
 ```bash
-pip install copilot-sdk
+pip install github-copilot-sdk
 # or with poetry
-poetry add copilot-sdk
+poetry add github-copilot-sdk
 # or with uv
-uv add copilot-sdk
+uv add github-copilot-sdk
 ```
 
 ## Client Initialization

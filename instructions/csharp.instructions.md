@@ -67,7 +67,7 @@ applyTo: '**/*.cs'
 - Explain the validation pipeline and how to customize validation responses.
 - Demonstrate a global exception handling strategy using middleware.
 - Show how to create consistent error responses across the API.
-- Explain problem details (RFC 7807) implementation for standardized error responses.
+- Explain problem details (RFC 9457) implementation for standardized error responses.
 
 ## API Versioning and Documentation
 

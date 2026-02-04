@@ -1,0 +1,58 @@
+---
+// Modal component for viewing file contents
+---
+
+<div id="file-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modal-title">File</h3>
+      <div class="modal-actions">
+        <button id="copy-btn" class="btn btn-secondary" aria-label="Copy to clipboard">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
+            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
+          </svg>
+          <span aria-hidden="true">Copy</span>
+        </button>
+        <button id="download-btn" class="btn btn-secondary" aria-label="Download file">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/>
+          </svg>
+          <span aria-hidden="true">Download</span>
+        </button>
+        <button id="share-btn" class="btn btn-secondary" aria-label="Copy link to clipboard">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-.025 5.45a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 1 1-2.83-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25z"/>
+          </svg>
+          <span aria-hidden="true">Share</span>
+        </button>
+        <div id="install-dropdown" class="install-dropdown" style="display: none;">
+          <a id="install-btn-main" class="btn btn-primary install-btn-main" target="_blank" rel="noopener">
+            Install
+          </a>
+          <button type="button" class="btn btn-primary install-btn-toggle" aria-label="Install options" aria-expanded="false" aria-haspopup="true">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+              <path d="M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z"/>
+            </svg>
+          </button>
+          <div class="install-dropdown-menu" role="menu">
+            <a id="install-vscode" target="_blank" rel="noopener" role="menuitem">
+              VS Code
+            </a>
+            <a id="install-insiders" target="_blank" rel="noopener" role="menuitem">
+              VS Code Insiders
+            </a>
+          </div>
+        </div>
+        <button id="close-modal" class="btn btn-icon" aria-label="Close dialog">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <pre id="modal-content"><code></code></pre>
+    </div>
+  </div>
+</div>

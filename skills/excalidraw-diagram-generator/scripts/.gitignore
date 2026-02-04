@@ -1,0 +1,34 @@
+# Avoid accidentally committing local Python artifacts produced when running these scripts.
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments (people often create these next to scripts)
+.venv/
+venv/
+env/
+ENV/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Coverage outputs
+.coverage
+.coverage.*
+htmlcov/
+
+# Packaging/build outputs (rare here, but harmless)
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# OS cruft
+.DS_Store
+Thumbs.db

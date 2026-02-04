@@ -14,7 +14,11 @@
     "collection:validate": "node ./eng/validate-collections.mjs",
     "collection:create": "node ./eng/create-collection.mjs",
     "skill:validate": "node ./eng/validate-skills.mjs",
-    "skill:create": "node ./eng/create-skill.mjs"
+    "skill:create": "node ./eng/create-skill.mjs",
+    "website:data": "node ./eng/generate-website-data.mjs",
+    "website:dev": "npm run website:data && npm run --prefix website dev",
+    "website:build": "npm run build && npm run website:data && npm run --prefix website build",
+    "website:preview": "npm run --prefix website preview"
   },
   "repository": {
     "type": "git",

@@ -1,5 +1,6 @@
 ---
 description: 'Act as implementation planner for your Azure Bicep Infrastructure as Code task.'
+name: 'Bicep Planning'
 tools:
   [ 'edit/editFiles', 'web/fetch', 'microsoft-docs', 'azure_design_architecture', 'get_bicep_best_practices', 'bestpractices', 'bicepschema', 'azure_get_azure_verified_module', 'todos' ]
 ---

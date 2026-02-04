@@ -1,5 +1,6 @@
 ---
 description: 'Perform janitorial tasks on C#/.NET code including cleanup, modernization, and tech debt remediation.'
+name: '.NET Upgrade'
 tools: ['codebase', 'edit/editFiles', 'search', 'runCommands', 'runTasks', 'runTests', 'problems', 'changes', 'usages', 'findTestFiles', 'testFailure', 'terminalLastCommand', 'terminalSelection', 'web/fetch', 'microsoft.docs.mcp']
 ---
 
@@ -20,7 +21,7 @@ Discover and plan your .NET upgrade journey!
 mode: dotnet-upgrade
 title: Analyze current .NET framework versions and create upgrade plan
 ---
-Analyze the repository and list each project's current TargetFramework 
+Analyze the repository and list each project's current TargetFramework
 along with the latest available LTS version from Microsoft's release schedule.
 Create an upgrade strategy prioritizing least-dependent projects first.
 ```
@@ -121,7 +122,7 @@ dotnet msbuild <ProjectName>.csproj /t:GenerateRestoreGraphFile /p:RestoreGraphO
 ## Classification Rules
 - `TargetFramework` starts with `netcoreapp`, `net5.0+`, `net6.0+`, etc. → **Modern .NET**
 - `netstandard*` → **.NET Standard** (migrate to current .NET version)
-- `net4*` → **.NET Framework** (migrate via intermediate step to .NET 6+)
+- `net4*` → **.NET Framework** (migrate via intermediate step to .NET 8+)
 
 ---
 

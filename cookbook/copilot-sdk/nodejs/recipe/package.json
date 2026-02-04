@@ -1,0 +1,21 @@
+{
+  "name": "copilot-sdk-cookbook-recipes",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Runnable examples for GitHub Copilot SDK cookbook recipes",
+  "scripts": {
+    "error-handling": "tsx error-handling.ts",
+    "multiple-sessions": "tsx multiple-sessions.ts",
+    "managing-local-files": "tsx managing-local-files.ts",
+    "pr-visualization": "tsx pr-visualization.ts",
+    "persisting-sessions": "tsx persisting-sessions.ts"
+  },
+  "dependencies": {
+    "@github/copilot-sdk": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

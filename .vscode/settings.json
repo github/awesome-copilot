@@ -15,6 +15,7 @@
     "*.prompt.md": "prompt"
   },
   "yaml.schemas": {
-    "./.schemas/collection.schema.json": "*.collection.yml"
+    "./.schemas/collection.schema.json": "*.collection.yml",
+    "./.schemas/tools.schema.json": "website/data/tools.yml",
   }
 }

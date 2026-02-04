@@ -5,7 +5,7 @@ tools: ['search/codebase', 'think', 'changes', 'web/fetch', 'search/searchResult
 ---
 # Update Azure Verified Modules in Bicep Files
 
-Update Bicep file `${file}` to use latest Azure Verified Module (AVM) versions. Limit progress updates to non-breaking changes. Don't output information other than the final outout table and summary.
+Update Bicep file `${file}` to use latest Azure Verified Module (AVM) versions. Limit progress updates to non-breaking changes. Don't output information other than the final output table and summary.
 
 ## Process
 

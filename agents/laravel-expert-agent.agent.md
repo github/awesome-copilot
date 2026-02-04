@@ -1,5 +1,6 @@
 ---
 description: 'Expert Laravel development assistant specializing in modern Laravel 12+ applications with Eloquent, Artisan, testing, and best practices'
+name: 'Laravel Expert Agent'
 model: GPT-4.1 | 'gpt-5' | 'Claude Sonnet 4.5'
 tools: ['codebase', 'terminalCommand', 'edit/editFiles', 'web/fetch', 'githubRepo', 'runTests', 'problems', 'search']
 ---

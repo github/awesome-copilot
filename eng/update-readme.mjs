@@ -128,12 +128,7 @@ function extractTitle(filePath) {
       const frontmatter = parseFrontmatter(filePath);
 
       if (frontmatter) {
-        // Check for title field
-        if (frontmatter.title && typeof frontmatter.title === "string") {
-          return frontmatter.title;
-        }
-
-        // Check for name field and convert to title case
+        // Check for name field
         if (frontmatter.name && typeof frontmatter.name === "string") {
           return frontmatter.name
             .split("-")
