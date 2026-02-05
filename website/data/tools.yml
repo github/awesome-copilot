@@ -95,10 +95,10 @@ tools:
       content: |
         # Install globally
         npm install -g workspace-architect
-        
+
         # List available items
         workspace-architect list
-        
+
         # Download a specific item
         workspace-architect download instructions:basic-setup
     tags:
@@ -133,13 +133,13 @@ tools:
       content: |
         # Install via shell script
         curl -sSL https://raw.githubusercontent.com/danielmeppiel/apm/main/install.sh | sh
-        
+
         # Or install via pip
         pip install apm-cli
-        
+
         # Install a skill
         apm install danielmeppiel/form-builder
-        
+
         # Compile for your AI tools
         apm compile
     tags:
@@ -203,3 +203,32 @@ tools:
       - solution-explorer
       - github
       - mcp
+
+  - id: context7
+    name: Context7
+    description: >-
+      An intelligent documentation and context management system for GitHub Copilot customizations.
+      Context7 indexes, analyzes, and provides semantic search across prompts, instructions, agents,
+      and skills in your repositories. Includes automatic documentation generation, collection validation,
+      and AI-powered discovery to help developers find and install the right customizations.
+    category: Documentation & Discovery
+    featured: true
+    requirements:
+      - Internet connection to access Context7 platform
+      - GitHub repository with Copilot customizations (prompts, instructions, agents, or skills)
+    links:
+      documentation: https://context7.com/github/awesome-copilot
+    features:
+      - "🔍 Semantic Search: Intelligently find relevant prompts, instructions, and agents across your repository"
+      - "📊 Automatic Indexing: AI-powered analysis and categorization of your customizations"
+      - "✅ Validation: Built-in tools for validating collection manifests and file structure"
+      - "📝 Documentation Generation: Auto-generate README files and discovery interfaces"
+      - "🎯 Trust Scoring: Verification and reliability scoring for community contributions"
+      - "🔗 Deep Integration: Works with awesome-copilot and other Copilot customization repositories"
+    tags:
+      - documentation
+      - discovery
+      - search
+      - github
+      - copilot-customizations
+      - validation
