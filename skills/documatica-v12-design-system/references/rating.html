@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rating — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="rating.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Rating Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Rating</span>
+            </h1>
+        </header>
+
+        <!-- BASIC STARS -->
+        <section class="section">
+            <p class="section__label">01. Star Rating</p>
+            <div class="ratings-row">
+                <div class="rating" data-rating="1">
+                    <span class="star star--filled">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="rating" data-rating="3">
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="rating" data-rating="5">
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                    <span class="star star--filled">★</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SIZES -->
+        <section class="section">
+            <p class="section__label">02. Sizes</p>
+            <div class="ratings-col">
+                <div class="rating-row">
+                    <span class="rating-label">Small</span>
+                    <div class="rating rating--sm">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Base</span>
+                    <div class="rating">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Large</span>
+                    <div class="rating rating--lg">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">XL</span>
+                    <div class="rating rating--xl">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COLORS -->
+        <section class="section">
+            <p class="section__label">03. Color Variants</p>
+            <div class="ratings-col">
+                <div class="rating-row">
+                    <span class="rating-label">Gold (Default)</span>
+                    <div class="rating">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Primary</span>
+                    <div class="rating rating--primary">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Success</span>
+                    <div class="rating rating--success">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Danger</span>
+                    <div class="rating rating--danger">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALF STARS -->
+        <section class="section">
+            <p class="section__label">04. Half Stars</p>
+            <div class="ratings-row">
+                <div class="rating-with-value">
+                    <div class="rating">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--half">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                    </div>
+                    <span class="rating-value">2.5</span>
+                </div>
+                <div class="rating-with-value">
+                    <div class="rating">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--half">★</span>
+                    </div>
+                    <span class="rating-value">4.5</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH LABEL -->
+        <section class="section">
+            <p class="section__label">05. With Text</p>
+            <div class="ratings-col">
+                <div class="rating-card">
+                    <div class="rating rating--lg">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                    </div>
+                    <div class="rating-card__info">
+                        <span class="rating-card__score">5.0</span>
+                        <span class="rating-card__count">из 1,247 отзывов</span>
+                    </div>
+                </div>
+                <div class="rating-inline">
+                    <div class="rating rating--sm">
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star star--filled">★</span>
+                        <span class="star">★</span>
+                    </div>
+                    <span class="rating-inline__text">4.0 (324 отзыва)</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ICON VARIANTS -->
+        <section class="section">
+            <p class="section__label">06. Icon Variants</p>
+            <div class="ratings-col">
+                <div class="rating-row">
+                    <span class="rating-label">Hearts</span>
+                    <div class="rating rating--hearts">
+                        <span class="icon icon--filled">❤</span>
+                        <span class="icon icon--filled">❤</span>
+                        <span class="icon icon--filled">❤</span>
+                        <span class="icon">❤</span>
+                        <span class="icon">❤</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Thumbs</span>
+                    <div class="rating rating--thumbs">
+                        <span class="icon icon--filled">👍</span>
+                        <span class="icon icon--filled">👍</span>
+                        <span class="icon icon--filled">👍</span>
+                        <span class="icon icon--filled">👍</span>
+                        <span class="icon">👍</span>
+                    </div>
+                </div>
+                <div class="rating-row">
+                    <span class="rating-label">Fire</span>
+                    <div class="rating rating--fire">
+                        <span class="icon icon--filled">🔥</span>
+                        <span class="icon icon--filled">🔥</span>
+                        <span class="icon icon--filled">🔥</span>
+                        <span class="icon icon--filled">🔥</span>
+                        <span class="icon icon--filled">🔥</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE -->
+        <section class="section">
+            <p class="section__label">07. Interactive (Hover)</p>
+            <div class="rating rating--interactive rating--lg">
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+                <span class="star">★</span>
+            </div>
+            <p class="hint-text">Наведите для интерактивного выбора</p>
+        </section>
+
+        <!-- RATING BREAKDOWN -->
+        <section class="section">
+            <p class="section__label">08. Rating Breakdown</p>
+            <div class="rating-breakdown">
+                <div class="breakdown-header">
+                    <div class="breakdown-score">4.7</div>
+                    <div class="breakdown-summary">
+                        <div class="rating rating--sm">
+                            <span class="star star--filled">★</span>
+                            <span class="star star--filled">★</span>
+                            <span class="star star--filled">★</span>
+                            <span class="star star--filled">★</span>
+                            <span class="star star--half">★</span>
+                        </div>
+                        <span class="breakdown-count">2,456 отзывов</span>
+                    </div>
+                </div>
+                <div class="breakdown-bars">
+                    <div class="breakdown-row">
+                        <span class="breakdown-label">5</span>
+                        <span class="star star--filled star--mini">★</span>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-fill" style="width: 72%;"></div>
+                        </div>
+                        <span class="breakdown-percent">72%</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="breakdown-label">4</span>
+                        <span class="star star--filled star--mini">★</span>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-fill" style="width: 18%;"></div>
+                        </div>
+                        <span class="breakdown-percent">18%</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="breakdown-label">3</span>
+                        <span class="star star--filled star--mini">★</span>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-fill" style="width: 6%;"></div>
+                        </div>
+                        <span class="breakdown-percent">6%</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="breakdown-label">2</span>
+                        <span class="star star--filled star--mini">★</span>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-fill" style="width: 2%;"></div>
+                        </div>
+                        <span class="breakdown-percent">2%</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span class="breakdown-label">1</span>
+                        <span class="star star--filled star--mini">★</span>
+                        <div class="breakdown-bar">
+                            <div class="breakdown-fill" style="width: 2%;"></div>
+                        </div>
+                        <span class="breakdown-percent">2%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI RATING -->
+        <section class="section">
+            <p class="section__label">09. AI Smart Rating</p>
+            <div class="ai-rating">
+                <div class="ai-rating__header">
+                    <span class="ai-rating__icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </span>
+                    <span class="ai-rating__label">AI Confidence Score</span>
+                </div>
+                <div class="ai-rating__display">
+                    <div class="ai-rating__score">94%</div>
+                    <div class="ai-rating__bar">
+                        <div class="ai-rating__fill" style="width: 94%;"></div>
+                    </div>
+                </div>
+                <div class="ai-rating__tags">
+                    <span class="ai-tag">Высокая точность</span>
+                    <span class="ai-tag">Проверено</span>
+                    <span class="ai-tag ai-tag--highlight">+12% vs avg</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Rating Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

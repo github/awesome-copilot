@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagination — UI Kit v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="pagination.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7"/>
+            </svg>
+            Назад
+        </a>
+
+        <header class="hero">
+            <span class="hero__badge">NAVIGATION</span>
+            <h1 class="hero__title">Pagi<span>nation</span></h1>
+            <p class="hero__desc">Компоненты постраничной навигации. Поддержка разных размеров, стилей и состояний.</p>
+        </header>
+
+        <!-- ============================================
+             01. BASIC
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">01</span>
+                <h2 class="section__title">Basic Pagination</h2>
+            </div>
+            
+            <nav class="pagination" aria-label="Навигация по страницам">
+                <a href="#" class="pagination__btn pagination__btn--nav" aria-disabled="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <a href="#" class="pagination__btn pagination__btn--active" aria-current="page">1</a>
+                <a href="#" class="pagination__btn">2</a>
+                <a href="#" class="pagination__btn">3</a>
+                <a href="#" class="pagination__btn">4</a>
+                <a href="#" class="pagination__btn">5</a>
+                <a href="#" class="pagination__btn pagination__btn--nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
+        </section>
+
+        <!-- ============================================
+             02. WITH ELLIPSIS
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">02</span>
+                <h2 class="section__title">With Ellipsis</h2>
+            </div>
+            
+            <nav class="pagination">
+                <a href="#" class="pagination__btn pagination__btn--nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <a href="#" class="pagination__btn">1</a>
+                <span class="pagination__ellipsis">...</span>
+                <a href="#" class="pagination__btn">5</a>
+                <a href="#" class="pagination__btn pagination__btn--active">6</a>
+                <a href="#" class="pagination__btn">7</a>
+                <span class="pagination__ellipsis">...</span>
+                <a href="#" class="pagination__btn">24</a>
+                <a href="#" class="pagination__btn pagination__btn--nav">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
+        </section>
+
+        <!-- ============================================
+             03. WITH TEXT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">03</span>
+                <h2 class="section__title">With Text Labels</h2>
+            </div>
+            
+            <nav class="pagination">
+                <a href="#" class="pagination__btn pagination__btn--text">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Назад
+                </a>
+                <a href="#" class="pagination__btn">1</a>
+                <a href="#" class="pagination__btn">2</a>
+                <a href="#" class="pagination__btn pagination__btn--active">3</a>
+                <a href="#" class="pagination__btn">4</a>
+                <a href="#" class="pagination__btn">5</a>
+                <a href="#" class="pagination__btn pagination__btn--text">
+                    Вперёд
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
+        </section>
+
+        <!-- ============================================
+             04. SIZES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">04</span>
+                <h2 class="section__title">Size Variants</h2>
+            </div>
+            
+            <div class="demo-stack">
+                <div class="demo-item">
+                    <p class="demo-label">Small</p>
+                    <nav class="pagination pagination--sm">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Medium (default)</p>
+                    <nav class="pagination">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Large</p>
+                    <nav class="pagination pagination--lg">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. SHAPES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">05</span>
+                <h2 class="section__title">Shape Variants</h2>
+            </div>
+            
+            <div class="demo-stack">
+                <div class="demo-item">
+                    <p class="demo-label">Default (rounded)</p>
+                    <nav class="pagination">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Pill</p>
+                    <nav class="pagination pagination--pill">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Square</p>
+                    <nav class="pagination pagination--square">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. STYLES
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">06</span>
+                <h2 class="section__title">Style Variants</h2>
+            </div>
+            
+            <div class="demo-stack">
+                <div class="demo-item">
+                    <p class="demo-label">Outlined</p>
+                    <nav class="pagination pagination--outlined">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn">4</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Ghost</p>
+                    <nav class="pagination pagination--ghost">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn">4</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="demo-item">
+                    <p class="demo-label">Minimal</p>
+                    <nav class="pagination pagination--minimal">
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                        </a>
+                        <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                        <a href="#" class="pagination__btn">2</a>
+                        <a href="#" class="pagination__btn">3</a>
+                        <a href="#" class="pagination__btn">4</a>
+                        <a href="#" class="pagination__btn pagination__btn--nav">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. DARK THEME
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">07</span>
+                <h2 class="section__title">Dark Theme</h2>
+            </div>
+            
+            <div class="dark-box">
+                <nav class="pagination pagination--dark">
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <a href="#" class="pagination__btn">1</a>
+                    <a href="#" class="pagination__btn pagination__btn--active">2</a>
+                    <a href="#" class="pagination__btn">3</a>
+                    <span class="pagination__ellipsis">...</span>
+                    <a href="#" class="pagination__btn">10</a>
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </nav>
+            </div>
+        </section>
+
+        <!-- ============================================
+             08. WITH INFO
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">08</span>
+                <h2 class="section__title">With Page Info</h2>
+            </div>
+            
+            <div class="pagination-wrapper">
+                <span class="pagination-info">Показано 1-10 из 248</span>
+                <nav class="pagination">
+                    <a href="#" class="pagination__btn pagination__btn--nav" aria-disabled="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <a href="#" class="pagination__btn pagination__btn--active">1</a>
+                    <a href="#" class="pagination__btn">2</a>
+                    <span class="pagination__ellipsis">...</span>
+                    <a href="#" class="pagination__btn">25</a>
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </nav>
+            </div>
+        </section>
+
+        <!-- ============================================
+             09. WITH PER PAGE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">09</span>
+                <h2 class="section__title">With Per Page Selector</h2>
+            </div>
+            
+            <div class="pagination-wrapper pagination-wrapper--between">
+                <div class="per-page">
+                    <label class="per-page__label">Показывать:</label>
+                    <select class="per-page__select">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                
+                <nav class="pagination">
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <a href="#" class="pagination__btn">1</a>
+                    <a href="#" class="pagination__btn pagination__btn--active">2</a>
+                    <a href="#" class="pagination__btn">3</a>
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </nav>
+                
+                <span class="pagination-info">Страница 2 из 10</span>
+            </div>
+        </section>
+
+        <!-- ============================================
+             10. GO TO PAGE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">10</span>
+                <h2 class="section__title">With Go To Page</h2>
+            </div>
+            
+            <div class="pagination-wrapper">
+                <nav class="pagination">
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <a href="#" class="pagination__btn">1</a>
+                    <a href="#" class="pagination__btn pagination__btn--active">2</a>
+                    <a href="#" class="pagination__btn">3</a>
+                    <span class="pagination__ellipsis">...</span>
+                    <a href="#" class="pagination__btn">50</a>
+                    <a href="#" class="pagination__btn pagination__btn--nav">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </nav>
+                
+                <div class="go-to">
+                    <label class="go-to__label">Перейти к:</label>
+                    <input type="number" class="go-to__input" min="1" max="50" value="2">
+                    <button class="go-to__btn">Go</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             11. SIMPLE PREV/NEXT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">11</span>
+                <h2 class="section__title">Simple Previous / Next</h2>
+            </div>
+            
+            <nav class="pagination-simple">
+                <a href="#" class="pagination-simple__link pagination-simple__link--prev">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <span class="pagination-simple__content">
+                        <small>Предыдущая</small>
+                        <strong>Заголовок предыдущей страницы</strong>
+                    </span>
+                </a>
+                <a href="#" class="pagination-simple__link pagination-simple__link--next">
+                    <span class="pagination-simple__content">
+                        <small>Следующая</small>
+                        <strong>Заголовок следующей страницы</strong>
+                    </span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </nav>
+        </section>
+
+        <!-- ============================================
+             12. COMPACT
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">12</span>
+                <h2 class="section__title">Compact / Mobile</h2>
+            </div>
+            
+            <div class="demo-stack">
+                <nav class="pagination-compact">
+                    <a href="#" class="pagination-compact__btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </a>
+                    <span class="pagination-compact__info">Страница 3 из 12</span>
+                    <a href="#" class="pagination-compact__btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </nav>
+            </div>
+        </section>
+
+        <!-- ============================================
+             13. CODE
+        ============================================= -->
+        <section class="section">
+            <div class="section__header">
+                <span class="section__number">13</span>
+                <h2 class="section__title">Использование</h2>
+            </div>
+            
+            <div class="code-block">
+                <pre><code>&lt;nav class="pagination"&gt;
+  &lt;a class="pagination__btn pagination__btn--nav"&gt;←&lt;/a&gt;
+  &lt;a class="pagination__btn pagination__btn--active"&gt;1&lt;/a&gt;
+  &lt;a class="pagination__btn"&gt;2&lt;/a&gt;
+  &lt;span class="pagination__ellipsis"&gt;...&lt;/span&gt;
+  &lt;a class="pagination__btn"&gt;10&lt;/a&gt;
+  &lt;a class="pagination__btn pagination__btn--nav"&gt;→&lt;/a&gt;
+&lt;/nav&gt;
+
+/* Размеры */
+.pagination--sm    /* Small */
+.pagination--lg    /* Large */
+
+/* Формы */
+.pagination--pill     /* Круглые */
+.pagination--square   /* Квадратные */
+
+/* Стили */
+.pagination--outlined  /* С рамкой */
+.pagination--ghost     /* Прозрачные */
+.pagination--minimal   /* Минимальные */
+.pagination--dark      /* Тёмная тема */
+
+/* Обёртки */
+.pagination-wrapper
+.pagination-simple
+.pagination-compact</code></pre>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>

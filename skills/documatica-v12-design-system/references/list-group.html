@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Group — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="list-group.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">List Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">List Group</span>
+            </h1>
+        </header>
+
+        <!-- BASIC -->
+        <section class="section">
+            <p class="section__label">01. Basic List</p>
+            <ul class="list-group">
+                <li class="list-item">Первый элемент списка</li>
+                <li class="list-item">Второй элемент списка</li>
+                <li class="list-item">Третий элемент списка</li>
+                <li class="list-item">Четвёртый элемент списка</li>
+                <li class="list-item">Пятый элемент списка</li>
+            </ul>
+        </section>
+
+        <!-- WITH ICONS -->
+        <section class="section">
+            <p class="section__label">02. With Icons</p>
+            <ul class="list-group">
+                <li class="list-item list-item--icon">
+                    <span class="list-icon list-icon--primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </span>
+                    <span class="list-text">Документы</span>
+                </li>
+                <li class="list-item list-item--icon">
+                    <span class="list-icon list-icon--success">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </span>
+                    <span class="list-text">Изображения</span>
+                </li>
+                <li class="list-item list-item--icon">
+                    <span class="list-icon list-icon--smart">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </span>
+                    <span class="list-text">Видео</span>
+                </li>
+                <li class="list-item list-item--icon">
+                    <span class="list-icon list-icon--danger">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                        </svg>
+                    </span>
+                    <span class="list-text">Архивы</span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- INTERACTIVE -->
+        <section class="section">
+            <p class="section__label">03. Interactive / Links</p>
+            <ul class="list-group">
+                <a href="#" class="list-item list-item--link">
+                    <span class="list-text">Настройки профиля</span>
+                    <svg class="list-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                <a href="#" class="list-item list-item--link list-item--active">
+                    <span class="list-text">Уведомления</span>
+                    <svg class="list-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                <a href="#" class="list-item list-item--link">
+                    <span class="list-text">Безопасность</span>
+                    <svg class="list-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+                <a href="#" class="list-item list-item--link list-item--disabled">
+                    <span class="list-text">Платежи (скоро)</span>
+                    <svg class="list-arrow" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </ul>
+        </section>
+
+        <!-- WITH BADGES -->
+        <section class="section">
+            <p class="section__label">04. With Badges</p>
+            <ul class="list-group">
+                <li class="list-item list-item--between">
+                    <span class="list-text">Входящие</span>
+                    <span class="list-badge list-badge--primary">24</span>
+                </li>
+                <li class="list-item list-item--between">
+                    <span class="list-text">Черновики</span>
+                    <span class="list-badge">3</span>
+                </li>
+                <li class="list-item list-item--between">
+                    <span class="list-text">Отправленные</span>
+                    <span class="list-badge">128</span>
+                </li>
+                <li class="list-item list-item--between">
+                    <span class="list-text">Спам</span>
+                    <span class="list-badge list-badge--danger">12</span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- WITH AVATARS -->
+        <section class="section">
+            <p class="section__label">05. With Avatars</p>
+            <ul class="list-group">
+                <li class="list-item list-item--user">
+                    <img src="https://i.pravatar.cc/150?img=10" alt="User" class="list-avatar">
+                    <div class="list-user-info">
+                        <span class="list-user-name">Алексей Петров</span>
+                        <span class="list-user-role">Product Manager</span>
+                    </div>
+                    <span class="list-status list-status--online"></span>
+                </li>
+                <li class="list-item list-item--user">
+                    <img src="https://i.pravatar.cc/150?img=20" alt="User" class="list-avatar">
+                    <div class="list-user-info">
+                        <span class="list-user-name">Мария Иванова</span>
+                        <span class="list-user-role">UX Designer</span>
+                    </div>
+                    <span class="list-status list-status--offline"></span>
+                </li>
+                <li class="list-item list-item--user">
+                    <img src="https://i.pravatar.cc/150?img=30" alt="User" class="list-avatar">
+                    <div class="list-user-info">
+                        <span class="list-user-name">Дмитрий Козлов</span>
+                        <span class="list-user-role">Developer</span>
+                    </div>
+                    <span class="list-status list-status--busy"></span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- WITH ACTIONS -->
+        <section class="section">
+            <p class="section__label">06. With Actions</p>
+            <ul class="list-group">
+                <li class="list-item list-item--actions">
+                    <div class="list-content">
+                        <span class="list-title">Отчёт Q4 2024.pdf</span>
+                        <span class="list-meta">2.4 MB • Загружен сегодня</span>
+                    </div>
+                    <div class="list-actions">
+                        <button class="list-action" title="Скачать">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        <button class="list-action" title="Редактировать">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                        <button class="list-action list-action--danger" title="Удалить">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </li>
+                <li class="list-item list-item--actions">
+                    <div class="list-content">
+                        <span class="list-title">Презентация.pptx</span>
+                        <span class="list-meta">8.1 MB • Загружен вчера</span>
+                    </div>
+                    <div class="list-actions">
+                        <button class="list-action" title="Скачать">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        <button class="list-action" title="Редактировать">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </button>
+                        <button class="list-action list-action--danger" title="Удалить">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- SELECTABLE -->
+        <section class="section">
+            <p class="section__label">07. Selectable</p>
+            <ul class="list-group">
+                <li class="list-item list-item--selectable">
+                    <input type="checkbox" class="list-checkbox" id="sel1" checked>
+                    <label for="sel1" class="list-text">Выбранный элемент</label>
+                </li>
+                <li class="list-item list-item--selectable">
+                    <input type="checkbox" class="list-checkbox" id="sel2">
+                    <label for="sel2" class="list-text">Невыбранный элемент</label>
+                </li>
+                <li class="list-item list-item--selectable">
+                    <input type="checkbox" class="list-checkbox" id="sel3">
+                    <label for="sel3" class="list-text">Ещё один элемент</label>
+                </li>
+            </ul>
+        </section>
+
+        <!-- FLUSH -->
+        <section class="section">
+            <p class="section__label">08. Flush (No Border)</p>
+            <ul class="list-group list-group--flush">
+                <li class="list-item">Первый элемент</li>
+                <li class="list-item">Второй элемент</li>
+                <li class="list-item">Третий элемент</li>
+                <li class="list-item">Четвёртый элемент</li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">List Group Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

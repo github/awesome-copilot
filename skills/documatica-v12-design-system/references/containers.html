@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Containers — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="containers.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="docs-container">
+        
+        <a href="index.html" class="back-link">
+            ← Вернуться к компонентам
+        </a>
+
+        <header class="docs-header">
+            <div class="docs-header__badge">
+                <span class="status-dot status-dot--active"></span>
+                CONTAINER PROTOCOL V12.0
+            </div>
+            <h1 class="docs-header__title">
+                КОНТЕЙНЕРЫ<br>
+                <span class="text-primary">И СЕТКА.</span>
+            </h1>
+            <p class="docs-header__desc">
+                Система контейнеров для управления шириной контента.<br>
+                Адаптивные брейкпоинты и центрирование.
+            </p>
+        </header>
+
+    </div>
+
+    <!-- ======================= FIXED CONTAINER ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">01</span>
+                <h2 class="section-title">Фиксированный контейнер</h2>
+            </div>
+            <p class="section-desc">Центрированный контейнер с максимальной шириной. Стандарт для контента.</p>
+        </section>
+    </div>
+    
+    <div class="demo-full-width">
+        <div class="container">
+            <div class="container-demo-box">
+                <code>.container</code>
+                <span class="container-demo-size">max-width: 1200px + auto margins</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= CONTAINER SIZES ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">02</span>
+                <h2 class="section-title">Размеры контейнеров</h2>
+            </div>
+        </section>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-xs">
+            <div class="container-demo-box container-demo-box--xs">
+                <code>.container-xs</code>
+                <span>max-width: 480px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-sm">
+            <div class="container-demo-box container-demo-box--sm">
+                <code>.container-sm</code>
+                <span>max-width: 640px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-md">
+            <div class="container-demo-box container-demo-box--md">
+                <code>.container-md</code>
+                <span>max-width: 768px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-lg">
+            <div class="container-demo-box container-demo-box--lg">
+                <code>.container-lg</code>
+                <span>max-width: 1024px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-xl">
+            <div class="container-demo-box container-demo-box--xl">
+                <code>.container-xl</code>
+                <span>max-width: 1280px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-xxl">
+            <div class="container-demo-box container-demo-box--xxl">
+                <code>.container-xxl</code>
+                <span>max-width: 1400px</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= FLUID CONTAINER ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">03</span>
+                <h2 class="section-title">Резиновый контейнер</h2>
+            </div>
+            <p class="section-desc">Занимает 100% ширины с боковыми отступами. Для полноширинных секций.</p>
+        </section>
+    </div>
+
+    <div class="container-fluid">
+        <div class="container-demo-box container-demo-box--fluid">
+            <code>.container-fluid</code>
+            <span>width: 100% + padding: 0 24px</span>
+        </div>
+    </div>
+
+    <!-- ======================= NARROW (READING) ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">04</span>
+                <h2 class="section-title">Контейнер для чтения</h2>
+            </div>
+            <p class="section-desc">Оптимальная ширина 65-75 символов для комфортного чтения текста.</p>
+        </section>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container-reading">
+            <div class="container-demo-box container-demo-box--reading">
+                <code>.container-reading</code>
+                <span>max-width: 680px — идеально для статей</span>
+            </div>
+            <div class="reading-example">
+                <p>Это пример текста оптимальной ширины для чтения. Исследования показывают, что идеальная длина строки составляет 65-75 символов. Такая ширина обеспечивает комфортное чтение без необходимости сильно двигать глазами из стороны в сторону.</p>
+                <p>Documatica использует этот принцип для всех текстовых блоков и статей в системе документооборота. Пользователи могут сосредоточиться на содержании, не отвлекаясь на неудобную вёрстку.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= BREAKOUT ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">05</span>
+                <h2 class="section-title">Breakout (Full Bleed)</h2>
+            </div>
+            <p class="section-desc">Элемент выходит за пределы контейнера на всю ширину экрана.</p>
+        </section>
+    </div>
+
+    <div class="container">
+        <div class="content-block">
+            <span>Обычный контент внутри .container</span>
+        </div>
+    </div>
+
+    <div class="breakout">
+        <div class="breakout-content">
+            <code>.breakout</code>
+            <span>Full-width секция, выходящая за контейнер</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="content-block">
+            <span>Контент продолжается в .container</span>
+        </div>
+    </div>
+
+    <!-- ======================= PADDING VARIANTS ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">06</span>
+                <h2 class="section-title">Варианты отступов</h2>
+            </div>
+        </section>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container px-0">
+            <div class="container-demo-box">
+                <code>.container.px-0</code>
+                <span>padding: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container px-sm">
+            <div class="container-demo-box">
+                <code>.container.px-sm</code>
+                <span>padding: 0 12px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container px-md">
+            <div class="container-demo-box">
+                <code>.container.px-md</code>
+                <span>padding: 0 24px (default)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container px-lg">
+            <div class="container-demo-box">
+                <code>.container.px-lg</code>
+                <span>padding: 0 48px</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-full-width">
+        <div class="container px-xl">
+            <div class="container-demo-box">
+                <code>.container.px-xl</code>
+                <span>padding: 0 64px</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================= BREAKPOINTS TABLE ======================= -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">07</span>
+                <h2 class="section-title">Таблица брейкпоинтов</h2>
+            </div>
+
+            <div class="breakpoints-table">
+                <div class="bp-row bp-row--header">
+                    <div class="bp-cell">Контейнер</div>
+                    <div class="bp-cell">xs<br><small>&lt;576px</small></div>
+                    <div class="bp-cell">sm<br><small>≥576px</small></div>
+                    <div class="bp-cell">md<br><small>≥768px</small></div>
+                    <div class="bp-cell">lg<br><small>≥992px</small></div>
+                    <div class="bp-cell">xl<br><small>≥1200px</small></div>
+                    <div class="bp-cell">xxl<br><small>≥1400px</small></div>
+                </div>
+                <div class="bp-row">
+                    <div class="bp-cell"><code>.container</code></div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">540px</div>
+                    <div class="bp-cell">720px</div>
+                    <div class="bp-cell">960px</div>
+                    <div class="bp-cell">1140px</div>
+                    <div class="bp-cell">1320px</div>
+                </div>
+                <div class="bp-row">
+                    <div class="bp-cell"><code>.container-fluid</code></div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                </div>
+                <div class="bp-row">
+                    <div class="bp-cell"><code>.container-sm</code></div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">540px</div>
+                    <div class="bp-cell">540px</div>
+                    <div class="bp-cell">540px</div>
+                    <div class="bp-cell">540px</div>
+                    <div class="bp-cell">540px</div>
+                </div>
+                <div class="bp-row">
+                    <div class="bp-cell"><code>.container-lg</code></div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">100%</div>
+                    <div class="bp-cell">960px</div>
+                    <div class="bp-cell">960px</div>
+                    <div class="bp-cell">960px</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= NESTED CONTAINERS ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">08</span>
+                <h2 class="section-title">Вложенные контейнеры</h2>
+            </div>
+            <p class="section-desc">Контейнеры можно вкладывать для создания сложных лейаутов.</p>
+
+            <div class="nested-demo">
+                <div class="nested-outer">
+                    <span class="nested-label">.container-xl</span>
+                    <div class="nested-inner">
+                        <span class="nested-label">.container-md</span>
+                        <div class="nested-content">
+                            <span class="nested-label">.container-reading</span>
+                            <p>Центрированный контент</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= REAL EXAMPLES ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">09</span>
+                <h2 class="section-title">Примеры использования</h2>
+            </div>
+        </section>
+    </div>
+
+    <!-- HERO EXAMPLE -->
+    <div class="example-hero">
+        <div class="container">
+            <div class="example-hero__content">
+                <span class="example-hero__badge">DOCUMATICA V12.0</span>
+                <h2 class="example-hero__title">
+                    АВТОМАТИЗАЦИЯ<br>
+                    <span class="text-primary">ДОКУМЕНТОВ.</span>
+                </h2>
+                <p class="example-hero__desc">Контейнер центрирует контент и ограничивает ширину для удобства чтения.</p>
+                <div class="example-hero__buttons">
+                    <button class="btn btn--primary">Начать работу</button>
+                    <button class="btn btn--secondary">Документация</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD EXAMPLE -->
+    <div class="docs-container">
+        <section class="docs-section">
+            <div class="example-dashboard">
+                <div class="example-dashboard__header">
+                    <h3>Центральный терминал</h3>
+                    <button class="btn btn--smart">Создать документ</button>
+                </div>
+                <div class="example-dashboard__stats">
+                    <div class="stat-card">
+                        <span class="stat-card__label">ВСЕГО ДОКУМЕНТОВ</span>
+                        <span class="stat-card__value">1,284</span>
+                        <span class="stat-card__change stat-card__change--up">+12% за неделю</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card__label">AI АУДИТЫ</span>
+                        <span class="stat-card__value">856</span>
+                        <span class="stat-card__change">99.8% точность</span>
+                    </div>
+                    <div class="stat-card stat-card--active">
+                        <span class="stat-card__label">СТАТУС API</span>
+                        <span class="stat-card__status">ACTIVE</span>
+                        <span class="stat-card__change">34.2 MS RESPONSE</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================= CODE EXAMPLES ======================= -->
+        <section class="docs-section">
+            <div class="section-header">
+                <span class="section-index">10</span>
+                <h2 class="section-title">Код</h2>
+            </div>
+
+            <div class="code-block">
+                <div class="code-block__header">
+                    <span>HTML</span>
+                </div>
+                <pre><code>&lt;!-- Фиксированный контейнер --&gt;
+&lt;div class="container"&gt;
+    Контент с max-width: 1200px
+&lt;/div&gt;
+
+&lt;!-- Резиновый контейнер --&gt;
+&lt;div class="container-fluid"&gt;
+    Контент на всю ширину
+&lt;/div&gt;
+
+&lt;!-- Контейнер для чтения --&gt;
+&lt;div class="container-reading"&gt;
+    Текст статьи с оптимальной шириной
+&lt;/div&gt;
+
+&lt;!-- Breakout --&gt;
+&lt;div class="container"&gt;
+    &lt;p&gt;Обычный контент&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="breakout"&gt;
+    Full-width изображение или секция
+&lt;/div&gt;
+&lt;div class="container"&gt;
+    &lt;p&gt;Контент продолжается&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Размеры --&gt;
+&lt;div class="container-xs"&gt;480px&lt;/div&gt;
+&lt;div class="container-sm"&gt;640px&lt;/div&gt;
+&lt;div class="container-md"&gt;768px&lt;/div&gt;
+&lt;div class="container-lg"&gt;1024px&lt;/div&gt;
+&lt;div class="container-xl"&gt;1280px&lt;/div&gt;
+&lt;div class="container-xxl"&gt;1400px&lt;/div&gt;</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-block__header">
+                    <span>CSS</span>
+                </div>
+                <pre><code>.container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+}
+
+.container-fluid {
+    width: 100%;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+}
+
+.container-reading {
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.breakout {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+}</code></pre>
+            </div>
+        </section>
+
+        <footer class="docs-footer">
+            <div class="docs-footer__inner">
+                <div class="ai-status">
+                    <span class="status-dot status-dot--active"></span>
+                    AI CORE ACTIVE
+                </div>
+                <p>Containers v12.0 — Documatica Design System</p>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

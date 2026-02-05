@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Picker — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="datepicker.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Date Picker Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Date Picker</span>
+            </h1>
+        </header>
+
+        <!-- DATE INPUT -->
+        <section class="section">
+            <p class="section__label">01. Date Input Field</p>
+            <div class="date-input">
+                <svg class="date-input__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <input type="text" placeholder="Выберите дату" value="15 января 2025">
+                <svg class="date-input__chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+        </section>
+
+        <!-- CALENDAR DROPDOWN -->
+        <section class="section">
+            <p class="section__label">02. Calendar Dropdown</p>
+            <div class="calendar-container">
+                <div class="calendar">
+                    <div class="calendar__header">
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <span class="calendar__title">Январь 2025</span>
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="calendar__weekdays">
+                        <span>Пн</span>
+                        <span>Вт</span>
+                        <span>Ср</span>
+                        <span>Чт</span>
+                        <span>Пт</span>
+                        <span>Сб</span>
+                        <span>Вс</span>
+                    </div>
+                    <div class="calendar__days">
+                        <button class="calendar__day calendar__day--other">30</button>
+                        <button class="calendar__day calendar__day--other">31</button>
+                        <button class="calendar__day">1</button>
+                        <button class="calendar__day">2</button>
+                        <button class="calendar__day">3</button>
+                        <button class="calendar__day">4</button>
+                        <button class="calendar__day">5</button>
+                        <button class="calendar__day">6</button>
+                        <button class="calendar__day">7</button>
+                        <button class="calendar__day">8</button>
+                        <button class="calendar__day">9</button>
+                        <button class="calendar__day">10</button>
+                        <button class="calendar__day">11</button>
+                        <button class="calendar__day">12</button>
+                        <button class="calendar__day">13</button>
+                        <button class="calendar__day">14</button>
+                        <button class="calendar__day calendar__day--selected">15</button>
+                        <button class="calendar__day calendar__day--today">16</button>
+                        <button class="calendar__day">17</button>
+                        <button class="calendar__day">18</button>
+                        <button class="calendar__day">19</button>
+                        <button class="calendar__day">20</button>
+                        <button class="calendar__day">21</button>
+                        <button class="calendar__day">22</button>
+                        <button class="calendar__day">23</button>
+                        <button class="calendar__day">24</button>
+                        <button class="calendar__day">25</button>
+                        <button class="calendar__day">26</button>
+                        <button class="calendar__day">27</button>
+                        <button class="calendar__day">28</button>
+                        <button class="calendar__day">29</button>
+                        <button class="calendar__day">30</button>
+                        <button class="calendar__day">31</button>
+                        <button class="calendar__day calendar__day--other">1</button>
+                        <button class="calendar__day calendar__day--other">2</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DATE RANGE -->
+        <section class="section">
+            <p class="section__label">03. Date Range Picker</p>
+            <div class="date-range-inputs">
+                <div class="date-input">
+                    <svg class="date-input__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <input type="text" placeholder="Начало" value="10 января">
+                </div>
+                <span class="date-range-separator">—</span>
+                <div class="date-input">
+                    <svg class="date-input__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <input type="text" placeholder="Конец" value="20 января">
+                </div>
+            </div>
+            <div class="calendar-container calendar-container--range">
+                <div class="calendar">
+                    <div class="calendar__header">
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <span class="calendar__title">Январь 2025</span>
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="calendar__weekdays">
+                        <span>Пн</span>
+                        <span>Вт</span>
+                        <span>Ср</span>
+                        <span>Чт</span>
+                        <span>Пт</span>
+                        <span>Сб</span>
+                        <span>Вс</span>
+                    </div>
+                    <div class="calendar__days">
+                        <button class="calendar__day calendar__day--other">30</button>
+                        <button class="calendar__day calendar__day--other">31</button>
+                        <button class="calendar__day">1</button>
+                        <button class="calendar__day">2</button>
+                        <button class="calendar__day">3</button>
+                        <button class="calendar__day">4</button>
+                        <button class="calendar__day">5</button>
+                        <button class="calendar__day">6</button>
+                        <button class="calendar__day">7</button>
+                        <button class="calendar__day">8</button>
+                        <button class="calendar__day">9</button>
+                        <button class="calendar__day calendar__day--range-start">10</button>
+                        <button class="calendar__day calendar__day--in-range">11</button>
+                        <button class="calendar__day calendar__day--in-range">12</button>
+                        <button class="calendar__day calendar__day--in-range">13</button>
+                        <button class="calendar__day calendar__day--in-range">14</button>
+                        <button class="calendar__day calendar__day--in-range">15</button>
+                        <button class="calendar__day calendar__day--in-range">16</button>
+                        <button class="calendar__day calendar__day--in-range">17</button>
+                        <button class="calendar__day calendar__day--in-range">18</button>
+                        <button class="calendar__day calendar__day--in-range">19</button>
+                        <button class="calendar__day calendar__day--range-end">20</button>
+                        <button class="calendar__day">21</button>
+                        <button class="calendar__day">22</button>
+                        <button class="calendar__day">23</button>
+                        <button class="calendar__day">24</button>
+                        <button class="calendar__day">25</button>
+                        <button class="calendar__day">26</button>
+                        <button class="calendar__day">27</button>
+                        <button class="calendar__day">28</button>
+                        <button class="calendar__day">29</button>
+                        <button class="calendar__day">30</button>
+                        <button class="calendar__day">31</button>
+                        <button class="calendar__day calendar__day--other">1</button>
+                        <button class="calendar__day calendar__day--other">2</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH TIME -->
+        <section class="section">
+            <p class="section__label">04. Date & Time Picker</p>
+            <div class="datetime-container">
+                <div class="calendar calendar--datetime">
+                    <div class="calendar__header">
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <span class="calendar__title">Январь 2025</span>
+                        <button class="calendar__nav">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="calendar__weekdays">
+                        <span>Пн</span>
+                        <span>Вт</span>
+                        <span>Ср</span>
+                        <span>Чт</span>
+                        <span>Пт</span>
+                        <span>Сб</span>
+                        <span>Вс</span>
+                    </div>
+                    <div class="calendar__days calendar__days--compact">
+                        <button class="calendar__day calendar__day--other">30</button>
+                        <button class="calendar__day calendar__day--other">31</button>
+                        <button class="calendar__day">1</button>
+                        <button class="calendar__day">2</button>
+                        <button class="calendar__day">3</button>
+                        <button class="calendar__day">4</button>
+                        <button class="calendar__day">5</button>
+                        <button class="calendar__day">6</button>
+                        <button class="calendar__day">7</button>
+                        <button class="calendar__day">8</button>
+                        <button class="calendar__day">9</button>
+                        <button class="calendar__day">10</button>
+                        <button class="calendar__day">11</button>
+                        <button class="calendar__day">12</button>
+                        <button class="calendar__day">13</button>
+                        <button class="calendar__day">14</button>
+                        <button class="calendar__day calendar__day--selected">15</button>
+                        <button class="calendar__day">16</button>
+                        <button class="calendar__day">17</button>
+                        <button class="calendar__day">18</button>
+                        <button class="calendar__day">19</button>
+                        <button class="calendar__day">20</button>
+                        <button class="calendar__day">21</button>
+                        <button class="calendar__day">22</button>
+                        <button class="calendar__day">23</button>
+                        <button class="calendar__day">24</button>
+                        <button class="calendar__day">25</button>
+                        <button class="calendar__day">26</button>
+                        <button class="calendar__day">27</button>
+                        <button class="calendar__day">28</button>
+                        <button class="calendar__day">29</button>
+                        <button class="calendar__day">30</button>
+                        <button class="calendar__day">31</button>
+                        <button class="calendar__day calendar__day--other">1</button>
+                        <button class="calendar__day calendar__day--other">2</button>
+                    </div>
+                    <div class="time-picker">
+                        <div class="time-picker__column">
+                            <button class="time-picker__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M5 15l7-7 7 7"></path>
+                                </svg>
+                            </button>
+                            <span class="time-picker__value">14</span>
+                            <button class="time-picker__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="time-picker__separator">:</span>
+                        <div class="time-picker__column">
+                            <button class="time-picker__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M5 15l7-7 7 7"></path>
+                                </svg>
+                            </button>
+                            <span class="time-picker__value">30</span>
+                            <button class="time-picker__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MONTH/YEAR PICKER -->
+        <section class="section">
+            <p class="section__label">05. Month & Year Picker</p>
+            <div class="month-year-grid">
+                <div class="calendar-container">
+                    <div class="calendar calendar--month">
+                        <div class="calendar__header">
+                            <button class="calendar__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span class="calendar__title">2025</span>
+                            <button class="calendar__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="calendar__months">
+                            <button class="calendar__month calendar__month--selected">Янв</button>
+                            <button class="calendar__month">Фев</button>
+                            <button class="calendar__month">Мар</button>
+                            <button class="calendar__month">Апр</button>
+                            <button class="calendar__month">Май</button>
+                            <button class="calendar__month">Июн</button>
+                            <button class="calendar__month">Июл</button>
+                            <button class="calendar__month">Авг</button>
+                            <button class="calendar__month">Сен</button>
+                            <button class="calendar__month">Окт</button>
+                            <button class="calendar__month">Ноя</button>
+                            <button class="calendar__month">Дек</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar calendar--year">
+                        <div class="calendar__header">
+                            <button class="calendar__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <span class="calendar__title">2020-2031</span>
+                            <button class="calendar__nav">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="calendar__years">
+                            <button class="calendar__year">2020</button>
+                            <button class="calendar__year">2021</button>
+                            <button class="calendar__year">2022</button>
+                            <button class="calendar__year">2023</button>
+                            <button class="calendar__year">2024</button>
+                            <button class="calendar__year calendar__year--selected">2025</button>
+                            <button class="calendar__year">2026</button>
+                            <button class="calendar__year">2027</button>
+                            <button class="calendar__year">2028</button>
+                            <button class="calendar__year">2029</button>
+                            <button class="calendar__year">2030</button>
+                            <button class="calendar__year">2031</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INLINE CALENDAR -->
+        <section class="section">
+            <p class="section__label">06. Inline Calendar</p>
+            <div class="calendar calendar--inline">
+                <div class="calendar__header">
+                    <button class="calendar__nav">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <span class="calendar__title">Январь 2025</span>
+                    <button class="calendar__nav">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="calendar__weekdays">
+                    <span>Пн</span>
+                    <span>Вт</span>
+                    <span>Ср</span>
+                    <span>Чт</span>
+                    <span>Пт</span>
+                    <span>Сб</span>
+                    <span>Вс</span>
+                </div>
+                <div class="calendar__days">
+                    <button class="calendar__day calendar__day--other">30</button>
+                    <button class="calendar__day calendar__day--other">31</button>
+                    <button class="calendar__day">1</button>
+                    <button class="calendar__day">2</button>
+                    <button class="calendar__day">3</button>
+                    <button class="calendar__day">4</button>
+                    <button class="calendar__day">5</button>
+                    <button class="calendar__day calendar__day--event">6</button>
+                    <button class="calendar__day">7</button>
+                    <button class="calendar__day">8</button>
+                    <button class="calendar__day">9</button>
+                    <button class="calendar__day calendar__day--event">10</button>
+                    <button class="calendar__day">11</button>
+                    <button class="calendar__day">12</button>
+                    <button class="calendar__day">13</button>
+                    <button class="calendar__day">14</button>
+                    <button class="calendar__day calendar__day--selected">15</button>
+                    <button class="calendar__day calendar__day--today">16</button>
+                    <button class="calendar__day">17</button>
+                    <button class="calendar__day">18</button>
+                    <button class="calendar__day">19</button>
+                    <button class="calendar__day calendar__day--event">20</button>
+                    <button class="calendar__day">21</button>
+                    <button class="calendar__day">22</button>
+                    <button class="calendar__day">23</button>
+                    <button class="calendar__day">24</button>
+                    <button class="calendar__day">25</button>
+                    <button class="calendar__day">26</button>
+                    <button class="calendar__day">27</button>
+                    <button class="calendar__day">28</button>
+                    <button class="calendar__day">29</button>
+                    <button class="calendar__day">30</button>
+                    <button class="calendar__day">31</button>
+                    <button class="calendar__day calendar__day--other">1</button>
+                    <button class="calendar__day calendar__day--other">2</button>
+                </div>
+                <div class="calendar__footer">
+                    <button class="calendar__today-btn">Сегодня</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DARK CALENDAR -->
+        <section class="section">
+            <p class="section__label">07. Dark Calendar</p>
+            <div class="calendar calendar--dark">
+                <div class="calendar__header">
+                    <button class="calendar__nav">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <span class="calendar__title">Январь 2025</span>
+                    <button class="calendar__nav">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="calendar__weekdays">
+                    <span>Пн</span>
+                    <span>Вт</span>
+                    <span>Ср</span>
+                    <span>Чт</span>
+                    <span>Пт</span>
+                    <span>Сб</span>
+                    <span>Вс</span>
+                </div>
+                <div class="calendar__days">
+                    <button class="calendar__day calendar__day--other">30</button>
+                    <button class="calendar__day calendar__day--other">31</button>
+                    <button class="calendar__day">1</button>
+                    <button class="calendar__day">2</button>
+                    <button class="calendar__day">3</button>
+                    <button class="calendar__day">4</button>
+                    <button class="calendar__day">5</button>
+                    <button class="calendar__day">6</button>
+                    <button class="calendar__day">7</button>
+                    <button class="calendar__day">8</button>
+                    <button class="calendar__day">9</button>
+                    <button class="calendar__day">10</button>
+                    <button class="calendar__day">11</button>
+                    <button class="calendar__day">12</button>
+                    <button class="calendar__day">13</button>
+                    <button class="calendar__day">14</button>
+                    <button class="calendar__day calendar__day--selected">15</button>
+                    <button class="calendar__day calendar__day--today">16</button>
+                    <button class="calendar__day">17</button>
+                    <button class="calendar__day">18</button>
+                    <button class="calendar__day">19</button>
+                    <button class="calendar__day">20</button>
+                    <button class="calendar__day">21</button>
+                    <button class="calendar__day">22</button>
+                    <button class="calendar__day">23</button>
+                    <button class="calendar__day">24</button>
+                    <button class="calendar__day">25</button>
+                    <button class="calendar__day">26</button>
+                    <button class="calendar__day">27</button>
+                    <button class="calendar__day">28</button>
+                    <button class="calendar__day">29</button>
+                    <button class="calendar__day">30</button>
+                    <button class="calendar__day">31</button>
+                    <button class="calendar__day calendar__day--other">1</button>
+                    <button class="calendar__day calendar__day--other">2</button>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Date Picker Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>

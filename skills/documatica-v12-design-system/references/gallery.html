@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery — Documatica v12.0</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="gallery.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body class="pattern-light">
+
+    <div class="container">
+        
+        <a href="index.html" class="back-link">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
+            </svg>
+            Вернуться к хабу
+        </a>
+
+        <header class="header">
+            <div class="header__status">
+                <div class="status-dot"></div>
+                <span class="status-label">Gallery Protocol v12.0</span>
+            </div>
+            <h1 class="header__title">
+                <span class="text-primary">Gallery</span>
+            </h1>
+        </header>
+
+        <!-- BASIC GRID -->
+        <section class="section">
+            <p class="section__label">01. Basic Grid</p>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📄</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📊</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📈</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📑</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📋</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📁</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MASONRY -->
+        <section class="section">
+            <p class="section__label">02. Masonry Layout</p>
+            <div class="gallery-masonry">
+                <div class="gallery-item gallery-item--tall">
+                    <div class="gallery-placeholder">📄 Document</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📊</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📈</div>
+                </div>
+                <div class="gallery-item gallery-item--wide">
+                    <div class="gallery-placeholder">📑 Report</div>
+                </div>
+                <div class="gallery-item gallery-item--tall">
+                    <div class="gallery-placeholder">📋 Form</div>
+                </div>
+                <div class="gallery-item">
+                    <div class="gallery-placeholder">📁</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH OVERLAY -->
+        <section class="section">
+            <p class="section__label">03. With Hover Overlay</p>
+            <div class="gallery-grid gallery-grid--4">
+                <div class="gallery-item gallery-item--overlay">
+                    <div class="gallery-placeholder">📄</div>
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Документ.pdf</span>
+                        <span class="gallery-meta">2.4 MB</span>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--overlay">
+                    <div class="gallery-placeholder">📊</div>
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Отчёт.xlsx</span>
+                        <span class="gallery-meta">1.2 MB</span>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--overlay">
+                    <div class="gallery-placeholder">📈</div>
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Аналитика.pptx</span>
+                        <span class="gallery-meta">5.8 MB</span>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--overlay">
+                    <div class="gallery-placeholder">📑</div>
+                    <div class="gallery-overlay">
+                        <span class="gallery-title">Договор.docx</span>
+                        <span class="gallery-meta">890 KB</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITH SELECTION -->
+        <section class="section">
+            <p class="section__label">04. Selectable Gallery</p>
+            <div class="gallery-grid gallery-grid--4">
+                <div class="gallery-item gallery-item--selectable">
+                    <div class="gallery-placeholder">📄</div>
+                    <div class="gallery-checkbox">
+                        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--selectable gallery-item--selected">
+                    <div class="gallery-placeholder">📊</div>
+                    <div class="gallery-checkbox gallery-checkbox--checked">
+                        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--selectable gallery-item--selected">
+                    <div class="gallery-placeholder">📈</div>
+                    <div class="gallery-checkbox gallery-checkbox--checked">
+                        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="gallery-item gallery-item--selectable">
+                    <div class="gallery-placeholder">📑</div>
+                    <div class="gallery-checkbox">
+                        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="gallery-selection-bar">
+                <span>Выбрано: 2 файла</span>
+                <div class="selection-actions">
+                    <button class="selection-btn">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Скачать
+                    </button>
+                    <button class="selection-btn selection-btn--danger">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIGHTBOX PREVIEW -->
+        <section class="section">
+            <p class="section__label">05. Lightbox (Static Preview)</p>
+            <div class="lightbox-preview">
+                <div class="lightbox-backdrop"></div>
+                <div class="lightbox-content">
+                    <button class="lightbox-close">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    <button class="lightbox-nav lightbox-nav--prev">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="lightbox-image">
+                        <div class="gallery-placeholder gallery-placeholder--lg">📄 Preview</div>
+                    </div>
+                    <button class="lightbox-nav lightbox-nav--next">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    <div class="lightbox-info">
+                        <span class="lightbox-title">Документ.pdf</span>
+                        <span class="lightbox-counter">3 / 12</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CAROUSEL -->
+        <section class="section">
+            <p class="section__label">06. Image Carousel</p>
+            <div class="gallery-carousel">
+                <div class="carousel-main">
+                    <div class="gallery-placeholder gallery-placeholder--lg">📄 Main Image</div>
+                </div>
+                <div class="carousel-thumbs">
+                    <div class="carousel-thumb carousel-thumb--active">
+                        <div class="gallery-placeholder gallery-placeholder--sm">📄</div>
+                    </div>
+                    <div class="carousel-thumb">
+                        <div class="gallery-placeholder gallery-placeholder--sm">📊</div>
+                    </div>
+                    <div class="carousel-thumb">
+                        <div class="gallery-placeholder gallery-placeholder--sm">📈</div>
+                    </div>
+                    <div class="carousel-thumb">
+                        <div class="gallery-placeholder gallery-placeholder--sm">📑</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DOCUMENT PREVIEW CARDS -->
+        <section class="section">
+            <p class="section__label">07. Document Preview Cards</p>
+            <div class="gallery-grid gallery-grid--3">
+                <div class="doc-card">
+                    <div class="doc-card__preview">
+                        <div class="gallery-placeholder">📄</div>
+                    </div>
+                    <div class="doc-card__info">
+                        <h4>Договор аренды.pdf</h4>
+                        <p>Изменён: 2 часа назад</p>
+                    </div>
+                    <div class="doc-card__actions">
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-card__preview">
+                        <div class="gallery-placeholder">📊</div>
+                    </div>
+                    <div class="doc-card__info">
+                        <h4>Отчёт Q4.xlsx</h4>
+                        <p>Изменён: Вчера</p>
+                    </div>
+                    <div class="doc-card__actions">
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-card__preview">
+                        <div class="gallery-placeholder">📈</div>
+                    </div>
+                    <div class="doc-card__info">
+                        <h4>Презентация.pptx</h4>
+                        <p>Изменён: 3 дня назад</p>
+                    </div>
+                    <div class="doc-card__actions">
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                        </button>
+                        <button class="doc-action">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p class="footer__text">Gallery Kit v12.0 // documatica systems</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
