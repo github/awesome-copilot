@@ -76,7 +76,7 @@ For shared types and utilities:
 
 Use sequential thinking to break down the user's request:
 
-```
+```text
 What is the user asking for?
 ├── What domain does this belong to?
 ├── What frontend work is needed?
