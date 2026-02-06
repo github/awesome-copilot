@@ -242,7 +242,7 @@ Explanation of the impact or reason for the suggestion.
 ### Example Comments
 
 #### Critical Issue
-```markdown
+````markdown
 **🔴 CRITICAL - Security: SQL Injection Vulnerability**
 
 The query on line 45 concatenates user input directly into the SQL string,
@@ -265,10 +265,10 @@ stmt.setString(1, email);
 ```
 
 **Reference:** OWASP SQL Injection Prevention Cheat Sheet
-```
+````
 
 #### Important Issue
-```markdown
+````markdown
 **🟡 IMPORTANT - Testing: Missing test coverage for critical path**
 
 The `processPayment()` function handles financial transactions but has no tests
@@ -290,10 +290,10 @@ test('should process full refund when order is cancelled', () => {
     expect(result.status).toBe('refunded');
 });
 ```
-```
+````
 
 #### Suggestion
-```markdown
+````markdown
 **🟢 SUGGESTION - Readability: Simplify nested conditionals**
 
 The nested if statements on lines 30-40 make the logic hard to follow.
@@ -318,7 +318,7 @@ if (!user || !user.isActive || !user.hasPermission('write')) {
 }
 // do something
 ```
-```
+````
 
 ## Review Checklist
 
