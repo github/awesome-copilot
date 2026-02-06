@@ -59,3 +59,11 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 | [webapp-testing](../skills/webapp-testing/SKILL.md) | Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs. | `test-helper.js` |
 | [winapp-cli](../skills/winapp-cli/SKILL.md) | Windows App Development CLI (winapp) for building, packaging, and deploying Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml, manage development certificates, add package identity for debugging, sign packages, or access Windows SDK build tools. Supports .NET, C++, Electron, Rust, Tauri, and cross-platform frameworks targeting Windows. | None |
 | [workiq-copilot](../skills/workiq-copilot/SKILL.md) | Guides the Copilot CLI on how to use the WorkIQ CLI/MCP server to query Microsoft 365 Copilot data (emails, meetings, docs, Teams, people) for live context, summaries, and recommendations. | None |
+
+### External Skill Collections
+
+Community-maintained collections of skills hosted in external repositories.
+
+| Name | Description | Skills |
+| ---- | ----------- | ------ |
+| [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills) | 78 SaaS automation skills powered by [Rube MCP](https://rube.app/mcp) (Composio). Each skill covers workflow patterns, tool sequences, common pitfalls, and parameter guidance for a specific app. Categories include CRM (Salesforce, HubSpot, Pipedrive), Project Management (Jira, Asana, Linear, ClickUp), Communication (Slack, Discord, Teams), Email (Gmail, Outlook, SendGrid), Code & DevOps (GitHub, GitLab, Sentry, Datadog), Storage & Docs (Google Drive, Notion, Confluence, Airtable), Calendar (Google Calendar, Calendly), Social Media (LinkedIn, Twitter, Reddit), Support (Zendesk, Freshdesk, Intercom), E-commerce (Shopify, Stripe), Design (Figma, Canva), and more. Install with `npx skills add ComposioHQ/awesome-claude-skills --all`. | 78 |
