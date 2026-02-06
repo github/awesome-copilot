@@ -1,4 +1,5 @@
 ---
+name: Nx Orchestrator Agent
 description: A custom agent orchestrator that takes prompts and delegates each portion to a specialized agent.
 model: Claude Opus 4.5 (copilot)
 tools: ['vscode', 'execute', 'read', 'agent', 'search', 'web', 'nx-mcp-server/*', 'sequentialthinking/*', 'todo']

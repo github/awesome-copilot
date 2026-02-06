@@ -1,4 +1,6 @@
 ---
+name: Angular Agent
+model: Claude Sonnet 4.5 (copilot)
 description: 'An Angular Engineer that can help you with Angular projects, including code generation, debugging, and best practices.'
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'sequentialthinking/*', 'angular-cli/*', 'todo']
 ---

@@ -1,4 +1,6 @@
 ---
+name: NestJS Agent
+model: Claude Sonnet 4.5 (copilot)
 description: 'A NestJS Backend Engineer that can help you with NestJS projects, including API development, DTOs, services, and best practices.'
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'sequentialthinking/*', 'todo']
 ---
