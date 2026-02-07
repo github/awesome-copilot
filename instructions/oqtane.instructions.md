@@ -31,7 +31,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 - See base classes and patterns in the [Main Oqtane repo](https://github.com/oqtane/oqtane.framework)
 - Follow client server patterns for module development.
 - The Client project has various modules in the modules folder.
-- Each action in the client module is a seperate razor file that inherits from ModuleBase with index.razor being the default action.
+- Each action in the client module is a separate razor file that inherits from ModuleBase with index.razor being the default action.
 - For complex client processing like getting data, create a service class that inherits from ServiceBase and lives in the services folder. One service class for each module. 
 - Client service should call server endpoint using ServiceBase methods
 - Server project contains MVC Controllers, one for each module that match the client service calls.  Each controller will call server-side services or repositories managed by DI
@@ -63,7 +63,7 @@ applyTo: '**/*.razor, **/*.razor.cs, **/*.razor.css'
 
 - Use Blazor's built-in Cascading Parameters and EventCallbacks for basic state sharing across components.
 - use built-in Oqtane state management in the base classes like PageState and SiteState when appropriate.
-- Avoid adding extra depenencies like Fluxor or BlazorState when the application grows in complexity.
+- Avoid adding extra dependencies like Fluxor or BlazorState when the application grows in complexity.
 - For client-side state persistence in Blazor WebAssembly, consider using Blazored.LocalStorage or Blazored.SessionStorage to maintain state between page reloads.
 - For server-side Blazor, use Scoped Services and the StateContainer pattern to manage state within user sessions while minimizing re-renders.
 

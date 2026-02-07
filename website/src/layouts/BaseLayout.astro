@@ -1,0 +1,189 @@
+---
+import { execSync } from "child_process";
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: string;
+}
+
+const {
+  title,
+  description = "Community-driven collection of custom agents, prompts, and instructions for GitHub Copilot",
+  activeNav = "",
+} = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+// Get git commit SHA and build date at build time
+let commitSha = "unknown";
+let buildDate = new Date().toISOString().split("T")[0];
+try {
+  // Use GITHUB_SHA env var in GitHub Actions, fallback to git command locally
+  const githubSha = process.env.GITHUB_SHA;
+  if (githubSha) {
+    commitSha = githubSha.substring(0, 7);
+  } else {
+    commitSha = execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+  }
+} catch {
+  // Fallback if git is not available
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} - Awesome GitHub Copilot</title>
+    <meta name="description" content={description} />
+    <link rel="stylesheet" href={`${base}styles/global.css`} />
+    <link
+      rel="icon"
+      href={`${base}images/Copilot_Icon_Black.svg`}
+      type="image/svg+xml"
+    />
+  </head>
+  <body data-base-path={base}>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <header class="site-header">
+      <div class="container">
+        <div class="header-content">
+          <a href={base} class="logo">
+            <img
+              src={`${base}images/Copilot_Icon_White.svg`}
+              alt=""
+              class="logo-icon logo-icon-dark"
+              width="32"
+              height="32"
+              aria-hidden="true"
+            />
+            <img
+              src={`${base}images/Copilot_Icon_Black.svg`}
+              alt=""
+              class="logo-icon logo-icon-light"
+              width="32"
+              height="32"
+              aria-hidden="true"
+            />
+            <span class="logo-text">Awesome Copilot</span>
+          </a>
+          <nav class="main-nav" aria-label="Main navigation">
+            <a
+              href={`${base}agents/`}
+              class:list={[{ active: activeNav === "agents" }]}>Agents</a
+            >
+            <a
+              href={`${base}prompts/`}
+              class:list={[{ active: activeNav === "prompts" }]}>Prompts</a
+            >
+            <a
+              href={`${base}instructions/`}
+              class:list={[{ active: activeNav === "instructions" }]}
+              >Instructions</a
+            >
+            <a
+              href={`${base}skills/`}
+              class:list={[{ active: activeNav === "skills" }]}>Skills</a
+            >
+            <a
+              href={`${base}collections/`}
+              class:list={[{ active: activeNav === "collections" }]}
+              >Collections</a
+            >
+            <a
+              href={`${base}tools/`}
+              class:list={[{ active: activeNav === "tools" }]}>Tools</a
+            >
+            <a
+              href={`${base}samples/`}
+              class:list={[{ active: activeNav === "samples" }]}>Samples</a
+            >
+          </nav>
+          <div class="header-actions">
+            <button
+              id="theme-toggle"
+              class="theme-toggle"
+              aria-label="Toggle theme"
+            >
+              <svg
+                class="icon-sun"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0zm0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13zM2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.75.75 0 0 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06zm9.193 9.193a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061zM0 8a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 0 8zm13 0a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5A.75.75 0 0 1 13 8zM2.343 13.657a.75.75 0 0 1 0-1.061l1.06-1.06a.75.75 0 0 1 1.061 1.06l-1.06 1.06a.75.75 0 0 1-1.061 0zm9.193-9.193a.75.75 0 0 1 0-1.06l1.061-1.061a.75.75 0 0 1 1.06 1.06l-1.06 1.061a.75.75 0 0 1-1.061 0z"
+                ></path>
+              </svg>
+              <svg
+                class="icon-moon"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9.598 1.591a.75.75 0 0 1 .785-.175 7 7 0 1 1-8.967 8.967.75.75 0 0 1 .961-.96 5.5 5.5 0 0 0 7.046-7.046.75.75 0 0 1 .175-.786zm1.616 1.945a7 7 0 0 1-7.678 7.678 5.5 5.5 0 1 0 7.678-7.678z"
+                ></path>
+              </svg>
+            </button>
+            <a
+              href="https://github.com/github/awesome-copilot"
+              class="github-link"
+              target="_blank"
+              rel="noopener"
+              aria-label="View on GitHub"
+            >
+              <svg
+                viewBox="0 0 16 16"
+                width="24"
+                height="24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                ></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          <a
+            href="https://github.com/github/awesome-copilot"
+            target="_blank"
+            rel="noopener">GitHub</a
+          > ·
+          <a
+            href="https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md"
+            target="_blank"
+            rel="noopener">Contribute</a
+          > ·
+          <a
+            href="https://github.com/github/awesome-copilot/blob/main/LICENSE"
+            target="_blank"
+            rel="noopener">MIT License</a
+          >
+        </p>
+        <p class="build-info">
+          Built from <a
+            href={`https://github.com/github/awesome-copilot/commit/${commitSha}`}
+            target="_blank"
+            rel="noopener">{commitSha}</a
+          > on {buildDate}
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      import "../scripts/theme";
+    </script>
+  </body>
+</html>

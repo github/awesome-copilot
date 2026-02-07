@@ -1,0 +1,1 @@
+../../../prompts/multi-stage-dockerfile.prompt.md

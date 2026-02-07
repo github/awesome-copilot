@@ -123,6 +123,7 @@ const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
+const COOKBOOK_DIR = path.join(ROOT_FOLDER, "cookbook");
 const MAX_COLLECTION_ITEMS = 50;
 
 // Agent Skills validation constants
@@ -145,6 +146,7 @@ export {
   AGENTS_DIR,
   SKILLS_DIR,
   COLLECTIONS_DIR,
+  COOKBOOK_DIR,
   MAX_COLLECTION_ITEMS,
   SKILL_NAME_MIN_LENGTH,
   SKILL_NAME_MAX_LENGTH,

@@ -195,6 +195,22 @@ function parseSkillMetadata(skillPath) {
   );
 }
 
+/**
+ * Parse a generic YAML file (used for tools.yml and other config files)
+ * @param {string} filePath - Path to the YAML file
+ * @returns {object|null} Parsed YAML object or null on error
+ */
+function parseYamlFile(filePath) {
+  return safeFileOperation(
+    () => {
+      const content = fs.readFileSync(filePath, "utf8");
+      return yaml.load(content, { schema: yaml.JSON_SCHEMA });
+    },
+    filePath,
+    null
+  );
+}
+
 export {
   parseCollectionYaml,
   parseFrontmatter,
@@ -202,5 +218,6 @@ export {
   extractMcpServers,
   extractMcpServerConfigs,
   parseSkillMetadata,
+  parseYamlFile,
   safeFileOperation,
 };

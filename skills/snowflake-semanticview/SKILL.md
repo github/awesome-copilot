@@ -22,13 +22,26 @@ description: Create, alter, and validate Snowflake semantic views using Snowflak
    - Read Snowflake table/view/column comments first (preferred source):
      - https://docs.snowflake.com/en/sql-reference/sql/comment
    - If comments or synonyms are missing, ask whether you can create them, whether the user wants to provide text, or whether you should draft suggestions for approval.
-5. Create a temporary validation name (for example, append `__tmp_validate`) while keeping the same database and schema.
-6. Always validate by sending the DDL to Snowflake via Snowflake CLI before finalizing:
+5. Use SELECT statements with DISTINCT and LIMIT (maximum 1000 rows) to discover relationships between fact and dimension tables, identify column data types, and create more meaningful comments and synonyms for columns.
+6. Create a temporary validation name (for example, append `__tmp_validate`) while keeping the same database and schema.
+7. Always validate by sending the DDL to Snowflake via Snowflake CLI before finalizing:
    - Use `snow sql` to execute the statement with the configured connection.
    - If flags differ by version, check `snow sql --help` and use the connection option shown there.
-7. If validation fails, iterate on the DDL and re-run the validation step until it succeeds.
-8. Apply the final DDL (create or alter) using the real semantic view name.
-9. Clean up any temporary semantic view created during validation.
+8. If validation fails, iterate on the DDL and re-run the validation step until it succeeds.
+9. Apply the final DDL (create or alter) using the real semantic view name.
+10. Run a sample query against the final semantic view to confirm it works as expected. It has a different SQL syntax as can be seen here: https://docs.snowflake.com/en/user-guide/views-semantic/querying#querying-a-semantic-view
+Example:
+
+```SQL
+SELECT * FROM SEMANTIC_VIEW(
+    my_semview_name
+    DIMENSIONS customer.customer_market_segment
+    METRICS orders.order_average_value
+)
+ORDER BY customer_market_segment;
+```
+
+11. Clean up any temporary semantic view created during validation.
 
 ## Synonyms And Comments (Required)
 

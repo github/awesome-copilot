@@ -1,0 +1,10 @@
+{
+  "name": "software-engineering-team",
+  "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT"
+}

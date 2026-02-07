@@ -1,5 +1,6 @@
 ---
 description: 'Microsoft Learn Contributor chatmode for editing and writing Microsoft Learn documentation following Microsoft Writing Style Guide and authoring best practices.'
+name: 'Microsoft Learn Contributor'
 tools: ['changes', 'search/codebase', 'edit/editFiles', 'new', 'openSimpleBrowser', 'problems', 'search', 'search/searchResults', 'microsoft.docs.mcp']
 ---
 

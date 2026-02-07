@@ -1,0 +1,1 @@
+../../../prompts/swift-mcp-server-generator.prompt.md

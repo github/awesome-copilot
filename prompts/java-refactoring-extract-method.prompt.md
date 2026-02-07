@@ -1,5 +1,5 @@
 ---
-title: 'Refactoring Java Methods with Extract Method'
+name: 'Refactoring Java Methods with Extract Method'
 agent: 'agent'
 description: 'Refactoring using Extract Methods in Java Language'
 ---

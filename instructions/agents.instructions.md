@@ -76,6 +76,176 @@ infer: true
 - Only supported for organization/enterprise level agents
 - See "MCP Server Configuration" section below
 
+#### **handoffs** (OPTIONAL, VS Code only)
+- Enable guided sequential workflows that transition between agents with suggested next steps
+- List of handoff configurations, each specifying a target agent and optional prompt
+- After a chat response completes, handoff buttons appear allowing users to move to the next agent
+- Only supported in VS Code (version 1.106+)
+- See "Handoffs Configuration" section below for details
+
+## Handoffs Configuration
+
+Handoffs enable you to create guided sequential workflows that transition seamlessly between custom agents. This is useful for orchestrating multi-step development workflows where users can review and approve each step before moving to the next one.
+
+### Common Handoff Patterns
+
+- **Planning → Implementation**: Generate a plan in a planning agent, then hand off to an implementation agent to start coding
+- **Implementation → Review**: Complete implementation, then switch to a code review agent to check for quality and security issues
+- **Write Failing Tests → Write Passing Tests**: Generate failing tests, then hand off to implement the code that makes those tests pass
+- **Research → Documentation**: Research a topic, then transition to a documentation agent to write guides
+
+### Handoff Frontmatter Structure
+
+Define handoffs in the agent file's YAML frontmatter using the `handoffs` field:
+
+```yaml
+---
+description: 'Brief description of the agent'
+name: 'Agent Name'
+tools: ['search', 'read']
+handoffs:
+  - label: Start Implementation
+    agent: implementation
+    prompt: 'Now implement the plan outlined above.'
+    send: false
+  - label: Code Review
+    agent: code-review
+    prompt: 'Please review the implementation for quality and security issues.'
+    send: false
+---
+```
+
+### Handoff Properties
+
+Each handoff in the list must include the following properties:
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `label` | string | Yes | The display text shown on the handoff button in the chat interface |
+| `agent` | string | Yes | The target agent identifier to switch to (name or filename without `.agent.md`) |
+| `prompt` | string | No | The prompt text to pre-fill in the target agent's chat input |
+| `send` | boolean | No | If `true`, automatically submits the prompt to the target agent (default: `false`) |
+
+### Handoff Behavior
+
+- **Button Display**: Handoff buttons appear as interactive suggestions after a chat response completes
+- **Context Preservation**: When users select a handoff button, they switch to the target agent with conversation context maintained
+- **Pre-filled Prompt**: If a `prompt` is specified, it appears pre-filled in the target agent's chat input
+- **Manual vs Auto**: When `send: false`, users must review and manually send the pre-filled prompt; when `send: true`, the prompt is automatically submitted
+
+### Handoff Configuration Guidelines
+
+#### When to Use Handoffs
+
+- **Multi-step workflows**: Breaking down complex tasks across specialized agents
+- **Quality gates**: Ensuring review steps between implementation phases
+- **Guided processes**: Directing users through a structured development process
+- **Skill transitions**: Moving from planning/design to implementation/testing specialists
+
+#### Best Practices
+
+- **Clear Labels**: Use action-oriented labels that clearly indicate the next step
+  - ✅ Good: "Start Implementation", "Review for Security", "Write Tests"
+  - ❌ Avoid: "Next", "Go to agent", "Do something"
+
+- **Relevant Prompts**: Provide context-aware prompts that reference the completed work
+  - ✅ Good: `'Now implement the plan outlined above.'`
+  - ❌ Avoid: Generic prompts without context
+
+- **Selective Use**: Don't create handoffs to every possible agent; focus on logical workflow transitions
+  - Limit to 2-3 most relevant next steps per agent
+  - Only add handoffs for agents that naturally follow in the workflow
+
+- **Agent Dependencies**: Ensure target agents exist before creating handoffs
+  - Handoffs to non-existent agents will be silently ignored
+  - Test handoffs to verify they work as expected
+
+- **Prompt Content**: Keep prompts concise and actionable
+  - Refer to work from the current agent without duplicating content
+  - Provide any necessary context the target agent might need
+
+### Example: Complete Workflow
+
+Here's an example of three agents with handoffs creating a complete workflow:
+
+**Planning Agent** (`planner.agent.md`):
+```yaml
+---
+description: 'Generate an implementation plan for new features or refactoring'
+name: 'Planner'
+tools: ['search', 'read']
+handoffs:
+  - label: Implement Plan
+    agent: implementer
+    prompt: 'Implement the plan outlined above.'
+    send: false
+---
+# Planner Agent
+You are a planning specialist. Your task is to:
+1. Analyze the requirements
+2. Break down the work into logical steps
+3. Generate a detailed implementation plan
+4. Identify testing requirements
+
+Do not write any code - focus only on planning.
+```
+
+**Implementation Agent** (`implementer.agent.md`):
+```yaml
+---
+description: 'Implement code based on a plan or specification'
+name: 'Implementer'
+tools: ['read', 'edit', 'search', 'execute']
+handoffs:
+  - label: Review Implementation
+    agent: reviewer
+    prompt: 'Please review this implementation for code quality, security, and adherence to best practices.'
+    send: false
+---
+# Implementer Agent
+You are an implementation specialist. Your task is to:
+1. Follow the provided plan or specification
+2. Write clean, maintainable code
+3. Include appropriate comments and documentation
+4. Follow project coding standards
+
+Implement the solution completely and thoroughly.
+```
+
+**Review Agent** (`reviewer.agent.md`):
+```yaml
+---
+description: 'Review code for quality, security, and best practices'
+name: 'Reviewer'
+tools: ['read', 'search']
+handoffs:
+  - label: Back to Planning
+    agent: planner
+    prompt: 'Review the feedback above and determine if a new plan is needed.'
+    send: false
+---
+# Code Review Agent
+You are a code review specialist. Your task is to:
+1. Check code quality and maintainability
+2. Identify security issues and vulnerabilities
+3. Verify adherence to project standards
+4. Suggest improvements
+
+Provide constructive feedback on the implementation.
+```
+
+This workflow allows a developer to:
+1. Start with the Planner agent to create a detailed plan
+2. Hand off to the Implementer agent to write code based on the plan
+3. Hand off to the Reviewer agent to check the implementation
+4. Optionally hand off back to planning if significant issues are found
+
+### Version Compatibility
+
+- **VS Code**: Handoffs are supported in VS Code 1.106 and later
+- **GitHub.com**: Not currently supported; agent transition workflows use different mechanisms
+- **Other IDEs**: Limited or no support; focus on VS Code implementations for maximum compatibility
+
 ## Tool Configuration
 
 ### Tool Specification Strategies
@@ -142,86 +312,91 @@ tools: ['playwright/navigate', 'playwright/screenshot']  # Specific tools
 
 ## Sub-Agent Invocation (Agent Orchestration)
 
-Agents can invoke other agents using `runSubagent` to orchestrate multi-step workflows.
+Agents can invoke other agents using the **agent invocation tool** (the `agent` tool) to orchestrate multi-step workflows.
+
+The recommended approach is **prompt-based orchestration**:
+- The orchestrator defines a step-by-step workflow in natural language.
+- Each step is delegated to a specialized agent.
+- The orchestrator passes only the essential context (e.g., base path, identifiers) and requires each sub-agent to read its own `.agent.md` spec for tools/constraints.
 
 ### How It Works
 
-Include `agent` in tools list to enable sub-agent invocation:
+1) Enable agent invocation by including `agent` in the orchestrator's tools list:
 
 ```yaml
 tools: ['read', 'edit', 'search', 'agent']
 ```
 
-Then invoke other agents with `runSubagent`:
+2) For each step, invoke a sub-agent by providing:
+- **Agent name** (the identifier users select/invoke)
+- **Agent spec path** (the `.agent.md` file to read and follow)
+- **Minimal shared context** (e.g., `basePath`, `projectName`, `logFile`)
 
-```javascript
-const result = await runSubagent({
-  description: 'What this step does',
-  prompt: `You are the [Specialist] specialist.
+### Prompt Pattern (Recommended)
 
-Context:
-- Parameter: ${parameterValue}
-- Input: ${inputPath}
-- Output: ${outputPath}
+Use a consistent “wrapper prompt” for every step so sub-agents behave predictably:
 
-Task:
-1. Do the specific work
-2. Write results to output location
-3. Return summary of completion`
-});
+```text
+This phase must be performed as the agent "<AGENT_NAME>" defined in "<AGENT_SPEC_PATH>".
+
+IMPORTANT:
+- Read and apply the entire .agent.md spec (tools, constraints, quality standards).
+- Work on "<WORK_UNIT_NAME>" with base path: "<BASE_PATH>".
+- Perform the necessary reads/writes under this base path.
+- Return a clear summary (actions taken + files produced/modified + issues).
 ```
+
+Optional: if you need a lightweight, structured wrapper for traceability, embed a small JSON block in the prompt (still human-readable and tool-agnostic):
+
+```text
+{
+  "step": "<STEP_ID>",
+  "agent": "<AGENT_NAME>",
+  "spec": "<AGENT_SPEC_PATH>",
+  "basePath": "<BASE_PATH>"
+}
+```
+
+### Orchestrator Structure (Keep It Generic)
+
+For maintainable orchestrators, document these structural elements:
+
+- **Dynamic parameters**: what values are extracted from the user (e.g., `projectName`, `fileName`, `basePath`).
+- **Sub-agent registry**: a list/table mapping each step to `agentName` + `agentSpecPath`.
+- **Step ordering**: explicit sequence (Step 1 → Step N).
+- **Trigger conditions** (optional but recommended): define when a step runs vs is skipped.
+- **Logging strategy** (optional but recommended): a single log/report file updated after each step.
+
+Avoid embedding orchestration “code” (JavaScript, Python, etc.) inside the orchestrator prompt; prefer deterministic, tool-driven coordination.
 
 ### Basic Pattern
 
-Structure each sub-agent call with:
+Structure each step invocation with:
 
-1. **description**: Clear one-line purpose of the sub-agent invocation
-2. **prompt**: Detailed instructions with substituted variables
-
-The prompt should include:
-- Who the sub-agent is (specialist role)
-- What context it needs (parameters, paths)
-- What to do (concrete tasks)
-- Where to write output
-- What to return (summary)
+1. **Step description**: Clear one-line purpose (used for logs and traceability)
+2. **Agent identity**: `agentName` + `agentSpecPath`
+3. **Context**: A small, explicit set of variables (paths, IDs, environment name)
+4. **Expected outputs**: Files to create/update and where they should be written
+5. **Return summary**: Ask the sub-agent to return a short, structured summary
 
 ### Example: Multi-Step Processing
 
-```javascript
-// Step 1: Process data
-const processing = await runSubagent({
-  description: 'Transform raw input data',
-  prompt: `You are the Data Processor specialist.
-
-Project: ${projectName}
+```text
+Step 1: Transform raw input data
+Agent: data-processor
+Spec: .github/agents/data-processor.agent.md
+Context: projectName=${projectName}, basePath=${basePath}
 Input: ${basePath}/raw/
 Output: ${basePath}/processed/
+Expected: write ${basePath}/processed/summary.md
 
-Task:
-1. Read all files from input directory
-2. Apply transformations
-3. Write processed files to output
-4. Create summary: ${basePath}/processed/summary.md
-
-Return: Number of files processed and any issues found`
-});
-
-// Step 2: Analyze (depends on Step 1)
-const analysis = await runSubagent({
-  description: 'Analyze processed data',
-  prompt: `You are the Data Analyst specialist.
-
-Project: ${projectName}
+Step 2: Analyze processed data (depends on Step 1 output)
+Agent: data-analyst
+Spec: .github/agents/data-analyst.agent.md
+Context: projectName=${projectName}, basePath=${basePath}
 Input: ${basePath}/processed/
 Output: ${basePath}/analysis/
-
-Task:
-1. Read processed files from input
-2. Generate analysis report
-3. Write to: ${basePath}/analysis/report.md
-
-Return: Key findings and identified patterns`
-});
+Expected: write ${basePath}/analysis/report.md
 ```
 
 ### Key Points
@@ -229,7 +404,7 @@ Return: Key findings and identified patterns`
 - **Pass variables in prompts**: Use `${variableName}` for all dynamic values
 - **Keep prompts focused**: Clear, specific tasks for each sub-agent
 - **Return summaries**: Each sub-agent should report what it accomplished
-- **Sequential execution**: Use `await` to maintain order when steps depend on each other
+- **Sequential execution**: Run steps in order when dependencies exist between outputs/inputs
 - **Error handling**: Check results before proceeding to dependent steps
 
 ### ⚠️ Tool Availability Requirement
@@ -246,13 +421,13 @@ The orchestrator's tool permissions act as a ceiling for all invoked sub-agents.
 
 ### ⚠️ Important Limitation
 
-**Sub-agent orchestration is NOT suitable for large-scale data processing.** Avoid using `runSubagent` when:
+**Sub-agent orchestration is NOT suitable for large-scale data processing.** Avoid using multi-step sub-agent pipelines when:
 - Processing hundreds or thousands of files
 - Handling large datasets
 - Performing bulk transformations on big codebases
 - Orchestrating more than 5-10 sequential steps
 
-Each sub-agent call adds latency and context overhead. For high-volume processing, implement logic directly in a single agent instead. Use orchestration only for coordinating specialized tasks on focused, manageable datasets.
+Each sub-agent invocation adds latency and context overhead. For high-volume processing, implement logic directly in a single agent instead. Use orchestration only for coordinating specialized tasks on focused, manageable datasets.
 
 ## Agent Prompt Structure
 
@@ -389,31 +564,25 @@ Process the **${projectName}** project located at `${basePath}`.
 
 #### Passing Variables to Sub-Agents
 
-When invoking a sub-agent, pass all context through template variables in the prompt:
+When invoking a sub-agent, pass all context through substituted variables in the prompt. Prefer passing **paths and identifiers**, not entire file contents.
 
-```javascript
-// Extract and prepare variables
-const basePath = `projects/${projectName}`;
-const inputPath = `${basePath}/src/`;
-const outputPath = `${basePath}/docs/`;
+Example (prompt template):
 
-// Pass to sub-agent with all variables substituted
-const result = await runSubagent({
-  description: 'Generate project documentation',
-  prompt: `You are the Documentation specialist.
+```text
+This phase must be performed as the agent "documentation-writer" defined in ".github/agents/documentation-writer.agent.md".
 
-Project: ${projectName}
-Input: ${inputPath}
-Output: ${outputPath}
+IMPORTANT:
+- Read and apply the entire .agent.md spec.
+- Project: "${projectName}"
+- Base path: "projects/${projectName}"
+- Input: "projects/${projectName}/src/"
+- Output: "projects/${projectName}/docs/"
 
 Task:
-1. Read source files from ${inputPath}
-2. Generate comprehensive documentation
-3. Write to ${outputPath}/index.md
-4. Include code examples and usage guides
-
-Return: Summary of documentation generated (file count, word count)`
-});
+1. Read source files under the input path.
+2. Generate documentation.
+3. Write outputs under the output path.
+4. Return a concise summary (files created/updated, key decisions, issues).
 ```
 
 The sub-agent receives all necessary context embedded in the prompt. Variables are resolved before sending the prompt, so the sub-agent works with concrete paths and values, not variable placeholders.
@@ -422,63 +591,94 @@ The sub-agent receives all necessary context embedded in the prompt. Variables a
 
 Example of a simple orchestrator that validates code through multiple specialized agents:
 
-```javascript
-async function reviewCodePipeline(repositoryName, prNumber) {
-  const basePath = `projects/${repositoryName}/pr-${prNumber}`;
+1) Determine shared context:
+- `repositoryName`, `prNumber`
+- `basePath` (e.g., `projects/${repositoryName}/pr-${prNumber}`)
 
-  // Step 1: Security Review
-  const security = await runSubagent({
-    description: 'Scan for security vulnerabilities',
-    prompt: `You are the Security Reviewer specialist.
+2) Invoke specialized agents sequentially (each agent reads its own `.agent.md` spec):
 
-Repository: ${repositoryName}
-PR: ${prNumber}
-Code: ${basePath}/changes/
+```text
+Step 1: Security Review
+Agent: security-reviewer
+Spec: .github/agents/security-reviewer.agent.md
+Context: repositoryName=${repositoryName}, prNumber=${prNumber}, basePath=projects/${repositoryName}/pr-${prNumber}
+Output: projects/${repositoryName}/pr-${prNumber}/security-review.md
+
+Step 2: Test Coverage
+Agent: test-coverage
+Spec: .github/agents/test-coverage.agent.md
+Context: repositoryName=${repositoryName}, prNumber=${prNumber}, basePath=projects/${repositoryName}/pr-${prNumber}
+Output: projects/${repositoryName}/pr-${prNumber}/coverage-report.md
+
+Step 3: Aggregate
+Agent: review-aggregator
+Spec: .github/agents/review-aggregator.agent.md
+Context: repositoryName=${repositoryName}, prNumber=${prNumber}, basePath=projects/${repositoryName}/pr-${prNumber}
+Output: projects/${repositoryName}/pr-${prNumber}/final-review.md
+```
+
+#### Example: Conditional Step Orchestration (Code Review)
+
+This example shows a more complete orchestration with **pre-flight checks**, **conditional steps**, and **required vs optional** behavior.
+
+**Dynamic parameters (inputs):**
+- `repositoryName`, `prNumber`
+- `basePath` (e.g., `projects/${repositoryName}/pr-${prNumber}`)
+- `logFile` (e.g., `${basePath}/.review-log.md`)
+
+**Pre-flight checks (recommended):**
+- Verify expected folders/files exist (e.g., `${basePath}/changes/`, `${basePath}/reports/`).
+- Detect high-level characteristics that influence step triggers (e.g., repo language, presence of `package.json`, `pom.xml`, `requirements.txt`, test folders).
+- Log the findings once at the start.
+
+**Step trigger conditions:**
+
+| Step | Status | Trigger Condition | On Failure |
+|------|--------|-------------------|-----------|
+| 1: Security Review | **Required** | Always run | Stop pipeline |
+| 2: Dependency Audit | Optional | If a dependency manifest exists (`package.json`, `pom.xml`, etc.) | Continue |
+| 3: Test Coverage Check | Optional | If test projects/files are present | Continue |
+| 4: Performance Checks | Optional | If perf-sensitive code changed OR a perf config exists | Continue |
+| 5: Aggregate & Verdict | **Required** | Always run if Step 1 completed | Stop pipeline |
+
+**Execution flow (natural language):**
+1. Initialize `basePath` and create/update `logFile`.
+2. Run pre-flight checks and record them.
+3. Execute Step 1 → N sequentially.
+4. For each step:
+  - If trigger condition is false: mark as **SKIPPED** and continue.
+  - Otherwise: invoke the sub-agent using the wrapper prompt and capture its summary.
+  - Mark as **SUCCESS** or **FAILED**.
+  - If the step is **Required** and failed: stop the pipeline and write a failure summary.
+5. End with a final summary section (overall status, artifacts, next actions).
+
+**Sub-agent invocation prompt (example):**
+
+```text
+This phase must be performed as the agent "security-reviewer" defined in ".github/agents/security-reviewer.agent.md".
+
+IMPORTANT:
+- Read and apply the entire .agent.md spec.
+- Work on repository "${repositoryName}" PR "${prNumber}".
+- Base path: "${basePath}".
 
 Task:
-1. Scan code for OWASP Top 10 vulnerabilities
-2. Check for injection attacks, auth flaws
-3. Write findings to ${basePath}/security-review.md
+1. Review the changes under "${basePath}/changes/".
+2. Write findings to "${basePath}/reports/security-review.md".
+3. Return a short summary with: critical findings, recommended fixes, files created/modified.
+```
 
-Return: List of critical, high, and medium issues found`
-  });
+**Logging format (example):**
 
-  // Step 2: Test Coverage Check
-  const coverage = await runSubagent({
-    description: 'Verify test coverage for changes',
-    prompt: `You are the Test Coverage specialist.
-
-Repository: ${repositoryName}
-PR: ${prNumber}
-Changes: ${basePath}/changes/
-
-Task:
-1. Analyze code coverage for modified files
-2. Identify untested critical paths
-3. Write report to ${basePath}/coverage-report.md
-
-Return: Current coverage percentage and gaps`
-  });
-
-  // Step 3: Aggregate Results
-  const finalReport = await runSubagent({
-    description: 'Compile all review findings',
-    prompt: `You are the Review Aggregator specialist.
-
-Repository: ${repositoryName}
-Reports: ${basePath}/*.md
-
-Task:
-1. Read all review reports from ${basePath}/
-2. Synthesize findings into single report
-3. Determine overall verdict (APPROVE/NEEDS_FIXES/BLOCK)
-4. Write to ${basePath}/final-review.md
-
-Return: Final verdict and executive summary`
-  });
-
-  return finalReport;
-}
+```markdown
+## Step 2: Dependency Audit
+**Status:** ✅ SUCCESS / ⚠️ SKIPPED / ❌ FAILED
+**Trigger:** package.json present
+**Started:** 2026-01-16T10:30:15Z
+**Completed:** 2026-01-16T10:31:05Z
+**Duration:** 00:00:50
+**Artifacts:** reports/dependency-audit.md
+**Summary:** [brief agent summary]
 ```
 
 This pattern applies to any orchestration scenario: extract variables, call sub-agents with clear context, await results.

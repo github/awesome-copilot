@@ -1,0 +1,1 @@
+../../../prompts/typescript-mcp-server-generator.prompt.md

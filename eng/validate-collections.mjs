@@ -2,12 +2,12 @@
 
 import fs from "fs";
 import path from "path";
-import { parseCollectionYaml, parseFrontmatter } from "./yaml-parser.mjs";
 import {
-  ROOT_FOLDER,
   COLLECTIONS_DIR,
   MAX_COLLECTION_ITEMS,
+  ROOT_FOLDER,
 } from "./constants.mjs";
+import { parseCollectionYaml, parseFrontmatter } from "./yaml-parser.mjs";
 
 // Validation functions
 function validateCollectionId(id) {
@@ -177,10 +177,10 @@ function validateCollectionItems(items) {
     if (!item.kind || typeof item.kind !== "string") {
       return `Item ${i + 1} must have a kind string`;
     }
-    if (!["prompt", "instruction", "agent"].includes(item.kind)) {
+    if (!["prompt", "instruction", "agent", "skill"].includes(item.kind)) {
       return `Item ${
         i + 1
-      } kind must be one of: prompt, instruction, agent`;
+      } kind must be one of: prompt, instruction, agent, skill`;
     }
 
     // Validate file path exists
@@ -365,4 +365,3 @@ try {
   console.error(`Error during validation: ${error.message}`);
   process.exit(1);
 }
-

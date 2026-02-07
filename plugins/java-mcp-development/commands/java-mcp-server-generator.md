@@ -1,0 +1,1 @@
+../../../prompts/java-mcp-server-generator.prompt.md

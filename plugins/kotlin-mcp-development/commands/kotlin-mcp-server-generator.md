@@ -1,0 +1,1 @@
+../../../prompts/kotlin-mcp-server-generator.prompt.md

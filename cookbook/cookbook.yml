@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=../.schemas/cookbook.schema.json
+# Cookbook manifest for the Awesome GitHub Copilot website
+# This file defines the structure of cookbooks and recipes for the Samples page
+
+cookbooks:
+  - id: copilot-sdk
+    name: GitHub Copilot SDK
+    description: Ready-to-use recipes for building with the GitHub Copilot SDK across multiple languages
+    path: cookbook/copilot-sdk
+    featured: true
+    languages:
+      - id: nodejs
+        name: Node.js / TypeScript
+        icon: "\uE628"
+        extension: .ts
+      - id: python
+        name: Python
+        icon: "\uE73C"
+        extension: .py
+      - id: dotnet
+        name: .NET (C#)
+        icon: "\uE648"
+        extension: .cs
+      - id: go
+        name: Go
+        icon: "\uE626"
+        extension: .go
+    recipes:
+      - id: error-handling
+        name: Error Handling
+        description: Handle errors gracefully including connection failures, timeouts, and cleanup
+        tags:
+          - errors
+          - basics
+          - reliability
+      - id: multiple-sessions
+        name: Multiple Sessions
+        description: Manage multiple independent conversations simultaneously
+        tags:
+          - sessions
+          - advanced
+          - concurrency
+      - id: managing-local-files
+        name: Managing Local Files
+        description: Organize files by metadata using AI-powered grouping strategies
+        tags:
+          - files
+          - organization
+          - ai-powered
+      - id: pr-visualization
+        name: PR Visualization
+        description: Generate interactive PR age charts using GitHub MCP Server
+        tags:
+          - github
+          - visualization
+          - mcp
+      - id: persisting-sessions
+        name: Persisting Sessions
+        description: Save and resume sessions across restarts
+        tags:
+          - sessions
+          - persistence
+          - state-management

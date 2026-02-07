@@ -1,0 +1,1 @@
+../../../agents/php-mcp-expert.agent.md
