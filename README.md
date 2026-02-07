@@ -69,7 +69,7 @@ Plugins are installable packages generated from collections. Each plugin contain
 First, add the Awesome Copilot marketplace to your Copilot CLI:
 
 ```bash
-copilot marketplace add github/awesome-copilot
+copilot plugin marketplace add github/awesome-copilot
 ```
 
 Then install any plugin from the collection:
