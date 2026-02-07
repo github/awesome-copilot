@@ -1804,6 +1804,9 @@ gh extension search github
 # Install extension
 gh extension install owner/extension-repo
 
+# Install GitHub runtime CLI extension
+gh extension install github/gh-runtime-cli
+
 # Install from branch
 gh extension install owner/extension-repo --branch develop
 
