@@ -38,7 +38,7 @@ az devops wiki show --wiki {wiki-name} --project {project} --open
 az devops wiki create \
   --name {wiki-name} \
   --project {project} \
-  --type projectWiki
+  --type projectwiki
 ```
 
 ## Create code wiki from repository
@@ -47,9 +47,10 @@ az devops wiki create \
 az devops wiki create \
   --name {wiki-name} \
   --project {project} \
-  --type codeWiki \
+  --type codewiki \
   --repository {repo-name} \
-  --mapped-path /wiki
+  --mapped-path /wiki \
+  --version {branch-name}
 ```
 
 ## Delete wiki
@@ -61,7 +62,12 @@ az devops wiki delete --wiki {wiki-id} --project {project} --yes
 ## List pages
 
 ```bash
-az devops wiki page list --wiki {wiki-name} --project {project}
+# List pages by showing root page with recursion
+az devops wiki page show \
+  --wiki {wiki-name} \
+  --path "/" \
+  --project {project} \
+  --recursion-level full
 ```
 
 ## Show page
@@ -89,6 +95,7 @@ az devops wiki page create \
 az devops wiki page update \
   --wiki {wiki-name} \
   --path "/existing-page" \
+  --version {page-etag} \
   --content "# Updated Page\n\nNew content..." \
   --project {project}
 ```

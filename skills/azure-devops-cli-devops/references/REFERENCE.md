@@ -31,12 +31,17 @@
 # Interactive login (prompts for PAT)
 az devops login --organization https://dev.azure.com/{org}
 
-# Login with PAT token
-az devops login --organization https://dev.azure.com/{org} --token YOUR_PAT_TOKEN
+# Login with PAT token (preferred: pipe PAT to avoid shell history)
+echo $MY_PAT | az devops login --organization https://dev.azure.com/{org}
+
+# Login with PAT from env var (PowerShell)
+"$env:AZURE_DEVOPS_EXT_PAT" | az devops login --organization https://dev.azure.com/{org}
 
 # Logout
 az devops logout --organization https://dev.azure.com/{org}
 ```
+
+Note: Some Azure DevOps CLI versions do not support `--token` for `az devops login`, so piping a PAT is more reliable.
 
 ### Configure Defaults
 
@@ -200,10 +205,12 @@ Available on all commands:
 ```bash
 # Use PAT from environment variable (most secure)
 export AZURE_DEVOPS_EXT_PAT=$MY_PAT
-az devops login --organization $ORG_URL
 
 # Pipe PAT securely (avoids shell history)
 echo $MY_PAT | az devops login --organization $ORG_URL
+
+# PowerShell equivalent
+"$env:AZURE_DEVOPS_EXT_PAT" | az devops login --organization $ORG_URL
 
 # Set defaults to avoid repetition
 az devops configure --defaults organization=$ORG_URL project=$PROJECT

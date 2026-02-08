@@ -3,7 +3,7 @@ name: azure-devops-cli-users
 description: Manage Azure DevOps users with the CLI.
 ---
 
-## when to use this skill
+## When to Use This Skill
 - You want to manage users in an Azure DevOps organization.
 - You need to automate user management tasks or integrate with scripts and CI/CD workflows.
 

@@ -42,7 +42,7 @@ az devops team update \
 ## Delete team
 
 ```bash
-az devops team delete --team {team-name} --project {project} --yes
+az devops team delete --id {team-id} --project {project} --yes
 ```
 
 ## Show team members

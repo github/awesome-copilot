@@ -31,6 +31,7 @@ az boards query --wiql "SELECT * FROM WorkItems" --output table
 ```bash
 az boards work-item show --id {work-item-id}
 az boards work-item show --id {work-item-id} --open
+az boards work-item show --id {work-item-id} --query '{id:id,title:fields."System.Title",state:fields."System.State"}' -o table
 ```
 
 ## Create Work Item
@@ -47,8 +48,8 @@ az boards work-item create \
 az boards work-item create \
   --title "New feature" \
   --type "User Story" \
-  --area "Project\\Area1" \
-  --iteration "Project\\Sprint 1"
+  --area "Project\\Area\\Area1" \
+  --iteration "Project\\Iteration\\Sprint 1"
 
 # With custom fields
 az boards work-item create \
@@ -92,6 +93,7 @@ az boards work-item update \
   --discussion "Work in progress"
 
 # Update with custom fields
+# Note: field names depend on the process template; use fields that exist in your project.
 az boards work-item update \
   --id {work-item-id} \
   --fields "Priority=1" "StoryPoints=5"
@@ -110,8 +112,8 @@ az boards work-item delete --id {work-item-id} --destroy --yes
 ## Work Item Relations
 
 ```bash
-# List relations
-az boards work-item relation list --id {work-item-id}
+# Show relations
+az boards work-item relation show --id {work-item-id}
 
 # List supported relation types
 az boards work-item relation list-type
@@ -131,7 +133,7 @@ az boards area project list --project {project}
 az boards area project show --path "Project\\Area1" --project {project}
 
 # Create area
-az boards area project create --path "Project\\NewArea" --project {project}
+az boards area project create --name "NewArea" --path "\\Project\\Area" --project {project}
 
 # Update area
 az boards area project update \
@@ -177,7 +179,7 @@ az boards iteration project list --project {project}
 az boards iteration project show --path "Project\\Sprint 1" --project {project}
 
 # Create iteration
-az boards iteration project create --path "Project\\Sprint 1" --project {project}
+az boards iteration project create --name "Sprint 1" --path "\\Project\\Iteration" --project {project}
 
 # Update iteration
 az boards iteration project update \
@@ -259,3 +261,9 @@ for id in $(az boards query --wiql "SELECT ID FROM WorkItems WHERE State='New'" 
   az boards work-item update --id $id --state "Active"
 done
 ```
+
+## Troubleshooting
+
+- If area/iteration creation fails with permissions, use existing paths from `az boards area project list` and `az boards iteration project list`.
+- If `--path` errors appear, ensure absolute paths like `\Project\Area\Team` or `\Project\Iteration\Sprint`.
+- If custom field updates fail, confirm the field exists in your process template.

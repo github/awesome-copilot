@@ -15,7 +15,11 @@ description: Manage Azure Boards work items, queries, areas, and iterations with
 ```bash
 # Install Azure DevOps extension
 az extension add --name azure-devops
+
+# Optional: set defaults to avoid repeating org/project
+az devops configure --defaults organization=https://dev.azure.com/{org} project={project}
 ```
 
 ## Guidelines
-Use the reference commands in [REFERENCE.md](references/REFERENCE.md) for specific work item, area, and iteration management tasks.
+- Use the reference commands in [REFERENCE.md](references/REFERENCE.md) for specific work item, area, and iteration management tasks.
+- Area/iteration paths are absolute (for example, `\Project\Area\Team` and `\Project\Iteration\Sprint 1`).

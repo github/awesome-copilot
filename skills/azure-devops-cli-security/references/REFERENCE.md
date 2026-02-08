@@ -33,7 +33,7 @@ az devops security group list --project {project} --subject-types vstsgroup
 ## Show Group Details
 
 ```bash
-az devops security group show --group-id {group-id}
+az devops security group show --id {group-descriptor}
 ```
 
 ## Create Group
@@ -49,7 +49,7 @@ az devops security group create \
 
 ```bash
 az devops security group update \
-  --group-id {group-id} \
+  --id {group-descriptor} \
   --name "{new-group-name}" \
   --description "Updated description"
 ```
@@ -57,7 +57,7 @@ az devops security group update \
 ## Delete Group
 
 ```bash
-az devops security group delete --group-id {group-id} --yes
+az devops security group delete --id {group-descriptor} --yes
 ```
 
 ## Group Memberships
@@ -88,8 +88,8 @@ az devops security permission namespace list
 ### Show Namespace Details
 
 ```bash
-# Show permissions available in a namespace
-az devops security permission namespace show --namespace "GitRepositories"
+# Show permissions available in a namespace (requires namespace GUID)
+az devops security permission namespace show --namespace-id {namespace-guid}
 ```
 
 ### List Permissions
@@ -97,46 +97,41 @@ az devops security permission namespace show --namespace "GitRepositories"
 ```bash
 # List permissions for user/group and namespace
 az devops security permission list \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project}
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor}
 
 # List for specific token (repository)
 az devops security permission list \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}"
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}"
 ```
 
 ### Show Permissions
 
 ```bash
 az devops security permission show \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}"
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}"
 ```
 
 ### Update Permissions
 
 ```bash
-# Grant permission
+# Grant permission (allow-bit is the sum of permission bits to allow)
 az devops security permission update \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}" \
-  --permission-mask "Pull,Contribute"
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}" \
+  --allow-bit {permission-bit-value}
 
-# Deny permission
+# Deny permission (deny-bit is the sum of permission bits to deny)
 az devops security permission update \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}" \
-  --permission-mask 0
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}" \
+  --deny-bit {permission-bit-value}
 ```
 
 ### Reset Permissions
@@ -144,18 +139,16 @@ az devops security permission update \
 ```bash
 # Reset specific permission bits
 az devops security permission reset \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}" \
-  --permission-mask "Pull,Contribute"
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}" \
+  --permission-bit {permission-bit-value}
 
 # Reset all permissions
 az devops security permission reset-all \
-  --id {user-or-group-id} \
-  --namespace "GitRepositories" \
-  --project {project} \
-  --token "repoV2/{project}/{repository-id}" --yes
+  --namespace-id {namespace-guid} \
+  --subject {user-email-or-group-descriptor} \
+  --token "repoV2/{project-id}/{repository-id}" --yes
 ```
 
 ## Error Handling
@@ -165,12 +158,10 @@ az devops security permission reset-all \
 ```bash
 # Try operation, handle permission errors
 if az devops security permission update \
-  --id "$USER_ID" \
-  --namespace "GitRepositories" \
-  --project "$PROJECT" \
-  --token "repoV2/$PROJECT/$REPO_ID" \
-  --allow-bit 2 \
-  --deny-bit 0 2>&1 | grep -q "unauthorized"; then
+  --namespace-id "$NAMESPACE_ID" \
+  --subject "$USER_EMAIL" \
+  --token "repoV2/$PROJECT_ID/$REPO_ID" \
+  --allow-bit 2 2>&1 | grep -q "unauthorized"; then
   echo "Error: Insufficient permissions to update repository permissions"
   exit 1
 fi
