@@ -26,14 +26,86 @@ Discover our curated collections of prompts, instructions, and agents organized 
 | [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 20 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
-## MCP Server
+## 🌐 MCP Server - Discover & Install Artifacts
 
-To make it easy to add these customizations to your editor, we have created a [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides a prompt for searching and installing prompts, instructions, agents, and skills directly from this repository. You'll need to have Docker installed and running to run the server.
+### What is the Model Context Protocol (MCP)?
+
+The **Model Context Protocol (MCP)** is a standardized, open protocol that enables AI models and applications to securely interact with external data sources, tools, and services through a unified interface. It's designed to bridge the gap between AI systems and the resources they need to work effectively.
+
+Think of MCP as:
+- **A communication standard** - A universal language that allows Copilot to talk to external services and repositories without custom integrations
+- **A capability extender** - It enriches Copilot with access to specialized tools, custom agents, and domain-specific knowledge
+- **A knowledge bridge** - It makes curated collections of AI-optimized artifacts (agents, prompts, instructions, and skills) discoverable to your AI assistant
+- **A security layer** - It provides standardized, secure interactions with clear permission boundaries
+
+In the context of Awesome Copilot, the MCP Server acts as a dedicated service that connects GitHub Copilot directly to this repository's comprehensive artifact library. When you set up the Awesome Copilot MCP Server, you're essentially giving Copilot access to a curated marketplace of specialized agents, proven prompts, coding guidelines, and reusable skills tailored to your specific workflows.
+
+**Why MCP Matters:**
+Without MCP, discovering and integrating specialized tools requires manual setup and custom code. With MCP, Copilot can automatically search, discover, and help you install exactly what you need—all through natural conversation.
+
+### How the Awesome Copilot MCP Server Works
+
+The [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) provides seamless discovery and installation of Awesome Copilot artifacts directly within your editor. It creates an intelligent search interface that understands your needs and serves relevant, community-tested resources.
+
+**The complete workflow:**
+1. You describe what you need in Copilot Chat (e.g., "I want an agent for Azure infrastructure as code")
+2. Copilot uses the MCP Server connection to query the Awesome Copilot repository
+3. The MCP Server searches and returns the most relevant artifacts (agents, prompts, instructions, skills) that match your request
+4. Copilot presents the results with descriptions, tags, and usage information in your chat interface
+5. You select an artifact from the results
+6. Copilot guides you through installation and configuration steps
+7. The artifact is integrated into your workflow immediately
+
+**System Architecture:**
+```
+Your Editor (VS Code/Visual Studio)
+    ↓
+GitHub Copilot Chat
+    ↓
+MCP Server (Docker Container)
+    ↓
+Awesome Copilot Repository (Agents, Prompts, Instructions, Skills)
+```
+
+### Requirements
+
+To use the Awesome Copilot MCP Server, you need:
+
+- **Kubernetes (k8s) cluster** - For orchestrating the MCP Server container
+- **Docker** - Installed and running on your system (for containerized MCP Server)
+- **Editor** - VS Code, VS Code Insiders, or Visual Studio (with Copilot Chat enabled)
+- **Network access** - Connection to GitHub to fetch the latest artifacts
+
+### Quick Setup
+
+Click the appropriate button below to automatically configure the MCP Server in your editor:
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode-insiders) [![Install in Visual Studio](https://img.shields.io/badge/Visual_Studio-Install-C16FDE?logo=visualstudio&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vs)
 
+The automatic installation will:
+- Download and configure the MCP Server Docker image
+- Set up your configuration file automatically
+- Enable MCP Server in Copilot Chat
+- Test the connection to verify everything works
+
+### Manual Configuration
+
+If you prefer to configure the MCP Server manually or customize the setup, follow these steps:
+
+#### Step 1: Locate Your Configuration File
+
+The MCP Server configuration is stored in different locations depending on your editor:
+
+- **VS Code (Workspace-level):** `.vscode/anthropic.config.json` in your project root
+- **VS Code (User-level):** `~/.vscode/copilot/anthropic.config.json` (Linux/Mac) or `%APPDATA%\.vscode\copilot\anthropic.config.json` (Windows)
+- **Visual Studio:** `%APPDATA%\Microsoft\VisualStudio\<version>\anthropic.config.json`
+
+#### Step 2: Add MCP Server Configuration
+
+Add or update the MCP Server configuration in your `anthropic.config.json` file:
+
 <details>
-<summary>Show MCP Server JSON configuration</summary>
+<summary>📋 MCP Server Docker Configuration (click to expand)</summary>
 
 ```json
 {
@@ -52,49 +124,234 @@ To make it easy to add these customizations to your editor, we have created a [M
 }
 ```
 
+**Configuration Explanation:**
+- `type`: "stdio" - Communication protocol through standard input/output
+- `command`: "docker" - Run the server in a Docker container
+- `args`: Container startup arguments including the image URL
+
 </details>
+
+#### Step 3: Verify Your Setup
+
+After configuration:
+1. Restart your editor
+2. Open Copilot Chat
+3. Ask about Awesome Copilot artifacts
+4. You should see a list of available resources to explore
+
+#### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| MCP Server not found | Ensure Docker is running and has access to pull from `ghcr.io` |
+| Cannot connect to repository | Check your network connection and firewall settings |
+| Slow artifact searches | Verify Docker has sufficient CPU/memory allocation |
+| Configuration file not recognized | Check file permissions and JSON syntax validity |
+
+### Using the MCP Server
+
+Once configured and connected, you can:
+
+1. **Search for artifacts** - Ask Copilot Chat: "Find me agents for Node.js development"
+2. **Discover resources by category** - Browse collections like "Azure Architecture," "DevOps," or "Frontend Development"
+3. **Get installation guidance** - The MCP Server provides step-by-step instructions tailored to your artifact
+4. **Access detailed descriptions** - View complete documentation, usage examples, and community feedback before installing
+5. **Filter by tags** - Search using specific keywords to narrow down results to your exact needs
+
+**Example Queries:**
+- "Show me prompts for code review"
+- "I need a custom agent for Kubernetes management"
+- "What instructions are available for TypeScript projects?"
+- "Find skills related to Azure infrastructure"
 
 ## 📄 llms.txt
 
 An [`llms.txt`](https://github.github.io/awesome-copilot/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, prompts, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
 
-## 🔧 How to Use
+## 🔧 How to Use Awesome GitHub Copilot
 
-### 🔌 Plugins
+This section explains how to discover, install, and use each type of artifact in Awesome Copilot. Whether you're using the MCP Server for automatic discovery or installing artifacts manually, you'll find detailed guidance for every use case.
 
-Plugins are installable packages generated from collections. Each plugin contains symlinked agents, commands (prompts), and skills from the source collection, making it easy to install a curated set of resources.
+### Getting Started with the MCP Server
 
-#### Installing Plugins
+The simplest way to discover and install artifacts is through the MCP Server:
 
-First, add the Awesome Copilot marketplace to your Copilot CLI:
+1. **Set up the MCP Server** (see section above) in your editor
+2. **Open Copilot Chat** in your editor (use the Copilot Chat command or keyboard shortcut)
+3. **Describe what you need** - Ask Copilot about the kind of agent, prompt, instruction, or skill you're looking for
+4. **Browse results** - The MCP Server will show you matching artifacts with descriptions, tags, and usage information
+5. **Install** - Select an artifact and follow Copilot's installation guidance for your specific artifact type
+6. **Verify installation** - Test the artifact in your workflow to ensure it's working as expected
 
-```bash
-copilot marketplace add github/awesome-copilot
+### Using Each Artifact Type
+
+Awesome Copilot includes different types of artifacts, each serving a specific purpose. Here's how to use each one:
+
+#### 🎯 Prompts
+
+**What they are:** Task-specific prompts are pre-written instructions that guide Copilot to solve specific problems, generate code for particular scenarios, or produce specific types of documentation. They're designed to be reusable and consistent.
+
+**Installation:**
+- Install via MCP Server, or
+- Copy prompt content into your Copilot Chat directly
+
+**How to use:**
+- Navigate to Copilot Chat and type `/` to see all available slash commands
+- Select a prompt from the list, or type `/` followed by the prompt name (e.g., `/awesome-copilot/create-readme`)
+- Press Enter to activate the prompt
+- Follow any additional instructions in the prompt
+- Modify the prompt output as needed for your specific use case
+
+**What they're for:**
+- Generating boilerplate code for specific frameworks
+- Creating standardized documentation (READMEs, API docs, architecture decision records)
+- Structured problem-solving approaches
+- Code review checklists and templates
+- Quick setup scripts and configuration examples
+
+**Example Usage:**
+```
+User: /awesome-copilot/create-readme
+
+Copilot will guide you through creating a comprehensive README.md with:
+- Project overview
+- Installation instructions
+- Usage examples
+- Contributing guidelines
+- License information
 ```
 
-Then install any plugin from the collection:
+#### 📋 Instructions
 
+**What they are:** Instructions are automatic guidelines that apply to specific files based on their patterns or types. They enhance Copilot's understanding of your coding standards, project conventions, and best practices without requiring manual activation.
+
+**Installation:**
+- Install via MCP Server, which typically creates a `.copilot-instructions.md` file or configuration
+- Or manually create instruction files in your project
+
+**How they work:**
+- Instructions apply automatically to files matching their specified patterns
+- When you open a file, Copilot reads the relevant instructions for that file type
+- These instructions guide Copilot's suggestions, completions, and code generation
+- No manual activation needed—they work in the background on every file you edit
+
+**What they cover:**
+- Framework-specific best practices (React, Vue, Angular, Next.js, etc.)
+- Language-specific conventions (TypeScript, Python, C#, Java, etc.)
+- Project-specific coding standards and naming conventions
+- Security practices and linting rules
+- Performance optimization guidelines
+- Code style and formatting preferences
+
+**Example Usage:**
+```
+When editing: src/components/Button.tsx
+Copilot automatically applies instructions for:
+- TypeScript style conventions
+- React component best practices  
+- Your project's component structure
+- Your team's naming conventions
+- Accessibility standards
+
+This happens automatically without you doing anything!
+```
+
+#### 🤖 Custom Agents
+
+**What they are:** Custom agents are specialized AI personas designed with expert knowledge in specific domains, technologies, or workflows. They enhance Copilot with deep expertise when you need specialized assistance.
+
+**Installation:**
+- Install via MCP Server, which makes them available in your editor
+- They appear in your Agents list alongside built-in agents like Plan and Agent
+
+**How to use in different environments:**
+
+**In Copilot Coding Agent (CCA) / Issues:**
+1. Open an issue assigned to Copilot
+2. Click the agent dropdown (usually shows "Agent" or "Plan")
+3. Select your custom agent from the list
+4. Copilot will use that agent's expertise to solve the issue
+
+**In VS Code:**
+1. Look for the Agents sidebar or panel
+2. Find your custom agent in the list
+3. Click to activate it, or reference it in your prompts
+4. The agent's knowledge and capabilities are now available
+
+**In Copilot Chat:**
+1. Reference the agent in your message: `@agent-name help me with...`
+2. Or mention the agent's expertise: "I need help with Azure infrastructure"
+3. Copilot can suggest relevant agents to use
+
+**What they can do:**
+- Provide expert guidance for specific technologies (Kubernetes, Cloud Platforms, Databases, etc.)
+- Execute complex, multi-step workflows with specialized knowledge
+- Accelerate development in specialized domains
+- Maintain consistency for domain-specific tasks
+- Suggest best practices from community experts
+
+**Example Usage:**
+```
+Agent: Azure Infrastructure Architect
+
+When invoked, this agent:
+- Understands Azure services and architecture patterns
+- Suggests Azure-native solutions
+- Validates infrastructure configurations
+- Helps with Bicep/Terraform code
+- Reviews security and cost optimization
+
+Usage: "I need to design a scalable web application on Azure"
+```
+
+#### 🔌 Collections & Plugins
+
+**What they are:** Collections are curated, themed groupings of related artifacts—agents, prompts, instructions, and skills organized around specific workflows, technologies, or use cases. Plugins are installable packages generated from collections.
+
+**Installation:**
+
+**Method 1: Using Copilot CLI**
 ```bash
+# Add the Awesome Copilot marketplace
+copilot marketplace add github/awesome-copilot
+
+# List available collections
+copilot collection list
+
+# Install a collection/plugin
 copilot plugin install <plugin-name>@awesome-copilot
 ```
 
-Alternatively, you can use the `/plugin` command within a Copilot chat session to browse and install plugins interactively.
+**Method 2: Interactive MCP Server**
+1. Open Copilot Chat
+2. Use the `/plugin` command to browse collections
+3. Select a collection to explore
+4. View all artifacts in that collection
+5. Install individual items or the entire collection
 
-### 🤖 Custom Agents
+**About Plugins:**
+- Each plugin contains symlinked agents, commands (prompts), and skills from the source collection
+- Plugins keep your workspace organized by grouping related artifacts
+- You can enable/disable plugins or individual items within them
+- Plugins are version-controlled so you team stays synchronized
 
-Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assigning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
+**Included Collections:**
+- **Awesome Copilot** - Meta prompts for discovering and generating Copilot resources
+- **Copilot SDK** - Tools for building AI applications with the GitHub Copilot SDK
+- **Partners** - Specialized agents from GitHub partners
+- And many more! Browse our collection library for your specific needs
 
-### 🎯 Prompts
+**Example Usage:**
+```
+Installing the "Azure Architecture" collection gives you:
+- Azure Infrastructure Architect agent
+- Azure bicep/Terraform prompts
+- Azure naming conventions instructions  
+- Azure security best practices skills
 
-Use the `/` command in GitHub Copilot Chat to access prompts:
-
-```plaintext
-/awesome-copilot create-readme
+All organized and ready to use together!
 ```
 
-### 📋 Instructions
-
-Instructions automatically apply to files based on their patterns and provide contextual guidance for coding standards, frameworks, and best practices.
 
 ## 🎯 Why Use Awesome GitHub Copilot?
 
