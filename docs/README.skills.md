@@ -3,19 +3,23 @@
 Agent Skills are self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks. Based on the [Agent Skills specification](https://agentskills.io/specification), each skill contains a `SKILL.md` file with detailed instructions that agents load on-demand.
 
 Skills differ from other primitives by supporting bundled assets (scripts, code samples, reference data) that agents can utilize when performing specialized tasks.
-### How to Use Agent Skills
+
+## How to Use Agent Skills
 
 **What's Included:**
+
 - Each skill is a folder containing a `SKILL.md` instruction file
 - Skills may include helper scripts, code templates, or reference data
 - Skills follow the Agent Skills specification for maximum compatibility
 
 **When to Use:**
+
 - Skills are ideal for complex, repeatable workflows that benefit from bundled resources
 - Use skills when you need code templates, helper utilities, or reference data alongside instructions
 - Skills provide progressive disclosure - loaded only when needed for specific tasks
 
 **Usage:**
+
 - Browse the skills table below to find relevant capabilities
 - Copy the skill folder to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically
@@ -25,7 +29,17 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 | [agentic-eval](../skills/agentic-eval/SKILL.md) | Patterns and techniques for evaluating and improving AI agent outputs. Use this skill when:<br />- Implementing self-critique and reflection loops<br />- Building evaluator-optimizer pipelines for quality-critical generation<br />- Creating test-driven code refinement workflows<br />- Designing rubric-based or LLM-as-judge evaluation systems<br />- Adding iterative improvement to agent outputs (code, reports, analysis)<br />- Measuring and improving agent response quality | None |
 | [appinsights-instrumentation](../skills/appinsights-instrumentation/SKILL.md) | Instrument a webapp to send useful telemetry data to Azure App Insights | `LICENSE.txt`<br />`examples/appinsights.bicep`<br />`references/ASPNETCORE.md`<br />`references/AUTO.md`<br />`references/NODEJS.md`<br />`references/PYTHON.md`<br />`scripts/appinsights.ps1` |
 | [azure-deployment-preflight](../skills/azure-deployment-preflight/SKILL.md) | Performs comprehensive preflight validation of Bicep deployments to Azure, including template syntax validation, what-if analysis, and permission checks. Use this skill before any deployment to Azure to preview changes, identify potential issues, and ensure the deployment will succeed. Activate when users mention deploying to Azure, validating Bicep files, checking deployment permissions, previewing infrastructure changes, running what-if, or preparing for azd provision. | `references/ERROR-HANDLING.md`<br />`references/REPORT-TEMPLATE.md`<br />`references/VALIDATION-COMMANDS.md` |
-| [azure-devops-cli](../skills/azure-devops-cli/SKILL.md) | Manage Azure DevOps resources via CLI including projects, repos, pipelines, builds, pull requests, work items, artifacts, and service endpoints. Use when working with Azure DevOps, az commands, devops automation, CI/CD, or when user mentions Azure DevOps CLI. | None |
+| [azure-devops-cli-admin](../skills/azure-devops-cli-admin/SKILL.md) | Azure DevOps administration via CLI for org banners and marketplace extensions, with quick workflows and reference commands. | `references/REFERENCE.md` |
+| [azure-devops-cli-artifacts](../skills/azure-devops-cli-artifacts/SKILL.md) | Manage Azure Artifacts universal packages with the CLI. | `references/REFERENCE.md` |
+| [azure-devops-cli-boards](../skills/azure-devops-cli-boards/SKILL.md) | Manage Azure Boards work items, queries, areas, and iterations with the CLI. | `references/REFERENCE.md`<br />`scripts/script.md` |
+| [azure-devops-cli-devops](../skills/azure-devops-cli-devops/SKILL.md) | Core Azure DevOps CLI setup, auth, configuration, projects, and global CLI usage patterns. | `references/REFERENCE.md` |
+| [azure-devops-cli-pipelines](../skills/azure-devops-cli-pipelines/SKILL.md) | Manage Azure Pipelines with the CLI, including runs, builds, releases, variables, and agents. | `references/REFERENCE.md` |
+| [azure-devops-cli-repos](../skills/azure-devops-cli-repos/SKILL.md) | Manage Azure Repos with the CLI, including repositories, pull requests, refs, and policies. | `references/REFERENCE.md` |
+| [azure-devops-cli-security](../skills/azure-devops-cli-security/SKILL.md) | Manage Azure DevOps security groups and permissions with the CLI. | `references/REFERENCE.md` |
+| [azure-devops-cli-service-endpoint](../skills/azure-devops-cli-service-endpoint/SKILL.md) | Manage Azure DevOps service endpoints and service connections with the CLI. | `references/REFERENCE.md` |
+| [azure-devops-cli-teams](../skills/azure-devops-cli-teams/SKILL.md) | Manage Azure DevOps teams with the CLI. | `references/REFERENCE.md` |
+| [azure-devops-cli-users](../skills/azure-devops-cli-users/SKILL.md) | Manage Azure DevOps users with the CLI. | `references/REFERENCE.md` |
+| [azure-devops-cli-wiki](../skills/azure-devops-cli-wiki/SKILL.md) | Manage Azure DevOps wikis and pages with the CLI. | `references/REFERENCE.md` |
 | [azure-resource-visualizer](../skills/azure-resource-visualizer/SKILL.md) | Analyze Azure resource groups and generate detailed Mermaid architecture diagrams showing the relationships between individual resources. Use this skill when the user asks for a diagram of their Azure resources or help in understanding how the resources relate to each other. | `LICENSE.txt`<br />`assets/template-architecture.md` |
 | [azure-role-selector](../skills/azure-role-selector/SKILL.md) | When user is asking for guidance for which role to assign to an identity given desired permissions, this agent helps them understand the role that will meet the requirements with least privilege access and how to apply that role. | `LICENSE.txt` |
 | [azure-static-web-apps](../skills/azure-static-web-apps/SKILL.md) | Helps create, configure, and deploy Azure Static Web Apps using the SWA CLI. Use when deploying static sites to Azure, setting up SWA local development, configuring staticwebapp.config.json, adding Azure Functions APIs to SWA, or setting up GitHub Actions CI/CD for Static Web Apps. | None |
