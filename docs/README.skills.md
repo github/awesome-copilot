@@ -3,23 +3,19 @@
 Agent Skills are self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks. Based on the [Agent Skills specification](https://agentskills.io/specification), each skill contains a `SKILL.md` file with detailed instructions that agents load on-demand.
 
 Skills differ from other primitives by supporting bundled assets (scripts, code samples, reference data) that agents can utilize when performing specialized tasks.
-
-## How to Use Agent Skills
+### How to Use Agent Skills
 
 **What's Included:**
-
 - Each skill is a folder containing a `SKILL.md` instruction file
 - Skills may include helper scripts, code templates, or reference data
 - Skills follow the Agent Skills specification for maximum compatibility
 
 **When to Use:**
-
 - Skills are ideal for complex, repeatable workflows that benefit from bundled resources
 - Use skills when you need code templates, helper utilities, or reference data alongside instructions
 - Skills provide progressive disclosure - loaded only when needed for specific tasks
 
 **Usage:**
-
 - Browse the skills table below to find relevant capabilities
 - Copy the skill folder to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically
@@ -29,6 +25,7 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 | [agentic-eval](../skills/agentic-eval/SKILL.md) | Patterns and techniques for evaluating and improving AI agent outputs. Use this skill when:<br />- Implementing self-critique and reflection loops<br />- Building evaluator-optimizer pipelines for quality-critical generation<br />- Creating test-driven code refinement workflows<br />- Designing rubric-based or LLM-as-judge evaluation systems<br />- Adding iterative improvement to agent outputs (code, reports, analysis)<br />- Measuring and improving agent response quality | None |
 | [appinsights-instrumentation](../skills/appinsights-instrumentation/SKILL.md) | Instrument a webapp to send useful telemetry data to Azure App Insights | `LICENSE.txt`<br />`examples/appinsights.bicep`<br />`references/ASPNETCORE.md`<br />`references/AUTO.md`<br />`references/NODEJS.md`<br />`references/PYTHON.md`<br />`scripts/appinsights.ps1` |
 | [azure-deployment-preflight](../skills/azure-deployment-preflight/SKILL.md) | Performs comprehensive preflight validation of Bicep deployments to Azure, including template syntax validation, what-if analysis, and permission checks. Use this skill before any deployment to Azure to preview changes, identify potential issues, and ensure the deployment will succeed. Activate when users mention deploying to Azure, validating Bicep files, checking deployment permissions, previewing infrastructure changes, running what-if, or preparing for azd provision. | `references/ERROR-HANDLING.md`<br />`references/REPORT-TEMPLATE.md`<br />`references/VALIDATION-COMMANDS.md` |
+| [azure-devops-analytics](../skills/azure-devops-analytics/SKILL.md) | Query Azure DevOps Analytics using the OData feed. | None |
 | [azure-devops-cli-admin](../skills/azure-devops-cli-admin/SKILL.md) | Azure DevOps administration via CLI for org banners and marketplace extensions, with quick workflows and reference commands. | `references/REFERENCE.md` |
 | [azure-devops-cli-artifacts](../skills/azure-devops-cli-artifacts/SKILL.md) | Manage Azure Artifacts universal packages with the CLI. | `references/REFERENCE.md` |
 | [azure-devops-cli-boards](../skills/azure-devops-cli-boards/SKILL.md) | Manage Azure Boards work items, queries, areas, and iterations with the CLI. | `references/REFERENCE.md`<br />`scripts/script.md` |
