@@ -26,9 +26,9 @@ Discover our curated collections of prompts, instructions, and agents organized 
 | [Partners](collections/partners.md) | Custom agents that have been created by GitHub partners | 20 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
-## MCP Server
+## How to Install Customizations
 
-To make it easy to add these customizations to your editor, we have created a [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides a prompt for searching and installing prompts, instructions, agents, and skills directly from this repository. You'll need to have Docker installed and running to run the server.
+To make it easy to add these customizations to your editor, we have created an [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides a prompt for searching and installing prompts, instructions, agents, and skills directly from this repository. You'll need to have Docker installed and running to run the MCP server locally.
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode-insiders) [![Install in Visual Studio](https://img.shields.io/badge/Visual_Studio-Install-C16FDE?logo=visualstudio&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vs)
 
@@ -69,7 +69,7 @@ Plugins are installable packages generated from collections. Each plugin contain
 First, add the Awesome Copilot marketplace to your Copilot CLI:
 
 ```bash
-copilot marketplace add github/awesome-copilot
+copilot plugin marketplace add github/awesome-copilot
 ```
 
 Then install any plugin from the collection:

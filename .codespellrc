@@ -12,6 +12,7 @@
 # aline - proper name (Aline Ávila, contributor)
 # ative - part of "Declarative Agents" in TypeSpec M365 Copilot documentation (collections/typespec-m365-copilot.collection.md)
 # dateA, dateB - variable names used in sorting comparison functions
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB
+# TE - HTTP transfer coding header
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE
 # Skip certain files and directories
 skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus

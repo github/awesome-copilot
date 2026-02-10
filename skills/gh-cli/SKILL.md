@@ -1148,8 +1148,7 @@ gh pr comment 123 --delete 456789
 gh pr review 123
 
 # Approve PR
-gh pr review 123 --approve \
-  --approve-body "LGTM!"
+gh pr review 123 --approve --body "LGTM!"
 
 # Request changes
 gh pr review 123 --request-changes \
