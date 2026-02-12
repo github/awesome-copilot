@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "ospo-dependency-scanner": {
+      "command": "bash",
+      "args": ["-c", "cd mcp-server && npm install --ignore-scripts 2>/dev/null && npx tsc 2>/dev/null && node dist/index.js"],
+      "tools": ["*"]
+    }
+  }
+}
