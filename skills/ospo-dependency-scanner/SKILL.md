@@ -1,16 +1,16 @@
 ---
 name: ospo-dependency-scanner
-description: Scan npm dependencies for license compliance. Clones a GitHub repo, installs dependencies, and analyzes all transitive dependency licenses using license-checker. Checks compatibility with the project license, flags copyleft-in-permissive conflicts, and generates CycloneDX SBOMs. Use when the user wants to audit dependency licenses, check license compatibility, or generate an SBOM for a Node.js project.
+description: Scan npm and Python dependencies for license compliance. Clones a GitHub repo, installs dependencies, and analyzes all transitive dependency licenses. Checks compatibility with the project license, flags copyleft-in-permissive conflicts, and generates CycloneDX SBOMs. Use when the user wants to audit dependency licenses, check license compatibility, or generate an SBOM for a Node.js or Python project.
 ---
 
 # OSPO Dependency Scanner
 
-Scan any GitHub repository's npm dependencies for license compliance. This skill uses an MCP server that clones the repo locally, runs `npm install`, and analyzes all production dependencies (including transitive) using `license-checker`.
+Scan any GitHub repository's npm or Python dependencies for license compliance. This skill uses an MCP server that clones the repo locally, installs dependencies, and analyzes all production dependencies (including transitive) using `license-checker` (npm) or `pip-licenses` (Python).
 
 ## Available MCP Tools
 
 ### `scan_dependencies`
-Clone a GitHub repo, install npm dependencies, and return license information for all production dependencies.
+Clone a GitHub repo, install dependencies, and return license information for all production dependencies. Supports npm (Node.js) and Python (pip) ecosystems.
 
 **Input:**
 - `owner` (string) — GitHub repository owner
@@ -56,7 +56,7 @@ check_license_compatibility({
 ```
 
 ### `generate_sbom`
-Clone a GitHub repo and generate a CycloneDX 1.5 SBOM (Software Bill of Materials) from its npm dependencies.
+Clone a GitHub repo and generate a CycloneDX 1.5 SBOM (Software Bill of Materials) from its dependencies. Supports npm and Python.
 
 **Input:**
 - `owner` (string) — GitHub repository owner
@@ -85,18 +85,28 @@ If the user asks for an SBOM, call `generate_sbom` and present or save the Cyclo
 
 ## Supported Ecosystems
 
-Currently supports **Node.js/npm** only. The MCP server:
-- Clones the repo to a temp directory
+Supports **Node.js/npm** and **Python** ecosystems:
+
+### npm (Node.js)
+- Detects `package.json`
 - Runs `npm install --ignore-scripts --production`
 - Uses `license-checker` to analyze `node_modules`
-- Cleans up the temp directory after scanning
 
-Future: Python (pip-licenses), Go (go-licenses), Rust (cargo-license).
+### Python
+- Detects `requirements.txt`, `pyproject.toml`, `setup.py`, or `Pipfile`
+- Creates a virtual environment, installs dependencies via `pip`
+- Uses `pip-licenses` to extract license metadata
+- Requires `python3` and `pip` on the host machine
+
+Both ecosystems clean up temp directories after scanning.
+
+Future: Go (go-licenses), Rust (cargo-license).
 
 ## Error Handling
 
 - If the repo doesn't exist or is private, the tool returns an error message — inform the user.
-- If `npm install` fails (e.g., no `package.json`), the tool returns an error — note that this skill only works for npm projects.
+- If `npm install` fails (e.g., no `package.json`) or Python deps fail to install, the tool returns an error — note which ecosystems are supported.
+- If no supported manifest is found, the tool lists which files it looks for.
 - Network issues during clone will timeout after 60 seconds.
 
 ## Example Output Format

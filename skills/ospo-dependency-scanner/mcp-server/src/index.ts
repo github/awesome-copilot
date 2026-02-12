@@ -21,7 +21,7 @@ const COPYLEFT_LICENSES = new Set([
 const PERMISSIVE_LICENSES = new Set([
   "MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC",
   "Unlicense", "0BSD", "Artistic-2.0", "Zlib", "BSL-1.0",
-  "CC0-1.0", "WTFPL", "PostgreSQL",
+  "CC0-1.0", "WTFPL", "PostgreSQL", "Python-2.0", "HPND",
 ]);
 
 const OSI_APPROVED = new Set([...COPYLEFT_LICENSES, ...PERMISSIVE_LICENSES]);
@@ -49,6 +49,21 @@ function normalizeLicense(license: string): string {
     "0BSD": "0BSD",
     "Python-2.0": "Python-2.0",
     "BlueOak-1.0.0": "BlueOak-1.0.0",
+    // Python ecosystem variations
+    "Mozilla Public License 2.0 (MPL 2.0)": "MPL-2.0",
+    "Apache Software License": "Apache-2.0",
+    "Apache License, Version 2.0": "Apache-2.0",
+    "BSD License": "BSD-3-Clause",
+    "MIT License": "MIT",
+    "ISC License": "ISC",
+    "GNU General Public License v3 (GPLv3)": "GPL-3.0",
+    "GNU General Public License v2 (GPLv2)": "GPL-2.0",
+    "GNU Lesser General Public License v3 (LGPLv3)": "LGPL-3.0",
+    "GNU Lesser General Public License v2 or later (LGPLv2+)": "LGPL-2.1-or-later",
+    "GNU Affero General Public License v3": "AGPL-3.0",
+    "GNU Affero General Public License v3 or later (AGPLv3+)": "AGPL-3.0-or-later",
+    "Python Software Foundation License": "Python-2.0",
+    "Historical Permission Notice and Disclaimer (HPND)": "HPND",
   };
   return map[l] || l;
 }
@@ -68,7 +83,7 @@ interface LicenseCheckerResult {
   };
 }
 
-async function cloneAndInstall(owner: string, repo: string, ref?: string): Promise<{ tmpPath: string; cleanup: () => Promise<void> }> {
+async function cloneRepo(owner: string, repo: string, ref?: string): Promise<{ repoPath: string; cleanup: () => Promise<void> }> {
   const { path: tmpPath, cleanup } = await tmpDir({ unsafeCleanup: true });
   const cloneUrl = `https://github.com/${owner}/${repo}.git`;
   const cloneArgs = ref ? `--branch ${ref} --depth 1` : "--depth 1";
@@ -78,17 +93,94 @@ async function cloneAndInstall(owner: string, repo: string, ref?: string): Promi
       stdio: "pipe",
       timeout: 60000,
     });
-    execSync("npm install --ignore-scripts --no-audit --no-fund", {
-      cwd: path.join(tmpPath, "repo"),
-      stdio: "pipe",
-      timeout: 120000,
-    });
   } catch (err: any) {
     await cleanup();
-    throw new Error(`Failed to clone/install: ${err.message}`);
+    throw new Error(`Failed to clone: ${err.message}`);
   }
 
-  return { tmpPath: path.join(tmpPath, "repo"), cleanup };
+  return { repoPath: path.join(tmpPath, "repo"), cleanup };
+}
+
+type Ecosystem = "npm" | "python" | "unknown";
+
+function detectEcosystem(repoPath: string): Ecosystem {
+  if (fs.existsSync(path.join(repoPath, "package.json"))) return "npm";
+  if (
+    fs.existsSync(path.join(repoPath, "requirements.txt")) ||
+    fs.existsSync(path.join(repoPath, "pyproject.toml")) ||
+    fs.existsSync(path.join(repoPath, "setup.py")) ||
+    fs.existsSync(path.join(repoPath, "Pipfile"))
+  ) return "python";
+  return "unknown";
+}
+
+function hasPython(): boolean {
+  try {
+    execSync("python3 --version", { stdio: "pipe" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function installAndScanNpm(repoPath: string): Promise<DepInfo[]> {
+  execSync("npm install --ignore-scripts --no-audit --no-fund", {
+    cwd: repoPath,
+    stdio: "pipe",
+    timeout: 120000,
+  });
+  return runLicenseChecker(repoPath);
+}
+
+async function installAndScanPython(repoPath: string): Promise<DepInfo[]> {
+  if (!hasPython()) {
+    throw new Error("Python/pip not found. Install python3 and pip to enable Python dependency scanning.");
+  }
+
+  const venvPath = path.join(repoPath, ".ospo-venv");
+
+  // Create venv and install deps
+  execSync(`python3 -m venv ${venvPath}`, { cwd: repoPath, stdio: "pipe", timeout: 30000 });
+  const pip = path.join(venvPath, "bin", "pip");
+
+  // Determine install source
+  if (fs.existsSync(path.join(repoPath, "requirements.txt"))) {
+    execSync(`${pip} install -r requirements.txt --quiet --no-warn-script-location 2>/dev/null || true`, {
+      cwd: repoPath, stdio: "pipe", timeout: 180000,
+    });
+  } else if (fs.existsSync(path.join(repoPath, "pyproject.toml"))) {
+    execSync(`${pip} install . --quiet --no-warn-script-location 2>/dev/null || true`, {
+      cwd: repoPath, stdio: "pipe", timeout: 180000,
+    });
+  } else if (fs.existsSync(path.join(repoPath, "setup.py"))) {
+    execSync(`${pip} install . --quiet --no-warn-script-location 2>/dev/null || true`, {
+      cwd: repoPath, stdio: "pipe", timeout: 180000,
+    });
+  } else if (fs.existsSync(path.join(repoPath, "Pipfile"))) {
+    execSync(`${pip} install pipenv --quiet --no-warn-script-location && ${venvPath}/bin/pipenv install --skip-lock 2>/dev/null || true`, {
+      cwd: repoPath, stdio: "pipe", timeout: 180000,
+    });
+  }
+
+  // Install pip-licenses and run it
+  execSync(`${pip} install pip-licenses --quiet --no-warn-script-location`, {
+    cwd: repoPath, stdio: "pipe", timeout: 60000,
+  });
+
+  const output = execSync(`${venvPath}/bin/pip-licenses --format=json --with-urls`, {
+    cwd: repoPath, stdio: "pipe", timeout: 30000,
+  }).toString();
+
+  const pipLicenses: Array<{ Name: string; Version: string; License: string; URL: string }> = JSON.parse(output);
+
+  return pipLicenses
+    .filter((p) => p.Name !== "pip" && p.Name !== "setuptools" && p.Name !== "pip-licenses" && p.Name !== "wheel")
+    .map((p) => ({
+      name: p.Name,
+      version: p.Version,
+      license: normalizeLicense(p.License || "UNKNOWN"),
+      repository: p.URL || "",
+    }));
 }
 
 async function runLicenseChecker(repoPath: string): Promise<DepInfo[]> {
@@ -124,7 +216,7 @@ const server = new McpServer({
 // Tool 1: scan_dependencies
 server.tool(
   "scan_dependencies",
-  "Clone a GitHub repo, install npm dependencies, and return license information for all production dependencies",
+  "Clone a GitHub repo, install dependencies, and return license information for all production dependencies. Supports npm (Node.js) and Python (pip) ecosystems.",
   {
     owner: z.string().describe("GitHub repository owner"),
     repo: z.string().describe("GitHub repository name"),
@@ -133,10 +225,25 @@ server.tool(
   async ({ owner, repo, ref }) => {
     let cleanup: (() => Promise<void>) | undefined;
     try {
-      const result = await cloneAndInstall(owner, repo, ref);
+      const result = await cloneRepo(owner, repo, ref);
       cleanup = result.cleanup;
 
-      const deps = await runLicenseChecker(result.tmpPath);
+      const ecosystem = detectEcosystem(result.repoPath);
+      let deps: DepInfo[];
+
+      if (ecosystem === "npm") {
+        deps = await installAndScanNpm(result.repoPath);
+      } else if (ecosystem === "python") {
+        deps = await installAndScanPython(result.repoPath);
+      } else {
+        return {
+          content: [{ type: "text" as const, text: JSON.stringify({
+            error: "No supported manifest found. Supported: package.json (npm), requirements.txt / pyproject.toml / setup.py / Pipfile (Python)",
+            owner, repo,
+          }, null, 2) }],
+          isError: true,
+        };
+      }
 
       // Build summary
       const byLicense: Record<string, number> = {};
@@ -147,6 +254,7 @@ server.tool(
       const response = {
         owner,
         repo,
+        ecosystem,
         total: deps.length,
         dependencies: deps,
         summary: { byLicense },
@@ -218,7 +326,7 @@ server.tool(
 // Tool 3: generate_sbom
 server.tool(
   "generate_sbom",
-  "Clone a GitHub repo and generate a CycloneDX SBOM (Software Bill of Materials) from its npm dependencies",
+  "Clone a GitHub repo and generate a CycloneDX SBOM (Software Bill of Materials) from its dependencies. Supports npm and Python.",
   {
     owner: z.string().describe("GitHub repository owner"),
     repo: z.string().describe("GitHub repository name"),
@@ -227,16 +335,35 @@ server.tool(
   async ({ owner, repo, ref }) => {
     let cleanup: (() => Promise<void>) | undefined;
     try {
-      const result = await cloneAndInstall(owner, repo, ref);
+      const result = await cloneRepo(owner, repo, ref);
       cleanup = result.cleanup;
 
-      const deps = await runLicenseChecker(result.tmpPath);
+      const ecosystem = detectEcosystem(result.repoPath);
+      let deps: DepInfo[];
 
-      // Read project package.json for metadata
-      const pkgJsonPath = path.join(result.tmpPath, "package.json");
-      const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
+      if (ecosystem === "npm") {
+        deps = await installAndScanNpm(result.repoPath);
+      } else if (ecosystem === "python") {
+        deps = await installAndScanPython(result.repoPath);
+      } else {
+        return {
+          content: [{ type: "text" as const, text: "No supported manifest found (npm or Python)." }],
+          isError: true,
+        };
+      }
 
-      // Build CycloneDX-like SBOM
+      // Read project metadata
+      let projectName = `${owner}/${repo}`;
+      let projectVersion = "0.0.0";
+      let projectLicense = "";
+
+      if (ecosystem === "npm" && fs.existsSync(path.join(result.repoPath, "package.json"))) {
+        const pkgJson = JSON.parse(fs.readFileSync(path.join(result.repoPath, "package.json"), "utf-8"));
+        projectName = pkgJson.name || projectName;
+        projectVersion = pkgJson.version || projectVersion;
+        projectLicense = pkgJson.license || "";
+      }
+
       const sbom = {
         bomFormat: "CycloneDX",
         specVersion: "1.5",
@@ -245,9 +372,9 @@ server.tool(
           timestamp: new Date().toISOString(),
           component: {
             type: "application",
-            name: pkgJson.name || `${owner}/${repo}`,
-            version: pkgJson.version || "0.0.0",
-            licenses: pkgJson.license ? [{ license: { id: normalizeLicense(pkgJson.license) } }] : [],
+            name: projectName,
+            version: projectVersion,
+            licenses: projectLicense ? [{ license: { id: normalizeLicense(projectLicense) } }] : [],
           },
           tools: [{ name: "ospo-readiness-mcp", version: "1.0.0" }],
         },
