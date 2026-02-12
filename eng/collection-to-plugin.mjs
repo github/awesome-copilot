@@ -4,7 +4,11 @@ import fs from "fs";
 import path from "path";
 import readline from "readline";
 import { COLLECTIONS_DIR, ROOT_FOLDER } from "./constants.mjs";
-import { parseCollectionYaml, parseFrontmatter } from "./yaml-parser.mjs";
+import {
+  parseCollectionYaml,
+  parseFrontmatter,
+  parseHookMetadata,
+} from "./yaml-parser.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
@@ -158,6 +162,12 @@ function getDisplayName(filePath, kind) {
     return basename.replace(".agent.md", "");
   } else if (kind === "instruction") {
     return basename.replace(".instructions.md", "");
+  } else if (kind === "hook") {
+    // For folder-based hooks like hooks/<hook>/README.md, use the folder name.
+    if (basename.toLowerCase() === "readme.md") {
+      return path.basename(path.dirname(filePath));
+    }
+    return basename.replace(".hook.md", "");
   } else if (kind === "skill") {
     return path.basename(filePath);
   }
@@ -217,6 +227,27 @@ function generateReadme(collection, items) {
       const description =
         item.frontmatter?.description || item.frontmatter?.name || name;
       lines.push(`| \`${name}\` | ${description} |`);
+    }
+    lines.push("");
+  }
+
+  // Hooks
+  const hooks = items.filter((item) => item.kind === "hook");
+  if (hooks.length > 0) {
+    lines.push("### Hooks");
+    lines.push("");
+    lines.push("| Hook | Description | Event |");
+    lines.push("|------|-------------|-------|");
+    for (const item of hooks) {
+      const name = getDisplayName(item.path, "hook");
+      const description =
+        item.frontmatter?.description || item.frontmatter?.name || name;
+      // Extract events from hooks.json rather than frontmatter
+      const hookFolderPath = path.join(ROOT_FOLDER, path.dirname(item.path));
+      const hookMeta = parseHookMetadata(hookFolderPath);
+      const event =
+        hookMeta?.hooks?.length > 0 ? hookMeta.hooks.join(", ") : "N/A";
+      lines.push(`| \`${name}\` | ${description} | ${event} |`);
     }
     lines.push("");
   }

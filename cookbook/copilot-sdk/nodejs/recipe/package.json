@@ -8,7 +8,8 @@
     "multiple-sessions": "tsx multiple-sessions.ts",
     "managing-local-files": "tsx managing-local-files.ts",
     "pr-visualization": "tsx pr-visualization.ts",
-    "persisting-sessions": "tsx persisting-sessions.ts"
+    "persisting-sessions": "tsx persisting-sessions.ts",
+    "accessibility-report": "tsx accessibility-report.ts"
   },
   "dependencies": {
     "@github/copilot-sdk": "*"

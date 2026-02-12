@@ -9,9 +9,9 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 
 ## Project Context
 
-- **Power Apps Code Apps (Preview)**: Code-first web app development with Power Platform integration
+- **Power Apps Code Apps**: Code-first web app development with Power Platform integration
 - **TypeScript + React**: Recommended frontend stack with Vite bundler
-- **Power Platform SDK**: @microsoft/power-apps (current version ^0.3.1) for connector integration
+- **Power Platform SDK**: @microsoft/power-apps (current version ^1.0.3) for connector integration
 - **PAC CLI**: Power Platform CLI for project management and deployment
 - **Port 3000**: Required for local development with Power Platform SDK
 - **Power Apps Premium**: End-user licensing requirement for production use
@@ -25,14 +25,15 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   src/
   ├── components/          # Reusable UI components
   ├── hooks/              # Custom React hooks for Power Platform
-  ├── services/           # Generated connector services (PAC CLI)
-  ├── models/            # Generated TypeScript models (PAC CLI)
+  ├── generated/
+  │   ├── services/       # Generated connector services (PAC CLI)
+  │   └── models/         # Generated TypeScript models (PAC CLI)
   ├── utils/             # Utility functions and helpers
   ├── types/             # TypeScript type definitions
-  ├── PowerProvider.tsx  # Power Platform initialization
+  ├── PowerProvider.tsx  # Power Platform context wrapper
   └── main.tsx          # Application entry point
   ```
-- Keep generated files (`services/`, `models/`) separate from custom code
+- Keep generated files (`generated/services/`, `generated/models/`) separate from custom code
 - Use consistent naming conventions (kebab-case for files, PascalCase for components)
 
 ### TypeScript Configuration
@@ -77,7 +78,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   ```typescript
   // Example: Using custom PCF control for data visualization
   import { PCFControlWrapper } from './components/PCFControlWrapper';
-  
+
   const MyComponent = () => {
     return (
       <PCFControlWrapper
@@ -95,7 +96,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **Embed Power BI reports**: Integrate interactive dashboards and reports
   ```typescript
   import { PowerBIEmbed } from 'powerbi-client-react';
-  
+
   const DashboardComponent = () => {
     return (
       <PowerBIEmbed
@@ -123,12 +124,12 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   const processDocument = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const result = await AIBuilderService.ProcessDocument({
       modelId: 'document-processing-model-id',
       document: formData
     });
-    
+
     return result.extractedFields;
   };
   ```
@@ -141,12 +142,12 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   ```typescript
   import { DirectLine } from 'botframework-directlinejs';
   import { WebChat } from 'botframework-webchat';
-  
+
   const ChatbotComponent = () => {
     const directLine = new DirectLine({
       token: chatbotToken
     });
-    
+
     return (
       <div style={{ height: '400px', width: '100%' }}>
         <WebChat directLine={directLine} />
@@ -159,23 +160,11 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - Use generated TypeScript services from PAC CLI for connector operations
 - Implement proper authentication flows with Microsoft Entra ID
 - Handle connector consent dialogs and permission management
-- PowerProvider implementation pattern:
+- PowerProvider implementation pattern (no SDK initialization required in v1.0):
   ```typescript
-  import { initialize } from "@microsoft/power-apps/app";
-  import { useEffect, type ReactNode } from "react";
+  import type { ReactNode } from "react";
 
   export default function PowerProvider({ children }: { children: ReactNode }) {
-    useEffect(() => {
-      const initApp = async () => {
-        try {
-          await initialize();
-          console.log('Power Platform SDK initialized successfully');
-        } catch (error) {
-          console.error('Failed to initialize Power Platform SDK:', error);
-        }
-      };
-      initApp();
-    }, []);
     return <>{children}</>;
   }
   ```
@@ -221,7 +210,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   // Handle polymorphic customer lookup (Account or Contact)
   const customerType = record.customerType; // 'account' or 'contact'
   const customerId = record.customerId;
-  const customer = customerType === 'account' 
+  const customer = customerType === 'account'
     ? await AccountService.get(customerId)
     : await ContactService.get(customerId);
   ```
@@ -257,7 +246,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
       const transaction = db.transaction(['data'], 'readwrite');
       transaction.objectStore('data').put({ id: key, data, timestamp: Date.now() });
     }
-    
+
     async loadData(key: string) {
       const db = await this.openDB();
       const transaction = db.transaction(['data'], 'readonly');
@@ -397,9 +386,9 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
     onClick: () => void;
     children: React.ReactNode;
   }
-  
-  export const Button: React.FC<ButtonProps> = ({ 
-    variant, size, disabled, onClick, children 
+
+  export const Button: React.FC<ButtonProps> = ({
+    variant, size, disabled, onClick, children
   }) => {
     const classes = `btn btn-${variant} btn-${size} ${disabled ? 'btn-disabled' : ''}`;
     return <button className={classes} onClick={onClick} disabled={disabled}>{children}</button>;
@@ -416,14 +405,14 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
     theme: 'light',
     toggleTheme: () => {}
   });
-  
+
   export const ThemeProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const [theme, setTheme] = useState<'light' | 'dark'>('light');
-    
+
     const toggleTheme = () => {
       setTheme(prev => prev === 'light' ? 'dark' : 'light');
     };
-    
+
     return (
       <ThemeContext.Provider value={{ theme, toggleTheme }}>
         <div className={`theme-${theme}`}>{children}</div>
@@ -441,7 +430,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
   .card-container {
     container-type: inline-size;
   }
-  
+
   @container (min-width: 400px) {
     .card {
       display: grid;
@@ -456,7 +445,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **Framer Motion integration**: Smooth animations and transitions
   ```typescript
   import { motion, AnimatePresence } from 'framer-motion';
-  
+
   const AnimatedCard = () => {
     return (
       <motion.div
@@ -480,8 +469,8 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **ARIA implementation**: Proper semantic markup and ARIA attributes
   ```typescript
   // Example: Accessible modal component
-  const Modal: React.FC<{isOpen: boolean, onClose: () => void, children: ReactNode}> = ({ 
-    isOpen, onClose, children 
+  const Modal: React.FC<{isOpen: boolean, onClose: () => void, children: ReactNode}> = ({
+    isOpen, onClose, children
   }) => {
     useEffect(() => {
       if (isOpen) {
@@ -491,11 +480,11 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
       }
       return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen]);
-    
+
     return (
-      <div 
-        role="dialog" 
-        aria-modal="true" 
+      <div
+        role="dialog"
+        aria-modal="true"
         aria-labelledby="modal-title"
         className={isOpen ? 'modal-open' : 'modal-hidden'}
       >
@@ -512,10 +501,10 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **React-intl integration**: Multi-language support
   ```typescript
   import { FormattedMessage, useIntl } from 'react-intl';
-  
+
   const WelcomeMessage = ({ userName }: { userName: string }) => {
     const intl = useIntl();
-    
+
     return (
       <h1>
         <FormattedMessage
@@ -539,8 +528,8 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - Content Security Policy (CSP) not yet supported
 - Storage SAS IP restrictions not supported
 - No Power Platform Git integration
-- No Dataverse solutions support
-- No native Azure Application Insights integration
+- Dataverse solutions supported, but solution packager and source code integration are limited
+- Application Insights supported through SDK logger configuration (no built-in native integration)
 
 ### Workarounds
 
@@ -567,7 +556,7 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **Package installation failures**: Clear npm cache with `npm cache clean --force` and reinstall
 - **TypeScript compilation errors**: Check verbatimModuleSyntax setting and SDK compatibility
 - **Connector permission errors**: Ensure proper consent flow and admin permissions
-- **PowerProvider initialization errors**: Check console for SDK initialization failures
+- **PowerProvider issues**: Ensure v1.0 apps do not wait on SDK initialization
 - **Vite dev server issues**: Ensure host and port configuration match requirements
 
 ### Deployment Issues
@@ -577,11 +566,11 @@ Instructions for generating high-quality Power Apps Code Apps using TypeScript, 
 - **Connector unavailable**: Verify connector setup in Power Platform and connection status
 - **Performance issues**: Optimize bundle size with `npm run build --report` and implement caching
 - **Environment mismatch**: Confirm correct environment selection with `pac env list`
-- **App timeout errors**: Check PowerProvider.tsx implementation and network connectivity
+- **App timeout errors**: Check build output and network connectivity
 
 ### Runtime Issues
 
-- **"App timed out" errors**: Verify npm run build was executed and PowerProvider is error-free
+- **"App timed out" errors**: Verify npm run build was executed and the deployment output is valid
 - **Connector authentication prompts**: Ensure proper consent flow implementation
 - **Data loading failures**: Check network requests and connector permissions
 - **UI rendering issues**: Verify Fluent UI compatibility and responsive design implementation

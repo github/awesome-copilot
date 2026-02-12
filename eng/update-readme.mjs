@@ -4,24 +4,26 @@ import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import {
-  AGENTS_DIR,
-  AKA_INSTALL_URLS,
-  COLLECTIONS_DIR,
-  DOCS_DIR,
-  INSTRUCTIONS_DIR,
-  PROMPTS_DIR,
-  repoBaseUrl,
-  ROOT_FOLDER,
-  SKILLS_DIR,
-  TEMPLATES,
-  vscodeInsidersInstallImage,
-  vscodeInstallImage,
+    AGENTS_DIR,
+    AKA_INSTALL_URLS,
+    COLLECTIONS_DIR,
+    DOCS_DIR,
+    HOOKS_DIR,
+    INSTRUCTIONS_DIR,
+    PROMPTS_DIR,
+    repoBaseUrl,
+    ROOT_FOLDER,
+    SKILLS_DIR,
+    TEMPLATES,
+    vscodeInsidersInstallImage,
+    vscodeInstallImage,
 } from "./constants.mjs";
 import {
-  extractMcpServerConfigs,
-  parseCollectionYaml,
-  parseFrontmatter,
-  parseSkillMetadata,
+    extractMcpServerConfigs,
+    parseCollectionYaml,
+    parseFrontmatter,
+    parseSkillMetadata,
+    parseHookMetadata,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -516,6 +518,67 @@ function generateAgentsSection(agentsDir, registryNames = []) {
 }
 
 /**
+ * Generate the hooks section with a table of all hooks
+ */
+function generateHooksSection(hooksDir) {
+  if (!fs.existsSync(hooksDir)) {
+    console.log(`Hooks directory does not exist: ${hooksDir}`);
+    return "";
+  }
+
+  // Get all hook folders (directories)
+  const hookFolders = fs.readdirSync(hooksDir).filter((file) => {
+    const filePath = path.join(hooksDir, file);
+    return fs.statSync(filePath).isDirectory();
+  });
+
+  // Parse each hook folder
+  const hookEntries = hookFolders
+    .map((folder) => {
+      const hookPath = path.join(hooksDir, folder);
+      const metadata = parseHookMetadata(hookPath);
+      if (!metadata) return null;
+
+      return {
+        folder,
+        name: metadata.name,
+        description: metadata.description,
+        hooks: metadata.hooks,
+        tags: metadata.tags,
+        assets: metadata.assets,
+      };
+    })
+    .filter((entry) => entry !== null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${hookEntries.length} hook(s)`);
+
+  if (hookEntries.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let content =
+    "| Name | Description | Events | Bundled Assets |\n| ---- | ----------- | ------ | -------------- |\n";
+
+  // Generate table rows for each hook
+  for (const hook of hookEntries) {
+    const link = `../hooks/${hook.folder}/README.md`;
+    const events = hook.hooks.length > 0 ? hook.hooks.join(", ") : "N/A";
+    const assetsList =
+      hook.assets.length > 0
+        ? hook.assets.map((a) => `\`${a}\``).join("<br />")
+        : "None";
+
+    content += `| [${hook.name}](${link}) | ${formatTableCell(
+      hook.description
+    )} | ${events} | ${assetsList} |\n`;
+  }
+
+  return `${TEMPLATES.hooksSection}\n${TEMPLATES.hooksUsage}\n\n${content}`;
+}
+
+/**
  * Generate the skills section with a table of all skills
  */
 function generateSkillsSection(skillsDir) {
@@ -1002,6 +1065,7 @@ async function main() {
     );
     const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
     const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
+    const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
     const skillsHeader = TEMPLATES.skillsSection.replace(/^##\s/m, "# ");
     const collectionsHeader = TEMPLATES.collectionsSection.replace(
       /^##\s/m,
@@ -1028,6 +1092,15 @@ async function main() {
       AGENTS_DIR,
       agentsHeader,
       TEMPLATES.agentsUsage,
+      registryNames
+    );
+
+    // Generate hooks README
+    const hooksReadme = buildCategoryReadme(
+      generateHooksSection,
+      HOOKS_DIR,
+      hooksHeader,
+      TEMPLATES.hooksUsage,
       registryNames
     );
 
@@ -1061,6 +1134,7 @@ async function main() {
     );
     writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
+    writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
     writeFileIfChanged(
       path.join(DOCS_DIR, "README.collections.md"),

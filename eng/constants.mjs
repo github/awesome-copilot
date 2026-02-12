@@ -1,6 +1,5 @@
-import path from "path";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -100,6 +99,34 @@ Skills differ from other primitives by supporting bundled assets (scripts, code 
 - Browse the skills table below to find relevant capabilities
 - Copy the skill folder to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically`,
+
+  hooksSection: `## 🪝 Hooks
+
+Hooks enable automated workflows triggered by specific events during GitHub Copilot coding agent sessions, such as session start, session end, user prompts, and tool usage.`,
+
+  hooksUsage: `### How to Use Hooks
+
+**What's Included:**
+- Each hook is a folder containing a \`README.md\` file and a \`hooks.json\` configuration
+- Hooks may include helper scripts, utilities, or other bundled assets
+- Hooks follow the [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+
+**To Install:**
+- Copy the hook folder to your repository's \`.github/hooks/\` directory
+- Ensure any bundled scripts are executable (\`chmod +x script.sh\`)
+- Commit the hook to your repository's default branch
+
+**To Activate/Use:**
+- Hooks automatically execute during Copilot coding agent sessions
+- Configure hook events in the \`hooks.json\` file
+- Available events: \`sessionStart\`, \`sessionEnd\`, \`userPromptSubmitted\`, \`preToolUse\`, \`postToolUse\`, \`errorOccurred\`
+
+**When to Use:**
+- Automate session logging and audit trails
+- Auto-commit changes at session end
+- Track usage analytics
+- Integrate with external tools and services
+- Custom session workflows`,
 };
 
 const vscodeInstallImage =
@@ -115,6 +142,7 @@ const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
   prompt: "https://aka.ms/awesome-copilot/install/prompt",
   agent: "https://aka.ms/awesome-copilot/install/agent",
+  hook: "https://aka.ms/awesome-copilot/install/hook",
 };
 
 const ROOT_FOLDER = path.join(__dirname, "..");
@@ -122,6 +150,7 @@ const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
+const HOOKS_DIR = path.join(ROOT_FOLDER, "hooks");
 const COLLECTIONS_DIR = path.join(ROOT_FOLDER, "collections");
 const COOKBOOK_DIR = path.join(ROOT_FOLDER, "cookbook");
 const MAX_COLLECTION_ITEMS = 50;
@@ -135,23 +164,24 @@ const SKILL_DESCRIPTION_MAX_LENGTH = 1024;
 const DOCS_DIR = path.join(ROOT_FOLDER, "docs");
 
 export {
-  TEMPLATES,
-  vscodeInstallImage,
-  vscodeInsidersInstallImage,
-  repoBaseUrl,
-  AKA_INSTALL_URLS,
-  ROOT_FOLDER,
-  INSTRUCTIONS_DIR,
-  PROMPTS_DIR,
   AGENTS_DIR,
-  SKILLS_DIR,
+  AKA_INSTALL_URLS,
   COLLECTIONS_DIR,
   COOKBOOK_DIR,
-  MAX_COLLECTION_ITEMS,
-  SKILL_NAME_MIN_LENGTH,
-  SKILL_NAME_MAX_LENGTH,
-  SKILL_DESCRIPTION_MIN_LENGTH,
-  SKILL_DESCRIPTION_MAX_LENGTH,
   DOCS_DIR,
+  HOOKS_DIR,
+  INSTRUCTIONS_DIR,
+  MAX_COLLECTION_ITEMS,
+  PROMPTS_DIR,
+  repoBaseUrl,
+  ROOT_FOLDER,
+  SKILL_DESCRIPTION_MAX_LENGTH,
+  SKILL_DESCRIPTION_MIN_LENGTH,
+  SKILL_NAME_MAX_LENGTH,
+  SKILL_NAME_MIN_LENGTH,
+  SKILLS_DIR,
+  TEMPLATES,
+  vscodeInsidersInstallImage,
+  vscodeInstallImage
 };
 

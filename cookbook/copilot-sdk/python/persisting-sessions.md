@@ -16,64 +16,69 @@ You want users to be able to continue a conversation even after closing and reop
 ### Creating a session with a custom ID
 
 ```python
-from copilot import CopilotClient
+import asyncio
+from copilot import CopilotClient, SessionConfig, MessageOptions
 
-client = CopilotClient()
-client.start()
+async def main():
+    client = CopilotClient()
+    await client.start()
 
-# Create session with a memorable ID
-session = client.create_session(
-    session_id="user-123-conversation",
-    model="gpt-5",
-)
+    # Create session with a memorable ID
+    session = await client.create_session(SessionConfig(
+        session_id="user-123-conversation",
+        model="gpt-5",
+    ))
 
-session.send(prompt="Let's discuss TypeScript generics")
+    await session.send_and_wait(MessageOptions(prompt="Let's discuss TypeScript generics"))
 
-# Session ID is preserved
-print(session.session_id)  # "user-123-conversation"
+    # Session ID is preserved
+    print(session.session_id)  # "user-123-conversation"
 
-# Destroy session but keep data on disk
-session.destroy()
-client.stop()
+    # Destroy session but keep data on disk
+    await session.destroy()
+    await client.stop()
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ### Resuming a session
 
 ```python
 client = CopilotClient()
-client.start()
+await client.start()
 
 # Resume the previous session
-session = client.resume_session("user-123-conversation")
+session = await client.resume_session("user-123-conversation")
 
 # Previous context is restored
-session.send(prompt="What were we discussing?")
+await session.send_and_wait(MessageOptions(prompt="What were we discussing?"))
 
-session.destroy()
-client.stop()
+await session.destroy()
+await client.stop()
 ```
 
 ### Listing available sessions
 
 ```python
-sessions = client.list_sessions()
+sessions = await client.list_sessions()
 for s in sessions:
-    print("Session:", s["sessionId"])
+    print("Session:", s.session_id)
 ```
 
 ### Deleting a session permanently
 
 ```python
 # Remove session and all its data from disk
-client.delete_session("user-123-conversation")
+await client.delete_session("user-123-conversation")
 ```
 
 ### Getting session history
 
 ```python
-messages = session.get_messages()
+messages = await session.get_messages()
 for msg in messages:
-    print(f"[{msg['type']}] {msg['data']}")
+    print(f"[{msg.type}] {msg.data.content}")
 ```
 
 ## Best practices

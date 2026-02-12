@@ -18,24 +18,22 @@ You need to handle various error conditions like connection failures, timeouts, 
 package main
 
 import (
+    "context"
     "fmt"
     "log"
-    "github.com/github/copilot-sdk/go"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
 func main() {
-    client := copilot.NewClient()
+    ctx := context.Background()
+    client := copilot.NewClient(nil)
 
-    if err := client.Start(); err != nil {
+    if err := client.Start(ctx); err != nil {
         log.Fatalf("Failed to start client: %v", err)
     }
-    defer func() {
-        if err := client.Stop(); err != nil {
-            log.Printf("Error stopping client: %v", err)
-        }
-    }()
+    defer client.Stop()
 
-    session, err := client.CreateSession(copilot.SessionConfig{
+    session, err := client.CreateSession(ctx, &copilot.SessionConfig{
         Model: "gpt-5",
     })
     if err != nil {
@@ -43,19 +41,15 @@ func main() {
     }
     defer session.Destroy()
 
-    responseChan := make(chan string, 1)
-    session.On(func(event copilot.Event) {
-        if msg, ok := event.(copilot.AssistantMessageEvent); ok {
-            responseChan <- msg.Data.Content
-        }
-    })
-
-    if err := session.Send(copilot.MessageOptions{Prompt: "Hello!"}); err != nil {
+    result, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Hello!"})
+    if err != nil {
         log.Printf("Failed to send message: %v", err)
+        return
     }
 
-    response := <-responseChan
-    fmt.Println(response)
+    if result != nil && result.Data.Content != nil {
+        fmt.Println(*result.Data.Content)
+    }
 }
 ```
 
@@ -63,14 +57,17 @@ func main() {
 
 ```go
 import (
+    "context"
     "errors"
+    "fmt"
     "os/exec"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
-func startClient() error {
-    client := copilot.NewClient()
+func startClient(ctx context.Context) error {
+    client := copilot.NewClient(nil)
 
-    if err := client.Start(); err != nil {
+    if err := client.Start(ctx); err != nil {
         var execErr *exec.Error
         if errors.As(err, &execErr) {
             return fmt.Errorf("Copilot CLI not found. Please install it first: %w", err)
@@ -90,48 +87,41 @@ func startClient() error {
 ```go
 import (
     "context"
+    "errors"
+    "fmt"
     "time"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
 func sendWithTimeout(session *copilot.Session) error {
     ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
     defer cancel()
 
-    responseChan := make(chan string, 1)
-    errChan := make(chan error, 1)
-
-    session.On(func(event copilot.Event) {
-        if msg, ok := event.(copilot.AssistantMessageEvent); ok {
-            responseChan <- msg.Data.Content
+    result, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Complex question..."})
+    if err != nil {
+        if errors.Is(err, context.DeadlineExceeded) {
+            return fmt.Errorf("request timed out")
         }
-    })
-
-    if err := session.Send(copilot.MessageOptions{Prompt: "Complex question..."}); err != nil {
         return err
     }
 
-    select {
-    case response := <-responseChan:
-        fmt.Println(response)
-        return nil
-    case err := <-errChan:
-        return err
-    case <-ctx.Done():
-        return fmt.Errorf("request timed out")
+    if result != nil && result.Data.Content != nil {
+        fmt.Println(*result.Data.Content)
     }
+    return nil
 }
 ```
 
 ## Aborting a request
 
 ```go
-func abortAfterDelay(session *copilot.Session) {
-    // Start a request
-    session.Send(copilot.MessageOptions{Prompt: "Write a very long story..."})
+func abortAfterDelay(ctx context.Context, session *copilot.Session) {
+    // Start a request (non-blocking send)
+    session.Send(ctx, copilot.MessageOptions{Prompt: "Write a very long story..."})
 
     // Abort it after some condition
     time.AfterFunc(5*time.Second, func() {
-        if err := session.Abort(); err != nil {
+        if err := session.Abort(ctx); err != nil {
             log.Printf("Failed to abort: %v", err)
         }
         fmt.Println("Request aborted")
@@ -143,13 +133,18 @@ func abortAfterDelay(session *copilot.Session) {
 
 ```go
 import (
+    "context"
+    "fmt"
+    "log"
     "os"
     "os/signal"
     "syscall"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
 func main() {
-    client := copilot.NewClient()
+    ctx := context.Background()
+    client := copilot.NewClient(nil)
 
     // Set up signal handling
     sigChan := make(chan os.Signal, 1)
@@ -158,15 +153,11 @@ func main() {
     go func() {
         <-sigChan
         fmt.Println("\nShutting down...")
-
-        if err := client.Stop(); err != nil {
-            log.Printf("Cleanup errors: %v", err)
-        }
-
+        client.Stop()
         os.Exit(0)
     }()
 
-    if err := client.Start(); err != nil {
+    if err := client.Start(ctx); err != nil {
         log.Fatal(err)
     }
 
@@ -178,14 +169,15 @@ func main() {
 
 ```go
 func doWork() error {
-    client := copilot.NewClient()
+    ctx := context.Background()
+    client := copilot.NewClient(nil)
 
-    if err := client.Start(); err != nil {
+    if err := client.Start(ctx); err != nil {
         return fmt.Errorf("failed to start: %w", err)
     }
     defer client.Stop()
 
-    session, err := client.CreateSession(copilot.SessionConfig{Model: "gpt-5"})
+    session, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "gpt-5"})
     if err != nil {
         return fmt.Errorf("failed to create session: %w", err)
     }

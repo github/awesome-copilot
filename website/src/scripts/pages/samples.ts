@@ -5,6 +5,7 @@
 import { FuzzySearch, type SearchableItem } from "../search";
 import { fetchData, escapeHtml } from "../utils";
 import { createChoices, getChoicesValues, type Choices } from "../choices";
+import { setupModal } from "../modal";
 
 // Types
 interface Language {
@@ -82,6 +83,7 @@ export async function initSamplesPage(): Promise<void> {
     search = new FuzzySearch(allRecipes);
 
     // Setup UI
+    setupModal();
     setupFilters();
     setupSearch();
     renderCookbooks();

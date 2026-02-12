@@ -3,9 +3,9 @@
 import fs from "fs";
 import path from "path";
 import {
-  COLLECTIONS_DIR,
-  MAX_COLLECTION_ITEMS,
-  ROOT_FOLDER,
+    COLLECTIONS_DIR,
+    MAX_COLLECTION_ITEMS,
+    ROOT_FOLDER,
 } from "./constants.mjs";
 import { parseCollectionYaml, parseFrontmatter } from "./yaml-parser.mjs";
 
@@ -155,6 +155,41 @@ function validateAgentFile(filePath) {
   }
 }
 
+function validateHookFile(filePath) {
+  try {
+    const hook = parseFrontmatter(filePath);
+
+    if (!hook) {
+      return `Item ${filePath} hook file could not be parsed`;
+    }
+
+    // Validate name field
+    if (!hook.name || typeof hook.name !== "string") {
+      return `Item ${filePath} hook must have a 'name' field`;
+    }
+    if (hook.name.length < 1 || hook.name.length > 50) {
+      return `Item ${filePath} hook name must be between 1 and 50 characters`;
+    }
+
+    // Validate description field
+    if (!hook.description || typeof hook.description !== "string") {
+      return `Item ${filePath} hook must have a 'description' field`;
+    }
+    if (hook.description.length < 1 || hook.description.length > 500) {
+      return `Item ${filePath} hook description must be between 1 and 500 characters`;
+    }
+
+    // Validate event field (optional but recommended)
+    if (hook.event !== undefined && typeof hook.event !== "string") {
+      return `Item ${filePath} hook 'event' must be a string`;
+    }
+
+    return null; // All validations passed
+  } catch (error) {
+    return `Item ${filePath} hook file validation failed: ${error.message}`;
+  }
+}
+
 function validateCollectionItems(items) {
   if (!items || !Array.isArray(items)) {
     return "Items is required and must be an array";
@@ -177,10 +212,10 @@ function validateCollectionItems(items) {
     if (!item.kind || typeof item.kind !== "string") {
       return `Item ${i + 1} must have a kind string`;
     }
-    if (!["prompt", "instruction", "agent", "skill"].includes(item.kind)) {
+    if (!["prompt", "instruction", "agent", "skill", "hook"].includes(item.kind)) {
       return `Item ${
         i + 1
-      } kind must be one of: prompt, instruction, agent, skill`;
+      } kind must be one of: prompt, instruction, agent, skill, hook`;
     }
 
     // Validate file path exists
@@ -208,12 +243,29 @@ function validateCollectionItems(items) {
         i + 1
       } kind is "agent" but path doesn't end with .agent.md`;
     }
+    if (item.kind === "hook") {
+      const isValidHookPath =
+        item.path.startsWith("hooks/") && item.path.endsWith("/README.md");
+      if (!isValidHookPath) {
+        return `Item ${
+          i + 1
+        } kind is "hook" but path must be hooks/<hook>/README.md`;
+      }
+    }
 
     // Validate agent-specific frontmatter
     if (item.kind === "agent") {
       const agentValidation = validateAgentFile(filePath, i + 1);
       if (agentValidation) {
         return agentValidation;
+      }
+    }
+
+    // Validate hook-specific frontmatter
+    if (item.kind === "hook") {
+      const hookValidation = validateHookFile(filePath);
+      if (hookValidation) {
+        return hookValidation;
       }
     }
   }

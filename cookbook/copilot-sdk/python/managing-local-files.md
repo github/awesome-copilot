@@ -16,31 +16,40 @@ You have a folder with many files and want to organize them into subfolders base
 ## Example code
 
 ```python
-from copilot import CopilotClient
+import asyncio
 import os
+from copilot import (
+    CopilotClient, SessionConfig, MessageOptions,
+    SessionEvent, SessionEventType,
+)
 
-# Create and start client
-client = CopilotClient()
-client.start()
+async def main():
+    # Create and start client
+    client = CopilotClient()
+    await client.start()
 
-# Create session
-session = client.create_session(model="gpt-5")
+    # Create session
+    session = await client.create_session(SessionConfig(model="gpt-5"))
 
-# Event handler
-def handle_event(event):
-    if event["type"] == "assistant.message":
-        print(f"\nCopilot: {event['data']['content']}")
-    elif event["type"] == "tool.execution_start":
-        print(f"  → Running: {event['data']['toolName']}")
-    elif event["type"] == "tool.execution_complete":
-        print(f"  ✓ Completed: {event['data']['toolCallId']}")
+    done = asyncio.Event()
 
-session.on(handle_event)
+    # Event handler
+    def handle_event(event: SessionEvent):
+        if event.type == SessionEventType.ASSISTANT_MESSAGE:
+            print(f"\nCopilot: {event.data.content}")
+        elif event.type == SessionEventType.TOOL_EXECUTION_START:
+            print(f"  → Running: {event.data.tool_name}")
+        elif event.type == SessionEventType.TOOL_EXECUTION_COMPLETE:
+            print(f"  ✓ Completed: {event.data.tool_call_id}")
+        elif event.type.value == "session.idle":
+            done.set()
 
-# Ask Copilot to organize files
-target_folder = os.path.expanduser("~/Downloads")
+    session.on(handle_event)
 
-session.send(prompt=f"""
+    # Ask Copilot to organize files
+    target_folder = os.path.expanduser("~/Downloads")
+
+    await session.send(MessageOptions(prompt=f"""
 Analyze the files in "{target_folder}" and organize them into subfolders.
 
 1. First, list all files and their metadata
@@ -49,11 +58,15 @@ Analyze the files in "{target_folder}" and organize them into subfolders.
 4. Move each file to its appropriate subfolder
 
 Please confirm before moving any files.
-""")
+"""))
 
-session.wait_for_idle()
+    await done.wait()
 
-client.stop()
+    await session.destroy()
+    await client.stop()
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## Grouping strategies
@@ -90,10 +103,10 @@ client.stop()
 For safety, you can ask Copilot to only preview changes:
 
 ```python
-session.send(prompt=f"""
+await session.send(MessageOptions(prompt=f"""
 Analyze files in "{target_folder}" and show me how you would organize them
 by file type. DO NOT move any files - just show me the plan.
-""")
+"""))
 ```
 
 ## Custom grouping with AI analysis
@@ -101,7 +114,7 @@ by file type. DO NOT move any files - just show me the plan.
 Let Copilot determine the best grouping based on file content:
 
 ```python
-session.send(prompt=f"""
+await session.send(MessageOptions(prompt=f"""
 Look at the files in "{target_folder}" and suggest a logical organization.
 Consider:
 - File names and what they might contain
@@ -109,7 +122,7 @@ Consider:
 - Date patterns that might indicate projects or events
 
 Propose folder names that are descriptive and useful.
-""")
+"""))
 ```
 
 ## Safety considerations

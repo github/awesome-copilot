@@ -11,6 +11,7 @@ interface Manifest {
     prompts: number;
     instructions: number;
     skills: number;
+    hooks: number;
     collections: number;
     tools: number;
   };
@@ -35,7 +36,7 @@ export async function initHomepage(): Promise<void> {
   const manifest = await fetchData<Manifest>('manifest.json');
   if (manifest && manifest.counts) {
     // Populate counts in cards
-    const countKeys = ['agents', 'prompts', 'instructions', 'skills', 'collections', 'tools'] as const;
+    const countKeys = ['agents', 'prompts', 'instructions', 'skills', 'hooks', 'collections', 'tools'] as const;
     countKeys.forEach(key => {
       const countEl = document.querySelector(`.card-count[data-count="${key}"]`);
       if (countEl && manifest.counts[key] !== undefined) {

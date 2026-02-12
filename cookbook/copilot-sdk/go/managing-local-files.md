@@ -18,23 +18,26 @@ You have a folder with many files and want to organize them into subfolders base
 package main
 
 import (
+    "context"
     "fmt"
     "log"
     "os"
     "path/filepath"
-    "github.com/github/copilot-sdk/go"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
 func main() {
+    ctx := context.Background()
+
     // Create and start client
-    client := copilot.NewClient()
-    if err := client.Start(); err != nil {
+    client := copilot.NewClient(nil)
+    if err := client.Start(ctx); err != nil {
         log.Fatal(err)
     }
     defer client.Stop()
 
     // Create session
-    session, err := client.CreateSession(copilot.SessionConfig{
+    session, err := client.CreateSession(ctx, &copilot.SessionConfig{
         Model: "gpt-5",
     })
     if err != nil {
@@ -43,14 +46,20 @@ func main() {
     defer session.Destroy()
 
     // Event handler
-    session.On(func(event copilot.Event) {
-        switch e := event.(type) {
-        case copilot.AssistantMessageEvent:
-            fmt.Printf("\nCopilot: %s\n", e.Data.Content)
-        case copilot.ToolExecutionStartEvent:
-            fmt.Printf("  → Running: %s\n", e.Data.ToolName)
-        case copilot.ToolExecutionCompleteEvent:
-            fmt.Printf("  ✓ Completed: %s\n", e.Data.ToolName)
+    session.On(func(event copilot.SessionEvent) {
+        switch event.Type {
+        case "assistant.message":
+            if event.Data.Content != nil {
+                fmt.Printf("\nCopilot: %s\n", *event.Data.Content)
+            }
+        case "tool.execution_start":
+            if event.Data.ToolName != nil {
+                fmt.Printf("  → Running: %s\n", *event.Data.ToolName)
+            }
+        case "tool.execution_complete":
+            if event.Data.ToolName != nil {
+                fmt.Printf("  ✓ Completed: %s\n", *event.Data.ToolName)
+            }
         }
     })
 
@@ -69,11 +78,10 @@ Analyze the files in "%s" and organize them into subfolders.
 Please confirm before moving any files.
 `, targetFolder)
 
-    if err := session.Send(copilot.MessageOptions{Prompt: prompt}); err != nil {
+    _, err = session.SendAndWait(ctx, copilot.MessageOptions{Prompt: prompt})
+    if err != nil {
         log.Fatal(err)
     }
-
-    session.WaitForIdle()
 }
 ```
 
@@ -116,7 +124,7 @@ Analyze files in "%s" and show me how you would organize them
 by file type. DO NOT move any files - just show me the plan.
 `, targetFolder)
 
-session.Send(copilot.MessageOptions{Prompt: prompt})
+session.SendAndWait(ctx, copilot.MessageOptions{Prompt: prompt})
 ```
 
 ## Custom grouping with AI analysis
@@ -134,7 +142,7 @@ Consider:
 Propose folder names that are descriptive and useful.
 `, targetFolder)
 
-session.Send(copilot.MessageOptions{Prompt: prompt})
+session.SendAndWait(ctx, copilot.MessageOptions{Prompt: prompt})
 ```
 
 ## Safety considerations

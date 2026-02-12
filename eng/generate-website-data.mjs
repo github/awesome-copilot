@@ -7,24 +7,26 @@
  */
 
 import fs from "fs";
-import path, { dirname } from "path";
+import path from "path";
 import { fileURLToPath } from "url";
 import {
-  AGENTS_DIR,
-  COLLECTIONS_DIR,
-  COOKBOOK_DIR,
-  INSTRUCTIONS_DIR,
-  PROMPTS_DIR,
-  ROOT_FOLDER,
-  SKILLS_DIR,
+    AGENTS_DIR,
+    COLLECTIONS_DIR,
+    COOKBOOK_DIR,
+    HOOKS_DIR,
+    INSTRUCTIONS_DIR,
+    PROMPTS_DIR,
+    ROOT_FOLDER,
+    SKILLS_DIR
 } from "./constants.mjs";
-import {
-  parseCollectionYaml,
-  parseFrontmatter,
-  parseSkillMetadata,
-  parseYamlFile,
-} from "./yaml-parser.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
+import {
+    parseCollectionYaml,
+    parseFrontmatter,
+    parseSkillMetadata,
+    parseHookMetadata,
+    parseYamlFile,
+} from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -118,6 +120,75 @@ function generateAgentsData(gitDates) {
     filters: {
       models: ["(none)", ...Array.from(allModels).sort()],
       tools: Array.from(allTools).sort(),
+    },
+  };
+}
+
+/**
+ * Generate hooks metadata
+ */
+/**
+ * Generate hooks metadata (similar to skills - folder-based)
+ */
+function generateHooksData(gitDates) {
+  const hooks = [];
+  
+  // Check if hooks directory exists
+  if (!fs.existsSync(HOOKS_DIR)) {
+    return {
+      items: hooks,
+      filters: {
+        hooks: [],
+        tags: [],
+      },
+    };
+  }
+
+  // Get all hook folders (directories)
+  const hookFolders = fs.readdirSync(HOOKS_DIR).filter((file) => {
+    const filePath = path.join(HOOKS_DIR, file);
+    return fs.statSync(filePath).isDirectory();
+  });
+
+  // Track all unique values for filters
+  const allHookTypes = new Set();
+  const allTags = new Set();
+
+  for (const folder of hookFolders) {
+    const hookPath = path.join(HOOKS_DIR, folder);
+    const metadata = parseHookMetadata(hookPath);
+    if (!metadata) continue;
+
+    const relativePath = path
+      .relative(ROOT_FOLDER, hookPath)
+      .replace(/\\/g, "/");
+    const readmeRelativePath = `${relativePath}/README.md`;
+
+    // Track unique values
+    (metadata.hooks || []).forEach((h) => allHookTypes.add(h));
+    (metadata.tags || []).forEach((t) => allTags.add(t));
+
+    hooks.push({
+      id: folder,
+      title: metadata.name,
+      description: metadata.description,
+      hooks: metadata.hooks || [],
+      tags: metadata.tags || [],
+      assets: metadata.assets || [],
+      path: relativePath,
+      readmeFile: readmeRelativePath,
+      lastUpdated: gitDates.get(readmeRelativePath) || null,
+    });
+  }
+
+  // Sort and return with filter metadata
+  const sortedHooks = hooks.sort((a, b) => a.title.localeCompare(b.title));
+
+  return {
+    items: sortedHooks,
+    filters: {
+      hooks: Array.from(allHookTypes).sort(),
+      tags: Array.from(allTags).sort(),
     },
   };
 }
@@ -539,6 +610,7 @@ function generateSearchIndex(
   agents,
   prompts,
   instructions,
+  hooks,
   skills,
   collections
 ) {
@@ -581,6 +653,20 @@ function generateSearchIndex(
       searchText: `${instruction.title} ${instruction.description} ${
         instruction.applyTo || ""
       }`.toLowerCase(),
+    });
+  }
+
+  for (const hook of hooks) {
+    index.push({
+      type: "hook",
+      id: hook.id,
+      title: hook.title,
+      description: hook.description,
+      path: hook.readmeFile,
+      lastUpdated: hook.lastUpdated,
+      searchText: `${hook.title} ${hook.description} ${hook.hooks.join(
+        " "
+      )} ${hook.tags.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -720,7 +806,7 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "prompts/", "instructions/", "skills/", "collections/"],
+    ["agents/", "prompts/", "instructions/", "hooks/", "skills/", "collections/"],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
@@ -730,6 +816,12 @@ async function main() {
   const agents = agentsData.items;
   console.log(
     `✓ Generated ${agents.length} agents (${agentsData.filters.models.length} models, ${agentsData.filters.tools.length} tools)`
+  );
+
+  const hooksData = generateHooksData(gitDates);
+  const hooks = hooksData.items;
+  console.log(
+    `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
   );
 
   const promptsData = generatePromptsData(gitDates);
@@ -771,6 +863,7 @@ async function main() {
     agents,
     prompts,
     instructions,
+    hooks,
     skills,
     collections
   );
@@ -780,6 +873,11 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "agents.json"),
     JSON.stringify(agentsData, null, 2)
+  );
+
+  fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "hooks.json"),
+    JSON.stringify(hooksData, null, 2)
   );
 
   fs.writeFileSync(
@@ -825,6 +923,7 @@ async function main() {
       prompts: prompts.length,
       instructions: instructions.length,
       skills: skills.length,
+      hooks: hooks.length,
       collections: collections.length,
       tools: tools.length,
       samples: samplesData.totalRecipes,

@@ -1,28 +1,25 @@
 #!/usr/bin/env python3
 
-from copilot import CopilotClient
+import asyncio
+from copilot import CopilotClient, SessionConfig, MessageOptions
 
-client = CopilotClient()
+async def main():
+    client = CopilotClient()
 
-try:
-    client.start()
-    session = client.create_session(model="gpt-5")
+    try:
+        await client.start()
+        session = await client.create_session(SessionConfig(model="gpt-5"))
 
-    response = None
-    def handle_message(event):
-        nonlocal response
-        if event["type"] == "assistant.message":
-            response = event["data"]["content"]
+        response = await session.send_and_wait(MessageOptions(prompt="Hello!"))
 
-    session.on(handle_message)
-    session.send(prompt="Hello!")
-    session.wait_for_idle()
+        if response:
+            print(response.data.content)
 
-    if response:
-        print(response)
+        await session.destroy()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        await client.stop()
 
-    session.destroy()
-except Exception as e:
-    print(f"Error: {e}")
-finally:
-    client.stop()
+if __name__ == "__main__":
+    asyncio.run(main())

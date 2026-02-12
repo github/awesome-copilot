@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -10,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/copilot-sdk/go"
+	copilot "github.com/github/copilot-sdk/go"
 )
 
 // ============================================================================
@@ -58,6 +59,7 @@ func promptForRepo() string {
 // ============================================================================
 
 func main() {
+	ctx := context.Background()
 	repoFlag := flag.String("repo", "", "GitHub repository (owner/repo)")
 	flag.Parse()
 
@@ -90,18 +92,18 @@ func main() {
 	parts := strings.SplitN(repo, "/", 2)
 	owner, repoName := parts[0], parts[1]
 
-	// Create Copilot client - no custom tools needed!
-	client := copilot.NewClient(copilot.ClientConfig{LogLevel: "error"})
+	// Create Copilot client
+	client := copilot.NewClient(nil)
 
-	if err := client.Start(); err != nil {
+	if err := client.Start(ctx); err != nil {
 		log.Fatal(err)
 	}
 	defer client.Stop()
 
 	cwd, _ := os.Getwd()
-	session, err := client.CreateSession(copilot.SessionConfig{
+	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 		Model: "gpt-5",
-		SystemMessage: copilot.SystemMessage{
+		SystemMessage: &copilot.SystemMessageConfig{
 			Content: fmt.Sprintf(`
 <context>
 You are analyzing pull requests for the GitHub repository: %s/%s
@@ -123,12 +125,16 @@ The current working directory is: %s
 	defer session.Destroy()
 
 	// Set up event handling
-	session.On(func(event copilot.Event) {
-		switch e := event.(type) {
-		case copilot.AssistantMessageEvent:
-			fmt.Printf("\n🤖 %s\n\n", e.Data.Content)
-		case copilot.ToolExecutionStartEvent:
-			fmt.Printf("  ⚙️  %s\n", e.Data.ToolName)
+	session.On(func(event copilot.SessionEvent) {
+		switch event.Type {
+		case "assistant.message":
+			if event.Data.Content != nil {
+				fmt.Printf("\n🤖 %s\n\n", *event.Data.Content)
+			}
+		case "tool.execution_start":
+			if event.Data.ToolName != nil {
+				fmt.Printf("  ⚙️  %s\n", *event.Data.ToolName)
+			}
 		}
 	})
 
@@ -144,11 +150,9 @@ The current working directory is: %s
       Finally, summarize the PR health - average age, oldest PR, and how many might be considered stale.
     `, owner, repoName)
 
-	if err := session.Send(copilot.MessageOptions{Prompt: prompt}); err != nil {
+	if _, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: prompt}); err != nil {
 		log.Fatal(err)
 	}
-
-	session.WaitForIdle()
 
 	// Interactive loop
 	fmt.Println("\n💡 Ask follow-up questions or type \"exit\" to quit.\n")
@@ -173,10 +177,8 @@ The current working directory is: %s
 			break
 		}
 
-		if err := session.Send(copilot.MessageOptions{Prompt: input}); err != nil {
+		if _, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: input}); err != nil {
 			log.Printf("Error: %v", err)
 		}
-
-		session.WaitForIdle()
 	}
 }

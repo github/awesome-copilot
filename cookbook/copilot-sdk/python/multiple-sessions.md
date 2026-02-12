@@ -16,31 +16,36 @@ You need to run multiple conversations in parallel, each with its own context an
 ## Python
 
 ```python
-from copilot import CopilotClient
+import asyncio
+from copilot import CopilotClient, SessionConfig, MessageOptions
 
-client = CopilotClient()
-client.start()
+async def main():
+    client = CopilotClient()
+    await client.start()
 
-# Create multiple independent sessions
-session1 = client.create_session(model="gpt-5")
-session2 = client.create_session(model="gpt-5")
-session3 = client.create_session(model="claude-sonnet-4.5")
+    # Create multiple independent sessions
+    session1 = await client.create_session(SessionConfig(model="gpt-5"))
+    session2 = await client.create_session(SessionConfig(model="gpt-5"))
+    session3 = await client.create_session(SessionConfig(model="claude-sonnet-4.5"))
 
-# Each session maintains its own conversation history
-session1.send(prompt="You are helping with a Python project")
-session2.send(prompt="You are helping with a TypeScript project")
-session3.send(prompt="You are helping with a Go project")
+    # Each session maintains its own conversation history
+    await session1.send(MessageOptions(prompt="You are helping with a Python project"))
+    await session2.send(MessageOptions(prompt="You are helping with a TypeScript project"))
+    await session3.send(MessageOptions(prompt="You are helping with a Go project"))
 
-# Follow-up messages stay in their respective contexts
-session1.send(prompt="How do I create a virtual environment?")
-session2.send(prompt="How do I set up tsconfig?")
-session3.send(prompt="How do I initialize a module?")
+    # Follow-up messages stay in their respective contexts
+    await session1.send(MessageOptions(prompt="How do I create a virtual environment?"))
+    await session2.send(MessageOptions(prompt="How do I set up tsconfig?"))
+    await session3.send(MessageOptions(prompt="How do I initialize a module?"))
 
-# Clean up all sessions
-session1.destroy()
-session2.destroy()
-session3.destroy()
-client.stop()
+    # Clean up all sessions
+    await session1.destroy()
+    await session2.destroy()
+    await session3.destroy()
+    await client.stop()
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## Custom session IDs
@@ -48,10 +53,10 @@ client.stop()
 Use custom IDs for easier tracking:
 
 ```python
-session = client.create_session(
+session = await client.create_session(SessionConfig(
     session_id="user-123-chat",
     model="gpt-5"
-)
+))
 
 print(session.session_id)  # "user-123-chat"
 ```
@@ -59,16 +64,16 @@ print(session.session_id)  # "user-123-chat"
 ## Listing sessions
 
 ```python
-sessions = client.list_sessions()
+sessions = await client.list_sessions()
 for session_info in sessions:
-    print(f"Session: {session_info['sessionId']}")
+    print(f"Session: {session_info.session_id}")
 ```
 
 ## Deleting sessions
 
 ```python
 # Delete a specific session
-client.delete_session("user-123-chat")
+await client.delete_session("user-123-chat")
 ```
 
 ## Use cases

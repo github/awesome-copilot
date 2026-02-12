@@ -61,3 +61,11 @@ cookbooks:
           - sessions
           - persistence
           - state-management
+      - id: accessibility-report
+        name: Accessibility Report
+        description: Generate WCAG accessibility reports using the Playwright MCP server
+        tags:
+          - accessibility
+          - playwright
+          - mcp
+          - wcag

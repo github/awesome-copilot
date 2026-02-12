@@ -229,8 +229,10 @@ export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
   if (filePath.endsWith(".prompt.md")) return "prompt";
   if (filePath.endsWith(".instructions.md")) return "instruction";
-  if (filePath.includes("/skills/") && filePath.endsWith("SKILL.md"))
+  if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
     return "skill";
+  if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
+    return "hook";
   if (filePath.endsWith(".collection.yml")) return "collection";
   return "unknown";
 }
@@ -244,6 +246,7 @@ export function formatResourceType(type: string): string {
     prompt: "🎯 Prompt",
     instruction: "📋 Instruction",
     skill: "⚡ Skill",
+    hook: "🪝 Hook",
     collection: "📦 Collection",
   };
   return labels[type] || type;
@@ -258,6 +261,7 @@ export function getResourceIcon(type: string): string {
     prompt: "🎯",
     instruction: "📋",
     skill: "⚡",
+    hook: "🪝",
     collection: "📦",
   };
   return icons[type] || "📄";
@@ -499,5 +503,7 @@ export function getLastUpdatedHtml(isoDate: string | null | undefined): string {
     return `<span class="last-updated">Updated: Unknown</span>`;
   }
 
-  return `<span class="last-updated" title="${escapeHtml(fullDate)}">Updated ${relativeTime}</span>`;
+  return `<span class="last-updated" title="${escapeHtml(
+    fullDate
+  )}">Updated ${relativeTime}</span>`;
 }

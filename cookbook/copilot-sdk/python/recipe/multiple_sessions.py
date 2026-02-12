@@ -1,35 +1,40 @@
 #!/usr/bin/env python3
 
-from copilot import CopilotClient
+import asyncio
+from copilot import CopilotClient, SessionConfig, MessageOptions
 
-client = CopilotClient()
-client.start()
+async def main():
+    client = CopilotClient()
+    await client.start()
 
-# Create multiple independent sessions
-session1 = client.create_session(model="gpt-5")
-session2 = client.create_session(model="gpt-5")
-session3 = client.create_session(model="claude-sonnet-4.5")
+    # Create multiple independent sessions
+    session1 = await client.create_session(SessionConfig(model="gpt-5"))
+    session2 = await client.create_session(SessionConfig(model="gpt-5"))
+    session3 = await client.create_session(SessionConfig(model="claude-sonnet-4.5"))
 
-print("Created 3 independent sessions")
+    print("Created 3 independent sessions")
 
-# Each session maintains its own conversation history
-session1.send(prompt="You are helping with a Python project")
-session2.send(prompt="You are helping with a TypeScript project")
-session3.send(prompt="You are helping with a Go project")
+    # Each session maintains its own conversation history
+    await session1.send(MessageOptions(prompt="You are helping with a Python project"))
+    await session2.send(MessageOptions(prompt="You are helping with a TypeScript project"))
+    await session3.send(MessageOptions(prompt="You are helping with a Go project"))
 
-print("Sent initial context to all sessions")
+    print("Sent initial context to all sessions")
 
-# Follow-up messages stay in their respective contexts
-session1.send(prompt="How do I create a virtual environment?")
-session2.send(prompt="How do I set up tsconfig?")
-session3.send(prompt="How do I initialize a module?")
+    # Follow-up messages stay in their respective contexts
+    await session1.send(MessageOptions(prompt="How do I create a virtual environment?"))
+    await session2.send(MessageOptions(prompt="How do I set up tsconfig?"))
+    await session3.send(MessageOptions(prompt="How do I initialize a module?"))
 
-print("Sent follow-up questions to each session")
+    print("Sent follow-up questions to each session")
 
-# Clean up all sessions
-session1.destroy()
-session2.destroy()
-session3.destroy()
-client.stop()
+    # Clean up all sessions
+    await session1.destroy()
+    await session2.destroy()
+    await session3.destroy()
+    await client.stop()
 
-print("All sessions destroyed successfully")
+    print("All sessions destroyed successfully")
+
+if __name__ == "__main__":
+    asyncio.run(main())
