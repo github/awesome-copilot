@@ -63,38 +63,39 @@ Then analyze the content for these key sections (case-insensitive header matchin
 
 ## Check 3: Dependency License Compatibility (Weight: High — 3 pts)
 
-### Step 1: Detect manifest files
-Use `get_file_contents` on the repo root `/` to list files. Look for any of these manifest files:
-- `package.json` (Node.js/npm)
-- `requirements.txt` or `setup.py` or `pyproject.toml` (Python)
-- `go.mod` (Go)
-- `Gemfile` (Ruby)
-- `pom.xml` or `build.gradle` (Java)
-- `Cargo.toml` (Rust)
-- `composer.json` (PHP)
-- `*.csproj` or `packages.config` (C#/.NET)
+This check uses the **ospo-readiness MCP server** for accurate analysis of all transitive dependencies (not just direct ones).
 
-### Step 2: Parse dependencies
-Fetch the manifest file contents and extract dependency names. For `package.json`, look at `dependencies` and `devDependencies`. For other formats, extract package names from the relevant fields.
+### Step 1: Scan dependencies
+Call the `scan_dependencies` MCP tool with the repo's `owner` and `repo`:
+```
+scan_dependencies({ owner: "expressjs", repo: "express" })
+```
+This clones the repo, runs `npm install`, and returns structured license data for ALL production dependencies (including transitive).
 
-### Step 3: Check dependency licenses
-For each dependency (sample up to 15 to stay efficient):
-- For npm packages: use `web_fetch` on `https://registry.npmjs.org/{package}/latest` and check the `license` field.
-- For other ecosystems: use `get_file_contents` to check the dependency's GitHub repo LICENSE file if the repo URL is available in the manifest, or use `web_search` to find the license.
+### Step 2: Check compatibility
+Take the project's license (from Check 1) and the dependency list from Step 1, then call:
+```
+check_license_compatibility({ projectLicense: "MIT", dependencies: [...] })
+```
+This returns `compatible`, `incompatible`, and `unknown` arrays with reasons for each flag.
 
-### Step 4: Evaluate compatibility
-Flag any dependencies with:
-- **Copyleft licenses** (GPL, AGPL) in a project using a permissive license (MIT, Apache, BSD) — this is a compatibility issue.
-- **No license / unknown license** — this is a risk.
-- **Non-OSI-approved licenses** — flag for review.
+### Step 3: Report findings
+Include in the report:
+- Total number of dependencies scanned
+- License distribution summary (e.g., "60 MIT, 4 ISC, 1 BSD-3-Clause")
+- Any incompatible dependencies with the reason
+- Any unknown/unlicensed dependencies
+
+### Fallback
+If the MCP server is unavailable (e.g., not installed), fall back to the manual approach: use `get_file_contents` to read `package.json`, extract dependency names, and check licenses via `web_fetch` on `https://registry.npmjs.org/{package}/latest`. Sample up to 15 dependencies.
 
 ### Scoring
-- **✅ Pass (3 pts):** Manifest found, all sampled dependencies have compatible OSI-approved licenses.
-- **⚠️ Partial (1.5 pts):** Manifest found, but some dependencies have unknown or potentially incompatible licenses.
-- **❌ Fail (0 pts):** No manifest file found, OR multiple dependencies have incompatible or missing licenses.
+- **✅ Pass (3 pts):** All dependencies have compatible OSI-approved licenses (0 incompatible, 0 unknown).
+- **⚠️ Partial (1.5 pts):** Some dependencies have unknown licenses, but none are incompatible.
+- **❌ Fail (0 pts):** No manifest file found, OR one or more dependencies have incompatible licenses.
 
 ### Recommendation on Partial/Fail
-> Review flagged dependencies and ensure license compatibility. Consider using a tool like `license-checker` (npm), `pip-licenses` (Python), or `go-licenses` (Go) for a full audit.
+> Review flagged dependencies and ensure license compatibility. Run `npx license-checker --production --json` locally for a full audit.
 
 ---
 
@@ -284,6 +285,16 @@ Always produce the report in this exact format:
 
 ---
 
+## Generating an SBOM (Optional)
+
+If the user asks for an SBOM (Software Bill of Materials), call the `generate_sbom` MCP tool:
+```
+generate_sbom({ owner: "expressjs", repo: "express" })
+```
+This returns a CycloneDX 1.5 SBOM in JSON format with all production dependencies, their versions, licenses, and repository URLs. Present it to the user or save it as a file.
+
+---
+
 ## Creating a GitHub Issue (Optional)
 
 If the user explicitly asks to create a GitHub Issue with the findings, create an issue on the target repo with:
@@ -306,8 +317,8 @@ Only do this if the user asks. Never create issues automatically.
 
 ## Important Rules
 
-1. **Always use the GitHub MCP tools** — never try to clone, download, or shell out to access the repo.
-2. **Be thorough but efficient** — for dependency scanning, sample up to 15 dependencies to avoid excessive API calls.
+1. **Always use the GitHub MCP tools** for file/repo inspection — never try to clone or shell out directly.
+2. **Use the ospo-readiness MCP tools** (`scan_dependencies`, `check_license_compatibility`, `generate_sbom`) for dependency analysis when available.
 3. **Be precise in scoring** — follow the scoring rubric exactly. Do not inflate or deflate scores.
 4. **Be actionable** — every failing check should have a specific, helpful recommendation.
 5. **Stay in scope** — only evaluate what's defined in the 8 checks. Don't add extra opinions unless asked.
