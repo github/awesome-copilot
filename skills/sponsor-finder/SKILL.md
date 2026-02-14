@@ -1,15 +1,15 @@
 ---
 name: sponsor-finder
-description: Find which of a GitHub repository's dependencies are sponsorable via GitHub Sponsors. Uses deps.dev API for dependency resolution across npm, PyPI, Cargo, Go, RubyGems, Maven, and NuGet. Checks npm funding metadata, FUNDING.yml files, and web search. Verifies every link. Shows direct and transitive dependencies with OSSF Scorecard health data. Invoke by providing a GitHub owner/repo (e.g. "find sponsorable dependencies in expressjs/express").
+description: Find which of a GitHub repository's dependencies are sponsorable via GitHub Sponsors. Uses deps.dev API for dependency resolution across npm, PyPI, Cargo, Go, RubyGems, Maven, and NuGet. Checks npm funding metadata, FUNDING.yml files, and web search. Verifies every link. Shows direct and transitive dependencies with OSSF Scorecard health data. Invoke with /sponsor followed by a GitHub owner/repo (e.g. "/sponsor expressjs/express").
 ---
 
 # Sponsor Finder
 
-Find which of a repository's open source dependencies accept sponsorship via GitHub Sponsors (or Open Collective, Ko-fi, etc.). Accepts a GitHub `owner/repo`, uses the deps.dev API for dependency resolution and project health data, and produces a verified sponsorship report covering both direct and transitive dependencies.
+Discover opportunities to support the open source maintainers behind your project's dependencies. Accepts a GitHub `owner/repo` (e.g. `/sponsor expressjs/express`), uses the deps.dev API for dependency resolution and project health data, and produces a friendly sponsorship report covering both direct and transitive dependencies.
 
 ## Your Workflow
 
-When the user provides a repository in `owner/repo` format:
+When the user types `/sponsor {owner/repo}` or provides a repository in `owner/repo` format:
 
 1. **Parse the input** — Extract `owner` and `repo`.
 2. **Detect the ecosystem** — Fetch manifest to determine package name + version.
@@ -125,10 +125,20 @@ Use `web_fetch` on `https://registry.npmjs.org/{package-name}/latest` and check 
 - **Object:** `{"type": "opencollective", "url": "https://opencollective.com/express"}` → use `url`
 - **Array:** collect all URLs
 
-### 5b: `.github/FUNDING.yml`
+### 5b: `.github/FUNDING.yml` (repo-level, then org-level fallback)
+
+**Step 5b-i — Per-repo check:**
 Use `get_file_contents` to fetch `{owner}/{repo}` path `.github/FUNDING.yml`.
 
-Parse the YAML:
+**Step 5b-ii — Org/user-level fallback:**
+If 5b-i returned 404 (no FUNDING.yml in the repo itself), check the owner's default community health repo:
+Use `get_file_contents` to fetch `{owner}/.github` path `FUNDING.yml`.
+
+GitHub supports a [default community health files](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file) convention: a `.github` repository at the user/org level provides defaults for all repos that lack their own. For example, `isaacs/.github/FUNDING.yml` applies to all `isaacs/*` repos.
+
+Only look up each unique `{owner}/.github` repo **once** — reuse the result for all repos under that owner. Process in batches of **10 owners at a time**.
+
+Parse the YAML (same for both 5b-i and 5b-ii):
 - `github: [username]` → `https://github.com/sponsors/{username}`
 - `open_collective: slug` → `https://opencollective.com/{slug}`
 - `ko_fi: username` → `https://ko-fi.com/{username}`
@@ -147,6 +157,8 @@ Skip packages known to be corporate-maintained (React/Meta, TypeScript/Microsoft
 - **Check 5a and 5b for all deps.** Only use 5c for top unfunded ones.
 - Skip npm registry calls for non-npm ecosystems.
 - Deduplicate repos — check each repo only once.
+- **One `{owner}/.github` check per unique owner** — reuse the result for all their repos.
+- Process org-level lookups in batches of **10 owners at a time**.
 
 ---
 
@@ -165,72 +177,59 @@ Verify in batches of **5 at a time**. Never present unverified links.
 
 ## Step 7: Output the Report
 
+### Output discipline
+
+**Minimize intermediate output during data gathering.** Do NOT announce each batch ("Batch 3 of 7…", "Now checking funding…"). Instead:
+- Show **one brief status line** when starting each major phase (e.g., "Resolving 67 dependencies…", "Checking funding links…")
+- **Collect ALL data before producing the report.** Never drip-feed partial tables.
+- Output the final report as a **single cohesive block** at the end.
+
+### Report template
+
 ```
 ## 💜 Sponsor Finder Report
 
-**Repository:** {owner}/{repo}
-**Scanned:** {current date}
-**Ecosystem:** {ecosystem} · {package}@{version}
+**Repository:** {owner}/{repo} · {ecosystem} · {package}@{version}
+**Scanned:** {date} · {total} deps ({direct} direct + {transitive} transitive)
 
 ---
 
-### Summary
+### 🎯 Ways to Give Back
 
-- **{total}** total dependencies ({direct} direct + {transitive} transitive)
-- **{resolved}** resolved to GitHub repos
-- **💜 {sponsorable}** have verified funding links ({percentage}%)
+Sponsoring just {N} people/orgs supports {sponsorable} of your {total} dependencies — a great way to invest in the open source your project depends on.
+
+1. **💜 @{user}** — {N} direct + {M} transitive deps · ⭐ Maintained
+   {dep1}, {dep2}, {dep3}, ...
+   https://github.com/sponsors/{user}
+
+2. **🟠 Open Collective: {name}** — {N} direct + {M} transitive deps · ⭐ Maintained
+   {dep1}, {dep2}, {dep3}, ...
+   https://opencollective.com/{name}
+
+3. **💜 @{user2}** — {N} direct dep · 💤 Low activity
+   {dep1}
+   https://github.com/sponsors/{user2}
+
+---
+
+### 📊 Coverage
+
+- **{sponsorable}/{total}** dependencies have funding options ({percentage}%)
 - **{destinations}** unique funding destinations
+- **{unfunded_direct}** direct deps don't have funding set up yet ({top_names}, ...)
 - All links verified ✅
-
----
-
-### Verified Funding Links
-
-| Dependency | Repo | Funding | Direct? | How Verified |
-|------------|------|---------|---------|--------------|
-| {name} | [{owner}/{repo}](https://github.com/{owner}/{repo}) | 💜 [GitHub Sponsors](https://github.com/sponsors/{user}) | ✅ | FUNDING.yml |
-| {name} | [{owner}/{repo}](https://github.com/{owner}/{repo}) | 🟠 [Open Collective](https://opencollective.com/{slug}) | ⛓️ | npm funding |
-| ... | ... | ... | ... | ... |
-
-Use ✅ for direct dependencies, ⛓️ for transitive.
-
----
-
-### Funding Destinations (by impact)
-
-| Destination | Deps | Health | Link |
-|-------------|------|--------|------|
-| 🟠 Open Collective: {name} | {N} direct | ⭐ Maintained | [opencollective.com/{name}](https://opencollective.com/{name}) |
-| 💜 @{user} | {N} direct + {M} transitive | ⭐ Maintained | [github.com/sponsors/{user}](https://github.com/sponsors/{user}) |
-| ... | ... | ... | ... |
-
-Sort by total number of dependencies (direct + transitive), descending.
-
----
-
-### No Verified Funding Found
-
-| Dependency | Repo | Why | Direct? |
-|------------|------|-----|---------|
-| {name} | {owner}/{repo} | Corporate (Meta) | ✅ |
-| {name} | {owner}/{repo} | No FUNDING.yml or metadata | ⛓️ |
-| ... | ... | ... | ... |
-
-Only show the top 10 unfunded direct deps. If more, note "... and {N} more".
-
----
-
-### 💜 {percentage}% verified funding coverage · {destinations} destinations · {sponsorable} dependencies
-### 💡 Sponsoring just {N} people/orgs covers all {sponsorable} funded dependencies
 ```
 
-### Format notes
-- **Direct?** column: ✅ = direct dependency, ⛓️ = transitive
-- **Health** column: ⭐ Maintained (7+), ⚠️ Partial (4–6), 💤 Low (0–3) — from OSSF Scorecard
-- **How Verified**: `FUNDING.yml`, `npm funding`, `PyPI metadata`, `Web search`
+### Report format rules
+
+- **Lead with "🎯 Ways to Give Back"** — this is the primary output. Numbered list, sorted by total deps covered (descending).
+- **Bare URLs on their own line** — not wrapped in markdown link syntax. This ensures they're clickable in any terminal emulator.
+- **Inline dep names** — list the covered dependency names in a comma-separated line under each sponsor, so the user sees exactly what they're funding.
+- **Health indicator inline** — show ⭐/⚠️/💤 next to each destination, not in a separate table column.
+- **One "📊 Coverage" section** — compact stats. No separate "Verified Funding Links" table, no "No Funding Found" table.
+- **Unfunded deps as a brief note** — just the count + top names. Frame as "don't have funding set up yet" rather than highlighting a gap. Never shame projects for not having funding — many maintainers prefer other forms of contribution.
 - 💜 GitHub Sponsors, 🟠 Open Collective, ☕ Ko-fi, 🔗 Other
-- Prioritize GitHub Sponsors links when multiple funding sources exist
-- The **💡 summary line** tells the user the minimum number of sponsorships to cover everything
+- Prioritize GitHub Sponsors links when multiple funding sources exist for the same maintainer.
 
 ---
 
@@ -248,10 +247,12 @@ Only show the top 10 unfunded direct deps. If more, note "... and {N} more".
 
 1. **NEVER present unverified links.** Fetch every URL before showing it. 5 verified links > 20 guessed links.
 2. **NEVER guess from training knowledge.** Always check — funding pages change over time.
-3. **Be transparent.** Show "How Verified" and "Direct?" columns so users understand the data.
-4. **Use deps.dev as primary resolver.** Fall back to registry APIs only if deps.dev is unavailable.
-5. **Always use GitHub MCP tools** (`get_file_contents`), `web_fetch`, and `web_search` — never clone or shell out.
-6. **Be efficient.** Batch API calls, deduplicate repos, respect sampling limits.
-7. **Focus on GitHub Sponsors.** Most actionable platform — show others but prioritize GitHub.
-8. **Deduplicate by maintainer.** Group to show real impact of sponsoring one person.
-9. **Show the actionable minimum.** The 💡 line tells users the fewest sponsorships to cover all funded deps.
+3. **Always be encouraging, never shaming.** Frame results positively — celebrate what IS funded, and treat unfunded deps as an opportunity, not a failing. Not every project needs or wants financial sponsorship.
+4. **Lead with action.** The "🎯 Ways to Give Back" section is the primary output — bare clickable URLs, grouped by destination.
+5. **Use deps.dev as primary resolver.** Fall back to registry APIs only if deps.dev is unavailable.
+6. **Always use GitHub MCP tools** (`get_file_contents`), `web_fetch`, and `web_search` — never clone or shell out.
+7. **Be efficient.** Batch API calls, deduplicate repos, check each owner's `.github` repo only once.
+8. **Focus on GitHub Sponsors.** Most actionable platform — show others but prioritize GitHub.
+9. **Deduplicate by maintainer.** Group to show real impact of sponsoring one person.
+10. **Show the actionable minimum.** Tell users the fewest sponsorships to support the most deps.
+11. **Minimize intermediate output.** Don't announce each batch. Collect all data, then output one cohesive report.
