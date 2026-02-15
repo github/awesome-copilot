@@ -17,6 +17,20 @@ This repository provides a comprehensive toolkit for enhancing GitHub Copilot wi
 - **👉 [Awesome Skills](docs/README.skills.md)** - Self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks
 - **👉 [Awesome Collections](docs/README.collections.md)** - Curated collections of related prompts, instructions, and chat modes organized around specific themes and workflows
 
+## 📊 Visual Guide
+
+### Agents
+![Agents](infographics/Agents.png)
+
+### Prompts
+![Prompts](infographics/Prompts.png)
+
+### Instructions
+![Instructions](infographics/Instructions.png)
+
+### Skills
+![Skills](infographics/Skills.png)
+
 ## 🌟 Featured Collections
 
 Discover our curated collections of prompts, instructions, and agents organized around specific themes and workflows.
