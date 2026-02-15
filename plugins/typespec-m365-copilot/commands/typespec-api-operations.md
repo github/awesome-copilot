@@ -1,0 +1,1 @@
+../../../prompts/typespec-api-operations.prompt.md

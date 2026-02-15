@@ -1,0 +1,15 @@
+id: ospo-sponsorship
+name: Open Source Sponsorship
+description: Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms.
+tags: [ospo, sponsorship, open-source, funding, github-sponsors]
+items:
+  # Agent Skills
+  - path: skills/sponsor-finder/SKILL.md
+    kind: skill
+    usage: |
+      Find which of a GitHub repository's dependencies are sponsorable via GitHub Sponsors.
+      Invoke by providing a GitHub owner/repo (e.g., "find sponsorable dependencies in expressjs/express").
+display:
+  ordering: alpha # or "manual" to preserve the order above
+  show_badge: true # set to true to show collection badge on items
+  featured: false

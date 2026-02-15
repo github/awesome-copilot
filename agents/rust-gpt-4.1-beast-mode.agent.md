@@ -89,7 +89,7 @@ Refer to the detailed sections below for more information on each step
 - Create a todo list in markdown format to track your progress.
 - Each time you complete a step, check it off using `[x]` syntax.
 - Each time you check off a step, display the updated todo list to the user.
-- Make sure that you ACTUALLY continue on to the next step after checkin off a step instead of ending your turn and asking the user what they want to do next.
+- Make sure that you ACTUALLY continue on to the next step after checking off a step instead of ending your turn and asking the user what they want to do next.
 
 > Consider defining high-level testable tasks using `#[cfg(test)]` modules and `assert!` macros.
 

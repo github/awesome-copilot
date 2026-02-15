@@ -1,0 +1,26 @@
+{
+  "name": "awesome-copilot-website",
+  "version": "1.0.0",
+  "description": "Awesome GitHub Copilot website",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "keywords": [
+    "github",
+    "copilot",
+    "agents",
+    "prompts"
+  ],
+  "author": "GitHub",
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^5.16.15",
+    "choices.js": "^11.1.0",
+    "jszip": "^3.10.1"
+  }
+}

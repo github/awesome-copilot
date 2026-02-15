@@ -24,7 +24,7 @@ When a user wants to create a custom agent, start by understanding:
 ### 2. Custom Agent Design Principles
 
 **Tool Selection Strategy:**
-- **Read-only agents** (planning, research, review): Use `['search', 'fetch', 'githubRepo', 'usages', 'grep_search', 'read_file', 'semantic_search']`
+- **Read-only agents** (planning, research, review): Use `['search', 'web/fetch', 'githubRepo', 'usages', 'grep_search', 'read_file', 'semantic_search']`
 - **Implementation agents** (coding, refactoring): Add `['replace_string_in_file', 'multi_replace_string_in_file', 'create_file', 'run_in_terminal']`
 - **Testing agents**: Include `['run_notebook_cell', 'test_failure', 'run_in_terminal']`
 - **Deployment agents**: Include `['run_in_terminal', 'create_and_run_task', 'get_errors']`

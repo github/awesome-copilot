@@ -1,0 +1,1 @@
+../../../prompts/playwright-generate-test.prompt.md

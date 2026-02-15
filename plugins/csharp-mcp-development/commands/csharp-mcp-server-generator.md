@@ -1,0 +1,1 @@
+../../../prompts/csharp-mcp-server-generator.prompt.md

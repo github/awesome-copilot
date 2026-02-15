@@ -1,0 +1,1 @@
+../../../prompts/structured-autonomy-generate.prompt.md

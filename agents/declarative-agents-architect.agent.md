@@ -1,4 +1,5 @@
 ---
+name: 'Declarative Agents Architect'
 model: GPT-4.1
 tools: ['codebase']
 ---

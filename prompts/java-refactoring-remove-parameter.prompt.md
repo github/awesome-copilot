@@ -1,5 +1,5 @@
 ---
-title: 'Refactoring Java Methods with Remove Parameter'
+name: 'Refactoring Java Methods with Remove Parameter'
 agent: 'agent'
 description: 'Refactoring using Remove Parameter in Java Language'
 ---

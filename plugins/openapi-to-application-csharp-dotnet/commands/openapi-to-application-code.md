@@ -1,0 +1,1 @@
+../../../prompts/openapi-to-application-code.prompt.md

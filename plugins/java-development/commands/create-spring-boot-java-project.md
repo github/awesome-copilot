@@ -1,0 +1,1 @@
+../../../prompts/create-spring-boot-java-project.prompt.md

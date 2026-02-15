@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Modal from '../components/Modal.astro';
+---
+
+<BaseLayout title="Hooks" description="Automated workflows triggered by Copilot coding agent events" activeNav="hooks">
+  <main id="main-content">
+    <div class="page-header">
+      <div class="container">
+        <h1>🪝 Hooks</h1>
+        <p>Automated workflows triggered by Copilot coding agent events</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="container">
+        <div class="search-bar">
+          <label for="search-input" class="sr-only">Search hooks</label>
+          <input type="text" id="search-input" placeholder="Search hooks..." autocomplete="off">
+        </div>
+        
+        <div class="filters-bar" id="filters-bar">
+          <div class="filter-group">
+            <label for="filter-hook">Hook Event:</label>
+            <select id="filter-hook" multiple aria-label="Filter by hook event"></select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-tag">Tag:</label>
+            <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+          </div>
+          <div class="filter-group">
+            <label for="sort-select">Sort:</label>
+            <select id="sort-select" aria-label="Sort by">
+              <option value="title">Name (A-Z)</option>
+              <option value="lastUpdated">Recently Updated</option>
+            </select>
+          </div>
+          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+        </div>
+        
+        <div class="results-count" id="results-count" aria-live="polite"></div>
+        <div class="resource-list" id="resource-list" role="list">
+          <div class="loading" aria-live="polite">Loading hooks...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Modal />
+
+  <script>
+    import '../scripts/pages/hooks';
+  </script>
+</BaseLayout>

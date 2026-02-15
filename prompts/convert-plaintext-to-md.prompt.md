@@ -1,7 +1,7 @@
 ---
 agent: agent
 description: 'Convert a text-based document to markdown following instructions from prompt, or if a documented option is passed, follow the instructions for that option.'
-tools: ['edit', 'edit/editFiles', 'fetch', 'runCommands', 'search', 'search/readFile', 'search/textSearch']
+tools: ['edit', 'edit/editFiles', 'web/fetch', 'runCommands', 'search', 'search/readFile', 'search/textSearch']
 ---
 
 # Convert Plaintext Documentation to Markdown

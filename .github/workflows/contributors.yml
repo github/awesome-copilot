@@ -8,32 +8,49 @@ on:
 jobs:
   contributors:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: write
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      - name: Extract Node version from package.json
+        id: node-version
+        run: |
+          NODE_VERSION=$(jq -r '.engines.node // "22.x"' package.json)
+          echo "version=${NODE_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: ${{ steps.node-version.outputs.version }}
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Update contributors
+      - name: Check contributors
+        id: contributors_check
         run: npm run contributors:check
         env:
           PRIVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Generate contributors report
+        if: steps.contributors_check.outcome == 'failure'
+        run: |
+          mkdir -p reports
+          npm run contributors:report
+          test -f reports/contributor-report.md && cat reports/contributor-report.md >> "$GITHUB_STEP_SUMMARY"
+        env:
+          PRIVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
       - name: Regenerate README
-        run: |
-          npm install
-          npm start
+        run: npm start
 
       - name: Check for changes
         id: verify-changed-files

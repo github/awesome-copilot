@@ -23,9 +23,9 @@ Follow the steps **sequentially** and **do not attempt to upgrade all projects a
    - Note the current target and SDK.
 
 2. **Select Target Version**
-   - **.NET (Core/Modern)**: Upgrade to the latest LTS (e.g., `net8.0`).
-   - **.NET Standard**: Prefer migrating to **.NET 6+** if possible. If staying, target `netstandard2.1`.
-   - **.NET Framework**: Upgrade to at least **4.8**, or migrate to .NET 6+ if feasible.
+   - **.NET (Core/Modern)**: Upgrade to the latest LTS (e.g., `net10.0`).
+   - **.NET Standard**: Prefer migrating to **.NET 8+** if possible. If staying, target `netstandard2.1`.
+   - **.NET Framework**: Upgrade to at least **4.8**, or migrate to .NET 8+ if feasible.
 
 3. **Review Release Notes & Breaking Changes**
    - [.NET Core/.NET Upgrade Docs](https://learn.microsoft.com/dotnet/core/whats-new/)
@@ -38,7 +38,7 @@ Follow the steps **sequentially** and **do not attempt to upgrade all projects a
 2. Start with **independent class library projects** (least dependencies).
 3. Gradually move to projects with **higher dependencies** (e.g., APIs, Azure Functions).
 4. Ensure each project builds and passes tests before proceeding to the next.
-5. Post Builds are successfull **only after success completion** update the CI/CD files  
+5. Post Builds are successful **only after success completion** update the CI/CD files  
 
 ---
 
@@ -76,7 +76,7 @@ For each project:
    ```
 
 2. Check for:
-   - `TargetFramework` → Change to the desired version (e.g., `net8.0`).
+   - `TargetFramework` → Change to the desired version (e.g., `net10.0`).
    - `PackageReference` → Verify if each NuGet package supports the new framework.  
      - Run:
        ```bash
@@ -148,7 +148,7 @@ BlobServiceClient client = new BlobServiceClient(connectionString);
 - Common issues:
   - Deprecated APIs → Replace with supported alternatives.
   - Package incompatibility → Find updated NuGet or migrate to Microsoft-supported library.
-  - Configuration differences (e.g., `Startup.cs` → `Program.cs` in .NET 6+).
+  - Configuration differences (e.g., `Startup.cs` → `Program.cs` in .NET 8+).
 
 
 ---
@@ -239,9 +239,9 @@ Use this table as a sample to track the progress of the upgrade across all proje
 
 | Project Name | Target Framework | Dependencies Updated | Builds Successfully | Tests Passing | Deployment Verified | Notes |
 |--------------|------------------|-----------------------|---------------------|---------------|---------------------|-------|
-| Project A    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
-| Project B    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
-| Project C    | ☐ net8.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+| Project A    | ☐ net10.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+| Project B    | ☐ net10.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
+| Project C    | ☐ net10.0         | ☐                     | ☐                   | ☐             | ☐                   |       |
 
 > ✅ Mark each column as you complete the step for every project.
 
@@ -272,7 +272,7 @@ For organizations with multiple repositories:
 ## 🔑 Notes & Best Practices
 
 - **Prefer Migration to Modern .NET**  
-  If on .NET Framework or .NET Standard, evaluate moving to .NET 6/8 for long-term support.
+  If on .NET Framework or .NET Standard, evaluate moving to .NET 8/10 for long-term support.
 - **Automate Tests Early**  
   CI/CD should block merges if tests fail.
 - **Incremental Upgrades**  

@@ -1,7 +1,7 @@
 ---
 agent: 'agent'
 description: 'Create a tldr page from documentation URLs and command examples, requiring both URL and command name.'
-tools: ['edit/createFile', 'fetch']
+tools: ['edit/createFile', 'web/fetch']
 ---
 
 # Create TLDR Page

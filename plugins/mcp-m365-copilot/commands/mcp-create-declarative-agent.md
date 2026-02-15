@@ -1,0 +1,1 @@
+../../../prompts/mcp-create-declarative-agent.prompt.md

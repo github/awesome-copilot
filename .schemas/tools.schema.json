@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tools Catalog",
+  "description": "Schema for the awesome-copilot tools catalog (website/data/tools.yml)",
+  "type": "object",
+  "required": ["tools"],
+  "additionalProperties": false,
+  "properties": {
+    "tools": {
+      "type": "array",
+      "description": "List of tools in the catalog",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "category"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the tool",
+            "pattern": "^[a-z0-9-]+$",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name for the tool",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this tool does",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "category": {
+            "type": "string",
+            "description": "Category for grouping tools",
+            "minLength": 1,
+            "maxLength": 50,
+            "examples": ["MCP Servers", "VS Code Extensions", "CLI Tools", "Visual Studio Extensions"]
+          },
+          "featured": {
+            "type": "boolean",
+            "description": "Whether this tool is featured (shown first)",
+            "default": false
+          },
+          "requirements": {
+            "type": "array",
+            "description": "List of requirements to use this tool",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 10
+          },
+          "features": {
+            "type": "array",
+            "description": "List of key features",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 20
+          },
+          "links": {
+            "type": "object",
+            "description": "Links related to this tool",
+            "additionalProperties": false,
+            "properties": {
+              "blog": {
+                "type": "string",
+                "description": "Link to a blog post about the tool",
+                "format": "uri"
+              },
+              "documentation": {
+                "type": "string",
+                "description": "Link to documentation",
+                "format": "uri"
+              },
+              "github": {
+                "type": "string",
+                "description": "Link to GitHub repository",
+                "format": "uri"
+              },
+              "marketplace": {
+                "type": "string",
+                "description": "Link to VS Code or Visual Studio Marketplace",
+                "format": "uri"
+              },
+              "npm": {
+                "type": "string",
+                "description": "Link to npm package",
+                "format": "uri"
+              },
+              "pypi": {
+                "type": "string",
+                "description": "Link to PyPI package",
+                "format": "uri"
+              },
+              "vscode": {
+                "type": "string",
+                "description": "VS Code install link (vscode: URI or aka.ms link)"
+              },
+              "vscode-insiders": {
+                "type": "string",
+                "description": "VS Code Insiders install link"
+              },
+              "visual-studio": {
+                "type": "string",
+                "description": "Visual Studio install link"
+              }
+            }
+          },
+          "configuration": {
+            "type": "object",
+            "description": "Configuration snippet for the tool",
+            "required": ["type", "content"],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Type of configuration (for syntax highlighting)",
+                "enum": ["json", "yaml", "bash", "toml", "ini"]
+              },
+              "content": {
+                "type": "string",
+                "description": "The configuration content"
+              }
+            }
+          },
+          "tags": {
+            "type": "array",
+            "description": "Tags for filtering and discovery",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "uniqueItems": true,
+            "maxItems": 15
+          }
+        }
+      }
+    }
+  }
+}

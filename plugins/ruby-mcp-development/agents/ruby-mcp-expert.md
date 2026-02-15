@@ -1,0 +1,1 @@
+../../../agents/ruby-mcp-expert.agent.md

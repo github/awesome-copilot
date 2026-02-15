@@ -1,0 +1,1 @@
+../../../prompts/mcp-create-adaptive-cards.prompt.md

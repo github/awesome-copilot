@@ -4,24 +4,26 @@ import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import {
-  AGENTS_DIR,
-  AKA_INSTALL_URLS,
-  COLLECTIONS_DIR,
-  DOCS_DIR,
-  INSTRUCTIONS_DIR,
-  PROMPTS_DIR,
-  repoBaseUrl,
-  ROOT_FOLDER,
-  SKILLS_DIR,
-  TEMPLATES,
-  vscodeInsidersInstallImage,
-  vscodeInstallImage,
+    AGENTS_DIR,
+    AKA_INSTALL_URLS,
+    COLLECTIONS_DIR,
+    DOCS_DIR,
+    HOOKS_DIR,
+    INSTRUCTIONS_DIR,
+    PROMPTS_DIR,
+    repoBaseUrl,
+    ROOT_FOLDER,
+    SKILLS_DIR,
+    TEMPLATES,
+    vscodeInsidersInstallImage,
+    vscodeInstallImage,
 } from "./constants.mjs";
 import {
-  extractMcpServerConfigs,
-  parseCollectionYaml,
-  parseFrontmatter,
-  parseSkillMetadata,
+    extractMcpServerConfigs,
+    parseCollectionYaml,
+    parseFrontmatter,
+    parseSkillMetadata,
+    parseHookMetadata,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -128,12 +130,7 @@ function extractTitle(filePath) {
       const frontmatter = parseFrontmatter(filePath);
 
       if (frontmatter) {
-        // Check for title field
-        if (frontmatter.title && typeof frontmatter.title === "string") {
-          return frontmatter.title;
-        }
-
-        // Check for name field and convert to title case
+        // Check for name field
         if (frontmatter.name && typeof frontmatter.name === "string") {
           return frontmatter.name
             .split("-")
@@ -238,6 +235,39 @@ function extractDescription(filePath) {
   );
 }
 
+/**
+ * Format arbitrary multiline text for safe rendering inside a markdown table cell.
+ * - Preserves line breaks by converting to <br />
+ * - Escapes pipe characters (|) to avoid breaking table columns
+ * - Trims leading/trailing whitespace on each line
+ * - Collapses multiple consecutive blank lines
+ * This should be applied to descriptions across all file types when used in tables.
+ *
+ * @param {string|null|undefined} text
+ * @returns {string} table-safe content
+ */
+function formatTableCell(text) {
+  if (text === null || text === undefined) return "";
+  let s = String(text);
+  // Normalize line endings
+  s = s.replace(/\r\n/g, "\n");
+  // Split lines, trim, drop empty groups while preserving intentional breaks
+  const lines = s
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((_, idx, arr) => {
+      // Keep single blank lines, drop consecutive blanks
+      if (arr[idx] !== "") return true;
+      return arr[idx - 1] !== ""; // allow one blank, remove duplicates
+    });
+  s = lines.join("\n");
+  // Escape table pipes
+  s = s.replace(/\|/g, "&#124;");
+  // Convert remaining newlines to <br /> for a single-cell rendering
+  s = s.replace(/\n/g, "<br />");
+  return s.trim();
+}
+
 function makeBadges(link, type) {
   const aka = AKA_INSTALL_URLS[type] || AKA_INSTALL_URLS.instructions;
 
@@ -298,8 +328,10 @@ function generateInstructionsSection(instructionsDir) {
     const badges = makeBadges(link, "instructions");
 
     if (customDescription && customDescription !== "null") {
-      // Use the description from frontmatter
-      instructionsContent += `| [${title}](../${link})<br />${badges} | ${customDescription} |\n`;
+      // Use the description from frontmatter, table-safe
+      instructionsContent += `| [${title}](../${link})<br />${badges} | ${formatTableCell(
+        customDescription
+      )} |\n`;
     } else {
       // Fallback to the default approach - use last word of title for description, removing trailing 's' if present
       const topic = title.split(" ").pop().replace(/s$/, "");
@@ -356,7 +388,9 @@ function generatePromptsSection(promptsDir) {
     const badges = makeBadges(link, "prompt");
 
     if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](../${link})<br />${badges} | ${customDescription} |\n`;
+      promptsContent += `| [${title}](../${link})<br />${badges} | ${formatTableCell(
+        customDescription
+      )} |\n`;
     } else {
       promptsContent += `| [${title}](../${link})<br />${badges} | | |\n`;
     }
@@ -484,6 +518,67 @@ function generateAgentsSection(agentsDir, registryNames = []) {
 }
 
 /**
+ * Generate the hooks section with a table of all hooks
+ */
+function generateHooksSection(hooksDir) {
+  if (!fs.existsSync(hooksDir)) {
+    console.log(`Hooks directory does not exist: ${hooksDir}`);
+    return "";
+  }
+
+  // Get all hook folders (directories)
+  const hookFolders = fs.readdirSync(hooksDir).filter((file) => {
+    const filePath = path.join(hooksDir, file);
+    return fs.statSync(filePath).isDirectory();
+  });
+
+  // Parse each hook folder
+  const hookEntries = hookFolders
+    .map((folder) => {
+      const hookPath = path.join(hooksDir, folder);
+      const metadata = parseHookMetadata(hookPath);
+      if (!metadata) return null;
+
+      return {
+        folder,
+        name: metadata.name,
+        description: metadata.description,
+        hooks: metadata.hooks,
+        tags: metadata.tags,
+        assets: metadata.assets,
+      };
+    })
+    .filter((entry) => entry !== null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${hookEntries.length} hook(s)`);
+
+  if (hookEntries.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let content =
+    "| Name | Description | Events | Bundled Assets |\n| ---- | ----------- | ------ | -------------- |\n";
+
+  // Generate table rows for each hook
+  for (const hook of hookEntries) {
+    const link = `../hooks/${hook.folder}/README.md`;
+    const events = hook.hooks.length > 0 ? hook.hooks.join(", ") : "N/A";
+    const assetsList =
+      hook.assets.length > 0
+        ? hook.assets.map((a) => `\`${a}\``).join("<br />")
+        : "None";
+
+    content += `| [${hook.name}](${link}) | ${formatTableCell(
+      hook.description
+    )} | ${events} | ${assetsList} |\n`;
+  }
+
+  return `${TEMPLATES.hooksSection}\n${TEMPLATES.hooksUsage}\n\n${content}`;
+}
+
+/**
  * Generate the skills section with a table of all skills
  */
 function generateSkillsSection(skillsDir) {
@@ -533,14 +628,16 @@ function generateSkillsSection(skillsDir) {
         ? skill.assets.map((a) => `\`${a}\``).join("<br />")
         : "None";
 
-    content += `| [${skill.name}](${link}) | ${skill.description} | ${assetsList} |\n`;
+    content += `| [${skill.name}](${link}) | ${formatTableCell(
+      skill.description
+    )} | ${assetsList} |\n`;
   }
 
   return `${TEMPLATES.skillsSection}\n${TEMPLATES.skillsUsage}\n\n${content}`;
 }
 
 /**
- * Unified generator for chat modes & agents (future consolidation)
+ * Unified generator for agents (future consolidation)
  * @param {Object} cfg
  * @param {string} cfg.dir - Directory path
  * @param {string} cfg.extension - File extension to match (e.g. .agent.md, .agent.md)
@@ -598,14 +695,12 @@ function generateUnifiedModeSection(cfg) {
       mcpServerCell = generateMcpServerLinks(servers, registryNames);
     }
 
+    const descCell =
+      description && description !== "null" ? formatTableCell(description) : "";
     if (includeMcpServers) {
-      content += `| [${title}](../${link})<br />${badges} | ${
-        description && description !== "null" ? description : ""
-      } | ${mcpServerCell} |\n`;
+      content += `| [${title}](../${link})<br />${badges} | ${descCell} | ${mcpServerCell} |\n`;
     } else {
-      content += `| [${title}](../${link})<br />${badges} | ${
-        description && description !== "null" ? description : ""
-      } |\n`;
+      content += `| [${title}](../${link})<br />${badges} | ${descCell} |\n`;
     }
   }
 
@@ -677,7 +772,9 @@ function generateCollectionsSection(collectionsDir) {
   // Generate table rows for each collection file
   for (const entry of sortedEntries) {
     const { collection, collectionId, name, isFeatured } = entry;
-    const description = collection.description || "No description";
+    const description = formatTableCell(
+      collection.description || "No description"
+    );
     const itemCount = collection.items ? collection.items.length : 0;
     const tags = collection.tags ? collection.tags.join(", ") : "";
 
@@ -719,7 +816,9 @@ function generateFeaturedCollectionsSection(collectionsDir) {
           const collectionId =
             collection.id || path.basename(file, ".collection.yml");
           const name = collection.name || collectionId;
-          const description = collection.description || "No description";
+          const description = formatTableCell(
+            collection.description || "No description"
+          );
           const tags = collection.tags ? collection.tags.join(", ") : "";
           const itemCount = collection.items ? collection.items.length : 0;
 
@@ -820,9 +919,7 @@ function generateCollectionReadme(
     const description = extractDescription(filePath) || "No description";
 
     const typeDisplay =
-      item.kind === "chat-mode"
-        ? "Chat Mode"
-        : item.kind === "instruction"
+      item.kind === "instruction"
         ? "Instruction"
         : item.kind === "agent"
         ? "Agent"
@@ -835,8 +932,6 @@ function generateCollectionReadme(
     const badgeType =
       item.kind === "instruction"
         ? "instructions"
-        : item.kind === "chat-mode"
-        ? "mode"
         : item.kind === "agent"
         ? "agent"
         : item.kind === "skill"
@@ -904,17 +999,20 @@ function buildCollectionRow({
     ? `[${title}](${link})<br />${badges}`
     : `[${title}](${link})`;
 
+  // Ensure description is table-safe
+  const safeUsage = formatTableCell(usageDescription);
+
   if (hasAgents) {
-    // Only agents currently have MCP servers; future migration may extend to chat modes.
+    // Only agents currently have MCP servers;
     const mcpServers =
       kind === "agent" ? extractMcpServerConfigs(filePath) : [];
     const mcpServerCell =
       mcpServers.length > 0
         ? generateMcpServerLinks(mcpServers, registryNames)
         : "";
-    return `| ${titleCell} | ${typeDisplay} | ${usageDescription} | ${mcpServerCell} |\n`;
+    return `| ${titleCell} | ${typeDisplay} | ${safeUsage} | ${mcpServerCell} |\n`;
   }
-  return `| ${titleCell} | ${typeDisplay} | ${usageDescription} |\n`;
+  return `| ${titleCell} | ${typeDisplay} | ${safeUsage} |\n`;
 }
 
 // Utility: write file only if content changed
@@ -967,6 +1065,7 @@ async function main() {
     );
     const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
     const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
+    const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
     const skillsHeader = TEMPLATES.skillsSection.replace(/^##\s/m, "# ");
     const collectionsHeader = TEMPLATES.collectionsSection.replace(
       /^##\s/m,
@@ -993,6 +1092,15 @@ async function main() {
       AGENTS_DIR,
       agentsHeader,
       TEMPLATES.agentsUsage,
+      registryNames
+    );
+
+    // Generate hooks README
+    const hooksReadme = buildCategoryReadme(
+      generateHooksSection,
+      HOOKS_DIR,
+      hooksHeader,
+      TEMPLATES.hooksUsage,
       registryNames
     );
 
@@ -1026,6 +1134,7 @@ async function main() {
     );
     writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
+    writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
     writeFileIfChanged(
       path.join(DOCS_DIR, "README.collections.md"),

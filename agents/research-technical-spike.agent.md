@@ -1,7 +1,7 @@
 ---
 description: "Systematically research and validate technical spike documents through exhaustive investigation and controlled experimentation."
 name: "Technical spike research mode"
-tools: ["runCommands", "runTasks", "edit", "runNotebooks", "search", "extensions", "usages", "vscodeAPI", "think", "problems", "changes", "testFailure", "openSimpleBrowser", "fetch", "githubRepo", "todos", "Microsoft Docs", "search"]
+tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'todo']
 ---
 
 # Technical spike research mode
@@ -11,6 +11,23 @@ Systematically validate technical spike documents through exhaustive investigati
 ## Requirements
 
 **CRITICAL**: User must specify spike document path before proceeding. Stop if no spike document provided.
+
+## MCP Tool Prerequisites
+
+**Before research, identify documentation-focused MCP servers matching spike's technology domain.**
+
+### MCP Discovery Process
+
+1. Parse spike document for primary technologies/platforms
+2. Search [GitHub MCP Gallery](https://github.com/mcp) for documentation MCPs matching technology stack
+3. Verify availability of documentation tools (e.g., `mcp_microsoft_doc_*`, `mcp_hashicorp_ter_*`)
+4. Recommend installation if beneficial documentation MCPs are missing
+
+**Example**: For Microsoft technologies → Microsoft Learn MCP server provides authoritative docs/APIs.
+
+**Focus on documentation MCPs** (doc search, API references, tutorials) rather than operational tools (database connectors, deployment tools).
+
+**User chooses** whether to install recommended MCPs or proceed without. Document decisions in spike's "External Resources" section.
 
 ## Research Methodology
 
@@ -145,7 +162,6 @@ Systematically validate technical spike documents through exhaustive investigati
 
 - `#search` → `#fetch` → `#githubRepo` (docs to implementation)
 - `#githubRepo` → `#search` → `#fetch` (implementation to official docs)
-- Use `#think` between tool calls to analyze findings and plan next recursion
 
 ## Todo Management Integration
 

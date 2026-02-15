@@ -485,7 +485,7 @@ class SimpleDataAgent:
         """Agent function: Check table health."""
         try:
             tables = self.client.list_tables()
-            matching = [t for t in tables if t['table_logical_name'] == table_name]
+            matching = [t for t in tables if t['LogicalName'] == table_name]
             
             if not matching:
                 return {"status": "error", "message": f"Table {table_name} not found"}

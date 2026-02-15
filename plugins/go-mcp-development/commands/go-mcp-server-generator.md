@@ -1,0 +1,1 @@
+../../../prompts/go-mcp-server-generator.prompt.md

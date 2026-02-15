@@ -1,0 +1,1 @@
+../../../agents/azure-verified-modules-bicep.agent.md

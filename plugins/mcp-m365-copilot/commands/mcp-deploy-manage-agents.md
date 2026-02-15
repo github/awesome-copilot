@@ -1,0 +1,1 @@
+../../../prompts/mcp-deploy-manage-agents.prompt.md

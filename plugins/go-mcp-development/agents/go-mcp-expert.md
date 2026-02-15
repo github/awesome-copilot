@@ -1,0 +1,1 @@
+../../../agents/go-mcp-expert.agent.md

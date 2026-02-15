@@ -1,0 +1,1 @@
+../../../agents/se-gitops-ci-specialist.agent.md

@@ -8,6 +8,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Prompts** - Task-specific prompts for code generation and problem-solving
 - **Instructions** - Coding standards and best practices applied to specific file patterns
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
+- **Hooks** - Automated workflows triggered by specific events during development
 - **Collections** - Curated collections organized around specific themes and workflows
 
 ## Repository Structure
@@ -18,6 +19,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── prompts/          # Task-specific prompts (.prompt.md files)
 ├── instructions/     # Coding standards and guidelines (.instructions.md files)
 ├── skills/           # Agent Skills folders (each with SKILL.md and optional bundled assets)
+├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
 ├── collections/      # Curated collections of resources (.md files)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
@@ -30,8 +32,11 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 # Install dependencies
 npm ci
 
-# Build the project (generates README.md)
+# Build the project (generates README.md and marketplace.json)
 npm run build
+
+# Generate marketplace.json only
+npm run plugin:generate-marketplace
 
 # Validate collection manifests
 npm run collection:validate
@@ -48,9 +53,9 @@ npm run skill:create -- --name <skill-name>
 
 ## Development Workflow
 
-### Working with Agents, Prompts, Instructions, and Skills
+### Working with Agents, Prompts, Instructions, Skills, and Hooks
 
-All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets:
+All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets. Hooks are folders containing a `README.md` with frontmatter and a `hooks.json` configuration file:
 
 #### Agent Files (*.agent.md)
 - Must have `description` field (wrapped in single quotes)
@@ -80,15 +85,45 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 - Asset files should be reasonably sized (under 5MB per file)
 - Skills follow the [Agent Skills specification](https://agentskills.io/specification)
 
+#### Hook Folders (hooks/*/README.md)
+- Each hook is a folder containing a `README.md` file with frontmatter
+- README.md must have `name` field (human-readable name)
+- README.md must have `description` field (wrapped in single quotes, not empty)
+- Must include a `hooks.json` file with hook configuration (hook events extracted from this file)
+- Folder names should be lower case with words separated by hyphens
+- Can include bundled assets (scripts, utilities, configuration files)
+- Bundled scripts should be referenced in the README.md and hooks.json
+- Follow the [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+- Optionally includes `tags` field for categorization
+
+#### Plugin Folders (plugins/*)
+- Each plugin is a folder containing a `.github/plugin/plugin.json` file with metadata
+- plugin.json must have `name` field (matching the folder name)
+- plugin.json must have `description` field (describing the plugin's purpose)
+- plugin.json must have `version` field (semantic version, e.g., "1.0.0")
+- Plugin folders can contain any combination of agents, prompts, instructions, skills, and hooks
+- The `marketplace.json` file is automatically generated from all plugins during build
+- Plugins are discoverable and installable via GitHub Copilot CLI
+
 ### Adding New Resources
 
-When adding a new agent, prompt, instruction, or skill:
+When adding a new agent, prompt, instruction, skill, hook, or plugin:
 
 **For Agents, Prompts, and Instructions:**
 1. Create the file with proper front matter
 2. Add the file to the appropriate directory
 3. Update the README.md by running: `npm run build`
 4. Verify the resource appears in the generated README
+
+**For Hooks:**
+1. Create a new folder in `hooks/` with a descriptive name
+2. Create `README.md` with proper frontmatter (name, description, hooks, tags)
+3. Create `hooks.json` with hook configuration following GitHub Copilot hooks spec
+4. Add any bundled scripts or assets to the folder
+5. Make scripts executable: `chmod +x script.sh`
+6. Update the README.md by running: `npm run build`
+7. Verify the hook appears in the generated README
+
 
 **For Skills:**
 1. Run `npm run skill:create` to scaffold a new skill folder
@@ -97,6 +132,14 @@ When adding a new agent, prompt, instruction, or skill:
 4. Run `npm run skill:validate` to validate the skill structure
 5. Update the README.md by running: `npm run build`
 6. Verify the skill appears in the generated README
+
+**For Plugins:**
+1. Create a new folder in `plugins/` with a descriptive name (lowercase with hyphens)
+2. Create `.github/plugin/plugin.json` with metadata (name, description, version)
+3. Add agents, prompts, instructions, skills, or hooks to the plugin folder
+4. Run `npm run build` to update README.md and marketplace.json
+5. Verify the plugin appears in `.github/plugin/marketplace.json`
+6. Test plugin installation: `copilot plugin install <plugin-name>@awesome-copilot`
 
 ### Testing Instructions
 
@@ -172,6 +215,7 @@ For instruction files (*.instructions.md):
 For agent files (*.agent.md):
 - [ ] Has markdown front matter
 - [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has `name` field with human-readable name (e.g., "Address Comments" not "address-comments")
 - [ ] File name is lower case with hyphens
 - [ ] Includes `model` field (strongly recommended)
 - [ ] Considers using `tools` field
@@ -184,6 +228,25 @@ For skills (skills/*/):
 - [ ] Folder name is lower case with hyphens
 - [ ] Any bundled assets are referenced in SKILL.md
 - [ ] Bundled assets are under 5MB per file
+
+For hook folders (hooks/*/):
+- [ ] Folder contains a README.md file with markdown front matter
+- [ ] Has `name` field with human-readable name
+- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has `hooks.json` file with valid hook configuration (hook events extracted from this file)
+- [ ] Folder name is lower case with hyphens
+- [ ] Any bundled scripts are executable and referenced in README.md
+- [ ] Follows [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+- [ ] Optionally includes `tags` array field for categorization
+
+For plugin folders (plugins/*/):
+- [ ] Folder contains a `.github/plugin/plugin.json` file with metadata
+- [ ] plugin.json has `name` field matching folder name (lowercase with hyphens)
+- [ ] plugin.json has non-empty `description` field
+- [ ] plugin.json has `version` field (semantic version, e.g., "1.0.0")
+- [ ] Folder name is lower case with hyphens
+- [ ] Plugin resources (agents, prompts, etc.) follow their respective guidelines
+- [ ] Run `npm run build` to verify marketplace.json is updated correctly
 
 ## Contributing
 

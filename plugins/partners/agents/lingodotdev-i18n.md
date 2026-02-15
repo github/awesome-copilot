@@ -1,0 +1,1 @@
+../../../agents/lingodotdev-i18n.agent.md

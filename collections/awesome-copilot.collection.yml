@@ -1,10 +1,8 @@
 id: awesome-copilot
 name: Awesome Copilot
-description: "Meta prompts that help you discover and generate curated GitHub Copilot chat modes, collections, instructions, prompts, and agents."
+description: "Meta prompts that help you discover and generate curated GitHub Copilot agents, collections, instructions, prompts, and skills."
 tags: [github-copilot, discovery, meta, prompt-engineering, agents]
 items:
-  - path: prompts/suggest-awesome-github-copilot-chatmodes.prompt.md
-    kind: prompt
   - path: prompts/suggest-awesome-github-copilot-collections.prompt.md
     kind: prompt
   - path: prompts/suggest-awesome-github-copilot-instructions.prompt.md

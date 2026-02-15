@@ -1,0 +1,1 @@
+../../../prompts/mcp-copilot-studio-server-generator.prompt.md

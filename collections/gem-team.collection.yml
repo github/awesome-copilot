@@ -1,0 +1,169 @@
+id: gem-team
+name: Gem Team Multi-Agent Orchestration
+description: A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing.
+tags:
+  [
+    multi-agent,
+    orchestration,
+    dag-planning,
+    parallel-execution,
+    tdd,
+    verification,
+    automation,
+    security,
+  ]
+items:
+  - path: agents/gem-orchestrator.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Orchestrator is the coordination hub that coordinates multi-agent workflows, delegates tasks via runSubagent, and synthesizes results. It does not execute tasks directly but manages the overall workflow.
+
+      This agent is ideal for:
+      - Coordinating complex multi-agent workflows
+      - Managing task delegation and parallel execution
+      - Synthesizing results from multiple agents
+      - Maintaining plan.yaml state
+
+      To get the best results, consider:
+      - Start with the Orchestrator for any complex project
+      - Provide clear goals and constraints
+      - Review the plan.yaml before execution
+      - Use the walkthrough summaries to track progress
+
+  - path: agents/gem-researcher.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Researcher gathers codebase context, identifies relevant files/patterns, and returns structured findings. It is typically invoked by the Orchestrator with a specific focus area.
+
+      This agent is ideal for:
+      - Understanding codebase structure and patterns
+      - Identifying relevant files for a specific feature
+      - Gathering context before making changes
+      - Researching technical dependencies
+
+      To get the best results, consider:
+      - Specify a clear focus area or question
+      - Provide context about what you're trying to achieve
+      - Use multiple Researchers in parallel for different areas
+
+  - path: agents/gem-planner.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Planner creates DAG-based plans with pre-mortem analysis, presents for approval, and iterates on feedback. It synthesizes research findings into a structured plan.
+
+      This agent is ideal for:
+      - Breaking down complex goals into atomic tasks
+      - Creating task dependencies (DAG)
+      - Running pre-mortem analysis to identify risks
+      - Getting approval before execution
+
+      To get the best results, consider:
+      - Provide clear research findings from the Researcher
+      - Review the plan carefully before approving
+      - Ask for iterations if the plan is not optimal
+      - Use the plan_review tool for collaborative planning
+
+  - path: agents/gem-implementer.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Implementer executes TDD code changes, ensures verification, and maintains quality. It follows strict TDD discipline with verification commands.
+
+      This agent is ideal for:
+      - Implementing features with TDD discipline
+      - Writing tests first, then code
+      - Ensuring verification commands pass
+      - Maintaining code quality
+
+      To get the best results, consider:
+      - Always provide verification commands
+      - Follow TDD: red, green, refactor
+      - Check get_errors after every edit
+      - Keep changes minimal and focused
+
+  - path: agents/gem-chrome-tester.agent.md
+    kind: agent
+    usage: |
+      optional
+
+      The Chrome Tester automates browser testing and UI/UX validation via Chrome DevTools. It requires Chrome DevTools MCP server.
+
+      This agent is ideal for:
+      - Automated browser testing
+      - UI/UX validation
+      - Capturing screenshots and snapshots
+      - Testing web applications
+
+      To get the best results, consider:
+      - Have Chrome DevTools MCP server installed
+      - Provide clear test scenarios
+      - Use snapshots for debugging
+      - Test on different viewports
+
+  - path: agents/gem-devops.agent.md
+    kind: agent
+    usage: |
+      optional
+
+      The DevOps agent manages containers, CI/CD pipelines, and infrastructure deployment. It handles infrastructure as code and deployment automation.
+
+      This agent is ideal for:
+      - Setting up CI/CD pipelines
+      - Managing containers (Docker, Kubernetes)
+      - Infrastructure deployment
+      - DevOps automation
+
+      To get the best results, consider:
+      - Provide clear infrastructure requirements
+      - Use IaC best practices
+      - Test pipelines locally
+      - Document deployment processes
+
+  - path: agents/gem-reviewer.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Reviewer is a security gatekeeper for critical tasks. It applies OWASP scanning, secrets detection, and compliance verification.
+
+      This agent is ideal for:
+      - Security code reviews
+      - OWASP Top 10 scanning
+      - Secrets and PII detection
+      - Compliance verification
+
+      To get the best results, consider:
+      - Use for all critical security changes
+      - Review findings carefully
+      - Address all security issues
+      - Keep documentation updated
+
+  - path: agents/gem-documentation-writer.agent.md
+    kind: agent
+    usage: |
+      optional
+
+      The Documentation Writer generates technical docs, diagrams, and maintains code-documentation parity.
+
+      This agent is ideal for:
+      - Generating technical documentation
+      - Creating diagrams
+      - Keeping docs in sync with code
+      - API documentation
+
+      To get the best results, consider:
+      - Provide clear context and requirements
+      - Review generated docs for accuracy
+      - Update docs with code changes
+      - Use consistent documentation style
+
+display:
+  ordering: manual
+  show_badge: true

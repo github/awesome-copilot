@@ -1,19 +1,27 @@
 {
   "name": "awesome-copilot",
   "version": "1.0.0",
-  "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, and chat modes",
+  "description": "Enhance your GitHub Copilot experience with community-contributed instructions, prompts, agents, and skills.",
   "main": "./eng/update-readme.js",
   "private": true,
   "scripts": {
     "start": "npm run build",
-    "build": "node ./eng/update-readme.mjs",
+    "build": "node ./eng/update-readme.mjs && node ./eng/generate-marketplace.mjs",
     "contributors:add": "all-contributors add",
+    "contributors:report": "node ./eng/contributor-report.mjs",
     "contributors:generate": "all-contributors generate",
     "contributors:check": "all-contributors check",
     "collection:validate": "node ./eng/validate-collections.mjs",
     "collection:create": "node ./eng/create-collection.mjs",
     "skill:validate": "node ./eng/validate-skills.mjs",
-    "skill:create": "node ./eng/create-skill.mjs"
+    "skill:create": "node ./eng/create-skill.mjs",
+    "plugin:migrate": "node ./eng/collection-to-plugin.mjs",
+    "plugin:refresh": "PLUGIN_MODE=refresh node ./eng/collection-to-plugin.mjs",
+    "plugin:generate-marketplace": "node ./eng/generate-marketplace.mjs",
+    "website:data": "node ./eng/generate-website-data.mjs",
+    "website:dev": "npm run website:data && npm run --prefix website dev",
+    "website:build": "npm run build && npm run website:data && npm run --prefix website build",
+    "website:preview": "npm run --prefix website preview"
   },
   "repository": {
     "type": "git",
@@ -24,7 +32,9 @@
     "copilot",
     "ai",
     "prompts",
-    "instructions"
+    "instructions",
+    "skills",
+    "agents"
   ],
   "author": "GitHub",
   "license": "MIT",

@@ -1,0 +1,60 @@
+id: context-engineering
+name: Context Engineering
+description: Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.
+tags: [context, productivity, refactoring, best-practices, architecture]
+
+items:
+  - path: instructions/context-engineering.instructions.md
+    kind: instruction
+
+  - path: agents/context-architect.agent.md
+    kind: agent
+    usage: |
+      recommended
+
+      The Context Architect agent helps plan multi-file changes by mapping dependencies
+      and identifying all relevant files before making modifications.
+
+      Use this agent when:
+      - Planning refactors that span multiple files
+      - Adding features that touch several modules
+      - Investigating unfamiliar parts of the codebase
+
+      Example usage:
+      ```
+      @context-architect I need to add rate limiting to all API endpoints.
+      What files are involved and what's the best approach?
+      ```
+
+      For best results:
+      - Describe the high-level goal, not just the immediate task
+      - Let the agent search before you provide files
+      - Review the context map before approving changes
+
+  - path: prompts/context-map.prompt.md
+    kind: prompt
+    usage: |
+      optional
+
+      Use before any significant change to understand the blast radius.
+      Produces a structured map of files, dependencies, and tests.
+
+  - path: prompts/what-context-needed.prompt.md
+    kind: prompt
+    usage: |
+      optional
+
+      Use when Copilot gives a generic or incorrect answer.
+      Asks Copilot to explicitly list what files it needs to see.
+
+  - path: prompts/refactor-plan.prompt.md
+    kind: prompt
+    usage: |
+      optional
+
+      Use for multi-file refactors. Produces a phased plan with
+      verification steps and rollback procedures.
+
+display:
+  ordering: manual
+  show_badge: true

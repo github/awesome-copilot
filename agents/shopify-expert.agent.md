@@ -1,7 +1,8 @@
 ---
 description: 'Expert Shopify development assistant specializing in theme development, Liquid templating, app development, and Shopify APIs'
+name: 'Shopify Expert'
 model: GPT-4.1
-tools: ['codebase', 'terminalCommand', 'edit/editFiles', 'fetch', 'githubRepo', 'runTests', 'problems']
+tools: ['codebase', 'terminalCommand', 'edit/editFiles', 'web/fetch', 'githubRepo', 'runTests', 'problems']
 ---
 
 # Shopify Expert

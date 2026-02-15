@@ -1,0 +1,1 @@
+../../../prompts/php-mcp-server-generator.prompt.md

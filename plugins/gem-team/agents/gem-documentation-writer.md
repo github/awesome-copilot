@@ -1,0 +1,1 @@
+../../../agents/gem-documentation-writer.agent.md
