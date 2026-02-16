@@ -28,9 +28,13 @@
 
 # TE - HTTP transfer coding header
 
+# alle - Finnish word meaning "under/below" (not "all" or "alley")
+
+# vai - Finnish word meaning "or"
+
 # FillIn - pdftk-server skill reference file available permission
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai
 
 # Skip certain files and directories
 
