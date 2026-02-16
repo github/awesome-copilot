@@ -1,18 +1,37 @@
 [codespell]
+
 # Ignore intentional misspellings used as examples and technical terms
+
 # numer - intentional example typo in add-educational-comments.prompt.md
+
 # wit - proper technical term/name (sardonic wit, Gilfoyle character trait)
+
 # aks - Azure Kubernetes Service (AKS) abbreviation
+
 # edn - Extensible Data Notation (Clojure data format)
+
 # ser - serialization abbreviation
+
 # ois - ObjectInputStream abbreviation in Java
+
 # gir - valid abbreviation/technical term
+
 # rouge - Rouge is a syntax highlighter (not "rogue")
+
 # categor - TypeScript template literal in website/src/scripts/pages/skills.ts:70 (categor${...length > 1 ? "ies" : "y"})
+
 # aline - proper name (Aline Ávila, contributor)
+
 # ative - part of "Declarative Agents" in TypeSpec M365 Copilot documentation (collections/typespec-m365-copilot.collection.md)
+
 # dateA, dateB - variable names used in sorting comparison functions
+
 # TE - HTTP transfer coding header
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE
+
+# FillIn - pdftk-server skill reference file available permission
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn
+
 # Skip certain files and directories
+
 skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus
