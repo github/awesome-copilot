@@ -24,28 +24,28 @@ Lakehouse in Microsoft Fabric is an item that gives users a place to store their
 
 ### Key Components
 
-- **Delta Tables** Managed tables with ACID compliance and schema enforcement
-- **Files** Unstructured/semi-structured data in the Files section
-- **SQL Endpoint** Auto-generated read-only SQL interface for querying
-- **Shortcuts** Virtual links to external/internal data without copying
-- **Fabric Materialized Views** Pre-computed tables for fast query performance
+- **Delta Tables**: Managed tables with ACID compliance and schema enforcement
+- **Files**: Unstructured/semi-structured data in the Files section
+- **SQL Endpoint**: Auto-generated read-only SQL interface for querying
+- **Shortcuts**: Virtual links to external/internal data without copying
+- **Fabric Materialized Views**: Pre-computed tables for fast query performance
 
 ### Tabular data in a Lakehouse
 
 Tabular data in a form of tables are stored under "Tables" folder. Main format for tables in Lakehouse is Delta. Lakehouse can store tabular data in other formats like CSV or Parquet, these formats only available for Spark querying.
-Tables can be internal, when data is stored under "Tables" folder" or external, when only reference to a table is stored under "Tables" folder but the data itself is stored in a referenced location. Referecing tables are done through Shortcuts, which can be internal, pointing to other location in Fabric, or external pointing to data stored outside of Fabric.
+Tables can be internal, when data is stored under "Tables" folder or external, when only reference to a table is stored under "Tables" folder but the data itself is stored in a referenced location. Referencing tables are done through Shortcuts, which can be internal, pointing to other location in Fabric, or external pointing to data stored outside of Fabric.
 
 ### Schemas for tables in a Lakehouse
 
-When creating a lakehouse user can choose to enable schemas. Schemas are used to organize Lakehouse tables. Schemas are implemented as folders under "Tables" folder and store tables inside of those folders. Default schema is "dbo" and it can't be deleted or renamed. All other schemas are optional and can be created, renamed, or deleted. User can reference schema located in other lakehouse using Schema Shortcut that way referincing all tables with one shortcut that are at the destination schema.
+When creating a lakehouse user can choose to enable schemas. Schemas are used to organize Lakehouse tables. Schemas are implemented as folders under "Tables" folder and store tables inside of those folders. Default schema is "dbo" and it can't be deleted or renamed. All other schemas are optional and can be created, renamed, or deleted. User can reference schema located in other lakehouse using Schema Shortcut that way referencing all tables with one shortcut that are at the destination schema.
 
 ### Files in a Lakehouse
 
-Files are stored uner "Files" folder. Users can create folders and subfolders to organize their files. Any file format can be stored in Lakehosue.
+Files are stored under "Files" folder. Users can create folders and subfolders to organize their files. Any file format can be stored in Lakehouse.
 
 ### Fabric Materialized Views
 
-Set of pre-computed tables that are automatically updated based on schedule. They provide fast query performance for complex aggregations and joins. Materialized views are defined using PySpark or Spark SQL stored in asociated Notebook.
+Set of pre-computed tables that are automatically updated based on schedule. They provide fast query performance for complex aggregations and joins. Materialized views are defined using PySpark or Spark SQL stored in associated Notebook.
 
 ### Spark Views
 
@@ -59,7 +59,7 @@ User can have workspace roles (Admin, Member, Contributor, Viewer) that provide 
 
 ### Data access or OneLake Security
 
-For data access use OneLake security model, which is based on Azure Active Directory (AAD) and role-based access control (RBAC). Lakehouse data is stored in OneLake, so access to data is controlled through OneLake permissions. In adition to object-level permissions, Lakehouse also supports column-level and row-level security for tables, allowing fine-grained control over who can see specific columns or rows in a table.
+For data access use OneLake security model, which is based on Microsoft Entra ID (formerly Azure Active Directory) and role-based access control (RBAC). Lakehouse data is stored in OneLake, so access to data is controlled through OneLake permissions. In addition to object-level permissions, Lakehouse also supports column-level and row-level security for tables, allowing fine-grained control over who can see specific columns or rows in a table.
 
 
 ## Lakehouse Shortcuts
@@ -68,11 +68,11 @@ Shortcuts create virtual links to data without copying:
 
 ### Types of Shortcuts
 
-- **Internal** Link to other Fabric Lakehouses/tables, cross-workspace data sharing 
-- **ADLS Gen2**  Azure Data Lake Storage Gen2 external Azure storage
-- **Amazon S3** AWS S3 buckets, cross-cloud data access
-- **Dataverse** Microsoft Dataverse, business application data
-- **Google Cloud Storage** GCS buckets, cross-cloud data access
+- **Internal**: Link to other Fabric Lakehouses/tables, cross-workspace data sharing 
+- **ADLS Gen2**: Azure Data Lake Storage Gen2 external Azure storage
+- **Amazon S3**: AWS S3 buckets, cross-cloud data access
+- **Dataverse**: Microsoft Dataverse, business application data
+- **Google Cloud Storage**: GCS buckets, cross-cloud data access
 
 ## Performance Optimization
 
