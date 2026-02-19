@@ -21,31 +21,16 @@ Team and project-specific instructions to enhance GitHub Copilot's behavior for 
 - Create task-specific \`*.instructions.md\` files in your workspace's \`.github/instructions/\` folder (e.g., \`.github/instructions/my-csharp-rules.instructions.md\`)
 - Instructions automatically apply to Copilot behavior once installed in your workspace`,
 
-  promptsSection: `## 🎯 Reusable Prompts
-
-Ready-to-use prompt templates for specific development scenarios and tasks, defining prompt text with a specific mode, model, and available set of tools.`,
-
-  promptsUsage: `### How to Use Reusable Prompts
-
-**To Install:**
-- Click the **VS Code** or **VS Code Insiders** install button for the prompt you want to use
-- Download the \`*.prompt.md\` file and manually add it to your prompt collection
-
-**To Run/Execute:**
-- Use \`/prompt-name\` in VS Code chat after installation
-- Run the \`Chat: Run Prompt\` command from the Command Palette
-- Hit the run button while you have a prompt file open in VS Code`,
-
   pluginsSection: `## 🔌 Plugins
 
-Curated plugins of related prompts, agents, and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.`,
+Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.`,
 
   pluginsUsage: `### How to Use Plugins
 
 **Browse Plugins:**
 - ⭐ Featured plugins are highlighted and appear at the top of the list
 - Explore themed plugins that group related customizations
-- Each plugin includes prompts, agents, and skills for specific workflows
+- Each plugin includes agents and skills for specific workflows
 - Plugins make it easy to adopt comprehensive toolkits for particular scenarios
 
 **Install Plugins:**
@@ -55,7 +40,7 @@ Curated plugins of related prompts, agents, and skills organized around specific
 
   featuredPluginsSection: `## 🌟 Featured Plugins
 
-Discover our curated plugins of prompts, agents, and skills organized around specific themes and workflows.`,
+Discover our curated plugins of agents and skills organized around specific themes and workflows.`,
 
   agentsSection: `## 🤖 Custom Agents
 
@@ -140,14 +125,12 @@ const repoBaseUrl =
 
 const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
-  prompt: "https://aka.ms/awesome-copilot/install/prompt",
   agent: "https://aka.ms/awesome-copilot/install/agent",
   hook: "https://aka.ms/awesome-copilot/install/hook",
 };
 
 const ROOT_FOLDER = path.join(__dirname, "..");
 const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
-const PROMPTS_DIR = path.join(ROOT_FOLDER, "prompts");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
 const HOOKS_DIR = path.join(ROOT_FOLDER, "hooks");
@@ -172,7 +155,6 @@ export {
   HOOKS_DIR,
   INSTRUCTIONS_DIR,
   MAX_PLUGIN_ITEMS,
-  PROMPTS_DIR,
   repoBaseUrl,
   ROOT_FOLDER,
   SKILL_DESCRIPTION_MAX_LENGTH,

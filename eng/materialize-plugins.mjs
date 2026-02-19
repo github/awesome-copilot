@@ -26,16 +26,12 @@ function copyDirRecursive(src, dest) {
  * Resolve a plugin-relative path to the repo-root source file.
  *
  *   ./agents/foo.md   → ROOT/agents/foo.agent.md
- *   ./commands/bar.md  → ROOT/prompts/bar.prompt.md
  *   ./skills/baz/      → ROOT/skills/baz/
  */
 function resolveSource(relPath) {
   const basename = path.basename(relPath, ".md");
   if (relPath.startsWith("./agents/")) {
     return path.join(ROOT_FOLDER, "agents", `${basename}.agent.md`);
-  }
-  if (relPath.startsWith("./commands/")) {
-    return path.join(ROOT_FOLDER, "prompts", `${basename}.prompt.md`);
   }
   if (relPath.startsWith("./skills/")) {
     // Strip trailing slash and get the skill folder name
@@ -59,7 +55,6 @@ function materializePlugins() {
     .sort();
 
   let totalAgents = 0;
-  let totalCommands = 0;
   let totalSkills = 0;
   let warnings = 0;
   let errors = 0;
@@ -104,27 +99,6 @@ function materializePlugins() {
       }
     }
 
-    // Process commands
-    if (Array.isArray(metadata.commands)) {
-      for (const relPath of metadata.commands) {
-        const src = resolveSource(relPath);
-        if (!src) {
-          console.warn(`  ⚠ ${pluginName}: Unknown path format: ${relPath}`);
-          warnings++;
-          continue;
-        }
-        if (!fs.existsSync(src)) {
-          console.warn(`  ⚠ ${pluginName}: Source not found: ${src}`);
-          warnings++;
-          continue;
-        }
-        const dest = path.join(pluginPath, relPath.replace(/^\.\//, ""));
-        fs.mkdirSync(path.dirname(dest), { recursive: true });
-        fs.copyFileSync(src, dest);
-        totalCommands++;
-      }
-    }
-
     // Process skills
     if (Array.isArray(metadata.skills)) {
       for (const relPath of metadata.skills) {
@@ -147,14 +121,13 @@ function materializePlugins() {
 
     const counts = [];
     if (metadata.agents?.length) counts.push(`${metadata.agents.length} agents`);
-    if (metadata.commands?.length) counts.push(`${metadata.commands.length} commands`);
     if (metadata.skills?.length) counts.push(`${metadata.skills.length} skills`);
     if (counts.length) {
       console.log(`✓ ${pluginName}: ${counts.join(", ")}`);
     }
   }
 
-  console.log(`\nDone. Copied ${totalAgents} agents, ${totalCommands} commands, ${totalSkills} skills.`);
+  console.log(`\nDone. Copied ${totalAgents} agents, ${totalSkills} skills.`);
   if (warnings > 0) {
     console.log(`${warnings} warning(s).`);
   }
