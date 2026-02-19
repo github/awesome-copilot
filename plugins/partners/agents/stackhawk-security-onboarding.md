@@ -1,1 +1,0 @@
-../../../agents/stackhawk-security-onboarding.agent.md

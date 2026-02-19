@@ -1,1 +1,0 @@
-../../../agents/neo4j-docker-client-generator.agent.md

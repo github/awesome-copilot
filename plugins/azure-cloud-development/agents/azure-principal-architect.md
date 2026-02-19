@@ -1,1 +1,0 @@
-../../../agents/azure-principal-architect.agent.md

@@ -1,1 +1,0 @@
-../../../agents/power-platform-mcp-integration-expert.agent.md

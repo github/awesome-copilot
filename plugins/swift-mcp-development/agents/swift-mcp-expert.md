@@ -1,1 +1,0 @@
-../../../agents/swift-mcp-expert.agent.md

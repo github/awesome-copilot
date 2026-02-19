@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "copilot-sdk",
     "sdk",
     "csharp",
@@ -18,31 +18,7 @@
     "ai",
     "github-copilot"
   ],
-  "featured": true,
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/copilot-sdk-csharp.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/copilot-sdk-go.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/copilot-sdk-nodejs.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/copilot-sdk-python.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "skills/copilot-sdk/SKILL.md",
-      "kind": "skill"
-    }
+  "skills": [
+    "./skills/copilot-sdk/"
   ]
 }

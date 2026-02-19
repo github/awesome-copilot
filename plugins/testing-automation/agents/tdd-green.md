@@ -1,1 +1,0 @@
-../../../agents/tdd-green.agent.md

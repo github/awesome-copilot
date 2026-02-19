@@ -488,7 +488,7 @@ function generatePluginsData(gitDates) {
   const plugins = [];
 
   if (!fs.existsSync(PLUGINS_DIR)) {
-    return plugins;
+    return { items: [], filters: { tags: [] } };
   }
 
   const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
@@ -496,7 +496,7 @@ function generatePluginsData(gitDates) {
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
-    const jsonPath = path.join(pluginDir, ".github", "plugin", "plugin.json");
+    const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
 
     if (!fs.existsSync(jsonPath)) continue;
 
@@ -505,17 +505,25 @@ function generatePluginsData(gitDates) {
       const relPath = `plugins/${dir.name}`;
       const dates = gitDates[relPath] || gitDates[`${relPath}/`] || {};
 
+      // Build items list from spec fields (agents, commands, skills)
+      const items = [
+        ...(data.agents || []).map(p => ({ kind: "agent", path: p })),
+        ...(data.commands || []).map(p => ({ kind: "prompt", path: p })),
+        ...(data.skills || []).map(p => ({ kind: "skill", path: p })),
+      ];
+
+      const tags = data.keywords || data.tags || [];
+
       plugins.push({
         id: dir.name,
         name: data.name || dir.name,
         description: data.description || "",
         path: relPath,
-        tags: data.tags || [],
-        featured: data.featured || false,
-        itemCount: data.items ? data.items.length : 0,
-        items: data.items || [],
+        tags: tags,
+        itemCount: items.length,
+        items: items,
         lastUpdated: dates.lastModified || null,
-        searchText: `${data.name || dir.name} ${data.description || ""} ${(data.tags || []).join(" ")}`.toLowerCase(),
+        searchText: `${data.name || dir.name} ${data.description || ""} ${tags.join(" ")}`.toLowerCase(),
       });
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
@@ -525,11 +533,7 @@ function generatePluginsData(gitDates) {
   // Collect all unique tags
   const allTags = [...new Set(plugins.flatMap(p => p.tags))].sort();
 
-  const sortedPlugins = plugins.sort((a, b) => {
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const sortedPlugins = plugins.sort((a, b) => a.name.localeCompare(b.name));
 
   return {
     items: sortedPlugins,

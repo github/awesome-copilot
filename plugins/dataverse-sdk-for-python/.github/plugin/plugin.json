@@ -7,84 +7,16 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "dataverse",
     "python",
     "integration",
     "sdk"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/dataverse-python-sdk.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-api-reference.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-modules.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-advanced-features.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-agentic-workflows.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-authentication-security.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-error-handling.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-file-operations.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-pandas-integration.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-performance-optimization.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-real-world-usecases.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dataverse-python-testing-debugging.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/dataverse-python-quickstart.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/dataverse-python-advanced-patterns.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/dataverse-python-production-code.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/dataverse-python-usecase-builder.prompt.md",
-      "kind": "prompt"
-    }
+  "commands": [
+    "./commands/dataverse-python-quickstart.md",
+    "./commands/dataverse-python-advanced-patterns.md",
+    "./commands/dataverse-python-production-code.md",
+    "./commands/dataverse-python-usecase-builder.md"
   ]
 }

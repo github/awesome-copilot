@@ -1,1 +1,0 @@
-../../../prompts/dotnet-best-practices.prompt.md

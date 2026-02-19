@@ -7,26 +7,16 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "agentic-workflow",
     "orchestration",
     "subagents",
     "software-engineering",
     "qa"
   ],
-  "items": [
-    {
-      "path": "agents/rug-orchestrator.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis workflow is designed as a coordinated trio:\n- `RUG` orchestrates decomposition, delegation, and validation loops.\n- `SWE` executes implementation tasks.\n- `QA` validates requirements, edge cases, and regressions.\n\nTypical usage:\n1. Start with `RUG` for multi-step tasks.\n2. Let `RUG` delegate coding to `SWE`.\n3. Let `RUG` delegate verification to `QA`.\n\nBest results:\n- Keep each delegated task narrowly scoped.\n- Require explicit acceptance criteria per task.\n- Run a final cross-task validation pass before completion."
-    },
-    {
-      "path": "agents/swe-subagent.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/qa-subagent.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/rug-orchestrator.md",
+    "./agents/swe-subagent.md",
+    "./agents/qa-subagent.md"
   ]
 }

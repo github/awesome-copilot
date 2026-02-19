@@ -1,1 +1,0 @@
-../../../agents/mcp-m365-agent-expert.agent.md

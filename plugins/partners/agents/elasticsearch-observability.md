@@ -1,1 +1,0 @@
-../../../agents/elasticsearch-observability.agent.md

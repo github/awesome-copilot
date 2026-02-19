@@ -1,1 +1,0 @@
-../../../agents/java-mcp-expert.agent.md

@@ -1,1 +1,0 @@
-../../../prompts/power-platform-mcp-connector-suite.prompt.md

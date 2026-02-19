@@ -7,36 +7,17 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "devops",
     "incident-response",
     "oncall",
     "azure"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "prompts/azure-resource-health-diagnose.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "instructions/devops-core-principles.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/containerization-docker-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/azure-principal-architect.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "prompts/multi-stage-dockerfile.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/azure-principal-architect.md"
+  ],
+  "commands": [
+    "./commands/azure-resource-health-diagnose.md",
+    "./commands/multi-stage-dockerfile.md"
   ]
 }

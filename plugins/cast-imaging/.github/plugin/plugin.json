@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "cast-imaging",
     "software-analysis",
     "architecture",
@@ -15,25 +15,9 @@
     "impact-analysis",
     "devops"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/cast-imaging-software-discovery.agent.md",
-      "kind": "agent",
-      "usage": "This agent is designed for comprehensive software application discovery and architectural mapping. It helps users understand code structure, dependencies, and architectural patterns, including database schemas and physical source file locations.\n\nIdeal for:\n- Exploring available applications and getting overviews.\n- Understanding system architecture and component structure.\n- Analyzing dependencies and database schemas (tables/columns).\n- Locating and analyzing physical source files."
-    },
-    {
-      "path": "agents/cast-imaging-impact-analysis.agent.md",
-      "kind": "agent",
-      "usage": "This agent specializes in comprehensive change impact assessment and risk analysis. It assists users in understanding ripple effects of code changes, identifying architectural coupling (shared resources), and developing testing strategies.\n\nIdeal for:\n- Assessing potential impacts of code modifications.\n- Identifying architectural coupling and shared code risks.\n- Analyzing impacts spanning multiple applications.\n- Developing targeted testing approaches based on change scope."
-    },
-    {
-      "path": "agents/cast-imaging-structural-quality-advisor.agent.md",
-      "kind": "agent",
-      "usage": "This agent focuses on identifying, analyzing, and providing remediation guidance for structural quality issues. It supports specialized standards including Security (CVE), Green IT deficiencies, and ISO-5055 compliance.\n\nIdeal for:\n- Identifying and understanding code quality issues and structural flaws.\n- Checking compliance with Security (CVE), Green IT, and ISO-5055 standards.\n- Prioritizing quality issues based on business impact and risk.\n- Analyzing quality trends and providing remediation guidance."
-    }
+  "agents": [
+    "./agents/cast-imaging-software-discovery.md",
+    "./agents/cast-imaging-impact-analysis.md",
+    "./agents/cast-imaging-structural-quality-advisor.md"
   ]
 }

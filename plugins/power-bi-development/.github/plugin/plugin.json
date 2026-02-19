@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "power-bi",
     "dax",
     "data-modeling",
@@ -17,66 +17,16 @@
     "devops",
     "business-intelligence"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/power-bi-data-modeling-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/power-bi-dax-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/power-bi-performance-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/power-bi-visualization-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "instructions/power-bi-custom-visuals-development.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/power-bi-data-modeling-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/power-bi-dax-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/power-bi-devops-alm-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/power-bi-report-design-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/power-bi-security-rls-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/power-bi-dax-optimization.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/power-bi-model-design-review.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/power-bi-performance-troubleshooting.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/power-bi-report-design-consultation.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/power-bi-data-modeling-expert.md",
+    "./agents/power-bi-dax-expert.md",
+    "./agents/power-bi-performance-expert.md",
+    "./agents/power-bi-visualization-expert.md"
+  ],
+  "commands": [
+    "./commands/power-bi-dax-optimization.md",
+    "./commands/power-bi-model-design-review.md",
+    "./commands/power-bi-performance-troubleshooting.md",
+    "./commands/power-bi-report-design-consultation.md"
   ]
 }

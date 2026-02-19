@@ -1,1 +1,0 @@
-../../../prompts/aspnet-minimal-api-openapi.prompt.md

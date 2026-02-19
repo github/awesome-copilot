@@ -1,1 +1,0 @@
-../../../agents/jfrog-sec.agent.md

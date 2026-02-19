@@ -1,1 +1,0 @@
-../../../prompts/typespec-create-api-plugin.prompt.md

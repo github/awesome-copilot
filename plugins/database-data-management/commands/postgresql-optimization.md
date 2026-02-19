@@ -1,1 +1,0 @@
-../../../prompts/postgresql-optimization.prompt.md

@@ -7,24 +7,16 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "technical-spike",
     "assumption-testing",
     "validation",
     "research"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": false
-  },
-  "items": [
-    {
-      "path": "agents/research-technical-spike.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "prompts/create-technical-spike.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/research-technical-spike.md"
+  ],
+  "commands": [
+    "./commands/create-technical-spike.md"
   ]
 }

@@ -1,1 +1,0 @@
-../../../agents/octopus-deploy-release-notes-mcp.agent.md

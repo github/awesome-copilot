@@ -1,1 +1,0 @@
-../../../agents/expert-react-frontend-engineer.agent.md

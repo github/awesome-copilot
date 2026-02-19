@@ -710,7 +710,7 @@ function generateUnifiedModeSection(cfg) {
  * Read and parse a plugin.json file from a plugin directory.
  */
 function readPluginJson(pluginDir) {
-  const jsonPath = path.join(pluginDir, ".github", "plugin", "plugin.json");
+  const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
   if (!fs.existsSync(jsonPath)) return null;
   try {
     return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
@@ -783,13 +783,13 @@ function generatePluginsSection(pluginsDir) {
     const description = formatTableCell(
       plugin.description || "No description"
     );
-    const itemCount = plugin.items ? plugin.items.length : 0;
-    const tags = plugin.tags ? plugin.tags.join(", ") : "";
+    const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
+    const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
     const displayName = isFeatured ? `⭐ ${name}` : name;
 
-    pluginsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    pluginsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${keywords} |\n`;
   }
 
   return `${TEMPLATES.pluginsSection}\n${TEMPLATES.pluginsUsage}\n\n${pluginsContent}`;
@@ -826,8 +826,8 @@ function generateFeaturedPluginsSection(pluginsDir) {
           const description = formatTableCell(
             plugin.description || "No description"
           );
-          const tags = plugin.tags ? plugin.tags.join(", ") : "";
-          const itemCount = plugin.items ? plugin.items.length : 0;
+          const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
+          const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
 
           return {
             dir,
@@ -835,7 +835,7 @@ function generateFeaturedPluginsSection(pluginsDir) {
             pluginId: name,
             name,
             description,
-            tags,
+            keywords,
             itemCount,
           };
         },
@@ -861,10 +861,10 @@ function generateFeaturedPluginsSection(pluginsDir) {
 
   // Generate table rows for each featured plugin
   for (const entry of featuredPlugins) {
-    const { dir, name, description, tags, itemCount } = entry;
+    const { dir, name, description, keywords, itemCount } = entry;
     const readmeLink = `plugins/${dir}/README.md`;
 
-    featuredContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    featuredContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${keywords} |\n`;
   }
 
   return `${TEMPLATES.featuredPluginsSection}\n\n${featuredContent}`;

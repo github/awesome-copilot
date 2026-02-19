@@ -1,1 +1,0 @@
-../../../prompts/sql-optimization.prompt.md

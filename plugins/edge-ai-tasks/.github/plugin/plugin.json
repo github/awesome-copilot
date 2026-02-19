@@ -7,32 +7,15 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "architecture",
     "planning",
     "research",
     "tasks",
     "implementation"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": false
-  },
-  "items": [
-    {
-      "path": "agents/task-researcher.agent.md",
-      "kind": "agent",
-      "usage": "Now you can iterate on research for your tasks!\n\n```markdown, research.prompt.md\n---\nmode: task-researcher\ntitle: Research microsoft fabric realtime intelligence terraform support\n---\nReview the microsoft documentation for fabric realtime intelligence\nand come up with ideas on how to implement this support into our terraform components.\n```\n\nResearch is dumped out into a .copilot-tracking/research/*-research.md file and will include discoveries for GHCP along with examples and schema that will be useful during implementation.\n\nAlso, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on."
-    },
-    {
-      "path": "agents/task-planner.agent.md",
-      "kind": "agent",
-      "usage": "Also, task-researcher will provide additional ideas for implementation which you can work with GitHub Copilot on selecting the right one to focus on.\n\n```markdown, task-plan.prompt.md\n---\nmode: task-planner\ntitle: Plan microsoft fabric realtime intelligence terraform support\n---\n#file: .copilot-tracking/research/*-fabric-rti-blueprint-modification-research.md\nBuild a plan to support adding fabric rti to this project\n```\n\n`task-planner` will help you create a plan for implementing your task(s). It will use your fully researched ideas or build new research if not already provided.\n\n`task-planner` will produce three (3) files that will be used by `task-implementation.instructions.md`.\n\n* `.copilot-tracking/plan/*-plan.instructions.md`\n\n  * A newly generated instructions file that has the plan as a checklist of Phases and Tasks.\n* `.copilot-tracking/details/*-details.md`\n\n  * The details for the implementation, the plan file refers to this file for specific details (important if you have a big plan).\n* `.copilot-tracking/prompts/implement-*.prompt.md`\n\n  * A newly generated prompt file that will create a `.copilot-tracking/changes/*-changes.md` file and proceed to implement the changes.\n\nContinue to use `task-planner` to iterate on the plan until you have exactly what you want done to your codebase."
-    },
-    {
-      "path": "instructions/task-implementation.instructions.md",
-      "kind": "instruction",
-      "usage": "Continue to use `task-planner` to iterate on the plan until you have exactly what you want done to your codebase.\n\nWhen you are ready to implement the plan, **create a new chat** and switch to `Agent` mode then fire off the newly generated prompt.\n\n```markdown, implement-fabric-rti-changes.prompt.md\n---\nmode: agent\ntitle: Implement microsoft fabric realtime intelligence terraform support\n---\n/implement-fabric-rti-blueprint-modification phaseStop=true\n```\n\nThis prompt has the added benefit of attaching the plan as instructions, which helps with keeping the plan in context throughout the whole conversation.\n\n**Expert Warning** ->>Use `phaseStop=false` to have Copilot implement the whole plan without stopping. Additionally, you can use `taskStop=true` to have Copilot stop after every Task implementation for finer detail control.\n\nTo use these generated instructions and prompts, you'll need to update your `settings.json` accordingly:\n\n```json\n    \"chat.instructionsFilesLocations\": {\n        // Existing instructions folders...\n        \".copilot-tracking/plans\": true\n    },\n    \"chat.promptFilesLocations\": {\n        // Existing prompts folders...\n        \".copilot-tracking/prompts\": true\n    },\n```"
-    }
+  "agents": [
+    "./agents/task-researcher.md",
+    "./agents/task-planner.md"
   ]
 }

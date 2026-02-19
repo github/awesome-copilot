@@ -7,41 +7,19 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "context",
     "productivity",
     "refactoring",
     "best-practices",
     "architecture"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/context-engineering.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/context-architect.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThe Context Architect agent helps plan multi-file changes by mapping dependencies\nand identifying all relevant files before making modifications.\n\nUse this agent when:\n- Planning refactors that span multiple files\n- Adding features that touch several modules\n- Investigating unfamiliar parts of the codebase\n\nExample usage:\n```\n@context-architect I need to add rate limiting to all API endpoints.\nWhat files are involved and what's the best approach?\n```\n\nFor best results:\n- Describe the high-level goal, not just the immediate task\n- Let the agent search before you provide files\n- Review the context map before approving changes"
-    },
-    {
-      "path": "prompts/context-map.prompt.md",
-      "kind": "prompt",
-      "usage": "optional\n\nUse before any significant change to understand the blast radius.\nProduces a structured map of files, dependencies, and tests."
-    },
-    {
-      "path": "prompts/what-context-needed.prompt.md",
-      "kind": "prompt",
-      "usage": "optional\n\nUse when Copilot gives a generic or incorrect answer.\nAsks Copilot to explicitly list what files it needs to see."
-    },
-    {
-      "path": "prompts/refactor-plan.prompt.md",
-      "kind": "prompt",
-      "usage": "optional\n\nUse for multi-file refactors. Produces a phased plan with\nverification steps and rollback procedures."
-    }
+  "agents": [
+    "./agents/context-architect.md"
+  ],
+  "commands": [
+    "./commands/context-map.md",
+    "./commands/what-context-needed.md",
+    "./commands/refactor-plan.md"
   ]
 }

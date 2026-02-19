@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "devops",
     "security",
     "database",
@@ -19,91 +19,26 @@
     "migration",
     "performance"
   ],
-  "featured": true,
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/amplitude-experiment-implementation.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/apify-integration-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/arm-migration.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/diffblue-cover.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/droid.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/dynatrace-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/elasticsearch-observability.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/jfrog-sec.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/launchdarkly-flag-cleanup.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/lingodotdev-i18n.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/monday-bug-fixer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/mongodb-performance-advisor.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/neo4j-docker-client-generator.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/neon-migration-specialist.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/neon-optimization-analyzer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/octopus-deploy-release-notes-mcp.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/stackhawk-security-onboarding.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/terraform.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/pagerduty-incident-responder.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/comet-opik.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/amplitude-experiment-implementation.md",
+    "./agents/apify-integration-expert.md",
+    "./agents/arm-migration.md",
+    "./agents/diffblue-cover.md",
+    "./agents/droid.md",
+    "./agents/dynatrace-expert.md",
+    "./agents/elasticsearch-observability.md",
+    "./agents/jfrog-sec.md",
+    "./agents/launchdarkly-flag-cleanup.md",
+    "./agents/lingodotdev-i18n.md",
+    "./agents/monday-bug-fixer.md",
+    "./agents/mongodb-performance-advisor.md",
+    "./agents/neo4j-docker-client-generator.md",
+    "./agents/neon-migration-specialist.md",
+    "./agents/neon-optimization-analyzer.md",
+    "./agents/octopus-deploy-release-notes-mcp.md",
+    "./agents/stackhawk-security-onboarding.md",
+    "./agents/terraform.md",
+    "./agents/pagerduty-incident-responder.md",
+    "./agents/comet-opik.md"
   ]
 }

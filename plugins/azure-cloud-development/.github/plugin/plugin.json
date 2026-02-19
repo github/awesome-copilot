@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "azure",
     "cloud",
     "infrastructure",
@@ -17,82 +17,17 @@
     "architecture",
     "devops"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/azure-principal-architect.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/azure-saas-architect.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/azure-logic-apps-expert.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/azure-verified-modules-bicep.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/azure-verified-modules-terraform.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/terraform-azure-planning.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/terraform-azure-implement.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "instructions/bicep-code-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/terraform.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/terraform-azure.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/azure-verified-modules-terraform.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/azure-functions-typescript.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/azure-logic-apps-power-automate.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/azure-devops-pipelines.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/containerization-docker-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/kubernetes-deployment-best-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/azure-resource-health-diagnose.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/az-cost-optimize.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/azure-principal-architect.md",
+    "./agents/azure-saas-architect.md",
+    "./agents/azure-logic-apps-expert.md",
+    "./agents/azure-verified-modules-bicep.md",
+    "./agents/azure-verified-modules-terraform.md",
+    "./agents/terraform-azure-planning.md",
+    "./agents/terraform-azure-implement.md"
+  ],
+  "commands": [
+    "./commands/azure-resource-health-diagnose.md",
+    "./commands/az-cost-optimize.md"
   ]
 }

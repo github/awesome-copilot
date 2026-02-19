@@ -7,38 +7,20 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "github-copilot",
     "discovery",
     "meta",
     "prompt-engineering",
     "agents"
   ],
-  "featured": true,
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "prompts/suggest-awesome-github-copilot-skills.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/suggest-awesome-github-copilot-instructions.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/suggest-awesome-github-copilot-prompts.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/suggest-awesome-github-copilot-agents.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/meta-agentic-project-scaffold.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/meta-agentic-project-scaffold.md"
+  ],
+  "commands": [
+    "./commands/suggest-awesome-github-copilot-skills.md",
+    "./commands/suggest-awesome-github-copilot-instructions.md",
+    "./commands/suggest-awesome-github-copilot-prompts.md",
+    "./commands/suggest-awesome-github-copilot-agents.md"
   ]
 }

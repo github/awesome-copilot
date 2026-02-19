@@ -6,8 +6,6 @@ import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
-const VALID_ITEM_KINDS = ["prompt", "agent", "instruction", "skill", "hook"];
-
 // Validation functions
 function validateName(name, folderName) {
   const errors = [];
@@ -44,82 +42,74 @@ function validateVersion(version) {
   return null;
 }
 
-function validateTags(tags) {
-  if (tags === undefined) return null;
-  if (!Array.isArray(tags)) {
-    return "tags must be an array";
+function validateKeywords(keywords) {
+  if (keywords === undefined) return null;
+  if (!Array.isArray(keywords)) {
+    return "keywords must be an array";
   }
-  if (tags.length > 10) {
-    return "maximum 10 tags allowed";
+  if (keywords.length > 10) {
+    return "maximum 10 keywords allowed";
   }
-  for (const tag of tags) {
-    if (typeof tag !== "string") {
-      return "all tags must be strings";
+  for (const keyword of keywords) {
+    if (typeof keyword !== "string") {
+      return "all keywords must be strings";
     }
-    if (!/^[a-z0-9-]+$/.test(tag)) {
-      return `tag "${tag}" must contain only lowercase letters, numbers, and hyphens`;
+    if (!/^[a-z0-9-]+$/.test(keyword)) {
+      return `keyword "${keyword}" must contain only lowercase letters, numbers, and hyphens`;
     }
-    if (tag.length < 1 || tag.length > 30) {
-      return `tag "${tag}" must be between 1 and 30 characters`;
-    }
-  }
-  return null;
-}
-
-function validateFeatured(featured) {
-  if (featured === undefined) return null;
-  if (typeof featured !== "boolean") {
-    return "featured must be a boolean";
-  }
-  return null;
-}
-
-function validateDisplay(display) {
-  if (display === undefined) return null;
-  if (typeof display !== "object" || Array.isArray(display) || display === null) {
-    return "display must be an object";
-  }
-  if (display.ordering !== undefined) {
-    if (!["manual", "alpha"].includes(display.ordering)) {
-      return "display.ordering must be 'manual' or 'alpha'";
-    }
-  }
-  if (display.show_badge !== undefined) {
-    if (typeof display.show_badge !== "boolean") {
-      return "display.show_badge must be a boolean";
+    if (keyword.length < 1 || keyword.length > 30) {
+      return `keyword "${keyword}" must be between 1 and 30 characters`;
     }
   }
   return null;
 }
 
-function validateItems(items) {
-  if (items === undefined) return [];
+function validateSpecPaths(plugin) {
   const errors = [];
-  if (!Array.isArray(items)) {
-    errors.push("items must be an array");
-    return errors;
-  }
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    if (!item || typeof item !== "object") {
-      errors.push(`items[${i}] must be an object`);
+  const specs = {
+    agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
+    commands: { prefix: "./commands/", suffix: ".md", repoDir: "prompts", repoSuffix: ".prompt.md" },
+    skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
+  };
+
+  for (const [field, spec] of Object.entries(specs)) {
+    const arr = plugin[field];
+    if (arr === undefined) continue;
+    if (!Array.isArray(arr)) {
+      errors.push(`${field} must be an array`);
       continue;
     }
-    if (!item.path || typeof item.path !== "string") {
-      errors.push(`items[${i}] must have a path string`);
-    }
-    if (!item.kind || typeof item.kind !== "string") {
-      errors.push(`items[${i}] must have a kind string`);
-    } else if (!VALID_ITEM_KINDS.includes(item.kind)) {
-      errors.push(
-        `items[${i}] kind must be one of: ${VALID_ITEM_KINDS.join(", ")}`
-      );
-    }
-    // Validate referenced path exists relative to repo root
-    if (item.path && typeof item.path === "string") {
-      const filePath = path.join(ROOT_FOLDER, item.path);
-      if (!fs.existsSync(filePath)) {
-        errors.push(`items[${i}] file does not exist: ${item.path}`);
+    for (let i = 0; i < arr.length; i++) {
+      const p = arr[i];
+      if (typeof p !== "string") {
+        errors.push(`${field}[${i}] must be a string`);
+        continue;
+      }
+      if (!p.startsWith("./")) {
+        errors.push(`${field}[${i}] must start with "./"`);
+        continue;
+      }
+      if (!p.startsWith(spec.prefix)) {
+        errors.push(`${field}[${i}] must start with "${spec.prefix}"`);
+        continue;
+      }
+      if (!p.endsWith(spec.suffix)) {
+        errors.push(`${field}[${i}] must end with "${spec.suffix}"`);
+        continue;
+      }
+      // Validate the source file exists at repo root
+      const basename = p.slice(spec.prefix.length, p.length - spec.suffix.length);
+      if (field === "skills") {
+        const skillDir = path.join(ROOT_FOLDER, spec.repoDir, basename);
+        const skillFile = path.join(skillDir, spec.repoFile);
+        if (!fs.existsSync(skillFile)) {
+          errors.push(`${field}[${i}] source not found: ${spec.repoDir}/${basename}/SKILL.md`);
+        }
+      } else {
+        const srcFile = path.join(ROOT_FOLDER, spec.repoDir, basename + spec.repoSuffix);
+        if (!fs.existsSync(srcFile)) {
+          errors.push(`${field}[${i}] source not found: ${spec.repoDir}/${basename}${spec.repoSuffix}`);
+        }
       }
     }
   }
@@ -131,7 +121,7 @@ function validatePlugin(folderName) {
   const errors = [];
 
   // Rule 1: Must have .github/plugin/plugin.json
-  const pluginJsonPath = path.join(pluginDir, ".github", "plugin", "plugin.json");
+  const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
     errors.push("missing required file: .github/plugin/plugin.json");
     return errors;
@@ -163,21 +153,13 @@ function validatePlugin(folderName) {
   const versionError = validateVersion(plugin.version);
   if (versionError) errors.push(versionError);
 
-  // Rule 5: tags
-  const tagsError = validateTags(plugin.tags);
-  if (tagsError) errors.push(tagsError);
+  // Rule 5: keywords (or tags for backward compat)
+  const keywordsError = validateKeywords(plugin.keywords ?? plugin.tags);
+  if (keywordsError) errors.push(keywordsError);
 
-  // Rule 8: featured
-  const featuredError = validateFeatured(plugin.featured);
-  if (featuredError) errors.push(featuredError);
-
-  // Rule 9: display
-  const displayError = validateDisplay(plugin.display);
-  if (displayError) errors.push(displayError);
-
-  // Rule 6 & 7: items
-  const itemErrors = validateItems(plugin.items);
-  errors.push(...itemErrors);
+  // Rule 6: agents, commands, skills paths
+  const specErrors = validateSpecPaths(plugin);
+  errors.push(...specErrors);
 
   return errors;
 }

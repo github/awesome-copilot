@@ -7,55 +7,23 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": ["csharp", "dotnet", "aspnet", "testing"],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": false
-  },
-  "items": [
-    {
-      "path": "prompts/csharp-async.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/aspnet-minimal-api-openapi.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "instructions/csharp.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/dotnet-architecture-good-practices.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/expert-dotnet-software-engineer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "prompts/csharp-xunit.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/csharp-nunit.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/csharp-mstest.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/csharp-tunit.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/dotnet-best-practices.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/dotnet-upgrade.prompt.md",
-      "kind": "prompt"
-    }
+  "keywords": [
+    "csharp",
+    "dotnet",
+    "aspnet",
+    "testing"
+  ],
+  "agents": [
+    "./agents/expert-dotnet-software-engineer.md"
+  ],
+  "commands": [
+    "./commands/csharp-async.md",
+    "./commands/aspnet-minimal-api-openapi.md",
+    "./commands/csharp-xunit.md",
+    "./commands/csharp-nunit.md",
+    "./commands/csharp-mstest.md",
+    "./commands/csharp-tunit.md",
+    "./commands/dotnet-best-practices.md",
+    "./commands/dotnet-upgrade.md"
   ]
 }

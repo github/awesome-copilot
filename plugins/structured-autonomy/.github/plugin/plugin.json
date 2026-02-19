@@ -6,5 +6,10 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "commands": [
+    "./commands/structured-autonomy-generate.md",
+    "./commands/structured-autonomy-implement.md",
+    "./commands/structured-autonomy-plan.md"
+  ]
 }

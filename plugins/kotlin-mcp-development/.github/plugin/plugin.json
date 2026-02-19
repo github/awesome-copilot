@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "kotlin",
     "mcp",
     "model-context-protocol",
@@ -15,23 +15,10 @@
     "server-development",
     "ktor"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/kotlin-mcp-server.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/kotlin-mcp-server-generator.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/kotlin-mcp-expert.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis chat mode provides expert guidance for building MCP servers in Kotlin.\n\nThis chat mode is ideal for:\n- Creating new MCP server projects with Kotlin\n- Implementing type-safe tools with coroutines and kotlinx.serialization\n- Setting up stdio or SSE transports with Ktor\n- Debugging coroutine patterns and JSON schema issues\n- Learning Kotlin MCP best practices with the official SDK\n- Building multiplatform MCP servers (JVM, Wasm, iOS)\n\nTo get the best results, consider:\n- Using the instruction file to set context for Kotlin MCP development\n- Using the prompt to generate initial project structure with Gradle\n- Switching to the expert chat mode for detailed implementation help\n- Specifying whether you need stdio or SSE/HTTP transport\n- Providing details about what tools or functionality you need\n- Mentioning if you need multiplatform support or specific targets"
-    }
+  "agents": [
+    "./agents/kotlin-mcp-expert.md"
+  ],
+  "commands": [
+    "./commands/kotlin-mcp-server-generator.md"
   ]
 }

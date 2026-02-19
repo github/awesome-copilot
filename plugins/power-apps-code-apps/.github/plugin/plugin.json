@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "power-apps",
     "power-platform",
     "typescript",
@@ -16,22 +16,10 @@
     "dataverse",
     "connectors"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "prompts/power-apps-code-app-scaffold.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "instructions/power-apps-code-apps.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/power-platform-expert.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/power-platform-expert.md"
+  ],
+  "commands": [
+    "./commands/power-apps-code-app-scaffold.md"
   ]
 }

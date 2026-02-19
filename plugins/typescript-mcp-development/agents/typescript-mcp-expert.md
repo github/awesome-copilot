@@ -1,1 +1,0 @@
-../../../agents/typescript-mcp-expert.agent.md

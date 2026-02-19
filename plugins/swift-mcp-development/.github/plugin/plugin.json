@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "swift",
     "mcp",
     "model-context-protocol",
@@ -19,23 +19,10 @@
     "actor",
     "async-await"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/swift-mcp-server.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/swift-mcp-server-generator.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/swift-mcp-expert.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis chat mode provides expert guidance for building MCP servers in Swift.\n\nThis chat mode is ideal for:\n- Creating new MCP server projects with Swift\n- Implementing async/await patterns and actor-based concurrency\n- Setting up stdio, HTTP, or network transports\n- Debugging Swift concurrency and ServiceLifecycle integration\n- Learning Swift MCP best practices with the official SDK\n- Optimizing server performance for iOS/macOS platforms\n\nTo get the best results, consider:\n- Using the instruction file to set context for Swift MCP development\n- Using the prompt to generate initial project structure\n- Switching to the expert chat mode for detailed implementation help\n- Specifying whether you need stdio, HTTP, or network transport\n- Providing details about what tools or functionality you need\n- Mentioning if you need resources, prompts, or special capabilities"
-    }
+  "agents": [
+    "./agents/swift-mcp-expert.md"
+  ],
+  "commands": [
+    "./commands/swift-mcp-server-generator.md"
   ]
 }

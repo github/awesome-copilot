@@ -1,1 +1,0 @@
-../../../prompts/typespec-create-agent.prompt.md

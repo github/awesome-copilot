@@ -9,7 +9,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Instructions** - Coding standards and best practices applied to specific file patterns
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Hooks** - Automated workflows triggered by specific events during development
-- **Plugins** - Installable packages that group related agents, prompts, and skills around specific themes
+- **Plugins** - Installable packages that group related agents, commands, and skills around specific themes
 
 ## Repository Structure
 
@@ -101,7 +101,7 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 - plugin.json must have `name` field (matching the folder name)
 - plugin.json must have `description` field (describing the plugin's purpose)
 - plugin.json must have `version` field (semantic version, e.g., "1.0.0")
-- Plugin folders can contain any combination of agents, prompts, instructions, skills, and hooks
+- Plugin content is defined declaratively in plugin.json using Claude Code spec fields (`agents`, `commands`, `skills`). Source files live in top-level directories and are materialized into plugins by CI.
 - The `marketplace.json` file is automatically generated from all plugins during build
 - Plugins are discoverable and installable via GitHub Copilot CLI
 
@@ -135,7 +135,7 @@ When adding a new agent, prompt, instruction, skill, hook, or plugin:
 
 **For Plugins:**
 1. Run `npm run plugin:create -- --name <plugin-name>` to scaffold a new plugin
-2. Add agents, prompts, skills, or hooks to the plugin folder
+2. Define agents, commands, and skills in `plugin.json` using Claude Code spec fields
 3. Edit the generated `plugin.json` with your metadata
 4. Run `npm run plugin:validate` to validate the plugin structure
 5. Run `npm run build` to update README.md and marketplace.json
@@ -178,6 +178,8 @@ Before committing:
 ## Pull Request Guidelines
 
 When creating a pull request:
+
+> **Important:** All pull requests should target the **`staged`** branch, not `main`.
 
 1. **README updates**: New files should automatically be added to the README when you run `npm run build`
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields
@@ -246,9 +248,8 @@ For plugins (plugins/*/):
 - [ ] `plugin.json` has non-empty `description` field
 - [ ] `plugin.json` has `version` field (semantic version, e.g., "1.0.0")
 - [ ] Directory name is lower case with hyphens
-- [ ] If `tags` is present, it is an array of lowercase hyphenated strings
-- [ ] If `items` is present, each item has `path` and `kind` fields
-- [ ] The `kind` field value is one of: `prompt`, `agent`, `instruction`, `skill`, or `hook`
+- [ ] If `keywords` is present, it is an array of lowercase hyphenated strings
+- [ ] If `agents`, `commands`, or `skills` arrays are present, each entry is a valid relative path
 - [ ] The plugin does not reference non-existent files
 - [ ] Run `npm run build` to verify marketplace.json is updated correctly
 

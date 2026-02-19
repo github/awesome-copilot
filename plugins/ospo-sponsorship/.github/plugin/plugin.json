@@ -6,5 +6,8 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "skills": [
+    "./skills/sponsor-finder/"
+  ]
 }

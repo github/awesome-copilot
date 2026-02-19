@@ -1,1 +1,0 @@
-../../../prompts/structured-autonomy-plan.prompt.md

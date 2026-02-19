@@ -1,1 +1,0 @@
-../../../prompts/refactor-plan.prompt.md

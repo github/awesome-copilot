@@ -7,30 +7,17 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "csharp",
     "mcp",
     "model-context-protocol",
     "dotnet",
     "server-development"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/csharp-mcp-server.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/csharp-mcp-server-generator.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/csharp-mcp-expert.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis chat mode provides expert guidance for building MCP servers in C#.\n\nThis chat mode is ideal for:\n- Creating new MCP server projects\n- Implementing tools and prompts\n- Debugging protocol issues\n- Optimizing server performance\n- Learning MCP best practices\n\nTo get the best results, consider:\n- Using the instruction file to set context for all Copilot interactions\n- Using the prompt to generate initial project structure\n- Switching to the expert chat mode for detailed implementation help\n- Providing specific details about what tools or functionality you need"
-    }
+  "agents": [
+    "./agents/csharp-mcp-expert.md"
+  ],
+  "commands": [
+    "./commands/csharp-mcp-server-generator.md"
   ]
 }

@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "planning",
     "project-management",
     "epic",
@@ -17,78 +17,23 @@
     "architecture",
     "technical-spike"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/task-planner.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/task-researcher.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/planner.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/plan.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/prd.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/implementation-plan.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/research-technical-spike.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "instructions/task-implementation.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/spec-driven-workflow-v1.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/breakdown-feature-implementation.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-feature-prd.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-epic-arch.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-epic-pm.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/update-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-github-issues-feature-from-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-technical-spike.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/task-planner.md",
+    "./agents/task-researcher.md",
+    "./agents/planner.md",
+    "./agents/plan.md",
+    "./agents/prd.md",
+    "./agents/implementation-plan.md",
+    "./agents/research-technical-spike.md"
+  ],
+  "commands": [
+    "./commands/breakdown-feature-implementation.md",
+    "./commands/breakdown-feature-prd.md",
+    "./commands/breakdown-epic-arch.md",
+    "./commands/breakdown-epic-pm.md",
+    "./commands/create-implementation-plan.md",
+    "./commands/update-implementation-plan.md",
+    "./commands/create-github-issues-feature-from-implementation-plan.md",
+    "./commands/create-technical-spike.md"
   ]
 }

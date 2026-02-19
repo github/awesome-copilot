@@ -7,27 +7,15 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "clojure",
     "repl",
     "interactive-programming"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/clojure.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/clojure-interactive-programming.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "prompts/remember-interactive-programming.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/clojure-interactive-programming.md"
+  ],
+  "commands": [
+    "./commands/remember-interactive-programming.md"
   ]
 }

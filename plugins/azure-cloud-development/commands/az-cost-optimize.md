@@ -1,1 +1,0 @@
-../../../prompts/az-cost-optimize.prompt.md

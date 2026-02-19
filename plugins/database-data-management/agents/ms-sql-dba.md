@@ -1,1 +1,0 @@
-../../../agents/ms-sql-dba.agent.md

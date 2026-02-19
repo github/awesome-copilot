@@ -1,1 +1,0 @@
-../../../agents/droid.agent.md

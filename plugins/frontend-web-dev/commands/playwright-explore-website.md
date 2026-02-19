@@ -1,1 +1,0 @@
-../../../prompts/playwright-explore-website.prompt.md

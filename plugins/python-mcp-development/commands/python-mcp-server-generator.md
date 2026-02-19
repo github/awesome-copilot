@@ -1,1 +1,0 @@
-../../../prompts/python-mcp-server-generator.prompt.md

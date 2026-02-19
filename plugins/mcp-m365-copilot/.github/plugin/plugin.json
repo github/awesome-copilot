@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "mcp",
     "m365-copilot",
     "declarative-agents",
@@ -15,30 +15,12 @@
     "model-context-protocol",
     "adaptive-cards"
   ],
-  "display": {
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "prompts/mcp-create-declarative-agent.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/mcp-create-adaptive-cards.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/mcp-deploy-manage-agents.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "instructions/mcp-m365-copilot.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "agents/mcp-m365-agent-expert.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis chat mode provides expert guidance for building MCP-based declarative agents for Microsoft 365 Copilot.\n\nThis chat mode is ideal for:\n- Creating new declarative agents with MCP integration\n- Designing Adaptive Cards for visual responses\n- Configuring OAuth 2.0 or SSO authentication\n- Setting up response semantics and data extraction\n- Troubleshooting deployment and governance issues\n- Learning MCP best practices for M365 Copilot\n\nTo get the best results, consider:\n- Using the instruction file to set context for all Copilot interactions\n- Using prompts to generate initial agent structure and configurations\n- Switching to the expert chat mode for detailed implementation help\n- Providing specific details about your MCP server, tools, and business scenario"
-    }
+  "agents": [
+    "./agents/mcp-m365-agent-expert.md"
+  ],
+  "commands": [
+    "./commands/mcp-create-declarative-agent.md",
+    "./commands/mcp-create-adaptive-cards.md",
+    "./commands/mcp-deploy-manage-agents.md"
   ]
 }

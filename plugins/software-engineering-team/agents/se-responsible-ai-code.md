@@ -1,1 +1,0 @@
-../../../agents/se-responsible-ai-code.agent.md

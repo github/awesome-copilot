@@ -2,9 +2,9 @@ name: Check Line Endings
 
 on:
   push:
-    branches: [main]
+    branches: [staged]
   pull_request:
-    branches: [main]
+    branches: [staged]
 
 permissions:
   contents: read

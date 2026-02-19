@@ -1,1 +1,0 @@
-../../../prompts/ruby-mcp-server-generator.prompt.md

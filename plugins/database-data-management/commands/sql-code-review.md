@@ -1,1 +1,0 @@
-../../../prompts/sql-code-review.prompt.md

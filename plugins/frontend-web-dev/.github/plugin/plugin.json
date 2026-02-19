@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "frontend",
     "web",
     "react",
@@ -18,54 +18,12 @@
     "angular",
     "vue"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/expert-react-frontend-engineer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/electron-angular-native.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "instructions/reactjs.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/angular.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/vuejs3.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/nextjs.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/nextjs-tailwind.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/tanstack-start-shadcn-tailwind.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/nodejs-javascript-vitest.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/playwright-explore-website.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/playwright-generate-test.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents/expert-react-frontend-engineer.md",
+    "./agents/electron-angular-native.md"
+  ],
+  "commands": [
+    "./commands/playwright-explore-website.md",
+    "./commands/playwright-generate-test.md"
   ]
 }

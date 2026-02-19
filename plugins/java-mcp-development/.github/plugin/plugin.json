@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "java",
     "mcp",
     "model-context-protocol",
@@ -17,23 +17,10 @@
     "spring-boot",
     "reactor"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/java-mcp-server.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/java-mcp-server-generator.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/java-mcp-expert.agent.md",
-      "kind": "agent",
-      "usage": "recommended\n\nThis chat mode provides expert guidance for building MCP servers in Java.\n\nThis chat mode is ideal for:\n- Creating new MCP server projects with Java\n- Implementing reactive handlers with Project Reactor\n- Setting up stdio or HTTP transports\n- Debugging reactive streams and error handling\n- Learning Java MCP best practices with the official SDK\n- Integrating with Spring Boot applications\n\nTo get the best results, consider:\n- Using the instruction file to set context for Java MCP development\n- Using the prompt to generate initial project structure\n- Switching to the expert chat mode for detailed implementation help\n- Specifying whether you need Maven or Gradle\n- Providing details about what tools or functionality you need\n- Mentioning if you need Spring Boot integration"
-    }
+  "agents": [
+    "./agents/java-mcp-expert.md"
+  ],
+  "commands": [
+    "./commands/java-mcp-server-generator.md"
   ]
 }

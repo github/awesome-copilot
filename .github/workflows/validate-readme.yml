@@ -2,6 +2,7 @@ name: Validate README.md
 
 on:
   pull_request:
+    branches: [staged]
     types: [opened, synchronize, reopened]
     paths:
       - "instructions/**"

@@ -1,1 +1,0 @@
-../../../agents/se-product-manager-advisor.agent.md

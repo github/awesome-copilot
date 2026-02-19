@@ -7,33 +7,18 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "power-platform",
     "mcp",
     "copilot-studio",
     "custom-connector",
     "json-rpc"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "instructions/power-platform-mcp-development.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/power-platform-mcp-connector-suite.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/mcp-copilot-studio-server-generator.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "agents/power-platform-mcp-integration-expert.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/power-platform-mcp-integration-expert.md"
+  ],
+  "commands": [
+    "./commands/power-platform-mcp-connector-suite.md",
+    "./commands/mcp-copilot-studio-server-generator.md"
   ]
 }

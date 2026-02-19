@@ -5,7 +5,7 @@ import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
-const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github", "plugin", "marketplace.json");
+const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.json");
 
 /**
  * Read plugin metadata from plugin.json file
@@ -13,7 +13,7 @@ const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github", "plugin", "marketplac
  * @returns {object|null} - Plugin metadata or null if not found
  */
 function readPluginMetadata(pluginDir) {
-  const pluginJsonPath = path.join(pluginDir, ".github", "plugin", "plugin.json");
+  const pluginJsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
   
   if (!fs.existsSync(pluginJsonPath)) {
     console.warn(`Warning: No plugin.json found for ${path.basename(pluginDir)}`);

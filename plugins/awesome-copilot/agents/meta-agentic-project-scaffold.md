@@ -1,1 +1,0 @@
-../../../agents/meta-agentic-project-scaffold.agent.md

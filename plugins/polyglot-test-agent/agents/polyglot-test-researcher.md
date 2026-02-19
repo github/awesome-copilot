@@ -1,1 +1,0 @@
-../../../agents/polyglot-test-researcher.agent.md

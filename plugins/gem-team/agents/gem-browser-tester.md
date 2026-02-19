@@ -1,1 +1,0 @@
-../../../agents/gem-browser-tester.agent.md

@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "team",
     "enterprise",
     "security",
@@ -17,39 +17,13 @@
     "product",
     "ai-ethics"
   ],
-  "display": {
-    "ordering": "manual",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/se-ux-ui-designer.agent.md",
-      "kind": "agent",
-      "usage": "## About This Collection\n\nThis collection of 7 agents is based on learnings from [The AI-Native Engineering Flow](https://medium.com/data-science-at-microsoft/the-ai-native-engineering-flow-5de5ffd7d877) experiments at Microsoft, designed to augment software engineering teams across the entire development lifecycle.\n\n**Key Design Principles:**\n- **Standalone**: Each agent works independently without cross-dependencies\n- **Enterprise-ready**: Incorporates OWASP, Zero Trust, WCAG, and Well-Architected frameworks\n- **Lifecycle coverage**: From UX research → Architecture → Development → Security → DevOps\n\n**Agents in this collection:**\n- **SE: UX Designer** - Jobs-to-be-Done analysis and user journey mapping\n- **SE: Tech Writer** - Technical documentation, blogs, ADRs, and user guides\n- **SE: DevOps/CI** - CI/CD debugging and deployment troubleshooting\n- **SE: Product Manager** - GitHub issues with business context and acceptance criteria\n- **SE: Responsible AI** - Bias testing, accessibility (WCAG), and ethical development\n- **SE: Architect** - Architecture reviews with Well-Architected frameworks\n- **SE: Security** - OWASP Top 10, LLM/ML security, and Zero Trust\n\nYou can use individual agents as needed or adopt the full collection for comprehensive team augmentation."
-    },
-    {
-      "path": "agents/se-technical-writer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/se-gitops-ci-specialist.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/se-product-manager-advisor.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/se-responsible-ai-code.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/se-system-architecture-reviewer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/se-security-reviewer.agent.md",
-      "kind": "agent"
-    }
+  "agents": [
+    "./agents/se-ux-ui-designer.md",
+    "./agents/se-technical-writer.md",
+    "./agents/se-gitops-ci-specialist.md",
+    "./agents/se-product-manager-advisor.md",
+    "./agents/se-responsible-ai-code.md",
+    "./agents/se-system-architecture-reviewer.md",
+    "./agents/se-security-reviewer.md"
   ]
 }

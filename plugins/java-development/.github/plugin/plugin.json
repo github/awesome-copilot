@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "java",
     "springboot",
     "quarkus",
@@ -15,58 +15,10 @@
     "junit",
     "javadoc"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": false
-  },
-  "items": [
-    {
-      "path": "instructions/java.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/springboot.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/quarkus.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/quarkus-mcp-server-sse.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/convert-jpa-to-spring-data-cosmos.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/java-11-to-java-17-upgrade.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/java-17-to-java-21-upgrade.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/java-21-to-java-25-upgrade.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/java-docs.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/java-junit.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/java-springboot.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-spring-boot-java-project.prompt.md",
-      "kind": "prompt"
-    }
+  "commands": [
+    "./commands/java-docs.md",
+    "./commands/java-junit.md",
+    "./commands/java-springboot.md",
+    "./commands/create-spring-boot-java-project.md"
   ]
 }

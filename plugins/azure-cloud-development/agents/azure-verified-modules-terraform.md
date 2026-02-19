@@ -1,1 +1,0 @@
-../../../agents/azure-verified-modules-terraform.agent.md

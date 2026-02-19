@@ -1,0 +1,53 @@
+name: Publish to main
+
+on:
+  push:
+    branches: [staged]
+
+concurrency:
+  group: publish-to-main
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@v4
+        with:
+          ref: staged
+          fetch-depth: 0
+
+      - name: Extract Node version from package.json
+        id: node-version
+        run: |
+          NODE_VERSION=$(jq -r '.engines.node // "22"' package.json)
+          echo "version=${NODE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Materialize plugin files
+        run: node eng/materialize-plugins.mjs
+
+      - name: Build generated files
+        run: npm run build
+
+      - name: Fix line endings
+        run: bash scripts/fix-line-endings.sh
+
+      - name: Publish to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: publish from staged [skip ci]" --allow-empty
+          git push origin HEAD:main --force

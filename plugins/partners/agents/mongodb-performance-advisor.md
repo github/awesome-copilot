@@ -1,1 +1,0 @@
-../../../agents/mongodb-performance-advisor.agent.md

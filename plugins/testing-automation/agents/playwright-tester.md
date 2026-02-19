@@ -1,1 +1,0 @@
-../../../agents/playwright-tester.agent.md

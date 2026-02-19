@@ -1,1 +1,0 @@
-../../../prompts/postgresql-code-review.prompt.md

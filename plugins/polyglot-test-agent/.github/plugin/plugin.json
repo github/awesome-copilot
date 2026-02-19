@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "testing",
     "unit-tests",
     "polyglot",
@@ -19,50 +19,17 @@
     "python",
     "go"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/polyglot-test-generator.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-researcher.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-planner.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-implementer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-builder.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-tester.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-fixer.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/polyglot-test-linter.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "skills/polyglot-test-agent/unit-test-generation.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "skills/polyglot-test-agent/SKILL.md",
-      "kind": "skill"
-    }
+  "agents": [
+    "./agents/polyglot-test-generator.md",
+    "./agents/polyglot-test-researcher.md",
+    "./agents/polyglot-test-planner.md",
+    "./agents/polyglot-test-implementer.md",
+    "./agents/polyglot-test-builder.md",
+    "./agents/polyglot-test-tester.md",
+    "./agents/polyglot-test-fixer.md",
+    "./agents/polyglot-test-linter.md"
+  ],
+  "skills": [
+    "./skills/polyglot-test-agent/"
   ]
 }
