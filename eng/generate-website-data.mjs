@@ -2,7 +2,7 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, prompts, instructions, skills, and plugins
+ * This script extracts metadata from agents, instructions, skills, hooks, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
@@ -15,7 +15,6 @@ import {
     HOOKS_DIR,
     INSTRUCTIONS_DIR,
     PLUGINS_DIR,
-    PROMPTS_DIR,
     ROOT_FOLDER,
     SKILLS_DIR
 } from "./constants.mjs";
@@ -192,50 +191,7 @@ function generateHooksData(gitDates) {
   };
 }
 
-/**
- * Generate prompts metadata
- */
-function generatePromptsData(gitDates) {
-  const prompts = [];
-  const files = fs
-    .readdirSync(PROMPTS_DIR)
-    .filter((f) => f.endsWith(".prompt.md"));
 
-  // Track all unique tools for filters
-  const allTools = new Set();
-
-  for (const file of files) {
-    const filePath = path.join(PROMPTS_DIR, file);
-    const frontmatter = parseFrontmatter(filePath);
-    const relativePath = path
-      .relative(ROOT_FOLDER, filePath)
-      .replace(/\\/g, "/");
-
-    const tools = frontmatter?.tools || [];
-    tools.forEach((t) => allTools.add(t));
-
-    prompts.push({
-      id: file.replace(".prompt.md", ""),
-      title: extractTitle(filePath, frontmatter),
-      description: frontmatter?.description || "",
-      agent: frontmatter?.agent || null,
-      model: frontmatter?.model || null,
-      tools: tools,
-      path: relativePath,
-      filename: file,
-      lastUpdated: gitDates.get(relativePath) || null,
-    });
-  }
-
-  const sortedPrompts = prompts.sort((a, b) => a.title.localeCompare(b.title));
-
-  return {
-    items: sortedPrompts,
-    filters: {
-      tools: Array.from(allTools).sort(),
-    },
-  };
-}
 
 /**
  * Parse applyTo field into an array of patterns
@@ -603,7 +559,6 @@ function generateToolsData() {
  */
 function generateSearchIndex(
   agents,
-  prompts,
   instructions,
   hooks,
   skills,
@@ -622,18 +577,6 @@ function generateSearchIndex(
       searchText: `${agent.title} ${agent.description} ${agent.tools.join(
         " "
       )}`.toLowerCase(),
-    });
-  }
-
-  for (const prompt of prompts) {
-    index.push({
-      type: "prompt",
-      id: prompt.id,
-      title: prompt.title,
-      description: prompt.description,
-      path: prompt.path,
-      lastUpdated: prompt.lastUpdated,
-      searchText: `${prompt.title} ${prompt.description}`.toLowerCase(),
     });
   }
 
@@ -799,7 +742,7 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "prompts/", "instructions/", "hooks/", "skills/", "plugins/"],
+    ["agents/", "instructions/", "hooks/", "skills/", "plugins/"],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
@@ -815,12 +758,6 @@ async function main() {
   const hooks = hooksData.items;
   console.log(
     `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
-  );
-
-  const promptsData = generatePromptsData(gitDates);
-  const prompts = promptsData.items;
-  console.log(
-    `✓ Generated ${prompts.length} prompts (${promptsData.filters.tools.length} tools)`
   );
 
   const instructionsData = generateInstructionsData(gitDates);
@@ -854,7 +791,6 @@ async function main() {
 
   const searchIndex = generateSearchIndex(
     agents,
-    prompts,
     instructions,
     hooks,
     skills,
@@ -871,11 +807,6 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "hooks.json"),
     JSON.stringify(hooksData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "prompts.json"),
-    JSON.stringify(promptsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -913,7 +844,6 @@ async function main() {
     generated: new Date().toISOString(),
     counts: {
       agents: agents.length,
-      prompts: prompts.length,
       instructions: instructions.length,
       skills: skills.length,
       hooks: hooks.length,
