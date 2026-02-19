@@ -26,8 +26,8 @@
     "./agents/terraform-azure-planning.md",
     "./agents/terraform-azure-implement.md"
   ],
-  "commands": [
-    "./commands/azure-resource-health-diagnose.md",
-    "./commands/az-cost-optimize.md"
+  "skills": [
+    "./skills/azure-resource-health-diagnose/",
+    "./skills/az-cost-optimize/"
   ]
 }

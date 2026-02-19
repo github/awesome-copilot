@@ -15,10 +15,10 @@
     "junit",
     "javadoc"
   ],
-  "commands": [
-    "./commands/java-docs.md",
-    "./commands/java-junit.md",
-    "./commands/java-springboot.md",
-    "./commands/create-spring-boot-java-project.md"
+  "skills": [
+    "./skills/java-docs/",
+    "./skills/java-junit/",
+    "./skills/java-springboot/",
+    "./skills/create-spring-boot-java-project/"
   ]
 }

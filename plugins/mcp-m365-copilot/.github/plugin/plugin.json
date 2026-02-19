@@ -18,9 +18,9 @@
   "agents": [
     "./agents/mcp-m365-agent-expert.md"
   ],
-  "commands": [
-    "./commands/mcp-create-declarative-agent.md",
-    "./commands/mcp-create-adaptive-cards.md",
-    "./commands/mcp-deploy-manage-agents.md"
+  "skills": [
+    "./skills/mcp-create-declarative-agent/",
+    "./skills/mcp-create-adaptive-cards/",
+    "./skills/mcp-deploy-manage-agents/"
   ]
 }
