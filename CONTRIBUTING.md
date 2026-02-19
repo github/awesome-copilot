@@ -1,6 +1,6 @@
 # Contributing to Awesome GitHub Copilot
 
-Thank you for your interest in contributing to the Awesome GitHub Copilot repository! We welcome contributions from the community to help expand our collection of custom instructions and prompts.
+Thank you for your interest in contributing to the Awesome GitHub Copilot repository! We welcome contributions from the community to help expand our collection of custom instructions and skills.
 
 ## How to Contribute
 
@@ -31,34 +31,6 @@ description: 'Instructions for customizing GitHub Copilot behavior for specific 
 ## Additional Guidelines
 
 - Any additional context or examples
-```
-
-### Adding Prompts
-
-Prompts are ready-to-use templates for specific development scenarios and tasks.
-
-1. **Create your prompt file**: Add a new `.prompt.md` file in the `prompts/` directory
-2. **Follow the naming convention**: Use descriptive, lowercase filenames with hyphens and the `.prompt.md` extension (e.g., `react-component-generator.prompt.md`)
-3. **Include frontmatter**: Add metadata at the top of your file (optional but recommended)
-4. **Structure your prompt**: Provide clear context and specific instructions
-
-#### Example prompt format
-
-```markdown
----
-agent: 'agent'
-tools: ['codebase', 'terminalCommand']
-description: 'Brief description of what this prompt does'
----
-
-# Prompt Title
-
-Your goal is to...
-
-## Specific Instructions
-
-- Clear, actionable instructions
-- Include examples where helpful
 ```
 
 ### Adding an Agent
@@ -113,7 +85,7 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 
 ### Adding Plugins
 
-Plugins group related agents, commands (prompts), and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
+Plugins group related agents, commands, and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
 
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
@@ -165,13 +137,13 @@ plugins/my-plugin-id/
 
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
-3. **Add your instruction, prompt file, chatmode, or plugin** following the guidelines above
+3. **Add your instruction, skill, agent, or plugin** following the guidelines above
 4. **Run the update script**: `npm start` to update the README with your new file (make sure you run `npm install` first if you haven't already)
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
 5. **Submit a pull request** targeting the `staged` branch with:
    - A clear title describing your contribution
-   - A brief description of what your instruction/prompt does
+   - A brief description of what your instruction/skill/agent does
    - Any relevant context or usage notes
 
 > [!IMPORTANT]
@@ -206,7 +178,7 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 ## Quality Guidelines
 
 - **Be specific**: Generic instructions are less helpful than specific, actionable guidance
-- **Test your content**: Ensure your instructions or prompts work well with GitHub Copilot
+- **Test your content**: Ensure your instructions or skills work well with GitHub Copilot
 - **Follow conventions**: Use consistent formatting and naming
 - **Keep it focused**: Each file should address a specific technology, framework, or use case
 - **Write clearly**: Use simple, direct language
@@ -231,10 +203,9 @@ We welcome many kinds of contributions, including the custom categories below:
 | Category | Description | Emoji |
 | --- | --- | :---: |
 | **Instructions** | Custom instruction sets that guide GitHub Copilot behavior | 🧭 |
-| **Prompts** | Reusable or one-off prompts for GitHub Copilot | ⌨️ |
 | **Agents** | Defined GitHub Copilot roles or personalities | 🎭 |
 | **Skills** | Specialized knowledge of a task for GitHub Copilot | 🧰 |
-| **Plugins** | Installable packages of related prompts, agents, or skills | 🎁 |
+| **Plugins** | Installable packages of related agents, commands, or skills | 🎁 |
 
 In addition, all standard contribution types supported by [All Contributors](https://allcontributors.org/emoji-key/) are recognized.
 

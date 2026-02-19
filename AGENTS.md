@@ -2,10 +2,9 @@
 
 ## Project Overview
 
-The Awesome GitHub Copilot repository is a community-driven collection of custom agents, prompts, and instructions designed to enhance GitHub Copilot experiences across various domains, languages, and use cases. The project includes:
+The Awesome GitHub Copilot repository is a community-driven collection of custom agents and instructions designed to enhance GitHub Copilot experiences across various domains, languages, and use cases. The project includes:
 
 - **Agents** - Specialized GitHub Copilot agents that integrate with MCP servers
-- **Prompts** - Task-specific prompts for code generation and problem-solving
 - **Instructions** - Coding standards and best practices applied to specific file patterns
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Hooks** - Automated workflows triggered by specific events during development
@@ -16,7 +15,6 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ```
 .
 ├── agents/           # Custom GitHub Copilot agent definitions (.agent.md files)
-├── prompts/          # Task-specific prompts (.prompt.md files)
 ├── instructions/     # Coding standards and guidelines (.instructions.md files)
 ├── skills/           # Agent Skills folders (each with SKILL.md and optional bundled assets)
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
@@ -53,21 +51,14 @@ npm run skill:create -- --name <skill-name>
 
 ## Development Workflow
 
-### Working with Agents, Prompts, Instructions, Skills, and Hooks
+### Working with Agents, Instructions, Skills, and Hooks
 
-All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets. Hooks are folders containing a `README.md` with frontmatter and a `hooks.json` configuration file:
+All agent files (`*.agent.md`) and instruction files (`*.instructions.md`) must include proper markdown front matter. Agent Skills are folders containing a `SKILL.md` file with frontmatter and optional bundled assets. Hooks are folders containing a `README.md` with frontmatter and a `hooks.json` configuration file:
 
 #### Agent Files (*.agent.md)
 - Must have `description` field (wrapped in single quotes)
 - File names should be lower case with words separated by hyphens
 - Recommended to include `tools` field
-- Strongly recommended to specify `model` field
-
-#### Prompt Files (*.prompt.md)
-- Must have `agent` field (value should be `'agent'` wrapped in single quotes)
-- Must have `description` field (wrapped in single quotes, not empty)
-- File names should be lower case with words separated by hyphens
-- Recommended to specify `tools` if applicable
 - Strongly recommended to specify `model` field
 
 #### Instruction Files (*.instructions.md)
@@ -107,9 +98,9 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 
 ### Adding New Resources
 
-When adding a new agent, prompt, instruction, skill, hook, or plugin:
+When adding a new agent, instruction, skill, hook, or plugin:
 
-**For Agents, Prompts, and Instructions:**
+**For Agents and Instructions:**
 1. Create the file with proper front matter
 2. Add the file to the appropriate directory
 3. Update the README.md by running: `npm run build`
@@ -186,7 +177,7 @@ When creating a pull request:
 3. **File naming**: Verify all new files follow the lower-case-with-hyphens naming convention
 4. **Build check**: Run `npm run build` before committing to verify README generation
 5. **Line endings**: **Always run `bash scripts/fix-line-endings.sh`** to normalize line endings to LF (Unix-style)
-6. **Description**: Provide a clear description of what your agent/prompt/instruction does
+6. **Description**: Provide a clear description of what your agent/instruction does
 7. **Testing**: If adding a plugin, run `npm run plugin:validate` to ensure validity
 
 ### Pre-commit Checklist
@@ -200,13 +191,6 @@ Before submitting your PR, ensure you have:
 - [ ] Checked that file names follow the naming convention
 
 ### Code Review Checklist
-
-For prompt files (*.prompt.md):
-- [ ] Has markdown front matter
-- [ ] Has `agent` field (value should be `'agent'` wrapped in single quotes)
-- [ ] Has non-empty `description` field wrapped in single quotes
-- [ ] File name is lower case with hyphens
-- [ ] Includes `model` field (strongly recommended)
 
 For instruction files (*.instructions.md):
 - [ ] Has markdown front matter
@@ -262,7 +246,7 @@ This is a community-driven project. Contributions are welcome! Please see:
 
 ## MCP Server
 
-The repository includes an MCP (Model Context Protocol) Server that provides prompts for searching and installing resources directly from this repository. Docker is required to run the server.
+The repository includes an MCP (Model Context Protocol) Server for searching and installing resources directly from this repository. Docker is required to run the server.
 
 ## License
 
