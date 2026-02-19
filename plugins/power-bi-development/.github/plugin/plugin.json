@@ -23,10 +23,10 @@
     "./agents/power-bi-performance-expert.md",
     "./agents/power-bi-visualization-expert.md"
   ],
-  "commands": [
-    "./commands/power-bi-dax-optimization.md",
-    "./commands/power-bi-model-design-review.md",
-    "./commands/power-bi-performance-troubleshooting.md",
-    "./commands/power-bi-report-design-consultation.md"
+  "skills": [
+    "./skills/power-bi-dax-optimization/",
+    "./skills/power-bi-model-design-review/",
+    "./skills/power-bi-performance-troubleshooting/",
+    "./skills/power-bi-report-design-consultation/"
   ]
 }

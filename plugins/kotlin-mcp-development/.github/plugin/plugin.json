@@ -18,7 +18,7 @@
   "agents": [
     "./agents/kotlin-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/kotlin-mcp-server-generator.md"
+  "skills": [
+    "./skills/kotlin-mcp-server-generator/"
   ]
 }

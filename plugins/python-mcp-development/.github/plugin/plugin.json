@@ -17,7 +17,7 @@
   "agents": [
     "./agents/python-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/python-mcp-server-generator.md"
+  "skills": [
+    "./skills/python-mcp-server-generator/"
   ]
 }

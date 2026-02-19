@@ -17,7 +17,7 @@
   "agents": [
     "./agents/typescript-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/typescript-mcp-server-generator.md"
+  "skills": [
+    "./skills/typescript-mcp-server-generator/"
   ]
 }

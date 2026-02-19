@@ -17,8 +17,8 @@
   "agents": [
     "./agents/power-platform-mcp-integration-expert.md"
   ],
-  "commands": [
-    "./commands/power-platform-mcp-connector-suite.md",
-    "./commands/mcp-copilot-studio-server-generator.md"
+  "skills": [
+    "./skills/power-platform-mcp-connector-suite/",
+    "./skills/mcp-copilot-studio-server-generator/"
   ]
 }

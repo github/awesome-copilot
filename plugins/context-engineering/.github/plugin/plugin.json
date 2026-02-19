@@ -17,9 +17,9 @@
   "agents": [
     "./agents/context-architect.md"
   ],
-  "commands": [
-    "./commands/context-map.md",
-    "./commands/what-context-needed.md",
-    "./commands/refactor-plan.md"
+  "skills": [
+    "./skills/context-map/",
+    "./skills/what-context-needed/",
+    "./skills/refactor-plan/"
   ]
 }

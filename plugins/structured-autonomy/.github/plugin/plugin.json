@@ -7,9 +7,9 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "commands": [
-    "./commands/structured-autonomy-generate.md",
-    "./commands/structured-autonomy-implement.md",
-    "./commands/structured-autonomy-plan.md"
+  "skills": [
+    "./skills/structured-autonomy-generate/",
+    "./skills/structured-autonomy-implement/",
+    "./skills/structured-autonomy-plan/"
   ]
 }

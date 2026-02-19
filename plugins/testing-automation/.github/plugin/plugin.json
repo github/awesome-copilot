@@ -23,11 +23,11 @@
     "./agents/tdd-refactor.md",
     "./agents/playwright-tester.md"
   ],
-  "commands": [
-    "./commands/playwright-explore-website.md",
-    "./commands/playwright-generate-test.md",
-    "./commands/csharp-nunit.md",
-    "./commands/java-junit.md",
-    "./commands/ai-prompt-engineering-safety-review.md"
+  "skills": [
+    "./skills/playwright-explore-website/",
+    "./skills/playwright-generate-test/",
+    "./skills/csharp-nunit/",
+    "./skills/java-junit/",
+    "./skills/ai-prompt-engineering-safety-review/"
   ]
 }
