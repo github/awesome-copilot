@@ -8,7 +8,7 @@ description: 'Synchronize GitHub Copilot instructions, custom agents, and skills
 Mirror all GitHub Copilot customizations — instructions, custom agents, and agent skills —
 into every detected AI coding agent configuration found in this repository.
 
-This instruction supports **12 agent ecosystems**. Rather than creating files for every
+This skill supports **12 agent ecosystems**. Rather than creating files for every
 agent unconditionally, it **detects which agents are already configured** in the repo and
 syncs only those.
 
