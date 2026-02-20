@@ -1,6 +1,6 @@
 # Dataverse MCP setup
 
-Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands.
+Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands that guide you through configuring Dataverse MCP servers for GitHub Copilot.
 
 ## Installation
 
@@ -15,7 +15,7 @@ copilot plugin install dataverse-mcp@awesome-copilot
 
 | Command | Description |
 |---------|-------------|
-| `/dataverse-mcp:mcp-setup` | Generate Python SDK setup + CRUD + bulk + paging snippets using official patterns. |
+| `/dataverse-mcp:mcp-setup` | Configure Dataverse MCP server for GitHub Copilot with global or project-scoped settings. No external scripts required. |
 
 ## Source
 
