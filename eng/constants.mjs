@@ -135,7 +135,7 @@ Hooks enable automated workflows triggered by specific events during GitHub Copi
   workflowsUsage: `### How to Use Agentic Workflows
 
 **What's Included:**
-- Each workflow is a folder containing a \`README.md\` and one or more \`.md\` workflow files
+- Each workflow is a single \`.md\` file with YAML frontmatter and natural language instructions
 - Workflows are compiled to \`.lock.yml\` GitHub Actions files via \`gh aw compile\`
 - Workflows follow the [GitHub Agentic Workflows specification](https://github.github.com/gh-aw)
 

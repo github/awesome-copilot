@@ -588,26 +588,24 @@ function generateWorkflowsSection(workflowsDir) {
     return "";
   }
 
-  // Get all workflow folders (directories)
-  const workflowFolders = fs.readdirSync(workflowsDir).filter((file) => {
-    const filePath = path.join(workflowsDir, file);
-    return fs.statSync(filePath).isDirectory();
+  // Get all .md workflow files (flat, no subfolders)
+  const workflowFiles = fs.readdirSync(workflowsDir).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
   });
 
-  // Parse each workflow folder
-  const workflowEntries = workflowFolders
-    .map((folder) => {
-      const workflowPath = path.join(workflowsDir, folder);
-      const metadata = parseWorkflowMetadata(workflowPath);
+  // Parse each workflow file
+  const workflowEntries = workflowFiles
+    .map((file) => {
+      const filePath = path.join(workflowsDir, file);
+      const metadata = parseWorkflowMetadata(filePath);
       if (!metadata) return null;
 
       return {
-        folder,
+        file,
         name: metadata.name,
         description: metadata.description,
         triggers: metadata.triggers,
         tags: metadata.tags,
-        assets: metadata.assets,
       };
     })
     .filter((entry) => entry !== null)
@@ -621,20 +619,16 @@ function generateWorkflowsSection(workflowsDir) {
 
   // Create table header
   let content =
-    "| Name | Description | Triggers | Bundled Assets |\n| ---- | ----------- | -------- | -------------- |\n";
+    "| Name | Description | Triggers |\n| ---- | ----------- | -------- |\n";
 
   // Generate table rows for each workflow
   for (const workflow of workflowEntries) {
-    const link = `../workflows/${workflow.folder}/README.md`;
+    const link = `../workflows/${workflow.file}`;
     const triggers = workflow.triggers.length > 0 ? workflow.triggers.join(", ") : "N/A";
-    const assetsList =
-      workflow.assets.length > 0
-        ? workflow.assets.map((a) => `\`${a}\``).join("<br />")
-        : "None";
 
     content += `| [${workflow.name}](${link}) | ${formatTableCell(
       workflow.description
-    )} | ${triggers} | ${assetsList} |\n`;
+    )} | ${triggers} |\n`;
   }
 
   return `${TEMPLATES.workflowsSection}\n${TEMPLATES.workflowsUsage}\n\n${content}`;

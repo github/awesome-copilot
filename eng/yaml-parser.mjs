@@ -254,24 +254,23 @@ function parseHookMetadata(hookPath) {
 }
 
 /**
- * Parse workflow metadata from a workflow folder
- * @param {string} workflowPath - Path to the workflow folder
+ * Parse workflow metadata from a standalone .md workflow file
+ * @param {string} filePath - Path to the workflow .md file
  * @returns {object|null} Workflow metadata or null on error
  */
-function parseWorkflowMetadata(workflowPath) {
+function parseWorkflowMetadata(filePath) {
   return safeFileOperation(
     () => {
-      const readmeFile = path.join(workflowPath, "README.md");
-      if (!fs.existsSync(readmeFile)) {
+      if (!fs.existsSync(filePath)) {
         return null;
       }
 
-      const frontmatter = parseFrontmatter(readmeFile);
+      const frontmatter = parseFrontmatter(filePath);
 
       // Validate required fields
       if (!frontmatter?.name || !frontmatter?.description) {
         console.warn(
-          `Invalid workflow at ${workflowPath}: missing name or description in frontmatter`
+          `Invalid workflow at ${filePath}: missing name or description in frontmatter`
         );
         return null;
       }
@@ -279,37 +278,15 @@ function parseWorkflowMetadata(workflowPath) {
       // Extract triggers from frontmatter if present
       const triggers = frontmatter.triggers || [];
 
-      // List bundled assets (all files except README.md), recursing through subdirectories
-      const getAllFiles = (dirPath, arrayOfFiles = []) => {
-        const files = fs.readdirSync(dirPath);
-
-        files.forEach((file) => {
-          const filePath = path.join(dirPath, file);
-          if (fs.statSync(filePath).isDirectory()) {
-            arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-          } else {
-            const relativePath = path.relative(workflowPath, filePath);
-            if (relativePath !== "README.md") {
-              arrayOfFiles.push(relativePath.replace(/\\/g, "/"));
-            }
-          }
-        });
-
-        return arrayOfFiles;
-      };
-
-      const assets = getAllFiles(workflowPath).sort();
-
       return {
         name: frontmatter.name,
         description: frontmatter.description,
         triggers,
         tags: frontmatter.tags || [],
-        assets,
-        path: workflowPath,
+        path: filePath,
       };
     },
-    workflowPath,
+    filePath,
     null
   );
 }

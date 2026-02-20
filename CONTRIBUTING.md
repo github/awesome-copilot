@@ -165,21 +165,14 @@ plugins/my-plugin-id/
 
 [Agentic Workflows](https://github.github.com/gh-aw) are AI-powered repository automations that run coding agents in GitHub Actions. Defined in markdown with natural language instructions, they enable scheduled and event-triggered automation with built-in guardrails.
 
-1. **Create a new workflow folder**: Add a new folder in the `workflows/` directory with a descriptive name (e.g., `daily-issues-report`)
-2. **Create a `README.md`**: Add a `README.md` with frontmatter containing `name`, `description`, `triggers`, and optionally `tags`
-3. **Add workflow files**: Include one or more `.md` workflow files with YAML frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
-4. **Add optional assets**: Include any helper scripts or configuration files referenced by the workflow
-5. **Update the README**: Run `npm run build` to update the generated README tables
+1. **Create your workflow file**: Add a new `.md` file in the `workflows/` directory (e.g., `daily-issues-report.md`)
+2. **Include frontmatter**: Add `name`, `description`, `triggers`, and optionally `tags` at the top, followed by agentic workflow frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
+3. **Test locally**: Compile with `gh aw compile --validate` to verify it's valid
+4. **Update the README**: Run `npm run build` to update the generated README tables
 
-#### Workflow folder structure
+> **Note:** Only `.md` files are accepted — do not include compiled `.lock.yml` or `.yml` files. CI will block them.
 
-```
-workflows/daily-issues-report/
-├── README.md                    # Workflow documentation with frontmatter
-└── daily-issues-report.md       # Agentic workflow file
-```
-
-#### README.md frontmatter example
+#### Workflow file example
 
 ```markdown
 ---
@@ -187,13 +180,6 @@ name: 'Daily Issues Report'
 description: 'Generates a daily summary of open issues and recent activity as a GitHub issue'
 triggers: ['schedule']
 tags: ['reporting', 'issues', 'automation']
----
-```
-
-#### Workflow file example
-
-```markdown
----
 on:
   schedule: daily on weekdays
 permissions:
@@ -220,9 +206,9 @@ Create a daily summary of open issues for the team.
 
 - **Security first**: Use least-privilege permissions and safe outputs instead of direct write access
 - **Clear instructions**: Write clear natural language instructions in the workflow body
-- **Descriptive names**: Use lowercase folder names with hyphens
-- **Test locally**: Use `gh aw run` to test workflows before contributing
-- **Documentation**: Include a thorough README explaining what the workflow does and how to use it
+- **Descriptive names**: Use lowercase filenames with hyphens (e.g., `daily-issues-report.md`)
+- **Test locally**: Use `gh aw compile --validate` to verify your workflow compiles
+- **No compiled files**: Only submit the `.md` source — `.lock.yml` and `.yml` files are not accepted
 - Learn more at the [Agentic Workflows documentation](https://github.github.com/gh-aw)
 
 ## Submitting Your Contribution

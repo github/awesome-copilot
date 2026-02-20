@@ -27,11 +27,9 @@ jobs:
           exit_code=0
           found=0
 
-          # Find all .md files in workflows/ subfolders (excluding README.md)
-          for workflow_file in workflows/*/*.md; do
+          # Find all .md files directly in workflows/
+          for workflow_file in workflows/*.md; do
             [ -f "$workflow_file" ] || continue
-            basename=$(basename "$workflow_file")
-            [ "$basename" = "README.md" ] && continue
 
             found=$((found + 1))
             echo "::group::Compiling $workflow_file"
@@ -45,7 +43,7 @@ jobs:
           done
 
           if [ "$found" -eq 0 ]; then
-            echo "No workflow .md files found to validate (README.md files are excluded)."
+            echo "No workflow .md files found to validate."
           else
             echo "Validated $found workflow file(s)."
           fi

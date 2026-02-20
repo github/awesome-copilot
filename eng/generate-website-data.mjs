@@ -195,7 +195,7 @@ function generateHooksData(gitDates) {
 }
 
 /**
- * Generate workflows metadata (folder-based, similar to hooks)
+ * Generate workflows metadata (flat .md files)
  */
 function generateWorkflowsData(gitDates) {
   const workflows = [];
@@ -210,37 +210,34 @@ function generateWorkflowsData(gitDates) {
     };
   }
 
-  const workflowFolders = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
-    const filePath = path.join(WORKFLOWS_DIR, file);
-    return fs.statSync(filePath).isDirectory();
+  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
   });
 
   const allTriggers = new Set();
   const allTags = new Set();
 
-  for (const folder of workflowFolders) {
-    const workflowPath = path.join(WORKFLOWS_DIR, folder);
-    const metadata = parseWorkflowMetadata(workflowPath);
+  for (const file of workflowFiles) {
+    const filePath = path.join(WORKFLOWS_DIR, file);
+    const metadata = parseWorkflowMetadata(filePath);
     if (!metadata) continue;
 
     const relativePath = path
-      .relative(ROOT_FOLDER, workflowPath)
+      .relative(ROOT_FOLDER, filePath)
       .replace(/\\/g, "/");
-    const readmeRelativePath = `${relativePath}/README.md`;
 
     (metadata.triggers || []).forEach((t) => allTriggers.add(t));
     (metadata.tags || []).forEach((t) => allTags.add(t));
 
+    const id = path.basename(file, ".md");
     workflows.push({
-      id: folder,
+      id,
       title: metadata.name,
       description: metadata.description,
       triggers: metadata.triggers || [],
       tags: metadata.tags || [],
-      assets: metadata.assets || [],
       path: relativePath,
-      readmeFile: readmeRelativePath,
-      lastUpdated: gitDates.get(readmeRelativePath) || null,
+      lastUpdated: gitDates.get(relativePath) || null,
     });
   }
 
@@ -735,7 +732,7 @@ function generateSearchIndex(
       id: workflow.id,
       title: workflow.title,
       description: workflow.description,
-      path: workflow.readmeFile,
+      path: workflow.path,
       lastUpdated: workflow.lastUpdated,
       searchText: `${workflow.title} ${workflow.description} ${workflow.triggers.join(
         " "
