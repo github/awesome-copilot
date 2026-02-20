@@ -65,6 +65,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "dataverse-mcp",
+      "source": "./plugins/dataverse-mcp",
+      "description": "Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands.",
+      "version": "1.0.0"
+    },
+    {
       "name": "dataverse-sdk-for-python",
       "source": "./plugins/dataverse-sdk-for-python",
       "description": "Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts.",
