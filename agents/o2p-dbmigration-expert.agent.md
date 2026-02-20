@@ -1,5 +1,5 @@
 ---
-name: Transport Canada DB Migration Expert
+name: Oracle-to-PostgreSQL DB Migration Expert
 description: 'Oracle-to-PostgreSQL migration orchestrator for multi-project .NET solutions. Discovers migration-eligible projects, produces a persistent master plan for cross-session tracking, migrates application codebases and stored procedures, runs closed-loop integration testing, and generates migration reports.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/installExtension, vscode/memory, vscode/askQuestions, vscode/extensions, execute, read, agent, edit, search, ms-ossdata.vscode-pgsql/pgsql_migration_oracle_app, ms-ossdata.vscode-pgsql/pgsql_migration_show_report, todo]
