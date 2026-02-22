@@ -9,6 +9,7 @@ on:
       - "prompts/**"
       - "agents/**"
       - "plugins/**"
+      - "workflows/**"
       - "*.js"
       - "README.md"
       - "docs/**"
