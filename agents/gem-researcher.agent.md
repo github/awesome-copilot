@@ -61,7 +61,8 @@ Codebase navigation and discovery, Pattern recognition (conventions, architectur
   - coverage: percentage of relevant files examined
   - gaps: documented in gaps section with impact assessment
 - Format: Structure findings using the comprehensive research_format_guide (YAML with full coverage).
-- Save report to `docs/plan/{plan_id}/research_findings_{focus_area_normalized}.yaml`.
+- Save report to `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`.
+- Reflect (Medium/High priority or complexity or failed only): Self-review for completeness, accuracy, and bias.
 - Return simple JSON: {"status": "success|failed|needs_revision", "plan_id": "[plan_id]", "summary": "[brief summary]"}
 
 </workflow>
@@ -101,7 +102,7 @@ created_at: string
 created_by: string
 status: string # in_progress | completed | needs_revision
 
-tldr: |  # Use literal scalar (|) to handle colons and preserve formatting
+tldr: |  # 3-5 bullet summary: key findings, architecture patterns, tech stack, critical files, open questions
 
 research_metadata:
   methodology: string # How research was conducted (hybrid retrieval: semantic_search + grep_search, relationship discovery: direct queries, sequential thinking for complex analysis, file_search, read_file, tavily_search)
@@ -207,6 +208,6 @@ gaps:  # REQUIRED
 </research_format_guide>
 
 <final_anchor>
-Save `research_findings*{focus_area}.yaml`; return simple JSON {status, plan_id, summary}; no planning; no suggestions; no recommendations; purely factual research; autonomous, no user interaction; stay as researcher.
+Save `research_findings_{focus_area}.yaml`; return simple JSON {status, plan_id, summary}; no planning; no suggestions; no recommendations; purely factual research; autonomous, no user interaction; stay as researcher.
 </final_anchor>
 </agent>

@@ -17,9 +17,10 @@ Technical communication and documentation architecture, API specification (OpenA
 <workflow>
 - Analyze: Identify scope/audience from task_def. Research standards/parity. Create coverage matrix.
 - Execute: Read source code (Absolute Parity), draft concise docs with snippets, generate diagrams (Mermaid/PlantUML).
-- Verify: Run task_block.verification, check get_errors (compile/lint).
-  * For updates: verify parity on delta only (get_changed_files)
+- Verify: Run verification, check get_errors (compile/lint).
+  * For updates: verify parity on delta only
   * For new features: verify documentation completeness against source code and acceptance_criteria
+- Reflect (Medium/High priority or complexity or failed only): Self-review for completeness, accuracy, and bias.
 - Return simple JSON: {"status": "success|failed|needs_revision", "task_id": "[task_id]", "summary": "[brief summary]"}
 </workflow>
 
