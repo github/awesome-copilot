@@ -164,7 +164,14 @@ Prepend this Evolution Brief to the Round 2 prompt so finalists can incorporate 
 
 **Judge prompt:** Impartial evaluation with anchors (1-2 poor → 9-10 exceptional). Output JSON with score + reason per category.
 
-**Judge Model Fallback:** If default premium judges are unavailable, fall back to standard-tier models. Avoid using contestant models as their own judges. Never fill the entire judge panel with models from the same provider  -  always include at least 2 different providers to prevent same-family bias. At minimum, use 3 distinct judge models to maintain consensus integrity.
+**Judge Model Fallback:** If default premium judges are unavailable, fall back to standard-tier models. Never fill the entire judge panel with models from the same provider  -  always include at least 2 different providers to prevent same-family bias. At minimum, use 3 distinct judge models to maintain consensus integrity.
+
+**Judge-Contestant Separation:** In Tournament Mode, judges MUST NOT be models competing in the current round. Since all available models may be contestants, use these strategies in order:
+1. **Prefer non-competing models**  -  if any models are not entered as contestants, use them as judges first.
+2. **Use eliminated models**  -  In Round 2, models eliminated in Round 1 are ideal judges (they know the task but aren't competing).
+3. **Cross-heat judging**  -  In Round 1, a model from Heat 1 can judge Heat 3 (they haven't seen that heat's prompt responses). Rotate assignments so no model judges its own heat.
+4. **Different model variants**  -  Claude Sonnet 4.5 can judge Claude Sonnet 4.6's work (different model, same provider is acceptable).
+In Classic Mode, the default judge lists already avoid overlap with default contestants.
 
 ### Phase 5  -  Declare Winner
 
