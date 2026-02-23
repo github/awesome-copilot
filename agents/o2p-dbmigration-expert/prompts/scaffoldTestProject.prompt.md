@@ -35,7 +35,7 @@ SEED DATA MANAGEMENT:
 - Do not commit seed data because tests are isolated within transactions and rolled back after each test.
 - Ensure seed data is loaded and verified before running tests.
 - Avoid truncate table statements because we want to keep existing database data intact.
-- Priority should be given to re-using existing seed files if any exist.
+- Priority should be given to reusing existing seed files if any exist.
 - Establish a convention for seed file location and naming that downstream test creation will follow.
 
 OUTPUT:

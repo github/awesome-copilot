@@ -44,5 +44,5 @@ INSTRUCTIONS FOR SEED DATA:
 - Do not commit seed data because tests are isolated within transactions and rolled back after each test.
 - Ensure that changes to seed data do not conflict with other tests.
 - Ensure seed data is loaded and verified before running tests.
-- Priority should be given to re-using existing seed files.
+- Priority should be given to reusing existing seed files.
 - Avoid truncate table statements because we want to keep existing database data intact.
