@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  schemaVersion: v1.0.0
+  name: awesome-copilot
+  description: Forked from https://github.com/github/awesome-copilot
+  annotations:
+    github.com/project-slug: Bandwidth/awesome-copilot
+  organization: BW
+  costCenter: undefined
+  platformType: undefined
+  buildPlatform: GitHub Actions
+spec:
+  type: Library
+  owner: github/band-programmable-voice
+  lifecycle: Prototype
+  dependsOn:
+    - resource:platform/GitHub Actions
+    - resource:cost-center/undefined
