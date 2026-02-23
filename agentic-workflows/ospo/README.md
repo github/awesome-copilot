@@ -14,8 +14,6 @@ These workflows automate common OSPO tasks using [GitHub Agentic Workflows](../R
 | [**contributors-report**](contributors-report.md) | Monthly (1st) | New vs. returning contributor metrics, commit counts, optional Sponsors info |
 | [**release-compliance-checker**](release-compliance-checker.md) | On issue open | Audits a repo for OSS release readiness — required files, security config, license compliance, risk assessment |
 | [**stale-repos**](stale-repos.md) | Monthly (1st) | Finds repositories with no activity in X days (default: 365) |
-| [**dora-metrics**](dora-metrics.md) | Monthly (1st) | DORA engineering metrics — deploy frequency, lead time, change failure rate, MTTR |
-| [**team-permissions-audit**](team-permissions-audit.md) | Monthly (1st) | Flags direct (non-team) collaborator access for better security |
 
 ## Quick Start
 
