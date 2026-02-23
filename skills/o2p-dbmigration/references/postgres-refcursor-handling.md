@@ -7,11 +7,13 @@ When migrating from Oracle to PostgreSQL, a critical difference exists in how **
 ## The Core Difference
 
 **Oracle Behavior:**
+
 - Refcursor output parameters automatically expose their result set to the data reader
 - Client code can immediately access result columns
 - No additional commands needed
 
 **PostgreSQL Behavior:**
+
 - Refcursor output parameters return a **cursor name** (e.g., `"<unnamed portal 1>"`)
 - The cursor remains open in the database session
 - Client must execute `FETCH ALL FROM "<cursor_name>"` to retrieve actual data
@@ -27,10 +29,10 @@ System.IndexOutOfRangeException: Field not found in row: <column_name>
 
 This occurs because the data reader contains only the refcursor parameter itself, not the actual query results.
 
-
 ## Database Stored Procedure Pattern
 
 ### Oracle Stored Procedure
+
 ```sql
 CREATE OR REPLACE PROCEDURE get_users(
     p_department_id IN NUMBER,
@@ -46,10 +48,11 @@ END;
 ```
 
 ### PostgreSQL Stored Procedure
+
 ```sql
 CREATE OR REPLACE PROCEDURE get_users(
     p_department_id IN INTEGER,
-    cur_result INOUT refcursor
+    cur_result OUT refcursor
 )
 LANGUAGE plpgsql
 AS $$
@@ -63,13 +66,12 @@ END;
 $$;
 ```
 
-**Key Difference:** PostgreSQL returns the cursor itself as an `INOUT` parameter, not the result set.
-
-
+**Key Difference:** PostgreSQL returns the cursor itself as an `OUT` parameter, not the result set.
 
 ## Client Code Solution (C#)
 
 ### Problematic Oracle-Style Code
+
 This code works with Oracle but fails with PostgreSQL:
 
 ```csharp
@@ -260,8 +262,6 @@ public IEnumerable<User> GetUsers(int departmentId)
 }
 ```
 
-
-
 ## Transactional Context
 
 When working within transactions, ensure the `FETCH` command uses the same transaction:
@@ -312,11 +312,10 @@ public IEnumerable<User> GetUsersInTransaction(
 }
 ```
 
-
-
 ## Debugging Tips
 
 ### Before Fix - What You'll See
+
 When inspecting the data reader after executing a refcursor procedure without proper unwrapping:
 
 ```csharp
@@ -330,6 +329,7 @@ var userId = reader.GetInt32(reader.GetOrdinal("user_id"));
 ```
 
 ### After Fix - What You Should See
+
 After properly fetching from the cursor:
 
 ```csharp
@@ -343,8 +343,6 @@ Console.WriteLine($"Field 2: {reader.GetName(2)}");      // Output: "email"
 var userId = reader.GetInt32(reader.GetOrdinal("user_id")); // Works correctly
 ```
 
-
-
 ## Comparison Table: Oracle vs. PostgreSQL Refcursor Handling
 
 | Aspect | Oracle (ODP.NET) | PostgreSQL (Npgsql) |
@@ -355,8 +353,6 @@ var userId = reader.GetInt32(reader.GetOrdinal("user_id")); // Works correctly
 | **Multiple Cursors** | Multiple refcursors work automatically | Each requires separate `FETCH` command |
 | **Cursor Lifetime** | Managed automatically by driver | Remains open; must manage explicitly |
 | **Transaction Handling** | Transparent | `FETCH` must use same transaction context |
-
-
 
 ## Best Practices
 
