@@ -1,0 +1,26 @@
+{
+  "name": "o2p-dbmigration",
+  "description": "Oracle-to-PostgreSQL migration orchestrator for multi-project .NET solutions with comprehensive migration planning, code transformation, integration testing, and reporting capabilities.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "oracle",
+    "postgresql",
+    "database-migration",
+    "dotnet",
+    "sql",
+    "migration",
+    "integration-testing",
+    "stored-procedures"
+  ],
+  "agents": [
+    "./agents/o2p-dbmigration-expert.md"
+  ],
+  "skills": [
+    "./skills/o2p-dbmigration/"
+  ]
+}
