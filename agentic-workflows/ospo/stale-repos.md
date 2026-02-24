@@ -36,7 +36,7 @@ on:
 
 permissions:
   contents: read
-  issues: read
+  issues: write
 
 engine: copilot
 tools:
