@@ -111,61 +111,17 @@ to each of the following categories:
 
 ## 7. Generate Compliance Report
 
-Post **one** comment on the triggering issue with this structure:
+Post **one** comment on the triggering issue with these sections:
 
-```markdown
-## 🔍 OSS Release Compliance Report
-
-**Repository:** `owner/repo`
-**Checked at:** <timestamp>
-**Overall status:** PASS ✅ | NEEDS WORK ⚠️ | BLOCKED 🚫
-
----
-
-### 📄 File Compliance
-
-| File | Status | Notes |
-|------|--------|-------|
-| LICENSE | ✅ / ❌ | ... |
-| README.md | ✅ / ❌ | ... |
-| ... | ... | ... |
-
-### 🔒 Security Configuration
-
-| Setting | Status | Notes |
-|---------|--------|-------|
-| Secret scanning | ✅ / ❌ | ... |
-| ... | ... | ... |
-
-### ⚖️ License Analysis
-
-- **Declared license:** ...
-- **LICENSE file match:** ✅ / ❌
-- **Copyleft flags:** ...
-
-### 📊 Risk Assessment
-
-| Category | Level | Details |
-|----------|-------|---------|
-| Business Risk | 🟢/🟡/🔴 | ... |
-| Legal Risk | 🟢/🟡/🔴 | ... |
-| Open Source Risk | 🟢/🟡/🔴 | ... |
-
-### 📋 Recommendations
-
-**🚫 Must Fix (blocking release)**
-- ...
-
-**⚠️ Should Address (strongly recommended)**
-- ...
-
-**💡 Nice to Have (polish)**
-- ...
-```
+1. **Header** — repo name, timestamp, overall status (PASS ✅ / NEEDS WORK ⚠️ / BLOCKED 🚫)
+2. **📄 File Compliance** — table of 7 files with ✅/❌ status and notes
+3. **🔒 Security Configuration** — table of 4 settings with status
+4. **⚖️ License Analysis** — declared license, LICENSE file match, copyleft flags
+5. **📊 Risk Assessment** — Business/Legal/Open Source risk levels (🟢/🟡/🔴) with details
+6. **📋 Recommendations** — prioritized as Must Fix (blocking), Should Address, Nice to Have
 
 ### Tone Guidelines
 
-- Be **constructive**. The goal is to help teams succeed, not to gatekeep.
-- When something is missing, explain *why* it matters and link to relevant
-  guidance when possible.
+- Be **constructive** — help teams succeed, don't gatekeep.
+- Explain *why* missing items matter and link to guidance.
 - Celebrate what the team has already done well.

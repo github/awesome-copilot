@@ -191,92 +191,20 @@ appropriate central repo) with the title:
 [Org Health] Weekly Report — <DATE>
 ```
 
-Use this structure for the issue body:
+The issue body should include these sections in order:
 
-```markdown
-# 🏥 Org Health Report: <ORG>
-**Period**: Last 30 days | **Generated**: <DATE>
+1. **Header** — org name, period, generation date
+2. **🚨 Health Alerts** — table of indicators with 🟢/🟡/🔴 status and values
+3. **🏆 Wins & Shoutouts** — fast merges, quick closes, top contributors
+4. **📋 Stale Issues** — top 10 by heat score (repo, issue, days stale, comment count, labels)
+5. **📋 Stale PRs** — top 10 by heat score (repo, PR, days stale, comment count, author)
+6. **⏱️ PR Merge Time** — p50, p75, p95 percentiles
+7. **⚡ First Response Time** — median for issues and PRs
+8. **📊 Top 10 Active Repos** — sorted by total activity (issues + PRs + commits)
+9. **👥 Contributor Leaderboard** — top 10 by commits with 🥇🥈🥉
+10. **😴 Inactive Repos** — repos with 0 activity in 30 days
 
----
-
-## 🚨 Health Alerts & Trends
-
-| Indicator | Status | Value |
-|-----------|--------|-------|
-| Issue close rate | 🟢/🟡/🔴 | X closed / Y opened (Z%) |
-| PR merge rate | 🟢/🟡/🔴 | X merged / Y opened (Z%) |
-| Median merge time | 🟢/🟡/🔴 | Xh |
-| Median first response | 🟢/🟡/🔴 | Xh |
-| Stale issues | 🟢/🟡/🔴 | N |
-| Stale PRs | 🟢/🟡/🔴 | N |
-
----
-
-## 🏆 Wins & Shoutouts
-
-- 🎉 **Fast merges**: List PRs merged in < 4h
-- ⚡ **Quick closes**: Issues resolved in < 24h
-- 🌟 **Top contributors**: @user1, @user2, @user3
-
----
-
-## 📋 Action Items
-
-### Stale Issues Needing Review (Top 10 by Heat Score)
-| # | Repo | Issue | Days Stale | 🔥 Heat | Labels |
-|---|------|-------|------------|---------|--------|
-| 1 | repo | #N title | Xd | Y comments | label1, label2 |
-
-### Stale PRs Needing Review (Top 10 by Heat Score)
-| # | Repo | PR | Days Stale | 🔥 Heat | Author |
-|---|------|----|------------|---------|--------|
-| 1 | repo | #N title | Xd | Y comments | @user |
-
----
-
-## ⏱️ PR Merge Time Analysis
-
-| Percentile | Time |
-|------------|------|
-| p50 (median) | Xh |
-| p75 | Xh |
-| p95 | Xh |
-
----
-
-## ⚡ First Response Time
-
-| Category | Median First Response |
-|----------|---------------------|
-| Issues | Xh |
-| Pull Requests | Xh |
-
----
-
-## 📊 Top 10 Active Repositories
-
-| # | Repository | Issues | PRs | Commits | Total Activity |
-|---|------------|--------|-----|---------|---------------|
-| 1 | repo-name | N | N | N | N |
-
----
-
-## 👥 Contributor Leaderboard
-
-| Rank | Contributor | Commits | Top Repo |
-|------|-------------|---------|----------|
-| 🥇 | @user1 | N | repo |
-| 🥈 | @user2 | N | repo |
-| 🥉 | @user3 | N | repo |
-
----
-
-## 😴 Inactive Repositories (0 activity in 30 days)
-
-| Repository | Last Push | Description |
-|------------|-----------|-------------|
-| repo-name | YYYY-MM-DD | Short description |
-```
+Use markdown tables for all data sections.
 
 ## Important Notes
 

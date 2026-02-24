@@ -75,32 +75,11 @@ Create a GitHub issue with the report.
 4. **Commit both files** — the `.md` source and the generated `.lock.yml`
 5. **Push** — the workflow runs on the triggers you defined
 
-## Safe-Outputs: Built-in Guardrails
-
-Every agentic workflow declares `safe-outputs` in its frontmatter. These are hard limits on what the AI can do per run:
-
-```yaml
-safe-outputs:
-  create-issue:
-    max: 1                    # Create at most 1 issue
-    title-prefix: "[Report] " # Must start with this prefix
-  create-pull-request:
-    max: 3
-  add-comment:
-    max: 5
-  add-labels:
-    max: 10
-```
-
-If the AI attempts to exceed these limits, the operation is blocked. This prevents runaway automation.
-
-## Available Workflow Categories
+## Examples
 
 | Category | Description |
 |---|---|
 | **[OSPO](ospo/)** | Open Source Program Office — org health, contributor metrics, compliance, repo hygiene |
-
-> More categories coming soon: DevRel, Security, InnerSource, DevOps
 
 ## Learn More
 
