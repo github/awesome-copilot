@@ -1,6 +1,6 @@
 ---
 name: ospo-readiness
-description: Scan any GitHub repository for open source readiness. Evaluates LICENSE, CONTRIBUTING.md, dependency license compatibility, README quality, SECURITY.md, CODE_OF_CONDUCT.md, CI/CD workflows, and issue/PR templates. Produces a scored readiness report with a letter grade (A–F) and actionable recommendations. Use when evaluating a repo for open source compliance, OSPO review, or community health. Invoke by providing a GitHub owner/repo (e.g. "scan expressjs/express for open source readiness").
+description: 'Scan any GitHub repository for open source readiness. Evaluates LICENSE, CONTRIBUTING.md, dependency license compatibility, README quality, SECURITY.md, CODE_OF_CONDUCT.md, CI/CD workflows, and issue/PR templates. Produces a scored readiness report with a letter grade (A–F) and actionable recommendations. Use when evaluating a repo for open source compliance, OSPO review, or community health. Invoke by providing a GitHub owner/repo (e.g. "scan expressjs/express for open source readiness").'
 ---
 
 # Open Source Readiness Scanner
