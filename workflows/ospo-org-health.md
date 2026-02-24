@@ -1,8 +1,9 @@
 ---
 name: 'OSPO Organization Health Report'
 description: 'Comprehensive weekly health report for a GitHub organization. Surfaces stale issues/PRs, merge time analysis, contributor leaderboards, and actionable items needing human attention.'
-triggers: ['schedule', 'workflow_dispatch']
-tags: ['ospo', 'reporting', 'org-health']
+metadata:
+  triggers: ['schedule', 'workflow_dispatch']
+labels: ['ospo', 'reporting', 'org-health']
 on:
   schedule:
     - cron: "0 10 * * 1"

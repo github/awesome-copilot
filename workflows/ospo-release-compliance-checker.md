@@ -1,8 +1,9 @@
 ---
 name: 'OSS Release Compliance Checker'
 description: 'Analyzes a target repository against open source release requirements and posts a detailed compliance report as an issue comment.'
-triggers: ['issues', 'workflow_dispatch']
-tags: ['ospo', 'compliance', 'release']
+metadata:
+  triggers: ['issues', 'workflow_dispatch']
+labels: ['ospo', 'compliance', 'release']
 on:
   issues:
     types: [opened, labeled]

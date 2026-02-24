@@ -284,10 +284,20 @@ function parseWorkflowMetadata(filePath) {
         triggers.push(onField);
       }
 
+      // Extract tags and convert to array
+      const tags = frontmatter.metadata?.tags
+        ? typeof frontmatter.metadata.tags === "string"
+          ? frontmatter.metadata.tags.split(",").map(tag => tag.trim())
+          : Array.isArray(frontmatter.metadata.tags)
+          ? frontmatter.metadata.tags
+          : []
+        : [];
+
       return {
         name: frontmatter.name,
         description: frontmatter.description,
         triggers,
+        tags,
         path: filePath,
       };
     },
