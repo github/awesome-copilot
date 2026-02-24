@@ -1,8 +1,9 @@
 ---
 name: 'OSPO Contributors Report'
 description: "Monthly contributor activity metrics across an organization's repositories."
-triggers: ['schedule', 'workflow_dispatch']
-tags: ['ospo', 'reporting', 'contributors']
+metadata:
+  triggers: ['schedule', 'workflow_dispatch']
+labels: ['ospo', 'reporting', 'contributors']
 on:
   schedule:
     - cron: "3 2 1 * *"

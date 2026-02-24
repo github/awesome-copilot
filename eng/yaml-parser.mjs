@@ -276,13 +276,15 @@ function parseWorkflowMetadata(filePath) {
       }
 
       // Extract triggers from frontmatter if present
-      const triggers = frontmatter.triggers || [];
+      // Support both awesome-copilot 'triggers' and gh-aw-compatible 'metadata.triggers'
+      const triggers = frontmatter.triggers || frontmatter.metadata?.triggers || [];
 
       return {
         name: frontmatter.name,
         description: frontmatter.description,
         triggers,
-        tags: frontmatter.tags || [],
+        // Support both awesome-copilot 'tags' and gh-aw-compatible 'labels'
+        tags: frontmatter.tags || frontmatter.labels || [],
         path: filePath,
       };
     },
