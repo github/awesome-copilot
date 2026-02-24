@@ -1,5 +1,5 @@
 ---
-name: 'Contributors Report'
+name: 'OSPO Contributors Report'
 description: "Monthly contributor activity metrics across an organization's repositories."
 triggers: ['schedule', 'workflow_dispatch']
 tags: ['ospo', 'reporting', 'contributors']
