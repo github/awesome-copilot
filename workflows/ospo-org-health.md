@@ -63,6 +63,8 @@ PERIOD_DAYS = 30
 SINCE = date 30 days ago (ISO 8601)
 STALE_ISSUE_DAYS = 60
 STALE_PR_DAYS = 30
+60_DAYS_AGO = date 60 days ago (ISO 8601)
+30_DAYS_AGO = date 30 days ago (ISO 8601, same as SINCE)
 ```
 
 ## Step 2 — Gather Organization-Wide Aggregates (Search API)
