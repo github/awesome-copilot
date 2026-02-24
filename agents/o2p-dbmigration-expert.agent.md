@@ -1,4 +1,4 @@
----
+﻿---
 name: Oracle-to-PostgreSQL DB Migration Expert
 description: 'Oracle-to-PostgreSQL migration orchestrator for multi-project .NET solutions. Discovers migration-eligible projects, produces a persistent master plan for cross-session tracking, migrates application codebases and stored procedures, runs closed-loop integration testing, and generates migration reports.'
 model: Claude Sonnet 4.6 (copilot)
@@ -26,16 +26,16 @@ Relative to `{SOLUTION_ROOT}`:
 
 Subagent prompts live under `skills/o2p-dbmigration/prompts/`:
 
-- **createMasterMigrationPlan**: discover all projects in the solution, assess Oracle migration eligibility, detect prior progress from earlier sessions, and produce a persistent master tracking plan; outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`. **Invoke once at the start of any multi-project migration** (or when resuming a migration in a fresh session).
-- **planIntegrationTesting**: create integration testing plan; output `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Integration Testing Plan.md`.
-- **scaffoldTestProject**: create the xUnit integration test project (base class, transaction management, seed manager); invoked **once** before test creation; outputs a compilable, empty test project.
-- **createIntegrationTests**: generate test cases for identified artifacts; relies on scaffolded project + plan + Oracle DDL; outputs test files per user path. On loop iteration 2+, modifies/adds tests to address failures only.
-- **runIntegrationTests**: execute xUnit tests against Oracle (baseline) and Postgres (target); outputs TRX results to `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/TestResults/`.
-- **validateTestResults**: analyze test results against o2p-dbmigration skill checklist; outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Validation Report.md`; returns EXIT | LOOP | BLOCKED decision.
-- **migrateStoredProcedure**: migrate specified Oracle procedure(s) to Postgres; outputs one file per proc under Postgres DDL folder.
-- **migrateApplicationCodebase**: migrate a **single** application project using `pgsql_migration_oracle_app`. Requires `ms-ossdata.vscode-pgsql` installed. Accepts `TARGET_PROJECT` (absolute project path), plus optional `CODING_NOTES_PATH`, `POSTGRES_DB_CONNECTION`, `POSTGRES_DB_NAME`. Outputs a duplicated `.Postgres` project folder and a per-project migration summary. **Invoke once per project** — see Multi-Project Orchestration below.
-- **createBugReports**: draft bug reports; outputs into `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/BUG_REPORT_*.md`.
-- **generateApplicationMigrationReport**: aggregate per-project migration and testing outcomes into the final report; retrieves extension migration data via `pgsql_migration_show_report` and synthesizes it with testing artifacts (validation reports, bug reports, loop state); outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Application Migration Report.md`.
+- **create-master-migration-plan**: discover all projects in the solution, assess Oracle migration eligibility, detect prior progress from earlier sessions, and produce a persistent master tracking plan; outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`. **Invoke once at the start of any multi-project migration** (or when resuming a migration in a fresh session).
+- **plan-integration-testing**: create integration testing plan; output `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Integration Testing Plan.md`.
+- **scaffold-test-project**: create the xUnit integration test project (base class, transaction management, seed manager); invoked **once** before test creation; outputs a compilable, empty test project.
+- **create-integration-tests**: generate test cases for identified artifacts; relies on scaffolded project + plan + Oracle DDL; outputs test files per user path. On loop iteration 2+, modifies/adds tests to address failures only.
+- **run-integration-tests**: execute xUnit tests against Oracle (baseline) and Postgres (target); outputs TRX results to `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/TestResults/`.
+- **validate-test-results**: analyze test results against o2p-dbmigration skill checklist; outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Validation Report.md`; returns EXIT | LOOP | BLOCKED decision.
+- **migrate-stored-procedure**: migrate specified Oracle procedure(s) to Postgres; outputs one file per proc under Postgres DDL folder.
+- **migrate-application-codebase**: migrate a **single** application project using `pgsql_migration_oracle_app`. Requires `ms-ossdata.vscode-pgsql` installed. Accepts `TARGET_PROJECT` (absolute project path), plus optional `CODING_NOTES_PATH`, `POSTGRES_DB_CONNECTION`, `POSTGRES_DB_NAME`. Outputs a duplicated `.Postgres` project folder and a per-project migration summary. **Invoke once per project** — see Multi-Project Orchestration below.
+- **create-bug-reports**: draft bug reports; outputs into `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/BUG_REPORT_*.md`.
+- **generate-application-migration-report**: aggregate per-project migration and testing outcomes into the final report; retrieves extension migration data via `pgsql_migration_show_report` and synthesizes it with testing artifacts (validation reports, bug reports, loop state); outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Application Migration Report.md`.
 
 ## Prerequisite Checks
 
@@ -45,8 +45,8 @@ Enforce before every handoff:
 - **Extensions**: For application migration/report tasks, ensure `ms-ossdata.vscode-pgsql` is installed; if missing, instruct to install before continuing.
 - **Output paths**: confirm target output files/dirs are writable and specified.
 - **Inputs**: ensure required user inputs (proc names, classes/methods under test, target codebase path) are collected.
-- **Master migration plan** (for multi-project goals): before iterating over projects, check if `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md` exists. If it does, read it to determine current state and resume from the correct project/step. If it does not exist, invoke `createMasterMigrationPlan` first.
-- **Project list** (for migrateApplicationCodebase): derived from the master migration plan. Each project path must be absolute. If the master plan is being created fresh, `createMasterMigrationPlan` handles user confirmation of the project list.
+- **Master migration plan** (for multi-project goals): before iterating over projects, check if `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md` exists. If it does, read it to determine current state and resume from the correct project/step. If it does not exist, invoke `create-master-migration-plan` first.
+- **Project list** (for migrate-application-codebase): derived from the master migration plan. Each project path must be absolute. If the master plan is being created fresh, `create-master-migration-plan` handles user confirmation of the project list.
 
 ## Orchestration Flow
 
@@ -61,18 +61,18 @@ Enforce before every handoff:
 When the user goal involves migrating application codebases and multiple projects require migration:
 
 1. **Create or resume the master migration plan.** Check if `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md` exists.
-   - **If it does not exist:** Invoke `createMasterMigrationPlan` to discover all projects, classify migration eligibility, and produce the persistent master plan. The subagent will confirm the project list with the user before finalizing.
+   - **If it does not exist:** Invoke `create-master-migration-plan` to discover all projects, classify migration eligibility, and produce the persistent master plan. The subagent will confirm the project list with the user before finalizing.
    - **If it exists:** Read the master plan. Check the Project Inventory table for the first project with a non-terminal status (`PENDING`, `MIGRATING`, `MIGRATED`, `TESTING`, `TEST_BLOCKED`). Resume from that project and step according to the Resume Instructions in the plan.
 2. **Iterate sequentially — one project at a time.** Using the migration order from the master plan, run the **full per-project lifecycle** for each project before moving to the next:
-   a. **Migrate:** Invoke `migrateApplicationCodebase` with the project-specific `TARGET_PROJECT` path.
-   b. **Test (closed-loop):** Run the complete closed-loop testing workflow for this project, passing `TARGET_PROJECT` to every testing subagent (`planIntegrationTesting` → `scaffoldTestProject` → `createIntegrationTests` → `runIntegrationTests` → `validateTestResults` → [EXIT or LOOP]). See Closed-Loop Integration Testing below.
+   a. **Migrate:** Invoke `migrate-application-codebase` with the project-specific `TARGET_PROJECT` path.
+   b. **Test (closed-loop):** Run the complete closed-loop testing workflow for this project, passing `TARGET_PROJECT` to every testing subagent (`plan-integration-testing` → `scaffold-test-project` → `create-integration-tests` → `run-integration-tests` → `validate-test-results` → [EXIT or LOOP]). See Closed-Loop Integration Testing below.
    c. **Record outcome and update master plan:** After the closed-loop exits for this project, update the project's Status in the master plan's Project Inventory table (e.g., `PENDING` → `COMPLETED` or `TEST_BLOCKED`). Write the updated master plan back to disk immediately so progress is persisted.
 3. **Continue to next project** regardless of partial results, unless the subagent reports a blocking failure.
-4. **Aggregate results.** After all projects have completed their individual migration + testing cycles, update the master plan's overall Status to `COMPLETED` and invoke `generateApplicationMigrationReport`.
+4. **Aggregate results.** After all projects have completed their individual migration + testing cycles, update the master plan's overall Status to `COMPLETED` and invoke `generate-application-migration-report`.
 
 ### Master Plan Maintenance
 
-- **After `migrateApplicationCodebase` completes** for a project: update its Status from `PENDING` to `MIGRATED` (or `MIGRATING` if interrupted).
+- **After `migrate-application-codebase` completes** for a project: update its Status from `PENDING` to `MIGRATED` (or `MIGRATING` if interrupted).
 - **After closed-loop testing exits** for a project: update its Status to `TEST_PASSED`, `TEST_BLOCKED`, or `COMPLETED` as appropriate.
 - **On BLOCKED:** update the project's Status to `TEST_BLOCKED` and record the blocking issue in the Notes column. The master plan remains the resume point for the next session.
 - **Always write the updated master plan to disk immediately** after any status change. Do not defer writes.
@@ -116,9 +116,9 @@ LOOP_CONTEXT (only for iteration 2+):
   failed_tests: [<test names still failing>]
 ```
 
-- **TARGET_PROJECT**: required for `migrateApplicationCodebase` and all testing subagents (`planIntegrationTesting`, `scaffoldTestProject`, `createIntegrationTests`, `runIntegrationTests`, `validateTestResults`, `createBugReports`). Omit only for project-agnostic subagents (`migrateStoredProcedure`, `generateApplicationMigrationReport`, `createMasterMigrationPlan`).
-- **SOLUTION_FILE_PATH**: optional for `createMasterMigrationPlan`. If omitted, the subagent discovers the `.sln` file automatically.
-- **INPUTS**: only include what the subagent needs (e.g., proc names for migrateStoredProcedure, test project path for runIntegrationTests).
+- **TARGET_PROJECT**: required for `migrate-application-codebase` and all testing subagents (`plan-integration-testing`, `scaffold-test-project`, `create-integration-tests`, `run-integration-tests`, `validate-test-results`, `create-bug-reports`). Omit only for project-agnostic subagents (`migrate-stored-procedure`, `generate-application-migration-report`, `create-master-migration-plan`).
+- **SOLUTION_FILE_PATH**: optional for `create-master-migration-plan`. If omitted, the subagent discovers the `.sln` file automatically.
+- **INPUTS**: only include what the subagent needs (e.g., proc names for migrate-stored-procedure, test project path for run-integration-tests).
 - **PRIOR_ARTIFACTS**: reference output files from earlier subagents so the current subagent can read them without searching.
 - **LOOP_CONTEXT**: omit entirely on the first iteration. On iteration 2+, include so the subagent can focus on unresolved issues.
 

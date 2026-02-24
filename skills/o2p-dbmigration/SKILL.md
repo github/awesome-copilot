@@ -41,16 +41,16 @@ The `prompts/` folder contains task-specific subagent prompts used by the `o2p-d
 
 | Prompt | Purpose |
 |--------|---------|
-| `createMasterMigrationPlan` | Discover projects, assess eligibility, produce master tracking plan |
-| `migrateApplicationCodebase` | Migrate a single .NET project from Oracle to PostgreSQL |
-| `migrateStoredProcedure` | Convert Oracle stored procedures/functions to PostgreSQL |
-| `planIntegrationTesting` | Create a testing plan for a project's data access layer |
-| `scaffoldTestProject` | Create the xUnit test project infrastructure |
-| `createIntegrationTests` | Generate test cases for migration validation |
-| `runIntegrationTests` | Execute xUnit tests and capture structured results |
-| `validateTestResults` | Analyze results against the skill checklist and decide next step |
-| `createBugReports` | Draft bug reports for migration defects |
-| `generateApplicationMigrationReport` | Aggregate outcomes into the final migration report |
+| `create-master-migration-plan` | Discover projects, assess eligibility, produce master tracking plan |
+| `migrate-application-codebase` | Migrate a single .NET project from Oracle to PostgreSQL |
+| `migrate-stored-procedure` | Convert Oracle stored procedures/functions to PostgreSQL |
+| `plan-integration-testing` | Create a testing plan for a project's data access layer |
+| `scaffold-test-project` | Create the xUnit test project infrastructure |
+| `create-integration-tests` | Generate test cases for migration validation |
+| `run-integration-tests` | Execute xUnit tests and capture structured results |
+| `validate-test-results` | Analyze results against the skill checklist and decide next step |
+| `create-bug-reports` | Draft bug reports for migration defects |
+| `generate-application-migration-report` | Aggregate outcomes into the final migration report |
 
 The `references/` folder also contains `closed-loop-testing-workflow.md`, which defines the flow diagram, decision logic (EXIT/LOOP/BLOCKED), and loop control rules for the integration testing cycle.
 
