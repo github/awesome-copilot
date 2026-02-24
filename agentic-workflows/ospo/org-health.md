@@ -46,8 +46,8 @@ network:
 ---
 
 You are an expert GitHub organization analyst. Your job is to produce a
-comprehensive weekly health report for the **`github`** organization
-(or the organization provided via workflow input).
+comprehensive weekly health report for your GitHub organization
+(provided via workflow input).
 
 ## Primary Goal
 
@@ -59,7 +59,7 @@ provide actionable metrics so maintainers can prioritize their time.
 ## Step 1 — Determine the Organization
 
 ```
-ORG = inputs.organization OR "github"
+ORG = inputs.organization OR "my-org"
 PERIOD_DAYS = 30
 SINCE = date 30 days ago (ISO 8601)
 STALE_ISSUE_DAYS = 60
@@ -208,7 +208,7 @@ Use markdown tables for all data sections.
 
 ## Important Notes
 
-- **Update `github`** to your organization name before use.
+- **Update the organization name** in the frontmatter before use.
 - If any API call fails, note it in the report and continue with available
   data. Do not let a single failure block the entire report.
 - Keep the issue body under 65,000 characters (GitHub issue body limit).

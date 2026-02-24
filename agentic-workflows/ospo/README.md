@@ -15,7 +15,7 @@ These workflows automate common OSPO tasks using [GitHub Agentic Workflows](../R
 
 ## Customization
 
-- **Change the org**: Most workflows default to `"github"` — update to your org name
+- **Change the org**: Most workflows default to `"my-org"` — update to your org name
 - **Adjust schedules**: Edit the `cron` in the YAML frontmatter
 - **Tune thresholds**: Stale days, exempt repos, activity methods — all configurable via `workflow_dispatch` inputs
 - **Add/remove checks**: Edit the Markdown instructions directly

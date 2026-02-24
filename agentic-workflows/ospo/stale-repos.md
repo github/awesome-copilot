@@ -9,7 +9,7 @@ on:
         description: "GitHub organization to scan"
         required: true
         type: string
-        default: "github"
+        default: "my-org"
       inactive_days:
         description: "Number of days of inactivity before a repo is considered stale"
         required: false
@@ -62,7 +62,7 @@ You are an assistant that audits GitHub repositories for staleness.
 
 | Input | Default |
 |---|---|
-| `organization` | `github` |
+| `organization` | `my-org` |
 | `inactive_days` | `365` |
 | `exempt_repos` | _(none)_ |
 | `exempt_topics` | _(none)_ |
