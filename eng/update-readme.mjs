@@ -17,12 +17,14 @@ import {
     TEMPLATES,
     vscodeInsidersInstallImage,
     vscodeInstallImage,
+    WORKFLOWS_DIR,
 } from "./constants.mjs";
 import {
     extractMcpServerConfigs,
     parseFrontmatter,
     parseSkillMetadata,
     parseHookMetadata,
+    parseWorkflowMetadata,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -578,6 +580,61 @@ function generateHooksSection(hooksDir) {
 }
 
 /**
+ * Generate the workflows section with a table of all agentic workflows
+ */
+function generateWorkflowsSection(workflowsDir) {
+  if (!fs.existsSync(workflowsDir)) {
+    console.log(`Workflows directory does not exist: ${workflowsDir}`);
+    return "";
+  }
+
+  // Get all .md workflow files (flat, no subfolders)
+  const workflowFiles = fs.readdirSync(workflowsDir).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
+  });
+
+  // Parse each workflow file
+  const workflowEntries = workflowFiles
+    .map((file) => {
+      const filePath = path.join(workflowsDir, file);
+      const metadata = parseWorkflowMetadata(filePath);
+      if (!metadata) return null;
+
+      return {
+        file,
+        name: metadata.name,
+        description: metadata.description,
+        triggers: metadata.triggers,
+        tags: metadata.tags,
+      };
+    })
+    .filter((entry) => entry !== null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${workflowEntries.length} workflow(s)`);
+
+  if (workflowEntries.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let content =
+    "| Name | Description | Triggers |\n| ---- | ----------- | -------- |\n";
+
+  // Generate table rows for each workflow
+  for (const workflow of workflowEntries) {
+    const link = `../workflows/${workflow.file}`;
+    const triggers = workflow.triggers.length > 0 ? workflow.triggers.join(", ") : "N/A";
+
+    content += `| [${workflow.name}](${link}) | ${formatTableCell(
+      workflow.description
+    )} | ${triggers} |\n`;
+  }
+
+  return `${TEMPLATES.workflowsSection}\n${TEMPLATES.workflowsUsage}\n\n${content}`;
+}
+
+/**
  * Generate the skills section with a table of all skills
  */
 function generateSkillsSection(skillsDir) {
@@ -921,6 +978,7 @@ async function main() {
     const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
     const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
     const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
+    const workflowsHeader = TEMPLATES.workflowsSection.replace(/^##\s/m, "# ");
     const skillsHeader = TEMPLATES.skillsSection.replace(/^##\s/m, "# ");
     const pluginsHeader = TEMPLATES.pluginsSection.replace(
       /^##\s/m,
@@ -959,6 +1017,15 @@ async function main() {
       registryNames
     );
 
+    // Generate workflows README
+    const workflowsReadme = buildCategoryReadme(
+      generateWorkflowsSection,
+      WORKFLOWS_DIR,
+      workflowsHeader,
+      TEMPLATES.workflowsUsage,
+      registryNames
+    );
+
     // Generate skills README
     const skillsReadme = buildCategoryReadme(
       generateSkillsSection,
@@ -990,6 +1057,7 @@ async function main() {
     writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
+    writeFileIfChanged(path.join(DOCS_DIR, "README.workflows.md"), workflowsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
     writeFileIfChanged(
       path.join(DOCS_DIR, "README.plugins.md"),

@@ -1812,6 +1812,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lupritz",
+      "name": "lupritz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145381941?v=4",
+      "profile": "https://github.com/lupritz",
+      "contributions": [
+        "plugin"
+      ]
     }
   ]
 }
