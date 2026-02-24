@@ -13,8 +13,8 @@ on:
       inactive_days:
         description: "Number of days of inactivity before a repo is considered stale"
         required: false
-        type: number
-        default: 365
+        type: string
+        default: "365"
       exempt_repos:
         description: "Comma-separated list of repos to exempt from the report"
         required: false
