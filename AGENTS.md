@@ -9,6 +9,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 - **Instructions** - Coding standards and best practices applied to specific file patterns
 - **Skills** - Self-contained folders with instructions and bundled resources for specialized tasks
 - **Hooks** - Automated workflows triggered by specific events during development
+- **Workflows** - [Agentic Workflows](https://github.github.com/gh-aw) for AI-powered repository automation in GitHub Actions
 - **Plugins** - Installable packages that group related agents, commands, and skills around specific themes
 
 ## Repository Structure
@@ -20,6 +21,7 @@ The Awesome GitHub Copilot repository is a community-driven collection of custom
 ├── instructions/     # Coding standards and guidelines (.instructions.md files)
 ├── skills/           # Agent Skills folders (each with SKILL.md and optional bundled assets)
 ├── hooks/            # Automated workflow hooks (folders with README.md + hooks.json)
+├── workflows/        # Agentic Workflows (.md files for GitHub Actions automation)
 ├── plugins/          # Installable plugin packages (folders with plugin.json)
 ├── docs/             # Documentation for different resource types
 ├── eng/              # Build and automation scripts
@@ -96,6 +98,17 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 - Follow the [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
 - Optionally includes `tags` field for categorization
 
+#### Workflow Files (workflows/*.md)
+- Each workflow is a standalone `.md` file in the `workflows/` directory
+- Must have `name` field (human-readable name)
+- Must have `description` field (wrapped in single quotes, not empty)
+- Should have `triggers` field (array of trigger types, e.g., `['schedule', 'issues']`)
+- Contains agentic workflow frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
+- File names should be lower case with words separated by hyphens
+- Only `.md` files are accepted — `.yml`, `.yaml`, and `.lock.yml` files are blocked by CI
+- Optionally includes `tags` field for categorization
+- Follow the [GitHub Agentic Workflows specification](https://github.github.com/gh-aw)
+
 #### Plugin Folders (plugins/*)
 - Each plugin is a folder containing a `.github/plugin/plugin.json` file with metadata
 - plugin.json must have `name` field (matching the folder name)
@@ -107,7 +120,7 @@ All agent files (`*.agent.md`), prompt files (`*.prompt.md`), and instruction fi
 
 ### Adding New Resources
 
-When adding a new agent, prompt, instruction, skill, hook, or plugin:
+When adding a new agent, prompt, instruction, skill, hook, workflow, or plugin:
 
 **For Agents, Prompts, and Instructions:**
 1. Create the file with proper front matter
@@ -123,6 +136,14 @@ When adding a new agent, prompt, instruction, skill, hook, or plugin:
 5. Make scripts executable: `chmod +x script.sh`
 6. Update the README.md by running: `npm run build`
 7. Verify the hook appears in the generated README
+
+
+**For Workflows:**
+1. Create a new `.md` file in `workflows/` with a descriptive name (e.g., `daily-issues-report.md`)
+2. Include frontmatter with `name`, `description`, `triggers`, plus agentic workflow fields (`on`, `permissions`, `safe-outputs`)
+3. Compile with `gh aw compile --validate` to verify it's valid
+4. Update the README.md by running: `npm run build`
+5. Verify the workflow appears in the generated README
 
 
 **For Skills:**
@@ -239,6 +260,18 @@ For hook folders (hooks/*/):
 - [ ] Folder name is lower case with hyphens
 - [ ] Any bundled scripts are executable and referenced in README.md
 - [ ] Follows [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+- [ ] Optionally includes `tags` array field for categorization
+
+For workflow files (workflows/*.md):
+- [ ] File has markdown front matter
+- [ ] Has `name` field with human-readable name
+- [ ] Has non-empty `description` field wrapped in single quotes
+- [ ] Has `triggers` array field listing workflow trigger types
+- [ ] File name is lower case with hyphens
+- [ ] Contains `on` and `permissions` in frontmatter
+- [ ] Workflow uses least-privilege permissions and safe outputs
+- [ ] No `.yml`, `.yaml`, or `.lock.yml` files included
+- [ ] Follows [GitHub Agentic Workflows specification](https://github.github.com/gh-aw)
 - [ ] Optionally includes `tags` array field for categorization
 
 For plugins (plugins/*/):

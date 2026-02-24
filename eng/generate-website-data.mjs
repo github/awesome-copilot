@@ -17,13 +17,15 @@ import {
     PLUGINS_DIR,
     PROMPTS_DIR,
     ROOT_FOLDER,
-    SKILLS_DIR
+    SKILLS_DIR,
+    WORKFLOWS_DIR
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
     parseFrontmatter,
     parseSkillMetadata,
     parseHookMetadata,
+    parseWorkflowMetadata,
     parseYamlFile,
 } from "./yaml-parser.mjs";
 
@@ -187,6 +189,64 @@ function generateHooksData(gitDates) {
     items: sortedHooks,
     filters: {
       hooks: Array.from(allHookTypes).sort(),
+      tags: Array.from(allTags).sort(),
+    },
+  };
+}
+
+/**
+ * Generate workflows metadata (flat .md files)
+ */
+function generateWorkflowsData(gitDates) {
+  const workflows = [];
+
+  if (!fs.existsSync(WORKFLOWS_DIR)) {
+    return {
+      items: workflows,
+      filters: {
+        triggers: [],
+        tags: [],
+      },
+    };
+  }
+
+  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
+  });
+
+  const allTriggers = new Set();
+  const allTags = new Set();
+
+  for (const file of workflowFiles) {
+    const filePath = path.join(WORKFLOWS_DIR, file);
+    const metadata = parseWorkflowMetadata(filePath);
+    if (!metadata) continue;
+
+    const relativePath = path
+      .relative(ROOT_FOLDER, filePath)
+      .replace(/\\/g, "/");
+
+    (metadata.triggers || []).forEach((t) => allTriggers.add(t));
+    (metadata.tags || []).forEach((t) => allTags.add(t));
+
+    const id = path.basename(file, ".md");
+    workflows.push({
+      id,
+      title: metadata.name,
+      description: metadata.description,
+      triggers: metadata.triggers || [],
+      tags: metadata.tags || [],
+      path: relativePath,
+      lastUpdated: gitDates.get(relativePath) || null,
+    });
+  }
+
+  const sortedWorkflows = workflows.sort((a, b) => a.title.localeCompare(b.title));
+
+  return {
+    items: sortedWorkflows,
+    filters: {
+      triggers: Array.from(allTriggers).sort(),
       tags: Array.from(allTags).sort(),
     },
   };
@@ -606,6 +666,7 @@ function generateSearchIndex(
   prompts,
   instructions,
   hooks,
+  workflows,
   skills,
   plugins
 ) {
@@ -662,6 +723,20 @@ function generateSearchIndex(
       searchText: `${hook.title} ${hook.description} ${hook.hooks.join(
         " "
       )} ${hook.tags.join(" ")}`.toLowerCase(),
+    });
+  }
+
+  for (const workflow of workflows) {
+    index.push({
+      type: "workflow",
+      id: workflow.id,
+      title: workflow.title,
+      description: workflow.description,
+      path: workflow.path,
+      lastUpdated: workflow.lastUpdated,
+      searchText: `${workflow.title} ${workflow.description} ${workflow.triggers.join(
+        " "
+      )} ${workflow.tags.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -799,7 +874,7 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "prompts/", "instructions/", "hooks/", "skills/", "plugins/"],
+    ["agents/", "prompts/", "instructions/", "hooks/", "workflows/", "skills/", "plugins/"],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
@@ -815,6 +890,12 @@ async function main() {
   const hooks = hooksData.items;
   console.log(
     `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
+  );
+
+  const workflowsData = generateWorkflowsData(gitDates);
+  const workflows = workflowsData.items;
+  console.log(
+    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers, ${workflowsData.filters.tags.length} tags)`
   );
 
   const promptsData = generatePromptsData(gitDates);
@@ -857,6 +938,7 @@ async function main() {
     prompts,
     instructions,
     hooks,
+    workflows,
     skills,
     plugins
   );
@@ -871,6 +953,11 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "hooks.json"),
     JSON.stringify(hooksData, null, 2)
+  );
+
+  fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "workflows.json"),
+    JSON.stringify(workflowsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -917,6 +1004,7 @@ async function main() {
       instructions: instructions.length,
       skills: skills.length,
       hooks: hooks.length,
+      workflows: workflows.length,
       plugins: plugins.length,
       tools: tools.length,
       samples: samplesData.totalRecipes,
