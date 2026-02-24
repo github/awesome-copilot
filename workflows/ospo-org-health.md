@@ -1,5 +1,5 @@
 ---
-name: 'Weekly Organization Health Report'
+name: 'OSPO Organization Health Report'
 description: 'Comprehensive weekly health report for a GitHub organization. Surfaces stale issues/PRs, merge time analysis, contributor leaderboards, and actionable items needing human attention.'
 triggers: ['schedule', 'workflow_dispatch']
 tags: ['ospo', 'reporting', 'org-health']
