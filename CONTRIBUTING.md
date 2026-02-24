@@ -161,11 +161,61 @@ plugins/my-plugin-id/
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
 
+### Adding Agentic Workflows
+
+[Agentic Workflows](https://github.github.com/gh-aw) are AI-powered repository automations that run coding agents in GitHub Actions. Defined in markdown with natural language instructions, they enable scheduled and event-triggered automation with built-in guardrails.
+
+1. **Create your workflow file**: Add a new `.md` file in the `workflows/` directory (e.g., `daily-issues-report.md`)
+2. **Include frontmatter**: Add `name`, `description`, `triggers`, and optionally `tags` at the top, followed by agentic workflow frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
+3. **Test locally**: Compile with `gh aw compile --validate` to verify it's valid
+4. **Update the README**: Run `npm run build` to update the generated README tables
+
+> **Note:** Only `.md` files are accepted — do not include compiled `.lock.yml` or `.yml` files. CI will block them.
+
+#### Workflow file example
+
+```markdown
+---
+name: 'Daily Issues Report'
+description: 'Generates a daily summary of open issues and recent activity as a GitHub issue'
+triggers: ['schedule']
+tags: ['reporting', 'issues', 'automation']
+on:
+  schedule: daily on weekdays
+permissions:
+  contents: read
+  issues: read
+safe-outputs:
+  create-issue:
+    title-prefix: "[daily-report] "
+    labels: [report]
+---
+
+## Daily Issues Report
+
+Create a daily summary of open issues for the team.
+
+## What to Include
+
+- New issues opened in the last 24 hours
+- Issues closed or resolved
+- Stale issues that need attention
+```
+
+#### Workflow Guidelines
+
+- **Security first**: Use least-privilege permissions and safe outputs instead of direct write access
+- **Clear instructions**: Write clear natural language instructions in the workflow body
+- **Descriptive names**: Use lowercase filenames with hyphens (e.g., `daily-issues-report.md`)
+- **Test locally**: Use `gh aw compile --validate` to verify your workflow compiles
+- **No compiled files**: Only submit the `.md` source — `.lock.yml` and `.yml` files are not accepted
+- Learn more at the [Agentic Workflows documentation](https://github.github.com/gh-aw)
+
 ## Submitting Your Contribution
 
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
-3. **Add your instruction, prompt file, chatmode, or plugin** following the guidelines above
+3. **Add your instruction, prompt file, chatmode, workflow, or plugin** following the guidelines above
 4. **Run the update script**: `npm start` to update the README with your new file (make sure you run `npm install` first if you haven't already)
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
@@ -234,6 +284,7 @@ We welcome many kinds of contributions, including the custom categories below:
 | **Prompts** | Reusable or one-off prompts for GitHub Copilot | ⌨️ |
 | **Agents** | Defined GitHub Copilot roles or personalities | 🎭 |
 | **Skills** | Specialized knowledge of a task for GitHub Copilot | 🧰 |
+| **Workflows** | Agentic Workflows for AI-powered repository automation | ⚡ |
 | **Plugins** | Installable packages of related prompts, agents, or skills | 🎁 |
 
 In addition, all standard contribution types supported by [All Contributors](https://allcontributors.org/emoji-key/) are recognized.
