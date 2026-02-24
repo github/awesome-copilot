@@ -119,16 +119,30 @@ Use bash with Python for percentile calculations:
 
 ```bash
 python3 -c "
-import json, sys
+import json, sys, math
+
 times = json.loads(sys.stdin.read())
 times.sort()
 n = len(times)
+
+def percentile(data, p):
+    if not data:
+        raise ValueError('percentile() arg is an empty sequence')
+    k = (len(data) - 1) * p
+    f = math.floor(k)
+    c = math.ceil(k)
+    if f == c:
+        return data[int(k)]
+    d0 = data[f] * (c - k)
+    d1 = data[c] * (k - f)
+    return d0 + d1
+
 if n == 0:
     print('No data')
 else:
-    p50 = times[int(n * 0.50)]
-    p75 = times[int(n * 0.75)]
-    p95 = times[int(n * 0.95)] if n >= 20 else times[-1]
+    p50 = percentile(times, 0.50)
+    p75 = percentile(times, 0.75)
+    p95 = percentile(times, 0.95) if n >= 20 else times[-1]
     print(f'p50={p50:.1f}h, p75={p75:.1f}h, p95={p95:.1f}h')
 "
 ```
