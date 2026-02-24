@@ -34,7 +34,7 @@ Extract:
 
 ## 2. Cross-Reference with o2p-dbmigration Skill Checklist
 For each failed test, analyze the error against the known Oracle→Postgres migration patterns documented in:
-- `{SOLUTION_ROOT}/.github/skills/o2p-dbmigration/references/`
+- `{SOLUTION_ROOT}/skills/o2p-dbmigration/references/`
 
 PATTERN MATCHING TABLE:
 | Error Pattern | Likely Cause | Reference File |

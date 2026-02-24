@@ -24,7 +24,7 @@ Relative to `{SOLUTION_ROOT}`:
 
 ## Task Map
 
-Subagent prompts live under `.github/skills/o2p-dbmigration/prompts/`:
+Subagent prompts live under `skills/o2p-dbmigration/prompts/`:
 
 - **createMasterMigrationPlan**: discover all projects in the solution, assess Oracle migration eligibility, detect prior progress from earlier sessions, and produce a persistent master tracking plan; outputs `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`. **Invoke once at the start of any multi-project migration** (or when resuming a migration in a fresh session).
 - **planIntegrationTesting**: create integration testing plan; output `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Integration Testing Plan.md`.
@@ -94,7 +94,7 @@ All testing subagents receive a `TARGET_PROJECT` parameter in their handoff payl
 - **LOOP: RETRY** — <90% pass or critical failures → creates bug reports → fix → re-run
 - **BLOCKED** — Infrastructure issues → halts and requests user intervention
 
-For the full flow diagram, decision logic, and loop control rules, read `.github/skills/o2p-dbmigration/references/closed-loop-testing-workflow.md` and follow it throughout the test validation cycle.
+For the full flow diagram, decision logic, and loop control rules, read `skills/o2p-dbmigration/references/closed-loop-testing-workflow.md` and follow it throughout the test validation cycle.
 
 ## Handoff Payload Format
 
@@ -152,4 +152,4 @@ Use the master plan file as the authoritative source for project status. The inl
 ## User Help and Support
 
 - Provide Oracle and Postgres DDL scripts under `{SOLUTION_ROOT}/.github/o2p-dbmigration/DDL/` so subagents have necessary context.
-- The `o2p-dbmigration` skill (under `.github/skills/o2p-dbmigration/`) provides validation checklists, reference insights for Oracle→Postgres migration patterns, and all subagent prompt files.
+- The `o2p-dbmigration` skill (under `skills/o2p-dbmigration/`) provides validation checklists, reference insights for Oracle→Postgres migration patterns, and all subagent prompt files.

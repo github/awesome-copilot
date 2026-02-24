@@ -70,8 +70,11 @@ The agent expects and creates the following structure in your solution:
     └── o2p-dbmigration/
         ├── Reports/
         │   ├── Master Migration Plan.md
-        │   ├── Bug Reports/
-        │   └── Migration Reports/
+    │   ├── Integration Testing Plan.md
+    │   ├── Validation Report.md
+    │   ├── Application Migration Report.md
+    │   ├── BUG_REPORT_*.md
+    │   └── TestResults/
         ├── DDL/
         │   ├── Oracle/      # Oracle DDL scripts (pre-migration)
         │   └── Postgres/    # PostgreSQL DDL scripts (post-migration)
