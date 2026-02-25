@@ -18,22 +18,16 @@
     "technical-spike"
   ],
   "agents": [
-    "./agents/task-planner.md",
-    "./agents/task-researcher.md",
-    "./agents/planner.md",
-    "./agents/plan.md",
-    "./agents/prd.md",
-    "./agents/implementation-plan.md",
-    "./agents/research-technical-spike.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/breakdown-feature-implementation/",
-    "./skills/breakdown-feature-prd/",
-    "./skills/breakdown-epic-arch/",
-    "./skills/breakdown-epic-pm/",
-    "./skills/create-implementation-plan/",
-    "./skills/update-implementation-plan/",
-    "./skills/create-github-issues-feature-from-implementation-plan/",
-    "./skills/create-technical-spike/"
+    "./skills/breakdown-feature-implementation",
+    "./skills/breakdown-feature-prd",
+    "./skills/breakdown-epic-arch",
+    "./skills/breakdown-epic-pm",
+    "./skills/create-implementation-plan",
+    "./skills/update-implementation-plan",
+    "./skills/create-github-issues-feature-from-implementation-plan",
+    "./skills/create-technical-spike"
   ]
 }
