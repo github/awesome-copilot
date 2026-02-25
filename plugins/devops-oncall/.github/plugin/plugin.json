@@ -14,10 +14,9 @@
     "azure"
   ],
   "agents": [
-    "./agents/azure-principal-architect.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/azure-resource-health-diagnose.md",
-    "./commands/multi-stage-dockerfile.md"
+    "./commands"
   ]
 }

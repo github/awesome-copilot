@@ -14,9 +14,6 @@
     "sdk"
   ],
   "commands": [
-    "./commands/dataverse-python-quickstart.md",
-    "./commands/dataverse-python-advanced-patterns.md",
-    "./commands/dataverse-python-production-code.md",
-    "./commands/dataverse-python-usecase-builder.md"
+    "./commands"
   ]
 }

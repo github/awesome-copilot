@@ -13,9 +13,9 @@
     "interactive-programming"
   ],
   "agents": [
-    "./agents/clojure-interactive-programming.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/remember-interactive-programming.md"
+    "./commands"
   ]
 }

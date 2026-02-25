@@ -17,9 +17,9 @@
     "connectors"
   ],
   "agents": [
-    "./agents/power-platform-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/power-apps-code-app-scaffold.md"
+    "./commands"
   ]
 }

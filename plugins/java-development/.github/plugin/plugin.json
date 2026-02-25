@@ -16,9 +16,6 @@
     "javadoc"
   ],
   "commands": [
-    "./commands/java-docs.md",
-    "./commands/java-junit.md",
-    "./commands/java-springboot.md",
-    "./commands/create-spring-boot-java-project.md"
+    "./commands"
   ]
 }

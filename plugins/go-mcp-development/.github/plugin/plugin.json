@@ -16,9 +16,9 @@
     "sdk"
   ],
   "agents": [
-    "./agents/go-mcp-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/go-mcp-server-generator.md"
+    "./commands"
   ]
 }

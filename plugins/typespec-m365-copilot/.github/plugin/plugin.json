@@ -16,8 +16,6 @@
     "microsoft-365"
   ],
   "commands": [
-    "./commands/typespec-create-agent.md",
-    "./commands/typespec-create-api-plugin.md",
-    "./commands/typespec-api-operations.md"
+    "./commands"
   ]
 }

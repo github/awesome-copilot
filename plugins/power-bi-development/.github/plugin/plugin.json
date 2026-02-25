@@ -18,15 +18,9 @@
     "business-intelligence"
   ],
   "agents": [
-    "./agents/power-bi-data-modeling-expert.md",
-    "./agents/power-bi-dax-expert.md",
-    "./agents/power-bi-performance-expert.md",
-    "./agents/power-bi-visualization-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/power-bi-dax-optimization.md",
-    "./commands/power-bi-model-design-review.md",
-    "./commands/power-bi-performance-troubleshooting.md",
-    "./commands/power-bi-report-design-consultation.md"
+    "./commands"
   ]
 }

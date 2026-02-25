@@ -15,10 +15,9 @@
     "json-rpc"
   ],
   "agents": [
-    "./agents/power-platform-mcp-integration-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/power-platform-mcp-connector-suite.md",
-    "./commands/mcp-copilot-studio-server-generator.md"
+    "./commands"
   ]
 }

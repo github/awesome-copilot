@@ -17,9 +17,9 @@
     "composer"
   ],
   "agents": [
-    "./agents/php-mcp-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/php-mcp-server-generator.md"
+    "./commands"
   ]
 }

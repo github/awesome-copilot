@@ -15,11 +15,9 @@
     "architecture"
   ],
   "agents": [
-    "./agents/context-architect.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/context-map.md",
-    "./commands/what-context-needed.md",
-    "./commands/refactor-plan.md"
+    "./commands"
   ]
 }

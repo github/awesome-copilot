@@ -18,22 +18,9 @@
     "technical-spike"
   ],
   "agents": [
-    "./agents/task-planner.md",
-    "./agents/task-researcher.md",
-    "./agents/planner.md",
-    "./agents/plan.md",
-    "./agents/prd.md",
-    "./agents/implementation-plan.md",
-    "./agents/research-technical-spike.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/breakdown-feature-implementation.md",
-    "./commands/breakdown-feature-prd.md",
-    "./commands/breakdown-epic-arch.md",
-    "./commands/breakdown-epic-pm.md",
-    "./commands/create-implementation-plan.md",
-    "./commands/update-implementation-plan.md",
-    "./commands/create-github-issues-feature-from-implementation-plan.md",
-    "./commands/create-technical-spike.md"
+    "./commands"
   ]
 }

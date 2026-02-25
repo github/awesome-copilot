@@ -16,9 +16,9 @@
     "aspnet"
   ],
   "agents": [
-    "./agents/openapi-to-application.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/openapi-to-application-code.md"
+    "./commands"
   ]
 }

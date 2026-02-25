@@ -15,12 +15,9 @@
     "agents"
   ],
   "agents": [
-    "./agents/meta-agentic-project-scaffold.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/suggest-awesome-github-copilot-skills.md",
-    "./commands/suggest-awesome-github-copilot-instructions.md",
-    "./commands/suggest-awesome-github-copilot-prompts.md",
-    "./commands/suggest-awesome-github-copilot-agents.md"
+    "./commands"
   ]
 }

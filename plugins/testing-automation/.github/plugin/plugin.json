@@ -18,16 +18,9 @@
     "nunit"
   ],
   "agents": [
-    "./agents/tdd-red.md",
-    "./agents/tdd-green.md",
-    "./agents/tdd-refactor.md",
-    "./agents/playwright-tester.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/playwright-explore-website.md",
-    "./commands/playwright-generate-test.md",
-    "./commands/csharp-nunit.md",
-    "./commands/java-junit.md",
-    "./commands/ai-prompt-engineering-safety-review.md"
+    "./commands"
   ]
 }

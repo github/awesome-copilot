@@ -19,9 +19,9 @@
     "rmcp"
   ],
   "agents": [
-    "./agents/rust-mcp-expert.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/rust-mcp-server-generator.md"
+    "./commands"
   ]
 }

@@ -18,16 +18,9 @@
     "devops"
   ],
   "agents": [
-    "./agents/azure-principal-architect.md",
-    "./agents/azure-saas-architect.md",
-    "./agents/azure-logic-apps-expert.md",
-    "./agents/azure-verified-modules-bicep.md",
-    "./agents/azure-verified-modules-terraform.md",
-    "./agents/terraform-azure-planning.md",
-    "./agents/terraform-azure-implement.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/azure-resource-health-diagnose.md",
-    "./commands/az-cost-optimize.md"
+    "./commands"
   ]
 }

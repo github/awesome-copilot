@@ -19,11 +19,9 @@
     "vue"
   ],
   "agents": [
-    "./agents/expert-react-frontend-engineer.md",
-    "./agents/electron-angular-native.md"
+    "./agents"
   ],
   "commands": [
-    "./commands/playwright-explore-website.md",
-    "./commands/playwright-generate-test.md"
+    "./commands"
   ]
 }
