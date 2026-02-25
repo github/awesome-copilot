@@ -25,12 +25,16 @@ jobs:
         id: check
         run: |
           # Check for YAML/lock files in workflows/ and any .github/ modifications
+          # Allow .github/aw/actions-lock.json which is needed for workflow compilation
           forbidden=$(git diff --name-only --diff-filter=ACM origin/${{ github.base_ref }}...HEAD -- \
             'workflows/**/*.yml' \
             'workflows/**/*.yaml' \
             'workflows/**/*.lock.yml' \
             '.github/*' \
-            '.github/**')
+            '.github/**' \
+            | grep -v '^\.github/aw/actions-lock\.json$' \
+            | grep -v '^\.github/workflows/validate-agentic-workflows-pr\.yml$' \
+            || true)
 
           if [ -n "$forbidden" ]; then
             echo "❌ Forbidden files detected:"

@@ -15,9 +15,9 @@ const VSCODE_INSTALL_CONFIG: Record<
     baseUrl: "https://aka.ms/awesome-copilot/install/instructions",
     scheme: "chat-instructions",
   },
-  prompt: {
-    baseUrl: "https://aka.ms/awesome-copilot/install/prompt",
-    scheme: "chat-prompt",
+  instruction: {
+    baseUrl: "https://aka.ms/awesome-copilot/install/instructions",
+    scheme: "chat-instructions",
   },
   agent: {
     baseUrl: "https://aka.ms/awesome-copilot/install/agent",
@@ -93,7 +93,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 
 /**
  * Generate VS Code install URL
- * @param type - Resource type (agent, prompt, instructions)
+ * @param type - Resource type (agent, instructions)
  * @param filePath - Path to the file
  * @param insiders - Whether to use VS Code Insiders
  */
@@ -227,12 +227,13 @@ export function truncate(text: string | undefined, maxLength: number): string {
  */
 export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
-  if (filePath.endsWith(".prompt.md")) return "prompt";
   if (filePath.endsWith(".instructions.md")) return "instruction";
   if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
     return "skill";
   if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
     return "hook";
+  if (/(^|\/)workflows\//.test(filePath) && filePath.endsWith(".md"))
+    return "workflow";
   // Check for plugin directories (e.g., plugins/<id>, plugins/<id>/)
   if (/(^|\/)plugins\/[^/]+\/?$/.test(filePath)) return "plugin";
   // Check for plugin.json files (e.g., plugins/<id>/.github/plugin/plugin.json)
@@ -246,10 +247,10 @@ export function getResourceType(filePath: string): string {
 export function formatResourceType(type: string): string {
   const labels: Record<string, string> = {
     agent: "🤖 Agent",
-    prompt: "🎯 Prompt",
     instruction: "📋 Instruction",
     skill: "⚡ Skill",
     hook: "🪝 Hook",
+    workflow: "⚡ Workflow",
     plugin: "🔌 Plugin",
   };
   return labels[type] || type;
@@ -261,10 +262,10 @@ export function formatResourceType(type: string): string {
 export function getResourceIcon(type: string): string {
   const icons: Record<string, string> = {
     agent: "🤖",
-    prompt: "🎯",
     instruction: "📋",
     skill: "⚡",
     hook: "🪝",
+    workflow: "⚡",
     plugin: "🔌",
   };
   return icons[type] || "📄";

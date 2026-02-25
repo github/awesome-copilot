@@ -1,6 +1,9 @@
 # ⚡ Agentic Workflows
 
 [Agentic Workflows](https://github.github.com/gh-aw) are AI-powered repository automations that run coding agents in GitHub Actions. Defined in markdown with natural language instructions, they enable event-triggered and scheduled automation with built-in guardrails and security-first design.
+### How to Contribute
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-agentic-workflows) for guidelines on how to contribute new workflows, improve existing ones, and share your use cases.
 
 ### How to Use Agentic Workflows
 
@@ -28,4 +31,6 @@
 - Respond to slash commands in issues and PRs
 - Orchestrate multi-step repository automation
 
-_No entries found yet._
+| Name | Description | Triggers |
+| ---- | ----------- | -------- |
+| [Daily Issues Report](../workflows/daily-issues-report.md) | Generates a daily summary of open issues and recent activity as a GitHub issue | schedule |

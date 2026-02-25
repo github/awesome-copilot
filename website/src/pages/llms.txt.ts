@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
 import agentsData from "../../public/data/agents.json";
-import promptsData from "../../public/data/prompts.json";
 import instructionsData from "../../public/data/instructions.json";
 import skillsData from "../../public/data/skills.json";
 
@@ -9,7 +8,6 @@ const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilo
 
 export const GET: APIRoute = () => {
   const agents = agentsData.items;
-  const prompts = promptsData.items;
   const instructions = instructionsData.items;
   const skills = skillsData.items;
   
@@ -22,7 +20,7 @@ export const GET: APIRoute = () => {
 
   // Summary blockquote (optional but recommended)
   content +=
-    "> A community-driven collection of custom agents, prompts, instructions, and skills to enhance GitHub Copilot experiences across various domains, languages, and use cases.\n\n";
+    "> A community-driven collection of custom agents, instructions, and skills to enhance GitHub Copilot experiences across various domains, languages, and use cases.\n\n";
 
   // Add overview section
   content += "## Overview\n\n";
@@ -30,8 +28,6 @@ export const GET: APIRoute = () => {
     "This repository provides resources to customize and enhance GitHub Copilot:\n\n";
   content +=
     "- **Agents**: Specialized GitHub Copilot agents that integrate with MCP servers\n";
-  content +=
-    "- **Prompts**: Task-specific prompts for code generation and problem-solving\n";
   content +=
     "- **Instructions**: Coding standards and best practices applied to specific file patterns\n";
   content +=
@@ -44,16 +40,6 @@ export const GET: APIRoute = () => {
       .replace(/\s+/g, " ")
       .trim();
     content += `- [${agent.title}](${url(agent.path)}): ${description}\n`;
-  }
-  content += "\n";
-
-  // Process Prompts
-  content += "## Prompts\n\n";
-  for (const prompt of prompts) {
-    const description = (prompt.description || "No description available")
-      .replace(/\s+/g, " ")
-      .trim();
-    content += `- [${prompt.title}](${url(prompt.path)}): ${description}\n`;
   }
   content += "\n";
 

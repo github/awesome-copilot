@@ -275,14 +275,19 @@ function parseWorkflowMetadata(filePath) {
         return null;
       }
 
-      // Extract triggers from frontmatter if present
-      const triggers = frontmatter.triggers || [];
+      // Extract triggers from the 'on' field (top-level keys)
+      const onField = frontmatter.on;
+      const triggers = [];
+      if (onField && typeof onField === "object") {
+        triggers.push(...Object.keys(onField));
+      } else if (typeof onField === "string") {
+        triggers.push(onField);
+      }
 
       return {
         name: frontmatter.name,
         description: frontmatter.description,
         triggers,
-        tags: frontmatter.tags || [],
         path: filePath,
       };
     },
