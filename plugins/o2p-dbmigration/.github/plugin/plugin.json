@@ -18,9 +18,19 @@
     "stored-procedures"
   ],
   "agents": [
-    "./agents/o2p-dbmigration-expert.md"
+    "./agents/o2p-dbmigration-expert.agent.md",
+    "./agents/o2p-dbmigration-create-bug-reports.agent.md",
+    "./agents/o2p-dbmigration-create-integration-tests.agent.md",
+    "./agents/o2p-dbmigration-create-master-migration-plan.agent.md",
+    "./agents/o2p-dbmigration-generate-application-migration-report.agent.md",
+    "./agents/o2p-dbmigration-migrate-application-codebase.agent.md",
+    "./agents/o2p-dbmigration-migrate-stored-procedure.agent.md",
+    "./agents/o2p-dbmigration-plan-integration-testing.agent.md",
+    "./agents/o2p-dbmigration-run-integration-tests.agent.md",
+    "./agents/o2p-dbmigration-scaffold-test-project.agent.md",
+    "./agents/o2p-dbmigration-validate-test-results.agent.md"
   ],
   "skills": [
-    "./skills/o2p-dbmigration/"
+    "./skills/o2p-dbmigration"
   ]
 }

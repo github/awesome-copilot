@@ -1,6 +1,6 @@
 ---
-name: create-integration-tests
-agent: 'agent'
+name: o2p-dbmigration-create-integration-tests
+user-invokable: false
 description: 'Create integration test cases for code artifacts identified by the user in context of an application database migration from Oracle to Postgres. Assumes the test project already exists (scaffolded by scaffoldTestProject).'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/askQuestions, execute, read, edit, search, todo]
@@ -13,7 +13,7 @@ Create integration test cases for the class/method provided by the user. The tes
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project whose code artifacts are under test (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 PREREQUISITES:

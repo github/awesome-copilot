@@ -1,6 +1,6 @@
 ---
-name: run-integration-tests
-agent: 'agent'
+name: o2p-dbmigration-run-integration-tests
+user-invokable: false
 description: 'Execute xUnit integration tests against Oracle and/or Postgres databases to validate migration correctness.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/askQuestions, execute, read, search, todo]
@@ -13,7 +13,7 @@ Execute the xUnit integration test suite to validate application behavior agains
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project whose tests should be executed (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 CONTEXT:
@@ -34,7 +34,7 @@ Run tests using `dotnet test` with structured output:
 
 ```powershell
 # Run tests with TRX (Visual Studio Test Results) output
-dotnet test "{TestProjectPath}" --logger "trx;LogFileName=TestResults.trx" --results-directory "{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/TestResults"
+dotnet test "{TestProjectPath}" --logger "trx;LogFileName=TestResults.trx" --results-directory "{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/TestResults"
 
 # Alternative: Run with console verbosity for immediate feedback
 dotnet test "{TestProjectPath}" --verbosity normal
@@ -54,7 +54,7 @@ OPTIONS:
 OUTPUT ARTIFACTS:
 | Artifact | Location |
 |----------|----------|
-| TRX results file | `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/TestResults/{Timestamp}_{Database}_TestResults.trx` |
+| TRX results file | `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/TestResults/{Timestamp}_{Database}_TestResults.trx` |
 | Console summary | Inline in response |
 | Failed test list | Extracted from TRX or console output |
 

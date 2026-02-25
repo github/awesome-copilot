@@ -1,6 +1,6 @@
 ---
-name: generate-application-migration-report
-agent: 'agent'
+name: o2p-dbmigration-generate-application-migration-report
+user-invokable: false
 description: 'Aggregate per-project migration and testing outcomes into a final Application Migration Report, retrieving extension migration data via pgsql_migration_show_report and synthesizing it with integration testing artifacts.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/installExtension, vscode/askQuestions, vscode/extensions, read, edit, search, ms-ossdata.vscode-pgsql/pgsql_migration_show_report]
@@ -13,7 +13,7 @@ You are a reporting subagent responsible for producing the final Application Mig
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `PRIOR_ARTIFACTS` | Yes | List of per-project reports, validation reports, bug reports, and loop state files produced by earlier subagents. |
 
 ---
@@ -26,7 +26,7 @@ Use `#pgsql_migration_show_report` to retrieve the migration progress data captu
 
 ### Step 2 — Collect Testing and Validation Artifacts
 
-Read the following artifacts from `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/`:
+Read the following artifacts from `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/`:
 
 - **Integration Testing Plan** (`Integration Testing Plan.md`) — original test scope and coverage targets.
 - **Validation Reports** (`Validation Report.md`) — per-project test validation outcomes and EXIT/LOOP/BLOCKED decisions.
@@ -56,7 +56,7 @@ Produce a structured Markdown report with the following sections:
 Store the final report at:
 
 ```
-{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Application Migration Report.md
+{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/Application Migration Report.md
 ```
 
 ---

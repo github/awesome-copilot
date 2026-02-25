@@ -15,13 +15,23 @@ copilot plugin install o2p-dbmigration@awesome-copilot
 
 | Agent | Description |
 |-------|-------------|
-| `o2p-dbmigration-expert` | Oracle-to-PostgreSQL migration orchestrator for multi-project .NET solutions. Discovers migration-eligible projects, produces a persistent master plan for cross-session tracking, migrates application codebases and stored procedures, runs closed-loop integration testing, and generates migration reports. |
+| `o2p-dbmigration-expert` | Parent orchestrator. Interprets the user goal, verifies prerequisites, delegates to the correct subagent, and loops until the goal is satisfied. |
+| `o2p-dbmigration-create-master-migration-plan` | Discovers all projects in the solution, assesses Oracle migration eligibility, detects prior progress, and produces a persistent master tracking plan. |
+| `o2p-dbmigration-plan-integration-testing` | Creates the integration testing plan for a migrated project. |
+| `o2p-dbmigration-scaffold-test-project` | Scaffolds the xUnit integration test project (base class, transaction management, seed manager). Invoked once before test creation. |
+| `o2p-dbmigration-migrate-application-codebase` | Migrates .NET application code from Oracle to PostgreSQL data access patterns. |
+| `o2p-dbmigration-migrate-stored-procedure` | Converts Oracle stored procedures, functions, and packages to PostgreSQL equivalents. |
+| `o2p-dbmigration-create-integration-tests` | Generates integration tests for a migrated project against the PostgreSQL schema. |
+| `o2p-dbmigration-run-integration-tests` | Executes the integration test suite and captures results. |
+| `o2p-dbmigration-validate-test-results` | Validates test run output and determines whether to exit or loop for remediation. |
+| `o2p-dbmigration-create-bug-reports` | Generates structured bug reports for failed tests and tracks remediation progress. |
+| `o2p-dbmigration-generate-application-migration-report` | Produces a detailed migration outcome report for a completed project. |
 
 ### Skills
 
 | Skill | Description |
 |-------|-------------|
-| `o2p-dbmigration` | Validates PostgreSQL migration artifacts and integration tests, making sure every reference insight is surfaced before agent workflows sign off. Use when proving migration or integration testing work and confirming the repository references/insights are obeyed. |
+| `o2p-dbmigration` | Validates PostgreSQL migration artifacts and integration tests, making sure every reference insight is surfaced before agent workflows sign off. Codifies expectations for validation, testing, and documentation across the migration workload. |
 
 ## Features
 
@@ -94,19 +104,6 @@ The agent expects and creates the following structure in your solution:
 - **Error Handling**: Detailed bug reports with remediation tracking
 - **DDL Management**: Preserves both Oracle and PostgreSQL DDL for reference
 - **Minimal Changes**: Keeps changes minimal, preserving application logic where possible
-
-## Reference Materials
-
-The included skill provides reference guides for common Oracle→PostgreSQL migration patterns:
-
-- Empty strings handling ('' vs NULL)
-- NO_DATA_FOUND exceptions
-- Oracle parentheses in FROM clauses
-- Sorting and collation differences
-- TO_CHAR numeric conversions
-- Type coercion rules
-- REFCURSOR handling
-- Concurrent transactions
 
 ## Source
 

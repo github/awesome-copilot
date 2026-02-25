@@ -1,6 +1,6 @@
 ---
-name: plan-integration-testing
-agent: 'agent'
+name: o2p-dbmigration-plan-integration-testing
+user-invokable: false
 description: 'Create an integration testing plan for code artifacts that interact with the database in context of an application database migration from Oracle to Postgres.'
 model: Claude Opus 4.6 (copilot)
 tools: [vscode/askQuestions, read, search, todo]
@@ -13,7 +13,7 @@ Assess what classes/methods should be tested for integration with the database b
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project to plan tests for (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 INSTRUCTIONS:
@@ -23,4 +23,4 @@ INSTRUCTIONS:
 - Applications targeted for migration will be copied and renamed to indicate the target database (e.g., 'MyApp.Postgres' for the Postgres version) so there is no need to plan for harnessing of multiple database connections within the same application instance.
 
 OUTPUT:
-The plan should be written to a markdown file at this location: '{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Integration Testing Plan.md'.
+The plan should be written to a markdown file at this location: '{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/Integration Testing Plan.md'.

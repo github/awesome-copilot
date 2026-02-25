@@ -1,6 +1,6 @@
 ---
-name: create-master-migration-plan
-agent: 'agent'
+name: o2p-dbmigration-create-master-migration-plan
+user-invokable: false
 description: 'Discovers all projects in a solution, determines Oracle→PostgreSQL migration eligibility, detects prior progress, and produces a persistent master migration plan that enables cross-session continuity.'
 model: Claude Opus 4.6 (copilot)
 tools: [vscode/askQuestions, read, search, todo]
@@ -13,14 +13,14 @@ Enumerate all projects in a solution, assess which require Oracle→PostgreSQL m
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
-| `SOLUTION_FILE_PATH` | No | Absolute path to the `.sln` file. If omitted, discover it by searching `SOLUTION_ROOT` for `*.sln` files. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
+| `SOLUTION_FILE_PATH` | No | Absolute path to the `.sln` file. If omitted, discover it by searching `REPOSITORY_ROOT` for `*.sln` files. |
 
 ---
 
 ## Phase 1 — Discover Projects
 
-1. **Locate the solution file.** If `SOLUTION_FILE_PATH` was provided, use it. Otherwise, search `SOLUTION_ROOT` for `.sln` files. If multiple are found, ask the user which solution to target.
+1. **Locate the solution file.** If `SOLUTION_FILE_PATH` was provided, use it. Otherwise, search `REPOSITORY_ROOT` for `.sln` files. If multiple are found, ask the user which solution to target.
 2. **Parse the solution file.** Extract all project references (`.csproj` paths) from the solution. Record the full list.
 3. **Categorize each project.** For every project, determine:
    - **Project name** (folder name and assembly name).
@@ -66,7 +66,7 @@ Check for existing migration artifacts that indicate work from a previous sessio
 
 ## Phase 4 — Produce the Master Migration Plan
 
-Write the plan to: `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`
+Write the plan to: `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`
 
 Use the format defined below exactly. The router and future sessions depend on the structure being parseable.
 
@@ -74,7 +74,7 @@ Use the format defined below exactly. The router and future sessions depend on t
 # Master Migration Plan
 
 **Solution:** {solution file name}
-**Solution Root:** {SOLUTION_ROOT}
+**Solution Root:** {REPOSITORY_ROOT}
 **Created:** {timestamp}
 **Last Updated:** {timestamp}
 **Status:** {NOT_STARTED | IN_PROGRESS | COMPLETED}
@@ -93,8 +93,8 @@ Use the format defined below exactly. The router and future sessions depend on t
 
 | # | Project Name | Path | Classification | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | {name} | {relative path from SOLUTION_ROOT} | MIGRATE | {see Status Values} | {any notes} |
-| 2 | {name} | {relative path from SOLUTION_ROOT} | SKIP | N/A | No Oracle dependencies |
+| 1 | {name} | {relative path from REPOSITORY_ROOT} | MIGRATE | {see Status Values} | {any notes} |
+| 2 | {name} | {relative path from REPOSITORY_ROOT} | SKIP | N/A | No Oracle dependencies |
 | ... | ... | ... | ... | ... | ... |
 
 ### Status Values
@@ -133,7 +133,7 @@ Projects should be migrated in the following order (rationale included):
 
 To continue this migration in a fresh agent session:
 
-1. Read this file: `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`
+1. Read this file: `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/Master Migration Plan.md`
 2. Check the **Project Inventory** table for the first project with a non-terminal status (`PENDING`, `MIGRATING`, `MIGRATED`, `TESTING`, `TEST_BLOCKED`).
 3. For that project:
    - If `PENDING` → begin with `migrateApplicationCodebase`.

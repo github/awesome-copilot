@@ -1,6 +1,6 @@
 ---
-name: migrate-application-codebase
-agent: 'agent'
+name: o2p-dbmigration-migrate-application-codebase
+user-invokable: false
 description: 'Migrates a single application project from Oracle to Postgres using the #ms-ossdata.vscode-pgsql extension. Invoked once per project by the router.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/installExtension, vscode/askQuestions, vscode/extensions, execute, read, edit, search, ms-ossdata.vscode-pgsql/pgsql_migration_oracle_app, todo]
@@ -13,9 +13,9 @@ Migrate a single application project from Oracle to Postgres, preserving existin
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the application project folder to migrate (e.g., `C:/Source/MyApp/MIUS.API`). |
-| `CODING_NOTES_PATH` | No | Path to coding notes from the schema migration phase (e.g., `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/migration-notes.md`). If omitted, the tool continues without this context. |
+| `CODING_NOTES_PATH` | No | Path to coding notes from the schema migration phase (e.g., `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/migration-notes.md`). If omitted, the tool continues without this context. |
 | `POSTGRES_DB_CONNECTION` | No | Connection name for the PostgreSQL database. |
 | `POSTGRES_DB_NAME` | No | Name of the target PostgreSQL database. |
 

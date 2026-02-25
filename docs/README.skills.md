@@ -3,7 +3,6 @@
 Agent Skills are self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks. Based on the [Agent Skills specification](https://agentskills.io/specification), each skill contains a `SKILL.md` file with detailed instructions that agents load on-demand.
 
 Skills differ from other primitives by supporting bundled assets (scripts, code samples, reference data) that agents can utilize when performing specialized tasks.
-
 ### How to Contribute
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to contribute new agent skills, improve existing ones, and share your use cases.
@@ -11,19 +10,16 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 ### How to Use Agent Skills
 
 **What's Included:**
-
 - Each skill is a folder containing a `SKILL.md` instruction file
 - Skills may include helper scripts, code templates, or reference data
 - Skills follow the Agent Skills specification for maximum compatibility
 
 **When to Use:**
-
 - Skills are ideal for complex, repeatable workflows that benefit from bundled resources
 - Use skills when you need code templates, helper utilities, or reference data alongside instructions
 - Skills provide progressive disclosure - loaded only when needed for specific tasks
 
 **Usage:**
-
 - Browse the skills table below to find relevant capabilities
 - Copy the skill folder to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically
@@ -77,7 +73,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 | [create-github-issues-for-unmet-specification-requirements](../skills/create-github-issues-for-unmet-specification-requirements/SKILL.md) | Create GitHub Issues for unimplemented requirements from specification files using feature_request.yml template. | None |
 | [create-github-pull-request-from-specification](../skills/create-github-pull-request-from-specification/SKILL.md) | Create GitHub Pull Request for feature request from specification file using pull_request_template.md template. | None |
 | [create-implementation-plan](../skills/create-implementation-plan/SKILL.md) | Create a new implementation plan file for new features, refactoring existing code or upgrading packages, design, architecture or infrastructure. | None |
-| [create-llms](../skills/create-llms/SKILL.md) | Create an llms.txt file from scratch based on repository structure following the llms.txt specification at <https://llmstxt.org/> | None |
+| [create-llms](../skills/create-llms/SKILL.md) | Create an llms.txt file from scratch based on repository structure following the llms.txt specification at https://llmstxt.org/ | None |
 | [create-oo-component-documentation](../skills/create-oo-component-documentation/SKILL.md) | Create comprehensive, standardized documentation for object-oriented components following industry best practices and architectural documentation standards. | None |
 | [create-readme](../skills/create-readme/SKILL.md) | Create a README.md file for the project | None |
 | [create-specification](../skills/create-specification/SKILL.md) | Create a new specification file for the solution, optimized for Generative AI consumption. | None |
@@ -157,6 +153,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 | [nano-banana-pro-openrouter](../skills/nano-banana-pro-openrouter/SKILL.md) | Generate or edit images via OpenRouter with the Gemini 3 Pro Image model. Use for prompt-only image generation, image edits, and multi-image compositing; supports 1K/2K/4K output. | `assets/SYSTEM_TEMPLATE`<br />`scripts/generate_image.py` |
 | [next-intl-add-language](../skills/next-intl-add-language/SKILL.md) | Add new language to a Next.js + next-intl application | None |
 | [nuget-manager](../skills/nuget-manager/SKILL.md) | Manage NuGet packages in .NET projects/solutions. Use this skill when adding, removing, or updating NuGet package versions. It enforces using `dotnet` CLI for package management and provides strict procedures for direct file edits only when updating versions. | None |
+| [o2p-dbmigration](../skills/o2p-dbmigration/SKILL.md) | Validates PostgreSQL migration artifacts and integration tests, making sure every reference insight is surfaced before agent workflows sign off. Use when proving migration or integration testing work and confirming the repository references/insights are obeyed. | `references/REFERENCE.md`<br />`references/closed-loop-testing-workflow.md`<br />`references/empty-strings-handling.md`<br />`references/no-data-found-exceptions.md`<br />`references/oracle-parentheses-from-clause.md`<br />`references/oracle-to-postgres-sorting.md`<br />`references/oracle-to-postgres-to-char-numeric.md`<br />`references/oracle-to-postgres-type-coercion.md`<br />`references/postgres-concurrent-transactions.md`<br />`references/postgres-refcursor-handling.md` |
 | [openapi-to-application-code](../skills/openapi-to-application-code/SKILL.md) | Generate a complete, production-ready application from an OpenAPI specification | None |
 | [pdftk-server](../skills/pdftk-server/SKILL.md) | Skill for using the command-line tool pdftk (PDFtk Server) for working with PDF files. Use when asked to merge PDFs, split PDFs, rotate pages, encrypt or decrypt PDFs, fill PDF forms, apply watermarks, stamp overlays, extract metadata, burst documents into pages, repair corrupted PDFs, attach or extract files, or perform any PDF manipulation from the command line. | `references/download.md`<br />`references/pdftk-cli-examples.md`<br />`references/pdftk-man-page.md`<br />`references/pdftk-server-license.md`<br />`references/third-party-materials.md` |
 | [penpot-uiux-design](../skills/penpot-uiux-design/SKILL.md) | Comprehensive guide for creating professional UI/UX designs in Penpot using MCP tools. Use this skill when: (1) Creating new UI/UX designs for web, mobile, or desktop applications, (2) Building design systems with components and tokens, (3) Designing dashboards, forms, navigation, or landing pages, (4) Applying accessibility standards and best practices, (5) Following platform guidelines (iOS, Android, Material Design), (6) Reviewing or improving existing Penpot designs for usability. Triggers: "design a UI", "create interface", "build layout", "design dashboard", "create form", "design landing page", "make it accessible", "design system", "component library". | `references/accessibility.md`<br />`references/component-patterns.md`<br />`references/platform-guidelines.md`<br />`references/setup-troubleshooting.md` |
@@ -215,7 +212,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 | [typespec-create-api-plugin](../skills/typespec-create-api-plugin/SKILL.md) | Generate a TypeSpec API plugin with REST operations, authentication, and Adaptive Cards for Microsoft 365 Copilot | None |
 | [update-avm-modules-in-bicep](../skills/update-avm-modules-in-bicep/SKILL.md) | Update Azure Verified Modules (AVM) to latest versions in Bicep files. | None |
 | [update-implementation-plan](../skills/update-implementation-plan/SKILL.md) | Update an existing implementation plan file with new or update requirements to provide new features, refactoring existing code or upgrading packages, design, architecture or infrastructure. | None |
-| [update-llms](../skills/update-llms/SKILL.md) | Update the llms.txt file in the root folder to reflect changes in documentation or specifications following the llms.txt specification at <https://llmstxt.org/> | None |
+| [update-llms](../skills/update-llms/SKILL.md) | Update the llms.txt file in the root folder to reflect changes in documentation or specifications following the llms.txt specification at https://llmstxt.org/ | None |
 | [update-markdown-file-index](../skills/update-markdown-file-index/SKILL.md) | Update a markdown file section with an index/table of files from a specified folder. | None |
 | [update-oo-component-documentation](../skills/update-oo-component-documentation/SKILL.md) | Update existing object-oriented component documentation following industry best practices and architectural documentation standards. | None |
 | [update-specification](../skills/update-specification/SKILL.md) | Update an existing specification file for the solution, optimized for Generative AI consumption based on new requirements or updates to any existing code. | None |

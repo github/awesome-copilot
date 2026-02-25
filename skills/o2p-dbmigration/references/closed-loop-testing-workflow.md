@@ -7,6 +7,7 @@ Read this reference when the user goal involves integration testing. It defines 
 The closed-loop **targets one project at a time**. When a solution contains multiple projects, the router runs a complete closed-loop cycle for each project sequentially — finishing all iterations (including retries) for project A before starting the cycle for project B.
 
 Every testing subagent in the flow receives a `TARGET_PROJECT` parameter (absolute path to the single project under test) in its handoff payload. This ensures:
+
 - **planIntegrationTesting** scopes the plan to artifacts from the target project only.
 - **scaffoldTestProject** creates the test project for the target project only.
 - **createIntegrationTests** generates tests for the target project's data access layer only.
@@ -49,13 +50,14 @@ planIntegrationTesting → scaffoldTestProject → createIntegrationTests → ru
 ## State Serialization
 
 After each loop iteration (after `validateTestResults` returns), write the current loop state to a **per-project** state file:
-`{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/.loop-state-{ProjectName}.md`
+`{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/.loop-state-{ProjectName}.md`
 
 where `{ProjectName}` is derived from the `TARGET_PROJECT` folder name (e.g., `MIUS.API` → `.loop-state-MIUS.API.md`). This avoids conflicts when multiple projects are tested in sequence and allows each project's loop to be resumed independently.
 
 This file allows the loop to resume from last-known state if the conversation context is lost or trimmed.
 
 State file format:
+
 ```markdown
 # Loop State
 
@@ -88,6 +90,7 @@ State file format:
 ```
 
 Router behavior:
+
 - **Before first handoff in a testing goal:** check if `.loop-state-{ProjectName}.md` exists for the current `TARGET_PROJECT`. If it does, read it and resume from the recorded iteration rather than starting from scratch.
 - **After each `validateTestResults` return:** write/overwrite the per-project state file with current data.
 - **On EXIT (SUCCESS or CONDITIONAL):** keep the state file for audit trail; do not delete it.
@@ -99,6 +102,7 @@ On the **first iteration**, `validateTestResults` should cross-reference all ski
 On **iteration 2+**, the router should narrow the context passed to `validateTestResults` and `createBugReports` by including only the references that matched failure categories in the previous iteration. Use the `relevant_references` field in the handoff payload.
 
 Reference-to-category mapping:
+
 | Error Category | Reference File |
 |----------------|----------------|
 | NULL/empty string mismatch | `empty-strings-handling.md` |

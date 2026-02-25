@@ -1,6 +1,6 @@
 ---
-name: migrate-stored-procedure
-agent: 'agent'
+name: o2p-dbmigration-migrate-stored-procedure
+user-invokable: false
 description: 'Migrate stored procedures identified by the user in context of an application database migration from Oracle to Postgres.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/askQuestions, read, edit, search, todo]
@@ -33,10 +33,10 @@ set SEARCH_PATH = {package_name_in_lower_case},{parent_schema_name},public;
 ```
 
 AUTHORITATIVE RESOURCES TO CONSULT:
-- `{SOLUTION_ROOT}/.github/o2p-dbmigration/DDL/Oracle/Procedures and Functions/*` (Oracle stored procedures pre-migration)
-- `{SOLUTION_ROOT}/.github/o2p-dbmigration/DDL/Oracle/Tables and Views/*` (Oracle constraints, indexes, table hints pre-migration)
-- `{SOLUTION_ROOT}/.github/o2p-dbmigration/DDL/Postgres/Procedures and Functions/{PACKAGE_NAME_IF_APPLICABLE}/*` (Place migrated stored procedures here)
-- `{SOLUTION_ROOT}/.github/o2p-dbmigration/DDL/Postgres/Tables and Views/*` (Postgres constraints, indexes, table hints)
+- `{REPOSITORY_ROOT}/.github/o2p-dbmigration/DDL/Oracle/Procedures and Functions/*` (Oracle stored procedures pre-migration)
+- `{REPOSITORY_ROOT}/.github/o2p-dbmigration/DDL/Oracle/Tables and Views/*` (Oracle constraints, indexes, table hints pre-migration)
+- `{REPOSITORY_ROOT}/.github/o2p-dbmigration/DDL/Postgres/Procedures and Functions/{PACKAGE_NAME_IF_APPLICABLE}/*` (Place migrated stored procedures here)
+- `{REPOSITORY_ROOT}/.github/o2p-dbmigration/DDL/Postgres/Tables and Views/*` (Postgres constraints, indexes, table hints)
 
 OUTPUT FORMAT:
 - Place the migrated stored procedure in its own file (eg 1 stored procedure per file).

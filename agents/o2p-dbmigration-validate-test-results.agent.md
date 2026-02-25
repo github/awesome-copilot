@@ -1,6 +1,6 @@
 ---
-name: validate-test-results
-agent: 'agent'
+name: o2p-dbmigration-validate-test-results
+user-invokable: false
 description: 'Analyze test results, apply o2p-dbmigration skill checklist, and determine pass/fail/retry status for the migration validation workflow.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/askQuestions, read, edit, search, todo]
@@ -13,7 +13,7 @@ Analyze test execution results, cross-reference with the `o2p-dbmigration` skill
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project whose test results are being validated (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 CONTEXT:
@@ -25,7 +25,7 @@ INSTRUCTIONS:
 
 ## 1. Parse Test Results
 Read the TRX file or summary from:
-- `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/TestResults/`
+- `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/TestResults/`
 
 Extract:
 - Total tests, passed, failed, skipped counts
@@ -34,7 +34,7 @@ Extract:
 
 ## 2. Cross-Reference with o2p-dbmigration Skill Checklist
 For each failed test, analyze the error against the known Oracle→Postgres migration patterns documented in:
-- `{SOLUTION_ROOT}/skills/o2p-dbmigration/references/`
+- `{REPOSITORY_ROOT}/skills/o2p-dbmigration/references/`
 
 PATTERN MATCHING TABLE:
 | Error Pattern | Likely Cause | Reference File |
@@ -71,7 +71,7 @@ Based on test results and checklist:
 
 ## 5. Output Validation Report
 Write the validation report to:
-`{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/Validation Report.md`
+`{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/Validation Report.md`
 
 REPORT TEMPLATE:
 ```markdown

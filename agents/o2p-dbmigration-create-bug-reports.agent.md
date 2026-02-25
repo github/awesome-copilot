@@ -1,6 +1,6 @@
 ---
-name: create-bug-reports
-agent: 'agent'
+name: o2p-dbmigration-create-bug-reports
+user-invokable: false
 description: 'Create clear, user-friendly bug reports for Oracle-to-Postgres application migration issues.'
 model: Claude Haiku 4.5 (copilot)
 tools: [vscode/askQuestions, read, edit, search]
@@ -13,7 +13,7 @@ Generate a concise, easy-to-understand bug report for the defect discovered whil
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project whose failures are being reported (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 INSTRUCTIONS:
@@ -26,7 +26,7 @@ INSTRUCTIONS:
 - Recommend a validation step after fixes (re-run repro on both DBs, compare row/column outputs, and check error handling parity).
 
 OUTPUT LOCATION:
-- Save each bug report under `{SOLUTION_ROOT}/.github/o2p-dbmigration/Reports/` using a clear, human-readable filename (e.g., `Bug - {area} - {short-title}.md`).
+- Save each bug report under `{REPOSITORY_ROOT}/.github/o2p-dbmigration/Reports/` using a clear, human-readable filename (e.g., `Bug - {area} - {short-title}.md`).
 
 OUTPUT INSTRUCTIONS:
 Bug Report Output Definition (Template)

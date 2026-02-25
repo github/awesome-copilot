@@ -1,6 +1,6 @@
 ---
-name: scaffold-test-project
-agent: 'agent'
+name: o2p-dbmigration-scaffold-test-project
+user-invokable: false
 description: 'Scaffold an xUnit integration test project for validating database migration from Oracle to Postgres.'
 model: Claude Sonnet 4.6 (copilot)
 tools: [vscode/askQuestions, execute, read, edit, search, todo]
@@ -13,7 +13,7 @@ Create the integration test project structure that will host tests for validatin
 
 | Key | Required | Description |
 |---|---|---|
-| `SOLUTION_ROOT` | Yes | Resolved workspace root path. |
+| `REPOSITORY_ROOT` | Yes | Resolved workspace root path. |
 | `TARGET_PROJECT` | Yes | Absolute path to the single application project to scaffold tests for (e.g., `C:/Source/MyApp/MIUS.API.Postgres`). |
 
 GENERAL INSTRUCTIONS:
