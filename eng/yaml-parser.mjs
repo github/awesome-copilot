@@ -287,7 +287,7 @@ function parseWorkflowMetadata(filePath) {
       // Extract tags and convert to array
       const tags = frontmatter.metadata?.tags
         ? typeof frontmatter.metadata.tags === "string"
-          ? frontmatter.metadata.tags.split(",").map(tag => tag.trim())
+          ? frontmatter.metadata.tags.split(",").map((tag) => tag.trim())
           : Array.isArray(frontmatter.metadata.tags)
           ? frontmatter.metadata.tags
           : []
@@ -327,8 +327,8 @@ export {
   extractMcpServerConfigs,
   extractMcpServers,
   parseFrontmatter,
-  parseSkillMetadata,
   parseHookMetadata,
+  parseSkillMetadata,
   parseWorkflowMetadata,
   parseYamlFile,
   safeFileOperation,
