@@ -1,8 +1,6 @@
 ---
 name: 'OSPO Stale Repository Report'
 description: 'Identifies inactive repositories in your organization and generates an archival recommendation report.'
-metadata:
-  triggers: ['schedule', 'workflow_dispatch']
 labels: ['ospo', 'maintenance', 'stale-repos']
 on:
   schedule:
