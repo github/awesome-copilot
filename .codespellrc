@@ -34,7 +34,13 @@
 
 # FillIn - pdftk-server skill reference file available permission
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai
+# LOD - Level of Detail
+
+# InOut - template property in skills/game-engine/assets/2d-platform-game.md
+
+# pixelX - template variable in skill/game-engine/assets/simple-2d-engine.md
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX
 
 # Skip certain files and directories
 

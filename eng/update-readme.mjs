@@ -10,7 +10,6 @@ import {
     HOOKS_DIR,
     INSTRUCTIONS_DIR,
     PLUGINS_DIR,
-    PROMPTS_DIR,
     repoBaseUrl,
     ROOT_FOLDER,
     SKILLS_DIR,
@@ -341,63 +340,6 @@ function generateInstructionsSection(instructionsDir) {
   }
 
   return `${TEMPLATES.instructionsSection}\n${TEMPLATES.instructionsUsage}\n\n${instructionsContent}`;
-}
-
-/**
- * Generate the prompts section with a table of all prompts
- */
-function generatePromptsSection(promptsDir) {
-  // Check if directory exists
-  if (!fs.existsSync(promptsDir)) {
-    return "";
-  }
-
-  // Get all prompt files
-  const promptFiles = fs
-    .readdirSync(promptsDir)
-    .filter((file) => file.endsWith(".prompt.md"));
-
-  // Map prompt files to objects with title for sorting
-  const promptEntries = promptFiles.map((file) => {
-    const filePath = path.join(promptsDir, file);
-    const title = extractTitle(filePath);
-    return { file, filePath, title };
-  });
-
-  // Sort by title alphabetically
-  promptEntries.sort((a, b) => a.title.localeCompare(b.title));
-
-  console.log(`Found ${promptEntries.length} prompt files`);
-
-  // Return empty string if no files found
-  if (promptEntries.length === 0) {
-    return "";
-  }
-
-  // Create table header
-  let promptsContent = "| Title | Description |\n| ----- | ----------- |\n";
-
-  // Generate table rows for each prompt file
-  for (const entry of promptEntries) {
-    const { file, filePath, title } = entry;
-    const link = encodeURI(`prompts/${file}`);
-
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    // Create badges for installation links
-    const badges = makeBadges(link, "prompt");
-
-    if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](../${link})<br />${badges} | ${formatTableCell(
-        customDescription
-      )} |\n`;
-    } else {
-      promptsContent += `| [${title}](../${link})<br />${badges} | | |\n`;
-    }
-  }
-
-  return `${TEMPLATES.promptsSection}\n${TEMPLATES.promptsUsage}\n\n${promptsContent}`;
 }
 
 /**
@@ -975,7 +917,6 @@ async function main() {
       /^##\s/m,
       "# "
     );
-    const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
     const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
     const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
     const workflowsHeader = TEMPLATES.workflowsSection.replace(/^##\s/m, "# ");
@@ -990,13 +931,6 @@ async function main() {
       INSTRUCTIONS_DIR,
       instructionsHeader,
       TEMPLATES.instructionsUsage,
-      registryNames
-    );
-    const promptsReadme = buildCategoryReadme(
-      generatePromptsSection,
-      PROMPTS_DIR,
-      promptsHeader,
-      TEMPLATES.promptsUsage,
       registryNames
     );
     // Generate agents README
@@ -1054,7 +988,6 @@ async function main() {
       path.join(DOCS_DIR, "README.instructions.md"),
       instructionsReadme
     );
-    writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.workflows.md"), workflowsReadme);

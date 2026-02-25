@@ -2,7 +2,7 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, prompts, instructions, skills, and plugins
+ * This script extracts metadata from agents, instructions, skills, hooks, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
@@ -10,23 +10,22 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import {
-    AGENTS_DIR,
-    COOKBOOK_DIR,
-    HOOKS_DIR,
-    INSTRUCTIONS_DIR,
-    PLUGINS_DIR,
-    PROMPTS_DIR,
-    ROOT_FOLDER,
-    SKILLS_DIR,
-    WORKFLOWS_DIR
+  AGENTS_DIR,
+  COOKBOOK_DIR,
+  HOOKS_DIR,
+  INSTRUCTIONS_DIR,
+  PLUGINS_DIR,
+  ROOT_FOLDER,
+  SKILLS_DIR,
+  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
-    parseFrontmatter,
-    parseSkillMetadata,
-    parseHookMetadata,
-    parseWorkflowMetadata,
-    parseYamlFile,
+  parseFrontmatter,
+  parseHookMetadata,
+  parseSkillMetadata,
+  parseWorkflowMetadata,
+  parseYamlFile,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -133,7 +132,7 @@ function generateAgentsData(gitDates) {
  */
 function generateHooksData(gitDates) {
   const hooks = [];
-  
+
   // Check if hooks directory exists
   if (!fs.existsSync(HOOKS_DIR)) {
     return {
@@ -205,7 +204,6 @@ function generateWorkflowsData(gitDates) {
       items: workflows,
       filters: {
         triggers: [],
-        tags: [],
       },
     };
   }
@@ -215,7 +213,6 @@ function generateWorkflowsData(gitDates) {
   });
 
   const allTriggers = new Set();
-  const allTags = new Set();
 
   for (const file of workflowFiles) {
     const filePath = path.join(WORKFLOWS_DIR, file);
@@ -227,7 +224,6 @@ function generateWorkflowsData(gitDates) {
       .replace(/\\/g, "/");
 
     (metadata.triggers || []).forEach((t) => allTriggers.add(t));
-    (metadata.tags || []).forEach((t) => allTags.add(t));
 
     const id = path.basename(file, ".md");
     workflows.push({
@@ -235,64 +231,19 @@ function generateWorkflowsData(gitDates) {
       title: metadata.name,
       description: metadata.description,
       triggers: metadata.triggers || [],
-      tags: metadata.tags || [],
       path: relativePath,
       lastUpdated: gitDates.get(relativePath) || null,
     });
   }
 
-  const sortedWorkflows = workflows.sort((a, b) => a.title.localeCompare(b.title));
+  const sortedWorkflows = workflows.sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
 
   return {
     items: sortedWorkflows,
     filters: {
       triggers: Array.from(allTriggers).sort(),
-      tags: Array.from(allTags).sort(),
-    },
-  };
-}
-
-/**
- * Generate prompts metadata
- */
-function generatePromptsData(gitDates) {
-  const prompts = [];
-  const files = fs
-    .readdirSync(PROMPTS_DIR)
-    .filter((f) => f.endsWith(".prompt.md"));
-
-  // Track all unique tools for filters
-  const allTools = new Set();
-
-  for (const file of files) {
-    const filePath = path.join(PROMPTS_DIR, file);
-    const frontmatter = parseFrontmatter(filePath);
-    const relativePath = path
-      .relative(ROOT_FOLDER, filePath)
-      .replace(/\\/g, "/");
-
-    const tools = frontmatter?.tools || [];
-    tools.forEach((t) => allTools.add(t));
-
-    prompts.push({
-      id: file.replace(".prompt.md", ""),
-      title: extractTitle(filePath, frontmatter),
-      description: frontmatter?.description || "",
-      agent: frontmatter?.agent || null,
-      model: frontmatter?.model || null,
-      tools: tools,
-      path: relativePath,
-      filename: file,
-      lastUpdated: gitDates.get(relativePath) || null,
-    });
-  }
-
-  const sortedPrompts = prompts.sort((a, b) => a.title.localeCompare(b.title));
-
-  return {
-    items: sortedPrompts,
-    filters: {
-      tools: Array.from(allTools).sort(),
     },
   };
 }
@@ -551,8 +502,9 @@ function generatePluginsData(gitDates) {
     return { items: [], filters: { tags: [] } };
   }
 
-  const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter(d => d.isDirectory());
+  const pluginDirs = fs
+    .readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory());
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
@@ -567,9 +519,9 @@ function generatePluginsData(gitDates) {
 
       // Build items list from spec fields (agents, commands, skills)
       const items = [
-        ...(data.agents || []).map(p => ({ kind: "agent", path: p })),
-        ...(data.commands || []).map(p => ({ kind: "prompt", path: p })),
-        ...(data.skills || []).map(p => ({ kind: "skill", path: p })),
+        ...(data.agents || []).map((p) => ({ kind: "agent", path: p })),
+        ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
+        ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
       ];
 
       const tags = data.keywords || data.tags || [];
@@ -583,7 +535,9 @@ function generatePluginsData(gitDates) {
         itemCount: items.length,
         items: items,
         lastUpdated: dates.lastModified || null,
-        searchText: `${data.name || dir.name} ${data.description || ""} ${tags.join(" ")}`.toLowerCase(),
+        searchText: `${data.name || dir.name} ${
+          data.description || ""
+        } ${tags.join(" ")}`.toLowerCase(),
       });
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
@@ -591,13 +545,13 @@ function generatePluginsData(gitDates) {
   }
 
   // Collect all unique tags
-  const allTags = [...new Set(plugins.flatMap(p => p.tags))].sort();
+  const allTags = [...new Set(plugins.flatMap((p) => p.tags))].sort();
 
   const sortedPlugins = plugins.sort((a, b) => a.name.localeCompare(b.name));
 
   return {
     items: sortedPlugins,
-    filters: { tags: allTags }
+    filters: { tags: allTags },
   };
 }
 
@@ -663,7 +617,6 @@ function generateToolsData() {
  */
 function generateSearchIndex(
   agents,
-  prompts,
   instructions,
   hooks,
   workflows,
@@ -683,18 +636,6 @@ function generateSearchIndex(
       searchText: `${agent.title} ${agent.description} ${agent.tools.join(
         " "
       )}`.toLowerCase(),
-    });
-  }
-
-  for (const prompt of prompts) {
-    index.push({
-      type: "prompt",
-      id: prompt.id,
-      title: prompt.title,
-      description: prompt.description,
-      path: prompt.path,
-      lastUpdated: prompt.lastUpdated,
-      searchText: `${prompt.title} ${prompt.description}`.toLowerCase(),
     });
   }
 
@@ -734,9 +675,9 @@ function generateSearchIndex(
       description: workflow.description,
       path: workflow.path,
       lastUpdated: workflow.lastUpdated,
-      searchText: `${workflow.title} ${workflow.description} ${workflow.triggers.join(
-        " "
-      )} ${workflow.tags.join(" ")}`.toLowerCase(),
+      searchText: `${workflow.title} ${
+        workflow.description
+      } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -874,7 +815,7 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "prompts/", "instructions/", "hooks/", "workflows/", "skills/", "plugins/"],
+    ["agents/", "instructions/", "hooks/", "workflows/", "skills/", "plugins/"],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
@@ -895,13 +836,7 @@ async function main() {
   const workflowsData = generateWorkflowsData(gitDates);
   const workflows = workflowsData.items;
   console.log(
-    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers, ${workflowsData.filters.tags.length} tags)`
-  );
-
-  const promptsData = generatePromptsData(gitDates);
-  const prompts = promptsData.items;
-  console.log(
-    `✓ Generated ${prompts.length} prompts (${promptsData.filters.tools.length} tools)`
+    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
   );
 
   const instructionsData = generateInstructionsData(gitDates);
@@ -935,7 +870,6 @@ async function main() {
 
   const searchIndex = generateSearchIndex(
     agents,
-    prompts,
     instructions,
     hooks,
     workflows,
@@ -958,11 +892,6 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "workflows.json"),
     JSON.stringify(workflowsData, null, 2)
-  );
-
-  fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "prompts.json"),
-    JSON.stringify(promptsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -1000,7 +929,6 @@ async function main() {
     generated: new Date().toISOString(),
     counts: {
       agents: agents.length,
-      prompts: prompts.length,
       instructions: instructions.length,
       skills: skills.length,
       hooks: hooks.length,

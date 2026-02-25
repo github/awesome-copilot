@@ -11,7 +11,7 @@ const base = import.meta.env.BASE_URL;
     <section class="hero" aria-labelledby="hero-heading">
       <div class="container">
         <h1 id="hero-heading">Awesome GitHub Copilot</h1>
-        <p class="hero-subtitle">Community-contributed instructions, prompts, agents, and skills to enhance your GitHub Copilot experience</p>
+        <p class="hero-subtitle">Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience</p>
         <div class="hero-search">
           <label for="global-search" class="sr-only">Search all resources</label>
           <input type="text" id="global-search" placeholder="Search all resources..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
@@ -32,14 +32,6 @@ const base = import.meta.env.BASE_URL;
               <p>Custom agents for specialized Copilot experiences</p>
             </div>
             <div class="card-count" data-count="agents" aria-label="Agent count">-</div>
-          </a>
-          <a href={`${base}prompts/`} class="card card-with-count" id="card-prompts">
-            <div class="card-icon" aria-hidden="true">🎯</div>
-            <div class="card-content">
-              <h3>Prompts</h3>
-              <p>Ready-to-use prompt templates for development tasks</p>
-            </div>
-            <div class="card-count" data-count="prompts" aria-label="Prompt count">-</div>
           </a>
           <a href={`${base}instructions/`} class="card card-with-count" id="card-instructions">
             <div class="card-icon" aria-hidden="true">📋</div>
@@ -64,6 +56,14 @@ const base = import.meta.env.BASE_URL;
               <p>Automated workflows triggered by agent events</p>
             </div>
             <div class="card-count" data-count="hooks" aria-label="Hook count">-</div>
+          </a>
+          <a href={`${base}workflows/`} class="card card-with-count" id="card-workflows">
+            <div class="card-icon" aria-hidden="true">⚡</div>
+            <div class="card-content">
+              <h3>Workflows</h3>
+              <p>AI-powered automations for GitHub Actions</p>
+            </div>
+            <div class="card-count" data-count="workflows" aria-label="Workflow count">-</div>
           </a>
           <a href={`${base}plugins/`} class="card card-with-count" id="card-plugins">
             <div class="card-icon" aria-hidden="true">🔌</div>
@@ -103,7 +103,7 @@ const base = import.meta.env.BASE_URL;
           <div class="step">
             <div class="step-number" aria-hidden="true">1</div>
             <h3>Browse</h3>
-            <p>Explore agents, prompts, instructions, and skills</p>
+            <p>Explore agents, instructions, skills, and plugins</p>
           </div>
           <div class="step">
             <div class="step-number" aria-hidden="true">2</div>

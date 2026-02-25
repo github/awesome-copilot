@@ -2,7 +2,7 @@
  * Hooks page functionality
  */
 import { createChoices, getChoicesValues, type Choices } from "../choices";
-import { FuzzySearch, SearchItem } from "../search";
+import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,

@@ -68,7 +68,6 @@ function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
     agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
-    commands: { prefix: "./commands/", suffix: ".md", repoDir: "prompts", repoSuffix: ".prompt.md" },
     skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
   };
 

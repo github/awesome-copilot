@@ -1,7 +1,8 @@
 ---
 description: You are an expert at using C++ language service tools (GetSymbolReferences_CppTools, GetSymbolInfo_CppTools, GetSymbolCallHierarchy_CppTools). Instructions for calling C++ Tools for Copilot. When working with C++ code, you have access to powerful language service tools that provide accurate, IntelliSense-powered analysis. **Always prefer these tools over manual code inspection, text search, or guessing.**
-applyTo: **/*.cpp, **/*.h, **/*.hpp, **/*.cc, **/*.cxx, **/*.c
+applyTo: "**/*.cpp, **/*.h, **/*.hpp, **/*.cc, **/*.cxx, **/*.c"
 ---
+
 ## Available C++ Tools
 
 You have access to three specialized C++ tools:
@@ -19,6 +20,7 @@ You have access to three specialized C++ tools:
 **NEVER** rely on manual code inspection, `vscode_listCodeUsages`, `grep_search`, or `read_file` to find where a symbol is used.
 
 **ALWAYS** call `GetSymbolReferences_CppTools` when:
+
 - Renaming any symbol (function, variable, class, method, etc.)
 - Changing function signatures
 - Refactoring code
@@ -28,6 +30,7 @@ You have access to three specialized C++ tools:
 - Any task involving "find all uses/usages/references/calls"
 
 **Why**: `GetSymbolReferences_CppTools` uses C++ IntelliSense and understands:
+
 - Overloaded functions
 - Template instantiations
 - Qualified vs unqualified names
@@ -42,6 +45,7 @@ Text search tools will miss these or produce false positives.
 Before modifying any function signature, **ALWAYS** call `GetSymbolCallHierarchy_CppTools` with `callsFrom=false` to find all callers.
 
 **Examples**:
+
 - Adding/removing function parameters
 - Changing parameter types
 - Changing return types
@@ -53,6 +57,7 @@ Before modifying any function signature, **ALWAYS** call `GetSymbolCallHierarchy
 ### Rule 3: ALWAYS Use GetSymbolInfo_CppTools to Understand Symbols
 
 Before working with unfamiliar code, **ALWAYS** call `GetSymbolInfo_CppTools` to:
+
 - Find where a symbol is defined
 - Understand class/struct memory layout
 - Get type information
@@ -65,11 +70,13 @@ Before working with unfamiliar code, **ALWAYS** call `GetSymbolInfo_CppTools` to
 ## Parameter Usage Guidelines
 
 ### Symbol Names
+
 - **ALWAYS REQUIRED**: Provide the symbol name
 - Can be unqualified (`MyFunction`), partially qualified (`MyClass::MyMethod`), or fully qualified (`MyNamespace::MyClass::MyMethod`)
 - If you have a line number, the symbol should match what appears on that line
 
 ### File Paths
+
 - **STRONGLY PREFERRED**: Always provide absolute file paths when available
   - ✅ Good: `C:\Users\Project\src\main.cpp`
   - ❌ Avoid: `src\main.cpp` (requires resolution, may fail)
@@ -77,6 +84,7 @@ Before working with unfamiliar code, **ALWAYS** call `GetSymbolInfo_CppTools` to
 - If working with user-specified files, use their exact path
 
 ### Line Numbers
+
 - **CRITICAL**: Line numbers are 1-based, NOT 0-based
 - **MANDATORY WORKFLOW** when you need a line number:
   1. First call `read_file` to search for the symbol
@@ -88,7 +96,9 @@ Before working with unfamiliar code, **ALWAYS** call `GetSymbolInfo_CppTools` to
 - If you don't have a line number, omit it - the tools will find the symbol
 
 ### Minimal Information Strategy
+
 Start with minimal information and add more only if needed:
+
 1. **First attempt**: Symbol name only
 2. **If ambiguous**: Symbol name + file path
 3. **If still ambiguous**: Symbol name + file path + line number (after using `read_file`)
@@ -164,6 +174,7 @@ INCORRECT workflow:
 **All error messages contain specific recovery instructions. ALWAYS follow them exactly.**
 
 #### "Symbol name is not valid" Error
+
 ```
 Error: "The symbol name is not valid: it is either empty or null. Find a valid symbol name. Then call the [tool] tool again"
 
@@ -174,6 +185,7 @@ Recovery:
 ```
 
 #### "File could not be found" Error
+
 ```
 Error: "A file could not be found at the specified path. Compute the absolute path to the file. Then call the [tool] tool again."
 
@@ -185,6 +197,7 @@ Recovery:
 ```
 
 #### "No results found" Message
+
 ```
 Message: "No results found for the symbol '[symbol_name]'."
 
@@ -199,16 +212,19 @@ This is NOT an error - it means:
 ## Tool Selection Decision Tree
 
 **Question: Do I need to find where a symbol is used/called/referenced?**
+
 - ✅ YES → Use `GetSymbolReferences_CppTools`
 - ❌ NO → Continue
 
 **Question: Am I changing a function signature or analyzing function calls?**
+
 - ✅ YES → Use `GetSymbolCallHierarchy_CppTools`
   - Finding callers? → `callsFrom=false`
   - Finding what it calls? → `callsFrom=true`
 - ❌ NO → Continue
 
 **Question: Do I need to find a definition or understand a type?**
+
 - ✅ YES → Use `GetSymbolInfo_CppTools`
 - ❌ NO → You may not need a C++ tool for this task
 
@@ -217,6 +233,7 @@ This is NOT an error - it means:
 ## Critical Reminders
 
 ### DO:
+
 - ✅ Call `GetSymbolReferences_CppTools` for ANY symbol usage search
 - ✅ Call `GetSymbolCallHierarchy_CppTools` before function signature changes
 - ✅ Use `read_file` to find line numbers before specifying them
@@ -227,6 +244,7 @@ This is NOT an error - it means:
 - ✅ Remember line numbers are 1-based
 
 ### DO NOT:
+
 - ❌ Use `vscode_listCodeUsages`, `grep_search`, or `read_file` to find symbol usages
 - ❌ Manually inspect code to find references
 - ❌ Guess line numbers
@@ -242,6 +260,7 @@ This is NOT an error - it means:
 ## Examples of Correct Usage
 
 ### Example 1: User asks to rename a function
+
 ```
 User: "Rename the function ProcessData to HandleData"
 
@@ -259,6 +278,7 @@ INCORRECT response:
 ```
 
 ### Example 2: User asks to add a parameter to a function
+
 ```
 User: "Add a parameter 'bool verbose' to the LogMessage function"
 
@@ -276,6 +296,7 @@ INCORRECT response:
 ```
 
 ### Example 3: User asks to understand a function
+
 ```
 User: "What does the Initialize function do?"
 
@@ -296,16 +317,19 @@ INCORRECT response:
 ## Performance and Best Practices
 
 ### Efficient Tool Usage
+
 - Call tools in parallel when analyzing multiple independent symbols
 - Use file paths to speed up symbol resolution
 - Provide context to narrow searches
 
 ### Iterative Refinement
+
 - If first tool call is ambiguous, add file path
 - If still ambiguous, use `read_file` to find exact line
 - Tools are designed for iteration
 
 ### Understanding Results
+
 - **Empty results are valid**: "No results found" means the symbol has no references/calls
 - **Multiple results are common**: C++ has overloading, templates, namespaces
 - **Trust the tools**: IntelliSense knows C++ semantics better than text search
@@ -315,17 +339,20 @@ INCORRECT response:
 ## Integration with Other Tools
 
 ### When to use read_file
+
 - **ONLY** for finding line numbers before calling C++ tools
 - **ONLY** for reading implementation details after locating symbols
 - **NEVER** for finding symbol usages (use `GetSymbolReferences_CppTools` instead)
 
 ### When to use vscode_listCodeUsages/grep_search
+
 - Finding string literals or comments
 - Searching non-C++ files
 - Pattern matching in configuration files
 - **NEVER** for finding C++ symbol usages
 
 ### When to use semantic_search
+
 - Finding code based on conceptual queries
 - Locating relevant files in large codebases
 - Understanding project structure

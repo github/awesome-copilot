@@ -8,10 +8,10 @@ import { setupModal, openFileModal } from '../modal';
 interface Manifest {
   counts: {
     agents: number;
-    prompts: number;
     instructions: number;
     skills: number;
     hooks: number;
+    workflows: number;
     plugins: number;
     tools: number;
   };
@@ -36,7 +36,7 @@ export async function initHomepage(): Promise<void> {
   const manifest = await fetchData<Manifest>('manifest.json');
   if (manifest && manifest.counts) {
     // Populate counts in cards
-    const countKeys = ['agents', 'prompts', 'instructions', 'skills', 'hooks', 'plugins', 'tools'] as const;
+    const countKeys = ['agents', 'instructions', 'skills', 'hooks', 'workflows', 'plugins', 'tools'] as const;
     countKeys.forEach(key => {
       const countEl = document.querySelector(`.card-count[data-count="${key}"]`);
       if (countEl && manifest.counts[key] !== undefined) {

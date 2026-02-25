@@ -1,6 +1,10 @@
 # 🪝 Hooks
 
 Hooks enable automated workflows triggered by specific events during GitHub Copilot coding agent sessions, such as session start, session end, user prompts, and tool usage.
+### How to Contribute
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-hooks) for guidelines on how to contribute new hooks, improve existing ones, and share your use cases.
+
 ### How to Use Hooks
 
 **What's Included:**

@@ -3,12 +3,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
 ---
 
-<BaseLayout title="Plugins" description="Curated plugins of prompts, agents, and skills for specific workflows" activeNav="plugins">
+<BaseLayout title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" activeNav="plugins">
   <main id="main-content">
     <div class="page-header">
       <div class="container">
         <h1>🔌 Plugins</h1>
-        <p>Curated plugins of prompts, agents, and skills for specific workflows</p>
+        <p>Curated plugins of agents, hooks, and skills for specific workflows</p>
       </div>
     </div>
 
@@ -18,7 +18,7 @@ import Modal from '../components/Modal.astro';
           <label for="search-input" class="sr-only">Search plugins</label>
           <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
         </div>
-        
+
         <div class="filters-bar" id="filters-bar">
           <div class="filter-group">
             <label for="filter-tag">Tag:</label>
@@ -32,7 +32,7 @@ import Modal from '../components/Modal.astro';
           </div>
           <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
         </div>
-        
+
         <div class="results-count" id="results-count" aria-live="polite"></div>
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading plugins...</div>
