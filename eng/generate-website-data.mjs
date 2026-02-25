@@ -204,7 +204,6 @@ function generateWorkflowsData(gitDates) {
       items: workflows,
       filters: {
         triggers: [],
-        tags: [],
       },
     };
   }
@@ -214,7 +213,6 @@ function generateWorkflowsData(gitDates) {
   });
 
   const allTriggers = new Set();
-  const allTags = new Set();
 
   for (const file of workflowFiles) {
     const filePath = path.join(WORKFLOWS_DIR, file);
@@ -226,7 +224,6 @@ function generateWorkflowsData(gitDates) {
       .replace(/\\/g, "/");
 
     (metadata.triggers || []).forEach((t) => allTriggers.add(t));
-    (metadata.tags || []).forEach((t) => allTags.add(t));
 
     const id = path.basename(file, ".md");
     workflows.push({
@@ -234,7 +231,6 @@ function generateWorkflowsData(gitDates) {
       title: metadata.name,
       description: metadata.description,
       triggers: metadata.triggers || [],
-      tags: metadata.tags || [],
       path: relativePath,
       lastUpdated: gitDates.get(relativePath) || null,
     });
@@ -248,7 +244,6 @@ function generateWorkflowsData(gitDates) {
     items: sortedWorkflows,
     filters: {
       triggers: Array.from(allTriggers).sort(),
-      tags: Array.from(allTags).sort(),
     },
   };
 }
@@ -682,9 +677,7 @@ function generateSearchIndex(
       lastUpdated: workflow.lastUpdated,
       searchText: `${workflow.title} ${
         workflow.description
-      } ${workflow.triggers.join(" ")} ${workflow.tags.join(
-        " "
-      )}`.toLowerCase(),
+      } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -843,7 +836,7 @@ async function main() {
   const workflowsData = generateWorkflowsData(gitDates);
   const workflows = workflowsData.items;
   console.log(
-    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers, ${workflowsData.filters.tags.length} tags)`
+    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
   );
 
   const instructionsData = generateInstructionsData(gitDates);

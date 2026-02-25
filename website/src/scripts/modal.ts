@@ -20,6 +20,61 @@ let currentFilePath: string | null = null;
 let currentFileContent: string | null = null;
 let currentFileType: string | null = null;
 let triggerElement: HTMLElement | null = null;
+let originalDocumentTitle: string | null = null;
+
+// Resource data cache for title lookups
+interface ResourceItem {
+  title: string;
+  path: string;
+}
+
+interface ResourceData {
+  items: ResourceItem[];
+}
+
+const resourceDataCache: Record<string, ResourceData | null> = {};
+
+const RESOURCE_TYPE_TO_JSON: Record<string, string> = {
+  agent: "agents.json",
+  instruction: "instructions.json",
+  skill: "skills.json",
+  hook: "hooks.json",
+  workflow: "workflows.json",
+  plugin: "plugins.json",
+};
+
+/**
+ * Look up the display title for a resource from its JSON data file
+ */
+async function resolveResourceTitle(
+  filePath: string,
+  type: string
+): Promise<string> {
+  const fallback = filePath.split("/").pop() || filePath;
+  const jsonFile = RESOURCE_TYPE_TO_JSON[type];
+  if (!jsonFile) return fallback;
+
+  if (!(jsonFile in resourceDataCache)) {
+    resourceDataCache[jsonFile] = await fetchData<ResourceData>(jsonFile);
+  }
+
+  const data = resourceDataCache[jsonFile];
+  if (!data) return fallback;
+
+  // Try exact path match first
+  const item = data.items.find((i) => i.path === filePath);
+  if (item) return item.title;
+
+  // For skills/hooks, the modal receives the file path (e.g. skills/foo/SKILL.md)
+  // but JSON stores the folder path (e.g. skills/foo)
+  const parentPath = filePath.substring(0, filePath.lastIndexOf("/"));
+  if (parentPath) {
+    const parentItem = data.items.find((i) => i.path === parentPath);
+    if (parentItem) return parentItem.title;
+  }
+
+  return fallback;
+}
 
 // Plugin data cache
 interface PluginItem {
@@ -287,7 +342,7 @@ export function setupInstallDropdown(containerId: string): void {
 /**
  * Open file viewer modal
  * @param filePath - Path to the file
- * @param type - Resource type (agent, prompt, instruction, etc.)
+ * @param type - Resource type (agent, instruction, etc.)
  * @param updateUrl - Whether to update the URL hash (default: true)
  * @param trigger - The element that triggered the modal (for focus return)
  */
@@ -329,8 +384,23 @@ export async function openFileModal(
   }
 
   // Show modal with loading state
-  title.textContent = filePath.split("/").pop() || filePath;
+  const fallbackName = filePath.split("/").pop() || filePath;
+  title.textContent = fallbackName;
   modal.classList.remove("hidden");
+
+  // Update document title to reflect the open file
+  if (!originalDocumentTitle) {
+    originalDocumentTitle = document.title;
+  }
+  document.title = `${fallbackName} | Awesome GitHub Copilot`;
+
+  // Resolve the proper title from JSON data asynchronously
+  resolveResourceTitle(filePath, type).then((resolvedTitle) => {
+    if (currentFilePath === filePath) {
+      title.textContent = resolvedTitle;
+      document.title = `${resolvedTitle} | Awesome GitHub Copilot`;
+    }
+  });
 
   // Set focus to close button for accessibility
   setTimeout(() => {
@@ -447,6 +517,7 @@ async function openPluginModal(
 
   // Update title
   title.textContent = plugin.name;
+  document.title = `${plugin.name} | Awesome GitHub Copilot`;
 
   // Render plugin view
   modalContent.innerHTML = `
@@ -529,6 +600,12 @@ export function closeModal(updateUrl = true): void {
   // Update URL for deep linking
   if (updateUrl) {
     updateHash(null);
+  }
+
+  // Restore original document title
+  if (originalDocumentTitle) {
+    document.title = originalDocumentTitle;
+    originalDocumentTitle = null;
   }
 
   // Return focus to trigger element

@@ -3,26 +3,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
 ---
 
-<BaseLayout title="Prompts" description="Ready-to-use prompt templates for development tasks with GitHub Copilot" activeNav="prompts">
+<BaseLayout title="Workflows" description="AI-powered repository automations that run coding agents in GitHub Actions" activeNav="workflows">
   <main id="main-content">
     <div class="page-header">
       <div class="container">
-        <h1>🎯 Prompts</h1>
-        <p>Ready-to-use prompt templates for development tasks with GitHub Copilot</p>
+        <h1>⚡ Agentic Workflows</h1>
+        <p>AI-powered repository automations that run coding agents in GitHub Actions</p>
       </div>
     </div>
 
     <div class="page-content">
       <div class="container">
         <div class="search-bar">
-          <label for="search-input" class="sr-only">Search prompts</label>
-          <input type="text" id="search-input" placeholder="Search prompts..." autocomplete="off">
+          <label for="search-input" class="sr-only">Search workflows</label>
+          <input type="text" id="search-input" placeholder="Search workflows..." autocomplete="off">
         </div>
         
         <div class="filters-bar" id="filters-bar">
           <div class="filter-group">
-            <label for="filter-tool">Tool:</label>
-            <select id="filter-tool" multiple aria-label="Filter by tool"></select>
+            <label for="filter-trigger">Trigger:</label>
+            <select id="filter-trigger" multiple aria-label="Filter by trigger"></select>
           </div>
           <div class="filter-group">
             <label for="sort-select">Sort:</label>
@@ -36,7 +36,7 @@ import Modal from '../components/Modal.astro';
         
         <div class="results-count" id="results-count" aria-live="polite"></div>
         <div class="resource-list" id="resource-list" role="list">
-          <div class="loading" aria-live="polite">Loading prompts...</div>
+          <div class="loading" aria-live="polite">Loading workflows...</div>
         </div>
       </div>
     </div>
@@ -45,6 +45,6 @@ import Modal from '../components/Modal.astro';
   <Modal />
 
   <script>
-    import '../scripts/pages/prompts';
+    import '../scripts/pages/workflows';
   </script>
 </BaseLayout>

@@ -33,4 +33,4 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-agentic-workflows) for guideline
 
 | Name | Description | Triggers |
 | ---- | ----------- | -------- |
-| [Daily Issues Report](../workflows/daily-issues-report.md) | Generates a daily summary of open issues and recent activity as a GitHub issue | N/A |
+| [Daily Issues Report](../workflows/daily-issues-report.md) | Generates a daily summary of open issues and recent activity as a GitHub issue | schedule |
