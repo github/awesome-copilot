@@ -18,13 +18,6 @@
     "security"
   ],
   "agents": [
-    "./agents/gem-orchestrator.md",
-    "./agents/gem-researcher.md",
-    "./agents/gem-planner.md",
-    "./agents/gem-implementer.md",
-    "./agents/gem-browser-tester.md",
-    "./agents/gem-devops.md",
-    "./agents/gem-reviewer.md",
-    "./agents/gem-documentation-writer.md"
+    "./agents"
   ]
 }
