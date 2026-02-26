@@ -1,91 +1,22 @@
 ---
-description: 'A plain-text reasoning core (WFGY Core 2.0) system prompt plus a 60-second self-test to make GitHub Copilot more stable on multi-step reasoning tasks.'
+description: 'A text-only reasoning core (WFGY Core 2.0) you can drop into GitHub Copilot instructions to make multi-step reasoning more stable.'
 ---
 
 # WFGY Core 2.0 reasoning OS for GitHub Copilot
 
-hi copilot builders,
+This file provides a small, text-only reasoning core that you can plug into GitHub Copilot Chat as a custom instruction.  
+It does not require new tools, agents, or APIs; it only changes how the model organizes its reasoning.
 
-this is meant to be a “drop-in reasoning core” you can hand to GitHub Copilot as a custom instruction.
+## How to use
 
-i’m PSBigBig, an indie dev.
-before my github repo went over 1.5k stars, i spent one year on a very simple idea:
-instead of building yet another tool or agent,
-i tried to write a small “reasoning core” in plain text,
-so any strong llm (including copilot chat) can use it without new infra.
+1. Copy the **Instructions block** below into `.github/copilot-instructions.md`  
+   or into a `*.instructions.md` file under `.github/instructions/`.
+2. Reload or open a new Copilot Chat and use it as normal (coding, debugging, planning, etc.).
+3. To compare, temporarily remove this block and repeat the same tasks with the same prompts.
 
-i call it **WFGY Core 2.0**.
+## Instructions block (WFGY Core 2.0)
 
-this file gives you two things:
-
-- one system prompt block you can paste as an instruction
-- one 60-second self-test so you can feel the difference by yourself
-
-no signup, no API, no hidden tricks.
-just text.
-
-
-## 0. very short version
-
-what it is:
-
-- not a new model, not a fine-tune
-- one txt block you put in system / instructions
-- goal: less random hallucination, more stable multi-step reasoning
-- still cheap, no tools, no external calls
-
-how people use it:
-
-- some people treat it as a “math bumper” under the model
-- advanced users can turn this into a real code benchmark later
-- in this instructions file we keep it super beginner-friendly:
-  just **two prompt blocks you can run inside copilot chat**
-
-
-## 1. how to use with GitHub Copilot (or any strong llm)
-
-very simple workflow if you want to try this as a **workspace-level copilot instruction**:
-
-1. copy the “system prompt” block in section 3
-2. put it into `.github/copilot-instructions.md`
-   - or into a `*.instructions.md` file in `.github/instructions/`
-3. open a new Copilot Chat and ask your normal questions
-   (math, code, debugging, planning, etc.)
-4. later you can compare “with core” vs “no core” yourself
-
-for quick A/B testing, you can also:
-
-- keep a second project / branch without this instruction
-- or temporarily comment this block out and retry the same tasks
-
-for now, just treat it as a math-based “reasoning bumper”
-sitting under Copilot’s usual behavior.
-
-
-## 2. what effect you should expect (rough feeling only)
-
-this is not a magic on/off switch.
-
-but in my own tests (across different llms), typical changes look like:
-
-- answers drift less when you ask follow-up questions
-- long explanations keep the structure more consistent
-- the model is a bit more willing to say “i am not sure”
-  instead of inventing fake details
-- when you use the model to write prompts for image generation,
-  the prompts tend to have clearer structure and story,
-  so many people feel “the pictures look more intentional, less random”
-
-of course, this depends on your tasks and the base model.
-that is why there is also a small **60-second self-test** in section 4.
-
-if you like numbers, you can turn that test into a fixed benchmark later.
-inside this repo, it is ok if you start with “rough feeling only”.
-
-
-## 3. system prompt: WFGY Core 2.0 (paste into system / instructions)
-
-copy everything in this block into your system / pre-prompt / instructions:
+Copy everything in this block into your system / pre-prompt / instructions:
 
 ```text
 WFGY Core Flagship v2.0 (text-only; no tools). Works in any chat.
@@ -122,102 +53,3 @@ lambda_observe is: convergent if Delta ≤ −0.02 and E_resonance non-increasin
 recursive if |Delta| < 0.02 and E_resonance flat; divergent if Delta ∈ (−0.02, +0.04] with oscillation;
 chaotic if Delta > +0.04 or anchors conflict.
 [DT micro-rules]
-````
-
-yes, it looks like math.
-it is ok if you do not understand every symbol.
-you can still use it as a “drop-in” reasoning core.
-
-for Copilot, the main idea is:
-
-* this block does not fight with your existing style guides
-* it just gives the model a second, math-like lens
-* you can combine it with language/framework-specific instructions
-
-## 4. 60-second self test (quick A/B/C comparison)
-
-this part is for people who want to see some structure in the comparison.
-it is still very lightweight and can run inside one Copilot Chat session.
-
-idea:
-
-* you keep the WFGY Core 2.0 block in system / instructions
-* then you paste the following prompt and let the model simulate A/B/C modes
-* the model will produce a small table and its own guess of uplift
-
-this is a self-evaluation, not a scientific paper.
-if you want a serious benchmark, you can translate this idea into real code and fixed test sets later.
-
-here is the test prompt (second block, keep it exactly as-is):
-
-```text
-SYSTEM:
-You are evaluating the effect of a mathematical reasoning core called “WFGY Core 2.0”.
-
-You will compare three modes of yourself:
-
-A = Baseline  
-    No WFGY core text is loaded. Normal chat, no extra math rules.
-
-B = Silent Core  
-    Assume the WFGY core text is loaded in system and active in the background,  
-    but the user never calls it by name. You quietly follow its rules while answering.
-
-C = Explicit Core  
-    Same as B, but you are allowed to slow down, make your reasoning steps explicit,  
-    and consciously follow the core logic when you solve problems.
-
-Use the SAME small task set for all three modes, across 5 domains:
-1) math word problems
-2) small coding tasks
-3) factual QA with tricky details
-4) multi-step planning
-5) long-context coherence (summary + follow-up question)
-
-For each domain:
-- design 2–3 short but non-trivial tasks
-- imagine how A would answer
-- imagine how B would answer
-- imagine how C would answer
-- give rough scores from 0–100 for:
-  * Semantic accuracy
-  * Reasoning quality
-  * Stability / drift (how consistent across follow-ups)
-
-Important:
-- Be honest even if the uplift is small.
-- This is only a quick self-estimate, not a real benchmark.
-- If you feel unsure, say so in the comments.
-
-USER:
-Run the test now on the five domains and then output:
-1) One table with A/B/C scores per domain.
-2) A short bullet list of the biggest differences you noticed.
-3) One overall 0–100 “WFGY uplift guess” and 3 lines of rationale.
-```
-
-usually this takes about one minute to run.
-you can repeat it some days later to see if the pattern is stable for you.
-
-## 5. why this belongs in awesome-copilot
-
-many builders want stronger reasoning from any llm,
-but don’t want to spin up new infra, tools, or agents.
-
-this is just a text layer.
-
-* drop-in
-* MIT-licensed
-* no lock-in
-* works side-by-side with your existing language/framework instructions
-
-if you are curious about the bigger project, it is under:
-
-* GitHub: `onestardao / WFGY`
-* the WFGY 2.0 core is the engine behind that work
-
-but you do not need to go there to try this.
-
-this instructions file is meant as a small gift for copilot users:
-a way to experiment with a mathematical “reasoning core”
-without leaving your editor.
