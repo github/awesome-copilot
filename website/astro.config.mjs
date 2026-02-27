@@ -7,6 +7,9 @@ export default defineConfig({
   base: "/awesome-copilot/",
   output: "static",
   integrations: [sitemap()],
+  redirects: {
+    "/samples/": "/learning-hub/cookbook/",
+  },
   build: {
     assets: "assets",
   },

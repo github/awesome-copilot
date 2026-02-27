@@ -1,15 +1,18 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import Modal from '../components/Modal.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Modal from '../../../components/Modal.astro';
 
 const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title="Samples" description="Code samples, recipes, and examples for building with GitHub Copilot" activeNav="samples">
+<BaseLayout title="Cookbook" description="Code samples, recipes, and examples for building with GitHub Copilot" activeNav="learning-hub">
   <main id="main-content">
     <div class="page-header">
       <div class="container">
-        <h1>📚 Samples & Recipes</h1>
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href={`${base}learning-hub/`}>← Learning Hub</a>
+        </nav>
+        <h1>🍳 Cookbook</h1>
         <p>Code samples, recipes, and examples for building with GitHub Copilot tools</p>
       </div>
     </div>
@@ -243,6 +246,6 @@ const base = import.meta.env.BASE_URL;
   </style>
 
   <script>
-    import '../scripts/pages/samples';
+    import '../../../scripts/pages/samples';
   </script>
 </BaseLayout>

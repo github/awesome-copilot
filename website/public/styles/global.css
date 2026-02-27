@@ -1587,3 +1587,326 @@ a:hover {
   background-color: rgba(210, 153, 34, 0.2);
   color: var(--color-warning);
 }
+
+/* Learning Hub - Sidebar Layout */
+.learning-hub-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.learning-hub-sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  margin-bottom: 24px;
+}
+
+.sidebar-section h3 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  padding: 0 12px;
+}
+
+.sidebar-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav-list li {
+  margin: 0;
+}
+
+.sidebar-nav-list a {
+  display: block;
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.sidebar-nav-list a:hover {
+  color: var(--color-text);
+  background-color: var(--color-glass);
+}
+
+.sidebar-nav-list a.active {
+  color: var(--color-text-emphasis);
+  background-color: var(--color-glass);
+  border-left-color: var(--color-accent);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .learning-hub-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .learning-hub-sidebar {
+    position: static;
+    max-height: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+}
+
+/* Learning Hub - Article Styles */
+.breadcrumb {
+  margin-bottom: 16px;
+}
+
+.breadcrumb a {
+  color: var(--color-link);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+.article-meta {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.article-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background-color: var(--color-glass);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text-muted);
+}
+
+/* Article prose content */
+.article-content {
+  max-width: 780px;
+  line-height: 1.75;
+  font-size: 16px;
+  color: var(--color-text);
+}
+
+.article-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 48px;
+  margin-bottom: 16px;
+  color: var(--color-text-emphasis);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+}
+
+.article-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  color: var(--color-text-emphasis);
+}
+
+.article-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 24px;
+  margin-bottom: 8px;
+  color: var(--color-text-emphasis);
+}
+
+.article-content p {
+  margin-bottom: 16px;
+}
+
+.article-content a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.article-content a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+.article-content ul,
+.article-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.article-content li {
+  margin-bottom: 6px;
+}
+
+.article-content code {
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  font-family: 'Monaspace Argon NF', monospace;
+}
+
+.article-content pre {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.article-content pre code {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.article-content blockquote {
+  margin: 16px 0;
+  padding: 12px 20px;
+  border-left: 4px solid var(--color-accent);
+  background-color: var(--color-glass);
+  border-radius: 0 8px 8px 0;
+  color: var(--color-text-muted);
+}
+
+.article-content blockquote p {
+  margin-bottom: 0;
+}
+
+.article-content hr {
+  margin: 32px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.article-content strong {
+  color: var(--color-text-emphasis);
+}
+
+.article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.article-content th,
+.article-content td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--color-border);
+}
+
+.article-content th {
+  font-weight: 600;
+  color: var(--color-text-emphasis);
+  background-color: var(--color-glass);
+}
+
+.article-content tr:hover {
+  background-color: var(--color-glass);
+}
+
+/* Learning Hub - Index Page */
+.learning-hub-section h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-text-emphasis);
+}
+
+.section-description {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.article-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.article-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-glass-border);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.article-card:hover {
+  background-color: var(--color-card-hover);
+  border-color: var(--color-accent);
+}
+
+.article-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.article-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.article-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--color-text-emphasis);
+}
+
+.article-info p {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
