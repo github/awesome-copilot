@@ -69,3 +69,24 @@ cookbooks:
           - playwright
           - mcp
           - wcag
+
+  - id: community-samples
+    name: Community Samples
+    description: Community-contributed projects and examples for GitHub Copilot
+    path: cookbook/community-samples
+    featured: false
+    languages: []
+    recipes:
+      - id: nodejs-agentic-issue-resolver
+        name: Node.js Agentic Issue Resolver
+        description: A resilient agentic workflow for autonomous codebase exploration and fixing, optimized for the Copilot SDK Technical Preview
+        external: true
+        url: https://github.com/Impesud/nodejs-copilot-issue-resolver
+        author:
+          name: Impesud
+          url: https://github.com/Impesud
+        tags:
+          - nodejs
+          - copilot-sdk
+          - agents
+          - community
