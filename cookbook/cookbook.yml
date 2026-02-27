@@ -90,3 +90,16 @@ cookbooks:
           - copilot-sdk
           - agents
           - community
+      - id: copilot-sdk-web-app
+        name: Copilot SDK Web App
+        description: A full-stack chat application built with the GitHub Copilot SDK, .NET Aspire, and React with GitHub OAuth, session history, and model selection
+        external: true
+        url: https://github.com/aaronpowell/copilot-sdk-web-app
+        author:
+          name: aaronpowell
+          url: https://github.com/aaronpowell
+        tags:
+          - dotnet
+          - copilot-sdk
+          - web-app
+          - community
