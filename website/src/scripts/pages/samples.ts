@@ -391,7 +391,7 @@ function renderRecipeCard(
     return `
       <div class="recipe-card external${
         isExpanded ? " expanded" : ""
-      }" data-recipe="${recipeKey}">
+      }" data-recipe="${escapeHtml(recipeKey)}">
         <div class="recipe-header">
           <h3>${highlightedName || escapeHtml(recipe.name)}</h3>
           <span class="recipe-badge external-badge" title="External project">
@@ -419,10 +419,10 @@ function renderRecipeCard(
 
   // Local recipe — existing behavior
   // Determine which language to show
-  const displayLang = selectedLanguage || cookbook.languages[0]?.id || "nodejs";
+  const displayLang = selectedLanguage || cookbook.languages?.[0]?.id || "nodejs";
   const variant = recipe.variants[displayLang];
 
-  const langIndicators = cookbook.languages
+  const langIndicators = (cookbook.languages ?? [])
     .filter((lang) => recipe.variants[lang.id])
     .map(
       (lang) =>
