@@ -176,7 +176,25 @@ msstore submission get <productId>
 msstore submission updateMetadata <productId> <metadata>
 ```
 
-Where `<metadata>` is a JSON string with the updated metadata.
+Where `<metadata>` is a JSON string with the updated metadata. Because JSON contains characters that shells interpret (quotes, braces, etc.), you must quote and/or escape the value appropriately:
+
+- **Bash/Zsh**: Wrap the JSON in single quotes so the shell passes it through literally.
+  ```bash
+  msstore submission updateMetadata 9NBLGGH4R315 '{"description":"My updated app"}'
+  ```
+- **PowerShell**: Use single quotes (or escape double quotes inside a double-quoted string).
+  ```powershell
+  msstore submission updateMetadata 9NBLGGH4R315 '{"description":"My updated app"}'
+  ```
+- **cmd.exe**: Escape each inner double quote with a backslash.
+  ```cmd
+  msstore submission updateMetadata 9NBLGGH4R315 "{\"description\":\"My updated app\"}"
+  ```
+
+> **Tip:** For complex or multi-line metadata, save the JSON to a file and pass its contents instead to avoid quoting issues:
+> ```bash
+> msstore submission updateMetadata 9NBLGGH4R315 "$(cat metadata.json)"
+> ```
 
 **Options:**
 
