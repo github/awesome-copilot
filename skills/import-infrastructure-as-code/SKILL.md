@@ -25,7 +25,17 @@ Use this skill when the user asks to:
 - Terraform CLI installed
 - Network access to Terraform Registry and AVM index sources
 
-## Step-by-Step Workflow
+## Inputs
+
+| Parameter | Required | Default | Description |
+|---|---|---|---|
+| `subscription-id` | No | Active CLI context | Azure subscription used for subscription-scope discovery and context setting |
+| `resource-group-name` | No | None | Azure resource group used for resource-group-scope discovery |
+| `resource-id` | No | None | One or more Azure ARM resource IDs used for specific-resource-scope discovery |
+
+At least one of `subscription-id`, `resource-group-name`, or `resource-id` is required.
+
+## Step-by-Step Workflows
 
 ### 1) Collect Required Scope (Mandatory)
 
@@ -78,7 +88,7 @@ az resource list --resource-group <resource-group-name> -o json
 az resource show --ids <resource-id-1> <resource-id-2> ... -o json
 ```
 
-Expected output: JSON files containing Azure resource metadata (`id`, `type`, `name`, `location`, `tags`, `properties`).
+Expected output: JSON object or array containing Azure resource metadata (`id`, `type`, `name`, `location`, `tags`, `properties`).
 
 ### 4) Resolve Dependencies Before Code Generation
 
