@@ -18,16 +18,10 @@
     "devops"
   ],
   "agents": [
-    "./agents/azure-principal-architect.md",
-    "./agents/azure-saas-architect.md",
-    "./agents/azure-logic-apps-expert.md",
-    "./agents/azure-verified-modules-bicep.md",
-    "./agents/azure-verified-modules-terraform.md",
-    "./agents/terraform-azure-planning.md",
-    "./agents/terraform-azure-implement.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/azure-resource-health-diagnose/",
-    "./skills/az-cost-optimize/"
+    "./skills/azure-resource-health-diagnose",
+    "./skills/az-cost-optimize"
   ]
 }
