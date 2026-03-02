@@ -1076,6 +1076,49 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.page-header-row > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-header .contribute-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.page-header .contribute-link:hover {
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .page-header-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
 .page-content {
   padding: 40px 0 80px;
 }
