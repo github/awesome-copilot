@@ -620,13 +620,15 @@ function generateSkillsSection(skillsDir) {
 
   // Generate table rows for each skill
   for (const skill of skillEntries) {
-    const link = `../skills/${skill.folder}/SKILL.md`;
+    const link = `skills/${skill.folder}/SKILL.md`;
     const assetsList =
       skill.assets.length > 0
         ? skill.assets.map((a) => `\`${a}\``).join("<br />")
         : "None";
 
-    content += `| [${skill.name}](${link}) | ${formatTableCell(
+    const badges = makeBadges(link, "skills");
+
+    content += `| [${skill.name}](../${link})<br />${badges} | ${formatTableCell(
       skill.description
     )} | ${assetsList} |\n`;
   }

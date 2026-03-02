@@ -96,9 +96,12 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 - Use skills when you need code templates, helper utilities, or reference data alongside instructions
 - Skills provide progressive disclosure - loaded only when needed for specific tasks
 
-**Usage:**
+**To Install:**
+- Click the **VS Code** or **VS Code Insiders** install button for the skill you want to use
+- Or copy the skill folder to your local skills directory manually
+
+**To Use:**
 - Browse the skills table below to find relevant capabilities
-- Copy the skill folder to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically`,
 
   hooksSection: `## 🪝 Hooks
@@ -181,6 +184,7 @@ const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
   agent: "https://aka.ms/awesome-copilot/install/agent",
   hook: "https://aka.ms/awesome-copilot/install/hook",
+  skills: "https://aka.ms/awesome-copilot/install/skills",
 };
 
 const ROOT_FOLDER = path.join(__dirname, "..");
