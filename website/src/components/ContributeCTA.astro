@@ -1,0 +1,108 @@
+---
+interface Props {
+  resourceType: string;
+}
+
+const { resourceType } = Astro.props;
+const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md';
+const newIssueUrl = 'https://github.com/github/awesome-copilot/issues/new';
+---
+
+<aside class="contribute-cta" aria-label="Contribute">
+  <div class="contribute-cta-inner">
+    <div class="contribute-cta-content">
+      <h2 class="contribute-cta-title">Don't see what you're looking for?</h2>
+      <p class="contribute-cta-description">This collection is community-driven. Share your own {resourceType} to help others get more out of GitHub Copilot.</p>
+    </div>
+    <div class="contribute-cta-actions">
+      <a href={contributingUrl} class="btn btn-primary" target="_blank" rel="noopener">
+        Contribute yours
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"/>
+        </svg>
+      </a>
+      <a href={newIssueUrl} class="btn btn-outline" target="_blank" rel="noopener">
+        Request a resource
+      </a>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .contribute-cta {
+    margin-top: 48px;
+    padding: 0 0 16px;
+  }
+
+  .contribute-cta-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 32px 40px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .contribute-cta-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+  }
+
+  .contribute-cta-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .contribute-cta-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-emphasis);
+    margin: 0 0 8px;
+  }
+
+  .contribute-cta-description {
+    color: var(--color-text-muted);
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .contribute-cta-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .contribute-cta-actions .btn {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    .contribute-cta-inner {
+      flex-direction: column;
+      text-align: center;
+      padding: 28px 24px;
+    }
+
+    .contribute-cta-actions {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .contribute-cta-actions .btn {
+      justify-content: center;
+    }
+  }
+</style>

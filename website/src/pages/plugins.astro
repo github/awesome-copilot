@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
 ---
 
 <BaseLayout title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" activeNav="plugins">
@@ -37,6 +38,7 @@ import Modal from '../components/Modal.astro';
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading plugins...</div>
         </div>
+        <ContributeCTA resourceType="plugins" />
       </div>
     </div>
   </main>
