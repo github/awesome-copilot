@@ -1,0 +1,24 @@
+---
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md';
+---
+
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-row">
+      <div>
+        <h1><Fragment set:html={title} /></h1>
+        <p><slot><Fragment set:html={description} /></slot></p>
+      </div>
+      <a href={contributingUrl} class="contribute-link" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"/></svg>
+        Contribute
+      </a>
+    </div>
+  </div>
+</div>
