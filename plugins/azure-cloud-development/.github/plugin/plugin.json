@@ -27,8 +27,8 @@
     "./agents/terraform-azure-implement.md"
   ],
   "skills": [
-    "./skills/azure-resource-health-diagnose",
-    "./skills/az-cost-optimize",
-    "./skills/import-infrastructure-as-code"
+    "./skills/azure-resource-health-diagnose/",
+    "./skills/az-cost-optimize/",
+    "./skills/import-infrastructure-as-code/"
   ]
 }
