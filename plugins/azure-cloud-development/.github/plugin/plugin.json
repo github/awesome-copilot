@@ -1,7 +1,7 @@
 {
   "name": "azure-cloud-development",
   "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -26,8 +26,9 @@
     "./agents/terraform-azure-planning.md",
     "./agents/terraform-azure-implement.md"
   ],
-  "commands": [
-    "./commands/azure-resource-health-diagnose.md",
-    "./commands/az-cost-optimize.md"
+  "skills": [
+    "./skills/azure-resource-health-diagnose/",
+    "./skills/az-cost-optimize/",
+    "./skills/import-infrastructure-as-code/"
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "name": "dataverse",
+  "description": "Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "dataverse",
+    "mcp"
+  ],
+  "skills": [
+    "./skills/mcp-configure/"
+  ]
+}

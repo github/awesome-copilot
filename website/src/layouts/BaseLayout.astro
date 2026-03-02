@@ -9,10 +9,12 @@ interface Props {
 
 const {
   title,
-  description = "Community-driven collection of custom agents, prompts, and instructions for GitHub Copilot",
+  description = "Community-driven collection of custom agents, instructions, and skills for GitHub Copilot",
   activeNav = "",
 } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const socialImageUrl = new URL(`${base}images/social-image.png`, Astro.site);
 
 // Get git commit SHA and build date at build time
 let commitSha = "unknown";
@@ -35,8 +37,28 @@ try {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} - Awesome GitHub Copilot</title>
+    <title>{title} | Awesome GitHub Copilot</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl.toString()} />
+    <meta property="og:title" content={`${title} | Awesome GitHub Copilot`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={socialImageUrl.toString()} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:site_name" content="Awesome GitHub Copilot" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={`${title} | Awesome GitHub Copilot`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl.toString()} />
+    <meta name="twitter:image:alt" content={`${title} | Awesome GitHub Copilot`} />
+
     <link rel="stylesheet" href={`${base}styles/global.css`} />
     <link
       rel="icon"
@@ -58,10 +80,6 @@ try {
               class:list={[{ active: activeNav === "agents" }]}>Agents</a
             >
             <a
-              href={`${base}prompts/`}
-              class:list={[{ active: activeNav === "prompts" }]}>Prompts</a
-            >
-            <a
               href={`${base}instructions/`}
               class:list={[{ active: activeNav === "instructions" }]}
               >Instructions</a
@@ -75,6 +93,10 @@ try {
               class:list={[{ active: activeNav === "hooks" }]}>Hooks</a
             >
             <a
+              href={`${base}workflows/`}
+              class:list={[{ active: activeNav === "workflows" }]}>Workflows</a
+            >
+            <a
               href={`${base}plugins/`}
               class:list={[{ active: activeNav === "plugins" }]}
               >Plugins</a
@@ -84,8 +106,8 @@ try {
               class:list={[{ active: activeNav === "tools" }]}>Tools</a
             >
             <a
-              href={`${base}samples/`}
-              class:list={[{ active: activeNav === "samples" }]}>Samples</a
+              href={`${base}learning-hub/`}
+              class:list={[{ active: activeNav === "learning-hub" }]}>Learning Hub</a
             >
           </nav>
           <div class="header-actions">

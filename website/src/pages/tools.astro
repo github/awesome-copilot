@@ -1,5 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ContributeCTA from "../components/ContributeCTA.astro";
+import PageHeader from "../components/PageHeader.astro";
 ---
 
 <BaseLayout
@@ -8,12 +10,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   activeNav="tools"
 >
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🔧 Tools</h1>
-        <p>MCP servers and developer tools for GitHub Copilot</p>
-      </div>
-    </div>
+    <PageHeader title="🔧 Tools" description="MCP servers and developer tools for GitHub Copilot" />
 
     <div class="page-content">
       <div class="container">
@@ -48,6 +45,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             experience. Check back soon!
           </p>
         </div>
+        <ContributeCTA resourceType="tools" />
       </div>
     </div>
   </main>

@@ -21,7 +21,7 @@
   "agents": [
     "./agents/rust-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/rust-mcp-server-generator.md"
+  "skills": [
+    "./skills/rust-mcp-server-generator/"
   ]
 }

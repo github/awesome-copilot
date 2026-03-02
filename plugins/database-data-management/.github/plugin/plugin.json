@@ -21,10 +21,10 @@
     "./agents/postgresql-dba.md",
     "./agents/ms-sql-dba.md"
   ],
-  "commands": [
-    "./commands/sql-optimization.md",
-    "./commands/sql-code-review.md",
-    "./commands/postgresql-optimization.md",
-    "./commands/postgresql-code-review.md"
+  "skills": [
+    "./skills/sql-optimization/",
+    "./skills/sql-code-review/",
+    "./skills/postgresql-optimization/",
+    "./skills/postgresql-code-review/"
   ]
 }

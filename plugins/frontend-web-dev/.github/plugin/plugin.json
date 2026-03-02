@@ -22,8 +22,8 @@
     "./agents/expert-react-frontend-engineer.md",
     "./agents/electron-angular-native.md"
   ],
-  "commands": [
-    "./commands/playwright-explore-website.md",
-    "./commands/playwright-generate-test.md"
+  "skills": [
+    "./skills/playwright-explore-website/",
+    "./skills/playwright-generate-test/"
   ]
 }

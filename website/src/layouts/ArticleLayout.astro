@@ -1,0 +1,132 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { fundamentalsOrder, referenceOrder } from '../config/learning-hub';
+
+interface Props {
+  title: string;
+  description?: string;
+  estimatedReadingTime?: string;
+  lastUpdated?: string;
+  tags?: string[];
+}
+
+const { title, description, estimatedReadingTime, lastUpdated, tags } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const createOrderIndexMap = (order: string[]) => {
+  const map = new Map<string, number>();
+  for (let i = 0; i < order.length; i += 1) {
+    map.set(order[i], i);
+  }
+  return map;
+};
+
+const articles = await getCollection('learning-hub');
+
+const fundamentalsOrderIndex = createOrderIndexMap(fundamentalsOrder);
+const referenceOrderIndex = createOrderIndexMap(referenceOrder);
+
+const fundamentals = articles
+  .filter((a) => fundamentalsOrderIndex.has(a.id))
+  .sort(
+    (a, b) =>
+      (fundamentalsOrderIndex.get(a.id) ?? 0) - (fundamentalsOrderIndex.get(b.id) ?? 0),
+  );
+
+const reference = articles
+  .filter((a) => referenceOrderIndex.has(a.id))
+  .sort(
+    (a, b) =>
+      (referenceOrderIndex.get(a.id) ?? 0) - (referenceOrderIndex.get(b.id) ?? 0),
+  );
+
+const currentSlug = Astro.url.pathname.replace(/\/$/, '').split('/').pop();
+---
+
+<BaseLayout title={title} description={description} activeNav="learning-hub">
+  <main id="main-content">
+    <div class="page-header">
+      <div class="container">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href={`${base}learning-hub/`}>← Learning Hub</a>
+        </nav>
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+        <div class="article-meta">
+          {estimatedReadingTime && (
+            <span class="meta-item">
+              <span aria-hidden="true">📖</span> {estimatedReadingTime}
+            </span>
+          )}
+          {lastUpdated && <span class="meta-item">Updated: {lastUpdated}</span>}
+        </div>
+        {tags && tags.length > 0 && (
+          <div class="article-tags">
+            {tags.map((tag) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="container">
+        <div class="learning-hub-layout">
+          <nav class="learning-hub-sidebar" aria-label="Learning Hub articles">
+            <div class="sidebar-section">
+              <h3>Fundamentals</h3>
+              <ol class="sidebar-nav-list">
+                {fundamentals.map((article) => (
+                  <li>
+                    <a
+                      href={`${base}learning-hub/${article.id}/`}
+                      class={currentSlug === article.id ? 'active' : ''}
+                      aria-current={currentSlug === article.id ? 'page' : undefined}
+                    >
+                      {article.data.title}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div class="sidebar-section">
+              <h3>Reference</h3>
+              <ul class="sidebar-nav-list">
+                {reference.map((article) => (
+                  <li>
+                    <a
+                      href={`${base}learning-hub/${article.id}/`}
+                      class={currentSlug === article.id ? 'active' : ''}
+                      aria-current={currentSlug === article.id ? 'page' : undefined}
+                    >
+                      {article.data.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div class="sidebar-section">
+              <h3>Hands-on</h3>
+              <ul class="sidebar-nav-list">
+                <li>
+                  <a
+                    href={`${base}learning-hub/cookbook/`}
+                    class={currentSlug === 'cookbook' ? 'active' : ''}
+                    aria-current={currentSlug === 'cookbook' ? 'page' : undefined}
+                  >
+                    Cookbook
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+          <article class="article-content">
+            <slot />
+          </article>
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

@@ -1,12 +1,16 @@
 # 🔌 Plugins
 
-Curated plugins of related prompts, agents, and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.
+Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.
+### How to Contribute
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how to contribute new plugins, improve existing ones, and share your use cases.
+
 ### How to Use Plugins
 
 **Browse Plugins:**
 - ⭐ Featured plugins are highlighted and appear at the top of the list
 - Explore themed plugins that group related customizations
-- Each plugin includes prompts, agents, and skills for specific workflows
+- Each plugin includes agents and skills for specific workflows
 - Plugins make it easy to adopt comprehensive toolkits for particular scenarios
 
 **Install Plugins:**
@@ -17,7 +21,7 @@ Curated plugins of related prompts, agents, and skills organized around specific
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
 | [awesome-copilot](../plugins/awesome-copilot/README.md) | Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills. | 5 items | github-copilot, discovery, meta, prompt-engineering, agents |
-| [azure-cloud-development](../plugins/azure-cloud-development/README.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 9 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
+| [azure-cloud-development](../plugins/azure-cloud-development/README.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 10 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [cast-imaging](../plugins/cast-imaging/README.md) | A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging. | 3 items | cast-imaging, software-analysis, architecture, quality, impact-analysis, devops |
 | [clojure-interactive-programming](../plugins/clojure-interactive-programming/README.md) | Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance. | 2 items | clojure, repl, interactive-programming |
 | [context-engineering](../plugins/context-engineering/README.md) | Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development. | 4 items | context, productivity, refactoring, best-practices, architecture |
@@ -25,6 +29,7 @@ Curated plugins of related prompts, agents, and skills organized around specific
 | [csharp-dotnet-development](../plugins/csharp-dotnet-development/README.md) | Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices. | 9 items | csharp, dotnet, aspnet, testing |
 | [csharp-mcp-development](../plugins/csharp-mcp-development/README.md) | Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance. | 2 items | csharp, mcp, model-context-protocol, dotnet, server-development |
 | [database-data-management](../plugins/database-data-management/README.md) | Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices. | 6 items | database, sql, postgresql, sql-server, dba, optimization, queries, data-management |
+| [dataverse](../plugins/dataverse/README.md) | Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands. | 1 items | dataverse, mcp |
 | [dataverse-sdk-for-python](../plugins/dataverse-sdk-for-python/README.md) | Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts. | 4 items | dataverse, python, integration, sdk |
 | [devops-oncall](../plugins/devops-oncall/README.md) | A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources. | 3 items | devops, incident-response, oncall, azure |
 | [edge-ai-tasks](../plugins/edge-ai-tasks/README.md) | Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai | 2 items | architecture, planning, research, tasks, implementation |

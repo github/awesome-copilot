@@ -16,7 +16,7 @@
   "agents": [
     "./agents/research-technical-spike.md"
   ],
-  "commands": [
-    "./commands/create-technical-spike.md"
+  "skills": [
+    "./skills/create-technical-spike/"
   ]
 }

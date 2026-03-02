@@ -17,10 +17,10 @@
   "agents": [
     "./agents/meta-agentic-project-scaffold.md"
   ],
-  "commands": [
-    "./commands/suggest-awesome-github-copilot-skills.md",
-    "./commands/suggest-awesome-github-copilot-instructions.md",
-    "./commands/suggest-awesome-github-copilot-prompts.md",
-    "./commands/suggest-awesome-github-copilot-agents.md"
+  "skills": [
+    "./skills/suggest-awesome-github-copilot-skills/",
+    "./skills/suggest-awesome-github-copilot-instructions/",
+    "./skills/suggest-awesome-github-copilot-prompts/",
+    "./skills/suggest-awesome-github-copilot-agents/"
   ]
 }

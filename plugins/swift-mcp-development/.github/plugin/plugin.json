@@ -22,7 +22,7 @@
   "agents": [
     "./agents/swift-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/swift-mcp-server-generator.md"
+  "skills": [
+    "./skills/swift-mcp-server-generator/"
   ]
 }

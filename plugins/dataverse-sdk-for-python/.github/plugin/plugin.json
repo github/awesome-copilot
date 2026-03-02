@@ -13,10 +13,10 @@
     "integration",
     "sdk"
   ],
-  "commands": [
-    "./commands/dataverse-python-quickstart.md",
-    "./commands/dataverse-python-advanced-patterns.md",
-    "./commands/dataverse-python-production-code.md",
-    "./commands/dataverse-python-usecase-builder.md"
+  "skills": [
+    "./skills/dataverse-python-quickstart/",
+    "./skills/dataverse-python-advanced-patterns/",
+    "./skills/dataverse-python-production-code/",
+    "./skills/dataverse-python-usecase-builder/"
   ]
 }

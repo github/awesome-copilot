@@ -1,0 +1,129 @@
+name: Validate Agentic Workflow Contributions
+
+on:
+  pull_request:
+    branches: [staged]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "workflows/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-forbidden-files:
+    name: Block forbidden files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for forbidden files
+        id: check
+        run: |
+          # Check for YAML/lock files in workflows/ and any .github/ modifications
+          # Allow .github/aw/actions-lock.json which is needed for workflow compilation
+          forbidden=$(git diff --name-only --diff-filter=ACM origin/${{ github.base_ref }}...HEAD -- \
+            'workflows/**/*.yml' \
+            'workflows/**/*.yaml' \
+            'workflows/**/*.lock.yml' \
+            '.github/*' \
+            '.github/**' \
+            | grep -v '^\.github/aw/actions-lock\.json$' \
+            | grep -v '^\.github/workflows/validate-agentic-workflows-pr\.yml$' \
+            || true)
+
+          if [ -n "$forbidden" ]; then
+            echo "❌ Forbidden files detected:"
+            echo "$forbidden"
+            echo "files<<EOF" >> "$GITHUB_OUTPUT"
+            echo "$forbidden" >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+            exit 1
+          else
+            echo "✅ No forbidden files found"
+          fi
+
+      - name: Comment on PR
+        if: failure()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: workflow-forbidden-files
+          message: |
+            ## 🚫 Forbidden files in `workflows/`
+
+            Only `.md` markdown files are accepted in the `workflows/` directory. The following are **not allowed**:
+            - Compiled workflow files (`.yml`, `.yaml`, `.lock.yml`) — could contain untrusted Actions code
+            - `.github/` modifications — workflow contributions must not modify repository configuration
+
+            **Files that must be removed:**
+            ```
+            ${{ steps.check.outputs.files }}
+            ```
+
+            Contributors provide the workflow **source** (`.md`) only. Compilation happens downstream via `gh aw compile`.
+
+            Please remove these files and push again.
+
+  compile-workflows:
+    name: Compile and validate
+    needs: check-forbidden-files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install gh-aw CLI
+        uses: github/gh-aw/actions/setup-cli@main
+
+      - name: Compile workflow files
+        id: compile
+        run: |
+          exit_code=0
+          found=0
+
+          # Find all .md files directly in workflows/
+          for workflow_file in workflows/*.md; do
+            [ -f "$workflow_file" ] || continue
+
+            found=$((found + 1))
+            echo "::group::Compiling $workflow_file"
+            if gh aw compile --validate "$workflow_file"; then
+              echo "✅ $workflow_file compiled successfully"
+            else
+              echo "❌ $workflow_file failed to compile"
+              exit_code=1
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ "$found" -eq 0 ]; then
+            echo "No workflow .md files found to validate."
+          else
+            echo "Validated $found workflow file(s)."
+          fi
+
+          echo "status=$( [ $exit_code -eq 0 ] && echo success || echo failure )" >> "$GITHUB_OUTPUT"
+          exit $exit_code
+
+      - name: Comment on PR if compilation failed
+        if: failure()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: workflow-validation
+          message: |
+            ## ❌ Agentic Workflow compilation failed
+
+            One or more workflow files in `workflows/` failed to compile with `gh aw compile --validate`.
+
+            Please fix the errors and push again. You can test locally with:
+
+            ```bash
+            gh extension install github/gh-aw
+            gh aw compile --validate <your-workflow-file>.md
+            ```
+
+            See the [Agentic Workflows documentation](https://github.github.com/gh-aw) for help.

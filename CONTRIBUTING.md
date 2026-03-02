@@ -1,6 +1,25 @@
 # Contributing to Awesome GitHub Copilot
 
-Thank you for your interest in contributing to the Awesome GitHub Copilot repository! We welcome contributions from the community to help expand our collection of custom instructions and prompts.
+Thank you for your interest in contributing to the Awesome GitHub Copilot repository! We welcome contributions from the community to help expand our collection of custom instructions and skills.
+
+## Table of Contents
+
+- [How to Contribute](#how-to-contribute)
+  - [Adding Instructions](#adding-instructions)
+  - [Adding Prompts](#adding-prompts)
+  - [Adding Agents](#adding-agents)
+  - [Adding Skills](#adding-skills)
+  - [Adding Plugins](#adding-plugins)
+  - [Adding Hooks](#adding-hooks)
+  - [Adding Agentic Workflows](#adding-agentic-workflows)
+- [Submitting Your Contribution](#submitting-your-contribution)
+- [What We Accept](#what-we-accept)
+- [What We Don't Accept](#what-we-dont-accept)
+- [Quality Guidelines](#quality-guidelines)
+- [Contributor Recognition](#contributor-recognition)
+  - [Contribution Types](#contribution-types)
+- [Code of Conduct](#code-of-conduct)
+- [License](#license)
 
 ## How to Contribute
 
@@ -31,34 +50,6 @@ description: 'Instructions for customizing GitHub Copilot behavior for specific 
 ## Additional Guidelines
 
 - Any additional context or examples
-```
-
-### Adding Prompts
-
-Prompts are ready-to-use templates for specific development scenarios and tasks.
-
-1. **Create your prompt file**: Add a new `.prompt.md` file in the `prompts/` directory
-2. **Follow the naming convention**: Use descriptive, lowercase filenames with hyphens and the `.prompt.md` extension (e.g., `react-component-generator.prompt.md`)
-3. **Include frontmatter**: Add metadata at the top of your file (optional but recommended)
-4. **Structure your prompt**: Provide clear context and specific instructions
-
-#### Example prompt format
-
-```markdown
----
-agent: 'agent'
-tools: ['codebase', 'terminalCommand']
-description: 'Brief description of what this prompt does'
----
-
-# Prompt Title
-
-Your goal is to...
-
-## Specific Instructions
-
-- Clear, actionable instructions
-- Include examples where helpful
 ```
 
 ### Adding an Agent
@@ -113,7 +104,7 @@ Skills are self-contained folders in the `skills/` directory that include a `SKI
 
 ### Adding Plugins
 
-Plugins group related agents, commands (prompts), and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
+Plugins group related agents, commands, and skills around specific themes or workflows, making it easy for users to install comprehensive toolkits via GitHub Copilot CLI.
 
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
@@ -161,17 +152,106 @@ plugins/my-plugin-id/
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
 
+### Adding Hooks
+
+Hooks enable automated workflows triggered by specific events during GitHub Copilot coding agent sessions, such as session start, session end, user prompts, and tool usage.
+
+1. **Create a new hook folder**: Add a new folder in the `hooks/` directory with a descriptive, lowercase name using hyphens (e.g., `session-logger`)
+2. **Create `README.md`**: Add a `README.md` file with frontmatter including `name`, `description`, and optionally `tags`
+3. **Create `hooks.json`**: Add a `hooks.json` file with hook configuration following the [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+4. **Add bundled scripts**: Include any scripts or assets the hook needs, and make them executable (`chmod +x script.sh`)
+5. **Update the README**: Run `npm run build` to update the generated README tables
+
+#### Example hook structure
+
+```
+hooks/my-hook/
+├── README.md       # Hook documentation with frontmatter
+├── hooks.json      # Hook event configuration
+└── my-script.sh    # Bundled script(s)
+```
+
+#### Example README.md frontmatter
+
+```markdown
+---
+name: 'My Hook Name'
+description: 'Brief description of what this hook does'
+tags: ['logging', 'automation']
+---
+
+# My Hook Name
+
+Detailed documentation about the hook...
+```
+
+#### Hook Guidelines
+
+- **Event configuration**: Define hook events in `hooks.json` — supported events include session start, session end, user prompts, and tool usage
+- **Executable scripts**: Ensure all bundled scripts are executable and referenced in both `README.md` and `hooks.json`
+- **Privacy aware**: Be mindful of what data your hook collects or logs
+- **Clear documentation**: Explain installation steps, configuration options, and what the hook does
+- Follow the [GitHub Copilot hooks specification](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks)
+
+### Adding Agentic Workflows
+
+[Agentic Workflows](https://github.github.com/gh-aw) are AI-powered repository automations that run coding agents in GitHub Actions. Defined in markdown with natural language instructions, they enable scheduled and event-triggered automation with built-in guardrails.
+
+1. **Create your workflow file** with a new `.md` file in the `workflows/` directory (e.g., [`daily-issues-report.md`](./workflows/daily-issues-report.md))
+2. **Include frontmatter** with `name` and `description`, followed by agentic workflow frontmatter (`on`, `permissions`, `safe-outputs`) and natural language instructions
+3. **Test locally** with `gh aw compile --validate --no-emit daily-issues-report.md` to verify it's valid
+4. **Update the README** with `npm run build` to update the generated README tables
+
+> **Note:** Only `.md` files are accepted — do not include compiled `.lock.yml` or `.yml` files. CI will block them.
+
+#### Workflow file example
+
+```markdown
+---
+name: "Daily Issues Report"
+description: "Generates a daily summary of open issues and recent activity as a GitHub issue"
+on:
+  schedule: daily on weekdays
+permissions:
+  contents: read
+  issues: read
+safe-outputs:
+  create-issue:
+    title-prefix: "[daily-report] "
+    labels: [report]
+---
+
+## Daily Issues Report
+
+Create a daily summary of open issues for the team.
+
+## What to Include
+
+- New issues opened in the last 24 hours
+- Issues closed or resolved
+- Stale issues that need attention
+```
+
+#### Workflow Guidelines
+
+- **Security first**: Use least-privilege permissions and safe outputs instead of direct write access
+- **Clear instructions**: Write clear natural language instructions in the workflow body
+- **Descriptive names**: Use lowercase filenames with hyphens (e.g., `daily-issues-report.md`)
+- **Test locally**: Use `gh aw compile --validate` to verify your workflow compiles
+- **No compiled files**: Only submit the `.md` source — `.lock.yml` and `.yml` files are not accepted
+- Learn more at the [Agentic Workflows documentation](https://github.github.com/gh-aw)
+
 ## Submitting Your Contribution
 
 1. **Fork this repository**
 2. **Create a new branch** for your contribution
-3. **Add your instruction, prompt file, chatmode, or plugin** following the guidelines above
+3. **Add your instruction, skills, agents, workflow, or plugin** following the guidelines above
 4. **Run the update script**: `npm start` to update the README with your new file (make sure you run `npm install` first if you haven't already)
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
 5. **Submit a pull request** targeting the `staged` branch with:
    - A clear title describing your contribution
-   - A brief description of what your instruction/prompt does
+   - A brief description of what your instruction/skill/agent does
    - Any relevant context or usage notes
 
 > [!IMPORTANT]
@@ -206,7 +286,7 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 ## Quality Guidelines
 
 - **Be specific**: Generic instructions are less helpful than specific, actionable guidance
-- **Test your content**: Ensure your instructions or prompts work well with GitHub Copilot
+- **Test your content**: Ensure your instructions or skills work well with GitHub Copilot
 - **Follow conventions**: Use consistent formatting and naming
 - **Keep it focused**: Each file should address a specific technology, framework, or use case
 - **Write clearly**: Use simple, direct language
@@ -231,9 +311,9 @@ We welcome many kinds of contributions, including the custom categories below:
 | Category | Description | Emoji |
 | --- | --- | :---: |
 | **Instructions** | Custom instruction sets that guide GitHub Copilot behavior | 🧭 |
-| **Prompts** | Reusable or one-off prompts for GitHub Copilot | ⌨️ |
 | **Agents** | Defined GitHub Copilot roles or personalities | 🎭 |
 | **Skills** | Specialized knowledge of a task for GitHub Copilot | 🧰 |
+| **Workflows** | Agentic Workflows for AI-powered repository automation | ⚡ |
 | **Plugins** | Installable packages of related prompts, agents, or skills | 🎁 |
 
 In addition, all standard contribution types supported by [All Contributors](https://allcontributors.org/emoji-key/) are recognized.
@@ -243,7 +323,7 @@ In addition, all standard contribution types supported by [All Contributors](htt
 
 ## Code of Conduct
 
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+Please note that this project is maintained with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## License
 

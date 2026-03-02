@@ -15,9 +15,9 @@
     "agent-development",
     "microsoft-365"
   ],
-  "commands": [
-    "./commands/typespec-create-agent.md",
-    "./commands/typespec-create-api-plugin.md",
-    "./commands/typespec-api-operations.md"
+  "skills": [
+    "./skills/typespec-create-agent/",
+    "./skills/typespec-create-api-plugin/",
+    "./skills/typespec-api-operations/"
   ]
 }

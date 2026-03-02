@@ -19,7 +19,7 @@
   "agents": [
     "./agents/power-platform-expert.md"
   ],
-  "commands": [
-    "./commands/power-apps-code-app-scaffold.md"
+  "skills": [
+    "./skills/power-apps-code-app-scaffold/"
   ]
 }
