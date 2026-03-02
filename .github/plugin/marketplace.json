@@ -20,7 +20,7 @@
       "name": "azure-cloud-development",
       "source": "azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     {
       "name": "cast-imaging",
