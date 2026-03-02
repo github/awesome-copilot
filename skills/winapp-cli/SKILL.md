@@ -210,7 +210,7 @@ Package identity unlocks access to powerful Windows APIs:
 
 - [GitHub Repository](https://github.com/microsoft/WinAppCli)
 - [Full CLI Documentation](https://github.com/microsoft/WinAppCli/blob/main/docs/usage.md)
-- [.NET Project Guide](https://github.com/microsoft/winappCli/blob/main/docs/guides/dotnet.md)
+- [.NET Project Guide](https://github.com/microsoft/WinAppCli/blob/main/docs/guides/dotnet.md)
 - [Sample Applications](https://github.com/microsoft/WinAppCli/tree/main/samples)
 - [Windows App SDK](https://learn.microsoft.com/windows/apps/windows-app-sdk/)
 - [MSIX Packaging Overview](https://learn.microsoft.com/windows/msix/overview)
