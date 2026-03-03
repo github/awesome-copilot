@@ -48,6 +48,7 @@ Cache is stored at `Generated Files\winmd-cache\`, deduplicated per-package+vers
 |--------|----------------|
 | Windows Platform SDK | Always (reads from local SDK install) |
 | WinAppSDK (latest) | Always (bundled as baseline in cache generator) |
+| WinAppSDK Runtime | When installed on the system (detected via `Get-AppxPackage`) |
 | Project NuGet packages | After `dotnet restore` or with `packages.config` |
 | Project-output `.winmd` | After project build (class libraries that produce WinMD) |
 
@@ -148,6 +149,9 @@ If you need full detail beyond what `-Action members` shows, use `-Action search
 # List cached projects
 .\.github\skills\winmd-api-search\scripts\Invoke-WinMdQuery.ps1 -Action projects
 
+# List packages for a project
+.\.github\skills\winmd-api-search\scripts\Invoke-WinMdQuery.ps1 -Action packages
+
 # Show stats
 .\.github\skills\winmd-api-search\scripts\Invoke-WinMdQuery.ps1 -Action stats
 ```
@@ -157,7 +161,7 @@ If you need full detail beyond what `-Action members` shows, use `-Action search
 
 ## Search Scoring
 
-The search ranks type names against your query:
+The search ranks type names and member names against your query:
 
 | Score | Match type | Example |
 |-------|-----------|---------|

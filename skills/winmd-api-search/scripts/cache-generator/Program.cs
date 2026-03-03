@@ -17,17 +17,34 @@ using System.Xml.Linq;
 // --- Arg parsing ---
 
 var scanMode = args.Contains("--scan");
-var positionalArgs = args.Where(a => !a.StartsWith('-')).ToArray();
+
+// Parse --winappsdk-runtime <path> option
+string? winAppSdkRuntimePath = null;
+for (int i = 0; i < args.Length - 1; i++)
+{
+    if (args[i].Equals("--winappsdk-runtime", StringComparison.OrdinalIgnoreCase))
+    {
+        winAppSdkRuntimePath = args[i + 1];
+        break;
+    }
+}
+
+var positionalArgs = args
+    .Where(a => !a.StartsWith('-'))
+    .Where(a => a != winAppSdkRuntimePath) // exclude the runtime path value
+    .ToArray();
 
 if (positionalArgs.Length < 2)
 {
     Console.Error.WriteLine("Usage:");
     Console.Error.WriteLine("  CacheGenerator <project-dir> <output-dir>");
     Console.Error.WriteLine("  CacheGenerator --scan <root-dir> <output-dir>");
+    Console.Error.WriteLine("  CacheGenerator --winappsdk-runtime <path> <project-dir> <output-dir>");
     Console.Error.WriteLine();
     Console.Error.WriteLine("  project-dir: Path containing .csproj/.vcxproj (or a project file itself)");
     Console.Error.WriteLine("  root-dir:    Root to scan recursively for project files");
     Console.Error.WriteLine("  output-dir:  Cache output (e.g. \"Generated Files\\winmd-cache\")");
+    Console.Error.WriteLine("  --winappsdk-runtime: Path to installed WinAppSDK runtime (from Get-AppxPackage)");
     return 1;
 }
 
@@ -53,8 +70,15 @@ if (scanMode)
         return 1;
     }
 
-    projectFiles.AddRange(Directory.GetFiles(inputPath, "*.csproj", SearchOption.AllDirectories));
-    projectFiles.AddRange(Directory.GetFiles(inputPath, "*.vcxproj", SearchOption.AllDirectories));
+    var enumerationOptions = new EnumerationOptions
+    {
+        RecurseSubdirectories = true,
+        IgnoreInaccessible = true,
+        MatchType = MatchType.Simple,
+    };
+
+    projectFiles.AddRange(Directory.EnumerateFiles(inputPath, "*.csproj", enumerationOptions));
+    projectFiles.AddRange(Directory.EnumerateFiles(inputPath, "*.vcxproj", enumerationOptions));
 
     // Exclude common non-source directories
     projectFiles = projectFiles
@@ -114,7 +138,7 @@ foreach (var projectFile in projectFiles)
     Console.WriteLine($"\n--- {projectName} ({Path.GetFileName(projectFile)}) ---");
 
     // Find packages that contain WinMD files
-    var packages = NuGetResolver.FindPackagesWithWinMd(projectDir, projectFile);
+    var packages = NuGetResolver.FindPackagesWithWinMd(projectDir, projectFile, winAppSdkRuntimePath);
 
     if (packages.Count == 0)
     {
@@ -193,12 +217,24 @@ void ExportPackageCache(PackageWithWinMd pkg, string cacheDir)
         .OrderBy(ns => ns)
         .ToList();
 
+    // Include global (empty) namespace types under a reserved bucket name
+    var hasGlobalNs = typesByNamespace.ContainsKey(string.Empty)
+                      && typesByNamespace[string.Empty].Count > 0;
+    const string globalNsBucket = "_GlobalNamespace";
+    if (hasGlobalNs)
+    {
+        namespaces.Insert(0, globalNsBucket);
+    }
+
     // meta.json
     var meta = new
     {
         PackageId = pkg.Id,
         Version = pkg.Version,
-        WinMdFiles = pkg.WinMdFiles.Select(Path.GetFileName).Distinct().ToList(),
+        WinMdFiles = pkg.WinMdFiles
+            .Select(Path.GetFileName)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList(),
         TotalTypes = allTypes.Count,
         TotalMembers = allTypes.Sum(t => t.Members.Count),
         TotalNamespaces = namespaces.Count,
@@ -217,7 +253,8 @@ void ExportPackageCache(PackageWithWinMd pkg, string cacheDir)
     // types/<Namespace>.json
     foreach (var ns in namespaces)
     {
-        var types = typesByNamespace[ns];
+        var lookupKey = ns == globalNsBucket ? string.Empty : ns;
+        var types = typesByNamespace[lookupKey];
         var safeFileName = ns.Replace('.', '_') + ".json";
         File.WriteAllText(
             Path.Combine(typesDir, safeFileName),
@@ -283,7 +320,7 @@ record PackageWithWinMd(string Id, string Version, List<string> WinMdFiles);
 
 static class NuGetResolver
 {
-    public static List<PackageWithWinMd> FindPackagesWithWinMd(string projectDir, string projectFile)
+    public static List<PackageWithWinMd> FindPackagesWithWinMd(string projectDir, string projectFile, string? winAppSdkRuntimePath)
     {
         var result = new List<PackageWithWinMd>();
 
@@ -316,7 +353,26 @@ static class NuGetResolver
             result.Add(new PackageWithWinMd("WindowsSDK", sdkWinMd.Version, sdkWinMd.Files));
         }
 
-        return result;
+        // 5. Installed WinAppSDK runtime as a synthetic "package"
+        //    Useful for Electron/Node.js apps that don't reference WinAppSDK via NuGet.
+        var runtimeWinMd = FindWinAppSdkRuntimeWinMd(winAppSdkRuntimePath);
+        if (runtimeWinMd.Files.Count > 0)
+        {
+            result.Add(new PackageWithWinMd("WinAppSdkRuntime", runtimeWinMd.Version, runtimeWinMd.Files));
+        }
+
+        // Deduplicate by (Id, Version), merging WinMdFiles from multiple sources
+        return result
+            .GroupBy(p => (p.Id.ToLowerInvariant(), p.Version.ToLowerInvariant()))
+            .Select(g =>
+            {
+                var merged = g.SelectMany(p => p.WinMdFiles)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                var first = g.First();
+                return new PackageWithWinMd(first.Id, first.Version, merged);
+            })
+            .ToList();
     }
 
     /// <summary>
@@ -400,7 +456,32 @@ static class NuGetResolver
             var found = Directory.GetFiles(objDir, "project.assets.json", SearchOption.AllDirectories);
             if (found.Length > 0)
             {
-                return found[0];
+                // Pick the most recently written file to avoid non-deterministic
+                // selection when multi-targeting creates multiple assets files.
+                string? bestPath = null;
+                DateTime bestWriteTime = DateTime.MinValue;
+
+                foreach (var path in found)
+                {
+                    try
+                    {
+                        var writeTime = File.GetLastWriteTimeUtc(path);
+                        if (writeTime > bestWriteTime)
+                        {
+                            bestWriteTime = writeTime;
+                            bestPath = path;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore files we cannot access metadata for
+                    }
+                }
+
+                if (bestPath is not null)
+                {
+                    return bestPath;
+                }
             }
         }
 
@@ -507,10 +588,14 @@ static class NuGetResolver
             // Walk up from project dir to find it.
             var packagesFolder = FindSolutionPackagesFolder(projectDir);
 
-            // Also check NuGet global packages cache
-            var globalPackages = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".nuget", "packages");
+            // Also check NuGet global packages cache (respect NUGET_PACKAGES override)
+            var globalPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+            if (string.IsNullOrWhiteSpace(globalPackages))
+            {
+                globalPackages = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    ".nuget", "packages");
+            }
 
             foreach (var pkg in packages)
             {
@@ -602,10 +687,17 @@ static class NuGetResolver
             return ([], "unknown");
         }
 
-        // Filter to version-numbered directories only (skip "Facade" etc.)
+        // Filter to version-numbered directories only (skip "Facade" etc.) and
+        // sort by numeric version, not lexicographically, to pick the highest SDK.
         var versionDirs = Directory.GetDirectories(windowsKitsPath)
-            .Where(d => char.IsDigit(Path.GetFileName(d)[0]))
-            .OrderByDescending(d => Path.GetFileName(d))
+            .Select(d => (Dir: d, Name: Path.GetFileName(d)))
+            .Where(x => !string.IsNullOrEmpty(x.Name) && char.IsDigit(x.Name[0]))
+            .Select(x => Version.TryParse(x.Name, out var v)
+                ? (Dir: x.Dir, Version: v)
+                : (Dir: (string?)null, Version: (Version?)null))
+            .Where(x => x.Dir is not null && x.Version is not null)
+            .OrderByDescending(x => x.Version)
+            .Select(x => x.Dir!)
             .ToList();
 
         foreach (var versionDir in versionDirs)
@@ -616,6 +708,43 @@ static class NuGetResolver
                 var version = Path.GetFileName(versionDir);
                 return ([windowsWinMd], version);
             }
+        }
+
+        return ([], "unknown");
+    }
+
+    /// <summary>
+    /// Read WinMD files from the installed WinAppSDK runtime path (discovered via
+    /// Get-AppxPackage in PowerShell and passed as --winappsdk-runtime argument).
+    /// The WindowsApps folder is ACL-restricted so C# cannot enumerate it directly.
+    /// </summary>
+    internal static (List<string> Files, string Version) FindWinAppSdkRuntimeWinMd(string? runtimePath)
+    {
+        if (string.IsNullOrEmpty(runtimePath) || !Directory.Exists(runtimePath))
+        {
+            return ([], "unknown");
+        }
+
+        try
+        {
+            var winmdFiles = Directory.EnumerateFiles(runtimePath, "*.winmd", SearchOption.TopDirectoryOnly)
+                .ToList();
+
+            if (winmdFiles.Count > 0)
+            {
+                // Extract SDK version from path: ...Microsoft.WindowsAppRuntime.1.8_... -> "1.8"
+                var dirName = Path.GetFileName(runtimePath);
+                var prefix = dirName.Split('_')[0]; // "Microsoft.WindowsAppRuntime.1.8"
+                var sdkVersion = prefix.Length > "Microsoft.WindowsAppRuntime.".Length
+                    ? prefix["Microsoft.WindowsAppRuntime.".Length..]
+                    : dirName;
+
+                return (winmdFiles, sdkVersion);
+            }
+        }
+        catch
+        {
+            // Path may be inaccessible; degrade gracefully
         }
 
         return ([], "unknown");
@@ -858,7 +987,7 @@ static class WinMdParser
                 continue;
             }
 
-            if ((method.Attributes & MethodAttributes.Public) == 0)
+            if ((method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public)
             {
                 continue;
             }
@@ -900,8 +1029,32 @@ static class WinMdParser
                 var propSig = prop.DecodeSignature(typeProvider, null);
                 var propType = propSig.ReturnType;
                 var accessors = prop.GetAccessors();
-                var hasGetter = !accessors.Getter.IsNil;
-                var hasSetter = !accessors.Setter.IsNil;
+
+                var hasGetter = false;
+                if (!accessors.Getter.IsNil)
+                {
+                    var getterDef = reader.GetMethodDefinition(accessors.Getter);
+                    if ((getterDef.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public)
+                    {
+                        hasGetter = true;
+                    }
+                }
+
+                var hasSetter = false;
+                if (!accessors.Setter.IsNil)
+                {
+                    var setterDef = reader.GetMethodDefinition(accessors.Setter);
+                    if ((setterDef.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public)
+                    {
+                        hasSetter = true;
+                    }
+                }
+
+                // Skip properties where neither accessor is public
+                if (!hasGetter && !hasSetter)
+                {
+                    continue;
+                }
                 var accessStr = (hasGetter, hasSetter) switch
                 {
                     (true, true) => "{ get; set; }",
@@ -934,6 +1087,32 @@ static class WinMdParser
         {
             var evt = reader.GetEventDefinition(eventHandle);
             var evtName = reader.GetString(evt.Name);
+            var accessors = evt.GetAccessors();
+
+            var isPublicEvent = false;
+            if (!accessors.Adder.IsNil)
+            {
+                var adder = reader.GetMethodDefinition(accessors.Adder);
+                if ((adder.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public)
+                {
+                    isPublicEvent = true;
+                }
+            }
+
+            if (!isPublicEvent && !accessors.Remover.IsNil)
+            {
+                var remover = reader.GetMethodDefinition(accessors.Remover);
+                if ((remover.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public)
+                {
+                    isPublicEvent = true;
+                }
+            }
+
+            if (!isPublicEvent)
+            {
+                continue;
+            }
+
             var evtType = GetHandleTypeName(reader, evt.Type);
 
             members.Add(new WinMdMemberInfo
@@ -990,7 +1169,7 @@ static class WinMdParser
                 continue;
             }
 
-            if ((field.Attributes & FieldAttributes.Public) != 0 &&
+            if ((field.Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Public &&
                 (field.Attributes & FieldAttributes.Static) != 0)
             {
                 values.Add(fieldName);
@@ -1004,6 +1183,20 @@ static class WinMdParser
     {
         HandleKind.TypeDefinition => GetTypeDefName(reader, (TypeDefinitionHandle)handle),
         HandleKind.TypeReference => GetTypeRefName(reader, (TypeReferenceHandle)handle),
+        HandleKind.TypeSpecification => DecodeTypeSpecification(reader, (TypeSpecificationHandle)handle),
         _ => "unknown",
     };
+
+    private static string DecodeTypeSpecification(MetadataReader reader, TypeSpecificationHandle handle)
+    {
+        try
+        {
+            var typeSpec = reader.GetTypeSpecification(handle);
+            return typeSpec.DecodeSignature(new SimpleTypeProvider(), null);
+        }
+        catch
+        {
+            return "unknown";
+        }
+    }
 }

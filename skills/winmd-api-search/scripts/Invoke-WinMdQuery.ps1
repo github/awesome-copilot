@@ -18,7 +18,7 @@
     - namespaces  : List all namespaces (optional -Filter prefix)
     - types       : List types in a namespace (-Namespace required)
     - members     : List members of a type (-TypeName required)
-    - search      : Search types and members (-Query required)
+    - search      : Search types and members by name (-Query required)
     - enums       : List enum values (-TypeName required)
 
 .PARAMETER Project
@@ -46,8 +46,8 @@
 
 .EXAMPLE
     .\Invoke-WinMdQuery.ps1 -Action projects
-    .\Invoke-WinMdQuery.ps1 -Action packages -Project BlankWInUI
-    .\Invoke-WinMdQuery.ps1 -Action stats -Project BlankWInUI
+    .\Invoke-WinMdQuery.ps1 -Action packages -Project BlankWinUI
+    .\Invoke-WinMdQuery.ps1 -Action stats -Project BlankWinUI
     .\Invoke-WinMdQuery.ps1 -Action namespaces -Filter "Microsoft.UI"
     .\Invoke-WinMdQuery.ps1 -Action types -Namespace "Microsoft.UI.Xaml.Controls"
     .\Invoke-WinMdQuery.ps1 -Action members -TypeName "Microsoft.UI.Xaml.Controls.Button"
@@ -108,7 +108,7 @@ function Resolve-ProjectManifest {
             Write-Error "Project '$Name' not found. Available: $available"
             exit 1
         }
-        return Get-Content $path | ConvertFrom-Json
+        return Get-Content $path -Raw | ConvertFrom-Json
     }
 
     # Auto-select if only one project
@@ -118,7 +118,7 @@ function Resolve-ProjectManifest {
         exit 1
     }
     if ($manifests.Count -eq 1) {
-        return Get-Content $manifests[0].FullName | ConvertFrom-Json
+        return Get-Content $manifests[0].FullName -Raw | ConvertFrom-Json
     }
 
     $available = ($manifests | ForEach-Object { $_.BaseName }) -join ', '
@@ -148,7 +148,7 @@ function Show-Projects {
     }
     Write-Output "Cached projects ($($projects.Count)):"
     foreach ($p in $projects) {
-        $manifest = Get-Content (Join-Path (Join-Path $CacheDir 'projects') "$p.json") | ConvertFrom-Json
+        $manifest = Get-Content (Join-Path (Join-Path $CacheDir 'projects') "$p.json") -Raw | ConvertFrom-Json
         $pkgCount = $manifest.packages.Count
         Write-Output "  $p ($pkgCount package(s))"
     }
@@ -162,7 +162,7 @@ function Show-Packages {
     foreach ($pkg in $manifest.packages) {
         $metaPath = Join-Path (Join-Path (Join-Path (Join-Path $CacheDir 'packages') $pkg.id) $pkg.version) 'meta.json'
         if (Test-Path $metaPath) {
-            $meta = Get-Content $metaPath | ConvertFrom-Json
+            $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
             Write-Output "  $($pkg.id)@$($pkg.version) -- $($meta.totalTypes) types, $($meta.totalMembers) members"
         } else {
             Write-Output "  $($pkg.id)@$($pkg.version) -- (cache missing)"
@@ -182,7 +182,7 @@ function Show-Stats {
     foreach ($pkg in $manifest.packages) {
         $metaPath = Join-Path (Join-Path (Join-Path (Join-Path $CacheDir 'packages') $pkg.id) $pkg.version) 'meta.json'
         if (Test-Path $metaPath) {
-            $meta = Get-Content $metaPath | ConvertFrom-Json
+            $meta = Get-Content $metaPath -Raw | ConvertFrom-Json
             $totalTypes += $meta.totalTypes
             $totalMembers += $meta.totalMembers
             $totalNamespaces += $meta.totalNamespaces
@@ -210,7 +210,7 @@ function Get-Namespaces {
     foreach ($dir in $dirs) {
         $nsFile = Join-Path $dir 'namespaces.json'
         if (Test-Path $nsFile) {
-            $allNs += (Get-Content $nsFile | ConvertFrom-Json)
+            $allNs += (Get-Content $nsFile -Raw | ConvertFrom-Json)
         }
     }
 
@@ -240,7 +240,7 @@ function Get-TypesInNamespace {
         $filePath = Join-Path $dir "types\$safeFile"
         if (-not (Test-Path $filePath)) { continue }
         $found = $true
-        $types = Get-Content $filePath | ConvertFrom-Json
+        $types = Get-Content $filePath -Raw | ConvertFrom-Json
         foreach ($t in $types) {
             if ($seen.ContainsKey($t.fullName)) { continue }
             $seen[$t.fullName] = $true
@@ -263,7 +263,13 @@ function Get-MembersOfType {
         exit 1
     }
 
-    $ns = $FullName.Substring(0, $FullName.LastIndexOf('.'))
+    $lastDot = $FullName.LastIndexOf('.')
+    if ($lastDot -lt 0) {
+        Write-Error "-TypeName must include a namespace (for example: 'MyNamespace.MyType'). Provided: $FullName"
+        exit 1
+    }
+
+    $ns = $FullName.Substring(0, $lastDot)
     $safeFile = $ns.Replace('.', '_') + '.json'
 
     $manifest = Resolve-ProjectManifest -Name $Project
@@ -273,7 +279,7 @@ function Get-MembersOfType {
         $filePath = Join-Path $dir "types\$safeFile"
         if (-not (Test-Path $filePath)) { continue }
 
-        $types = Get-Content $filePath | ConvertFrom-Json
+        $types = Get-Content $filePath -Raw | ConvertFrom-Json
         $type = $types | Where-Object { $_.fullName -eq $FullName }
         if (-not $type) { continue }
 
@@ -291,7 +297,7 @@ function Get-MembersOfType {
 }
 
 # ─── Action: search ──────────────────────────────────────────────────────────
-# Ranks namespaces by best type-name match score.
+# Ranks namespaces by best match score on type names and member names.
 # Outputs: ranked namespaces with top matching types and the JSON file path.
 # The agent can then read the JSON file to inspect all members intelligently.
 
@@ -305,30 +311,54 @@ function Search-WinMd {
     $manifest = Resolve-ProjectManifest -Name $Project
     $dirs = Get-PackageCacheDirs -Manifest $manifest
 
-    # Collect: namespace → { bestScore, matchingTypes[], filePath }
+    # Collect: namespace -> { bestScore, matchingTypes[], filePath }
     $nsResults = @{}
 
     foreach ($dir in $dirs) {
         $nsFile = Join-Path $dir 'namespaces.json'
         if (-not (Test-Path $nsFile)) { continue }
-        $nsList = Get-Content $nsFile | ConvertFrom-Json
+        $nsList = Get-Content $nsFile -Raw | ConvertFrom-Json
 
         foreach ($n in $nsList) {
             $safeFile = $n.Replace('.', '_') + '.json'
             $filePath = Join-Path $dir "types\$safeFile"
             if (-not (Test-Path $filePath)) { continue }
 
-            $types = Get-Content $filePath | ConvertFrom-Json
+            $types = Get-Content $filePath -Raw | ConvertFrom-Json
             foreach ($t in $types) {
-                $score = Get-MatchScore -Name $t.name -FullName $t.fullName -Query $SearchQuery
+                $typeScore = Get-MatchScore -Name $t.name -FullName $t.fullName -Query $SearchQuery
+
+                # Also search member names for matches
+                $bestMemberScore = 0
+                $matchingMember = $null
+                if ($t.members) {
+                    foreach ($m in $t.members) {
+                        $memberName = $m.name
+                        $mScore = Get-MatchScore -Name $memberName -FullName "$($t.fullName).$memberName" -Query $SearchQuery
+                        if ($mScore -gt $bestMemberScore) {
+                            $bestMemberScore = $mScore
+                            $matchingMember = $m.signature
+                        }
+                    }
+                }
+
+                $score = [Math]::Max($typeScore, $bestMemberScore)
                 if ($score -le 0) { continue }
 
                 if (-not $nsResults.ContainsKey($n)) {
-                    $nsResults[$n] = @{ BestScore = 0; Types = @(); FilePath = $filePath }
+                    $nsResults[$n] = @{ BestScore = 0; Types = @(); FilePaths = @() }
                 }
                 $entry = $nsResults[$n]
                 if ($score -gt $entry.BestScore) { $entry.BestScore = $score }
-                $entry.Types += "$($t.kind) $($t.fullName) [$score]"
+                if ($entry.FilePaths -notcontains $filePath) {
+                    $entry.FilePaths += $filePath
+                }
+
+                if ($typeScore -ge $bestMemberScore) {
+                    $entry.Types += @{ Text = "$($t.kind) $($t.fullName) [$typeScore]"; Score = $typeScore }
+                } else {
+                    $entry.Types += @{ Text = "$($t.kind) $($t.fullName) -> $matchingMember [$bestMemberScore]"; Score = $bestMemberScore }
+                }
             }
         }
     }
@@ -346,9 +376,13 @@ function Search-WinMd {
         $ns = $r.Key
         $info = $r.Value
         Write-Output "[$($info.BestScore)] $ns"
-        Write-Output "    File: $($info.FilePath)"
-        # Show top 5 matching types in this namespace
-        $info.Types | Select-Object -First 5 | ForEach-Object { Write-Output "    $_" }
+        foreach ($fp in $info.FilePaths) {
+            Write-Output "    File: $fp"
+        }
+        # Show top 5 highest-scoring matching types in this namespace
+        $info.Types | Sort-Object { $_.Score } -Descending |
+            Select-Object -First 5 |
+            ForEach-Object { Write-Output "    $($_.Text)" }
         Write-Output ""
     }
 }
@@ -410,7 +444,13 @@ function Get-EnumValues {
         exit 1
     }
 
-    $ns = $FullName.Substring(0, $FullName.LastIndexOf('.'))
+    $lastDot = $FullName.LastIndexOf('.')
+    if ($lastDot -lt 1) {
+        Write-Error "-TypeName must be a fully-qualified type name including namespace, e.g. 'Namespace.TypeName'. Provided: $FullName"
+        exit 1
+    }
+
+    $ns = $FullName.Substring(0, $lastDot)
     $safeFile = $ns.Replace('.', '_') + '.json'
 
     $manifest = Resolve-ProjectManifest -Name $Project
@@ -420,7 +460,7 @@ function Get-EnumValues {
         $filePath = Join-Path $dir "types\$safeFile"
         if (-not (Test-Path $filePath)) { continue }
 
-        $types = Get-Content $filePath | ConvertFrom-Json
+        $types = Get-Content $filePath -Raw | ConvertFrom-Json
         $type = $types | Where-Object { $_.fullName -eq $FullName }
         if (-not $type) { continue }
 
