@@ -8,8 +8,6 @@
 
 **1 Copilot Credit = $0.01 USD**
 
-Currency converter: [calculator.net](https://www.calculator.net/currency-calculator.html?eamount=.01&efrom=USD&eto=EUR)
-
 ## Billing Rates (cached snapshot — last updated March 2026)
 
 **IMPORTANT: Always prefer fetching live rates from the source URLs below. Use this table only as a fallback if web fetch is unavailable.**
