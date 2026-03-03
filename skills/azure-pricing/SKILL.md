@@ -1,10 +1,10 @@
 ---
 name: azure-pricing
-description: 'Fetches real-time Azure retail pricing using the Azure Retail Prices API (prices.azure.com). Use when the user asks about the cost of any Azure service, wants to compare SKU prices, needs pricing data for a cost estimate, or mentions Azure pricing, Azure costs, or Azure billing. Covers compute, storage, networking, databases, AI, and all other Azure service families.'
-compatibility: Requires internet access to prices.azure.com. No authentication needed.
+description: 'Fetches real-time Azure retail pricing using the Azure Retail Prices API (prices.azure.com) and estimates Copilot Studio agent credit consumption. Use when the user asks about the cost of any Azure service, wants to compare SKU prices, needs pricing data for a cost estimate, mentions Azure pricing, Azure costs, Azure billing, or asks about Copilot Studio pricing, Copilot Credits, or agent usage estimation. Covers compute, storage, networking, databases, AI, Copilot Studio, and all other Azure service families.'
+compatibility: Requires internet access to prices.azure.com. No authentication needed. Copilot Studio estimation requires Playwright for web scraping.
 metadata:
   author: anthonychu
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Azure Pricing Skill
@@ -129,6 +129,7 @@ Only use items where `isPrimaryMeterRegion` is `true` unless the user specifical
 - For savings plan prices, look for the `savingsPlan` array on each item (only in `2023-01-01-preview`).
 - See [references/SERVICE-NAMES.md](references/SERVICE-NAMES.md) for a catalog of common service names and their correct casing.
 - See [references/COST-ESTIMATOR.md](references/COST-ESTIMATOR.md) for cost estimation formulas and patterns.
+- See [references/COPILOT-STUDIO-RATES.md](references/COPILOT-STUDIO-RATES.md) for Copilot Studio billing rates and estimation formulas.
 
 ## Troubleshooting
 
@@ -139,3 +140,69 @@ Only use items where `isPrimaryMeterRegion` is `true` unless the user specifical
 | Missing savings plan data | Ensure `api-version=2023-01-01-preview` is in the URL |
 | URL errors | Check URL encoding — spaces as `%20`, quotes as `%27` |
 | Too many results | Add more filter fields (region, SKU, priceType) to narrow down |
+
+---
+
+# Copilot Studio Agent Usage Estimation
+
+Use this section when the user asks about Copilot Studio pricing, Copilot Credits, or agent usage costs.
+
+## When to Use This Section
+
+- User asks about Copilot Studio pricing or costs
+- User asks about Copilot Credits or agent credit consumption
+- User wants to estimate monthly costs for a Copilot Studio agent
+- User mentions agent usage estimation or the Copilot Studio estimator
+- User asks how much an agent will cost to run
+
+## Key Facts
+
+- **1 Copilot Credit = $0.01 USD**
+- Credits are pooled across the entire tenant
+- Employee-facing agents with M365 Copilot licensed users get classic answers, generative answers, and tenant graph grounding at zero cost
+- Overage enforcement triggers at 125% of prepaid capacity
+
+## Step-by-step Estimation — MUST RUN THE SCRIPT
+
+**IMPORTANT: Always run the bundled Python script to produce the estimate. Do NOT calculate manually.**
+
+The script automates the official [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/) page using Playwright, ensuring results match Microsoft's own calculator.
+
+1. **Gather inputs** from the user: agent type (employee/customer), number of users, interactions/month, knowledge %, tenant graph %, tool usage per session.
+2. **Map inputs to CLI arguments**:
+   - `--agent-type`: "employee" or "customer"
+   - `--users`: number of end users
+   - `--interactions`: average interactions per user per month
+   - `--knowledge-pct`: percentage of responses from knowledge (0-100)
+   - `--tenant-graph-pct`: of knowledge responses, percentage using tenant graph grounding (0-100)
+   - `--tool-prompt`: average Prompt tool calls per session (default 0)
+   - `--tool-agent-flow`: average Agent flow calls per session (default 0)
+   - `--tool-computer-use`: average Computer use calls per session (default 0)
+   - `--tool-custom-connector`: average Custom connector calls per session (default 0)
+   - `--tool-mcp`: average MCP calls per session (default 0)
+   - `--tool-rest-api`: average REST API calls per session (default 0)
+3. **Run the script** using the terminal. The script path relative to the skill folder is `scripts/copilot-studio-estimator.py`:
+
+```bash
+python .github/skills/azure-pricing/scripts/copilot-studio-estimator.py --agent-type employee --users 500 --interactions 20 --knowledge-pct 60 --tenant-graph-pct 30 --tool-prompt 0.5 --output json
+```
+
+4. **Parse the JSON output** and present the results in a clear table with breakdown by category.
+5. If the script fails (e.g., Playwright not installed), tell the user to install it first:
+
+```bash
+pip install playwright
+```
+
+The script uses the system's existing Edge or Chrome browser — no separate browser download is needed.
+
+Then re-run the script.
+
+See [references/COPILOT-STUDIO-RATES.md](references/COPILOT-STUDIO-RATES.md) for the full rate table and billing examples.
+
+## Reference Links
+
+- [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/)
+- [Billing rates and management](https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management)
+- [Copilot Studio licensing](https://learn.microsoft.com/en-us/microsoft-copilot-studio/billing-licensing)
+- [Copilot Studio Licensing Guide (PDF)](https://go.microsoft.com/fwlink/?linkid=2320995)
