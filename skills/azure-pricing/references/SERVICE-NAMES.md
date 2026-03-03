@@ -90,7 +90,7 @@ The `serviceName` field in the Azure Retail Prices API is **case-sensitive**. Us
 | Azure Monitor | `Azure Monitor` |
 | Azure Log Analytics | `Log Analytics` |
 | Azure Key Vault | `Key Vault` |
-| Azure Backup | `Azure Backup` |
+| Azure Backup | `Backup` |
 
 ## Web
 
