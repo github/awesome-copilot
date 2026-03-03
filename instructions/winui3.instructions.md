@@ -28,7 +28,7 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 
 - The default XAML namespace maps to `Microsoft.UI.Xaml`, not `Windows.UI.Xaml`.
 - Prefer `{x:Bind}` over `{Binding}` for compiled, type-safe, higher-performance bindings.
-- Set `x:DataType` on Page/UserControl elements when using `{x:Bind}`.
+- Set `x:DataType` on `DataTemplate` elements when using `{x:Bind}` — this is required for compiled bindings in templates. On Page/UserControl, `x:DataType` enables compile-time binding validation but is not strictly required if the DataContext does not change.
 - Use `Mode=OneWay` for dynamic values, `Mode=OneTime` for static, `Mode=TwoWay` only for editable inputs.
 - Do not bind static constants — set them directly in XAML.
 
@@ -86,6 +86,7 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 ## Performance
 
 - Prefer `{x:Bind}` (compiled) over `{Binding}` (reflection-based).
+- **NativeAOT:** Under Native AOT compilation, `{Binding}` (reflection-based) does not work at all. Only `{x:Bind}` (compiled bindings) is supported. If the project uses NativeAOT, use `{x:Bind}` exclusively.
 - Use `x:Load` or `x:DeferLoadStrategy` for UI elements that are not immediately needed.
 - Use `ItemsRepeater` with virtualization for large lists.
 - Avoid deep layout nesting — prefer `Grid` over nested `StackPanel` chains.
@@ -141,7 +142,9 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 - Use `TeachingTip` for contextual guidance (not custom popups).
 - Use `NumberBox` for numeric input (not TextBox with manual validation).
 - Use `ToggleSwitch` for on/off settings (not CheckBox).
-- Use `ItemsRepeater` for custom virtualizing layouts. Use `ListView`/`GridView` for standard lists.
+- Use `ItemsView` as the modern collection control for displaying data with built-in selection, virtualization, and layout flexibility.
+- Use `ListView`/`GridView` for standard virtualized lists and grids, especially when built-in selection support is needed.
+- Use `ItemsRepeater` only for fully custom virtualizing layouts where you need complete control over rendering and do not need built-in selection or interaction handling.
 - Use `Expander` for collapsible sections (not custom visibility toggling).
 
 ## Error Handling

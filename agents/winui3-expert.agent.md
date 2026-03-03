@@ -48,24 +48,6 @@ These are the **most common mistakes** AI assistants make when generating WinUI 
 
 ## Project Setup
 
-### New Projects
-
-- **Target Framework**: `net10.0-windows10.0.22621.0` (or latest stable)
-- **Windows App SDK**: Latest stable NuGet package (`Microsoft.WindowsAppSDK`)
-- **WinUI 3**: Included via the Windows App SDK package
-- **Project template**: Use `winui3` templates via `dotnet new`
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
-    <UseWinUI>true</UseWinUI>
-    <WindowsSdkPackageVersion>10.0.22621.49</WindowsSdkPackageVersion>
-  </PropertyGroup>
-</Project>
-```
-
 ### Packaged vs Unpackaged
 
 | Aspect | Packaged (MSIX) | Unpackaged |
@@ -378,26 +360,24 @@ Key reference repositories:
 
 ### Typography — Type Ramp
 
-Always use the built-in WinUI 3 TextBlock styles. **Never hardcode font sizes or weights.**
+Use the built-in WinUI 3 TextBlock styles for consistent typography. Prefer these over setting font properties directly.
 
-| Style | Size | Weight | Usage |
-|-------|------|--------|-------|
-| `CaptionTextBlockStyle` | 12 epx | Regular (400) | Captions, labels, secondary info |
-| `BodyTextBlockStyle` | 14 epx | Regular (400) | Primary body text (default) |
-| `BodyStrongTextBlockStyle` | 14 epx | SemiBold (600) | Emphasized body text |
-| `BodyLargeTextBlockStyle` | 18 epx | Regular (400) | Larger body paragraphs |
-| `SubtitleTextBlockStyle` | 20 epx | SemiBold (600) | Section subtitles |
-| `TitleTextBlockStyle` | 28 epx | SemiBold (600) | Page or section titles |
-| `TitleLargeTextBlockStyle` | 40 epx | SemiBold (600) | Major headings |
-| `DisplayTextBlockStyle` | 68 epx | SemiBold (600) | Hero/display text |
+| Style | When to Use |
+|-------|-------------|
+| `CaptionTextBlockStyle` | Captions, labels, secondary metadata, timestamps |
+| `BodyTextBlockStyle` | Primary body text, descriptions, default content |
+| `BodyStrongTextBlockStyle` | Emphasized body text, inline highlights, important labels |
+| `BodyLargeTextBlockStyle` | Larger paragraphs, introductory text, callouts |
+| `SubtitleTextBlockStyle` | Section subtitles, group headers, card titles |
+| `TitleTextBlockStyle` | Page titles, dialog titles, primary section headings |
+| `TitleLargeTextBlockStyle` | Major headings, hero section titles |
+| `DisplayTextBlockStyle` | Hero/display text, splash screens, landing page headlines |
 
 ```xml
 <!-- ✅ CORRECT — Use built-in style -->
 <TextBlock Text="Page Title" Style="{StaticResource TitleTextBlockStyle}" />
 <TextBlock Text="Body content" Style="{StaticResource BodyTextBlockStyle}" />
-
-<!-- ❌ WRONG — Hardcoded font properties -->
-<TextBlock Text="Page Title" FontSize="28" FontWeight="SemiBold" />
+<TextBlock Text="Section" Style="{StaticResource SubtitleTextBlockStyle}" />
 ```
 
 **Guidelines:**
@@ -408,24 +388,23 @@ Always use the built-in WinUI 3 TextBlock styles. **Never hardcode font sizes or
 
 ### Iconography
 
-Use **Segoe Fluent Icons** for icon glyphs — this is the modern icon font for WinUI 3 and Windows 11. Prefer it over Segoe MDL2 Assets, which is the legacy icon font.
+WinUI 3 controls like `FontIcon` and `SymbolIcon` use `SymbolThemeFontFamily` by default. This automatically resolves to **Segoe Fluent Icons** (the recommended icon font) on Windows 11, and **Segoe MDL2 Assets** on Windows 10.
 
 ```xml
-<!-- ✅ CORRECT — Segoe Fluent Icons -->
-<FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" Glyph="&#xE710;" />
+<!-- FontIcon — uses Segoe Fluent Icons by default on Windows 11 -->
+<FontIcon Glyph="&#xE710;" />
 
-<!-- Or use the Symbol enum for common icons -->
+<!-- SymbolIcon — uses the Symbol enum for common icons -->
 <SymbolIcon Symbol="Add" />
-
-<!-- ❌ AVOID — Legacy icon font -->
-<FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" />
 ```
 
-**Caveat:** Not all Segoe Fluent Icons glyphs are available on Windows 10. If your app targets Windows 10, verify icon availability or fall back to Segoe MDL2 Assets for unsupported glyphs. Using `{ThemeResource SymbolThemeFontFamily}` automatically resolves to the correct font for the OS version.
+No need to specify `FontFamily` explicitly — the default behavior handles OS-level icon font selection automatically.
 
 ### Theme-Aware Colors & Brushes
 
 Always use `{ThemeResource}` for colors — **never hardcode color values**. This ensures automatic light/dark/high-contrast support.
+
+**Important:** Always reference `*Brush` resources (e.g., `TextFillColorPrimaryBrush`), not `*Color` resources (e.g., `TextFillColorPrimary`). Brush resources are cached for performance and have proper high contrast theme definitions. Color resources lack high contrast variants and create new brush instances each time they are used.
 
 **Naming convention:** `{Category}{Intensity}{Type}Brush`
 
@@ -453,13 +432,6 @@ Always use `{ThemeResource}` for colors — **never hardcode color values**. Thi
 <Border Background="#FFFFFF" BorderBrush="#E0E0E0">
     <TextBlock Text="Card content" Foreground="#333333" />
 </Border>
-```
-
-**Override accent color per-app:**
-```xml
-<Application.Resources>
-    <Color x:Key="SystemAccentColor">#0078D4</Color>
-</Application.Resources>
 ```
 
 ### Spacing & Layout
@@ -641,7 +613,9 @@ animation?.TryStart(destinationElement);
 | Numeric input | **NumberBox** | Built-in validation, spin buttons, formatting |
 | Search with suggestions | **AutoSuggestBox** | Autocomplete, custom filtering |
 | Hierarchical data | **TreeView** | Multi-select, drag-and-drop |
-| Flat list (virtualized) | **ListView / GridView** | Use `ItemsRepeater` for custom layouts |
+| Collection display | **ItemsView** | Modern collection control with built-in selection and layout flexibility |
+| Standard lists/grids | **ListView / GridView** | Virtualized lists with built-in selection, grouping, drag-and-drop |
+| Custom collection layout | **ItemsRepeater** | Lowest-level virtualizing layout — no built-in selection or interaction |
 | Settings | **ToggleSwitch** | For on/off settings (not CheckBox) |
 | Date selection | **CalendarDatePicker** | Calendar dropdown; use `DatePicker` for simple date |
 | Progress (known) | **ProgressBar** | Determinate or indeterminate |
