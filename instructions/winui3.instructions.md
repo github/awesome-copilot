@@ -115,7 +115,7 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 
 ## Spacing & Layout
 
-- Use a **4px grid system**: all margins, padding, and spacing values must be multiples of 4 epx.
+- Use a **4px grid system**: all margins, padding, and spacing values must be multiples of 4px.
 - Standard spacing: 4 (compact), 8 (controls), 12 (small gutters), 16 (content padding), 24 (large gutters).
 - Prefer `Grid` over deeply nested `StackPanel` chains for performance.
 - Use `Auto` for content-sized rows/columns, `*` for proportional sizing. Avoid fixed pixel sizes.
@@ -127,12 +127,11 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 - Use **Mica** (`MicaBackdrop`) for the app window backdrop. Requires transparent layers above to show through.
 - Use **Acrylic** for transient surfaces only (flyouts, menus, navigation panes).
 - Use `LayerFillColorDefaultBrush` for content layers above Mica.
-- Use `ThemeShadow` with Z-axis `Translation` for elevation. Cards: 4–8 epx, Flyouts: 32 epx, Dialogs: 128 epx.
+- Use `ThemeShadow` with Z-axis `Translation` for elevation. Cards: 4–8 px, Flyouts: 32 px, Dialogs: 128 px.
 
 ## Motion & Transitions
 
 - Use built-in theme transitions (`EntranceThemeTransition`, `RepositionThemeTransition`, `ContentThemeTransition`, `AddDeleteThemeTransition`).
-- Use `ConnectedAnimationService` for seamless navigation transitions between pages.
 - Avoid custom storyboard animations when a built-in transition exists.
 
 ## Control Selection

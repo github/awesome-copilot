@@ -173,29 +173,6 @@ picker.FileTypeFilter.Add(".txt");
 var file = await picker.PickSingleFileAsync();
 ```
 
-### Share (DataTransferManager)
-
-```csharp
-// ❌ WRONG — Direct UWP usage
-DataTransferManager.ShowShareUI();
-```
-
-```csharp
-// ✅ CORRECT — Use interop with window handle
-var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-var interop = DataTransferManager.As<IDataTransferManagerInterop>();
-var dtm = DataTransferManager.FromAbi(
-    interop.GetForWindow(hwnd, new Guid("a5caee9b-8708-49d1-8d36-67d25a8da00c")));
-dtm.DataRequested += (s, e) =>
-{
-    e.Request.Data.Properties.Title = "Share Title";
-    e.Request.Data.SetText("Shared content");
-};
-interop.ShowShareUIForWindow(hwnd);
-```
-
----
-
 ## Threading Migration
 
 | UWP Pattern | WinUI 3 Equivalent |
@@ -238,7 +215,6 @@ if (args.Kind == ExtendedActivationKind.AppNotification)
 | Scenario | Packaged App | Unpackaged App |
 |----------|-------------|----------------|
 | Simple settings | `ApplicationData.Current.LocalSettings` | JSON file in `LocalApplicationData` |
-| Roaming settings | `ApplicationData.Current.RoamingSettings` (deprecated) | Cloud sync service |
 | Local file storage | `ApplicationData.Current.LocalFolder` | `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)` |
 
 ---
