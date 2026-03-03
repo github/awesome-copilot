@@ -153,6 +153,13 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 - Use `InfoBar` (with `Severity = Error`) for user-facing error messages, not `ContentDialog` for routine errors.
 - Handle `App.UnhandledException` for logging and graceful recovery.
 
+## Testing
+
+- **NEVER** use a plain MSTest or xUnit project for tests that instantiate WinUI 3 XAML types. Use a **Unit Test App (WinUI in Desktop)** project, which provides the Xaml runtime and UI thread.
+- Use `[TestMethod]` for pure logic tests. Use `[UITestMethod]` for any test that creates or interacts with `Microsoft.UI.Xaml` types (controls, pages, user controls).
+- Place testable business logic in a **Class Library (WinUI in Desktop)** project, separate from the main app.
+- Build the solution before running tests to enable Visual Studio test discovery.
+
 ## Resources & Localization
 
 - Store user-facing strings in `Resources.resw` files, not in code or XAML literals.

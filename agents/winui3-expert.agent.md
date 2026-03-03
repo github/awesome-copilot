@@ -336,8 +336,63 @@ winapp pack ./bin/Release --generate-cert --output MyApp.msix
 
 ## Testing
 
-- **Unit tests**: MSTest, xUnit, or NUnit with `Microsoft.UI.Xaml` test host
-- **UI tests**: WinAppDriver + Appium, or Microsoft.UI.Xaml.Automation
+### Unit Testing with WinUI 3
+
+WinUI 3 unit tests require a **Unit Test App (WinUI in Desktop)** project — not a standard MSTest/xUnit project — because tests that interact with XAML controls need the Xaml runtime and a UI thread.
+
+#### Project Setup
+
+1. In Visual Studio, create a **Unit Test App (WinUI in Desktop)** project (C#) or **Unit Test App (WinUI)** (C++)
+2. Add a **Class Library (WinUI in Desktop)** project for testable business logic and controls
+3. Add a project reference from the test project to the class library
+
+#### Test Attributes
+
+| Attribute | When to Use |
+|-----------|-------------|
+| `[TestMethod]` | Standard logic tests that do not touch XAML or UI elements |
+| `[UITestMethod]` | Tests that create, manipulate, or assert on XAML controls (runs on the UI thread) |
+
+```csharp
+[TestClass]
+public class UnitTest1
+{
+    [TestMethod]
+    public void TestBusinessLogic()
+    {
+        // ✅ Standard test — no UI thread needed
+        var result = MyService.Calculate(2, 3);
+        Assert.AreEqual(5, result);
+    }
+
+    [UITestMethod]
+    public void TestXamlControl()
+    {
+        // ✅ UI test — runs on the XAML UI thread
+        var grid = new Grid();
+        Assert.AreEqual(0, grid.MinWidth);
+    }
+
+    [UITestMethod]
+    public void TestUserControl()
+    {
+        // ✅ Test custom controls that need the Xaml runtime
+        var control = new MyLibrary.MyUserControl();
+        Assert.AreEqual(expected, control.MyMethod());
+    }
+}
+```
+
+#### Key Rules
+
+- **NEVER** use a plain MSTest/xUnit project for tests that instantiate XAML types — they will fail without the Xaml runtime
+- Use `[UITestMethod]` (not `[TestMethod]`) whenever the test creates or interacts with any `Microsoft.UI.Xaml` type
+- Build the solution before running tests so Visual Studio can discover them
+- Run tests via **Test Explorer** (`Ctrl+E, T`) — right-click tests or use `Ctrl+R, T`
+
+### Other Testing
+
+- **UI automation tests**: WinAppDriver + Appium, or `Microsoft.UI.Xaml.Automation`
 - **Accessibility tests**: Axe.Windows automated scans
 - Always test on both packaged and unpackaged configurations
 

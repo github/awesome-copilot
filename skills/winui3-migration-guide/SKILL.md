@@ -257,6 +257,31 @@ All `GetForCurrentView()` patterns are unavailable in WinUI 3 desktop apps:
 
 ---
 
+## Testing Migration
+
+UWP unit test projects do not work with WinUI 3. You must migrate to the WinUI 3 test project templates.
+
+| UWP | WinUI 3 |
+|-----|---------|
+| Unit Test App (Universal Windows) | **Unit Test App (WinUI in Desktop)** |
+| Standard MSTest project with UWP types | Must use WinUI test app for Xaml runtime |
+| `[TestMethod]` for all tests | `[TestMethod]` for logic, `[UITestMethod]` for XAML/UI tests |
+| Class Library (Universal Windows) | **Class Library (WinUI in Desktop)** |
+
+```csharp
+// ✅ WinUI 3 unit test — use [UITestMethod] for any XAML interaction
+[UITestMethod]
+public void TestMyControl()
+{
+    var control = new MyLibrary.MyUserControl();
+    Assert.AreEqual(expected, control.MyProperty);
+}
+```
+
+**Key:** The `[UITestMethod]` attribute tells the test runner to execute the test on the XAML UI thread, which is required for instantiating any `Microsoft.UI.Xaml` type.
+
+---
+
 ## Migration Checklist
 
 1. [ ] Replace all `Windows.UI.Xaml.*` using directives with `Microsoft.UI.Xaml.*`
@@ -272,4 +297,5 @@ All `GetForCurrentView()` patterns are unavailable in WinUI 3 desktop apps:
 11. [ ] Update interop for Share and Print managers
 12. [ ] Replace `IBackgroundTask` with `AppLifecycle` activation
 13. [ ] Update project file: TFM to `net10.0-windows10.0.22621.0`, add `<UseWinUI>true</UseWinUI>`
-14. [ ] Test both packaged and unpackaged configurations
+14. [ ] Migrate unit tests to **Unit Test App (WinUI in Desktop)** project; use `[UITestMethod]` for XAML tests
+15. [ ] Test both packaged and unpackaged configurations
