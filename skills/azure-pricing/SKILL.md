@@ -44,7 +44,7 @@ If anything is unclear about the user's request, ask clarifying questions to ide
 
 | Field | Type | Example |
 |---|---|---|
-| `serviceName` | string (exact, case-sensitive) | `'Azure Functions'`, `'Virtual Machines'`, `'Azure Blob Storage'` |
+| `serviceName` | string (exact, case-sensitive) | `'Functions'`, `'Virtual Machines'`, `'Storage'` |
 | `serviceFamily` | string (exact, case-sensitive) | `'Compute'`, `'Storage'`, `'Databases'`, `'AI + Machine Learning'` |
 | `armRegionName` | string (exact, lowercase) | `'eastus'`, `'westeurope'`, `'southeastasia'` |
 | `armSkuName` | string (exact) | `'Standard_D4s_v5'`, `'Standard_LRS'` |
