@@ -12,6 +12,6 @@
     "mcp"
   ],
   "skills": [
-    "./skills/mcp-configure/"
+    "./skills/mcp-configure"
   ]
 }
