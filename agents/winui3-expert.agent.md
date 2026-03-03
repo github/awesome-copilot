@@ -36,7 +36,7 @@ These are the **most common mistakes** AI assistants make when generating WinUI 
 | **Print support** | UWP `PrintManager` | Needs `IPrintManagerInterop` with window handle |
 | **Background tasks** | UWP `IBackgroundTask` | `Microsoft.Windows.AppLifecycle` activation |
 | **App settings** | `ApplicationData.Current.LocalSettings` | Works for packaged; unpackaged needs alternatives |
-| **GetForCurrentView()** | `UIViewSettings.GetForCurrentView()` etc. | Not available in desktop WinUI 3; use `AppWindow` APIs |
+| **UWP view-specific GetForCurrentView APIs** | `ApplicationView.GetForCurrentView()`, `UIViewSettings.GetForCurrentView()`, `DisplayInformation.GetForCurrentView()` | Not available in desktop WinUI 3; use `Microsoft.UI.Windowing.AppWindow`, `DisplayArea`, or other Windows App SDK equivalents (note: `ConnectedAnimationService.GetForCurrentView()` remains valid) |
 | **XAML namespaces** | `Windows.UI.Xaml.*` | `Microsoft.UI.Xaml.*` |
 | **Composition** | `Windows.UI.Composition` | `Microsoft.UI.Composition` |
 | **Input** | `Windows.UI.Input` | `Microsoft.UI.Input` |
