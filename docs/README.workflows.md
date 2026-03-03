@@ -34,3 +34,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-agentic-workflows) for guideline
 | Name | Description | Triggers |
 | ---- | ----------- | -------- |
 | [Daily Issues Report](../workflows/daily-issues-report.md) | Generates a daily summary of open issues and recent activity as a GitHub issue | schedule |
+| [OSPO Contributors Report](../workflows/ospo-contributors-report.md) | Monthly contributor activity metrics across an organization's repositories. | schedule, workflow_dispatch |
+| [OSPO Organization Health Report](../workflows/ospo-org-health.md) | Comprehensive weekly health report for a GitHub organization. Surfaces stale issues/PRs, merge time analysis, contributor leaderboards, and actionable items needing human attention. | schedule, workflow_dispatch |
+| [OSPO Stale Repository Report](../workflows/ospo-stale-repos.md) | Identifies inactive repositories in your organization and generates an archival recommendation report. | schedule, workflow_dispatch |
+| [OSS Release Compliance Checker](../workflows/ospo-release-compliance-checker.md) | Analyzes a target repository against open source release requirements and posts a detailed compliance report as an issue comment. | issues, workflow_dispatch |
+| [Relevance Check](../workflows/relevance-check.md) | Slash command to evaluate whether an issue or pull request is still relevant to the project | slash_command, roles |
+| [Relevance Summary](../workflows/relevance-summary.md) | Manually triggered workflow that summarizes all open issues and PRs with a /relevance-check response into a single issue | workflow_dispatch |

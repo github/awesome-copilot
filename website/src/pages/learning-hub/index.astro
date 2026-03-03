@@ -1,0 +1,158 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { fundamentalsOrder, referenceOrder } from '../../config/learning-hub';
+
+const base = import.meta.env.BASE_URL;
+const articles = await getCollection('learning-hub');
+
+const createOrderIndexMap = (order) => {
+  const map = new Map();
+  order.forEach((id, index) => {
+    map.set(id, index);
+  });
+  return map;
+};
+
+const fundamentalsOrderIndex = createOrderIndexMap(fundamentalsOrder);
+const referenceOrderIndex = createOrderIndexMap(referenceOrder);
+
+const fundamentals = articles
+  .filter((a) => fundamentalsOrder.includes(a.id))
+  .sort((a, b) => fundamentalsOrderIndex.get(a.id) - fundamentalsOrderIndex.get(b.id));
+
+const reference = articles
+  .filter((a) => referenceOrder.includes(a.id))
+  .sort((a, b) => referenceOrderIndex.get(a.id) - referenceOrderIndex.get(b.id));
+---
+
+<BaseLayout title="Learning Hub" description="Curated articles and walkthroughs to help you unlock everything you can do with GitHub Copilot" activeNav="learning-hub">
+  <main id="main-content">
+    <div class="page-header">
+      <div class="container">
+        <h1>📚 Learning Hub</h1>
+        <p>Curated articles, walkthroughs, and reference material to help you unlock everything you can do with GitHub Copilot</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="container">
+        <div class="learning-hub-layout">
+          <nav class="learning-hub-sidebar" aria-label="Learning Hub sections">
+            <div class="sidebar-section">
+              <h3>Fundamentals</h3>
+              <ol class="sidebar-nav-list">
+                {fundamentals.map((article) => (
+                  <li>
+                    <a href={`${base}learning-hub/${article.id}/`}>
+                      {article.data.title}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div class="sidebar-section">
+              <h3>Reference</h3>
+              <ul class="sidebar-nav-list">
+                {reference.map((article) => (
+                  <li>
+                    <a href={`${base}learning-hub/${article.id}/`}>
+                      {article.data.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div class="sidebar-section">
+              <h3>Hands-on</h3>
+              <ul class="sidebar-nav-list">
+                <li>
+                  <a href={`${base}learning-hub/cookbook/`}>Cookbook</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <div class="learning-hub-index-content">
+            <section class="learning-hub-section" id="fundamentals">
+              <h2>Fundamentals</h2>
+              <p class="section-description">Essential concepts to tailor GitHub Copilot beyond its default experience.</p>
+              <div class="article-list">
+                {fundamentals.map((article, index) => (
+                  <a href={`${base}learning-hub/${article.id}/`} class="article-card">
+                    <div class="article-number" aria-hidden="true">{index + 1}</div>
+                    <div class="article-info">
+                      <h3>{article.data.title}</h3>
+                      <p>{article.data.description}</p>
+                      <div class="article-meta">
+                        {article.data.estimatedReadingTime && (
+                          <span class="meta-item">📖 {article.data.estimatedReadingTime}</span>
+                        )}
+                        {article.data.tags && article.data.tags.length > 0 && (
+                          <span class="meta-item">
+                            {article.data.tags.map((tag) => (
+                              <span class="tag">{tag}</span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <section class="learning-hub-section" id="reference">
+              <h2>Reference</h2>
+              <p class="section-description">Quick-lookup resources to keep handy while you work.</p>
+              <div class="article-list">
+                {reference.map((article) => (
+                  <a href={`${base}learning-hub/${article.id}/`} class="article-card">
+                    <div class="article-number" aria-hidden="true">📖</div>
+                    <div class="article-info">
+                      <h3>{article.data.title}</h3>
+                      <p>{article.data.description}</p>
+                      <div class="article-meta">
+                        {article.data.estimatedReadingTime && (
+                          <span class="meta-item">📖 {article.data.estimatedReadingTime}</span>
+                        )}
+                        {article.data.tags && article.data.tags.length > 0 && (
+                          <span class="meta-item">
+                            {article.data.tags.map((tag) => (
+                              <span class="tag">{tag}</span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <section class="learning-hub-section" id="hands-on">
+              <h2>Hands-on</h2>
+              <p class="section-description">Interactive samples and recipes to learn by doing.</p>
+              <div class="article-list">
+                <a href={`${base}learning-hub/cookbook/`} class="article-card">
+                  <div class="article-number" aria-hidden="true">🍳</div>
+                  <div class="article-info">
+                    <h3>Cookbook</h3>
+                    <p>Code samples, recipes, and examples for building with GitHub Copilot tools</p>
+                    <div class="article-meta">
+                      <span class="meta-item">
+                        <span class="tag">samples</span>
+                        <span class="tag">recipes</span>
+                        <span class="tag">sdk</span>
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

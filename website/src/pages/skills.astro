@@ -1,16 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
 ---
 
 <BaseLayout title="Skills" description="Self-contained agent skills with instructions and bundled resources" activeNav="skills">
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>⚡ Skills</h1>
-        <p>Self-contained agent skills with instructions and bundled resources</p>
-      </div>
-    </div>
+    <PageHeader title="⚡ Skills" description="Self-contained agent skills with instructions and bundled resources" />
 
     <div class="page-content">
       <div class="container">
@@ -44,6 +41,7 @@ import Modal from '../components/Modal.astro';
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading skills...</div>
         </div>
+        <ContributeCTA resourceType="skills" />
       </div>
     </div>
   </main>
