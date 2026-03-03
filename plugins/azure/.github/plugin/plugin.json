@@ -1,0 +1,36 @@
+{
+  "name": "azure",
+  "description": "Microsoft Azure MCP integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Claude Code.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Microsoft",
+    "url": "https://www.microsoft.com"
+  },
+  "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": ["azure", "cloud", "infrastructure", "deployment", "microsoft", "devops"],
+  "skills": [
+    "./skills/appinsights-instrumentation/",
+    "./skills/azure-ai/",
+    "./skills/azure-aigateway/",
+    "./skills/azure-cloud-migrate/",
+    "./skills/azure-compliance/",
+    "./skills/azure-compute/",
+    "./skills/azure-cost-optimization/",
+    "./skills/azure-deploy/",
+    "./skills/azure-diagnostics/",
+    "./skills/azure-hosted-copilot-sdk/",
+    "./skills/azure-kusto/",
+    "./skills/azure-messaging/",
+    "./skills/azure-observability/",
+    "./skills/azure-prepare/",
+    "./skills/azure-rbac/",
+    "./skills/azure-resource-lookup/",
+    "./skills/azure-resource-visualizer/",
+    "./skills/azure-storage/",
+    "./skills/azure-validate/",
+    "./skills/entra-app-registration/",
+    "./skills/microsoft-foundry/"
+  ]
+}

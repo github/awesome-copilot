@@ -1,15 +1,34 @@
 ---
 name: appinsights-instrumentation
-description: 'Instrument a webapp to send useful telemetry data to Azure App Insights'
+description: "Guidance for instrumenting webapps with Azure Application Insights. Provides telemetry patterns, SDK setup, and configuration references. USE FOR: how to instrument app, App Insights SDK, telemetry patterns, what is App Insights, Application Insights guidance, instrumentation examples, APM best practices. DO NOT USE FOR: adding App Insights to my app (use azure-prepare), add telemetry to my project (use azure-prepare), add monitoring (use azure-prepare). This skill provides guidance - azure-prepare orchestrates component changes."
+license: MIT
+metadata:
+  author: Microsoft
+  version: "1.0.0"
 ---
 
-# AppInsights instrumentation
+# AppInsights Instrumentation Guide
 
-This skill enables sending telemetry data of a webapp to Azure App Insights for better observability of the app's health.
+This skill provides **guidance and reference material** for instrumenting webapps with Azure Application Insights.
 
-## When to use this skill
+> **⛔ ADDING COMPONENTS?**
+>
+> If the user wants to **add App Insights to their app**, invoke **azure-prepare** instead.
+> This skill provides reference material—azure-prepare orchestrates the actual changes.
 
-Use this skill when the user wants to enable telemetry for their webapp.
+## When to Use This Skill
+
+- User asks **how** to instrument (guidance, patterns, examples)
+- User needs SDK setup instructions
+- azure-prepare invokes this skill during research phase
+- User wants to understand App Insights concepts
+
+## When to Use azure-prepare Instead
+
+- User says "add telemetry to my app"
+- User says "add App Insights" 
+- User wants to modify their project
+- Any request to change/add components
 
 ## Prerequisites
 
@@ -26,7 +45,7 @@ Find out the (programming language, application framework, hosting) tuple of the
 
 ### Prefer auto-instrument if possible
 
-If the app is a C# ASP.NET Core app hosted in Azure App Service, use [AUTO guide](references/AUTO.md) to help user auto-instrument the app.
+If the app is a C# ASP.NET Core app hosted in Azure App Service, use [AUTO guide](references/auto.md) to help user auto-instrument the app.
 
 ### Manually instrument
 
@@ -43,6 +62,11 @@ No matter which option you choose, recommend the user to create the App Insights
 
 #### Modify application code
 
-- If the app is an ASP.NET Core app, see [ASPNETCORE guide](references/ASPNETCORE.md) for how to modify the C# code.
-- If the app is a Node.js app, see [NODEJS guide](references/NODEJS.md) for how to modify the JavaScript/TypeScript code.
-- If the app is a Python app, see [PYTHON guide](references/PYTHON.md) for how to modify the Python code.
+- If the app is an ASP.NET Core app, see [ASPNETCORE guide](references/aspnetcore.md) for how to modify the C# code.
+- If the app is a Node.js app, see [NODEJS guide](references/nodejs.md) for how to modify the JavaScript/TypeScript code.
+- If the app is a Python app, see [PYTHON guide](references/python.md) for how to modify the Python code.
+
+## SDK Quick References
+
+- **OpenTelemetry Distro**: [Python](references/sdk/azure-monitor-opentelemetry-py.md) | [TypeScript](references/sdk/azure-monitor-opentelemetry-ts.md)
+- **OpenTelemetry Exporter**: [Python](references/sdk/azure-monitor-opentelemetry-exporter-py.md) | [Java](references/sdk/azure-monitor-opentelemetry-exporter-java.md)

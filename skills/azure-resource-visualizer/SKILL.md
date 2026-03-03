@@ -1,9 +1,10 @@
 ---
 name: azure-resource-visualizer
-description: Analyze Azure resource groups and generate detailed Mermaid architecture diagrams showing the relationships between individual resources. Use this skill when the user asks for a diagram of their Azure resources or help in understanding how the resources relate to each other.
-license: Complete terms in LICENSE.txt
+description: "Analyze Azure resource groups and generate detailed Mermaid architecture diagrams showing the relationships between individual resources. USE FOR: create architecture diagram, visualize Azure resources, show resource relationships, generate Mermaid diagram, analyze resource group, diagram my resources, architecture visualization, resource topology, map Azure infrastructure DO NOT USE FOR: creating/modifying resources (use azure-deploy), security scanning (use azure-security), performance troubleshooting (use azure-diagnostics), code generation (use relevant service skill)"
+license: MIT
 metadata:
-  author: Tom Meschter (tom.meschter@microsoft.com)
+  author: Microsoft
+  version: "1.0.0"
 ---
 
 # Azure Resource Visualizer - Architecture Diagram Generator
@@ -33,6 +34,8 @@ If a resource group is specified, validate it exists and proceed.
 
 ### Step 2: Resource Discovery & Analysis
 
+For bulk resource discovery across subscriptions, use Azure Resource Graph queries. See [Azure Resource Graph Queries](references/azure-resource-graph.md) for cross-subscription inventory and relationship discovery patterns.
+
 Once you have the resource group:
 
 1. **Query all resources** in the resource group using Azure MCP tools or `az`.
@@ -54,49 +57,9 @@ Once you have the resource group:
 
 ### Step 3: Diagram Construction
 
-Create a **detailed Mermaid diagram** using the `graph TB` (top-to-bottom) or `graph LR` (left-to-right) format:
+Create a **detailed Mermaid diagram** using the `graph TB` (top-to-bottom) or `graph LR` (left-to-right) format.
 
-**Diagram Structure Guidelines:**
-
-```mermaid
-graph TB
-    %% Use subgraphs to group related resources
-    subgraph "Resource Group: [name]"
-        subgraph "Network Layer"
-            VNET[Virtual Network<br/>10.0.0.0/16]
-            SUBNET1[Subnet: web<br/>10.0.1.0/24]
-            SUBNET2[Subnet: data<br/>10.0.2.0/24]
-            NSG[Network Security Group]
-        end
-        
-        subgraph "Compute Layer"
-            APP[App Service<br/>Plan: P1v2]
-            FUNC[Function App<br/>Runtime: .NET 8]
-        end
-        
-        subgraph "Data Layer"
-            SQL[Azure SQL Database<br/>DTU: S1]
-            STORAGE[Storage Account<br/>Type: Standard LRS]
-        end
-        
-        subgraph "Security & Identity"
-            KV[Key Vault]
-            MI[Managed Identity]
-        end
-    end
-    
-    %% Define relationships with descriptive labels
-    APP -->|"HTTPS requests"| FUNC
-    FUNC -->|"SQL connection"| SQL
-    FUNC -->|"Blob/Queue access"| STORAGE
-    APP -->|"Uses identity"| MI
-    MI -->|"Access secrets"| KV
-    VNET --> SUBNET1
-    VNET --> SUBNET2
-    SUBNET1 --> APP
-    SUBNET2 --> SQL
-    NSG -->|"Rules applied to"| SUBNET1
-```
+See [example-diagram.md](./assets/example-diagram.md) for a complete sample architecture diagram.
 
 **Key Diagram Requirements:**
 
@@ -202,21 +165,6 @@ Use [template-architecture.md](./assets/template-architecture.md) as a template 
 - Use tables for resource inventories
 - Use bullet lists for notes and recommendations
 - Use code blocks with `mermaid` language tag for diagrams
-
-## Example Interaction
-
-**User**: "Analyze my production resource group"
-
-**Agent**:
-1. Lists all resource groups in subscription
-2. Asks user to select: "Which resource group? 1) rg-prod-app, 2) rg-dev-app, 3) rg-shared"
-3. User selects: "1"
-4. Queries all resources in rg-prod-app
-5. Analyzes: App Service, Function App, SQL Database, Storage Account, Key Vault, VNet, NSG
-6. Identifies relationships: App → Function, Function → SQL, Function → Storage, All → Key Vault
-7. Creates detailed Mermaid diagram with subgraphs
-8. Generates `rg-prod-app-architecture.md` with complete documentation
-9. Displays: "Created architecture diagram in rg-prod-app-architecture.md. Found 7 resources with 8 key relationships."
 
 ## Success Criteria
 

@@ -1,0 +1,22 @@
+trigger:
+  branches:
+    include: [main]
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+  - stage: Deploy
+    jobs:
+      - job: DeployToAzure
+        steps:
+          - task: setup-azd@0
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'azure-service-connection'
+              scriptType: 'bash'
+              inlineScript: azd up --no-prompt
+            env:
+              AZURE_ENV_NAME: $(AZURE_ENV_NAME)
+              AZURE_LOCATION: $(AZURE_LOCATION)
