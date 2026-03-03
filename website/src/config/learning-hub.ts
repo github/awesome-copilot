@@ -10,6 +10,7 @@ export const fundamentalsOrder = [
   'building-custom-agents',
   'understanding-mcp-servers',
   'automating-with-hooks',
+  'agentic-workflows',
   'using-copilot-coding-agent',
   'installing-and-using-plugins',
   'before-after-customization-examples',

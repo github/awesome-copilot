@@ -197,6 +197,39 @@ const base = import.meta.env.BASE_URL;
       font-style: italic;
     }
 
+    /* External recipe card */
+    .recipe-card.external {
+      border-style: dashed;
+    }
+
+    .recipe-badge.external-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--color-bg-secondary);
+      color: var(--color-text-muted);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      border: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+
+    .recipe-author-line {
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+
+    .recipe-author-line a {
+      color: var(--color-link);
+      text-decoration: none;
+    }
+
+    .recipe-author-line a:hover {
+      text-decoration: underline;
+    }
+
     /* Empty state */
     .empty-state {
       text-align: center;

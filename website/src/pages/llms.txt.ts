@@ -10,7 +10,7 @@ export const GET: APIRoute = () => {
   const agents = agentsData.items;
   const instructions = instructionsData.items;
   const skills = skillsData.items;
-  
+
   const url = (path: string) => `${GITHUB_RAW_BASE}/${path}`;
 
   let content = "";
@@ -79,7 +79,7 @@ export const GET: APIRoute = () => {
   content += "## Repository\n\n";
   content += "- **GitHub**: https://github.com/github/awesome-copilot\n";
   content += "- **License**: MIT\n";
-  content += "- **Website**: https://github.github.io/awesome-copilot\n";
+  content += "- **Website**: https://awesome-copilot.github.com\n";
 
   return new Response(content, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },

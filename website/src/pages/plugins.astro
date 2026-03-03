@@ -1,16 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
 ---
 
 <BaseLayout title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" activeNav="plugins">
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🔌 Plugins</h1>
-        <p>Curated plugins of agents, hooks, and skills for specific workflows</p>
-      </div>
-    </div>
+    <PageHeader title="🔌 Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" />
 
     <div class="page-content">
       <div class="container">
@@ -37,6 +34,7 @@ import Modal from '../components/Modal.astro';
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading plugins...</div>
         </div>
+        <ContributeCTA resourceType="plugins" />
       </div>
     </div>
   </main>

@@ -742,15 +742,48 @@ function generateSamplesData() {
   const allTags = new Set();
   let totalRecipes = 0;
 
-  const cookbooks = cookbookManifest.cookbooks.map((cookbook) => {
-    // Collect languages
+  // First pass: collect all known language IDs across cookbooks
+  cookbookManifest.cookbooks.forEach((cookbook) => {
     cookbook.languages.forEach((lang) => allLanguages.add(lang.id));
+  });
+
+  const cookbooks = cookbookManifest.cookbooks.map((cookbook) => {
 
     // Process recipes and add file paths
     const recipes = cookbook.recipes.map((recipe) => {
       // Collect tags
       if (recipe.tags) {
         recipe.tags.forEach((tag) => allTags.add(tag));
+      }
+
+      totalRecipes++;
+
+      // External recipes link to an external URL — skip local file resolution
+      if (recipe.external) {
+        if (recipe.url) {
+          try {
+            new URL(recipe.url);
+          } catch {
+            console.warn(`Warning: Invalid URL for external recipe "${recipe.id}": ${recipe.url}`);
+          }
+        } else {
+          console.warn(`Warning: External recipe "${recipe.id}" is missing a url`);
+        }
+
+        // Derive languages from tags that match known language IDs
+        const recipeLanguages = (recipe.tags || []).filter((tag) => allLanguages.has(tag));
+
+        return {
+          id: recipe.id,
+          name: recipe.name,
+          description: recipe.description,
+          tags: recipe.tags || [],
+          languages: recipeLanguages,
+          external: true,
+          url: recipe.url || null,
+          author: recipe.author || null,
+          variants: {},
+        };
       }
 
       // Build variants with file paths for each language
@@ -771,13 +804,12 @@ function generateSamplesData() {
         }
       });
 
-      totalRecipes++;
-
       return {
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
         tags: recipe.tags || [],
+        languages: Object.keys(variants),
         variants,
       };
     });

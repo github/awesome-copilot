@@ -1,16 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
 ---
 
 <BaseLayout title="Hooks" description="Automated workflows triggered by Copilot coding agent events" activeNav="hooks">
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🪝 Hooks</h1>
-        <p>Automated workflows triggered by Copilot coding agent events</p>
-      </div>
-    </div>
+    <PageHeader title="🪝 Hooks" description="Automated workflows triggered by Copilot coding agent events" />
 
     <div class="page-content">
       <div class="container">
@@ -42,6 +39,7 @@ import Modal from '../components/Modal.astro';
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading hooks...</div>
         </div>
+        <ContributeCTA resourceType="hooks" />
       </div>
     </div>
   </main>

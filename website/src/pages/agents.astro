@@ -1,16 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
 ---
 
 <BaseLayout title="Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" activeNav="agents">
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🤖 Custom Agents</h1>
-        <p>Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains</p>
-      </div>
-    </div>
+    <PageHeader title="🤖 Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" />
 
     <div class="page-content">
       <div class="container">
@@ -49,6 +46,7 @@ import Modal from '../components/Modal.astro';
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading agents...</div>
         </div>
+        <ContributeCTA resourceType="agents" />
       </div>
     </div>
   </main>

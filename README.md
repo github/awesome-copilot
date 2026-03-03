@@ -57,7 +57,7 @@ To make it easy to add these customizations to your editor, we have created an [
 
 ## 📄 llms.txt
 
-An [`llms.txt`](https://github.github.io/awesome-copilot/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
+An [`llms.txt`](https://awesome-copilot.github.com/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
 
 ## 🔧 How to Use
 
