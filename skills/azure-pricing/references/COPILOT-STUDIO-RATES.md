@@ -10,7 +10,9 @@
 
 Currency converter: [calculator.net](https://www.calculator.net/currency-calculator.html?eamount=.01&efrom=USD&eto=EUR)
 
-## Billing Rates
+## Billing Rates (cached snapshot — last updated March 2026)
+
+**IMPORTANT: Always prefer fetching live rates from the source URLs below. Use this table only as a fallback if web fetch is unavailable.**
 
 | Feature | Rate | Unit |
 |---|---|---|
@@ -132,5 +134,4 @@ For the latest rates, fetch content from these pages:
 
 - [Billing rates and management](https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management)
 - [Copilot Studio licensing](https://learn.microsoft.com/en-us/microsoft-copilot-studio/billing-licensing)
-- [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/)
 - [Copilot Studio Licensing Guide (PDF)](https://go.microsoft.com/fwlink/?linkid=2320995)
