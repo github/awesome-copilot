@@ -96,3 +96,62 @@ These UWP patterns are **wrong** for WinUI 3 desktop apps. Always use the Window
 - **Packaged apps**: `ApplicationData.Current.LocalSettings` works as expected.
 - **Unpackaged apps**: Use a custom settings file (e.g., JSON in `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)`).
 - Do not assume `ApplicationData` is always available — check packaging status first.
+
+## Typography
+
+- **Always** use built-in TextBlock styles (`CaptionTextBlockStyle`, `BodyTextBlockStyle`, `BodyStrongTextBlockStyle`, `SubtitleTextBlockStyle`, `TitleTextBlockStyle`, `TitleLargeTextBlockStyle`, `DisplayTextBlockStyle`).
+- Prefer using the built-in TextBlock styles over hardcoding `FontSize`, `FontWeight`, or `FontFamily`.
+- Font: Segoe UI Variable is the default — do not change it.
+- Use sentence casing for all UI text.
+
+
+## Theming & Colors
+
+- **Always** use `{ThemeResource}` for brushes and colors to support Light, Dark, and High Contrast themes automatically.
+- **Never** hardcode color values (`#FFFFFF`, `Colors.White`, etc.) for UI elements. Use theme resources like `TextFillColorPrimaryBrush`, `CardBackgroundFillColorDefaultBrush`, `CardStrokeColorDefaultBrush`.
+- Use `SystemAccentColor` (and `Light1`–`Light3`, `Dark1`–`Dark3` variants) for the user's accent color palette.
+- For borders: use `CardStrokeColorDefaultBrush` or `ControlStrokeColorDefaultBrush`.
+
+## Spacing & Layout
+
+- Use a **4px grid system**: all margins, padding, and spacing values must be multiples of 4 epx.
+- Standard spacing: 4 (compact), 8 (controls), 12 (small gutters), 16 (content padding), 24 (large gutters).
+- Prefer `Grid` over deeply nested `StackPanel` chains for performance.
+- Use `Auto` for content-sized rows/columns, `*` for proportional sizing. Avoid fixed pixel sizes.
+- Use `VisualStateManager` with `AdaptiveTrigger` for responsive layouts at breakpoints (640px, 1008px).
+- Use `ControlCornerRadius` (4px) for small controls and `OverlayCornerRadius` (8px) for cards, dialogs, flyouts.
+
+## Materials & Elevation
+
+- Use **Mica** (`MicaBackdrop`) for the app window backdrop. Requires transparent layers above to show through.
+- Use **Acrylic** for transient surfaces only (flyouts, menus, navigation panes).
+- Use `LayerFillColorDefaultBrush` for content layers above Mica.
+- Use `ThemeShadow` with Z-axis `Translation` for elevation. Cards: 4–8 epx, Flyouts: 32 epx, Dialogs: 128 epx.
+
+## Motion & Transitions
+
+- Use built-in theme transitions (`EntranceThemeTransition`, `RepositionThemeTransition`, `ContentThemeTransition`, `AddDeleteThemeTransition`).
+- Use `ConnectedAnimationService` for seamless navigation transitions between pages.
+- Avoid custom storyboard animations when a built-in transition exists.
+
+## Control Selection
+
+- Use `NavigationView` for primary app navigation (not custom sidebars).
+- Use `InfoBar` for persistent in-app notifications (not custom banners).
+- Use `TeachingTip` for contextual guidance (not custom popups).
+- Use `NumberBox` for numeric input (not TextBox with manual validation).
+- Use `ToggleSwitch` for on/off settings (not CheckBox).
+- Use `ItemsRepeater` for custom virtualizing layouts. Use `ListView`/`GridView` for standard lists.
+- Use `Expander` for collapsible sections (not custom visibility toggling).
+
+## Error Handling
+
+- Always wrap `async void` event handlers in try/catch to prevent unhandled crashes.
+- Use `InfoBar` (with `Severity = Error`) for user-facing error messages, not `ContentDialog` for routine errors.
+- Handle `App.UnhandledException` for logging and graceful recovery.
+
+## Resources & Localization
+
+- Store user-facing strings in `Resources.resw` files, not in code or XAML literals.
+- Use `x:Uid` in XAML for localized text binding.
+- Use DPI-qualified image assets (`logo.scale-200.png`); reference without scale qualifier (`ms-appx:///Assets/logo.png`).
