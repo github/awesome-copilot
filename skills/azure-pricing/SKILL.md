@@ -1,10 +1,10 @@
 ---
 name: azure-pricing
 description: 'Fetches real-time Azure retail pricing using the Azure Retail Prices API (prices.azure.com) and estimates Copilot Studio agent credit consumption. Use when the user asks about the cost of any Azure service, wants to compare SKU prices, needs pricing data for a cost estimate, mentions Azure pricing, Azure costs, Azure billing, or asks about Copilot Studio pricing, Copilot Credits, or agent usage estimation. Covers compute, storage, networking, databases, AI, Copilot Studio, and all other Azure service families.'
-compatibility: Requires internet access to prices.azure.com. No authentication needed. Copilot Studio estimation requires Playwright for web scraping.
+compatibility: Requires internet access to prices.azure.com and learn.microsoft.com. No authentication needed.
 metadata:
   author: anthonychu
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Azure Pricing Skill
@@ -162,47 +162,29 @@ Use this section when the user asks about Copilot Studio pricing, Copilot Credit
 - Employee-facing agents with M365 Copilot licensed users get classic answers, generative answers, and tenant graph grounding at zero cost
 - Overage enforcement triggers at 125% of prepaid capacity
 
-## Step-by-step Estimation — MUST RUN THE SCRIPT
-
-**IMPORTANT: Always run the bundled Python script to produce the estimate. Do NOT calculate manually.**
-
-The script automates the official [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/) page using Playwright, ensuring results match Microsoft's own calculator.
+## Step-by-step Estimation
 
 1. **Gather inputs** from the user: agent type (employee/customer), number of users, interactions/month, knowledge %, tenant graph %, tool usage per session.
-2. **Map inputs to CLI arguments**:
-   - `--agent-type`: "employee" or "customer"
-   - `--users`: number of end users
-   - `--interactions`: average interactions per user per month
-   - `--knowledge-pct`: percentage of responses from knowledge (0-100)
-   - `--tenant-graph-pct`: of knowledge responses, percentage using tenant graph grounding (0-100)
-   - `--tool-prompt`: average Prompt tool calls per session (default 0)
-   - `--tool-agent-flow`: average Agent flow calls per session (default 0)
-   - `--tool-computer-use`: average Computer use calls per session (default 0)
-   - `--tool-custom-connector`: average Custom connector calls per session (default 0)
-   - `--tool-mcp`: average MCP calls per session (default 0)
-   - `--tool-rest-api`: average REST API calls per session (default 0)
-3. **Run the script** using the terminal. The script path relative to the skill folder is `scripts/copilot-studio-estimator.py`:
+2. **Fetch live billing rates** — use the built-in web fetch tool to download the latest rates from the source URLs listed below. This ensures the estimate always uses the most current Microsoft pricing.
+3. **Parse the fetched content** to extract the current billing rates table (credits per feature type).
+4. **Calculate the estimate** using the rates and formulas from the fetched content:
+   - `total_sessions = users × interactions_per_month`
+   - Knowledge credits: apply tenant graph grounding rate, generative answer rate, and classic answer rate
+   - Agent tools credits: apply agent action rate per tool call
+   - Agent flow credits: apply flow rate per 100 actions
+   - Prompt modifier credits: apply basic/standard/premium rates per 10 responses
+5. **Present results** in a clear table with breakdown by category, total credits, and estimated USD cost.
 
-```bash
-python .github/skills/azure-pricing/scripts/copilot-studio-estimator.py --agent-type employee --users 500 --interactions 20 --knowledge-pct 60 --tenant-graph-pct 30 --tool-prompt 0.5 --output json
-```
+## Source URLs to Fetch
 
-4. **Parse the JSON output** and present the results in a clear table with breakdown by category.
-5. If the script fails (e.g., Playwright not installed), tell the user to install it first:
+When answering Copilot Studio pricing questions, fetch the latest content from these URLs to use as context:
 
-```bash
-pip install playwright
-```
+| URL | Content |
+|---|---|
+| https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management | Billing rates table, billing examples, overage enforcement rules |
+| https://learn.microsoft.com/en-us/microsoft-copilot-studio/billing-licensing | Licensing options, M365 Copilot inclusions, prepaid vs pay-as-you-go |
+| https://microsoft.github.io/copilot-studio-estimator/ | Official estimator page — use to cross-check formulas and verify results |
 
-The script uses the system's existing Edge or Chrome browser — no separate browser download is needed.
+Fetch at least the first URL (billing rates) before calculating. The other URLs provide supplementary context for licensing questions.
 
-Then re-run the script.
-
-See [references/COPILOT-STUDIO-RATES.md](references/COPILOT-STUDIO-RATES.md) for the full rate table and billing examples.
-
-## Reference Links
-
-- [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/)
-- [Billing rates and management](https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management)
-- [Copilot Studio licensing](https://learn.microsoft.com/en-us/microsoft-copilot-studio/billing-licensing)
-- [Copilot Studio Licensing Guide (PDF)](https://go.microsoft.com/fwlink/?linkid=2320995)
+See [references/COPILOT-STUDIO-RATES.md](references/COPILOT-STUDIO-RATES.md) for a cached snapshot of rates, formulas, and billing examples (use as fallback if web fetch is unavailable).

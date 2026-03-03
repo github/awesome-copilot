@@ -126,17 +126,11 @@ cost_usd = total_credits × 0.01
 - Email notification sent to tenant admin
 - Resolution: reallocate capacity, purchase more, or enable pay-as-you-go
 
-## Bundled Script
+## Live Source URLs
 
-[`copilot-studio-estimator.py`](../scripts/copilot-studio-estimator.py) — Playwright-based scraper that automates the [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/) web page.
+For the latest rates, fetch content from these pages:
 
-### Setup & Usage
-
-```bash
-pip install playwright && playwright install chromium
-
-python copilot-studio-estimator.py \
-    --agent-type employee --users 500 --interactions 20 \
-    --knowledge-pct 60 --tenant-graph-pct 30 \
-    --tool-prompt 0.5 --output json
-```
+- [Billing rates and management](https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-messages-management)
+- [Copilot Studio licensing](https://learn.microsoft.com/en-us/microsoft-copilot-studio/billing-licensing)
+- [Microsoft agent usage estimator](https://microsoft.github.io/copilot-studio-estimator/)
+- [Copilot Studio Licensing Guide (PDF)](https://go.microsoft.com/fwlink/?linkid=2320995)
