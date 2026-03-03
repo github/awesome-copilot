@@ -581,11 +581,11 @@ Use `ThemeShadow` for depth — Z-axis translation controls shadow intensity.
 
 | Element | Z-Translation | Stroke |
 |---------|---------------|--------|
-| Dialog/Window | 128 epx | 1px |
-| Flyout | 32 epx | — |
-| Tooltip | 16 epx | — |
-| Card | 4–8 epx | 1px |
-| Control (rest) | 2 epx | — |
+| Dialog/Window | 128 px | 1px |
+| Flyout | 32 px | — |
+| Tooltip | 16 px | — |
+| Card | 4–8 px | 1px |
+| Control (rest) | 2 px | — |
 
 ```xml
 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
