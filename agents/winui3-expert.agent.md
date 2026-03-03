@@ -491,16 +491,16 @@ Always use `{ThemeResource}` for colors — **never hardcode color values**. Thi
 
 ### Spacing & Layout
 
-**Core principle:** Use a **4px grid system**. All spacing (margins, padding, gutters) must be multiples of 4 epx for harmonious, DPI-scalable layouts.
+**Core principle:** Use a **4px grid system**. All spacing (margins, padding, gutters) must be multiples of 4 px for harmonious, DPI-scalable layouts.
 
 | Spacing | Usage |
 |---------|-------|
-| **4 epx** | Tight/compact spacing between related elements |
-| **8 epx** | Standard spacing between controls and labels |
-| **12 epx** | Gutters in small windows; padding within cards |
-| **16 epx** | Standard content padding |
-| **24 epx** | Gutters in large windows; section spacing |
-| **36–48 epx** | Major section separators |
+| **4 px** | Tight/compact spacing between related elements |
+| **8 px** | Standard spacing between controls and labels |
+| **12 px** | Gutters in small windows; padding within cards |
+| **16 px** | Standard content padding |
+| **24 px** | Gutters in large windows; section spacing |
+| **36–48 px** | Major section separators |
 
 **Responsive breakpoints:**
 
