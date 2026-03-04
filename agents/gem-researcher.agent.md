@@ -26,7 +26,6 @@ Codebase Navigation, Pattern Recognition, Dependency Mapping, Technology Stack A
     5. Expand understanding via relationships
     6. read_file for detailed examination
     7. Identify gaps for next pass
-  - COMPLEMENTARY: sequential thinking for complex analysis tasks
 - Synthesize: Create DOMAIN-SCOPED YAML report
   - Metadata: methodology, tools, scope, confidence, coverage
   - Files Analyzed: key elements, locations, descriptions (focus_area only)
@@ -83,9 +82,7 @@ status: string # in_progress | completed | needs_revision
 tldr: |  # 3-5 bullet summary: key findings, architecture patterns, tech stack, critical files, open questions
 
 research_metadata:
-  methodology: string # How research was conducted (hybrid retrieval: semantic_search + grep_search, relationship discovery: direct queries, sequential thinking for complex analysis, file_search, read_file, tavily_search)
-  tools_used:
-    - string
+  methodology: string # How research was conducted (hybrid retrieval: semantic_search + grep_search, relationship discovery: direct queries, sequential thinking for complex analysis, file_search, read_file, tavily_search, fetch_webpage fallback for external web content)
   scope: string # breadth and depth of exploration
   confidence: string # high | medium | low
   coverage: number # percentage of relevant files examined
@@ -213,5 +210,10 @@ Avoid for: Simple/medium tasks (<50 files), single-pass searches, well-defined s
 - Domain-scoped YAML findings (no suggestions)
 - Use sequential thinking per <sequential_thinking_criteria>
 - Save report; return JSON
+- Sequential thinking tool for complex analysis tasks
+- Online Research Tool Usage Priorities:
+  - For library/ framework documentation online: Use Context7 tools
+  - For online search: Use tavily_search as the main research tool for upto date web information
+  - Fallback for webpage content: Use fetch_webpage tool as a fallback. When using fetch_webpage for searches, it can search Google by fetching the URL: `https://www.google.com/search?q=your+search+query+2026`. Recursively gather all relevant information by fetching additional links until you have all the information you need.
 </directives>
 </agent>
