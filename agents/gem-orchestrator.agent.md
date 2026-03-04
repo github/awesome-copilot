@@ -43,6 +43,9 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - transient → retry task (up to 3x)
     - needs_replan → delegate to gem-planner for replanning
     - escalate → mark task as blocked, escalate to user
+  - Handle PRD Compliance: If gem-reviewer returns prd_compliance_issues:
+    - IF any issue.severity=critical → treat as failed, needs_replan (PRD violation blocks completion)
+    - ELSE → treat as needs_revision, escalate to user for decision
   - Log Failure: If task fails after max retries, write to docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml
   - Synthesize: SUCCESS→mark completed in plan.yaml + manage_todo_list
   - Loop until all tasks=completed OR blocked
