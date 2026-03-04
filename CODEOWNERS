@@ -4,3 +4,9 @@
 # Agentic Workflows
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
+
+# Added via #codeowner from PR #865
+/agents/winui3-expert.agent.md @niels9001
+/instructions/winui3.instructions.md @niels9001
+/plugins/winui3-development/ @niels9001
+/skills/winui3-migration-guide/ @niels9001
