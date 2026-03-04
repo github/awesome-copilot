@@ -23,7 +23,7 @@
 #
 # Updates the CODEOWNERS file when a maintainer comments #codeowner on a pull request
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"015ef8c7217fdc453ca70bfea824f686343207a99eebdccdb45f31e70700da45"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"8f7ecfe9d458039fea20a1e09fd094839da1ae52fd4e5006effac2a27da3bd50"}
 
 name: "Codeowner Update Agent"
 "on":
@@ -1130,7 +1130,7 @@ jobs:
         if: ((!cancelled()) && (needs.agent.result != 'skipped')) && (contains(needs.agent.outputs.output_types, 'create_pull_request'))
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          token: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_AW_CODEOWNER_PR_TOKEN }}
           persist-credentials: false
           fetch-depth: 1
       - name: Configure Git credentials
@@ -1138,7 +1138,7 @@ jobs:
         env:
           REPO_NAME: ${{ github.repository }}
           SERVER_URL: ${{ github.server_url }}
-          GIT_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+          GIT_TOKEN: ${{ secrets.GH_AW_CODEOWNER_PR_TOKEN }}
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
