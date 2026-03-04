@@ -46,7 +46,21 @@ gem-researcher, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, g
 - Log Failure: If status=failed, write to docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml
 - Save: docs/plan/{plan_id}/plan.yaml
 - Present: plan_review → wait for approval → iterate if feedback
-- Plan approved → Create/Update PRD: docs/prd.yaml per <prd_format_guide>
+- Plan approved → Create/Update PRD: docs/prd.yaml as per <prd_format_guide>
+  - DECISION TREE:
+    - IF docs/prd.yaml does NOT exist:
+      → CREATE new PRD with initial content from plan
+    - ELSE:
+      → READ existing PRD
+      → UPDATE based on changes:
+        - New feature added → add to features[] (status: planned)
+        - State machine changed → update state_machines[]
+        - New error code → add to errors[]
+        - Architectural decision → add to decisions[]
+        - Feature completed → update status to complete
+        - Requirements-level change → add to changes[]
+      → VALIDATE: Ensure updates don't conflict with existing PRD entries
+      → FLAG conflicts for user feedback if needed
 - Return JSON per <output_format_guide>
 </workflow>
 
@@ -202,42 +216,36 @@ tasks:
 
 <prd_format_guide>
 ```yaml
-# Product Requirements Document - Machine-readable format
+# Product Requirements Document - Standalone, concise, LLM-optimized
+# PRD = Requirements/Decisions lock (independent from plan.yaml)
 prd_id: string
 version: string # semver
 status: draft | final
-created_at: string
-updated_at: string
 
-overview: string # What this feature does
-
-state_machine: # Define all possible states
+features: # What we're building - high-level only
   - name: string
-    transitions:
+    overview: string
+    status: planned | in_progress | complete
+
+state_machines: # Critical business states only
+  - name: string
+    states: [string]
+    transitions: # from -> to via trigger
       - from: string
         to: string
         trigger: string
 
-error_handling: # Explicit error codes and responses
+errors: # Only public-facing errors
   - code: string # e.g., ERR_AUTH_001
-    condition: string
-    user_message: string
-    action: string
+    message: string
 
-performance: # Quantitative thresholds
-  - metric: string
-    threshold: string
-    measurement: string
-
-decisions: # Key decisions made during planning
+decisions: # Architecture decisions only
   - decision: string
   - rationale: string
-  - task_id: string # Which task prompted this
 
-changes: # What changed from previous version
+changes: # Requirements changes only (not task logs)
   - version: string
   - change: string
-  - task_id: string
 ```
 </prd_format_guide>
 
