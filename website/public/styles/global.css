@@ -1885,6 +1885,17 @@ a:hover {
 }
 
 /* Learning Hub - Index Page */
+.learning-hub-no-results {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 48px 24px;
+  font-size: 16px;
+}
+
+.learning-hub-no-results.hidden {
+  display: none;
+}
+
 .learning-hub-section h2 {
   font-size: 24px;
   font-weight: 700;

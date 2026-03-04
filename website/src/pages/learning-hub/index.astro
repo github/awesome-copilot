@@ -37,6 +37,13 @@ const reference = articles
 
     <div class="page-content">
       <div class="container">
+        <div class="search-bar">
+          <label for="learning-hub-search" class="sr-only">Search articles</label>
+          <input type="text" id="learning-hub-search" placeholder="Search articles..." autocomplete="off">
+        </div>
+        <div class="learning-hub-no-results hidden" id="no-results" aria-live="polite">
+          No articles match your search.
+        </div>
         <div class="learning-hub-layout">
           <nav class="learning-hub-sidebar" aria-label="Learning Hub sections">
             <div class="sidebar-section">
@@ -74,12 +81,12 @@ const reference = articles
           </nav>
 
           <div class="learning-hub-index-content">
-            <section class="learning-hub-section" id="fundamentals">
+            <section class="learning-hub-section" id="fundamentals" data-section>
               <h2>Fundamentals</h2>
               <p class="section-description">Essential concepts to tailor GitHub Copilot beyond its default experience.</p>
               <div class="article-list">
                 {fundamentals.map((article, index) => (
-                  <a href={`${base}learning-hub/${article.id}/`} class="article-card">
+                  <a href={`${base}learning-hub/${article.id}/`} class="article-card" data-article data-title={article.data.title} data-description={article.data.description} data-tags={article.data.tags?.join(' ') ?? ''}>
                     <div class="article-number" aria-hidden="true">{index + 1}</div>
                     <div class="article-info">
                       <h3>{article.data.title}</h3>
@@ -102,12 +109,12 @@ const reference = articles
               </div>
             </section>
 
-            <section class="learning-hub-section" id="reference">
+            <section class="learning-hub-section" id="reference" data-section>
               <h2>Reference</h2>
               <p class="section-description">Quick-lookup resources to keep handy while you work.</p>
               <div class="article-list">
                 {reference.map((article) => (
-                  <a href={`${base}learning-hub/${article.id}/`} class="article-card">
+                  <a href={`${base}learning-hub/${article.id}/`} class="article-card" data-article data-title={article.data.title} data-description={article.data.description} data-tags={article.data.tags?.join(' ') ?? ''}>
                     <div class="article-number" aria-hidden="true">📖</div>
                     <div class="article-info">
                       <h3>{article.data.title}</h3>
@@ -130,11 +137,11 @@ const reference = articles
               </div>
             </section>
 
-            <section class="learning-hub-section" id="hands-on">
+            <section class="learning-hub-section" id="hands-on" data-section>
               <h2>Hands-on</h2>
               <p class="section-description">Interactive samples and recipes to learn by doing.</p>
               <div class="article-list">
-                <a href={`${base}learning-hub/cookbook/`} class="article-card">
+                <a href={`${base}learning-hub/cookbook/`} class="article-card" data-article data-title="Cookbook" data-description="Code samples, recipes, and examples for building with GitHub Copilot tools" data-tags="samples recipes sdk">
                   <div class="article-number" aria-hidden="true">🍳</div>
                   <div class="article-info">
                     <h3>Cookbook</h3>
@@ -156,3 +163,51 @@ const reference = articles
     </div>
   </main>
 </BaseLayout>
+
+<script>
+  function initLearningHubSearch() {
+    const input = document.getElementById('learning-hub-search') as HTMLInputElement;
+    const noResults = document.getElementById('no-results');
+    const articles = document.querySelectorAll<HTMLElement>('[data-article]');
+    const sections = document.querySelectorAll<HTMLElement>('[data-section]');
+
+    if (!input || !noResults) return;
+
+    input.addEventListener('input', () => {
+      const query = input.value.toLowerCase().trim();
+      const queryWords = query.split(/\s+/).filter(w => w.length > 0);
+
+      if (queryWords.length === 0) {
+        articles.forEach(a => a.style.display = '');
+        sections.forEach(s => s.style.display = '');
+        noResults.classList.add('hidden');
+        return;
+      }
+
+      let totalVisible = 0;
+
+      articles.forEach(card => {
+        const text = [
+          card.dataset.title ?? '',
+          card.dataset.description ?? '',
+          card.dataset.tags ?? '',
+        ].join(' ').toLowerCase();
+
+        const matches = queryWords.every(w => text.includes(w));
+        card.style.display = matches ? '' : 'none';
+        if (matches) totalVisible++;
+      });
+
+      // Hide sections with no visible articles
+      sections.forEach(section => {
+        const visibleCards = section.querySelectorAll<HTMLElement>('[data-article]');
+        const hasVisible = Array.from(visibleCards).some(c => c.style.display !== 'none');
+        section.style.display = hasVisible ? '' : 'none';
+      });
+
+      noResults.classList.toggle('hidden', totalVisible > 0);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initLearningHubSearch);
+</script>
