@@ -33,7 +33,7 @@ Web browsers, rendering engines, and browser-specific information.
 
 **Engine**: WebKit (rendering), JavaScriptCore (JavaScript)  
 **Released**: 2003  
-**Market Share**: ~20% (desktop), dominat on iOS  
+**Market Share**: ~20% (desktop), dominant on iOS  
 
 **Features**:
 - Energy efficient
@@ -150,7 +150,7 @@ monitor(function) // Log function calls
 ```css
 /* Legacy - use autoprefixer instead */
 .element {
-  -webkit- transform: rotate(45deg); /* Chrome, Safari */
+  -webkit-transform: rotate(45deg); /* Chrome, Safari */
   -moz-transform: rotate(45deg); /* Firefox */
   -ms-transform: rotate(45deg); /* IE */
   -o-transform: rotate(45deg); /* Opera */

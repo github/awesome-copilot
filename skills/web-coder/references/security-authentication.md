@@ -15,7 +15,7 @@ Core principles of information security:
 
 ```http
 # Content Security Policy
-Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.example.com; style-src 'self' 'unsafe-inline'
+Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.example.com 'nonce-<random-base64-value>'; style-src 'self' 'nonce-<random-base64-value>'; object-src 'none'
 
 # HTTP Strict Transport Security
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload

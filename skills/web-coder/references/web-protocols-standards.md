@@ -106,7 +106,7 @@ Coordinates DNS and IP addresses.
 **ECMAScript Versions**:
 - **ES5** (2009): Strict mode, JSON
 - **ES6/ES2015**: Classes, modules, arrow functions, promises
-- **ES2016**: Array.includes(), **
+- **ES2016**: Array.includes(), exponentiation operator (`**`)
 - **ES2017**: async/await, Object.values/entries
 - **ES2018**: Rest/spread for objects, async iteration
 - **ES2019**: Array.flat(), Object.fromEntries
@@ -221,8 +221,8 @@ interface Element : Node {
 - **HTML Living Standard**
 - **CSS Specifications** (modular)
 - **ECMAScript Language Specification**
-- **HTTP/1.1 (RFC 7230-7237)**
-- **HTTP/2 (RFC 7540)**
+- **HTTP/1.1 (RFC 9112)**
+- **HTTP/2 (RFC 9113)**
 - **HTTP/3 (RFC 9114)**
 - **TLS 1.3 (RFC 8446)**
 - **WebSocket Protocol (RFC 6455)**
