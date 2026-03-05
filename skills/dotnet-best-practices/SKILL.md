@@ -55,10 +55,10 @@ Your task is to ensure .NET/C# code in ${selection} meets the best practices spe
 - Use IConfiguration binding for settings
 - Support appsettings.json configuration files
 
-## Semantic Kernel & AI Integration
+## AI Integration
 
-- Use Microsoft.SemanticKernel for AI operations
-- Implement proper kernel configuration and service registration
+- Use Microsoft.Extensions.AI and Microsoft.Agents.AI for AI operations
+- Implement proper configuration and service registration
 - Handle AI model settings (ChatCompletion, Embedding, etc.)
 - Use structured output patterns for reliable AI responses
 
