@@ -128,20 +128,31 @@ mutation {
 
 ## Searching by Field Values
 
-Issue fields are searchable via both REST and GraphQL using the `field:` qualifier. This requires **advanced search mode** (not available through the `search_issues` MCP tool).
+Issue fields are searchable using **dot notation** (`field.name:value`) with advanced search mode. This works in the web UI, REST API (`advanced_search=true`), and GraphQL (`ISSUE_ADVANCED`).
 
-### REST API
+### Syntax
+
+```
+field.priority:P0                  # Single-select equals value
+field.target-date:>=2026-04-01     # Date comparison
+has:field.priority                 # Has any value set
+no:field.priority                  # Has no value set
+```
+
+Field names use the **slug** (lowercase, hyphens for spaces). For example, "Target Date" becomes `target-date`.
+
+### REST API Example
 
 ```bash
-gh api "search/issues?q=repo:owner/repo+field:Priority:P1+is:open&advanced_search=true" \
+gh api "search/issues?q=repo:owner/repo+field.priority:P0+is:open&advanced_search=true" \
   --jq '.items[] | "#\(.number): \(.title)"'
 ```
 
-### GraphQL
+### GraphQL Example
 
 ```graphql
 {
-  search(query: "repo:owner/repo is:issue field:Priority:P1 is:open", type: ISSUE_ADVANCED, first: 10) {
+  search(query: "repo:owner/repo is:issue field.priority:P0 is:open", type: ISSUE_ADVANCED, first: 10) {
     issueCount
     nodes {
       ... on Issue { number title }
@@ -150,13 +161,4 @@ gh api "search/issues?q=repo:owner/repo+field:Priority:P1+is:open&advanced_searc
 }
 ```
 
-### Supported Qualifiers
-
-| Qualifier | Example | Notes |
-|-----------|---------|-------|
-| `field:Name:Value` | `field:Priority:P1` | Exact match on single-select |
-| `field:"Name":Value` | `field:"Target Date":>=2026-04-01` | Quote names with spaces; date comparison operators work |
-| `has:field:Name` | `has:field:Priority` | Has any value set for this field |
-| `no:field:Name` | N/A | **Not yet supported** (returns 422) |
-
-Field names use the **display name** (not an internal ID or slug). For single-select fields, the value is the option display name.
+> **Note:** The colon notation (`field:Priority:P1`) is silently ignored by the API. Always use dot notation (`field.priority:P1`). See [references/search.md](references/search.md) for the full search guide.

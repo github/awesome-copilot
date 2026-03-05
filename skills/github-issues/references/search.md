@@ -9,7 +9,7 @@ There are three ways to find issues, each with different capabilities:
 | Capability | `list_issues` (MCP) | `search_issues` (MCP) | Advanced search (`gh api`) |
 |-----------|---------------------|----------------------|---------------------------|
 | **Scope** | Single repo only | Cross-repo, cross-org | Cross-repo, cross-org |
-| **Issue field filters** (`field:Priority:P1`) | No | No | **Yes** |
+| **Issue field filters** (`field.priority:P0`) | No | No | **Yes** (dot notation) |
 | **Issue type filter** (`type:Bug`) | No | Yes | Yes |
 | **Boolean logic** (AND/OR/NOT, nesting) | No | Yes (implicit AND only) | **Yes** (explicit AND/OR/NOT) |
 | **Label/state/date filters** | Yes | Yes | Yes |
@@ -160,16 +160,17 @@ repo:owner/repo is:open comments:>20 sort:updated
 repo:owner/repo type:"Epic" label:P1 is:open
 ```
 
-## Advanced Search Mode (Issue Fields)
+## Issue Field Search
 
-The `search_issues` MCP tool uses standard search mode. To search by **issue field values** (Priority, Start Date, custom fields), you must use **advanced search mode** which is only available via direct API calls.
+Issue fields are searchable via the `field.name:value` qualifier using **advanced search mode**. This works in both the web UI and the API.
 
 ### REST API
 
 Add `advanced_search=true` as a query parameter:
 
 ```bash
-gh api "search/issues?q=repo:owner/repo+field:Priority:P1+is:open&advanced_search=true" --jq '.items[] | "#\(.number): \(.title)"'
+gh api "search/issues?q=org:github+field.priority:P0+type:Epic+is:open&advanced_search=true" \
+  --jq '.items[] | "#\(.number): \(.title)"'
 ```
 
 ### GraphQL
@@ -178,7 +179,7 @@ Use `type: ISSUE_ADVANCED` instead of `type: ISSUE`:
 
 ```graphql
 {
-  search(query: "repo:owner/repo is:issue field:Priority:P1", type: ISSUE_ADVANCED, first: 10) {
+  search(query: "org:github field.priority:P0 type:Epic is:open", type: ISSUE_ADVANCED, first: 10) {
     issueCount
     nodes {
       ... on Issue { number title }
@@ -189,35 +190,33 @@ Use `type: ISSUE_ADVANCED` instead of `type: ISSUE`:
 
 ### Issue Field Qualifiers
 
+The syntax uses **dot notation** with the field's slug name (lowercase, hyphens for spaces):
+
 ```
-field:FieldName:Value              # Field equals value (e.g., field:Priority:P1)
-field:"Field Name":Value           # Quote field names with spaces
-field:"Target Date":>=2026-04-01   # Date comparisons work
-has:field:FieldName                # Has any value set for this field
-type:"Epic"                        # Issue type filter (works in both modes)
+field.priority:P0                  # Single-select field equals value
+field.priority:P1                  # Different option value
+field.target-date:>=2026-04-01     # Date comparison
+has:field.priority                 # Has any value set
+no:field.priority                  # Has no value set
 ```
 
-**Important:** `no:field:FieldName` syntax is NOT yet supported (returns 422). Use the negation approach of querying with `has:field:` and filtering results instead.
-
-**MCP limitation:** The `search_issues` MCP tool does not support `advanced_search=true`. You must use `gh api` directly for issue field searches.
+**MCP limitation:** The `search_issues` MCP tool does not pass `advanced_search=true`. You must use `gh api` directly for issue field searches.
 
 ### Common Field Search Patterns
 
-**P1 epics:**
+**P0 epics across an org:**
 ```
-repo:owner/repo field:Priority:P1 type:"Epic" is:open
+org:github field.priority:P0 type:Epic is:open
 ```
 
 **Issues with a target date this quarter:**
 ```
-repo:owner/repo field:"Target Date":>=2026-04-01 field:"Target Date":<=2026-06-30 is:open
+org:github field.target-date:>=2026-04-01 field.target-date:<=2026-06-30 is:open
 ```
 
-**Issues missing priority:**
+**Open bugs missing priority:**
 ```
-# has:field:Priority returns issues WITH priority; negate client-side
-repo:owner/repo is:open type:"Bug"
-# then filter out results from: has:field:Priority
+org:github no:field.priority type:Bug is:open
 ```
 
 ## Limitations
@@ -227,5 +226,4 @@ repo:owner/repo is:open type:"Bug"
 - Results: max **1,000** total (use `list_issues` if you need all issues)
 - Repo scan: searches up to **4,000** matching repositories
 - Rate limit: **30 requests/minute** for authenticated search
-- `no:field:FieldName` qualifier is not yet supported (tracked internally)
 - Issue field search requires `advanced_search=true` (REST) or `ISSUE_ADVANCED` (GraphQL); not available through MCP `search_issues`
