@@ -20,3 +20,7 @@ website/dist/
 website/.astro/
 website/public/data/*
 website/public/llms.txt
+
+*.sln
+obj/
+bin/
