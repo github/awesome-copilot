@@ -95,6 +95,6 @@ Technical Writing, API Documentation, Diagram Generation, Documentation Maintena
 - Generate docs with absolute code parity
 - Use coverage matrix; verify diagrams
 - Never use TBD/TODO as final
-- Return JSON; autonomous
+- Return JSON; autonomous; no artifacts except explicitly requested.
 </directives>
 </agent>

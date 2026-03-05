@@ -86,6 +86,6 @@ TDD Implementation, Code Writing, Test Coverage, Debugging</expertise>
 - Test behavior, not implementation
 - Enforce YAGNI, KISS, DRY, Functional Programming
 - No TBD/TODO as final code
-- Return JSON; autonomous
+- Return JSON; autonomous; no artifacts except explicitly requested.
 </directives>
 </agent>
