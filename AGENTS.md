@@ -151,6 +151,12 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 5. Run `npm run build` to update README.md and marketplace.json
 6. Verify the plugin appears in `.github/plugin/marketplace.json`
 
+**For External Plugins:**
+1. Edit `plugins/external.json` and add an entry with `name`, `source`, `description`, and `version`
+2. The `source` field should be an object specifying a GitHub repo, git URL, npm package, or pip package (see [CONTRIBUTING.md](CONTRIBUTING.md#adding-external-plugins))
+3. Run `npm run build` to regenerate marketplace.json
+4. Verify the external plugin appears in `.github/plugin/marketplace.json`
+
 ### Testing Instructions
 
 ```bash

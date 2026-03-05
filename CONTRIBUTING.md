@@ -152,6 +152,34 @@ plugins/my-plugin-id/
 - **Clear purpose**: The plugin should solve a specific problem or workflow
 - **Validate before submitting**: Run `npm run plugin:validate` to ensure your plugin is valid
 
+#### Adding External Plugins
+
+External plugins are plugins hosted outside this repository (e.g., in a GitHub repo, npm package, or git URL). They are listed in `plugins/external.json` and merged into the generated `marketplace.json` during build.
+
+To add an external plugin, append an entry to `plugins/external.json` following the [Claude Code plugin marketplace spec](https://code.claude.com/docs/en/plugin-marketplaces#plugin-entries). Each entry requires `name`, `source`, `description`, and `version`:
+
+```json
+[
+  {
+    "name": "my-external-plugin",
+    "source": {
+      "source": "github",
+      "repo": "owner/plugin-repo"
+    },
+    "description": "Description of the external plugin",
+    "version": "1.0.0"
+  }
+]
+```
+
+Supported source types:
+- **GitHub**: `{ "source": "github", "repo": "owner/repo", "ref": "v1.0.0" }`
+- **Git URL**: `{ "source": "url", "url": "https://gitlab.com/team/plugin.git" }`
+- **npm**: `{ "source": "npm", "package": "@scope/package", "version": "1.0.0" }`
+- **pip**: `{ "source": "pip", "package": "package-name", "version": "1.0.0" }`
+
+After editing `plugins/external.json`, run `npm run build` to regenerate `marketplace.json`.
+
 ### Adding Hooks
 
 Hooks enable automated workflows triggered by specific events during GitHub Copilot coding agent sessions, such as session start, session end, user prompts, and tool usage.

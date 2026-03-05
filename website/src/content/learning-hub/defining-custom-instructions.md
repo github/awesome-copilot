@@ -3,7 +3,7 @@ title: 'Defining Custom Instructions'
 description: 'Learn how to create persistent, context-aware instructions that guide GitHub Copilot automatically across your codebase.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2025-12-02'
+lastUpdated: 2025-12-02
 estimatedReadingTime: '8 minutes'
 tags:
   - instructions

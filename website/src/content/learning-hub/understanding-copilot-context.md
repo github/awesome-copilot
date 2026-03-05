@@ -3,7 +3,7 @@ title: 'Understanding Copilot Context'
 description: 'Learn how GitHub Copilot uses context from your code, workspace, and conversation to generate relevant suggestions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2025-11-28'
+lastUpdated: 2025-11-28
 estimatedReadingTime: '8 minutes'
 tags:
   - context

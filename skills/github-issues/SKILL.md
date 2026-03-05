@@ -1,6 +1,6 @@
 ---
 name: github-issues
-description: 'Create, update, and manage GitHub issues using MCP tools. Use this skill when users want to create bug reports, feature requests, or task issues, update existing issues, add labels/assignees/milestones, or manage issue workflows. Triggers on requests like "create an issue", "file a bug", "request a feature", "update issue X", or any GitHub issue management task.'
+description: 'Create, update, and manage GitHub issues using MCP tools. Use this skill when users want to create bug reports, feature requests, or task issues, update existing issues, add labels/assignees/milestones, set issue fields (dates, priority, custom fields), set issue types, or manage issue workflows. Triggers on requests like "create an issue", "file a bug", "request a feature", "update issue X", "set the priority", "set the start date", or any GitHub issue management task.'
 ---
 
 # GitHub Issues
@@ -17,6 +17,11 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 | `mcp__github__search_issues` | Search issues |
 | `mcp__github__add_issue_comment` | Add comments |
 | `mcp__github__list_issues` | List repository issues |
+| `mcp__github__list_issue_types` | List available issue types for an organization |
+| `mcp__github__issue_read` | Read issue details, sub-issues, comments, labels |
+| `mcp__github__projects_list` | List projects, project fields, project items, status updates |
+| `mcp__github__projects_get` | Get details of a project, field, item, or status update |
+| `mcp__github__projects_write` | Add/update/delete project items, create status updates |
 
 ## Workflow
 
@@ -43,7 +48,12 @@ body: structured markdown content
 labels: ["bug", "enhancement", "documentation", ...]
 assignees: ["username1", "username2"]
 milestone: milestone number (integer)
+type: issue type name (e.g., "Bug", "Feature", "Task", "Epic")
 ```
+
+**Issue types** are organization-level metadata. Before using `type`, call `mcp__github__list_issue_types` with the org name to discover available types. If the org has no issue types configured, omit the parameter.
+
+**Prefer issue types over labels for categorization.** When issue types are available (e.g., Bug, Feature, Task), use the `type` parameter instead of applying equivalent labels like `bug` or `enhancement`. Issue types are the canonical way to categorize issues on GitHub. Only fall back to labels when the org has no issue types configured.
 
 ### Title Guidelines
 
@@ -89,7 +99,7 @@ State values: `open`, `closed`
   "repo": "awesome-copilot",
   "title": "[Bug] Login page crashes when using SSO",
   "body": "## Description\nThe login page crashes when users attempt to authenticate using SSO.\n\n## Steps to Reproduce\n1. Navigate to login page\n2. Click 'Sign in with SSO'\n3. Page crashes\n\n## Expected Behavior\nSSO authentication should complete and redirect to dashboard.\n\n## Actual Behavior\nPage becomes unresponsive and displays error.\n\n## Environment\n- Browser: [To be filled]\n- OS: [To be filled]\n\n## Additional Context\nReported by user.",
-  "labels": ["bug"]
+  "type": "Bug"
 }
 ```
 
@@ -104,7 +114,8 @@ State values: `open`, `closed`
   "repo": "awesome-copilot",
   "title": "[Feature] Add dark mode support",
   "body": "## Summary\nAdd dark mode theme option for improved user experience and accessibility.\n\n## Motivation\n- Reduces eye strain in low-light environments\n- Increasingly expected by users\n- Improves accessibility\n\n## Proposed Solution\nImplement theme toggle with system preference detection.\n\n## Acceptance Criteria\n- [ ] Toggle switch in settings\n- [ ] Persists user preference\n- [ ] Respects system preference by default\n- [ ] All UI components support both themes\n\n## Alternatives Considered\nNone specified.\n\n## Additional Context\nHigh priority request.",
-  "labels": ["enhancement", "high-priority"]
+  "type": "Feature",
+  "labels": ["high-priority"]
 }
 ```
 
@@ -130,3 +141,15 @@ Use these standard labels when applicable:
 - Ask for missing critical information rather than guessing
 - Link related issues when known: `Related to #123`
 - For updates, fetch current issue first to preserve unchanged fields
+
+## Extended Capabilities
+
+The following features require REST or GraphQL APIs beyond the basic MCP tools. Each is documented in its own reference file so the agent only loads the knowledge it needs.
+
+| Capability | When to use | Reference |
+|------------|-------------|-----------|
+| Sub-issues & parent issues | Breaking work into hierarchical tasks | [references/sub-issues.md](references/sub-issues.md) |
+| Issue dependencies | Tracking blocked-by / blocking relationships | [references/dependencies.md](references/dependencies.md) |
+| Issue types (advanced) | GraphQL operations beyond MCP `list_issue_types` / `type` param | [references/issue-types.md](references/issue-types.md) |
+| Projects V2 | Project boards, progress reports, field management | [references/projects.md](references/projects.md) |
+| Issue fields | Custom metadata: dates, priority, text, numbers (private preview) | [references/issue-fields.md](references/issue-fields.md) |

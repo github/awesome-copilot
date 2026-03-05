@@ -3,8 +3,9 @@ title: 'What are Agents, Skills, and Instructions'
 description: 'Understand the primary customization primitives that extend GitHub Copilot for specific workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2026-02-26'
+lastUpdated: 2026-02-26
 estimatedReadingTime: '7 minutes'
+prev: false
 ---
 
 Building great experiences with GitHub Copilot starts with understanding the core primitives that shape how Copilot behaves in different contexts. This article clarifies what each artifact does, how it is packaged inside this repository, and when to use it.

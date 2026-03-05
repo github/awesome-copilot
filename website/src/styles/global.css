@@ -69,17 +69,17 @@
   --color-bg-tertiary: #f5f5f7;
   --color-border: #e4e4e7;
   --color-text: #3f3f46;
-  --color-text-muted: #71717a;
+  --color-text-muted: #52525b;
   --color-text-emphasis: #18181b;
   --color-link: #8534F3;
   --color-link-hover: #43179E;
   --color-card-bg: rgba(255, 255, 255, 0.9);
   --color-card-hover: rgba(255, 255, 255, 1);
-  --color-glass: rgba(255, 255, 255, 0.7);
-  --color-glass-border: rgba(0, 0, 0, 0.08);
-  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.12), transparent),
-                   radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.06), transparent),
-                   radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.06), transparent);
+  --color-glass: rgba(255, 255, 255, 0.85);
+  --color-glass-border: rgba(0, 0, 0, 0.12);
+  --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.18), transparent),
+                   radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.10), transparent),
+                   radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.10), transparent);
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
   --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
@@ -93,40 +93,46 @@
     --color-bg-tertiary: #f5f5f7;
     --color-border: #e4e4e7;
     --color-text: #3f3f46;
-    --color-text-muted: #71717a;
+    --color-text-muted: #52525b;
     --color-text-emphasis: #18181b;
     --color-link: #8534F3;
     --color-link-hover: #43179E;
     --color-card-bg: rgba(255, 255, 255, 0.9);
     --color-card-hover: rgba(255, 255, 255, 1);
-    --color-glass: rgba(255, 255, 255, 0.7);
-    --color-glass-border: rgba(0, 0, 0, 0.08);
-    --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.12), transparent),
-                     radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.06), transparent),
-                     radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.06), transparent);
+    --color-glass: rgba(255, 255, 255, 0.85);
+    --color-glass-border: rgba(0, 0, 0, 0.12);
+    --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.18), transparent),
+                     radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.10), transparent),
+                     radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.10), transparent);
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
     --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
   }
 }
 
-* {
+/* Scoped reset: only apply inside custom page content areas.
+   Starlight handles its own box-sizing and reset. */
+#main-content *,
+#main-content *::before,
+#main-content *::after {
   box-sizing: border-box;
+}
+
+#main-content {
   margin: 0;
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Full-width page gradient on custom pages (not Starlight docs).
+   Applied to body so it spans the entire viewport width,
+   similar to how github.github.com/gh-aw/ handles its gradient. */
+body:has(#main-content) {
+  background-image: var(--gradient-hero);
+  background-attachment: fixed;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.6;
-  min-height: 100vh;
-}
+/* body styles removed — Starlight handles base body styling.
+   Custom page content inherits via scoped selectors below. */
 
 /* Accessibility Utilities */
 .sr-only {
@@ -167,180 +173,18 @@ body {
   padding: 0 24px;
 }
 
-a {
+#main-content a {
   color: var(--color-link);
   text-decoration: none;
   transition: color var(--transition);
 }
 
-a:hover {
+#main-content a:hover {
   color: var(--color-link-hover);
-}
-
-/* Header */
-.site-header {
-  background: var(--color-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-glass-border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  height: var(--header-height);
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: var(--header-height);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  font-size: 20px;
-  color: var(--color-text-emphasis);
-  transition: all var(--transition);
-}
-
-.logo:hover {
-  color: var(--color-text-emphasis);
-  transform: scale(1.02);
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-}
-
-/* Show white logo by default (dark theme) */
-.logo-icon-light {
-  display: none;
-}
-
-.logo-icon-dark {
-  display: block;
-}
-
-/* Light theme: show black logo */
-[data-theme="light"] .logo-icon-light {
-  display: block;
-}
-
-[data-theme="light"] .logo-icon-dark {
-  display: none;
-}
-
-/* Auto theme based on system preference */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .logo-icon-light {
-    display: block;
-  }
-
-  :root:not([data-theme="dark"]) .logo-icon-dark {
-    display: none;
-  }
-}
-
-.main-nav {
-  display: flex;
-  gap: 8px;
-}
-
-.main-nav a {
-  color: var(--color-text-muted);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 14px;
-  border-radius: var(--border-radius);
-  transition: all var(--transition);
-}
-
-.main-nav a:hover,
-.main-nav a.active {
-  color: var(--color-text-emphasis);
-  background: var(--color-bg-tertiary);
-}
-
-.github-link {
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-}
-
-.github-link:hover {
-  color: var(--color-text-emphasis);
-}
-
-/* Theme Toggle */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.theme-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: var(--border-radius);
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition);
-}
-
-.theme-toggle:hover {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-emphasis);
-}
-
-.theme-toggle svg {
-  width: 20px;
-  height: 20px;
-}
-
-.theme-toggle .icon-sun,
-.theme-toggle .icon-moon {
-  display: none;
-}
-
-/* Show sun icon in dark mode (click to switch to light) */
-:root:not([data-theme="light"]) .theme-toggle .icon-sun {
-  display: block;
-}
-
-:root:not([data-theme="light"]) .theme-toggle .icon-moon {
-  display: none;
-}
-
-/* Show moon icon in light mode (click to switch to dark) */
-[data-theme="light"] .theme-toggle .icon-sun {
-  display: none;
-}
-
-[data-theme="light"] .theme-toggle .icon-moon {
-  display: block;
-}
-
-/* Handle auto mode with prefers-color-scheme */
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]):not([data-theme="light"]) .theme-toggle .icon-sun {
-    display: none;
-  }
-  :root:not([data-theme="dark"]):not([data-theme="light"]) .theme-toggle .icon-moon {
-    display: block;
-  }
 }
 
 /* Hero Section */
 .hero {
-  background: var(--gradient-hero), var(--color-bg);
   padding: 50px 0 20px;
   text-align: center;
   position: relative;
@@ -608,7 +452,6 @@ a:hover {
 /* Getting Started */
 .getting-started {
   padding: 100px 0;
-  background: var(--gradient-hero), var(--color-bg);
 }
 
 .getting-started h2 {
@@ -1060,7 +903,6 @@ a:hover {
 /* Page Layouts */
 .page-header {
   padding: 56px 0 40px;
-  background: var(--gradient-hero), var(--color-bg);
   border-bottom: 1px solid var(--color-glass-border);
 }
 
@@ -1538,10 +1380,6 @@ a:hover {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .main-nav {
-    display: none;
-  }
-
   .hero h1 {
     font-size: 32px;
   }
@@ -1885,6 +1723,17 @@ a:hover {
 }
 
 /* Learning Hub - Index Page */
+.learning-hub-no-results {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 48px 24px;
+  font-size: 16px;
+}
+
+.learning-hub-no-results.hidden {
+  display: none;
+}
+
 .learning-hub-section h2 {
   font-size: 24px;
   font-weight: 700;

@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2026-02-26'
+lastUpdated: 2026-02-26
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
