@@ -281,10 +281,11 @@ self.addEventListener('fetch', (event) => {
 
 ### Lazy Loading
 
-```javascript
-// Images - native lazy loading
-<img src="image.jpg" loading="lazy">
+#### Images - native lazy loading
 
+    <img src="image.jpg" loading="lazy">
+
+```javascript
 // Intersection Observer for custom lazy loading
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
