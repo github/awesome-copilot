@@ -125,3 +125,38 @@ mutation {
   }
 }'
 ```
+
+## Searching by Field Values
+
+Issue fields are searchable via both REST and GraphQL using the `field:` qualifier. This requires **advanced search mode** (not available through the `search_issues` MCP tool).
+
+### REST API
+
+```bash
+gh api "search/issues?q=repo:owner/repo+field:Priority:P1+is:open&advanced_search=true" \
+  --jq '.items[] | "#\(.number): \(.title)"'
+```
+
+### GraphQL
+
+```graphql
+{
+  search(query: "repo:owner/repo is:issue field:Priority:P1 is:open", type: ISSUE_ADVANCED, first: 10) {
+    issueCount
+    nodes {
+      ... on Issue { number title }
+    }
+  }
+}
+```
+
+### Supported Qualifiers
+
+| Qualifier | Example | Notes |
+|-----------|---------|-------|
+| `field:Name:Value` | `field:Priority:P1` | Exact match on single-select |
+| `field:"Name":Value` | `field:"Target Date":>=2026-04-01` | Quote names with spaces; date comparison operators work |
+| `has:field:Name` | `has:field:Priority` | Has any value set for this field |
+| `no:field:Name` | N/A | **Not yet supported** (returns 422) |
+
+Field names use the **display name** (not an internal ID or slug). For single-select fields, the value is the option display name.

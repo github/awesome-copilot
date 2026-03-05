@@ -148,7 +148,7 @@ The following features require REST or GraphQL APIs beyond the basic MCP tools. 
 
 | Capability | When to use | Reference |
 |------------|-------------|-----------|
-| Advanced search | Complex queries with boolean logic, date ranges, cross-repo search | [references/search.md](references/search.md) |
+| Advanced search | Complex queries with boolean logic, date ranges, cross-repo search, issue field filters | [references/search.md](references/search.md) |
 | Sub-issues & parent issues | Breaking work into hierarchical tasks | [references/sub-issues.md](references/sub-issues.md) |
 | Issue dependencies | Tracking blocked-by / blocking relationships | [references/dependencies.md](references/dependencies.md) |
 | Issue types (advanced) | GraphQL operations beyond MCP `list_issue_types` / `type` param | [references/issue-types.md](references/issue-types.md) |

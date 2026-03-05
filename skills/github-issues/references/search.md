@@ -148,6 +148,66 @@ repo:owner/repo is:open comments:>20 sort:updated
 repo:owner/repo type:"Epic" label:P1 is:open
 ```
 
+## Advanced Search Mode (Issue Fields)
+
+The `search_issues` MCP tool uses standard search mode. To search by **issue field values** (Priority, Start Date, custom fields), you must use **advanced search mode** which is only available via direct API calls.
+
+### REST API
+
+Add `advanced_search=true` as a query parameter:
+
+```bash
+gh api "search/issues?q=repo:owner/repo+field:Priority:P1+is:open&advanced_search=true" --jq '.items[] | "#\(.number): \(.title)"'
+```
+
+### GraphQL
+
+Use `type: ISSUE_ADVANCED` instead of `type: ISSUE`:
+
+```graphql
+{
+  search(query: "repo:owner/repo is:issue field:Priority:P1", type: ISSUE_ADVANCED, first: 10) {
+    issueCount
+    nodes {
+      ... on Issue { number title }
+    }
+  }
+}
+```
+
+### Issue Field Qualifiers
+
+```
+field:FieldName:Value              # Field equals value (e.g., field:Priority:P1)
+field:"Field Name":Value           # Quote field names with spaces
+field:"Target Date":>=2026-04-01   # Date comparisons work
+has:field:FieldName                # Has any value set for this field
+type:"Epic"                        # Issue type filter (works in both modes)
+```
+
+**Important:** `no:field:FieldName` syntax is NOT yet supported (returns 422). Use the negation approach of querying with `has:field:` and filtering results instead.
+
+**MCP limitation:** The `search_issues` MCP tool does not support `advanced_search=true`. You must use `gh api` directly for issue field searches.
+
+### Common Field Search Patterns
+
+**P1 epics:**
+```
+repo:owner/repo field:Priority:P1 type:"Epic" is:open
+```
+
+**Issues with a target date this quarter:**
+```
+repo:owner/repo field:"Target Date":>=2026-04-01 field:"Target Date":<=2026-06-30 is:open
+```
+
+**Issues missing priority:**
+```
+# has:field:Priority returns issues WITH priority; negate client-side
+repo:owner/repo is:open type:"Bug"
+# then filter out results from: has:field:Priority
+```
+
 ## Limitations
 
 - Query text: max **256 characters** (excluding operators/qualifiers)
@@ -155,3 +215,5 @@ repo:owner/repo type:"Epic" label:P1 is:open
 - Results: max **1,000** total (use `list_issues` if you need all issues)
 - Repo scan: searches up to **4,000** matching repositories
 - Rate limit: **30 requests/minute** for authenticated search
+- `no:field:FieldName` qualifier is not yet supported (tracked internally)
+- Issue field search requires `advanced_search=true` (REST) or `ISSUE_ADVANCED` (GraphQL); not available through MCP `search_issues`
