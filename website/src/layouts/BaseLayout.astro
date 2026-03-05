@@ -66,15 +66,19 @@ try {
       type="image/svg+xml"
     />
 
-    <meta
-      name="ha-url"
-      content="https://collector.githubapp.com/awesome-copilot-web/collect"
-    />
-    <script
-      async
-      defer
-      src="https://analytics.githubassets.com/hydro-marketing.min.js"
-    ></script>
+    {import.meta.env.PROD && (
+      <>
+        <meta
+          name="ha-url"
+          content="https://collector.githubapp.com/awesome-copilot-web/collect"
+        />
+        <script
+          async
+          defer
+          src="https://analytics.githubassets.com/hydro-marketing.min.js"
+        ></script>
+      </>
+    )}
   </head>
   <body data-base-path={base}>
     <a href="#main-content" class="skip-link">Skip to main content</a>
