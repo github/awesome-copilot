@@ -55,6 +55,30 @@ To make it easy to add these customizations to your editor, we have created an [
 
 </details>
 
+<details>
+<summary>Show MCP Server JSON configuration in case of Docker Engine installed inside WSL</summary>
+
+```json
+{
+  "servers": {
+    "awesome-copilot": {
+      "type": "stdio",
+      "command": "wsl.exe",
+      "args": [
+        "-e",
+        "docker",
+        "run",
+        "-i",
+        "--rm",
+        "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest"
+      ]
+    }
+  }
+}
+```
+
+</details>
+
 ## 📄 llms.txt
 
 An [`llms.txt`](https://awesome-copilot.github.com/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
