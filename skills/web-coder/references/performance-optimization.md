@@ -213,7 +213,7 @@ Cache-Control: no-store
 
 ### Service Workers
 
-Advanced caching con trol:
+Advanced caching control:
 
 ```javascript
 // Cache-first strategy

@@ -600,7 +600,7 @@ import { map } from 'lodash-es';
 - Lazy load
 - Main thread
 - MVC
-- MVC
+
 - Polyfill
 - Progressive Enhancement
 - Progressive web apps
