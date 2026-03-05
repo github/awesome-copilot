@@ -161,4 +161,4 @@ gh api "search/issues?q=repo:owner/repo+field.priority:P0+is:open&advanced_searc
 }
 ```
 
-> **Note:** The colon notation (`field:Priority:P1`) is silently ignored by the API. Always use dot notation (`field.priority:P1`). See [references/search.md](references/search.md) for the full search guide.
+> **Note:** The colon notation (`field:Priority:P1`) is silently ignored by the API. Always use dot notation (`field.priority:P1`). See [search.md](search.md) for the full search guide.

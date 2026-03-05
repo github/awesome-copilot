@@ -1,6 +1,6 @@
 # Advanced Issue Search
 
-The `search_issues` MCP tool accepts GitHub's full search query syntax, enabling complex cross-repo searches with boolean logic, date ranges, and metadata filters.
+The `search_issues` MCP tool uses GitHub's issue search query format for cross-repo searches, supporting implicit-AND queries, date ranges, and metadata filters (but not explicit OR/NOT operators).
 
 ## When to Use Search vs List vs Advanced Search
 
@@ -97,7 +97,7 @@ created:<2026-01-01              # Created before Jan 1
 
 ```
 linked:pr             # Issue has a linked PR
--linked:pr            # Issue has NO linked PR (needs work!)
+-linked:pr            # Issues not yet linked to any PR
 linked:issue          # PR is linked to an issue
 ```
 
@@ -152,7 +152,7 @@ org:github involves:@me is:open
 
 **High-activity issues:**
 ```
-repo:owner/repo is:open comments:>20 sort:updated
+repo:owner/repo is:open comments:>20
 ```
 
 **Issues by type and priority label:**
