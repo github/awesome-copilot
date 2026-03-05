@@ -55,21 +55,77 @@ When a user asks for a progress update on a project (e.g., "Give me a progress u
 
 **Tip:** For org-level projects, use GraphQL with `organization.projectsV2(first: 20, query: "search term")` to search by name directly, which is faster than listing all projects.
 
-## Using GraphQL directly (advanced)
+## OAuth Scope Requirements
 
-Required scope: `read:project` for queries, `project` for mutations.
+| Operation | Required scope |
+|-----------|---------------|
+| Read projects, fields, items | `read:project` |
+| Add/update/delete items, change field values | `project` |
 
-**Find a project:**
-```graphql
-{
-  organization(login: "ORG") {
-    projectV2(number: 5) { id title }
-  }
-}
+**Common pitfall:** The default `gh auth` token often only has `read:project`. Mutations will fail with `INSUFFICIENT_SCOPES`. To add the write scope:
+
+```bash
+gh auth refresh -h github.com -s project
 ```
 
-**List fields (including single-select options):**
-```graphql
+This triggers a browser-based OAuth flow. You must complete it before mutations will work.
+
+## Finding an Issue's Project Item ID
+
+When you know the issue but need its project item ID (e.g., to update its Status), query from the issue side:
+
+```bash
+gh api graphql -f query='
+{
+  repository(owner: "OWNER", name: "REPO") {
+    issue(number: 123) {
+      projectItems(first: 5) {
+        nodes {
+          id
+          project { title number }
+          fieldValues(first: 10) {
+            nodes {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name
+                field { ... on ProjectV2SingleSelectField { name } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}' --jq '.data.repository.issue.projectItems.nodes'
+```
+
+This returns the item ID, project info, and current field values in one query.
+
+## Using GraphQL via gh api (recommended)
+
+Use `gh api graphql` to run GraphQL queries and mutations. This is more reliable than MCP tools for write operations.
+
+**Find a project and its Status field options:**
+```bash
+gh api graphql -f query='
+{
+  organization(login: "ORG") {
+    projectV2(number: 5) {
+      id
+      title
+      field(name: "Status") {
+        ... on ProjectV2SingleSelectField {
+          id
+          options { id name }
+        }
+      }
+    }
+  }
+}' --jq '.data.organization.projectV2'
+```
+
+**List all fields (including iterations):**
+```bash
+gh api graphql -f query='
 {
   node(id: "PROJECT_ID") {
     ... on ProjectV2 {
@@ -82,23 +138,12 @@ Required scope: `read:project` for queries, `project` for mutations.
       }
     }
   }
-}
+}' --jq '.data.node.fields.nodes'
 ```
 
-**Add an item:**
-```graphql
-mutation {
-  addProjectV2ItemById(input: {
-    projectId: "PROJECT_ID"
-    contentId: "ISSUE_OR_PR_NODE_ID"
-  }) {
-    item { id }
-  }
-}
-```
-
-**Update a field value:**
-```graphql
+**Update a field value (e.g., set Status to "In Progress"):**
+```bash
+gh api graphql -f query='
 mutation {
   updateProjectV2ItemFieldValue(input: {
     projectId: "PROJECT_ID"
@@ -108,13 +153,27 @@ mutation {
   }) {
     projectV2Item { id }
   }
-}
+}'
 ```
 
 Value accepts one of: `text`, `number`, `date`, `singleSelectOptionId`, `iterationId`.
 
+**Add an item:**
+```bash
+gh api graphql -f query='
+mutation {
+  addProjectV2ItemById(input: {
+    projectId: "PROJECT_ID"
+    contentId: "ISSUE_OR_PR_NODE_ID"
+  }) {
+    item { id }
+  }
+}'
+```
+
 **Delete an item:**
-```graphql
+```bash
+gh api graphql -f query='
 mutation {
   deleteProjectV2Item(input: {
     projectId: "PROJECT_ID"
@@ -122,5 +181,42 @@ mutation {
   }) {
     deletedItemId
   }
-}
+}'
+```
+
+## End-to-End Example: Set Issue Status to "In Progress"
+
+```bash
+# 1. Get the issue's project item ID, project ID, and current status
+gh api graphql -f query='{
+  repository(owner: "github", name: "planning-tracking") {
+    issue(number: 2574) {
+      projectItems(first: 1) {
+        nodes { id project { id title } }
+      }
+    }
+  }
+}' --jq '.data.repository.issue.projectItems.nodes[0]'
+
+# 2. Get the Status field ID and "In Progress" option ID
+gh api graphql -f query='{
+  node(id: "PROJECT_ID") {
+    ... on ProjectV2 {
+      field(name: "Status") {
+        ... on ProjectV2SingleSelectField { id options { id name } }
+      }
+    }
+  }
+}' --jq '.data.node.field'
+
+# 3. Update the status
+gh api graphql -f query='mutation {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: "PROJECT_ID"
+    itemId: "ITEM_ID"
+    fieldId: "FIELD_ID"
+    value: { singleSelectOptionId: "IN_PROGRESS_OPTION_ID" }
+  }) { projectV2Item { id } }
+}'
+```
 ```
