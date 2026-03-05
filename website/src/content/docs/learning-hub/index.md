@@ -6,7 +6,7 @@ hero:
   tagline: 'Curated articles, walkthroughs, and reference material to help you unlock everything you can do with GitHub Copilot'
   actions:
     - text: Start with Fundamentals
-      link: /awesome-copilot/learning-hub/what-are-agents-skills-instructions/
+      link: /learning-hub/what-are-agents-skills-instructions/
       icon: right-arrow
 sidebar:
   hidden: true
@@ -16,17 +16,17 @@ tableOfContents: false
 ## Fundamentals
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
-[What are Agents, Skills, and Instructions](/awesome-copilot/learning-hub/what-are-agents-skills-instructions/)
+[What are Agents, Skills, and Instructions](/learning-hub/what-are-agents-skills-instructions/)
 and work through the full track to master every customization primitive.
 
 ## Reference
 
 Quick-lookup resources to keep handy while you work. Browse the
-[GitHub Copilot Terminology Glossary](/awesome-copilot/learning-hub/github-copilot-terminology-glossary/)
+[GitHub Copilot Terminology Glossary](/learning-hub/github-copilot-terminology-glossary/)
 for definitions of common terms and concepts.
 
 ## Hands-on
 
 Interactive samples and recipes to learn by doing. Jump into the
-[Cookbook](/awesome-copilot/learning-hub/cookbook/) for code samples, recipes,
+[Cookbook](/learning-hub/cookbook/) for code samples, recipes,
 and examples you can use right away.

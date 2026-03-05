@@ -2,8 +2,9 @@
  * Custom Pagefind integration that extends Starlight's search index
  * with resource records (agents, skills, instructions, hooks, workflows, plugins).
  *
- * Starlight's built-in pagefind is disabled (pagefind: false in config)
- * so this integration handles ALL indexing: HTML pages + custom resource records.
+ * Starlight's pagefind is enabled (pagefind: true) so the search UI renders,
+ * but this integration runs AFTER Starlight's and overwrites the index with
+ * HTML pages + custom resource records combined.
  */
 import type { AstroIntegration } from "astro";
 import { readFileSync } from "node:fs";
@@ -41,9 +42,14 @@ const TYPE_PAGES: Record<string, string> = {
 };
 
 export default function pagefindResources(): AstroIntegration {
+  let siteBase = "/";
+
   return {
     name: "pagefind-resources",
     hooks: {
+      "astro:config:done": ({ config }) => {
+        siteBase = config.base;
+      },
       "astro:build:done": async ({ dir, logger }) => {
         const log = logger.fork("pagefind-resources");
         const now = performance.now();
@@ -80,8 +86,8 @@ export default function pagefindResources(): AstroIntegration {
             records = [];
           }
 
-          // Determine base path from the built directory structure
-          const base = getBasePath(dir);
+          // Use the base path from Astro config (e.g. "/awesome-copilot/")
+          const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
 
           let added = 0;
           for (const record of records) {
@@ -133,15 +139,4 @@ export default function pagefindResources(): AstroIntegration {
       },
     },
   };
-}
-
-/** Derive the site base path from the build output directory. */
-function getBasePath(dir: URL): string {
-  // The build output includes the base path as a subdirectory.
-  // e.g., dist/awesome-copilot/ → base is /awesome-copilot/
-  const dirPath = fileURLToPath(dir);
-  const distIndex = dirPath.indexOf("/dist/");
-  if (distIndex === -1) return "/";
-  const afterDist = dirPath.slice(distIndex + 6); // after "/dist/"
-  return afterDist ? `/${afterDist}` : "/";
 }

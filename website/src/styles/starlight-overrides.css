@@ -123,12 +123,17 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
   display: contents;
 }
 
+/* Visually hidden but still focusable for keyboard a11y */
 #starlight__search .pagefind-ui__filter-checkbox {
   position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 #starlight__search .pagefind-ui__filter-value::before {
@@ -156,6 +161,12 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
 #starlight__search .pagefind-ui__filter-label:hover {
   border-color: var(--sl-color-accent);
   color: var(--sl-color-accent-high);
+}
+
+/* Keyboard focus ring for pill filters */
+#starlight__search .pagefind-ui__filter-checkbox:focus-visible + .pagefind-ui__filter-label {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
 }
 
 /* Active/checked pill state */

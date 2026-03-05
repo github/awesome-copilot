@@ -69,6 +69,8 @@ export default defineConfig({
         },
       ],
       disable404Route: true,
+      // pagefind: true is required so Starlight renders the search UI.
+      // Our pagefindResources() integration overwrites the index after build.
       pagefind: true,
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       components: {
