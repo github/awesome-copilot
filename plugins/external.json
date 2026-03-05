@@ -13,7 +13,8 @@
     "repository": "https://github.com/microsoft/github-copilot-for-azure",
     "source": {
       "source": "github",
-      "repo": "microsoft/azure-skills"
+      "repo": "microsoft/azure-skills",
+      "path": ".github/plugins/azure-skills"
     }
   }
 ]
