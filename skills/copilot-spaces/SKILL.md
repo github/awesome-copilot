@@ -7,14 +7,36 @@ description: 'Use Copilot Spaces to provide project-specific context to conversa
 
 Use Copilot Spaces to bring curated, project-specific context into conversations. A Space is a shared collection of repositories, files, documentation, and instructions that grounds Copilot responses in your team's actual code and knowledge.
 
-## Available MCP Tools
+## Available Tools
+
+### MCP Tools (Read-only)
 
 | Tool | Purpose |
 |------|---------|
 | `mcp__github__list_copilot_spaces` | List all spaces accessible to the current user |
 | `mcp__github__get_copilot_space` | Load a space's full context by owner and name |
 
-**Note:** Spaces are **read-only** via the API. You can list and load spaces, but cannot create, update, or delete them. If a user wants to edit a Space, direct them to the web UI at `github.com/copilot/spaces`.
+### REST API via `gh api` (Full CRUD)
+
+The Spaces REST API supports creating, updating, deleting spaces, and managing collaborators. The MCP server only exposes read operations, so use `gh api` for writes.
+
+**User Spaces:**
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `POST` | `/users/{username}/copilot-spaces` | Create a space |
+| `GET` | `/users/{username}/copilot-spaces` | List spaces |
+| `GET` | `/users/{username}/copilot-spaces/{number}` | Get a space |
+| `PUT` | `/users/{username}/copilot-spaces/{number}` | Update a space |
+| `DELETE` | `/users/{username}/copilot-spaces/{number}` | Delete a space |
+
+**Organization Spaces:** Same pattern under `/orgs/{org}/copilot-spaces/...`
+
+**Collaborators:** Add, list, update, and remove collaborators at `.../collaborators`
+
+**Scope requirements:** PAT needs `read:user` for reads, `user` for writes. Add with `gh auth refresh -h github.com -s user`.
+
+**Note:** This API is functional but not yet in the public REST API docs. It may require the `copilot_spaces_api` feature flag.
 
 ## When to Use Spaces
 
@@ -72,6 +94,53 @@ Once loaded, use the space content based on what it contains:
 - Produce output in the format the workflow defines
 - Show progress after each step so the user can steer
 
+### 5. Manage Spaces (via `gh api`)
+
+When a user wants to create, update, or delete a space, use `gh api`. First, find the space number from the list endpoint.
+
+**Update a space's instructions:**
+```bash
+gh api users/{username}/copilot-spaces/{number} \
+  -X PUT \
+  -f general_instructions="New instructions here"
+```
+
+**Update name, description, or instructions together:**
+```bash
+gh api users/{username}/copilot-spaces/{number} \
+  -X PUT \
+  -f name="Updated Name" \
+  -f description="Updated description" \
+  -f general_instructions="Updated instructions"
+```
+
+**Create a new space:**
+```bash
+gh api users/{username}/copilot-spaces \
+  -X POST \
+  -f name="My New Space" \
+  -f general_instructions="Help me with..." \
+  -f visibility="private"
+```
+
+**Attach resources (replaces entire resource list):**
+```json
+{
+  "resources_attributes": [
+    { "resource_type": "free_text", "metadata": { "name": "Notes", "text": "Content here" } },
+    { "resource_type": "github_issue", "metadata": { "repository_id": 12345, "number": 42 } },
+    { "resource_type": "github_file", "metadata": { "repository_id": 12345, "file_path": "docs/guide.md" } }
+  ]
+}
+```
+
+**Delete a space:**
+```bash
+gh api users/{username}/copilot-spaces/{number} -X DELETE
+```
+
+**Updatable fields:** `name`, `description`, `general_instructions`, `icon_type`, `icon_color`, `visibility` ("private"/"public"), `base_role` ("no_access"/"reader"), `resources_attributes`
+
 ## Examples
 
 ### Example 1: User Asks for a Space
@@ -111,6 +180,19 @@ Once loaded, use the space content based on what it contains:
 4. Show the draft after each section so the user can review and fill in gaps.
 5. Produce the final output in the format the space defines.
 
+### Example 5: Update Space Instructions Programmatically
+
+**User**: "Update my PM Weekly Updates space to include a new writing guideline"
+
+**Action**:
+1. Call `mcp__github__list_copilot_spaces` and find the space number (e.g., 19).
+2. Call `mcp__github__get_copilot_space` to read current instructions.
+3. Modify the instructions text as requested.
+4. Push the update:
+```bash
+gh api users/labudis/copilot-spaces/19 -X PUT -f general_instructions="updated instructions..."
+```
+
 ## Tips
 
 - Space names are **case-sensitive**. Use the exact name from `list_copilot_spaces`.
@@ -119,4 +201,5 @@ Once loaded, use the space content based on what it contains:
 - If a space isn't found, suggest listing available spaces to find the right name.
 - Spaces auto-update as underlying repos change, so the context is always current.
 - Some spaces contain custom instructions that should guide your behavior (coding standards, preferred patterns, workflows). Treat these as directives, not suggestions.
-- Spaces cannot be edited via the API. Direct users to `github.com/copilot/spaces` to modify Space settings, attached files, or instructions.
+- **Write operations** (`gh api` for create/update/delete) require the `user` PAT scope. If you get a 404 on write operations, run `gh auth refresh -h github.com -s user`.
+- Resource updates **replace the entire array**. To add a resource, include all existing resources plus the new one. To remove one, include `{ "id": 123, "_destroy": true }` in the array.
