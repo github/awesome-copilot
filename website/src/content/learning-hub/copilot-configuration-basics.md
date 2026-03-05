@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2025-11-28'
+lastUpdated: 2025-11-28
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration

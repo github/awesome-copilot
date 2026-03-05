@@ -3,7 +3,7 @@ title: 'GitHub Copilot Terminology Glossary'
 description: 'A quick reference guide defining common GitHub Copilot and platform-specific terms.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2025-12-15'
+lastUpdated: 2025-12-15
 estimatedReadingTime: '8 minutes'
 tags:
   - glossary

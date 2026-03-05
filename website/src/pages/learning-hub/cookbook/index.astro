@@ -1,51 +1,35 @@
 ---
-import BaseLayout from '../../../layouts/BaseLayout.astro';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../../../components/Modal.astro';
-
-const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title="Cookbook" description="Code samples, recipes, and examples for building with GitHub Copilot" activeNav="learning-hub">
-  <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href={`${base}learning-hub/`}>← Learning Hub</a>
-        </nav>
-        <h1>🍳 Cookbook</h1>
-        <p>Code samples, recipes, and examples for building with GitHub Copilot tools</p>
-      </div>
+<StarlightPage frontmatter={{ title: 'Cookbook', description: 'Code samples, recipes, and examples for building with GitHub Copilot' }}>
+  <div class="cookbook-page">
+    <div class="search-bar">
+      <label for="search-input" class="sr-only">Search recipes</label>
+      <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off">
     </div>
 
-    <div class="page-content">
-      <div class="container">
-        <div class="search-bar">
-          <label for="search-input" class="sr-only">Search recipes</label>
-          <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off">
-        </div>
-        
-        <div class="filters-bar" id="filters-bar">
-          <div class="filter-group">
-            <label for="filter-language">Language:</label>
-            <select id="filter-language" aria-label="Filter by language">
-              <option value="">All Languages</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-tag">Tags:</label>
-            <select id="filter-tag" multiple aria-label="Filter by tags"></select>
-          </div>
-          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-        </div>
-        
-        <div class="results-count" id="results-count" aria-live="polite"></div>
-        
-        <div id="samples-list" role="list">
-          <div class="loading" aria-live="polite">Loading samples...</div>
-        </div>
+    <div class="filters-bar" id="filters-bar">
+      <div class="filter-group">
+        <label for="filter-language">Language:</label>
+        <select id="filter-language" aria-label="Filter by language">
+          <option value="">All Languages</option>
+        </select>
       </div>
+      <div class="filter-group">
+        <label for="filter-tag">Tags:</label>
+        <select id="filter-tag" multiple aria-label="Filter by tags"></select>
+      </div>
+      <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
     </div>
-  </main>
+
+    <div class="results-count" id="results-count" aria-live="polite"></div>
+
+    <div id="samples-list" role="list">
+      <div class="loading" aria-live="polite">Loading samples...</div>
+    </div>
+  </div>
 
   <Modal />
 
@@ -281,4 +265,4 @@ const base = import.meta.env.BASE_URL;
   <script>
     import '../../../scripts/pages/samples';
   </script>
-</BaseLayout>
+</StarlightPage>

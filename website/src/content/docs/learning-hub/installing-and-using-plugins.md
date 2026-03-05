@@ -1,0 +1,1 @@
+../../learning-hub/installing-and-using-plugins.md

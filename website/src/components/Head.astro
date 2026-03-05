@@ -1,0 +1,11 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro';
+const basePath = import.meta.env.BASE_URL;
+---
+
+<Default><slot /></Default>
+<script is:inline define:vars={{ basePath }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.dataset.basePath = basePath;
+  });
+</script>

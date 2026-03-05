@@ -1,14 +1,10 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import ContributeCTA from "../components/ContributeCTA.astro";
 import PageHeader from "../components/PageHeader.astro";
 ---
 
-<BaseLayout
-  title="Tools"
-  description="MCP servers and developer tools for GitHub Copilot"
-  activeNav="tools"
->
+<StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
   <main id="main-content">
     <PageHeader title="🔧 Tools" description="MCP servers and developer tools for GitHub Copilot" />
 
@@ -306,4 +302,4 @@ import PageHeader from "../components/PageHeader.astro";
     import { initToolsPage } from "../scripts/pages/tools";
     initToolsPage();
   </script>
-</BaseLayout>
+</StarlightPage>
