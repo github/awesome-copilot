@@ -18,7 +18,7 @@
     },
     {
       "name": "azure",
-      "description": "Microsoft Azure MCP integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Claude Code.",
+      "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
       "version": "1.0.0",
       "author": {
         "name": "Microsoft",
