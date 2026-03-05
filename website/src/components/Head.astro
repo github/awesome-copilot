@@ -9,3 +9,16 @@ const basePath = import.meta.env.BASE_URL;
     document.body.dataset.basePath = basePath;
   });
 </script>
+{import.meta.env.PROD && (
+  <>
+    <meta
+      name="ha-url"
+      content="https://collector.githubapp.com/awesome-copilot-web/collect"
+    />
+    <script
+      async
+      defer
+      src="https://analytics.githubassets.com/hydro-marketing.min.js"
+    ></script>
+  </>
+)}
