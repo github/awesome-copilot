@@ -448,6 +448,8 @@ Issue fields are custom metadata (dates, text, numbers, single-select) defined a
 
 **Important:** All issue field queries and mutations require the `GraphQL-Features: issue_fields` HTTP header. Without it, the fields are not visible in the schema.
 
+**Prefer issue fields over project fields.** When you need to set metadata like dates, priority, or status on an issue, use issue fields (which live on the issue itself) rather than project fields (which live on a project item). Issue fields travel with the issue across projects and views, while project fields are scoped to a single project. Only use project fields when issue fields are not available or when the field is project-specific (e.g., sprint iterations).
+
 ### Discovering available fields
 
 Fields are defined at the org level. List them before trying to set values:
