@@ -2,16 +2,28 @@
 
 The `search_issues` MCP tool accepts GitHub's full search query syntax, enabling complex cross-repo searches with boolean logic, date ranges, and metadata filters.
 
-## When to Use Search vs List
+## When to Use Search vs List vs Advanced Search
 
-| Use `search_issues` when... | Use `list_issues` when... |
-|-----------------------------|--------------------------|
-| Searching across multiple repos or orgs | Listing issues in a single known repo |
-| Need boolean logic (AND, OR, NOT) | Simple filter by state/label/assignee |
-| Need negation (`-label:wontfix`) | Want all results (no 1,000 cap) |
-| Need text search in title/body/comments | Don't need text matching |
-| Filtering by missing metadata (`no:label`) | Filtering by `since` date |
-| Finding linked/unlinked PRs | Just browsing recent issues |
+There are three ways to find issues, each with different capabilities:
+
+| Capability | `list_issues` (MCP) | `search_issues` (MCP) | Advanced search (`gh api`) |
+|-----------|---------------------|----------------------|---------------------------|
+| **Scope** | Single repo only | Cross-repo, cross-org | Cross-repo, cross-org |
+| **Issue field filters** (`field:Priority:P1`) | No | No | **Yes** |
+| **Issue type filter** (`type:Bug`) | No | Yes | Yes |
+| **Boolean logic** (AND/OR/NOT, nesting) | No | Yes (implicit AND only) | **Yes** (explicit AND/OR/NOT) |
+| **Label/state/date filters** | Yes | Yes | Yes |
+| **Assignee/author/mentions** | No | Yes | Yes |
+| **Negation** (`-label:x`, `no:label`) | No | Yes | Yes |
+| **Text search** (title/body/comments) | No | Yes | Yes |
+| **`since` filter** | Yes | No | No |
+| **Result limit** | No cap (paginate all) | 1,000 max | 1,000 max |
+| **How to call** | MCP tool directly | MCP tool directly | `gh api` with `advanced_search=true` |
+
+**Decision guide:**
+- **Single repo, simple filters (state, labels, recent updates):** use `list_issues`
+- **Cross-repo, text search, author/assignee, issue types:** use `search_issues`
+- **Issue field values (Priority, dates, custom fields) or complex boolean logic:** use `gh api` with `advanced_search=true`
 
 ## Query Syntax
 
