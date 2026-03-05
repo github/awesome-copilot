@@ -137,6 +137,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "o2p-dbmigration",
+      "source": "o2p-dbmigration",
+      "description": "Advisory agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Educates users on migration concepts, pitfalls, and best practices; delegates to specialized sub-agents on user confirmation.",
+      "version": "1.0.0"
+    },
+    {
       "name": "openapi-to-application-csharp-dotnet",
       "source": "openapi-to-application-csharp-dotnet",
       "description": "Generate production-ready .NET applications from OpenAPI specifications. Includes ASP.NET Core project scaffolding, controller generation, entity framework integration, and C# best practices.",
