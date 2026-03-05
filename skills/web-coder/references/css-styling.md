@@ -5,17 +5,21 @@ Comprehensive reference for Cascading Style Sheets, layout systems, and modern s
 ## Core Concepts
 
 ### CSS (Cascading Style Sheets)
+
 Style sheet language used for describing the presentation of HTML documents.
 
 **Three Ways to Apply CSS**:
+
 1. **Inline**: `<div style="color: blue;">`
 2. **Internal**: `<style>` tag in HTML
 3. **External**: Separate `.css` file (recommended)
 
 ### The Cascade
+
 The algorithm that determines which CSS rules apply when multiple rules target the same element.
 
 **Priority Order** (highest to lowest):
+
 1. Inline styles
 2. ID selectors (`#id`)
 3. Class selectors (`.class`), attribute selectors, pseudo-classes
@@ -290,8 +294,8 @@ Control layering with `z-index`:
 
 ```css
 .behind { z-index: 1; }
-.infront { z-index: 10; }
-.onTop { z-index: 100; }
+.ahead { z-index: 10; }
+.top { z-index: 100; }
 ```
 
 **Note**: `z-index` only works on positioned elements (not `static`)
@@ -613,6 +617,7 @@ Smooth changes between states:
 ## Best Practices
 
 ### Do's
+
 - ✅ Use external stylesheets
 - ✅ Use class selectors over ID selectors
 - ✅ Keep specificity low
@@ -624,6 +629,7 @@ Smooth changes between states:
 - ✅ Minify CSS for production
 
 ### Don'ts
+
 - ❌ Use `!important` excessively
 - ❌ Use inline styles
 - ❌ Use fixed pixel widths
@@ -636,6 +642,7 @@ Smooth changes between states:
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - Alignment container
 - Alignment subject
 - Aspect ratio

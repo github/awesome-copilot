@@ -40,7 +40,9 @@
 
 # pixelX - template variable in skill/game-engine/assets/simple-2d-engine.md
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX
+# aNULL - HTTPS configuration cipher string
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL
 
 # Skip certain files and directories
 
