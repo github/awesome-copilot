@@ -18,6 +18,9 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 | `mcp__github__add_issue_comment` | Add comments |
 | `mcp__github__list_issues` | List repository issues |
 | `mcp__github__list_issue_types` | List available issue types for an organization |
+| `mcp__github__projects_list` | List projects, project fields, project items, status updates |
+| `mcp__github__projects_get` | Get details of a project, field, item, or status update |
+| `mcp__github__projects_write` | Add/update/delete project items, create status updates |
 
 ## Workflow
 
@@ -335,3 +338,104 @@ To clear the type, set `issueTypeId` to `null`.
 ### Available colors
 
 `GRAY`, `BLUE`, `GREEN`, `YELLOW`, `ORANGE`, `RED`, `PINK`, `PURPLE`
+
+## Projects (GraphQL)
+
+GitHub Projects V2 is managed via GraphQL. The MCP server provides three tools that wrap the GraphQL API, so you typically don't need raw GraphQL.
+
+### Using MCP tools (preferred)
+
+**List projects:**
+Call `mcp__github__projects_list` with `method: "list_projects"`, `owner`, and `owner_type` ("user" or "organization").
+
+**List project fields:**
+Call `mcp__github__projects_list` with `method: "list_project_fields"` and `project_number`.
+
+**List project items:**
+Call `mcp__github__projects_list` with `method: "list_project_items"` and `project_number`.
+
+**Add an issue/PR to a project:**
+Call `mcp__github__projects_write` with `method: "add_project_item"`, `project_id` (node ID), and `content_id` (issue/PR node ID).
+
+**Update a project item field value:**
+Call `mcp__github__projects_write` with `method: "update_project_item"`, `project_id`, `item_id`, `field_id`, and `value` (object with one of: `text`, `number`, `date`, `singleSelectOptionId`, `iterationId`).
+
+**Delete a project item:**
+Call `mcp__github__projects_write` with `method: "delete_project_item"`, `project_id`, and `item_id`.
+
+### Workflow for project operations
+
+1. **Find the project** - use `projects_list` with `list_projects` to get the project number and node ID
+2. **Discover fields** - use `projects_list` with `list_project_fields` to get field IDs and option IDs
+3. **Find items** - use `projects_list` with `list_project_items` to get item IDs
+4. **Mutate** - use `projects_write` to add, update, or delete items
+
+### Using GraphQL directly (advanced)
+
+Required scope: `read:project` for queries, `project` for mutations.
+
+**Find a project:**
+```graphql
+{
+  organization(login: "ORG") {
+    projectV2(number: 5) { id title }
+  }
+}
+```
+
+**List fields (including single-select options):**
+```graphql
+{
+  node(id: "PROJECT_ID") {
+    ... on ProjectV2 {
+      fields(first: 20) {
+        nodes {
+          ... on ProjectV2Field { id name }
+          ... on ProjectV2SingleSelectField { id name options { id name } }
+          ... on ProjectV2IterationField { id name configuration { iterations { id startDate } } }
+        }
+      }
+    }
+  }
+}
+```
+
+**Add an item:**
+```graphql
+mutation {
+  addProjectV2ItemById(input: {
+    projectId: "PROJECT_ID"
+    contentId: "ISSUE_OR_PR_NODE_ID"
+  }) {
+    item { id }
+  }
+}
+```
+
+**Update a field value:**
+```graphql
+mutation {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: "PROJECT_ID"
+    itemId: "ITEM_ID"
+    fieldId: "FIELD_ID"
+    value: { singleSelectOptionId: "OPTION_ID" }
+  }) {
+    projectV2Item { id }
+  }
+}
+```
+
+Value accepts one of: `text`, `number`, `date`, `singleSelectOptionId`, `iterationId`.
+
+**Delete an item:**
+```graphql
+mutation {
+  deleteProjectV2Item(input: {
+    projectId: "PROJECT_ID"
+    itemId: "ITEM_ID"
+  }) {
+    deletedItemId
+  }
+}
+```
