@@ -18,6 +18,7 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 | `mcp__github__add_issue_comment` | Add comments |
 | `mcp__github__list_issues` | List repository issues |
 | `mcp__github__list_issue_types` | List available issue types for an organization |
+| `mcp__github__issue_read` | Read issue details, sub-issues, comments, labels |
 | `mcp__github__projects_list` | List projects, project fields, project items, status updates |
 | `mcp__github__projects_get` | Get details of a project, field, item, or status update |
 | `mcp__github__projects_write` | Add/update/delete project items, create status updates |
@@ -138,129 +139,125 @@ Use these standard labels when applicable:
 - Link related issues when known: `Related to #123`
 - For updates, fetch current issue first to preserve unchanged fields
 
-## Issue Fields (GraphQL)
+## Sub-Issues and Parent Issues
 
-Issue fields are custom metadata (dates, text, numbers, single-select) defined at the organization level and set per-issue. They are separate from labels, milestones, and assignees. Common examples: Start Date, Target Date, Priority, Impact, Effort.
+Sub-issues let you break down work into hierarchical tasks. Each parent issue can have up to 100 sub-issues, nested up to 8 levels deep. Sub-issues can span repositories within the same owner.
 
-**Important:** All issue field queries and mutations require the `GraphQL-Features: issue_fields` HTTP header. Without it, the fields are not visible in the schema.
+### Using MCP tools
 
-### Discovering available fields
+**List sub-issues:**
+Call `mcp__github__issue_read` with `method: "get_sub_issues"`, `owner`, `repo`, and `issue_number`.
 
-Fields are defined at the org level. List them before trying to set values:
+**Create an issue as a sub-issue:**
+There is no MCP tool for creating sub-issues directly. Use REST or GraphQL (see below).
 
-```graphql
-# Header: GraphQL-Features: issue_fields
-{
-  organization(login: "OWNER") {
-    issueFields(first: 30) {
-      nodes {
-        __typename
-        ... on IssueFieldDate { id name }
-        ... on IssueFieldText { id name }
-        ... on IssueFieldNumber { id name }
-        ... on IssueFieldSingleSelect { id name options { id name color } }
-      }
-    }
-  }
-}
+### Using REST API
+
+**List sub-issues:**
+```
+GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues
 ```
 
-Field types: `IssueFieldDate`, `IssueFieldText`, `IssueFieldNumber`, `IssueFieldSingleSelect`.
+**Get parent issue:**
+```
+GET /repos/{owner}/{repo}/issues/{issue_number}/parent
+```
 
-For single-select fields, you need the option `id` (not the name) to set values.
+**Add an existing issue as a sub-issue:**
+```
+POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues
+Body: { "sub_issue_id": 12345 }
+```
 
-### Reading field values on an issue
+The `sub_issue_id` is the numeric issue **ID** (not the issue number). Get it from the issue's `id` field in any API response.
 
+To move a sub-issue that already has a parent, add `"replace_parent": true`.
+
+**Remove a sub-issue:**
+```
+DELETE /repos/{owner}/{repo}/issues/{issue_number}/sub_issue
+Body: { "sub_issue_id": 12345 }
+```
+
+**Reprioritize a sub-issue:**
+```
+PATCH /repos/{owner}/{repo}/issues/{issue_number}/sub_issues/priority
+Body: { "sub_issue_id": 6, "after_id": 5 }
+```
+
+Use `after_id` or `before_id` to position the sub-issue relative to another.
+
+### Using GraphQL
+
+**Read parent and sub-issues:**
 ```graphql
-# Header: GraphQL-Features: issue_fields
 {
   repository(owner: "OWNER", name: "REPO") {
     issue(number: 123) {
-      issueFieldValues(first: 20) {
-        nodes {
-          __typename
-          ... on IssueFieldDateValue {
-            value
-            field { ... on IssueFieldDate { id name } }
-          }
-          ... on IssueFieldTextValue {
-            value
-            field { ... on IssueFieldText { id name } }
-          }
-          ... on IssueFieldNumberValue {
-            value
-            field { ... on IssueFieldNumber { id name } }
-          }
-          ... on IssueFieldSingleSelectValue {
-            name
-            color
-            field { ... on IssueFieldSingleSelect { id name } }
-          }
-        }
+      parent { number title }
+      subIssues(first: 50) {
+        nodes { number title state }
       }
+      subIssuesSummary { total completed percentCompleted }
     }
   }
 }
 ```
 
-### Setting field values
-
-Use `setIssueFieldValue` to set one or more fields at once. You need the issue's node ID and the field IDs from the discovery query above.
-
+**Add a sub-issue:**
 ```graphql
-# Header: GraphQL-Features: issue_fields
 mutation {
-  setIssueFieldValue(input: {
-    issueId: "ISSUE_NODE_ID"
-    issueFields: [
-      { fieldId: "IFD_xxx", dateValue: "2026-04-15" }
-      { fieldId: "IFT_xxx", textValue: "some text" }
-      { fieldId: "IFN_xxx", numberValue: 3.0 }
-      { fieldId: "IFSS_xxx", singleSelectOptionId: "OPTION_ID" }
-    ]
+  addSubIssue(input: {
+    issueId: "PARENT_NODE_ID"
+    subIssueId: "CHILD_NODE_ID"
   }) {
-    issue { id title }
+    issue { id }
+    subIssue { id number title }
   }
 }
 ```
 
-Each entry in `issueFields` takes a `fieldId` plus exactly one value parameter:
+You can also use `subIssueUrl` instead of `subIssueId` (pass the issue's HTML URL). Add `replaceParent: true` to move a sub-issue from another parent.
 
-| Field type | Value parameter | Format |
-|-----------|----------------|--------|
-| Date | `dateValue` | ISO 8601 date string, e.g. `"2026-04-15"` |
-| Text | `textValue` | String |
-| Number | `numberValue` | Float |
-| Single select | `singleSelectOptionId` | ID from the field's `options` list |
-
-To clear a field value, set `delete: true` instead of a value parameter.
-
-### Workflow for setting fields
-
-1. **Discover fields** - query the org's `issueFields` to get field IDs and option IDs
-2. **Get the issue node ID** - from `repository.issue.id`
-3. **Set values** - call `setIssueFieldValue` with the issue node ID and field entries
-4. **Batch when possible** - multiple fields can be set in a single mutation call
-
-### Example: Set dates and priority on an issue
-
-```bash
-gh api graphql \
-  -H "GraphQL-Features: issue_fields" \
-  -f query='
+**Create an issue directly as a sub-issue:**
+```graphql
 mutation {
-  setIssueFieldValue(input: {
-    issueId: "I_kwDOxxx"
-    issueFields: [
-      { fieldId: "IFD_startDate", dateValue: "2026-04-01" }
-      { fieldId: "IFD_targetDate", dateValue: "2026-04-30" }
-      { fieldId: "IFSS_priority", singleSelectOptionId: "OPTION_P1" }
-    ]
+  createIssue(input: {
+    repositoryId: "REPO_NODE_ID"
+    title: "Implement login validation"
+    parentIssueId: "PARENT_NODE_ID"
   }) {
-    issue { id title }
+    issue { id number }
   }
-}'
+}
 ```
+
+**Remove a sub-issue:**
+```graphql
+mutation {
+  removeSubIssue(input: {
+    issueId: "PARENT_NODE_ID"
+    subIssueId: "CHILD_NODE_ID"
+  }) {
+    issue { id }
+  }
+}
+```
+
+**Reprioritize a sub-issue:**
+```graphql
+mutation {
+  reprioritizeSubIssue(input: {
+    issueId: "PARENT_NODE_ID"
+    subIssueId: "CHILD_NODE_ID"
+    afterId: "OTHER_CHILD_NODE_ID"
+  }) {
+    issue { id }
+  }
+}
+```
+
+Use `afterId` or `beforeId` to position relative to another sub-issue.
 
 ## Issue Types
 
@@ -438,4 +435,130 @@ mutation {
     deletedItemId
   }
 }
+```
+
+## Issue Fields (GraphQL, Private Preview)
+
+> **Private preview:** Issue fields are currently in private preview. Request access at https://github.com/orgs/community/discussions/175366
+
+Issue fields are custom metadata (dates, text, numbers, single-select) defined at the organization level and set per-issue. They are separate from labels, milestones, and assignees. Common examples: Start Date, Target Date, Priority, Impact, Effort.
+
+**Important:** All issue field queries and mutations require the `GraphQL-Features: issue_fields` HTTP header. Without it, the fields are not visible in the schema.
+
+### Discovering available fields
+
+Fields are defined at the org level. List them before trying to set values:
+
+```graphql
+# Header: GraphQL-Features: issue_fields
+{
+  organization(login: "OWNER") {
+    issueFields(first: 30) {
+      nodes {
+        __typename
+        ... on IssueFieldDate { id name }
+        ... on IssueFieldText { id name }
+        ... on IssueFieldNumber { id name }
+        ... on IssueFieldSingleSelect { id name options { id name color } }
+      }
+    }
+  }
+}
+```
+
+Field types: `IssueFieldDate`, `IssueFieldText`, `IssueFieldNumber`, `IssueFieldSingleSelect`.
+
+For single-select fields, you need the option `id` (not the name) to set values.
+
+### Reading field values on an issue
+
+```graphql
+# Header: GraphQL-Features: issue_fields
+{
+  repository(owner: "OWNER", name: "REPO") {
+    issue(number: 123) {
+      issueFieldValues(first: 20) {
+        nodes {
+          __typename
+          ... on IssueFieldDateValue {
+            value
+            field { ... on IssueFieldDate { id name } }
+          }
+          ... on IssueFieldTextValue {
+            value
+            field { ... on IssueFieldText { id name } }
+          }
+          ... on IssueFieldNumberValue {
+            value
+            field { ... on IssueFieldNumber { id name } }
+          }
+          ... on IssueFieldSingleSelectValue {
+            name
+            color
+            field { ... on IssueFieldSingleSelect { id name } }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Setting field values
+
+Use `setIssueFieldValue` to set one or more fields at once. You need the issue's node ID and the field IDs from the discovery query above.
+
+```graphql
+# Header: GraphQL-Features: issue_fields
+mutation {
+  setIssueFieldValue(input: {
+    issueId: "ISSUE_NODE_ID"
+    issueFields: [
+      { fieldId: "IFD_xxx", dateValue: "2026-04-15" }
+      { fieldId: "IFT_xxx", textValue: "some text" }
+      { fieldId: "IFN_xxx", numberValue: 3.0 }
+      { fieldId: "IFSS_xxx", singleSelectOptionId: "OPTION_ID" }
+    ]
+  }) {
+    issue { id title }
+  }
+}
+```
+
+Each entry in `issueFields` takes a `fieldId` plus exactly one value parameter:
+
+| Field type | Value parameter | Format |
+|-----------|----------------|--------|
+| Date | `dateValue` | ISO 8601 date string, e.g. `"2026-04-15"` |
+| Text | `textValue` | String |
+| Number | `numberValue` | Float |
+| Single select | `singleSelectOptionId` | ID from the field's `options` list |
+
+To clear a field value, set `delete: true` instead of a value parameter.
+
+### Workflow for setting fields
+
+1. **Discover fields** - query the org's `issueFields` to get field IDs and option IDs
+2. **Get the issue node ID** - from `repository.issue.id`
+3. **Set values** - call `setIssueFieldValue` with the issue node ID and field entries
+4. **Batch when possible** - multiple fields can be set in a single mutation call
+
+### Example: Set dates and priority on an issue
+
+```bash
+gh api graphql \
+  -H "GraphQL-Features: issue_fields" \
+  -f query='
+mutation {
+  setIssueFieldValue(input: {
+    issueId: "I_kwDOxxx"
+    issueFields: [
+      { fieldId: "IFD_startDate", dateValue: "2026-04-01" }
+      { fieldId: "IFD_targetDate", dateValue: "2026-04-30" }
+      { fieldId: "IFSS_priority", singleSelectOptionId: "OPTION_P1" }
+    ]
+  }) {
+    issue { id title }
+  }
+}'
 ```
