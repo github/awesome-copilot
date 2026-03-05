@@ -121,7 +121,14 @@
 #main-content {
   margin: 0;
   padding: 0;
-  background: var(--gradient-hero);
+}
+
+/* Full-width page gradient on custom pages (not Starlight docs).
+   Applied to body so it spans the entire viewport width,
+   similar to how github.github.com/gh-aw/ handles its gradient. */
+body:has(#main-content) {
+  background-image: var(--gradient-hero);
+  background-attachment: fixed;
 }
 
 /* body styles removed — Starlight handles base body styling.

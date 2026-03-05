@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2026-02-26'
+lastUpdated: 2026-02-26
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp

@@ -1,11 +1,11 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 ---
 
-<BaseLayout title="Hooks" description="Automated workflows triggered by Copilot coding agent events" activeNav="hooks">
+<StarlightPage frontmatter={{ title: 'Hooks', description: 'Automated workflows triggered by Copilot coding agent events', template: 'splash', prev: false, next: false, editUrl: false }}>
   <main id="main-content">
     <PageHeader title="🪝 Hooks" description="Automated workflows triggered by Copilot coding agent events" />
 
@@ -49,4 +49,4 @@ import PageHeader from '../components/PageHeader.astro';
   <script>
     import '../scripts/pages/hooks';
   </script>
-</BaseLayout>
+</StarlightPage>

@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2026-02-26'
+lastUpdated: 2026-02-26
 estimatedReadingTime: '9 minutes'
 tags:
   - skills

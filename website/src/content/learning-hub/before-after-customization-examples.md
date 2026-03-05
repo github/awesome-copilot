@@ -3,7 +3,7 @@ title: 'Before/After Customization Examples'
 description: 'See real-world transformations showing how custom agents, skills, and instructions dramatically improve GitHub Copilot effectiveness.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: '2025-12-12'
+lastUpdated: 2025-12-12
 estimatedReadingTime: '12 minutes'
 tags:
   - customization
