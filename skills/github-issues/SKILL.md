@@ -442,6 +442,32 @@ Call `mcp__github__projects_write` with `method: "delete_project_item"`, `projec
 3. **Find items** - use `projects_list` with `list_project_items` to get item IDs
 4. **Mutate** - use `projects_write` to add, update, or delete items
 
+### Project discovery for progress reports
+
+When a user asks for a progress update on a project (e.g., "Give me a progress update for Project X"), follow this workflow:
+
+1. **Search by name** - call `projects_list` with `list_projects` and scan results for a title matching the user's query. Project names are often informal, so match flexibly (e.g., "issue fields" matches "Issue fields" or "Issue Fields and Types").
+
+2. **Discover fields** - call `projects_list` with `list_project_fields` to find the Status field (its options tell you the workflow stages) and any Iteration field (to scope to the current sprint).
+
+3. **Get all items** - call `projects_list` with `list_project_items`. For large projects (100+ items), paginate through all pages. Each item includes its field values (status, iteration, assignees).
+
+4. **Build the report** - group items by Status field value and count them. For iteration-based projects, filter to the current iteration first. Present a breakdown like:
+
+   ```
+   Project: Issue Fields (Iteration 42, Mar 2-8)
+   15 actionable items:
+     🎉 Done:        4 (27%)
+     In Review:      3
+     In Progress:    3
+     Ready:          2
+     Blocked:        2
+   ```
+
+5. **Add context** - if items have sub-issues, include `subIssuesSummary` counts. If items have dependencies, note blocked items and what blocks them.
+
+**Tip:** For org-level projects, use GraphQL with `organization.projectsV2(first: 20, query: "search term")` to search by name directly, which is faster than listing all projects.
+
 ### Using GraphQL directly (advanced)
 
 Required scope: `read:project` for queries, `project` for mutations.
