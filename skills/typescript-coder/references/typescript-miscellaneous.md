@@ -1251,21 +1251,6 @@ import { initialize } from 'my-module';
 initialize(config);
 ```
 
-### Type Imports
-
-```ts
-// @ts-check
-
-// Importing types from TypeScript files
-/** @typedef {import('./types').User} User */
-
-// Importing types from node_modules
-/** @typedef {import('express').Request} ExpressRequest */
-
-// Importing with renaming
-/** @typedef {import('./api').default as ApiClient} ApiClient */
-```
-
 ### Create a types.d.ts file in your project
 
 ```ts
