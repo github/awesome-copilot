@@ -197,6 +197,14 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   }
 
   try {
+    /*********************************************************************************************
+     IMPORTANT
+     An attacker can exploit this by sending any arbitrary token to gain access to protected
+     routes that rely on authenticate/authorize, resulting in a complete authentication and
+     authorization bypass. Replace the mock decoded assignment with real JWT verification
+     (including signature, expiry, and claims checks) and ensure that invalid or missing tokens
+     never populate req.user or reach privileged handlers. 
+    **********************************************************************************************/
     // In a real app, verify the JWT token here
     const decoded = { id: 1, role: 'admin' }; // Mock decoded token
     req.user = decoded;
