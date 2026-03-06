@@ -43,7 +43,7 @@
 
 /* ── Sidebar active item ───────────────────────────────────── */
 nav[aria-label="Main"] a[aria-current="page"] {
-  color: var(--sl-color-accent) !important;
+  color: var(--sl-color-white) !important;
   font-weight: 600;
   border-inline-start-color: var(--sl-color-accent) !important;
 }
