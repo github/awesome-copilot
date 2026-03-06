@@ -1,5 +1,5 @@
 ---
-name: power-automate-mcp
+name: flowstudio-power-automate-mcp
 description: >-
   Connect to and operate Power Automate cloud flows via a FlowStudio MCP server.
   Use when asked to: list flows, read a flow definition, check run history, inspect
@@ -120,7 +120,7 @@ snapshot of your tenant's flows enriched with governance metadata and run statis
 | Read a definition | `get_live_flow` | Always fetched live — not cached |
 | Debug a failure | `get_live_flow_runs` → `get_live_flow_run_error` | Use live run data |
 
-> ⚠️ **`list_live_flows` returns a direct array** — not a wrapper object. Iterate the result directly.
+> ⚠️ **`list_live_flows` returns a wrapper object** with a `flows` array — access via `result["flows"]`.
 
 > Store tools (`list_store_flows`, `get_store_flow`, etc.) are available to **FlowStudio for Teams** subscribers and provide cached governance metadata. Use live tools when in doubt — they work for all subscription tiers.
 
@@ -142,7 +142,8 @@ def mcp_raw(method, params=None, cid=1):
     if params:
         payload["params"] = params
     req = urllib.request.Request(MCP, data=json.dumps(payload).encode(),
-        headers={"x-api-key": TOKEN, "Content-Type": "application/json"})
+        headers={"x-api-key": TOKEN, "Content-Type": "application/json",
+                 "User-Agent": "FlowStudio-MCP/1.0"})
     try:
         resp = urllib.request.urlopen(req, timeout=30)
     except urllib.error.HTTPError as e:
@@ -173,7 +174,7 @@ def mcp(tool, args, cid=1):
                "params": {"name": tool, "arguments": args}}
     req = urllib.request.Request(MCP, data=json.dumps(payload).encode(),
         headers={"x-api-key": TOKEN, "Content-Type": "application/json",
-                 "User-Agent": "MCP/1.0"})
+                 "User-Agent": "FlowStudio-MCP/1.0"})
     try:
         resp = urllib.request.urlopen(req, timeout=120)
     except urllib.error.HTTPError as e:
@@ -213,7 +214,7 @@ async function mcp(tool, args, cid = 1) {
     headers: {
       "x-api-key": TOKEN,
       "Content-Type": "application/json",
-      "User-Agent": "MCP/1.0",
+      "User-Agent": "FlowStudio-MCP/1.0",
     },
     body: JSON.stringify(payload),
   });
@@ -237,11 +238,11 @@ async function mcp(tool, args, cid = 1) {
 ```python
 ENV = "Default-<tenant-guid>"
 
-flows = mcp("list_live_flows", {"environmentName": ENV})
-# Returns direct array:
-# [{"id": "0757041a-...", "displayName": "My Flow", "state": "Started",
-#   "triggerType": "Request", "createdTime": "...", "owners": "<aad-oid>"}, ...]
-for f in flows:
+result = mcp("list_live_flows", {"environmentName": ENV})
+# Returns wrapper object:
+# {"mode": "owner", "flows": [{"id": "0757041a-...", "displayName": "My Flow",
+#   "state": "Started", "triggerType": "Request", ...}], "totalCount": 42, "error": null}
+for f in result["flows"]:
     FLOW_ID = f["id"]   # plain UUID — use directly as flowName
     print(FLOW_ID, "|", f["displayName"], "|", f["state"])
 ```
@@ -288,7 +289,7 @@ for r in runs:
     print(r["name"], r["status"])
 
 # Get the name of the first failed run
-run_id = next(r["name"] for r in runs if r["status"] == "Failed", None)
+run_id = next((r["name"] for r in runs if r["status"] == "Failed"), None)
 ```
 
 ---
@@ -371,8 +372,8 @@ mcp("cancel_live_flow_run", {
 
 ```python
 # ── 1. Find the flow ─────────────────────────────────────────────────────
-flows = mcp("list_live_flows", {"environmentName": ENV})
-target = next(f for f in flows if "My Flow Name" in f["displayName"])
+result = mcp("list_live_flows", {"environmentName": ENV})
+target = next(f for f in result["flows"] if "My Flow Name" in f["displayName"])
 FLOW_ID = target["id"]
 
 # ── 2. Get the most recent failed run ────────────────────────────────────

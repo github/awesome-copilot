@@ -79,6 +79,10 @@ Response: wrapper object with `connections` array.
 > `"/providers/Microsoft.PowerApps/apis/" + connectorName`
 >
 > Filter by status: `statuses[0].status == "Connected"`.
+>
+> **Note**: `tools/list` marks `environmentName` as optional, but the server
+> returns `MissingEnvironmentFilter` (HTTP 400) if you omit it. Always pass
+> `environmentName`.
 
 ### `list_store_connections`
 
@@ -93,6 +97,7 @@ Same connection data from cache.
 Response: wrapper object with `flows` array.
 ```json
 {
+  "mode": "owner",
   "flows": [
     {
       "id": "0757041a-8ef2-cf74-ef06-06881916f371",
@@ -107,14 +112,13 @@ Response: wrapper object with `flows` array.
     }
   ],
   "totalCount": 100,
-  "userScopedCount": 80,
-  "adminScopedCount": 20,
-  "userScopedError": null,
-  "adminScopedError": null
+  "error": null
 }
 ```
 
 > Access via `result["flows"]`. `id` is a plain UUID --- use directly as `flowName`.
+>
+> `mode` indicates the access scope used (`"owner"` or `"admin"`).
 
 ### `list_store_flows`
 
