@@ -250,7 +250,7 @@ This is the `SERVER_NAME`.
 Construct the command based on `CLAUDE_SCOPE` and whether the user chose GA or Preview endpoint:
 
 ```
-claude mcp add --scope {CLAUDE_SCOPE} {SERVER_NAME} -t stdio -- npx -y @microsoft/dataversecli@latest mcp "{USER_URL}" {ENDPOINT_FLAG}
+claude mcp add --scope {CLAUDE_SCOPE} {SERVER_NAME} -t stdio -- npx -y @microsoft/dataverse@latest mcp "{USER_URL}" {ENDPOINT_FLAG}
 ```
 
 Where:
@@ -260,8 +260,8 @@ Where:
 - `{ENDPOINT_FLAG}` is `--preview` if the user chose Preview endpoint in step 5, otherwise omit this flag
 
 **Example commands:**
-- GA endpoint with user scope: `claude mcp add --scope user dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataversecli@latest mcp "https://orgbc9a965c.crm10.dynamics.com"`
-- Preview endpoint with project scope: `claude mcp add --scope project dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataversecli@latest mcp "https://orgbc9a965c.crm10.dynamics.com" --preview`
+- GA endpoint with user scope: `claude mcp add --scope user dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataverse@latest mcp "https://orgbc9a965c.crm10.dynamics.com"`
+- Preview endpoint with project scope: `claude mcp add --scope project dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataverse@latest mcp "https://orgbc9a965c.crm10.dynamics.com" --preview`
 
 Store this command as `CLAUDE_COMMAND` for use in step 7.
 
@@ -300,7 +300,7 @@ Display the command for the user to run:
 > Before running the install command, you can optionally verify your Dataverse authentication is configured correctly by running:
 >
 > ```
-> npx -y @microsoft/dataversecli@latest mcp "{USER_URL}" --validate
+> npx -y @microsoft/dataverse@latest mcp "{USER_URL}" --validate
 > ```
 >
 > This command will check your authentication and print any error information if issues are found.
