@@ -41,10 +41,14 @@
   --sl-color-black: #f0f0f5;
 }
 
-/* ── Sidebar active item ───────────────────────────────────── */
+/* ── Sidebar readability ───────────────────────────────────── */
+nav[aria-label="Main"] a {
+  font-weight: 500 !important;
+}
+
 nav[aria-label="Main"] a[aria-current="page"] {
-  color: var(--sl-color-white) !important;
-  font-weight: 600;
+  color: var(--sl-color-text-invert) !important;
+  font-weight: 600 !important;
   border-inline-start-color: var(--sl-color-accent) !important;
 }
 
