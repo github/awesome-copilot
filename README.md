@@ -7,6 +7,8 @@ A community-created collection of custom agents, instructions, skills, hooks, wo
 > **Explore the full collection on the website →** [github.github.com/awesome-copilot](https://github.github.com/awesome-copilot)
 >
 > The website offers full-text search and filtering across 600+ resources, plus the [Tools](https://github.github.com/awesome-copilot/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://github.github.com/awesome-copilot/learning-hub) for guides and tutorials.
+>
+> **Using this collection in an AI agent?** A machine-readable [`llms.txt`](https://github.github.com/awesome-copilot/llms.txt) is available with structured listings of all agents, instructions, and skills.
 
 ## 📖 Learning Hub
 

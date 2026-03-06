@@ -79,7 +79,7 @@ export const GET: APIRoute = () => {
   content += "## Repository\n\n";
   content += "- **GitHub**: https://github.com/github/awesome-copilot\n";
   content += "- **License**: MIT\n";
-  content += "- **Website**: https://awesome-copilot.github.com\n";
+  content += "- **Website**: https://github.github.com/awesome-copilot\n";
 
   return new Response(content, {
     headers: { "Content-Type": "text/plain; charset=utf-8" },
