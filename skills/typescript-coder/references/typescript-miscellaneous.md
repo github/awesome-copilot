@@ -4,7 +4,7 @@
 
 - Reference [Async Programming](https://www.w3schools.com/typescript/typescript_async.php)
 
-### Promises in TypeScript:
+### Promises in TypeScript
 
 ```ts
 // Create a typed Promise that resolves to a string
@@ -32,7 +32,7 @@ fetchGreeting()
   });
 ```
 
-### Async/Await with TypeScript:
+### Async/Await with TypeScript
 
 ```ts
 // Define types for our API response
@@ -84,7 +84,7 @@ processUsers()
   .catch(err => console.error('Processing failed:', err));
 ```
 
-### Run multiple async operations in parallel:
+### Run multiple async operations in parallel
 
 ```ts
 interface Product {
@@ -119,7 +119,7 @@ async function fetchMultipleProducts() {
 fetchMultipleProducts();
 ```
 
-### Typing Callbacks for Async Operations:
+### Typing Callbacks for Async Operations
 
 ```ts
 // Define a type for the callback
@@ -152,7 +152,7 @@ fetchDataWithCallback('https://api.example.com', (error, data) => {
 });
 ```
 
-### Promise.all - Run multiple promises in parallel:
+### Promise.all - Run multiple promises in parallel
 
 ```ts
 // Different types of promises
@@ -193,7 +193,7 @@ async function loadUserDashboard(userId: number) {
 loadUserDashboard(1);
 ```
 
-### Promise.race - Useful for timeouts:
+### Promise.race - Useful for timeouts
 
 ```ts
 // Helper function for timeout
@@ -231,7 +231,7 @@ async function fetchUserData() {
 }
 ```
 
-### Promise.allSettled - Wait for all promises regardless of outcome:
+### Promise.allSettled - Wait for all promises regardless of outcome
 
 ```ts
 // Simulate multiple API calls with different outcomes
@@ -280,7 +280,7 @@ async function processBatch(ids: number[]) {
 processBatch([1, 2, 3, 4, 5]);
 ```
 
-### Custom Error Classes for Async Operations:
+### Custom Error Classes for Async Operations
 
 ```ts
 // Base error class for our application
@@ -387,7 +387,7 @@ async function displayUserProfile(userId: string) {
 displayUserProfile('123');
 ```
 
-### Async Generators:
+### Async Generators
 
 ```ts
 // Async generator function
@@ -413,7 +413,7 @@ async function consumeNumbers() {
 
 - Reference [Decorators](https://www.w3schools.com/typescript/typescript_decorators.php)
 
-### Enabling Decorators:
+### Enabling Decorators
 
 ```json
 {
@@ -428,7 +428,7 @@ async function consumeNumbers() {
 }
 ```
 
-### Class Decorators:
+### Class Decorators
 
 ```ts
 // A simple class decorator that logs class definition
@@ -447,7 +447,7 @@ class UserService {
 // Output when the file is loaded: "Class UserService was defined at [timestamp]"
 ```
 
-### Class Decorators - Adding Properties and Methods:
+### Class Decorators - Adding Properties and Methods
 
 ```ts
 // A decorator that adds a version property and logs instantiation
@@ -483,7 +483,7 @@ console.log((client as any).version); // Outputs: 1.0.0
 client.fetchData();
 ```
 
-### Class Decorators - Sealed Classes:
+### Class Decorators - Sealed Classes
 
 ```ts
 function sealed(constructor: Function) {
@@ -508,7 +508,7 @@ class Greeter {
 // Error: Cannot add property newMethod
 ```
 
-### Method Decorators - Measure Execution Time:
+### Method Decorators - Measure Execution Time
 
 ```ts
 // Method decorator to measure execution time
@@ -545,7 +545,7 @@ const processor = new DataProcessor();
 processor.processData([1, 2, 3, 4, 5]);
 ```
 
-### Method Decorators - Role-Based Access Control:
+### Method Decorators - Role-Based Access Control
 
 ```ts
 // User roles
@@ -608,7 +608,7 @@ currentUser.roles = ['admin'];
 docService.deleteDocument('doc123'); // Now works - admin can delete
 ```
 
-### Method Decorators - Deprecation Warning:
+### Method Decorators - Deprecation Warning
 
 ```ts
 function deprecated(message: string) {
@@ -642,7 +642,7 @@ payment.processPayment(100, 'USD'); // Shows deprecation warning
 payment.processPaymentV2(100, 'USD'); // No warning
 ```
 
-### Property Decorators - Format Properties:
+### Property Decorators - Format Properties
 
 ```ts
 // Property decorator to format a string property
@@ -672,7 +672,7 @@ greeter.greeting = 'World';
 console.log(greeter.greeting); // Outputs: Hello, World!
 ```
 
-### Property Decorators - Log Property Access:
+### Property Decorators - Log Property Access
 
 ```ts
 function logProperty(target: any, propertyKey: string) {
@@ -713,7 +713,7 @@ product.price = 899.99; // Logs: Setting price from 999.99 to 899.99
 console.log(product.name); // Logs: Getting name: Laptop
 ```
 
-### Property Decorators - Required Properties:
+### Property Decorators - Required Properties
 
 ```ts
 function required(target: any, propertyKey: string) {
@@ -758,7 +758,7 @@ const user1 = new User('johndoe', 'john@example.com'); // Works
 // Throws error: Property username is required
 ```
 
-### Parameter Decorators - Validation:
+### Parameter Decorators - Validation
 
 ```ts
 function validateParam(type: 'string' | 'number' | 'boolean') {
@@ -830,7 +830,7 @@ service.createUser('John', 30, true); // Works
 // Throws error: Parameter at index 0 failed string validation
 ```
 
-### Decorator Factories - Configurable Logging:
+### Decorator Factories - Configurable Logging
 
 ```ts
 // Decorator factory that accepts configuration
@@ -864,7 +864,7 @@ class PaymentService {
 }
 ```
 
-### Decorator Evaluation Order:
+### Decorator Evaluation Order
 
 ```ts
 function first() {
@@ -894,7 +894,7 @@ class ExampleClass {
 // second(): called
 ```
 
-### Real-World Example - API Controller:
+### Real-World Example - API Controller
 
 ```ts
 // Simple decorator implementations (simplified for example)
@@ -945,7 +945,7 @@ registerRoutes();
 // Registered GET /users/:id
 ```
 
-### Common Pitfalls:
+### Common Pitfalls
 
 ```ts
 function readonly(target: any, propertyKey: string) {
@@ -984,7 +984,7 @@ class Demo {
 
 - Reference [JavaScript Projects (*JSDoc*)](https://www.w3schools.com/typescript/typescript_jsdoc.php)
 
-### Getting Started:
+### Getting Started
 
 ```ts
 // @ts-check
@@ -1000,7 +1000,7 @@ function add(a, b) {
 }
 ```
 
-### Objects and Interfaces:
+### Objects and Interfaces
 
 ```ts
 // @ts-check
@@ -1017,7 +1017,7 @@ greet({ firstName: 'Jane' });
   // Error: Property 'lastName' is missing
 ```
 
-### Type Definitions with @typedef:
+### Type Definitions with @typedef
 
 ```ts
 // @ts-check
@@ -1045,7 +1045,7 @@ const currentUser = {
 console.log(currentUser.role);
 ```
 
-### Intersection Types:
+### Intersection Types
 
 ```ts
 // @ts-check
@@ -1063,7 +1063,7 @@ const point3d = { x: 1, y: 2, z: 3 };
 const point2d = { x: 1, y: 2 };
 ```
 
-### Function Types - Basic:
+### Function Types - Basic
 
 ```ts
 // @ts-check
@@ -1082,7 +1082,7 @@ function calculateArea(width, height) {
 const area = calculateArea(10, 20);
 ```
 
-### Function Types - Callbacks:
+### Function Types - Callbacks
 
 ```ts
 // @ts-check
@@ -1111,7 +1111,7 @@ const result = processStrings(['hello', 'world'], toUpperCase);
 // result will be ['HELLO', 'WORLD']
 ```
 
-### Function Overloads:
+### Function Overloads
 
 ```ts
 // @ts-check
@@ -1144,7 +1144,7 @@ const strResult = add('Hello, ', 'World!'); // string
 const numResult = add(10, 20);             // number
 ```
 
-### Advanced Types - Union and Intersection:
+### Advanced Types - Union and Intersection
 
 ```ts
 // @ts-check
@@ -1178,7 +1178,7 @@ function getVisitorId(visitor) {
 }
 ```
 
-### Advanced Types - Mapped Types:
+### Advanced Types - Mapped Types
 
 ```ts
 // @ts-check
@@ -1204,7 +1204,7 @@ const name = userGetters.getName(); // string
 const age = userGetters.getAge();   // number
 ```
 
-### Type Imports:
+### Type Imports
 
 ```ts
 // @ts-check
@@ -1219,7 +1219,7 @@ const age = userGetters.getAge();   // number
 /** @typedef {import('./api').default as ApiClient} ApiClient */
 ```
 
-### Create a types.d.ts file:
+### Create a types.d.ts file
 
 ```ts
 // types.d.ts
@@ -1235,7 +1235,7 @@ declare module 'my-module' {
 }
 ```
 
-### Using type imports in JavaScript:
+### Using type imports in JavaScript
 
 ```ts
 // @ts-check
@@ -1250,7 +1250,8 @@ const config = {
 import { initialize } from 'my-module';
 initialize(config);
 ```
-### Type Imports:
+
+### Type Imports
 
 ```ts
 // @ts-check
@@ -1265,7 +1266,7 @@ initialize(config);
 /** @typedef {import('./api').default as ApiClient} ApiClient */
 ```
 
-### Create a types.d.ts file in your project:Type Imports:
+### Create a types.d.ts file in your project:Type Imports
 
 ```ts
 // types.d.ts
@@ -1281,7 +1282,7 @@ declare module 'my-module' {
 }
 ```
 
-#### Then use it in your JavaScript files:Type Imports:
+#### Then use it in your JavaScript files:Type Imports
 
 ```ts
 // @ts-check
@@ -1311,14 +1312,14 @@ git add .
 git commit -m "Pre-TypeScript migration state"
 ```
 
-### Configuration:
+### Configuration
 
 ```ts
 # Install TypeScript as a dev dependency
 npm install --save-dev typescript @types/node
 ```
 
-### Create a basic tsconfig.json to start with:Configuration:
+### Create a basic tsconfig.json to start with:Configuration
 
 ```ts
 {
@@ -1340,7 +1341,7 @@ npm install --save-dev typescript @types/node
 > [!Note]
 > Adjust the target based on your minimum supported environments.
 
-### Create a basic tsconfig.json with these recommended settings:Step-by-Step Migration:
+### Create a basic tsconfig.json with these recommended settings:Step-by-Step Migration
 
 ```ts
 {
@@ -1362,7 +1363,7 @@ npm install --save-dev typescript @types/node
 }
 ```
 
-### Add // @ts-check to the top of your JavaScript files to enable type checking:Step-by-Step Migration:
+### Add // @ts-check to the top of your JavaScript files to enable type checking:Step-by-Step Migration
 
 ```ts
 // @ts-check
@@ -1378,7 +1379,7 @@ name = 42;
 > [!Note]
 > You can disable type checking for specific lines using // @ts-ignore.
 
-### Start with non-critical files and rename them from .js to .ts:Step-by-Step Migration:
+### Start with non-critical files and rename them from .js to .ts:Step-by-Step Migration
 
 ```ts
 # Rename a single file
@@ -1388,7 +1389,7 @@ mv src/utils/helpers.js src/utils/helpers.ts
 find src/utils -name "*.js" -exec sh -c 'mv "$0" "${0%.js}.ts"' {} \;
 ```
 
-### Gradually add type annotations to your code:Step-by-Step Migration:
+### Gradually add type annotations to your code:Step-by-Step Migration
 
 ```ts
 // Before
@@ -1413,7 +1414,7 @@ function getUser(id: number): User {
 }
 ```
 
-### Modify your package.json to include TypeScript compilation:Step-by-Step Migration:
+### Modify your package.json to include TypeScript compilation:Step-by-Step Migration
 
 ```ts
   {
@@ -1428,7 +1429,7 @@ function getUser(id: number): User {
 > [!Note]
 > Make sure to update your test configuration to work with TypeScript files.
 
-### Best Practices for Migration:
+### Best Practices for Migration
 
 ```ts
   // Use type inference where possible
@@ -1444,7 +1445,7 @@ function getUser(id: number): User {
   }
 ```
 
-### Common Challenges and Solutions:
+### Common Challenges and Solutions
 
 ```ts
   // Before
@@ -1453,7 +1454,7 @@ function getUser(id: number): User {
   // Error: Property 'name' does not exist
 ```
 
-### Common Challenges and Solutions:
+### Common Challenges and Solutions
 
 ```ts
   // Option 1: Index signature
@@ -1468,7 +1469,7 @@ function getUser(id: number): User {
   user.name = 'John';  // OK
 ```
 
-### Common Challenges and Solutions:
+### Common Challenges and Solutions
 
 ```ts
   class Counter {
@@ -1482,7 +1483,7 @@ function getUser(id: number): User {
   }
 ```
 
-### Common Challenges and Solutions:
+### Common Challenges and Solutions
 
 ```ts
   // Solution 1: Arrow function
@@ -1496,11 +1497,11 @@ function getUser(id: number): User {
   }.bind(this), 1000);
 ```
 
-## TypeScript Error Hanlding
+## TypeScript Error Handling
 
 - Reference [Error Handling](https://www.w3schools.com/typescript/typescript_error_handling.php)
 
-### Basic Error Handling:
+### Basic Error Handling
 
 ```ts
 function divide(a: number, b: number): number {
@@ -1518,7 +1519,7 @@ try {
 }
 ```
 
-### Custom Error Classes:
+### Custom Error Classes
 
 ```ts
 class ValidationError extends Error {
@@ -1549,7 +1550,7 @@ function validateUser(user: any) {
 }
 ```
 
-### Type Guards for Errors:
+### Type Guards for Errors
 
 ```ts
 // Type guards
@@ -1580,7 +1581,7 @@ try {
 }
 ```
 
-### Type Assertion Functions:
+### Type Assertion Functions
 
 ```ts
 function assertIsError(error: unknown): asserts error is Error {
@@ -1597,7 +1598,7 @@ try {
 }
 ```
 
-### Async Error Handling:
+### Async Error Handling
 
 ```ts
 interface User {
@@ -1638,7 +1639,7 @@ function fetchUserPosts(userId: number): Promise<any[]> {
 }
 ```
 
-### Always Handle Promise Rejections:
+### Always Handle Promise Rejections
 
 ```ts
 // Bad: Unhandled promise rejection
@@ -1653,7 +1654,7 @@ fetchData()
 void fetchData().catch(console.error);
 ```
 
-### Error Boundaries in React:
+### Error Boundaries in React
 
 ```tsx
 import React, { Component, ErrorInfo, ReactNode } from 'react';
@@ -1709,7 +1710,7 @@ function App() {
 }
 ```
 
-### Best Practices - Don't Swallow Errors:
+### Best Practices - Don't Swallow Errors
 
 ```ts
 // Bad: Silent failure
@@ -1721,7 +1722,7 @@ try { /* ... */ } catch (error) {
 }
 ```
 
-### Best Practices - Use Custom Error Types:
+### Best Practices - Use Custom Error Types
 
 ```ts
 class NetworkError extends Error {
@@ -1739,7 +1740,7 @@ class ValidationError extends Error {
 }
 ```
 
-### Best Practices - Handle Errors at Appropriate Layers:
+### Best Practices - Handle Errors at Appropriate Layers
 
 ```ts
 // In a data access layer
@@ -1774,7 +1775,7 @@ async function loadUser() {
 
 - Reference [Best Practices](https://www.w3schools.com/typescript/typescript_best_practices.php)
 
-### Project Configuration - Enable Strict Mode:
+### Project Configuration - Enable Strict Mode
 
 ```json
 // tsconfig.json
@@ -1793,7 +1794,7 @@ async function loadUser() {
 }
 ```
 
-### Project Configuration - Additional Strict Checks:
+### Project Configuration - Additional Strict Checks
 
 ```json
 {
@@ -1810,7 +1811,7 @@ async function loadUser() {
 }
 ```
 
-### Type System - Let TypeScript Infer:
+### Type System - Let TypeScript Infer
 
 ```ts
 // Bad: Redundant type annotation
@@ -1830,7 +1831,7 @@ function add(a: number, b: number) {
 }
 ```
 
-### Type System - Be Explicit with Public APIs:
+### Type System - Be Explicit with Public APIs
 
 ```ts
 // Bad: No type information
@@ -1850,7 +1851,7 @@ function processUser(user: User): string {
 }
 ```
 
-### Type System - Interface vs Type:
+### Type System - Interface vs Type
 
 ```ts
 // Use interface for object shapes that can be extended/implemented
@@ -1877,7 +1878,7 @@ type ReadonlyUser = Readonly<User>;
 type Point = [number, number];
 ```
 
-### Type System - Prefer Specific Types Over 'any':
+### Type System - Prefer Specific Types Over 'any'
 
 ```ts
 // Bad: Loses type safety
@@ -1905,7 +1906,7 @@ function logUnknown(value: unknown) {
 }
 ```
 
-### Code Organization - Logical Modules:
+### Code Organization - Logical Modules
 
 ```ts
 // user/user.model.ts
@@ -1935,7 +1936,7 @@ export * from './user.model';
 export * from './user.service';
 ```
 
-### Code Organization - File Naming Patterns:
+### Code Organization - File Naming Patterns
 
 ```ts
 // Good
@@ -1952,7 +1953,7 @@ user_service.ts      // Avoid snake_case
 userService.ts       // Avoid camelCase for file names
 ```
 
-### Functions and Methods - Type-Safe Functions:
+### Functions and Methods - Type-Safe Functions
 
 ```ts
 // Bad: No type information
@@ -1983,7 +1984,7 @@ function sum(...numbers: number[]): number {
 }
 ```
 
-### Functions and Methods - Single Responsibility:
+### Functions and Methods - Single Responsibility
 
 ```ts
 // Bad: Too many responsibilities
@@ -2024,7 +2025,7 @@ function processUserData(userData: UserData): ProcessedUserData {
 }
 ```
 
-### Async/Await Patterns - Proper Error Handling:
+### Async/Await Patterns - Proper Error Handling
 
 ```ts
 // Bad: Not handling errors
@@ -2071,7 +2072,7 @@ async function getUserData(userId: string): Promise<User> {
 }
 ```
 
-### Async/Await Patterns - Flatten Code:
+### Async/Await Patterns - Flatten Code
 
 ```ts
 // Bad: Nested async/await (callback hell)
@@ -2119,7 +2120,7 @@ async function processUser(userId: string) {
 }
 ```
 
-### Testing and Quality - Dependency Injection:
+### Testing and Quality - Dependency Injection
 
 ```ts
 // Bad: Hard to test due to direct dependencies
@@ -2172,7 +2173,7 @@ describe('PaymentProcessor', () => {
 });
 ```
 
-### Testing and Quality - Type Testing:
+### Testing and Quality - Type Testing
 
 ```ts
 // Using @ts-expect-error to test for type errors
@@ -2201,7 +2202,7 @@ expectType<string>(user.name);
 */
 ```
 
-### Performance - Type-Only Imports:
+### Performance - Type-Only Imports
 
 ```ts
 // Bad: Imports both type and value
@@ -2224,7 +2225,7 @@ export { fetchUser };
 // to ensure type-only imports are properly handled
 ```
 
-### Performance - Avoid Complex Types:
+### Performance - Avoid Complex Types
 
 ```ts
 // Bad: Deeply nested mapped types can be slow
@@ -2266,7 +2267,7 @@ interface User {
 }
 ```
 
-### Performance - Const Assertions:
+### Performance - Const Assertions
 
 ```ts
 // Without const assertion (wider type)
@@ -2295,7 +2296,7 @@ const config = {
 // }
 ```
 
-### Common Mistakes - Avoid 'any':
+### Common Mistakes - Avoid 'any'
 
 ```ts
 // Bad: Loses all type safety
@@ -2319,7 +2320,7 @@ function processUsers(users: User[]) {
 }
 ```
 
-### Common Mistakes - Enable Strict Mode:
+### Common Mistakes - Enable Strict Mode
 
 ```json
 // tsconfig.json
@@ -2338,7 +2339,7 @@ function processUsers(users: User[]) {
 }
 ```
 
-### Common Mistakes - Let TypeScript Infer:
+### Common Mistakes - Let TypeScript Infer
 
 ```ts
 // Redundant type annotation
@@ -2358,7 +2359,7 @@ function add(a: number, b: number) {
 }
 ```
 
-### Common Mistakes - Use Type Guards:
+### Common Mistakes - Use Type Guards
 
 ```ts
 // Without type guard
@@ -2385,7 +2386,7 @@ if (value instanceof Date) { /* value is Date */ }
 if ('id' in user) { /* user has id property */ }
 ```
 
-### Common Mistakes - Handle Null/Undefined:
+### Common Mistakes - Handle Null/Undefined
 
 ```ts
 // Bad: Potential runtime error
