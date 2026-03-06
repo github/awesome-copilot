@@ -1,17 +1,29 @@
 ---
 name: mcp-configure
-description: Configure an MCP server for GitHub Copilot with your Dataverse environment.
+description: Configure an MCP server for GitHub Copilot or Claude with your Dataverse environment.
 ---
 
-# Configure Dataverse MCP for GitHub Copilot
+# Configure Dataverse MCP for GitHub Copilot or Claude
 
-This skill configures the Dataverse MCP server for GitHub Copilot with your organization's environment URL. Each organization is registered with a unique server name based on the org identifier (e.g., `DataverseMcporgbc9a965c`). If the user provided a URL it is: $ARGUMENTS.
+This skill configures the Dataverse MCP server for GitHub Copilot or Claude with your organization's environment URL. Each organization is registered with a unique server name based on the org identifier (e.g., `DataverseMcporgbc9a965c`). If the user provided a URL it is: $ARGUMENTS.
 
 ## Instructions
 
-### 0. Ask for MCP scope
+### 0. Ask which tool to configure
 
-Ask the user whether they want to configure the MCP server globally or for this project only:
+Ask the user which tool they want to configure the Dataverse MCP server for:
+
+> Which tool would you like to configure the Dataverse MCP server for?
+> 1. **GitHub Copilot**
+> 2. **Claude**
+
+Based on their choice, set the `TOOL_TYPE` variable to either `copilot` or `claude`. Store this for use in all subsequent steps.
+
+### 0b. Ask for MCP scope
+
+Ask the user for the configuration scope based on their tool choice.
+
+**If TOOL_TYPE is `copilot`:**
 
 > Would you like to configure the Dataverse MCP server:
 > 1. **Globally** (available in all projects)
@@ -23,9 +35,25 @@ Based on their choice, set the `CONFIG_PATH` variable:
 
 Store this path for use in steps 1 and 6.
 
+**If TOOL_TYPE is `claude`:**
+
+> Would you like to configure the Dataverse MCP server:
+> 1. **User** (available in all projects for this user)
+> 2. **Project** (available only in this project)
+> 3. **Local** (scoped to current project directory)
+
+Based on their choice, set the `CLAUDE_SCOPE` variable:
+- **User**: `CLAUDE_SCOPE` = `user`
+- **Project**: `CLAUDE_SCOPE` = `project`
+- **Local**: `CLAUDE_SCOPE` = `local`
+
+Store this value for use in step 6.
+
 ### 1. Check already-configured MCP servers
 
-Read the MCP configuration file at `CONFIG_PATH` (determined in step 0) to check for already-configured servers.
+**If TOOL_TYPE is `copilot`:**
+
+Read the MCP configuration file at `CONFIG_PATH` (determined in step 0b) to check for already-configured servers.
 
 The configuration file is a JSON file with the following structure:
 
@@ -49,6 +77,10 @@ Extract all `url` values from the configured servers and store them as `CONFIGUR
 ```
 
 If the file doesn't exist or is empty, treat `CONFIGURED_URLS` as empty (`[]`). This step must never block the skill.
+
+**If TOOL_TYPE is `claude`:**
+
+Skip this step - Claude uses CLI commands to manage MCP servers, so we don't need to check existing configuration.
 
 ### 2. Ask how to get the environment URL
 
@@ -154,7 +186,9 @@ Based on their choice:
 
 ### 6. Register the MCP server
 
-Update the MCP configuration file at `CONFIG_PATH` (determined in step 0) to add the new server.
+**If TOOL_TYPE is `copilot`:**
+
+Update the MCP configuration file at `CONFIG_PATH` (determined in step 0b) to add the new server.
 
 **Generate a unique server name** from the `USER_URL`:
 1. Extract the subdomain (organization identifier) from the URL
@@ -199,9 +233,43 @@ This is the `SERVER_NAME`.
 - Preserve the existing structure and formatting
 - If `SERVER_NAME` already exists, update it with the new `MCP_URL`
 
+**If TOOL_TYPE is `claude`:**
+
+Generate the CLI command for the user to run. Do NOT edit any configuration files.
+
+**Generate a unique server name** from the `USER_URL`:
+1. Extract the subdomain (organization identifier) from the URL
+   - Example: `https://orgbc9a965c.crm10.dynamics.com` → `orgbc9a965c`
+2. Use lowercase format: `dataverse-{orgid}`
+   - Example: `dataverse-orgbc9a965c`
+
+This is the `SERVER_NAME`.
+
+**Build the command:**
+
+Construct the command based on `CLAUDE_SCOPE` and whether the user chose GA or Preview endpoint:
+
+```
+claude mcp add --scope {CLAUDE_SCOPE} {SERVER_NAME} -t stdio -- npx -y @microsoft/dataverse@latest mcp "{USER_URL}" {ENDPOINT_FLAG}
+```
+
+Where:
+- `{CLAUDE_SCOPE}` is `user`, `project`, or `local` (from step 0b)
+- `{SERVER_NAME}` is the generated server name (e.g., `dataverse-orgbc9a965c`)
+- `{USER_URL}` is the base environment URL (e.g., `https://orgbc9a965c.crm10.dynamics.com`)
+- `{ENDPOINT_FLAG}` is `--preview` if the user chose Preview endpoint in step 5, otherwise omit this flag
+
+**Example commands:**
+- GA endpoint with user scope: `claude mcp add --scope user dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataverse@latest mcp "https://orgbc9a965c.crm10.dynamics.com"`
+- Preview endpoint with project scope: `claude mcp add --scope project dataverse-orgbc9a965c -t stdio -- npx -y @microsoft/dataverse@latest mcp "https://orgbc9a965c.crm10.dynamics.com" --preview`
+
+Store this command as `CLAUDE_COMMAND` for use in step 7.
+
 Proceed to step 7.
 
-### 7. Confirm success and instruct restart
+### 7. Confirm success and provide next steps
+
+**If TOOL_TYPE is `copilot`:**
 
 Tell the user:
 
@@ -217,6 +285,34 @@ Tell the user:
 > - Create, update, or delete records
 > - Explore your schema and relationships
 
+**If TOOL_TYPE is `claude`:**
+
+Display the command for the user to run:
+
+> To install the Dataverse MCP server, exit claude and run:
+>
+> ```
+> {CLAUDE_COMMAND}
+> ```
+>
+> **Optional: Validate your authentication setup first**
+>
+> Before running the install command, you can optionally verify your Dataverse authentication is configured correctly by running:
+>
+> ```
+> npx -y @microsoft/dataverse@latest mcp "{USER_URL}" --validate
+> ```
+>
+> This command will check your authentication and print any error information if issues are found.
+>
+> Then restart Claude Code.
+>
+> After restarting, you will be able to:
+> - List all tables in your Dataverse environment
+> - Query records from any table
+> - Create, update, or delete records
+> - Explore your schema and relationships
+
 ### 8. Troubleshooting
 
 If something goes wrong, help the user check:
@@ -226,5 +322,11 @@ If something goes wrong, help the user check:
 - The environment URL matches what's shown in the Power Platform Admin Center
 - Their Environment Admin has enabled "Dataverse CLI MCP" in the Allowed Clients list
 - Their Environment has Dataverse MCP enabled, and if they're trying to use the preview endpoint that is enabled
-- For project-scoped configuration, ensure the `.mcp/copilot/mcp.json` file was created successfully
-- For global configuration, check permissions on the `~/.copilot/` directory
+- **If TOOL_TYPE is `copilot`:**
+  - For project-scoped configuration, ensure the `.mcp/copilot/mcp.json` file was created successfully
+  - For global configuration, check permissions on the `~/.copilot/` directory
+- **If TOOL_TYPE is `claude`:**
+  - Ensure the `claude` CLI is installed and available in their PATH
+  - If the command fails, check that `npx` and `npm` are installed
+  - After running the command, they must restart Claude Code for the changes to take effect
+  - They can verify the installation with `claude mcp list --scope {CLAUDE_SCOPE}`
