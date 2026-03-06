@@ -65,25 +65,21 @@ An [`llms.txt`](https://awesome-copilot.github.com/llms.txt) file following the 
 
 Plugins are installable packages that bundle related agents and skills, making it easy to install a curated set of resources.
 
-#### Browsing Plugins
-
-**Awesome Copilot is a default plugin marketplace** — no setup required in Copilot CLI or VS Code.
-
-**GitHub Copilot CLI** — browse from within an interactive session:
-
-```
-/plugin marketplace browse awesome-copilot
-```
-
-**VS Code** — use the Extensions search view with `@agentPlugins`, or open the Command Palette and run `Chat: Plugins`.
-
 #### Installing Plugins
 
-Install any plugin directly by name:
+First, add the Awesome Copilot marketplace to your Copilot CLI:
+
+```bash
+copilot plugin marketplace add github/awesome-copilot
+```
+
+Then install any plugin:
 
 ```bash
 copilot plugin install <plugin-name>@awesome-copilot
 ```
+
+Alternatively, you can use the `/plugin` command within a Copilot chat session to browse and install plugins interactively.
 
 ### 🤖 Custom Agents
 
