@@ -94,12 +94,12 @@ Plugins are especially valuable when you want to:
 
 ## Finding Plugins
 
-Plugins are collected in **marketplaces** — registries you can browse and install from. Copilot CLI comes with two marketplaces registered by default:
+Plugins are collected in **marketplaces** — registries you can browse and install from. Both Copilot CLI and VS Code come with two marketplaces registered by default — **no setup required**:
 
 - **`copilot-plugins`** — Official GitHub Copilot plugins
 - **`awesome-copilot`** — Community-contributed plugins from this repository
 
-### Browsing a Marketplace
+### Browsing in Copilot CLI
 
 List your registered marketplaces:
 
@@ -121,6 +121,13 @@ Or from within an interactive Copilot session:
 
 > **Tip**: You can also browse plugins on this site's [Plugins Directory](../../plugins/) to see descriptions, included agents, and skills before installing.
 
+### Browsing in VS Code
+
+Because `awesome-copilot` is a default marketplace in VS Code, you can discover plugins without any configuration:
+
+- Open the **Extensions** search view and type **`@agentPlugins`** to see all available plugins
+- Or open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`) and run **Chat: Plugins**
+
 ### Adding More Marketplaces
 
 Register additional marketplaces from GitHub repositories:
@@ -137,9 +144,9 @@ copilot plugin marketplace add /path/to/local-marketplace
 
 ## Installing Plugins
 
-### From a Registered Marketplace
+### From Copilot CLI
 
-The most common way to install a plugin — reference it by name and marketplace:
+Reference a plugin by name and marketplace:
 
 ```bash
 copilot plugin install database-data-management@awesome-copilot
@@ -150,6 +157,10 @@ Or from an interactive session:
 ```
 /plugin install database-data-management@awesome-copilot
 ```
+
+### From VS Code
+
+Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
 
 ## Managing Plugins
 

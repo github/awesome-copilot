@@ -102,6 +102,6 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 - Depth-based: full/standard/lightweight
 - OWASP Top 10, secrets/PII detection
 - Verify logic against specification AND PRD compliance
-- Return JSON; autonomous
+- Return JSON; autonomous; no artifacts except explicitly requested.
 </directives>
 </agent>

@@ -17,6 +17,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "azure",
+      "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/azure-skills",
+      "keywords": [
+        "azure",
+        "cloud",
+        "infrastructure",
+        "deployment",
+        "microsoft",
+        "devops"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/github-copilot-for-azure",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/azure-skills",
+        "path": ".github/plugins/azure-skills"
+      }
+    },
+    {
       "name": "azure-cloud-development",
       "source": "azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
@@ -97,8 +122,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing.",
-      "version": "1.2.0"
+      "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead.",
+      "version": "1.2.1"
     },
     {
       "name": "go-mcp-development",

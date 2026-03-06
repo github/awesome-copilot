@@ -1,6 +1,8 @@
 # 🔌 Plugins
 
-Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.
+Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI or VS Code.
+
+> **Awesome Copilot is a default plugin marketplace** — no setup required in either Copilot CLI or VS Code.
 ### How to Contribute
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how to contribute new plugins, improve existing ones, and share your use cases.
@@ -13,10 +15,13 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 - Each plugin includes agents and skills for specific workflows
 - Plugins make it easy to adopt comprehensive toolkits for particular scenarios
 
-**Install Plugins:**
-- Use \`copilot plugin install <plugin-name>@awesome-copilot\` to install a plugin
-- Or browse to the individual files to copy content manually
-- Plugins help you discover related customizations you might have missed
+**Find & Install in Copilot CLI:**
+- Browse the marketplace from within an interactive Copilot session: \`/plugin marketplace browse awesome-copilot\`
+- Install a plugin: \`copilot plugin install <plugin-name>@awesome-copilot\`
+
+**Find & Install in VS Code:**
+- Open the Extensions search view and type \`@agentPlugins\` to browse available plugins
+- Or open the Command Palette and run \`Chat: Plugins\`
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
@@ -34,7 +39,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 | [devops-oncall](../plugins/devops-oncall/README.md) | A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources. | 3 items | devops, incident-response, oncall, azure |
 | [edge-ai-tasks](../plugins/edge-ai-tasks/README.md) | Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai | 2 items | architecture, planning, research, tasks, implementation |
 | [frontend-web-dev](../plugins/frontend-web-dev/README.md) | Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks. | 4 items | frontend, web, react, typescript, javascript, css, html, angular, vue |
-| [gem-team](../plugins/gem-team/README.md) | A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing. | 8 items | multi-agent, orchestration, dag-planning, parallel-execution, tdd, verification, automation, security, prd |
+| [gem-team](../plugins/gem-team/README.md) | A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead. | 8 items | multi-agent, orchestration, dag-planning, parallel-execution, tdd, verification, automation, security, prd |
 | [go-mcp-development](../plugins/go-mcp-development/README.md) | Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance. | 2 items | go, golang, mcp, model-context-protocol, server-development, sdk |
 | [java-development](../plugins/java-development/README.md) | Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices. | 4 items | java, springboot, quarkus, jpa, junit, javadoc |
 | [java-mcp-development](../plugins/java-mcp-development/README.md) | Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration. | 2 items | java, mcp, model-context-protocol, server-development, sdk, reactive-streams, spring-boot, reactor |
