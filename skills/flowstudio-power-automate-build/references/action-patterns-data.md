@@ -3,7 +3,8 @@
 Array operations, HTTP calls, parsing, and data transformation patterns.
 
 > All examples assume `"runAfter"` is set appropriately.
-> Replace `<connectionName>` with the GUID from `connectionReferences`.
+> `<connectionName>` is the **key** in `connectionReferences` (e.g. `shared_sharepointonline`), not the GUID.
+> The GUID goes in the map value's `connectionName` property.
 
 ---
 

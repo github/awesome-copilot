@@ -15,7 +15,7 @@ Step-by-step guide for constructing and deploying Power Automate cloud flows
 programmatically through the FlowStudio MCP server.
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
-See the `power-automate-mcp` skill for connection setup.  
+See the `flowstudio-power-automate-mcp` skill for connection setup.  
 Subscribe at https://mcp.flowstudio.app
 
 ---
@@ -271,7 +271,7 @@ else:
 
 ---
 
-## Step 6 — Verify the Deployment
+## Step 5 — Verify the Deployment
 
 ```python
 check = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
@@ -286,7 +286,7 @@ print("Actions:", list(acts.keys()))
 
 ---
 
-## Step 7 — Test the Flow
+## Step 6 — Test the Flow
 
 > **MANDATORY**: Before triggering any test run, **ask the user for confirmation**.
 > Running a flow has real side effects — it may send emails, post Teams messages,
@@ -456,5 +456,5 @@ The `body/recipient` parameter format depends on the `location` value:
 
 ## Related Skills
 
-- `power-automate-mcp` — Core connection setup and tool reference
-- `power-automate-debug` — Debug failing flows after deployment
+- `flowstudio-power-automate-mcp` — Core connection setup and tool reference
+- `flowstudio-power-automate-debug` — Debug failing flows after deployment
