@@ -4,48 +4,29 @@
 A community-created collection of custom agents, instructions, skills, hooks, workflows, and plugins to supercharge your GitHub Copilot experience.
 
 > [!TIP]
-> **Explore the full collection on the website →** [awesome-copilot.github.com](https://awesome-copilot.github.com)
+> **Explore the full collection on the website →** [github.github.com/awesome-copilot](https://github.github.com/awesome-copilot)
 >
-> The website offers full-text search and filtering across 600+ resources, plus the [Tools](https://awesome-copilot.github.com/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://awesome-copilot.github.com/learning-hub) for guides and tutorials.
+> The website offers full-text search and filtering across 600+ resources, plus the [Tools](https://github.github.com/awesome-copilot/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://github.github.com/awesome-copilot/learning-hub) for guides and tutorials.
 
 ## 📖 Learning Hub
 
-New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilot.github.com/learning-hub)** on the website offers curated articles, walkthroughs, and reference material — covering everything from core concepts like agents, skills, and instructions to hands-on guides for hooks, agentic workflows, MCP servers, and the Copilot coding agent.
+New to GitHub Copilot customization? The **[Learning Hub](https://github.github.com/awesome-copilot/learning-hub)** on the website offers curated articles, walkthroughs, and reference material — covering everything from core concepts like agents, skills, and instructions to hands-on guides for hooks, agentic workflows, MCP servers, and the Copilot coding agent.
 
 ## What's in this repo
 
 | Resource | Description | Browse |
 |----------|-------------|--------|
-| 🤖 [Agents](docs/README.agents.md) | Specialized Copilot agents that integrate with MCP servers | [All agents →](https://awesome-copilot.github.com/agents) |
-| 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://awesome-copilot.github.com/instructions) |
-| 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://awesome-copilot.github.com/skills) |
-| 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://awesome-copilot.github.com/plugins) |
-| 🪝 [Hooks](docs/README.hooks.md) | Automated actions triggered during Copilot agent sessions | [All hooks →](https://awesome-copilot.github.com/hooks) |
-| ⚡ [Agentic Workflows](docs/README.workflows.md) | AI-powered GitHub Actions automations written in markdown | [All workflows →](https://awesome-copilot.github.com/workflows) |
+| 🤖 [Agents](docs/README.agents.md) | Specialized Copilot agents that integrate with MCP servers | [All agents →](https://github.github.com/awesome-copilot/agents) |
+| 📋 [Instructions](docs/README.instructions.md) | Coding standards applied automatically by file pattern | [All instructions →](https://github.github.com/awesome-copilot/instructions) |
+| 🎯 [Skills](docs/README.skills.md) | Self-contained folders with instructions and bundled assets | [All skills →](https://github.github.com/awesome-copilot/skills) |
+| 🔌 [Plugins](docs/README.plugins.md) | Curated bundles of agents and skills for specific workflows | [All plugins →](https://github.github.com/awesome-copilot/plugins) |
+| 🪝 [Hooks](docs/README.hooks.md) | Automated actions triggered during Copilot agent sessions | [All hooks →](https://github.github.com/awesome-copilot/hooks) |
+| ⚡ [Agentic Workflows](docs/README.workflows.md) | AI-powered GitHub Actions automations written in markdown | [All workflows →](https://github.github.com/awesome-copilot/workflows) |
 | 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
 
-## Install with the MCP Server
+## 🛠️ Tools
 
-Search and install agents, instructions, and skills directly from your editor. Requires Docker.
-
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode-insiders) [![Install in Visual Studio](https://img.shields.io/badge/Visual_Studio-Install-C16FDE?logo=visualstudio&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vs)
-
-<details>
-<summary>Show MCP Server JSON configuration</summary>
-
-```json
-{
-  "servers": {
-    "awesome-copilot": {
-      "type": "stdio",
-      "command": "docker",
-      "args": ["run", "-i", "--rm", "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest"]
-    }
-  }
-}
-```
-
-</details>
+Looking at how to use Awesome Copilot? Check out the **[Tools section](https://github.github.com/awesome-copilot/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
 ## Install a Plugin
 
