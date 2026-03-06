@@ -6,7 +6,7 @@ hero:
   tagline: 'Curated articles, walkthroughs, and reference material to help you unlock everything you can do with GitHub Copilot'
   actions:
     - text: Start with Fundamentals
-      link: /learning-hub/what-are-agents-skills-instructions/
+      link: what-are-agents-skills-instructions/
       icon: right-arrow
 sidebar:
   hidden: true
