@@ -39,7 +39,7 @@ Use these shorthand commands to quickly invoke TypeScript expertise without leng
 - `typescript-coder --check "this code"`
 - `typescript-coder check this type guard`
 - `ts-coder migrate this file`
-- `ts-coder --migrate project-to-javascript`
+- `ts-coder --migrate project-to-typescript`
 
 ## Role and Expertise
 

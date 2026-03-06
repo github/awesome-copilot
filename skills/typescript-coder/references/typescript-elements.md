@@ -380,7 +380,7 @@ const negateFunction: Negate = (value) => value * -1;
 
 ## TypeScript Casting
 
-- Reference [Casting](https://www.w3schools.com/typescript/typescript_functions.php)
+- Reference [Casting](https://www.w3schools.com/typescript/typescript_casting.php)
 
 ### Casting with as:
 

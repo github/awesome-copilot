@@ -1266,7 +1266,7 @@ initialize(config);
 /** @typedef {import('./api').default as ApiClient} ApiClient */
 ```
 
-### Create a types.d.ts file in your project:Type Imports
+### Create a types.d.ts file in your project
 
 ```ts
 // types.d.ts
@@ -1282,7 +1282,7 @@ declare module 'my-module' {
 }
 ```
 
-#### Then use it in your JavaScript files:Type Imports
+#### Then use it in your JavaScript files
 
 ```ts
 // @ts-check

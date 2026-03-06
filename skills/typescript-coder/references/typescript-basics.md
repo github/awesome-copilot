@@ -152,16 +152,16 @@ console.log(obj[uniqueKey]); // "This is a unique property"
 
 ```ts
 // String
-greeting: string = "Hello, TypeScript!";
+let greeting: string = "Hello, TypeScript!";
 
 // Number
-userCount: number = 42;
+let userCount: number = 42;
 
 // Boolean
-isLoading: boolean = true;
+let isLoading: boolean = true;
 
 // Array of numbers
-scores: number[] = [100, 95, 98];
+let scores: number[] = [100, 95, 98];
 ```
 
 ```ts
