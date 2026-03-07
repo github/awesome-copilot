@@ -60,9 +60,9 @@ Also note that:
 - Do not hand-author the `.lock.yml` unless the user explicitly asks for generated output content
 
 **CRITICAL**: The workflow MUST follow current Agentic Workflow conventions:
-- The source workflow is a single `.md` file with YAML formatter and natural-language instructions
+- The source workflow is a single `.md` file with YAML frontmatter and natural-language instructions
 - The `.lock.yml` file is the compiled artifact generated from the `.md` file
-- Include appropriate triggers and minimum required permissions in formatter
+- Include appropriate triggers and minimum required permissions in the frontmatter
 - Customize the workflow instructions to the technology stack provided
 
 ## Content Guidelines
@@ -189,7 +189,7 @@ project-root/
 │       └── copilot-setup-steps.lock.yml
 ```
 
-## YAML Formatter Template
+## YAML Frontmatter Template
 
 Use this structure for all files:
 
@@ -254,7 +254,7 @@ The plan should include:
 - Testing
 ```
 
-Use additional formatter fields only when the target Copilot environment supports and needs them.
+Use additional frontmatter fields only when the target Copilot environment supports and needs them.
 
 ## Execution Steps
 
@@ -265,7 +265,7 @@ Use additional formatter fields only when the target Copilot environment support
 5. **Generate reusable skills for common development tasks**
 6. **Set up specialized agents for different development scenarios**
 7. **Create the Agentic Workflow for Coding Agent** (`copilot-setup-steps.md`) and compiled lock file guidance (`copilot-setup-steps.lock.yml`)
-8. **Validate all files follow proper formatting and include necessary formatter**
+8. **Validate all files follow proper formatting and include necessary frontmatter**
 
 ## Post-Setup Instructions
 
@@ -279,7 +279,7 @@ After creating all files, provide the user with:
 ## Quality Checklist
 
 Before completing, verify:
-- [ ] All authored Copilot markdown files have proper YAML formatter where required
+- [ ] All authored Copilot markdown files have proper YAML frontmatter where required
 - [ ] Language-specific best practices are included
 - [ ] Files reference each other appropriately using Markdown links
 - [ ] Skills and agents include relevant descriptions; include MCP/tool-related metadata only when the target Copilot environment actually supports or requires it
