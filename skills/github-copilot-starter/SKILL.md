@@ -60,9 +60,9 @@ Also note that:
 - Do not hand-author the `.lock.yml` unless the user explicitly asks for generated output content
 
 **CRITICAL**: The workflow MUST follow current Agentic Workflow conventions:
-- The source workflow is a single `.md` file with YAML frontmatter and natural-language instructions
+- The source workflow is a single `.md` file with YAML formatter and natural-language instructions
 - The `.lock.yml` file is the compiled artifact generated from the `.md` file
-- Include appropriate triggers and minimum required permissions in frontmatter
+- Include appropriate triggers and minimum required permissions in formatter
 - Customize the workflow instructions to the technology stack provided
 
 ## Content Guidelines
@@ -81,12 +81,12 @@ For each file, follow these principles:
 - **ALWAYS add attribution comments** when using awesome-copilot content
 
 **Attribution Format**: When using content from awesome-copilot, add this comment at the top of the file:
-```markdown
+```md
 <!-- Based on/Inspired by: https://github.com/github/awesome-copilot/blob/main/instructions/[filename].instructions.md -->
 ```
 
 **Examples:**
-```markdown
+```md
 <!-- Based on: https://github.com/github/awesome-copilot/blob/main/instructions/react.instructions.md -->
 ---
 applyTo: "**/*.jsx,**/*.tsx"
@@ -96,7 +96,7 @@ description: "React development best practices"
 ...
 ```
 
-```markdown
+```md
 <!-- Inspired by: https://github.com/github/awesome-copilot/blob/main/instructions/java.instructions.md -->
 <!-- and: https://github.com/github/awesome-copilot/blob/main/instructions/spring-boot.instructions.md -->
 ---
@@ -189,12 +189,12 @@ project-root/
 │       └── copilot-setup-steps.lock.yml
 ```
 
-## YAML Frontmatter Template
+## YAML Formatter Template
 
-Use this frontmatter structure for all files:
+Use this structure for all files:
 
 **Instructions (.instructions.md):**
-```yaml
+```md
 ---
 applyTo: "**/*.ts,**/*.tsx"
 ---
@@ -212,7 +212,7 @@ Apply the repository-wide guidance from `../copilot-instructions.md` to all code
 ## React Guidelines
 - Use functional components with hooks
 - Follow the React hooks rules (no conditional hooks)
-- Use React.FC type for components with children
+- Use React. FC type for components with children
 - Keep components small and focused
 - Use CSS modules for component styling
 
@@ -239,7 +239,7 @@ Ask for the component name and fields if not provided.
 ```
 
 **Agents (.agent.md):**
-```yaml
+```md
 ---
 name: "Architect"
 description: Generate an implementation plan for new features or refactoring tasks.
@@ -254,7 +254,7 @@ The plan should include:
 - Testing
 ```
 
-Use additional frontmatter fields only when the target Copilot environment supports and needs them.
+Use additional formatter fields only when the target Copilot environment supports and needs them.
 
 ## Execution Steps
 
@@ -265,7 +265,7 @@ Use additional frontmatter fields only when the target Copilot environment suppo
 5. **Generate reusable skills for common development tasks**
 6. **Set up specialized agents for different development scenarios**
 7. **Create the Agentic Workflow for Coding Agent** (`copilot-setup-steps.md`) and compiled lock file guidance (`copilot-setup-steps.lock.yml`)
-8. **Validate all files follow proper formatting and include necessary frontmatter**
+8. **Validate all files follow proper formatting and include necessary formatter**
 
 ## Post-Setup Instructions
 
@@ -279,7 +279,7 @@ After creating all files, provide the user with:
 ## Quality Checklist
 
 Before completing, verify:
-- [ ] All authored Copilot markdown files have proper YAML frontmatter where required
+- [ ] All authored Copilot markdown files have proper YAML formatter where required
 - [ ] Language-specific best practices are included
 - [ ] Files reference each other appropriately using Markdown links
 - [ ] Skills and agents include relevant descriptions; include MCP/tool-related metadata only when the target Copilot environment actually supports or requires it
