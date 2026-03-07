@@ -114,6 +114,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "flowstudio-power-automate",
+      "source": "flowstudio-power-automate",
+      "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
+      "version": "1.0.0"
+    },
+    {
       "name": "frontend-web-dev",
       "source": "frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
