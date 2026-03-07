@@ -1,6 +1,6 @@
 # Module 7: Advanced Techniques
 
-1. **`@ file mentions`** — Always give precise context, don't rely on the AI finding files
+1. **`@` file mentions** — Always give precise context, don't rely on the AI finding files
    - `@src/auth.ts` — single file
    - `@src/components/` — directory listing
    - "Fix @src/auth.ts to match @tests/auth.test.ts" — multi-file context
