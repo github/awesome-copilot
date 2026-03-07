@@ -2,7 +2,9 @@
 
 ## TypeScript Classes
 
-- Reference [Classes](https://www.w3schools.com/typescript/typescript_classes.php)
+- Reference material for [Classes](https://www.w3schools.com/typescript/typescript_classes.php)
+- See [Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html) for additional information
+- See [Mixins](https://www.typescriptlang.org/docs/handbook/mixins.html) for additional information
 
 ### Members: Types
 
@@ -175,9 +177,12 @@ class Rectangle extends Polygon {
   }
 }
 ```
+
 ## TypeScript Basic Generics
 
-- Reference [Basic Generics](https://www.w3schools.com/typescript/typescript_basic_generics.php)
+- Reference material for [Basic Generics](https://www.w3schools.com/typescript/typescript_basic_generics.php)
+- See [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html) for additional information
+- See [Creating Types from Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html) for additional information
 
 ### Functions
 
@@ -256,9 +261,11 @@ function createLoggedPair<S extends string | number, T extends string | number>(
   return [v1, v2];
 }
 ```
+
 ## TypeScript Utility Types
 
-- Reference [Utility Types](https://www.w3schools.com/typescript/typescript_utility_types.php)
+- Reference material for [Utility Types](https://www.w3schools.com/typescript/typescript_utility_types.php)
+- See [Utility Types](https://www.typescriptlang.org/docs/handbook/utility-types.html) for additional information
 
 ### Partial
 

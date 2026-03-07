@@ -2,7 +2,9 @@
 
 ## TypeScript Async Programming
 
-- Reference [Async Programming](https://www.w3schools.com/typescript/typescript_async.php)
+- Reference material for [Async Programming](https://www.w3schools.com/typescript/typescript_async.php)
+- See [Iterators and Generators](https://www.typescriptlang.org/docs/handbook/iterators-and-generators.html) for additional information
+- See [Symbols](https://www.typescriptlang.org/docs/handbook/symbols.html) for additional information
 
 ### Promises in TypeScript
 
@@ -411,7 +413,9 @@ async function consumeNumbers() {
 
 ## TypeScript Decorators
 
-- Reference [Decorators](https://www.w3schools.com/typescript/typescript_decorators.php)
+- Reference material for [Decorators](https://www.w3schools.com/typescript/typescript_decorators.php)
+- See [Decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) for additional information
+- See [Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) for additional information
 
 ### Enabling Decorators
 
@@ -982,7 +986,9 @@ class Demo {
 
 ## TypeScript in JavaScript Projects (*JSDoc*)
 
-- Reference [JavaScript Projects (*JSDoc*)](https://www.w3schools.com/typescript/typescript_jsdoc.php)
+- Reference material for [JavaScript Projects (*JSDoc*)](https://www.w3schools.com/typescript/typescript_jsdoc.php)
+- See [JS Projects Utilizing TypeScript](https://www.typescriptlang.org/docs/handbook/intro-to-js-ts.html) for additional information
+- See [JSDoc Reference](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html) for additional information
 
 ### Getting Started
 
@@ -1285,7 +1291,8 @@ initialize(config);
 
 ## TypeScript Migration
 
-- Reference [Migration](https://www.w3schools.com/typescript/typescript_migration.php)
+- Reference material for [Migration](https://www.w3schools.com/typescript/typescript_migration.php)
+- See [Migrating from JavaScript](https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html) for additional information
 
 ### Create a new branch for the migration
 
@@ -1484,7 +1491,9 @@ function getUser(id: number): User {
 
 ## TypeScript Error Handling
 
-- Reference [Error Handling](https://www.w3schools.com/typescript/typescript_error_handling.php)
+- Reference material for [Error Handling](https://www.w3schools.com/typescript/typescript_error_handling.php)
+- See [The Basics](https://www.typescriptlang.org/docs/handbook/2/basic-types.html) for additional information
+- See [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) for additional information
 
 ### Basic Error Handling
 
@@ -1758,7 +1767,9 @@ async function loadUser() {
 
 ## TypeScript Best Practices
 
-- Reference [Best Practices](https://www.w3schools.com/typescript/typescript_best_practices.php)
+- Reference material for [Best Practices](https://www.w3schools.com/typescript/typescript_best_practices.php)
+- See [The TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) for additional information
+- See [Do's and Don'ts](https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html) for additional information
 
 ### Project Configuration - Enable Strict Mode
 

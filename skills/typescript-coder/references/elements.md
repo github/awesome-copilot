@@ -2,22 +2,23 @@
 
 ## TypeScript Arrays
 
-- Reference [Arrays](https://www.w3schools.com/typescript/typescript_arrays.php)
+- Reference material for [Arrays](https://www.w3schools.com/typescript/typescript_arrays.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
 
-### Elements Syntax:
+### Elements Syntax
 
 ```ts
 const names: string[] = [];
 names.push("Dylan"); // no error
-// names.push(3); 
+// names.push(3);
 // Error: Argument of type 'number' is not assignable to parameter of type 'string'.
 ```
 
-### Readonly:
+### Readonly
 
 ```ts
 const names: readonly string[] = ["Dylan"];
-names.push("Jack"); 
+names.push("Jack");
 // Error: Property 'push' does not exist on type 'readonly string[]'.
 // try removing the readonly modifier and see if it works?
 ```
@@ -25,16 +26,18 @@ names.push("Jack");
 ```ts
 const numbers = [1, 2, 3]; // inferred to type number[]
 numbers.push(4); // no error
-// comment line below out to see the successful assignment 
-numbers.push("2"); 
+// comment line below out to see the successful assignment
+numbers.push("2");
 // Error: Argument of type 'string' is not assignable to parameter of type 'number'.
 let head: number = numbers[0]; // no error
 ```
+
 ## TypeScript Tuples
 
-- Reference [Tuples](https://www.w3schools.com/typescript/typescript_tuples.php)
+- Reference material for [Tuples](https://www.w3schools.com/typescript/typescript_tuples.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
 
-### Typed Arrays:
+### Typed Arrays
 
 ```ts
 // define our tuple
@@ -52,7 +55,7 @@ let ourTuple: [number, boolean, string];
 ourTuple = [false, 'Coding God was mistaken', 5];
 ```
 
-### Readonly Tuple:
+### Readonly Tuple
 
 ```ts
 // define our tuple
@@ -66,13 +69,13 @@ console.log(ourTuple);
 
 ```ts
 // define our readonly tuple
-const ourReadonlyTuple: readonly [number, boolean, string] = 
+const ourReadonlyTuple: readonly [number, boolean, string] =
  [5, true, 'The Real Coding God'];
 // throws error as it is readonly.
 ourReadonlyTuple.push('Coding God took a day off');
 ```
 
-### Named Tuples:
+### Named Tuples
 
 ```ts
 const graph: [x: number, y: number] = [55.2, 41.3];
@@ -82,11 +85,14 @@ const graph: [x: number, y: number] = [55.2, 41.3];
 const graph: [number, number] = [55.2, 41.3];
 const [x, y] = graph;
 ```
+
 ## TypeScript Object Types
 
-- Reference [Object Types](https://www.w3schools.com/typescript/typescript_object_types.php)
+- Reference material for [Object Types](https://www.w3schools.com/typescript/typescript_object_types.php)
+- See [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html) for additional information
+- See [Indexed Access Types](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html) for additional information
 
-### Elements Syntax:
+### Elements Syntax
 
 ```ts
 const car: { type: string, model: string, year: number } = {
@@ -96,22 +102,22 @@ const car: { type: string, model: string, year: number } = {
 };
 ```
 
-### Type Inference:
+### Type Inference
 
 ```ts
 const car = {
   type: "Toyota",
 };
 car.type = "Ford"; // no error
-car.type = 2; 
+car.type = 2;
 // Error: Type 'number' is not assignable to type 'string'.
 ```
 
-### Optional Properties:
+### Optional Properties
 
 ```ts
-const car: { type: string, mileage: number } = { 
-  // Error: Property 'mileage' is missing in type '{ type: string;}' 
+const car: { type: string, mileage: number } = {
+  // Error: Property 'mileage' is missing in type '{ type: string;}'
   // but required in type '{ type: string; mileage: number; }'.
   type: "Toyota",
 };
@@ -125,19 +131,21 @@ const car: { type: string, mileage?: number } = { // no error
 car.mileage = 2000;
 ```
 
-### Index Signatures:
+### Index Signatures
 
 ```ts
 const nameAgeMap: { [index: string]: number } = {};
 nameAgeMap.Jack = 25; // no error
-nameAgeMap.Mark = "Fifty"; 
+nameAgeMap.Mark = "Fifty";
 // Error: Type 'string' is not assignable to type 'number'.
 ```
+
 ## TypeScript Enums
 
-- Reference [Enums](https://www.w3schools.com/typescript/typescript_enums.php)
+- Reference material for [Enums](https://www.w3schools.com/typescript/typescript_enums.php)
+- See [Enums](https://www.typescriptlang.org/docs/handbook/enums.html) for additional information
 
-### Numeric Enums - Default:
+### Numeric Enums - Default
 
 ```ts
 enum CardinalDirections {
@@ -150,11 +158,11 @@ let currentDirection = CardinalDirections.North;
 // logs 0
 console.log(currentDirection);
 // throws error as 'North' is not a valid enum
-currentDirection = 'North'; 
+currentDirection = 'North';
 // Error: "North" is not assignable to type 'CardinalDirections'.
 ```
 
-### Numeric Enums - Initialized:
+### Numeric Enums - Initialized
 
 ```ts
 enum CardinalDirections {
@@ -169,7 +177,7 @@ console.log(CardinalDirections.North);
 console.log(CardinalDirections.West);
 ```
 
-### Numeric Enums - Fully Initialized:
+### Numeric Enums - Fully Initialized
 
 ```ts
 enum StatusCodes {
@@ -184,7 +192,7 @@ console.log(StatusCodes.NotFound);
 console.log(StatusCodes.Success);
 ```
 
-### String Enums:
+### String Enums
 
 ```ts
 enum CardinalDirections {
@@ -198,11 +206,14 @@ console.log(CardinalDirections.North);
 // logs "West"
 console.log(CardinalDirections.West);
 ```
+
 ## TypeScript Type Aliases and Interfaces
 
-- Reference [Type Aliases and Interfaces](https://www.w3schools.com/typescript/typescript_aliases_and_interfaces.php)
+- Reference material for [Type Aliases and Interfaces](https://www.w3schools.com/typescript/typescript_aliases_and_interfaces.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
+- See [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html) for additional information
 
-### Type Aliases:
+### Type Aliases
 
 ```ts
 type CarYear = number
@@ -233,7 +244,7 @@ type Status = "success" | "error";
 let response: Status = "success";
 ```
 
-### Interfaces:
+### Interfaces
 
 ```ts
 interface Rectangle {
@@ -249,10 +260,10 @@ const rectangle: Rectangle = {
 
 ```ts
 interface Animal {
-     name: string; 
+     name: string;
 }
 interface Animal {
-  age: number; 
+  age: number;
 }
 const dog: Animal = {
   name: "Fido",
@@ -260,7 +271,7 @@ const dog: Animal = {
 };
 ```
 
-### Extending Interfaces:
+### Extending Interfaces
 
 ```ts
 interface Rectangle {
@@ -281,9 +292,11 @@ const coloredRectangle: ColoredRectangle = {
 
 ## TypeScript Union Types
 
-- Reference [Union Types](https://www.w3schools.com/typescript/typescript_union_types.php)
+- Reference material for [Union Types](https://www.w3schools.com/typescript/typescript_union_types.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
+- See [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) for additional information
 
-### Union | (OR):
+### Union | (OR)
 
 ```ts
 function printStatusCode(code: string | number) {
@@ -293,12 +306,12 @@ printStatusCode(404);
 printStatusCode('404');
 ```
 
-### Type Guards:
+### Type Guards
 
 ```ts
 function printStatusCode(code: string | number) {
-  console.log(`My status code is ${code.toUpperCase()}.`) 
-  // error: Property 'toUpperCase' does not exist on type 'string | number'. 
+  console.log(`My status code is ${code.toUpperCase()}.`)
+  // error: Property 'toUpperCase' does not exist on type 'string | number'.
   // Property 'toUpperCase' does not exist on type 'number'
 }
 ```
@@ -308,9 +321,10 @@ function printStatusCode(code: string | number) {
 
 ## TypeScript Functions
 
-- Reference [Functions](https://www.w3schools.com/typescript/typescript_functions.php)
+- Reference material for [Functions](https://www.w3schools.com/typescript/typescript_functions.php)
+- See [More on Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html) for additional information
 
-### Return Type:
+### Return Type
 
 ```ts
 // the `: number` here specifies that this function returns a number
@@ -319,7 +333,7 @@ function getTime(): number {
 }
 ```
 
-### Void Return Type:
+### Void Return Type
 
 ```ts
 function printHello(): void {
@@ -327,7 +341,7 @@ function printHello(): void {
 }
 ```
 
-### Parameters:
+### Parameters
 
 ```ts
 function multiply(a: number, b: number) {
@@ -335,7 +349,7 @@ function multiply(a: number, b: number) {
 }
 ```
 
-### Optional Parameters:
+### Optional Parameters
 
 ```ts
 // the `?` operator here marks parameter `c` as optional
@@ -344,7 +358,7 @@ function add(a: number, b: number, c?: number) {
 }
 ```
 
-### Default Parameters:
+### Default Parameters
 
 ```ts
 function pow(value: number, exponent: number = 10) {
@@ -352,7 +366,7 @@ function pow(value: number, exponent: number = 10) {
 }
 ```
 
-### Named Parameters:
+### Named Parameters
 
 ```ts
 function divide({ dividend, divisor }: { dividend: number, divisor: number }) {
@@ -360,7 +374,7 @@ function divide({ dividend, divisor }: { dividend: number, divisor: number }) {
 }
 ```
 
-### Rest Parameters:
+### Rest Parameters
 
 ```ts
 function add(a: number, b: number, ...rest: number[]) {
@@ -368,7 +382,7 @@ function add(a: number, b: number, ...rest: number[]) {
 }
 ```
 
-### Type Alias:
+### Type Alias
 
 ```ts
 type Negate = (value: number) => number;
@@ -380,26 +394,27 @@ const negateFunction: Negate = (value) => value * -1;
 
 ## TypeScript Casting
 
-- Reference [Casting](https://www.w3schools.com/typescript/typescript_casting.php)
+- Reference material for [Casting](https://www.w3schools.com/typescript/typescript_casting.php)
+- See [Type Compatibility](https://www.typescriptlang.org/docs/handbook/type-compatibility.html) for additional information
 
-### Casting with as:
+### Casting with as
 
 ```ts
 let x: unknown = 'hello';
 console.log((x as string).length);
 ```
 
-### Casting with <>:
+### Casting with <>
 
 ```ts
 let x: unknown = 'hello';
 console.log((<string>x).length);
 ```
 
-### Force Casting:
+### Force Casting
 
 ```ts
 let x = 'hello';
-console.log(((x as unknown) as number).length); 
+console.log(((x as unknown) as number).length);
 // x is not actually a number so this will return undefined
 ```

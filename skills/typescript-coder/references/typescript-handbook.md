@@ -2,6 +2,17 @@
 
 Comprehensive TypeScript reference based on the official TypeScript Handbook. This document covers core concepts and patterns.
 
+## Reference Sources
+
+- [The TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [The Basics](https://www.typescriptlang.org/docs/handbook/2/basic-types.html)
+- [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)
+- [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [More on Functions](https://www.typescriptlang.org/docs/handbook/2/functions.html)
+- [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html)
+- [Classes](https://www.typescriptlang.org/docs/handbook/2/classes.html)
+- [Modules](https://www.typescriptlang.org/docs/handbook/2/modules.html)
+
 ## Getting Started
 
 TypeScript is a strongly typed programming language that builds on JavaScript. It adds optional static typing to JavaScript, enabling better tooling, error detection, and code quality.

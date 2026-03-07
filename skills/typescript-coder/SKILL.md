@@ -768,26 +768,78 @@ When migrating a JavaScript project to TypeScript:
 
 ## References
 
-This skill includes bundled reference documentation in the `references/` directory:
+This skill includes bundled reference documentation, project templates, and workflow scripts.
 
-- **[typescript-basics.md](references/typescript-basics.md)** - TypeScript fundamentals, simple types, type inference, and special types
-- **[typescript-cheatsheet.md](references/typescript-cheatsheet.md)** - Quick reference for control flow, classes, interfaces, types, and common patterns
+### Reference Documentation (`references/`)
+
+#### Getting Started & Core Concepts
+
+- **[typescript-getstarted.md](references/typescript-getstarted.md)** - Installation, first steps, and TypeScript tooling setup
+- **[typescript-quickstart.md](references/typescript-quickstart.md)** - Rapid introduction to TypeScript syntax and key features
+- **[typescript-essentials.md](references/typescript-essentials.md)** - Core TypeScript concepts every developer should know
+- **[typescript-handbook.md](references/typescript-handbook.md)** - Comprehensive handbook covering core concepts from official TypeScript documentation (updated)
+- **[typescript-cheatsheet.md](references/typescript-cheatsheet.md)** - Quick reference for control flow, classes, interfaces, types, and common patterns (updated)
+
+#### Type System & Language Features
+
+- **[typescript-types.md](references/typescript-types.md)** - Advanced types, conditional types, mapped types, type guards, and recursive types
 - **[typescript-classes.md](references/typescript-classes.md)** - Class syntax, inheritance, generics, and utility types
 - **[typescript-elements.md](references/typescript-elements.md)** - Arrays, tuples, objects, enums, functions, and casting
-- **[typescript-handbook.md](references/typescript-handbook.md)** - Comprehensive handbook covering core concepts from official TypeScript documentation
 - **[typescript-keywords.md](references/typescript-keywords.md)** - keyof, null handling, optional chaining, and template literal types
 - **[typescript-miscellaneous.md](references/typescript-miscellaneous.md)** - Async programming, promises, decorators, and JSDoc integration
+
+#### Modules, Declarations & Configuration
+
+- **[typescript-module-references.md](references/typescript-module-references.md)** - Module systems, import/export patterns, and path resolution
+- **[typescript-declaration-files.md](references/typescript-declaration-files.md)** - Writing and consuming `.d.ts` files
+- **[typescript-d.ts-templates.md](references/typescript-d.ts-templates.md)** - Ready-to-use declaration file templates for common patterns
+- **[typescript-with-javascript.md](references/typescript-with-javascript.md)** - Using TypeScript alongside JavaScript, `allowJs`, and JSDoc types
+- **[typescript-configuration.md](references/typescript-configuration.md)** - Deep dive into `tsconfig.json` options and project setup
 - **[typescript-projects.md](references/typescript-projects.md)** - Project configuration, Node.js setup, Express integration, React TypeScript
-- **[typescript-types.md](references/typescript-types.md)** - Advanced types, conditional types, mapped types, type guards, and recursive types
+
+#### Ecosystem & Learning
+
+- **[typescript-tools.md](references/typescript-tools.md)** - Editors, linters, formatters, and build tool integrations
+- **[typescript-releases.md](references/typescript-releases.md)** - TypeScript version history and notable new features
+- **[typescript-tutorials.md](references/typescript-tutorials.md)** - Step-by-step tutorials for common TypeScript use cases
+- **[typescript-basics.md](references/typescript-basics.md)** - TypeScript fundamentals, simple types, type inference, and special types
+
+### Project Templates (`assets/`)
+
+The `assets/` folder contains ready-to-use TypeScript project templates:
+
+- Node.js library template (CJS + ESM dual output)
+- React + TypeScript application template
+- Express + TypeScript API template
+- TypeScript monorepo template with npm workspaces
+
+### Workflow Scripts (`scripts/`)
+
+Step-by-step workflow guides and automation scripts for TypeScript development:
+
+- **[scripts/yeoman-typescript-generator.md](scripts/yeoman-typescript-generator.md)** - Create and publish custom Yeoman generators for scaffolding TypeScript projects. Covers generator structure, prompts, templates, composition, testing, and npm publishing.
+- **[scripts/npm-typescript-workflow.md](scripts/npm-typescript-workflow.md)** - Comprehensive npm workflow for TypeScript projects: initialization, essential `package.json` scripts, `@types/*` management, publishing with declarations and exports map, npm workspaces for monorepos, and security auditing.
+- **[scripts/bun-typescript-workflow.md](scripts/bun-typescript-workflow.md)** - Full Bun runtime workflow for TypeScript: running `.ts` files without compilation, `bun test`, `bun build`, `bun install`, `bunfig.toml` configuration, and migrating from Node.js/npm to Bun.
+- **[scripts/typescript-health-check.md](scripts/typescript-health-check.md)** - TypeScript project health check with type coverage analysis, strict mode auditing, dead code detection, circular dependency checks, bundle size analysis, type performance profiling, declaration file validation, and a shell script (`health-check.sh`) that runs all checks automatically.
 
 ### External Resources
 
 - [TypeScript Official Documentation](https://www.typescriptlang.org/docs/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [TypeScript tsconfig Reference](https://www.typescriptlang.org/tsconfig/)
 - [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
 - [TypeScript Playground](https://www.typescriptlang.org/play) - Test TypeScript code online
+- [Yeoman Generators](https://yeoman.io/generators/) - Browse community generators
+- [Bun Documentation](https://bun.sh/docs) - Bun runtime reference
+- [npm Documentation](https://docs.npmjs.com/) - npm CLI and registry reference
 
 ## Summary
 
 The TypeScript Coder skill empowers you to write type-safe, maintainable code with expert-level TypeScript knowledge. Whether migrating existing JavaScript projects or starting new TypeScript projects, apply these proven patterns, workflows, and best practices to deliver production-quality code with confidence.
+
+This skill now includes:
+- **Expanded reference material** across 13+ reference files covering the full TypeScript ecosystem
+- **Project templates** in the `assets/` folder for common TypeScript project types
+- **Workflow scripts** for project scaffolding (Yeoman), package management (npm and Bun), and automated health checking
 
 **Remember**: TypeScript is a tool for developer productivity and code quality. Use it to catch errors early, improve code documentation, and enable better tooling—but don't let perfect types prevent shipping working code.

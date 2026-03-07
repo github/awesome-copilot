@@ -2,9 +2,12 @@
 
 ## TypeScript Configuration
 
-- Reference [Configuration](https://www.w3schools.com/typescript/typescript_config.php)
+- Reference material for [Configuration](https://www.w3schools.com/typescript/typescript_config.php)
+- See [What is a tsconfig.json](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) for additional information
+- See [TSConfig Reference](https://www.typescriptlang.org/tsconfig/) for additional information
+- See [Integrating with Build Tools](https://www.typescriptlang.org/docs/handbook/integrating-with-build-tools.html) for additional information
 
-### Basic Configuration:
+### Basic Configuration
 
 ```json
 {
@@ -16,7 +19,7 @@
 }
 ```
 
-### Advanced Configuration:
+### Advanced Configuration
 
 ```json
 {
@@ -36,7 +39,7 @@
 }
 ```
 
-### Initialize Configuration:
+### Initialize Configuration
 
 ```bash
 tsc --init
@@ -44,9 +47,11 @@ tsc --init
 
 ## TypeScript Node.js
 
-- Reference [Node.js](https://www.w3schools.com/typescript/typescript_nodejs.php)
+- Reference material for [Node.js](https://www.w3schools.com/typescript/typescript_nodejs.php)
+- See [TypeScript Tooling in 5 minutes](https://www.typescriptlang.org/docs/handbook/typescript-tooling-in-5-minutes.html) for additional information
+- See [Modules](https://www.typescriptlang.org/docs/handbook/2/modules.html) for additional information
 
-### Setting Up Node.js Project:
+### Setting Up Node.js Project
 
 ```bash
 mkdir my-ts-node-app
@@ -56,14 +61,14 @@ npm install typescript @types/node --save-dev
 npx tsc --init
 ```
 
-### Create Project Structure:
+### Create Project Structure
 
 ```bash
 mkdir src
 # later add files like: src/server.ts, src/middleware/auth.ts
 ```
 
-### TypeScript Configuration:
+### TypeScript Configuration
 
 ```json
 {
@@ -85,14 +90,14 @@ mkdir src
 }
 ```
 
-### Install Dependencies:
+### Install Dependencies
 
 ```bash
 npm install express body-parser
 npm install --save-dev ts-node nodemon @types/express
 ```
 
-### Project Structure:
+### Project Structure
 
 ```
 my-ts-node-app/
@@ -110,7 +115,7 @@ my-ts-node-app/
   tsconfig.json
 ```
 
-### Basic Express Server Example:
+### Basic Express Server Example
 
 ```ts
 import express, { Request, Response, NextFunction } from 'express';
@@ -175,7 +180,7 @@ app.listen(PORT, () => {
 });
 ```
 
-### Express Middleware with Authentication:
+### Express Middleware with Authentication
 
 ```ts
 import { Request, Response, NextFunction } from 'express';
@@ -203,7 +208,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
      routes that rely on authenticate/authorize, resulting in a complete authentication and
      authorization bypass. Replace the mock decoded assignment with real JWT verification
      (including signature, expiry, and claims checks) and ensure that invalid or missing tokens
-     never populate req.user or reach privileged handlers. 
+     never populate req.user or reach privileged handlers.
     **********************************************************************************************/
     // In a real app, verify the JWT token here
     const decoded = { id: 1, role: 'admin' }; // Mock decoded token
@@ -229,7 +234,7 @@ export const authorize = (roles: string[]) => {
 };
 ```
 
-### Using Middleware in Routes:
+### Using Middleware in Routes
 
 ```ts
 // src/server.ts
@@ -240,7 +245,7 @@ app.get('/api/admin', authenticate, authorize(['admin']), (req, res) => {
 });
 ```
 
-### Database Integration with TypeORM - Entity:
+### Database Integration with TypeORM - Entity
 
 ```ts
 import { Entity, PrimaryGeneratedColumn, Column,
@@ -271,7 +276,7 @@ export class User {
 }
 ```
 
-### Database Configuration:
+### Database Configuration
 
 ```ts
 import 'reflect-metadata';
@@ -293,7 +298,7 @@ export const AppDataSource = new DataSource({
 });
 ```
 
-### Initialize Database:
+### Initialize Database
 
 ```ts
 // src/server.ts
@@ -309,7 +314,7 @@ AppDataSource.initialize()
   });
 ```
 
-### Package Scripts:
+### Package Scripts
 
 ```json
 {
@@ -323,29 +328,32 @@ AppDataSource.initialize()
 }
 ```
 
-### Development Mode:
+### Development Mode
 
 ```bash
 npm run dev
 ```
 
-### Production Build:
+### Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-### Run with Source Maps:
+### Run with Source Maps
 
 ```bash
 node --enable-source-maps dist/server.js
 ```
+
 ## TypeScript React
 
-- Reference [React](https://www.w3schools.com/typescript/typescript_react.php)
+- Reference material for [React](https://www.w3schools.com/typescript/typescript_react.php)
+- See [JSX](https://www.typescriptlang.org/docs/handbook/jsx.html) for additional information
+- See [React & Webpack](https://webpack.js.org/guides/typescript/) for additional information
 
-### Getting Started:
+### Getting Started
 
 ```bash
 npm create vite@latest my-app -- --template react-ts
@@ -354,7 +362,7 @@ npm install
 npm run dev
 ```
 
-### TypeScript Configuration for React:
+### TypeScript Configuration for React
 
 ```json
 {
@@ -376,7 +384,7 @@ npm run dev
 }
 ```
 
-### Component Typing:
+### Component Typing
 
 ```tsx
 // Greeting.tsx
@@ -395,7 +403,7 @@ export function Greeting({ name, age }: GreetingProps) {
 }
 ```
 
-### Event Handlers:
+### Event Handlers
 
 ```tsx
 // Input change
@@ -415,7 +423,7 @@ function SaveButton() {
 }
 ```
 
-### useState Hook:
+### useState Hook
 
 ```tsx
 const [count, setCount] = React.useState<number>(0);
@@ -425,7 +433,7 @@ type User = { id: string; name: string };
 const [user, setUser] = React.useState<User | null>(null);
 ```
 
-### useRef Hook:
+### useRef Hook
 
 ```tsx
 function FocusInput() {
@@ -434,7 +442,7 @@ function FocusInput() {
 }
 ```
 
-### Children Props:
+### Children Props
 
 ```tsx
 type CardProps = { title: string; children?: React.ReactNode };
@@ -448,7 +456,7 @@ function Card({ title, children }: CardProps) {
 }
 ```
 
-### Generic Fetch Function:
+### Generic Fetch Function
 
 ```tsx
 async function fetchJson<T>(url: string): Promise<T> {
@@ -465,7 +473,7 @@ async function loadPosts() {
 }
 ```
 
-### Context API with TypeScript:
+### Context API with TypeScript
 
 ```tsx
 type Theme = 'light' | 'dark';
@@ -486,14 +494,14 @@ function useTheme() {
 }
 ```
 
-### Vite Environment Types:
+### Vite Environment Types
 
 ```ts
 // src/vite-env.d.ts
 /// <reference types="vite/client" />
 ```
 
-### TypeScript Config for Vite Types:
+### TypeScript Config for Vite Types
 
 ```json
 {
@@ -503,7 +511,7 @@ function useTheme() {
 }
 ```
 
-### Path Aliases:
+### Path Aliases
 
 ```json
 // tsconfig.json
@@ -527,16 +535,18 @@ import { formatDate } from '@utils/date';
 
 ## TypeScript Tooling
 
-- Reference [Tooling](https://www.w3schools.com/typescript/typescript_tooling.php)
+- Reference material for [Tooling](https://www.w3schools.com/typescript/typescript_tooling.php)
+- See [Integrating with Build Tools](https://www.typescriptlang.org/docs/handbook/integrating-with-build-tools.html) for additional information
+- See [TypeScript Tooling in 5 minutes](https://www.typescriptlang.org/docs/handbook/typescript-tooling-in-5-minutes.html) for additional information
 
-### Install ESLint:
+### Install ESLint
 
 ```bash
 # Install ESLint with TypeScript support
 npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
 ```
 
-### ESLint Configuration:
+### ESLint Configuration
 
 ```json
 // .eslintrc.json
@@ -562,7 +572,7 @@ npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslin
 }
 ```
 
-### ESLint Scripts:
+### ESLint Scripts
 
 ```json
 // package.json
@@ -575,14 +585,14 @@ npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslin
 }
 ```
 
-### Install Prettier:
+### Install Prettier
 
 ```bash
 # Install Prettier and related packages
 npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier
 ```
 
-### Prettier Configuration:
+### Prettier Configuration
 
 ```json
 // .prettierrc
@@ -597,7 +607,7 @@ npm install --save-dev prettier eslint-config-prettier eslint-plugin-prettier
 }
 ```
 
-### Prettier Ignore File:
+### Prettier Ignore File
 
 ```
 // .prettierignore
@@ -608,7 +618,7 @@ dist
 .vscode
 ```
 
-### Integrate Prettier with ESLint:
+### Integrate Prettier with ESLint
 
 ```json
 // .eslintrc.json
@@ -620,7 +630,7 @@ dist
 }
 ```
 
-### Setup with Vite:
+### Setup with Vite
 
 ```bash
 # Create a new project with React + TypeScript
@@ -636,7 +646,7 @@ npm install
 npm run dev
 ```
 
-### Webpack Configuration:
+### Webpack Configuration
 
 ```js
 // webpack.config.js
@@ -679,7 +689,7 @@ module.exports = {
 };
 ```
 
-### TypeScript Configuration for Build Tools:
+### TypeScript Configuration for Build Tools
 
 ```json
 // tsconfig.json
@@ -709,7 +719,7 @@ module.exports = {
 }
 ```
 
-### VS Code Settings:
+### VS Code Settings
 
 ```json
 // .vscode/settings.json
@@ -726,7 +736,7 @@ module.exports = {
 }
 ```
 
-### VS Code Launch Configuration:
+### VS Code Launch Configuration
 
 ```json
 // .vscode/launch.json
@@ -759,14 +769,14 @@ module.exports = {
 }
 ```
 
-### Install Testing Dependencies:
+### Install Testing Dependencies
 
 ```bash
 # Install testing dependencies
 npm install --save-dev jest @types/jest ts-jest @testing-library/react @testing-library/jest-dom @testing-library/user-event
 ```
 
-### Jest Configuration:
+### Jest Configuration
 
 ```js
 // jest.config.js
@@ -785,7 +795,7 @@ module.exports = {
 };
 ```
 
-### Example Test File:
+### Example Test File
 
 ```tsx
 // src/__tests__/Button.test.tsx

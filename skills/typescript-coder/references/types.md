@@ -2,9 +2,11 @@
 
 ## TypeScript Advanced Types
 
-- Reference [Advanced Types](https://www.w3schools.com/typescript/typescript_advanced_types.php)
+- Reference material for [Advanced Types](https://www.w3schools.com/typescript/typescript_advanced_types.php)
+- See [Creating Types from Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html) for additional information
+- See [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) for additional information
 
-### Mapped Types:
+### Mapped Types
 
 ```ts
 // Convert all properties to boolean
@@ -69,9 +71,7 @@ type MethodsOnly<T> = {
 };
 ```
 
-## TypeScript Conditional Types
-
-### Conditional Types:
+### Conditional Types
 
 ```ts
 type IsString<T> = T extends string ? true : false;
@@ -116,7 +116,7 @@ type FilterStrings<T> = T extends string ? T : never;
 type Letters = FilterStrings<'a' | 'b' | 1 | 2 | 'c'>; // 'a' | 'b' | 'c'
 ```
 
-### Template Literal Types:
+### Template Literal Types
 
 ```ts
 type Greeting = `Hello, ${string}`;
@@ -171,7 +171,7 @@ type EventHandlers = {
 };
 ```
 
-### Utility Types:
+### Utility Types
 
 ```ts
 // Basic types
@@ -224,7 +224,7 @@ type Mutable<T> = {
 };
 ```
 
-### Recursive Types:
+### Recursive Types
 
 ```ts
 // Simple binary tree
@@ -286,9 +286,11 @@ type RecursiveFunction<T> = (x: T | RecursiveFunction<T>) => void;
 
 ## TypeScript Type Guards
 
-- Reference [Type Guards](https://www.w3schools.com/typescript/typescript_type_guards.php)
+- Reference material for [Type Guards](https://www.w3schools.com/typescript/typescript_type_guards.php)
+- See [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) for additional information
+- See [Typeof Type Operator](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html) for additional information
 
-### typeof Type Guards:
+### typeof Type Guards
 
 ```ts
 // Simple type guard with typeof
@@ -307,7 +309,7 @@ const result1 = formatValue('  hello  ');  // "HELLO"
 const result2 = formatValue(42.1234);      // "42.12"
 ```
 
-### instanceof Type Guards:
+### instanceof Type Guards
 
 ```ts
 class Bird {
@@ -333,7 +335,7 @@ function move(animal: Bird | Fish) {
 }
 ```
 
-### User-Defined Type Guards:
+### User-Defined Type Guards
 
 ```ts
 interface Car {
@@ -367,7 +369,7 @@ function displayVehicleInfo(vehicle: Car | Motorcycle) {
 }
 ```
 
-### Discriminated Unions:
+### Discriminated Unions
 
 ```ts
 interface Circle {
@@ -394,7 +396,7 @@ function calculateArea(shape: Shape) {
 }
 ```
 
-### 'in' Operator Type Guards:
+### 'in' Operator Type Guards
 
 ```ts
 interface Dog {
@@ -416,7 +418,7 @@ function makeSound(animal: Dog | Cat) {
 }
 ```
 
-### Assertion Functions:
+### Assertion Functions
 
 ```ts
 // Type assertion function
@@ -448,11 +450,12 @@ function processNumber(value: unknown): number {
 }
 ```
 
-## TypeScript Conditional Types
+## Advanced Conditional Types
 
-- Reference [Conditional Types](https://www.w3schools.com/typescript/typescript_conditional_types.php)
+- Reference material for [Conditional Types](https://www.w3schools.com/typescript/typescript_conditional_types.php)
+- See [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html) for additional information
 
-### Basic Conditional Type Syntax:
+### Basic Conditional Type Syntax
 
 ```ts
 type IsString<T> = T extends string ? true : false;
@@ -467,7 +470,7 @@ let a: IsString<string>; // a has type 'true'
 let b: IsString<number>; // b has type 'false'
 ```
 
-### Conditional Types with Unions:
+### Conditional Types with Unions
 
 ```ts
 type ToArray<T> = T extends any ? T[] : never;
@@ -483,7 +486,7 @@ type StringsOnly = ExtractString<string | number | boolean | "hello">;
 // Result: string | "hello"
 ```
 
-### Infer keyword with conditional types:
+### Infer keyword with conditional types
 
 ```ts
 // Extract the return type of a function type
@@ -502,7 +505,7 @@ type NumberArrayElement = ElementType<number[]>; // number
 type StringArrayElement = ElementType<string[]>; // string
 ```
 
-### Built-in Conditional Types:
+### Built-in Conditional Types
 
 ```ts
 // Extract<T, U> - Extracts types from T that are assignable to U
@@ -521,7 +524,7 @@ type Params = Parameters<(a: string, b: number) => void>; // [string, number]
 type Return = ReturnType<() => string>; // string
 ```
 
-### Advanced Patterns and Techniques:
+### Advanced Patterns and Techniques
 
 ```ts
 // Deeply unwrap Promise types
@@ -533,7 +536,7 @@ type B = UnwrapPromise<Promise<Promise<number>>>;   // number
 type C = UnwrapPromise<boolean>;                   // boolean
 ```
 
-### Type name mapping:
+### Type name mapping
 
 ```ts
 type TypeName<T> =
@@ -552,7 +555,7 @@ type T3 = TypeName<() => void>; // "function"
 type T4 = TypeName<Date[]>;     // "object"
 ```
 
-### Conditional return types:
+### Conditional return types
 
 ```ts
 // A function that returns different types based on input type
@@ -581,11 +584,13 @@ const numberResult = processValue(10);      // Returns 20 (type is number)
 const boolResult = processValue(true);      // Returns false (type is boolean)
 ```
 
-## TypeScript Mapped Types
+## Advanced Mapped Types
 
-- Reference [Mapped Types](https://www.w3schools.com/typescript/typescript_mapped_types.php)
+- Reference material for [Mapped Types](https://www.w3schools.com/typescript/typescript_mapped_types.php)
+- See [Mapped Types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html) for additional information
+- See [Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html) for additional information
 
-### Type Syntax Example:
+### Type Syntax Example
 
 ```ts
 // Small example
@@ -594,7 +599,7 @@ type PartialPerson = { [P in keyof Person]?: Person[P] };
 type ReadonlyPerson = { readonly [P in keyof Person]: Person[P] };
 ```
 
-### Basic Mapped Type Syntax:
+### Basic Mapped Type Syntax
 
 ```ts
 // Define an object type
@@ -631,7 +636,7 @@ const readonlyPerson: ReadonlyPerson = {
 // Error: Cannot assign to 'age' because it is a read-only property
 ```
 
-### Built-in Mapped Types:
+### Built-in Mapped Types
 
 ```ts
 interface User {
@@ -666,7 +671,7 @@ type UserRoles = Record<"admin" | "user" | "guest", string>;
 // Equivalent to: { admin: string; user: string; guest: string; }
 ```
 
-### Creating Custom Mapped Types:
+### Creating Custom Mapped Types
 
 ```ts
 // Base interface
@@ -700,7 +705,7 @@ const productValidator: Validator<Product> = {
 };
 ```
 
-### Modifying Property Modifiers:
+### Modifying Property Modifiers
 
 ```ts
 // Base interface with some readonly and optional properties
@@ -744,7 +749,7 @@ type RequiredConfig = RequiredProps<Configuration>;
 */
 ```
 
-### Conditional Mapped Types:
+### Conditional Mapped Types
 
 ```ts
 // Base interface
@@ -783,7 +788,8 @@ type ApiResponseStringProps = StringPropsOnly<ApiResponse>;
 
 ## TypeScript Type Inference
 
-- Reference [Type Inference](https://www.w3schools.com/typescript/typescript_type_inference.php)
+- Reference material for [Type Inference](https://www.w3schools.com/typescript/typescript_type_inference.php)
+- See [Type Inference](https://www.typescriptlang.org/docs/handbook/type-inference.html) for additional information
 
 ### Understanding Type Inference in TypeScript
 
@@ -986,9 +992,11 @@ const config: {
 };
 ```
 
-## TypeScript Literal Types
+## Advanced Literal Types
 
-- Reference [Literal Types](https://www.w3schools.com/typescript/typescript_literal_types.php)
+- Reference material for [Literal Types](https://www.w3schools.com/typescript/typescript_literal_types.php)
+- See [Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html) for additional information
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
 
 ### String Literal Types
 
@@ -1221,7 +1229,9 @@ const userQuery = query('users', {
 
 ## TypeScript Namespaces
 
-- Reference [Namespaces](https://www.w3schools.com/typescript/typescript_namespaces.php)
+- Reference material for [Namespaces](https://www.w3schools.com/typescript/typescript_namespaces.php)
+- See [Namespaces](https://www.typescriptlang.org/docs/handbook/namespaces.html) for additional information
+- See [Namespaces and Modules](https://www.typescriptlang.org/docs/handbook/namespaces-and-modules.html) for additional information
 
 ### Basic Namespace Syntax
 
@@ -1342,6 +1352,7 @@ button3.display();
 ### Multi-file Namespaces
 
 **validators.ts:**
+
 ```ts
 namespace Validation {
   export interface StringValidator {
@@ -1351,6 +1362,7 @@ namespace Validation {
 ```
 
 **letters-validator.ts:**
+
 ```ts
 /// <reference path="validators.ts" />
 namespace Validation {
@@ -1365,6 +1377,7 @@ namespace Validation {
 ```
 
 **zipcode-validator.ts:**
+
 ```ts
 /// <reference path="validators.ts" />
 namespace Validation {
@@ -1379,6 +1392,7 @@ namespace Validation {
 ```
 
 **main.ts:**
+
 ```ts
 /// <reference path="validators.ts" />
 /// <reference path="letters-validator.ts" />
@@ -1403,6 +1417,7 @@ strings.forEach(s => {
 ```
 
 **Compile:**
+
 ```bash
 tsc --outFile sample.js main.ts
 ```
@@ -1532,7 +1547,9 @@ const userService = new UserService();
 
 ## TypeScript Index Signatures
 
-- Reference [Index Signatures](https://www.w3schools.com/typescript/typescript_index_signatures.php)
+- Reference material for [Index Signatures](https://www.w3schools.com/typescript/typescript_index_signatures.php)
+- See [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html) for additional information
+- See [Indexed Access Types](https://www.typescriptlang.org/docs/handbook/2/indexed-access-types.html) for additional information
 
 ### Basic String Index Signatures
 
@@ -1682,7 +1699,8 @@ interface FixedTypes {
 
 ## TypeScript Declaration Merging
 
-- Reference [Declaration Merging](https://www.w3schools.com/typescript/typescript_declaration_merging.php)
+- Reference material for [Declaration Merging](https://www.w3schools.com/typescript/typescript_declaration_merging.php)
+- See [Declaration Merging](https://www.typescriptlang.org/docs/handbook/declaration-merging.html) for additional information
 
 ### Interface Merging
 
@@ -1878,4 +1896,3 @@ console.log(user.preferences?.theme);
 const prefs = LibraryModule.getUserPreferences(123);
 console.log(prefs.notifications);
 ```
-

@@ -2,7 +2,8 @@
 
 ## TypeScript Tutorial
 
-- Reference [Tutorial](https://www.w3schools.com/typescript/index.php)
+- Reference material for [Tutorial](https://www.w3schools.com/typescript/index.php)
+- See [The TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) for additional information
 
 ## Getting Started
 
@@ -12,9 +13,14 @@
 console.log('Hello World!');
 ```
 
-- Reference [Getting Started](https://www.w3schools.com/typescript/typescript_getstarted.php)
+- Reference material for [Getting Started](https://www.w3schools.com/typescript/typescript_getstarted.php)
+- See [TS for the New Programmer](https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html) for additional information
+- See [TypeScript for JS Programmers](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html) for additional information
+- See [TS for Java/C# Programmers](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-oop.html) for additional information
+- See [TS for Functional Programmers](https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes-func.html) for additional information
+- See [TypeScript Tooling in 5 minutes](https://www.typescriptlang.org/docs/handbook/typescript-tooling-in-5-minutes.html) for additional information
 
-### Installing Compiler:
+### Installing Compiler
 
 ```bash
 npm install typescript --save-dev
@@ -34,7 +40,7 @@ Version 4.5.5
 tsc: The TypeScript Compiler - Version 4.5.5
 ```
 
-### Configuring compiler:
+### Configuring compiler
 
 ```bash
 npx tsc --init
@@ -50,7 +56,7 @@ Created a new tsconfig.json with:
   forceConsistentCasingInFileNames: true
 ```
 
-### Configuration example:
+### Configuration example
 
 ```json
 {
@@ -61,7 +67,7 @@ Created a new tsconfig.json with:
 }
 ```
 
-### Your First Program:
+### Your First Program
 
 ```ts
 function greet(name: string): string {
@@ -72,13 +78,13 @@ const message: string = greet("World");
 console.log(message);
 ```
 
-### Compile and run:
+### Compile and run
 
 ```bash
 npx tsc hello.ts
 ```
 
-### Compiled JavaScript output:
+### Compiled JavaScript output
 
 ```js
 function greet(name) {
@@ -99,16 +105,18 @@ Hello, World!
 
 ## TypeScript Simple Types
 
-- Reference [Simple Types](https://www.w3schools.com/typescript/typescript_simple_types.php)
+- Reference material for [Simple Types](https://www.w3schools.com/typescript/typescript_simple_types.php)
+- See [The Basics](https://www.typescriptlang.org/docs/handbook/2/basic-types.html) for additional information
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
 
-### Boolean:
+### Boolean
 
 ```ts
 let isActive: boolean = true;
 let hasPermission = false; // TypeScript infers 'boolean' type
 ```
 
-### Number:
+### Number
 
 ```ts
 let decimal: number = 6;
@@ -118,7 +126,7 @@ let octal: number = 0o744;      // Octal
 let float: number = 3.14;      // Floating point
 ```
 
-### String:
+### String
 
 ```ts
 let color: string = "blue";
@@ -127,14 +135,14 @@ let age: number = 30;
 let sentence: string = `Hello, my name is ${fullName} and I'll be ${age + 1} next year.`;
 ```
 
-### BigInt (ES2020+):
+### BigInt (ES2020+)
 
 ```ts
 const bigNumber: bigint = 9007199254740991n;
 const hugeNumber = BigInt(9007199254740991); // Alternative syntax
 ```
 
-### Symbol:
+### Symbol
 
 ```ts
 const uniqueKey: symbol = Symbol('description');
@@ -146,9 +154,11 @@ console.log(obj[uniqueKey]); // "This is a unique property"
 
 ## TypeScript Explicit Types and Inference
 
-- Reference [Explicit Types and Inference](https://www.w3schools.com/typescript/typescript_explicit_inference.php)
+- Reference material for [Explicit Types and Inference](https://www.w3schools.com/typescript/typescript_explicit_inference.php)
+- See [Type Inference](https://www.typescriptlang.org/docs/handbook/type-inference.html) for additional information
+- See [Variable Declaration](https://www.typescriptlang.org/docs/handbook/variable-declarations.html) for additional information
 
-### Explicit Type Annotations:
+### Explicit Type Annotations
 
 ```ts
 // String
@@ -176,8 +186,7 @@ greet(42);
 // Error: Argument of type '42' is not assignable to parameter of type 'string'
 ```
 
-
-### Type Inference:
+### Type Inference
 
 ```ts
 // TypeScript infers 'string'
@@ -209,7 +218,7 @@ console.log(user.email);
   // Error: Property 'email' does not exist
 ```
 
-### Type Safety in Action:
+### Type Safety in Action
 
 ```ts
 let username: string = "alice";
@@ -253,9 +262,11 @@ something = 42;  // No error
 
 ## TypeScript Special Types
 
-- Reference [Special Types](https://www.w3schools.com/typescript/typescript_special_types.php)
+- Reference material for [Special Types](https://www.w3schools.com/typescript/typescript_special_types.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
+- See [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) for additional information
 
-### Type: any:
+### Type: any
 
 ```ts
 let u = true;
@@ -271,7 +282,7 @@ v = "string"; // no error as it can be "any" type
 Math.round(v); // no error as it can be "any" type
 ```
 
-### Type: unknown:
+### Type: unknown
 
 ```ts
 let w: unknown = 1;
@@ -290,7 +301,8 @@ if(typeof w === 'object' && w !== null) {
 // Although we have to cast multiple times we can do a check in the
 // if to secure our type and have a safer casting
 ```
-### Type: never:
+
+### Type: never
 
 ```ts
 function throwError(message: string): never {
@@ -320,7 +332,7 @@ let x: never = true;
 // Error: Type 'boolean' is not assignable to type 'never'.
 ```
 
-### Type: undefined & null:
+### Type: undefined & null
 
 ```ts
 let y: undefined = undefined;

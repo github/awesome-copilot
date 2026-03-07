@@ -2,9 +2,11 @@
 
 ## TypeScript Keyof
 
-- Reference [Keyof](https://www.w3schools.com/typescript/typescript_keyof.php)
+- Reference material for [Keyof](https://www.w3schools.com/typescript/typescript_keyof.php)
+- See [Keyof Type Operator](https://www.typescriptlang.org/docs/handbook/2/keyof-types.html) for additional information
+- See [Typeof Type Operator](https://www.typescriptlang.org/docs/handbook/2/typeof-types.html) for additional information
 
-### Parameters:
+### Parameters
 
 ```ts
 interface Person {
@@ -30,11 +32,14 @@ function createStringPair(property: keyof StringMap, value: string): StringMap {
   return { [property]: value };
 }
 ```
+
 ## TypeScript Null & Undefined
 
-- Reference [Null & Undefined](https://www.w3schools.com/typescript/typescript_null.php)
+- Reference material for [Null & Undefined](https://www.w3schools.com/typescript/typescript_null.php)
+- See [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html) for additional information
+- See [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) for additional information
 
-### Types:
+### Types
 
 ```ts
 let value: string | undefined | null = null;
@@ -42,7 +47,7 @@ value = 'hello';
 value = undefined;
 ```
 
-### Optional Chaining:
+### Optional Chaining
 
 ```ts
 interface House {
@@ -67,7 +72,7 @@ let home: House = {
 printYardSize(home); // Prints 'No yard'
 ```
 
-### Nullish Coalescing:
+### Nullish Coalescing
 
 ```ts
 function printMileage(mileage: number | null | undefined) {
@@ -78,7 +83,7 @@ printMileage(null); // Prints 'Mileage: Not Available'
 printMileage(0); // Prints 'Mileage: 0'
 ```
 
-### Null Assertion:
+### Null Assertion
 
 ```ts
 function getValue(): string | undefined {
@@ -93,11 +98,13 @@ let array: number[] = [1, 2, 3];
 let value = array[0];
 // with `noUncheckedIndexedAccess` this has the type `number | undefined`
 ```
+
 ## TypeScript Definitely Typed
 
-- Reference [Definitely Typed](https://www.w3schools.com/typescript/typescript_definitely_typed.php)
+- Reference material for [Definitely Typed](https://www.w3schools.com/typescript/typescript_definitely_typed.php)
+- See [Declaration Files Introduction](https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html) for additional information
 
-### Installation:
+### Installation
 
 ```bash
 npm install --save-dev @types/jquery
@@ -105,9 +112,10 @@ npm install --save-dev @types/jquery
 
 ## TypeScript 5.x Update
 
-- Reference [5.x Update](https://www.w3schools.com/typescript/typescript_5_updates.php)
+- Reference material for [5.x Update](https://www.w3schools.com/typescript/typescript_5_updates.php)
+- See [Template Literal Types](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html) for additional information
 
-### Template Literal Types:
+### Template Literal Types
 
 ```ts
 type Color = "red" | "green" | "blue";
@@ -117,7 +125,7 @@ type HexColor<T extends Color> = `#${string}`;
 let myColor: HexColor<"blue"> = "#0000FF";
 ```
 
-### Index Signature Labels:
+### Index Signature Labels
 
 ```ts
 type DynamicObject = { [key: `dynamic_${string}`]: string };
