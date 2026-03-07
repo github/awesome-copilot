@@ -19,6 +19,6 @@
     "github-copilot"
   ],
   "skills": [
-    "./skills/copilot-sdk/"
+    "./skills/copilot-sdk"
   ]
 }

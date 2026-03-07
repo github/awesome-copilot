@@ -16,9 +16,9 @@
     "windows"
   ],
   "agents": [
-    "./agents/winui3-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/winui3-migration-guide/"
+    "./skills/winui3-migration-guide"
   ]
 }
