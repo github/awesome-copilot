@@ -55,14 +55,14 @@ let ourTuple: [number, boolean, string];
 ourTuple = [false, 'Coding God was mistaken', 5];
 ```
 
-### Readonly Tuple
+### Tuple mutation and push behavior
 
 ```ts
 // define our tuple
 let ourTuple: [number, boolean, string];
 // initialize correctly
 ourTuple = [5, false, 'Coding God was here'];
-// We have no type safety in our tuple for indexes 3+
+// We can push more elements, but indices beyond 2 are typed as a union of the element types
 ourTuple.push('Something new and wrong');
 console.log(ourTuple);
 ```
@@ -415,6 +415,8 @@ console.log((<string>x).length);
 
 ```ts
 let x = 'hello';
-console.log(((x as unknown) as number).length);
-// x is not actually a number so this will return undefined
+
+// Force-cast x to number so the compiler lets us call number methods
+console.log(((x as unknown) as number).toFixed(2));
+// Runtime: TypeError, because x is still the string "hello"
 ```
