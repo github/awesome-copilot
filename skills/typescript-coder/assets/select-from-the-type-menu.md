@@ -211,7 +211,7 @@ type Point = {
 
 // ── Interface vs Type Alias ──────────────────────────────────────────────────
 // Interface: can be extended (declaration merging), better error messages for objects
-// Type: required for unions/intersections, cannot be re-declared
+// Type: required for unions/intersections, cannot be redeclared
 
 // Interfaces are extendable via extends:
 interface Animal {
@@ -1699,6 +1699,7 @@ Use this section to identify which menu sections to include for your project typ
 A command-line script with argument parsing and file I/O.
 
 **Select:**
+
 - Base Setup (required)
 - Primitive & Everyday Types
 - Variable Declarations & Scoping
@@ -1709,6 +1710,7 @@ A command-line script with argument parsing and file I/O.
 **Skip:** Template Literal Types, Mapped Types, Declaration Merging
 
 **Example shape:**
+
 ```typescript
 // src/types.ts for a CLI tool
 type ExitCode = 0 | 1 | 2;
@@ -1733,6 +1735,7 @@ type CliResult =
 A backend API with request/response typing, middleware, and database models.
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (request/response bodies, DB entities)
 - Union & Intersection Types (combining base entity with timestamps)
@@ -1743,6 +1746,7 @@ A backend API with request/response typing, middleware, and database models.
 - Declaration Merging & Module Augmentation (Express Request augmentation)
 
 **Example shape:**
+
 ```typescript
 // src/types.ts for a REST API
 interface ApiResponse<T = unknown> {
@@ -1768,6 +1772,7 @@ type CrudPermission = `${Resource}:${"create" | "read" | "update" | "delete"}`;
 A set of reusable UI components with typed props.
 
 **Select:**
+
 - Base Setup (required)
 - Primitive & Everyday Types
 - Object Types & Interfaces (component props interfaces)
@@ -1779,6 +1784,7 @@ A set of reusable UI components with typed props.
 - Function Signatures & Overloads (event handler types, render props)
 
 **Example shape:**
+
 ```typescript
 // src/types.ts for a component library
 type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
@@ -1801,6 +1807,7 @@ type CSSCustomProperty = `--${string}`;
 A business logic layer with complex state transitions and domain entities.
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (entity definitions)
 - Literal Types & Const Assertions (state/event names)
@@ -1811,6 +1818,7 @@ A business logic layer with complex state transitions and domain entities.
 - Keyof & Typeof Operators (dynamic state lookup)
 
 **Example shape:**
+
 ```typescript
 // src/types.ts for a state machine
 type OrderStatus = "draft" | "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
@@ -1834,6 +1842,7 @@ type OrderTransitions = {
 A published library with a public API surface, no runtime, type-only exports.
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (public API types)
 - Generics (generic utilities)
@@ -1845,6 +1854,7 @@ A published library with a public API surface, no runtime, type-only exports.
 - Function Signatures & Overloads (multiple calling conventions)
 
 **Example shape:**
+
 ```typescript
 // src/types.ts for a utility library
 export type DeepPartial<T> = {
@@ -1865,6 +1875,7 @@ export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 A `packages/shared` or `src/shared/types` package shared between frontend and backend.
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (shared domain entities, DTO shapes)
 - Union & Intersection Types (combining entity variants)
@@ -1875,6 +1886,7 @@ A `packages/shared` or `src/shared/types` package shared between frontend and ba
 - Indexed Access Types (extracting API types from a central schema)
 
 **Example shape:**
+
 ```typescript
 // packages/shared/src/types.ts
 export interface Paginated<T> {
@@ -1898,6 +1910,7 @@ export type CreateUserDto = Omit<User, "id" | "createdAt" | "updatedAt">;
 A project with complex, nested, validated configuration (e.g., CI system, build tool).
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (config object shapes)
 - Literal Types & Const Assertions (fixed option sets)
@@ -1909,6 +1922,7 @@ A project with complex, nested, validated configuration (e.g., CI system, build 
 - Variable Declarations & Scoping (const assertions for config)
 
 **Example shape:**
+
 ```typescript
 // src/config/types.ts
 const BASE_CONFIG = {
@@ -1936,6 +1950,7 @@ type EnvOverrides = DeepPartial<{
 A custom event emitter or pub/sub system with fully typed event maps.
 
 **Select:**
+
 - Base Setup (required)
 - Object Types & Interfaces (event payload shapes)
 - Generics (generic emitter class)
@@ -1946,6 +1961,7 @@ A custom event emitter or pub/sub system with fully typed event maps.
 - Conditional Types (extracting payload type from event name)
 
 **Example shape:**
+
 ```typescript
 // src/events/types.ts
 export interface EventMap {
@@ -1984,6 +2000,7 @@ export type EventHandlerMap = {
 4. **Remove the explanatory comments** and alternative examples you didn't select — keep the types clean.
 
 5. **Export types** that need to be shared across modules:
+
    ```typescript
    // src/types.ts
    export type { User, UserUpdate, UserId } from "./types/user.js";
@@ -1992,6 +2009,7 @@ export type EventHandlerMap = {
    ```
 
 6. **Use `noEmit` + `tsc` to validate** your types in CI:
+
    ```bash
    npx tsc --noEmit
    ```

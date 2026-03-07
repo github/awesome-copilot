@@ -372,6 +372,7 @@ class Range implements Iterable<number> {
 ```
 
 For older compile targets, enable full iterator support:
+
 ```ts
 // tsconfig.json
 // { "compilerOptions": { "target": "ES5", "downlevelIteration": true } }
@@ -576,6 +577,7 @@ Pitfalls of using namespaces in module files:
 | Deep nesting | `App.Utils.Strings.trim` becomes unwieldy |
 
 When to use modules vs namespaces:
+
 - **Modules**: all new applications and libraries, any code using a bundler or Node.js
 - **Namespaces**: `.d.ts` declaration files for global scripts, legacy non-module scripts, UMD global library typings
 
@@ -697,6 +699,7 @@ Key rules:
 | `noResolve` | With `--noResolve` flag, `reference path` directives are ignored |
 
 Common use in published `.d.ts` files:
+
 ```ts
 // mylib.d.ts
 /// <reference types="node" />
@@ -753,7 +756,7 @@ enum Color  { Red, Green }
 
 let n: number = Status.Active; // OK — numeric enums are compatible with number
 
-// Class compatibility — only instance members compared (statics ignored)
+// Class compatibility — only instance members compared (static ignore)
 class A { feet = 4; }
 class B { feet = 4; name = ""; }
 let ca: A = new B(); // OK

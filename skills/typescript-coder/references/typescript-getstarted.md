@@ -23,7 +23,7 @@ A static type checker finds errors in code _before_ the program is ever run. Typ
 ```ts
 const obj = { width: 10, height: 15 };
 // TypeScript catches this typo before runtime:
-const area = obj.width * obj.hieght;
+const area = obj.width * obj.height;
 // Error: Property 'hieght' does not exist on type '{ width: number; height: number }'
 // Did you mean 'height'?
 ```
@@ -602,6 +602,7 @@ TypeScript's language service powers rich editor tooling in:
 - **Emacs** — via tide or lsp-mode
 
 All major editors support:
+
 - Inline error reporting
 - Autocompletion (IntelliSense)
 - Go-to-definition and find-all-references
