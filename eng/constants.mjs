@@ -27,7 +27,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-instructions) for guidelines on 
 
   pluginsSection: `## 🔌 Plugins
 
-Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI.`,
+Curated plugins of related agents and skills organized around specific themes, workflows, or use cases. Plugins can be installed directly via GitHub Copilot CLI or VS Code.
+
+> **Awesome Copilot is a default plugin marketplace** — no setup required in either Copilot CLI or VS Code.`,
 
   pluginsUsage: `### How to Contribute
 
@@ -41,10 +43,13 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 - Each plugin includes agents and skills for specific workflows
 - Plugins make it easy to adopt comprehensive toolkits for particular scenarios
 
-**Install Plugins:**
-- Use \\\`copilot plugin install <plugin-name>@awesome-copilot\\\` to install a plugin
-- Or browse to the individual files to copy content manually
-- Plugins help you discover related customizations you might have missed`,
+**Find & Install in Copilot CLI:**
+- Browse the marketplace from within an interactive Copilot session: \\\`/plugin marketplace browse awesome-copilot\\\`
+- Install a plugin: \\\`copilot plugin install <plugin-name>@awesome-copilot\\\`
+
+**Find & Install in VS Code:**
+- Open the Extensions search view and type \\\`@agentPlugins\\\` to browse available plugins
+- Or open the Command Palette and run \\\`Chat: Plugins\\\``,
 
   featuredPluginsSection: `## 🌟 Featured Plugins
 

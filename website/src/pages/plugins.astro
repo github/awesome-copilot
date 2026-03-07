@@ -11,6 +11,15 @@ import PageHeader from '../components/PageHeader.astro';
 
     <div class="page-content">
       <div class="container">
+        <div class="how-to-access">
+          <p><strong>Awesome Copilot is a default plugin marketplace</strong> — no setup required. Access it directly from your tools:</p>
+          <ul>
+            <li><strong>GitHub Copilot CLI</strong>: Type <code>/plugin marketplace browse awesome-copilot</code> in a Copilot session</li>
+            <li><strong>VS Code</strong>: Type <code>@agentPlugins</code> in the Extensions search view, or open the Command Palette and run <code>Chat: Plugins</code></li>
+          </ul>
+          <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+        </div>
+
         <div class="search-bar">
           <label for="search-input" class="sr-only">Search plugins</label>
           <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
@@ -44,4 +53,29 @@ import PageHeader from '../components/PageHeader.astro';
   <script>
     import '../scripts/pages/plugins';
   </script>
+
+  <style>
+    .how-to-access {
+      background: var(--sl-color-bg-nav);
+      border: 1px solid var(--sl-color-hairline);
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .how-to-access p { margin: 0 0 0.5rem; }
+    .how-to-access p:last-child { margin-bottom: 0; }
+    .how-to-access ul {
+      margin: 0.25rem 0 0.5rem 1.25rem;
+      padding: 0;
+    }
+    .how-to-access li { margin: 0.2rem 0; }
+    .how-to-access code {
+      background: var(--sl-color-bg-inline-code);
+      padding: 0.1em 0.35em;
+      border-radius: 0.2rem;
+      font-size: 0.85em;
+    }
+  </style>
 </StarlightPage>
