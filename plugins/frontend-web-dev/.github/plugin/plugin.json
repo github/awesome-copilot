@@ -19,11 +19,10 @@
     "vue"
   ],
   "agents": [
-    "./agents/expert-react-frontend-engineer.md",
-    "./agents/electron-angular-native.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/playwright-explore-website/",
-    "./skills/playwright-generate-test/"
+    "./skills/playwright-explore-website",
+    "./skills/playwright-generate-test"
   ]
 }
