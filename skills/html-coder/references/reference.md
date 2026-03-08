@@ -200,7 +200,7 @@ Create interactive user interface components.
 |---------|---------|
 | `<details>` | Disclosure widget revealing content when toggled open |
 | `<dialog>` | Dialog box, modal, or interactive component |
-| `<geolocation>` | Interactive control for sharing user's geolocation (experimental) |
+| `navigator.geolocation` | JavaScript Geolocation API for accessing user's location (not an HTML element) |
 | `<summary>` | Summary or label for `<details>` disclosure box |
 
 ## Web Components

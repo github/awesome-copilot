@@ -123,26 +123,26 @@ Pre-built templates for common website types (located in `assets/`):
 - `social-media-template.md` - Social media style layout
 
 ### Technology and Startup
-- `startup-template.md` - Startup landing page
-- `app-splashpage-template.md` - App splash or launch page
-- `app-template.md` - Application showcase site
-- `marketing-template.md` - Marketing or promotional page
-- `analytics-template.md` - Analytics dashboard layout
+- `assets/startup-template.html` - Startup landing page
+- `assets/app-splashpage-template.html` - App splash or launch page
+- `assets/app-template.html` - Application showcase site
+- `assets/marketing-template.html` - Marketing or promotional page
+- `assets/analytics-template.html` - Analytics dashboard layout
 
 ### Travel and Lifestyle
-- `travel-template.md` - Travel blog or guide
-- `travel-agency-template.md` - Travel booking or agency site
-- `rental-template.md` - Rental property or vacation site
-- `home-design-template.md` - Home design or real estate
+- `assets/travel-template.html` - Travel blog or guide
+- `assets/travel-agency-template.html` - Travel booking or agency site
+- `assets/rental-template.html` - Rental property or vacation site
+- `assets/home-design-template.html` - Home design or real estate
 
 ### Utility and Special Purpose
-- `resume-template.md` - Professional resume or CV
-- `under-construction-template.md` - Coming soon or maintenance page
-- `start-page-template.md` - Personal start page or dashboard
-- `parallax-template.md` - Parallax scrolling design
-- `responsive-template.md` - Responsive layout example
-- `email-template.md` - HTML email template
-- `documentation-template.md` - Documentation site layout
+- `assets/resume-template.html` - Professional resume or CV
+- `assets/under-construction-template.html` - Coming soon or maintenance page
+- `assets/start-page-template.html` - Personal start page or dashboard
+- `assets/parallax-template.html` - Parallax scrolling design
+- `assets/responsive-template.html` - Responsive layout example
+- `assets/email-template.html` - HTML email template
+- `assets/documentation-template.html` - Documentation site layout
 
 ## Best Practices
 
@@ -334,4 +334,4 @@ All detailed reference materials are located in the `references/` directory:
 
 ---
 
-**Note**: Reference files and templates will be populated in subsequent setup steps. This skill is designed to grow and evolve with additional templates and examples as needed.
+**Note**: This skill includes a curated set of reference files and templates listed above. It is designed to grow and evolve, and additional templates and examples may be added over time as needed.

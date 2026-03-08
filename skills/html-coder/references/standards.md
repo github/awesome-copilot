@@ -224,7 +224,7 @@ Certain attributes are required for validity:
 **ID restrictions**: 
 - Must be unique within document
 - Cannot contain spaces
-- Should start with letter
+- For CSS selector convenience, prefer starting with a letter; IDs starting with digits may require escaping in some selectors
 
 **Class names**:
 - Can have multiple (space-separated)
