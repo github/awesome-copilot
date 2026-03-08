@@ -531,8 +531,7 @@ mcp_contextstream_session(
 mcp_contextstream_memory(
   action="create_node", node_type="bug",
   title="Delete endpoint allows unauthorized resource deletion",
-  content="Any authenticated user can delete any resource — missing ownership check...",
-  category="security"
+  content="Any authenticated user can delete any resource — missing ownership check..."
 )
 ```
 
