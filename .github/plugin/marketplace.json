@@ -14,7 +14,7 @@
       "name": "awesome-copilot",
       "source": "awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "azure",
