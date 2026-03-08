@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Find answers to frequently asked questions about our product, billing, technical support, and account management.">
+  <title>Frequently Asked Questions (FAQ)</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="container">
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/" class="logo">Company</a>
+        
+        <ul class="nav-menu">
+          <li><a href="/products">Products</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+          <a href="/login" class="btn-link">Sign In</a>
+          <a href="/signup" class="btn btn-primary">Get Started</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <main id="main">
+    <section class="faq-hero">
+      <div class="container">
+        <h1>Frequently Asked Questions</h1>
+        <p class="hero-subtitle">Find answers to common questions about our product and services</p>
+        
+        <form class="faq-search-form" role="search">
+          <label for="faq-search" class="sr-only">Search FAQs</label>
+          <input 
+            type="search" 
+            id="faq-search" 
+            name="q" 
+            placeholder="Search for answers..." 
+            aria-label="Search FAQs">
+          <button type="submit" aria-label="Search">Search</button>
+        </form>
+      </div>
+    </section>
+    
+    <section class="faq-content">
+      <div class="container">
+        <div class="faq-categories">
+          <button class="category-btn active" data-category="all" aria-pressed="true">All Questions</button>
+          <button class="category-btn" data-category="general" aria-pressed="false">General</button>
+          <button class="category-btn" data-category="billing" aria-pressed="false">Billing</button>
+          <button class="category-btn" data-category="technical" aria-pressed="false">Technical</button>
+          <button class="category-btn" data-category="account" aria-pressed="false">Account</button>
+          <button class="category-btn" data-category="security" aria-pressed="false">Security</button>
+        </div>
+        
+        <!-- General -->
+        <article class="faq-section" data-category="general">
+          <h2>General Questions</h2>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What is your product and what does it do?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Our product is a collaborative project management platform designed to help teams organize work, track progress, and communicate effectively. It combines task management, file sharing, team messaging, and reporting in one intuitive interface.</p>
+              <p>Key features include real-time collaboration, customizable workflows, integration with 50+ popular tools, and powerful analytics to help you understand team productivity.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Who should use your product?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Our platform is ideal for teams of any size—from startups to enterprises—across various industries including software development, marketing, design, operations, and more.</p>
+              <p>If your team struggles with scattered tools, missed deadlines, or unclear priorities, our product can help streamline your workflow.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Is there a free trial available?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes! We offer a 14-day free trial of our Professional plan with full access to all features. No credit card required to start your trial.</p>
+              <p>We also have a free Starter plan available indefinitely for small teams (up to 5 members) with basic features.</p>
+            </div>
+          </details>
+        </article>
+        
+        <!-- Billing -->
+        <article class="faq-section" data-category="billing">
+          <h2>Billing & Pricing</h2>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>How much does your product cost?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>We offer three pricing tiers:</p>
+              <ul>
+                <li><strong>Starter:</strong> Free (up to 5 team members, 10 projects)</li>
+                <li><strong>Professional:</strong> $29/month per user (unlimited projects, advanced features)</li>
+                <li><strong>Enterprise:</strong> Custom pricing (dedicated support, custom integrations, SSO)</li>
+              </ul>
+              <p>Annual billing is available with a 20% discount. <a href="/pricing">View detailed pricing</a></p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Can I change my plan later?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Absolutely! You can upgrade or downgrade your plan at any time from your account settings.</p>
+              <p>When upgrading, you'll be charged a prorated amount for the remainder of your billing period. When downgrading, the change takes effect at the start of your next billing cycle.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What payment methods do you accept?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>We accept all major credit cards (Visa, Mastercard, American Express, Discover) and PayPal.</p>
+              <p>Enterprise customers can pay via invoice (bank transfer or check). Contact our sales team to set up invoice billing.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What is your refund policy?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>We offer a 30-day money-back guarantee. If you're not satisfied with our product within the first 30 days, contact us for a full refund.</p>
+              <p>After 30 days, subscriptions are non-refundable, but you can cancel anytime to prevent future charges.</p>
+            </div>
+          </details>
+        </article>
+        
+        <!-- Technical -->
+        <article class="faq-section" data-category="technical">
+          <h2>Technical Questions</h2>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What browsers do you support?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Our platform works best on the latest versions of:</p>
+              <ul>
+                <li>Google Chrome (recommended)</li>
+                <li>Mozilla Firefox</li>
+                <li>Safari (macOS and iOS)</li>
+                <li>Microsoft Edge</li>
+              </ul>
+              <p>We recommend keeping your browser up to date for the best experience and security.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Do you have mobile apps?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes! We have native mobile apps for both iOS (iPhone and iPad) and Android devices.</p>
+              <p>Download from the <a href="https://apps.apple.com" target="_blank" rel="noopener">App Store</a> or <a href="https://play.google.com" target="_blank" rel="noopener">Google Play Store</a>. All plans have access to mobile apps.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What integrations are available?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>We integrate with 50+ popular tools including:</p>
+              <ul>
+                <li><strong>Communication:</strong> Slack, Microsoft Teams, Zoom</li>
+                <li><strong>File Storage:</strong> Google Drive, Dropbox, Box, OneDrive</li>
+                <li><strong>Development:</strong> GitHub, GitLab, Bitbucket, Jira</li>
+                <li><strong>Calendar:</strong> Google Calendar, Outlook Calendar</li>
+                <li><strong>CRM:</strong> Salesforce, HubSpot</li>
+              </ul>
+              <p>We also provide a REST API for custom integrations.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Can I import data from another tool?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes! We provide import tools for popular platforms including Asana, Trello, Monday.com, and Basecamp.</p>
+              <p>You can also import data via CSV files. Our support team can help with large-scale migrations. <a href="/contact">Contact us</a> to discuss your migration needs.</p>
+            </div>
+          </details>
+        </article>
+        
+        <!-- Account -->
+        <article class="faq-section" data-category="account">
+          <h2>Account Management</h2>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>How do I add team members?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>To add team members:</p>
+              <ol>
+                <li>Go to Settings → Team Members</li>
+                <li>Click "Invite Members"</li>
+                <li>Enter email addresses (one per line or comma-separated)</li>
+                <li>Select their role (Admin, Member, or Guest)</li>
+                <li>Click "Send Invitations"</li>
+              </ol>
+              <p>Team members will receive an email invitation to join your workspace.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>What's the difference between Admin, Member, and Guest roles?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p><strong>Admins</strong> have full access including billing, team management, and all workspace settings.</p>
+              <p><strong>Members</strong> can create and manage projects, invite guests, but cannot access billing or remove admins.</p>
+              <p><strong>Guests</strong> have limited access to specific projects they're invited to. Great for clients or external collaborators.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>How do I delete my account?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>To delete your account:</p>
+              <ol>
+                <li>Go to Settings → Account</li>
+                <li>Scroll to the bottom and click "Delete Account"</li>
+                <li>Confirm deletion by typing your email address</li>
+              </ol>
+              <p><strong>Warning:</strong> This permanently deletes all your data and cannot be undone. Consider exporting your data first.</p>
+            </div>
+          </details>
+        </article>
+        
+        <!-- Security -->
+        <article class="faq-section" data-category="security">
+          <h2>Security & Privacy</h2>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>How secure is my data?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Security is our top priority. We use:</p>
+              <ul>
+                <li><strong>Encryption:</strong> 256-bit SSL/TLS encryption for data in transit, AES-256 encryption for data at rest</li>
+                <li><strong>Infrastructure:</strong> AWS with SOC 2 Type II compliance</li>
+                <li><strong>Backups:</strong> Automatic daily backups with 30-day retention</li>
+                <li><strong>Monitoring:</strong> 24/7 security monitoring and threat detection</li>
+              </ul>
+              <p>Read our full <a href="/security">Security Policy</a> for details.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Do you support two-factor authentication (2FA)?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes! We strongly recommend enabling 2FA for all accounts. We support:</p>
+              <ul>
+                <li>Authenticator apps (Google Authenticator, Authy, etc.)</li>
+                <li>SMS verification</li>
+                <li>Hardware security keys (YubiKey, etc.)</li>
+              </ul>
+              <p>Enable 2FA in Settings → Security → Two-Factor Authentication.</p>
+            </div>
+          </details>
+          
+          <details class="faq-item">
+            <summary>
+              <h3>Are you GDPR compliant?</h3>
+              <span class="faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="faq-answer">
+              <p>Yes, we are fully GDPR compliant. We provide:</p>
+              <ul>
+                <li>Data portability (export your data anytime)</li>
+                <li>Right to deletion (delete your account and data)</li>
+                <li>Data processing agreements (DPA) for enterprise customers</li>
+                <li>Transparent privacy practices</li>
+              </ul>
+              <p>Read our <a href="/privacy">Privacy Policy</a> for complete details.</p>
+            </div>
+          </details>
+        </article>
+      </div>
+    </section>
+    
+    <section class="faq-help-section">
+      <div class="container">
+        <h2>Still Need Help?</h2>
+        <p>Can't find the answer you're looking for? Our support team is here to help.</p>
+        
+        <div class="help-options">
+          <div class="help-option">
+            <h3>Contact Support</h3>
+            <p>Email us at support@example.com</p>
+            <a href="/contact" class="btn btn-outline">Contact Us</a>
+          </div>
+          
+          <div class="help-option">
+            <h3>Help Center</h3>
+            <p>Browse guides and tutorials</p>
+            <a href="/help" class="btn btn-outline">Visit Help Center</a>
+          </div>
+          
+          <div class="help-option">
+            <h3>Live Chat</h3>
+            <p>Chat with us Mon-Fri 9am-6pm EST</p>
+            <button class="btn btn-primary" onclick="startChat()">Start Chat</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>Company</h3>
+          <p>Building innovative solutions</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/updates">Updates</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Support</h3>
+          <ul>
+            <li><a href="/help">Help Center</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/press">Press</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 Company Name. All rights reserved.</p>
+        <nav aria-label="Legal">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="faq.js" defer></script>
+</body>
+</html>

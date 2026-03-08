@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CloudFlow - Modern project management software for distributed teams. Streamline workflows, boost productivity, and collaborate seamlessly.">
+  <meta property="og:title" content="CloudFlow - Project Management for Modern Teams">
+  <meta property="og:description" content="The all-in-one workspace for remote teams">
+  <meta property="og:type" content="website">
+  <title>CloudFlow - Project Management for Modern Teams</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="container">
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/" class="logo">CloudFlow</a>
+        
+        <ul class="nav-menu">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="/customers">Customers</a></li>
+          <li><a href="/resources">Resources</a></li>
+          <li><a href="/company">Company</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+          <a href="/login" class="btn-link">Sign In</a>
+          <a href="/signup" class="btn btn-primary">Start Free Trial</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <main id="main">
+    <section class="hero-saas">
+      <div class="container">
+        <div class="hero-content">
+          <h1>The workspace where work happens</h1>
+          <p class="hero-subtitle">CloudFlow brings your teams, projects, and workflows together in one collaborative platform. No more juggling multiple tools.</p>
+          
+          <form class="hero-signup-form" action="/start-trial" method="POST">
+            <label for="hero-email" class="visually-hidden">Work email</label>
+            <input type="email" id="hero-email" name="email" placeholder="Work email address" required autocomplete="email">
+            <button type="submit" class="btn btn-primary btn-large">Start Free Trial</button>
+          </form>
+          
+          <p class="hero-trust">
+            <small>✓ Free 14-day trial • No credit card required • Cancel anytime</small>
+          </p>
+          
+          <div class="social-proof">
+            <p><strong>Trusted by 50,000+ teams worldwide</strong></p>
+            <div class="logo-strip">
+              <img src="logo-stripe.svg" alt="Stripe" width="80" height="30" loading="eager">
+              <img src="logo-shopify.svg" alt="Shopify" width="80" height="30" loading="eager">
+              <img src="logo-zoom.svg" alt="Zoom" width="80" height="30" loading="eager">
+              <img src="logo-slack.svg" alt="Slack" width="80" height="30" loading="eager">
+              <img src="logo-notion.svg" alt="Notion" width="80" height="30" loading="eager">
+            </div>
+          </div>
+        </div>
+        
+        <div class="hero-image">
+          <img src="dashboard-preview.png" alt="CloudFlow dashboard interface showing project boards and tasks" width="800" height="600" loading="eager">
+        </div>
+      </div>
+    </section>
+    
+    <section class="features-overview">
+      <div class="container">
+        <div class="section-header-center">
+          <h2>Everything your team needs to succeed</h2>
+          <p>Powerful features designed for how modern teams work</p>
+        </div>
+        
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📋</div>
+            <h3>Project Management</h3>
+            <p>Organize work with customizable boards, lists, and timelines. Track progress from start to finish.</p>
+          </article>
+          
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">💬</div>
+            <h3>Team Collaboration</h3>
+            <p>Real-time messaging, comments, and @mentions keep everyone in the loop.</p>
+          </article>
+          
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">📊</div>
+            <h3>Analytics & Reporting</h3>
+            <p>Visualize team performance with customizable dashboards and automated reports.</p>
+          </article>
+          
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🔗</div>
+            <h3>Integrations</h3>
+            <p>Connect with 100+ tools including Slack, Google Drive, GitHub, and more.</p>
+          </article>
+          
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">⚡</div>
+            <h3>Automation</h3>
+            <p>Automate repetitive tasks with custom workflows and triggers.</p>
+          </article>
+          
+          <article class="feature-card">
+            <div class="feature-icon" aria-hidden="true">🔒</div>
+            <h3>Enterprise Security</h3>
+            <p>Bank-level encryption, SSO, and compliance certifications you can trust.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <section id="features" class="features-detailed">
+      <div class="container">
+        <article class="feature-detail">
+          <div class="feature-detail-content">
+            <h2>Plan projects with clarity</h2>
+            <p>Visualize your roadmap with multiple views—boards, lists, timelines, or calendars. Switch between views instantly to see your work the way you need to.</p>
+            
+            <ul class="feature-list">
+              <li>✓ Kanban boards for agile workflows</li>
+              <li>✓ Gantt charts for timeline planning</li>
+              <li>✓ Calendar view for deadline tracking</li>
+              <li>✓ List view for simple task management</li>
+            </ul>
+            
+            <a href="/features/project-management" class="btn btn-outline">Learn More</a>
+          </div>
+          
+          <div class="feature-detail-image">
+            <img src="feature-boards.png" alt="Project board interface with drag-and-drop cards" width="600" height="400" loading="lazy">
+          </div>
+        </article>
+        
+        <article class="feature-detail reverse">
+          <div class="feature-detail-content">
+            <h2>Collaborate in real-time</h2>
+            <p>No more endless email threads. Discuss tasks, share files, and make decisions faster with built-in collaboration tools.</p>
+            
+            <ul class="feature-list">
+              <li>✓ Task comments and @mentions</li>
+              <li>✓ File attachments and previews</li>
+              <li>✓ Activity feeds and notifications</li>
+              <li>✓ Guest access for external stakeholders</li>
+            </ul>
+            
+            <a href="/features/collaboration" class="btn btn-outline">Learn More</a>
+          </div>
+          
+          <div class="feature-detail-image">
+            <img src="feature-collaboration.png" alt="Team collaboration interface with comments and mentions" width="600" height="400" loading="lazy">
+          </div>
+        </article>
+        
+        <article class="feature-detail">
+          <div class="feature-detail-content">
+            <h2>Automate your workflow</h2>
+            <p>Save hours every week by automating repetitive tasks. No coding required—just set up rules and let CloudFlow handle the rest.</p>
+            
+            <ul class="feature-list">
+              <li>✓ Custom automation rules</li>
+              <li>✓ Trigger actions based on events</li>
+              <li>✓ Recurring task creation</li>
+              <li>✓ Pre-built automation templates</li>
+            </ul>
+            
+            <a href="/features/automation" class="btn btn-outline">Learn More</a>
+          </div>
+          
+          <div class="feature-detail-image">
+            <img src="feature-automation.png" alt="Automation workflow builder interface" width="600" height="400" loading="lazy">
+          </div>
+        </article>
+      </div>
+    </section>
+    
+    <section class="testimonials-section">
+      <div class="container">
+        <h2>Loved by teams everywhere</h2>
+        
+        <div class="testimonials-grid">
+          <article class="testimonial-card">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"CloudFlow transformed how our distributed team works together. We've improved project delivery times by 40% and everyone actually enjoys using it."</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="testimonial-sarah.jpg" alt="" width="48" height="48" loading="lazy">
+              <div>
+                <cite>Sarah Martinez</cite>
+                <p>Head of Product, TechCorp</p>
+              </div>
+            </footer>
+          </article>
+          
+          <article class="testimonial-card">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"Finally, a project management tool that doesn't require a PhD to understand. My team was up and running in under an hour."</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="testimonial-james.jpg" alt="" width="48" height="48" loading="lazy">
+              <div>
+                <cite>James Chen</cite>
+                <p>Founder, StartupXYZ</p>
+              </div>
+            </footer>
+          </article>
+          
+          <article class="testimonial-card">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"The automation features alone have saved us 10+ hours per week. CloudFlow pays for itself many times over."</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="testimonial-priya.jpg" alt="" width="48" height="48" loading="lazy">
+              <div>
+                <cite>Priya Patel</cite>
+                <p>Operations Manager, GrowthCo</p>
+              </div>
+            </footer>
+        </article>
+        </div>
+      </div>
+    </section>
+    
+    <section id="pricing" class="pricing-section">
+      <div class="container">
+        <div class="section-header-center">
+          <h2>Simple, transparent pricing</h2>
+          <p>Choose the plan that fits your team size and needs</p>
+        </div>
+        
+        <div class="pricing-toggle">
+          <button class="toggle-option active" data-billing="monthly">Monthly</button>
+          <button class="toggle-option" data-billing="annual">Annual <span class="badge">Save 20%</span></button>
+        </div>
+        
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <h3>Free</h3>
+            <p class="pricing-description">Perfect for small teams getting started</p>
+            
+            <p class="pricing-price">
+              <span class="price-amount">$0</span>
+              <span class="price-period">forever</span>
+            </p>
+            
+            <a href="/signup?plan=free" class="btn btn-outline btn-large">Get Started</a>
+            
+            <ul class="pricing-features">
+              <li>✓ Up to 10 team members</li>
+              <li>✓ 3 projects</li>
+              <li>✓ Basic task management</li>
+              <li>✓ 5GB storage</li>
+              <li>✓ Mobile apps</li>
+              <li>✓ Email support</li>
+            </ul>
+          </article>
+          
+          <article class="pricing-card featured">
+            <div class="popular-badge">Most Popular</div>
+            <h3>Pro</h3>
+            <p class="pricing-description">For growing teams that need more power</p>
+            
+            <p class="pricing-price">
+              <span class="price-amount">$12</span>
+              <span class="price-period">per user/month</span>
+            </p>
+            
+            <a href="/signup?plan=pro" class="btn btn-primary btn-large">Start Free Trial</a>
+            
+            <ul class="pricing-features">
+              <li>✓ Unlimited team members</li>
+              <li>✓ Unlimited projects</li>
+              <li>✓ Advanced workflows</li>
+              <li>✓ 100GB storage per user</li>
+              <li>✓ Custom fields & views</li>
+              <li>✓ Automation (100 actions/month)</li>
+              <li>✓ Timeline & calendar views</li>
+              <li>✓ Priority support</li>
+            </ul>
+          </article>
+          
+          <article class="pricing-card">
+            <h3>Enterprise</h3>
+            <p class="pricing-description">Advanced features for large organizations</p>
+            
+            <p class="pricing-price">
+              <span class="price-amount">Custom</span>
+            </p>
+            
+            <a href="/contact-sales" class="btn btn-outline btn-large">Contact Sales</a>
+            
+            <ul class="pricing-features">
+              <li>✓ Everything in Pro, plus:</li>
+              <li>✓ Unlimited storage</li>
+              <li>✓ Advanced security & permissions</li>
+              <li>✓ SSO & SAML</li>
+              <li>✓ Dedicated account manager</li>
+              <li>✓ 99.9% uptime SLA</li>
+              <li>✓ Custom integrations</li>
+              <li>✓ On-premise deployment option</li>
+            </ul>
+          </article>
+        </div>
+        
+        <p class="pricing-note">All plans include a 14-day free trial. No credit card required.</p>
+      </div>
+    </section>
+    
+    <section class="integrations-section">
+      <div class="container">
+        <div class="section-header-center">
+          <h2>Connects with your favorite tools</h2>
+          <p>CloudFlow integrates seamlessly with 100+ apps you already use</p>
+        </div>
+        
+        <div class="integrations-grid">
+          <div class="integration-logo">
+            <img src="integration-slack.svg" alt="Slack" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-google.svg" alt="Google Workspace" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-github.svg" alt="GitHub" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-dropbox.svg" alt="Dropbox" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-zoom.svg" alt="Zoom" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-salesforce.svg" alt="Salesforce" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-figma.svg" alt="Figma" width="120" height="40" loading="lazy">
+          </div>
+          <div class="integration-logo">
+            <img src="integration-jira.svg" alt="Jira" width="120" height="40" loading="lazy">
+          </div>
+        </div>
+        
+        <a href="/integrations" class="btn btn-outline">View All Integrations</a>
+      </div>
+    </section>
+    
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Ready to transform how your team works?</h2>
+          <p>Join 50,000+ teams already using CloudFlow to get more done</p>
+          
+          <form class="cta-signup-form" action="/start-trial" method="POST">
+            <label for="cta-email" class="visually-hidden">Work email</label>
+            <input type="email" id="cta-email" name="email" placeholder="Work email address" required autocomplete="email">
+            <button type="submit" class="btn btn-primary btn-large">Start Free Trial</button>
+          </form>
+          
+          <p class="cta-trust">
+            <small>✓ Free 14-day trial • No credit card required • Cancel anytime</small>
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>CloudFlow</h3>
+          <p>The all-in-one workspace for modern teams</p>
+          
+          <div class="social-links" aria-label="Social media">
+            <a href="https://twitter.com/cloudflow" aria-label="Twitter">Twitter</a>
+            <a href="https://linkedin.com/company/cloudflow" aria-label="LinkedIn">LinkedIn</a>
+            <a href="https://facebook.com/cloudflow" aria-label="Facebook">Facebook</a>
+            <a href="https://youtube.com/cloudflow" aria-label="YouTube">YouTube</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/integrations">Integrations</a></li>
+            <li><a href="/security">Security</a></li>
+            <li><a href="/updates">Product Updates</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/guides">Guides</a></li>
+            <li><a href="/templates">Templates</a></li>
+            <li><a href="/help">Help Center</a></li>
+            <li><a href="/api">API Documentation</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/customers">Customers</a></li>
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/press">Press Kit</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 CloudFlow, Inc. All rights reserved.</p>
+        <nav aria-label="Legal">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="/gdpr">GDPR</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="main.js" defer></script>
+</body>
+</html>

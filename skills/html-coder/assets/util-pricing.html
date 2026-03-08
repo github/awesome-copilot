@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simple, transparent pricing plans for teams of all sizes. Choose the plan that fits your needs with flexible monthly or annual billing.">
+  <title>Pricing - Choose Your Plan</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <header class="header">
+    <div class="container">
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/" class="logo">Company</a>
+        
+        <ul class="nav-menu">
+          <li><a href="/products">Products</a></li>
+          <li><a href="/pricing" aria-current="page">Pricing</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+          <a href="/login" class="btn-link">Sign In</a>
+          <a href="/signup" class="btn btn-primary">Get Started</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <main id="main">
+    <section class="pricing-hero">
+      <div class="container">
+        <h1>Simple, Transparent Pricing</h1>
+        <p class="hero-subtitle">Choose the plan that fits your needs. No hidden fees. Cancel anytime.</p>
+        
+        <div class="billing-toggle">
+          <span class="toggle-label">Monthly</span>
+          <button 
+            type="button" 
+            class="toggle-switch" 
+            role="switch" 
+            aria-checked="false" 
+            aria-label="Switch to annual billing"
+            onclick="toggleBilling(this)">
+            <span class="toggle-slider"></span>
+          </button>
+          <span class="toggle-label">Annual<span class="save-badge">Save 20%</span></span>
+        </div>
+      </div>
+    </section>
+    
+    <section class="pricing-plans-section">
+      <div class="container">
+        <div class="pricing-grid">
+          <article class="pricing-card">
+            <div class="pricing-header">
+              <h2>Starter</h2>
+              <p class="pricing-description">Perfect for individuals and small teams getting started</p>
+            </div>
+            
+            <div class="pricing-price">
+              <span class="price-amount" data-monthly="$9" data-annual="$7.20">$9</span>
+              <span class="price-period">per user/month</span>
+            </div>
+            
+            <a href="/signup?plan=starter" class="btn btn-outline btn-large btn-full-width">Start Free Trial</a>
+            
+            <div class="pricing-features">
+              <h3>What's included:</h3>
+              <ul>
+                <li>✓ Up to 5 team members</li>
+                <li>✓ 10 projects</li>
+                <li>✓ 10GB storage</li>
+                <li>✓ Basic reporting</li>
+                <li>✓ Email support</li>
+                <li>✓ Mobile apps</li>
+                <li>✓ 2-factor authentication</li>
+              </ul>
+            </div>
+          </article>
+          
+          <article class="pricing-card featured">
+            <div class="popular-badge">Most Popular</div>
+            <div class="pricing-header">
+              <h2>Professional</h2>
+              <p class="pricing-description">For growing teams that need more power and flexibility</p>
+            </div>
+            
+            <div class="pricing-price">
+              <span class="price-amount" data-monthly="$29" data-annual="$23.20">$29</span>
+              <span class="price-period">per user/month</span>
+            </div>
+            
+            <a href="/signup?plan=professional" class="btn btn-primary btn-large btn-full-width">Start Free Trial</a>
+            
+            <div class="pricing-features">
+              <h3>Everything in Starter, plus:</h3>
+              <ul>
+                <li>✓ Unlimited team members</li>
+                <li>✓ Unlimited projects</li>
+                <li>✓ 100GB storage per user</li>
+                <li>✓ Advanced reporting & analytics</li>
+                <li>✓ Priority email & chat support</li>
+                <li>✓ Custom fields & workflows</li>
+                <li>✓ Integrations (50+ apps)</li>
+                <li>✓ Advanced permissions</li>
+                <li>✓ Activity logs & audit trails</li>
+              </ul>
+            </div>
+          </article>
+          
+          <article class="pricing-card">
+            <div class="pricing-header">
+              <h2>Enterprise</h2>
+              <p class="pricing-description">Advanced features and support for large organizations</p>
+            </div>
+            
+            <div class="pricing-price">
+              <span class="price-amount">Custom</span>
+            </div>
+            
+            <a href="/contact-sales" class="btn btn-outline btn-large btn-full-width">Contact Sales</a>
+            
+            <div class="pricing-features">
+              <h3>Everything in Professional, plus:</h3>
+              <ul>
+                <li>✓ Unlimited storage</li>
+                <li>✓ Dedicated account manager</li>
+                <li>✓ 24/7 phone support</li>
+                <li>✓ 99.9% uptime SLA</li>
+                <li>✓ SSO & SAML</li>
+                <li>✓ Advanced security controls</li>
+                <li>✓ Custom integrations</li>
+                <li>✓ On-premise deployment option</li>
+                <li>✓ Training & onboarding</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+        
+        <div class="pricing-trial-note">
+          <p>All plans include a <strong>14-day free trial</strong>. No credit card required.</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="comparison-table-section">
+      <div class="container">
+        <h2>Compare Plans</h2>
+        
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th scope="col">Features</th>
+                <th scope="col">Starter</th>
+                <th scope="col">Professional</th>
+                <th scope="col">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Team members</th>
+                <td>Up to 5</td>
+                <td>Unlimited</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <th scope="row">Projects</th>
+                <td>10</td>
+                <td>Unlimited</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <th scope="row">Storage</th>
+                <td>10GB total</td>
+                <td>100GB per user</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <th scope="row">Integrations</th>
+                <td>Basic (10 apps)</td>
+                <td>Advanced (50+ apps)</td>
+                <td>Custom + API access</td>
+              </tr>
+              <tr>
+                <th scope="row">Reporting</th>
+                <td>Basic</td>
+                <td>Advanced analytics</td>
+                <td>Custom reports</td>
+              </tr>
+              <tr>
+                <th scope="row">Support</th>
+                <td>Email</td>
+                <td>Email & chat (priority)</td>
+                <td>24/7 phone + dedicated manager</td>
+              </tr>
+              <tr>
+                <th scope="row">2FA / Security</th>
+                <td>✓</td>
+                <td>✓</td>
+                <td>✓ Advanced security</td>
+              </tr>
+              <tr>
+                <th scope="row">Activity logs</th>
+                <td>30 days</td>
+                <td>1 year</td>
+                <td>Unlimited</td>
+              </tr>
+              <tr>
+                <th scope="row">SSO / SAML</th>
+                <td>—</td>
+                <td>—</td>
+                <td>✓</td>
+              </tr>
+              <tr>
+                <th scope="row">SLA</th>
+                <td>—</td>
+                <td>99% uptime</td>
+                <td>99.9% uptime guaranteed</td>
+              </tr>
+              <tr>
+                <th scope="row">API access</th>
+                <td>Read-only</td>
+                <td>Full access</td>
+                <td>Full + custom webhooks</td>
+              </tr>
+              <tr>
+                <th scope="row">Training</th>
+                <td>Documentation</td>
+                <td>Webinars</td>
+                <td>Personalized onboarding</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    
+    <section class="pricing-faq-section">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        
+        <div class="faq-grid">
+          <article class="faq-item">
+            <h3>Can I change plans later?</h3>
+            <p>Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate any charges.</p>
+          </article>
+          
+          <article class="faq-item">
+            <h3>What payment methods do you accept?</h3>
+            <p>We accept all major credit cards (Visa, Mastercard, American Express) and PayPal. Enterprise customers can pay by invoice.</p>
+          </article>
+          
+          <article class="faq-item">
+            <h3>Is there a long-term contract?</h3>
+            <p>No. All plans are month-to-month or annual (for a discount). You can cancel anytime with no penalties.</p>
+          </article>
+          
+          <article class="faq-item">
+            <h3>What happens when I reach my limit?</h3>
+            <p>We'll notify you when you're approaching your limits. You can upgrade your plan or remove inactive users/projects.</p>
+          </article>
+          
+          <article class="faq-item">
+            <h3>Do you offer discounts for nonprofits?</h3>
+            <p>Yes! We offer 50% off for registered nonprofits and educational institutions. Contact sales for details.</p>
+          </article>
+          
+          <article class="faq-item">
+            <h3>Is my data secure?</h3>
+            <p>Absolutely. We use bank-level encryption, regular security audits, and are SOC 2 Type II certified. Your data is backed up daily.</p>
+          </article>
+        </div>
+        
+        <div class="faq-cta">
+          <p>Still have questions?</p>
+          <a href="/contact" class="btn btn-outline">Contact Sales</a>
+          <a href="/faq" class="btn-link">View All FAQs</a>
+        </div>
+      </div>
+    </section>
+    
+    <section class="pricing-cta-section">
+      <div class="container">
+        <h2>Ready to Get Started?</h2>
+        <p>Join thousands of teams using our platform</p>
+        <a href="/signup" class="btn btn-primary btn-large">Start Your Free Trial</a>
+        <p class="cta-note"><small>No credit card required • 14-day free trial • Cancel anytime</small></p>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>Company</h3>
+          <p>Building innovative solutions</p>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/updates">Updates</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Support</h3>
+          <ul>
+            <li><a href="/help">Help Center</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/press">Press</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 Company Name. All rights reserved.</p>
+        <nav aria-label="Legal">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="pricing.js" defer></script>
+</body>
+</html>

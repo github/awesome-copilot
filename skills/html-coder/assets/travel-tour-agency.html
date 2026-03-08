@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wanderlust Adventures - Curated small-group tours to the world's most incredible destinations. Expert guides, authentic experiences, lifelong memories.">
+  <meta property="og:title" content="Wanderlust Adventures - Small Group Tours Worldwide">
+  <meta property="og:description" content="Explore the world with expert-led small group adventures">
+  <meta property="og:image" content="og-tours.jpg">
+  <meta property="og:type" content="website">
+  <title>Wanderlust Adventures - Small Group Tours & Adventure Travel</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <header class="header-tours">
+    <div class="container">
+      <nav class="navbar" aria-label="Main navigation">
+        <a href="/" class="logo">
+          <img src="wanderlust-logo.svg" alt="Wanderlust Adventures" width="180" height="45">
+        </a>
+        
+        <ul class="nav-menu">
+          <li><a href="#destinations">Destinations</a></li>
+          <li><a href="#tours">Tours</a></li>
+          <li><a href="#travel-styles">Travel Styles</a></li>
+          <li><a href="#why-us">Why Us</a></li>
+          <li><a href="/blog">Travel Blog</a></li>
+        </ul>
+        
+        <div class="nav-actions">
+          <a href="tel:+18885551234" class="btn-link">📞 (888) 555-1234</a>
+          <a href="#contact" class="btn btn-primary">Plan Your Trip</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <main id="main">
+    <section class="hero-tours">
+      <div class="hero-tours-background">
+        <img src="hero-adventure.jpg" alt="Group of travelers hiking mountain trail with stunning vista" width="1920" height="900" loading="eager">
+      </div>
+      
+      <div class="hero-tours-content">
+        <h1>Adventure Awaits</h1>
+        <p class="hero-subtitle">Small groups. Big experiences. Unforgettable journeys.</p>
+        <a href="#tours" class="btn btn-primary btn-large">Explore Our Tours</a>
+      </div>
+    </section>
+    
+    <section class="tour-search-section">
+      <div class="container">
+        <form class="tour-search-form" action="/search-tours" method="GET">
+          <div class="form-group">
+            <label for="destination">Where do you want to go?</label>
+            <select id="destination" name="destination">
+              <option value="">All Destinations</option>
+              <option value="europe">Europe</option>
+              <option value="asia">Asia</option>
+              <option value="africa">Africa</option>
+              <option value="south-america">South America</option>
+              <option value="north-america">North America</option>
+              <option value="oceania">Oceania</option>
+              <option value="antarctica">Antarctica</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="travel-style">Travel Style</label>
+            <select id="travel-style" name="travel_style">
+              <option value="">All Styles</option>
+              <option value="adventure">Adventure</option>
+              <option value="cultural">Cultural</option>
+              <option value="wildlife">Wildlife & Nature</option>
+              <option value="luxury">Luxury</option>
+              <option value="family">Family</option>
+              <option value="solo">Solo Traveler</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="duration">Duration</label>
+            <select id="duration" name="duration">
+              <option value="">Any Duration</option>
+              <option value="1-7">1-7 days</option>
+              <option value="8-14">8-14 days</option>
+              <option value="15-21">15-21 days</option>
+              <option value="22+">22+ days</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="month">Travel Month</label>
+            <select id="month" name="month">
+              <option value="">Any Month</option>
+              <option value="jan">January</option>
+              <option value="feb">February</option>
+              <option value="mar">March</option>
+              <option value="apr">April</option>
+              <option value="may">May</option>
+              <option value="jun">June</option>
+              <option value="jul">July</option>
+              <option value="aug">August</option>
+              <option value="sep">September</option>
+              <option value="oct">October</option>
+              <option value="nov">November</option>
+              <option value="dec">December</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-large">Find Tours</button>
+        </form>
+      </div>
+    </section>
+    
+    <section class="intro-section">
+      <div class="container">
+        <div class="intro-content-center">
+          <h2>Explore the World with Wanderlust</h2>
+          <p class="intro-lead">For over 15 years, we've been crafting authentic travel experiences that go beyond typical tourism. Our small group tours (max 12 travelers) connect you with local cultures, hidden gems, and fellow adventurers.</p>
+          
+          <div class="stats-row">
+            <div class="stat-box">
+              <strong>15+</strong>
+              <span>Years of Experience</span>
+            </div>
+            
+            <div class="stat-box">
+              <strong>85</strong>
+              <span>Countries Explored</span>
+            </div>
+            
+            <div class="stat-box">
+              <strong>25,000+</strong>
+              <span>Happy Travelers</span>
+            </div>
+            
+            <div class="stat-box">
+              <strong>4.9/5</strong>
+              <span>Average Rating</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section id="tours" class="featured-tours-section">
+      <div class="container">
+        <div class="section-header-with-filter">
+          <h2>Featured Tours</h2>
+          
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-category="all">All Tours</button>
+            <button class="filter-btn" data-category="adventure">Adventure</button>
+            <button class="filter-btn" data-category="cultural">Cultural</button>
+            <button class="filter-btn" data-category="wildlife">Wildlife</button>
+          </div>
+        </div>
+        
+        <div class="tours-grid">
+          <article class="tour-card" data-category="adventure">
+            <div class="tour-image-wrapper">
+              <img src="tour-patagonia.jpg" alt="Hikers on trail in Patagonia mountains" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Adventure</div>
+              <div class="tour-price-badge">From $3,895</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇦🇷 🇨🇱 Argentina & Chile</span>
+                <span class="tour-duration">14 Days</span>
+              </div>
+              
+              <h3><a href="/tours/patagonia-explorer">Patagonia Explorer</a></h3>
+              <p>Trek through Torres del Paine, witness Perito Moreno Glacier, and explore the stunning landscapes of South America's wild frontier.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Torres del Paine W Trek</li>
+                <li>✓ Perito Moreno Glacier</li>
+                <li>✓ El Chaltén hiking paradise</li>
+                <li>✓ Small group (max 12)</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Oct 15, Nov 5, Dec 1, 2026</p>
+                </div>
+                
+                <a href="/tours/patagonia-explorer" class="btn btn-outline">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+          
+          <article class="tour-card featured-tour" data-category="cultural">
+            <div class="most-popular-badge">Most Popular</div>
+            <div class="tour-image-wrapper">
+              <img src="tour-japan.jpg" alt="Traditional Japanese temple in Kyoto" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Cultural</div>
+              <div class="tour-price-badge">From $4,295</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇯🇵 Japan</span>
+                <span class="tour-duration">12 Days</span>
+              </div>
+              
+              <h3><a href="/tours/japan-discovery">Japan Discovery: Tokyo to Kyoto</a></h3>
+              <p>Experience the perfect blend of ancient tradition and modern innovation. From Tokyo's neon streets to Kyoto's serene temples.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Bullet train experiences</li>
+                <li>✓ Traditional tea ceremony</li>
+                <li>✓ Mt. Fuji day trip</li>
+                <li>✓ Geisha district tour</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Apr 5, May 10, Sep 15, Oct 20</p>
+                </div>
+                
+                <a href="/tours/japan-discovery" class="btn btn-primary">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+          
+          <article class="tour-card" data-category="wildlife">
+            <div class="tour-image-wrapper">
+              <img src="tour-safari.jpg" alt="Elephants walking at sunset in Tanzania" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Wildlife</div>
+              <div class="tour-price-badge">From $5,495</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇹🇿 Tanzania</span>
+                <span class="tour-duration">10 Days</span>
+              </div>
+              
+              <h3><a href="/tours/tanzania-safari">Ultimate Tanzania Safari</a></h3>
+              <p>Witness the Great Migration, track the Big Five, and experience the magic of the Serengeti and Ngorongoro Crater.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Serengeti game drives</li>
+                <li>✓ Ngorongoro Crater descent</li>
+                <li>✓ Luxury tented camps</li>
+                <li>✓ Expert wildlife guides</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Jul 10, Aug 5, Sep 20, 2026</p>
+                </div>
+                
+                <a href="/tours/tanzania-safari" class="btn btn-outline">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+          
+          <article class="tour-card" data-category="adventure">
+            <div class="tour-image-wrapper">
+              <img src="tour-iceland.jpg" alt="Northern lights over Iceland landscape" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Adventure</div>
+              <div class="tour-price-badge">From $3,295</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇮🇸 Iceland</span>
+                <span class="tour-duration">8 Days</span>
+              </div>
+              
+              <h3><a href="/tours/iceland-adventure">Iceland Winter Adventure</a></h3>
+              <p>Chase the Northern Lights, explore ice caves, soak in hot springs, and witness the raw power of Iceland's volcanic landscapes.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Northern Lights hunting</li>
+                <li>✓ Ice cave exploration</li>
+                <li>✓ Golden Circle tour</li>
+                <li>✓ Blue Lagoon experience</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Nov 15, Dec 5, Jan 10, Feb 5</p>
+                </div>
+                
+                <a href="/tours/iceland-adventure" class="btn btn-outline">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+          
+          <article class="tour-card" data-category="cultural">
+            <div class="tour-image-wrapper">
+              <img src="tour-morocco.jpg" alt="Colorful spices in Marrakech market" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Cultural</div>
+              <div class="tour-price-badge">From $2,795</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇲🇦 Morocco</span>
+                <span class="tour-duration">10 Days</span>
+              </div>
+              
+              <h3><a href="/tours/morocco-magic">Morocco: From Souks to Sahara</a></h3>
+              <p>Immerse yourself in Morocco's vibrant culture, from bustling medinas to desert camps under starry skies.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Marrakech & Fez exploration</li>
+                <li>✓ Sahara Desert camp</li>
+                <li>✓ Cooking class experience</li>
+                <li>✓ Atlas Mountains trek</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Mar 20, Apr 15, Oct 5, Nov 10</p>
+                </div>
+                
+                <a href="/tours/morocco-magic" class="btn btn-outline">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+          
+          <article class="tour-card" data-category="adventure">
+            <div class="tour-image-wrapper">
+              <img src="tour-nepal.jpg" alt="Trekkers with view of Mount Everest" width="400" height="300" loading="lazy">
+              <div class="tour-badge">Adventure</div>
+              <div class="tour-price-badge">From $2,495</div>
+            </div>
+            
+            <div class="tour-content">
+              <div class="tour-meta">
+                <span class="tour-location">🇳🇵 Nepal</span>
+                <span class="tour-duration">15 Days</span>
+              </div>
+              
+              <h3><a href="/tours/everest-base-camp">Everest Base Camp Trek</a></h3>
+              <p>Stand in the shadow of the world's highest peak. This bucket-list trek takes you through Sherpa villages to Everest Base Camp.</p>
+              
+              <ul class="tour-highlights">
+                <li>✓ Trek to Everest Base Camp</li>
+                <li>✓ Kala Patthar sunrise (18,500 ft)</li>
+                <li>✓ Namche Bazaar & monasteries</li>
+                <li>✓ Experienced Sherpa guides</li>
+              </ul>
+              
+              <div class="tour-footer">
+                <div class="tour-dates">
+                  <strong>Next Departures:</strong>
+                  <p>Apr 1, May 1, Oct 1, Nov 1</p>
+                </div>
+                
+                <a href="/tours/everest-base-camp" class="btn btn-outline">View Tour Details</a>
+              </div>
+            </div>
+          </article>
+        </div>
+        
+        <div class="view-all-tours">
+          <a href="/all-tours" class="btn btn-outline btn-large">View All 120+ Tours</a>
+        </div>
+      </div>
+    </section>
+    
+    <section id="destinations" class="destinations-section">
+      <div class="container">
+        <h2>Explore Our Destinations</h2>
+        <p class="section-intro">We offer tours to 85 countries across 7 continents</p>
+        
+        <div class="destinations-grid">
+          <a href="/destinations/europe" class="destination-card">
+            <img src="dest-europe.jpg" alt="European architecture and landscapes" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>Europe</h3>
+              <p>28 tours • 15 countries</p>
+            </div>
+          </a>
+          
+          <a href="/destinations/asia" class="destination-card">
+            <img src="dest-asia.jpg" alt="Asian temples and culture" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>Asia</h3>
+              <p>35 tours • 18 countries</p>
+            </div>
+          </a>
+          
+          <a href="/destinations/africa" class="destination-card">
+            <img src="dest-africa.jpg" alt="African wildlife and landscapes" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>Africa</h3>
+              <p>22 tours • 12 countries</p>
+            </div>
+          </a>
+          
+          <a href="/destinations/south-america" class="destination-card">
+            <img src="dest-south-america.jpg" alt="South American landscapes" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>South America</h3>
+              <p>18 tours • 8 countries</p>
+            </div>
+          </a>
+          
+          <a href="/destinations/oceania" class="destination-card">
+            <img src="dest-oceania.jpg" alt="Australian and Pacific islands" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>Oceania</h3>
+              <p>12 tours • 6 countries</p>
+            </div>
+          </a>
+          
+          <a href="/destinations/antarctica" class="destination-card">
+            <img src="dest-antarctica.jpg" alt="Antarctic ice and wildlife" width="400" height="300" loading="lazy">
+            <div class="destination-overlay">
+              <h3>Antarctica</h3>
+              <p>5 tours • 1 continent</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <section id="travel-styles" class="travel-styles-section">
+      <div class="container">
+        <h2>Find Your Travel Style</h2>
+        
+        <div class="travel-styles-grid">
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">⛰️</div>
+            <h3>Adventure</h3>
+            <p>For thrill-seekers and outdoor enthusiasts. Hiking, climbing, rafting, and more active experiences.</p>
+            <a href="/travel-styles/adventure">Browse Adventure Tours</a>
+          </article>
+          
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">🏛️</div>
+            <h3>Cultural</h3>
+            <p>Immerse yourself in local traditions, history, and authentic cultural experiences with expert guides.</p>
+            <a href="/travel-styles/cultural">Browse Cultural Tours</a>
+          </article>
+          
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">🦁</div>
+            <h3>Wildlife & Nature</h3>
+            <p>Get up close with incredible wildlife. Safaris, marine life encounters, and pristine natural environments.</p>
+            <a href="/travel-styles/wildlife">Browse Wildlife Tours</a>
+          </article>
+          
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">⭐</div>
+            <h3>Luxury</h3>
+            <p>Elevated experiences with premium accommodations, exclusive access, and refined comfort throughout.</p>
+            <a href="/travel-styles/luxury">Browse Luxury Tours</a>
+          </article>
+          
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">👨‍👩‍👧‍👦</div>
+            <h3>Family</h3>
+            <p>Family-friendly adventures designed for all ages. Educational, fun, and creating memories together.</p>
+            <a href="/travel-styles/family">Browse Family Tours</a>
+          </article>
+          
+          <article class="style-card">
+            <div class="style-icon" aria-hidden="true">🎒</div>
+            <h3>Solo Traveler</h3>
+            <p>Join fellow solo adventurers. No single supplements on select tours, plus built-in companionship.</p>
+            <a href="/travel-styles/solo">Browse Solo Tours</a>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <section id="why-us" class="why-us-section">
+      <div class="container">
+        <h2>Why Travel with Wanderlust?</h2>
+        
+        <div class="why-us-grid">
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">👥</div>
+            <h3>Small Groups</h3>
+            <p>Maximum 12 travelers per tour. Get personal attention, make real connections, and access places large groups can't go.</p>
+          </article>
+          
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">🎓</div>
+            <h3>Expert Guides</h3>
+            <p>Our local guides are passionate storytellers and regional experts. They live where we travel and share insider knowledge.</p>
+          </article>
+          
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">🏠</div>
+            <h3>Authentic Experiences</h3>
+            <p>Stay in boutique hotels, dine where locals eat, and participate in genuine cultural exchanges. No tourist traps.</p>
+          </article>
+          
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">🌍</div>
+            <h3>Responsible Travel</h3>
+            <p>We're committed to sustainable tourism, supporting local communities, and minimizing environmental impact.</p>
+          </article>
+          
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">✅</div>
+            <h3>Hassle-Free Planning</h3>
+            <p>Everything's arranged: accommodations, transportation, most meals, activities, and expert guidance throughout.</p>
+          </article>
+          
+          <article class="feature-box">
+            <div class="feature-icon-large" aria-hidden="true">💯</div>
+            <h3>Satisfaction Guaranteed</h3>
+            <p>4.9/5 average rating from 25,000+ travelers. If you're not satisfied, we'll make it right—that's our promise.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <section class="testimonials-tours-section">
+      <div class="container">
+        <h2>Hear from Our Travelers</h2>
+        
+        <div class="testimonials-grid">
+          <article class="testimonial-card-tours">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"The Japan tour exceeded every expectation. Our guide Yuki was incredible—so knowledgeable and accommodating. The small group size made it feel like traveling with friends. Already booked my next Wanderlust tour!"</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="traveler-emma.jpg" alt="" width="60" height="60" loading="lazy">
+              <div>
+                <cite>Emma Richardson</cite>
+                <p>Japan Discovery Tour • March 2026</p>
+              </div>
+            </footer>
+          </article>
+          
+          <article class="testimonial-card-tours">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"Best vacation of my life! The Tanzania safari was perfectly organized. We saw lions, elephants, and witnessed the Great Migration. Our guide's wildlife knowledge was unmatched. Worth every penny."</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="traveler-david.jpg" alt="" width="60" height="60" loading="lazy">
+              <div>
+                <cite>David & Lisa Chen</cite>
+                <p>Tanzania Safari • August 2025</p>
+              </div>
+            </footer>
+          </article>
+          
+          <article class="testimonial-card-tours">
+            <div class="rating" aria-label="5 stars">★★★★★</div>
+            <blockquote>
+              <p>"As a solo female traveler, I felt completely safe and welcomed. Met amazing people and pushed myself beyond my comfort zone on the Patagonia trek. Life-changing experience!"</p>
+            </blockquote>
+            <footer class="testimonial-author">
+              <img src="traveler-maria.jpg" alt="" width="60" height="60" loading="lazy">
+              <div>
+                <cite>Maria Santos</cite>
+                <p>Patagonia Explorer • November 2025</p>
+              </div>
+            </footer>
+          </article>
+        </div>
+        
+        <div class="review-summary">
+          <p><strong>4.9/5.0</strong> average rating • <strong>25,000+</strong> satisfied travelers • <strong>98%</strong> would recommend</p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="planning-help-section">
+      <div class="container">
+        <div class="planning-content">
+          <h2>Need Help Planning?</h2>
+          <p>Our travel experts are here to answer questions and help you find the perfect tour</p>
+          
+          <div class="contact-options">
+            <div class="contact-option">
+              <span class="contact-icon" aria-hidden="true">📞</span>
+              <div>
+                <h3>Call Us</h3>
+                <p><a href="tel:+18885551234"><strong>(888) 555-1234</strong></a></p>
+                <p>Mon-Fri 9am-6pm EST</p>
+              </div>
+            </div>
+            
+            <div class="contact-option">
+              <span class="contact-icon" aria-hidden="true">💬</span>
+              <div>
+                <h3>Live Chat</h3>
+                <p><button class="btn-link" onclick="openChat()">Start a conversation</button></p>
+                <p>Available 7 days a week</p>
+              </div>
+            </div>
+            
+            <div class="contact-option">
+              <span class="contact-icon" aria-hidden="true">✉️</span>
+              <div>
+                <h3>Email Us</h3>
+                <p><a href="mailto:travel@wanderlustadv.com">travel@wanderlustadv.com</a></p>
+                <p>Response within 24 hours</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section id="contact" class="booking-inquiry-section">
+      <div class="container">
+        <h2>Request a Custom Quote</h2>
+        <p class="section-intro">Tell us about your dream trip and we'll create a personalized itinerary</p>
+        
+        <form class="inquiry-form" action="/request-quote" method="POST">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inquiry-name">Full Name *</label>
+              <input type="text" id="inquiry-name" name="name" required autocomplete="name">
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiry-email">Email Address *</label>
+              <input type="email" id="inquiry-email" name="email" required autocomplete="email">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inquiry-phone">Phone Number</label>
+              <input type="tel" id="inquiry-phone" name="phone" autocomplete="tel">
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiry-travelers">Number of Travelers *</label>
+              <select id="inquiry-travelers" name="travelers" required>
+                <option value="">Select...</option>
+                <option value="1">1 traveler (solo)</option>
+                <option value="2">2 travelers</option>
+                <option value="3-4">3-4 travelers</option>
+                <option value="5-8">5-8 travelers</option>
+                <option value="9+">9+ travelers (private group)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="inquiry-destination">Preferred Destination(s)</label>
+              <input type="text" id="inquiry-destination" name="destination" placeholder="e.g., Japan, Iceland, Morocco">
+            </div>
+            
+            <div class="form-group">
+              <label for="inquiry-dates">Preferred Travel Dates</label>
+              <input type="text" id="inquiry-dates" name="dates" placeholder="e.g., April 2027, Summer 2027">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="inquiry-budget">Budget per Person (USD)</label>
+            <select id="inquiry-budget" name="budget">
+              <option value="">Prefer not to say</option>
+              <option value="under-2000">Under $2,000</option>
+              <option value="2000-3500">$2,000 - $3,500</option>
+              <option value="3500-5000">$3,500 - $5,000</option>
+              <option value="5000-7500">$5,000 - $7,500</option>
+              <option value="7500+">$7,500+</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="inquiry-interests">Tell us about your travel interests and expectations</label>
+            <textarea id="inquiry-interests" name="interests" rows="5" placeholder="What kind of experiences are you looking for? Any must-see destinations or activities? Physical fitness level? Accommodation preferences?"></textarea>
+          </div>
+          
+          <div class="form-group-checkbox">
+            <input type="checkbox" id="inquiry-newsletter" name="newsletter" value="yes">
+            <label for="inquiry-newsletter">Send me travel inspiration and special offers</label>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-large">Request Quote</button>
+          
+          <p class="form-note"><small>We'll respond within 24 hours with a personalized itinerary and pricing</small></p>
+        </form>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <img src="wanderlust-logo-white.svg" alt="Wanderlust Adventures" width="180" height="45" loading="lazy">
+          <p>Small groups. Big experiences.</p>
+          
+          <div class="social-links" aria-label="Social media">
+            <a href="https://instagram.com/wanderlustadv" aria-label="Instagram">Instagram</a>
+            <a href="https://facebook.com/wanderlustadv" aria-label="Facebook">Facebook</a>
+            <a href="https://youtube.com/wanderlustadv" aria-label="YouTube">YouTube</a>
+            <a href="https://pinterest.com/wanderlustadv" aria-label="Pinterest">Pinterest</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Destinations</h3>
+          <ul>
+            <li><a href="/destinations/europe">Europe</a></li>
+            <li><a href="/destinations/asia">Asia</a></li>
+            <li><a href="/destinations/africa">Africa</a></li>
+            <li><a href="/destinations/south-america">South America</a></li>
+            <li><a href="/destinations">All Destinations</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Travel Styles</h3>
+          <ul>
+            <li><a href="/travel-styles/adventure">Adventure</a></li>
+            <li><a href="/travel-styles/cultural">Cultural</a></li>
+            <li><a href="/travel-styles/wildlife">Wildlife</a></li>
+            <li><a href="/travel-styles/luxury">Luxury</a></li>
+            <li><a href="/travel-styles/family">Family</a></li>
+            <li><a href="/travel-styles/solo">Solo Travel</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="/blog">Travel Blog</a></li>
+            <li><a href="/travel-guides">Travel Guides</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/reviews">Reviews</a></li>
+            <li><a href="/packing-lists">Packing Lists</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h3>Company</h3>
+          <ul>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/sustainability">Sustainability</a></li>
+            <li><a href="/our-team">Our Team</a></li>
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-certifications">
+        <p><strong>Certified & Trusted:</strong></p>
+        <div class="certifications">
+          <span>ASTA Member</span>
+          <span>Adventure Travel Trade Association</span>
+          <span>B Corp Certified</span>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 Wanderlust Adventures. All rights reserved.</p>
+        <nav aria-label="Legal">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms & Conditions</a>
+          <a href="/booking-terms">Booking Terms</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <script src="tours.js" defer></script>
+</body>
+</html>
