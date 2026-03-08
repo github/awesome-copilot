@@ -42,7 +42,11 @@
 
 # aNULL - HTTPS configuration cipher string
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL
+# brunch - A late morning meal, combining breakfast and lunch
+
+# capela - Portuguese word for chapel
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,brunch,capela
 
 # Skip certain files and directories
 

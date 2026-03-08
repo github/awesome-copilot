@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sign in to your account to access your dashboard, settings, and personalized features.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sign In | Your Account</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <main id="main" class="auth-page">
+    <div class="auth-container">
+      <div class="auth-branding">
+        <a href="/" class="logo-link">
+          <img src="logo.svg" alt="Company Logo" width="150" height="50" loading="eager">
+        </a>
+      </div>
+      
+      <div class="auth-card">
+        <h1>Welcome back</h1>
+        <p class="auth-subtitle">Sign in to your account to continue</p>
+        
+        <form class="auth-form" action="/login" method="POST">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              placeholder="you@example.com"
+              required 
+              autocomplete="email"
+              autofocus>
+          </div>
+          
+          <div class="form-group">
+            <div class="label-with-link">
+              <label for="password">Password</label>
+              <a href="/forgot-password" class="link-small">Forgot password?</a>
+            </div>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Enter your password"
+              required 
+              autocomplete="current-password"
+              minlength="8">
+          </div>
+          
+          <div class="form-group-checkbox">
+            <input type="checkbox" id="remember" name="remember" value="yes">
+            <label for="remember">Remember me for 30 days</label>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-large btn-full-width">Sign In</button>
+        </form>
+        
+        <div class="divider">
+          <span>Or continue with</span>
+        </div>
+        
+        <div class="social-auth-buttons">
+          <button type="button" class="btn btn-outline btn-social" onclick="loginWithGoogle()">
+            <img src="google-icon.svg" alt="" width="20" height="20" loading="lazy">
+            <span>Google</span>
+          </button>
+          
+          <button type="button" class="btn btn-outline btn-social" onclick="loginWithGithub()">
+            <img src="github-icon.svg" alt="" width="20" height="20" loading="lazy">
+            <span>GitHub</span>
+          </button>
+        </div>
+        
+        <p class="auth-footer-text">
+          Don't have an account? 
+          <a href="/signup">Sign up</a>
+        </p>
+      </div>
+      
+      <footer class="auth-footer">
+        <nav aria-label="Legal">
+          <a href="/privacy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="/help">Help Center</a>
+        </nav>
+      </footer>
+    </div>
+  </main>
+  
+  <script src="auth.js" defer></script>
+</body>
+</html>
