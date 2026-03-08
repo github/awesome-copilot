@@ -12,15 +12,37 @@ Ask the user for the following information if not provided:
 1. **Primary Language/Framework**: (e.g., JavaScript/React, Python/Django, Java/Spring Boot, etc.)
 2. **Project Type**: (e.g., web app, API, mobile app, desktop app, library, etc.)
 3. **Additional Technologies**: (e.g., database, cloud provider, testing frameworks, etc.)
-4. **Team Size**: (solo, small team, enterprise)
-5. **Development Style**: (strict standards, flexible, specific patterns)
+4. **Development Style**: (strict standards, flexible, specific patterns)
 
 ## Configuration Files to Create
 
 Based on the provided stack, create the following files in the appropriate directories:
 
 ### 1. `.github/copilot-instructions.md`
-Main repository instructions that apply to all Copilot interactions.
+Main repository instructions that apply to all Copilot interactions. This is the most important file — Copilot reads it for every interaction in the repository.
+
+Use this structure:
+```md
+# {Project Name} — Copilot Instructions
+
+## Project Overview
+Brief description of what this project does and its primary purpose.
+
+## Tech Stack
+List the primary language, frameworks, and key dependencies.
+
+## Conventions
+- Naming: describe naming conventions for files, functions, variables
+- Structure: describe how the codebase is organized
+- Error handling: describe the project's approach to errors and exceptions
+
+## Workflow
+- Describe PR conventions, branch naming, and commit style
+- Reference specific instruction files for detailed standards:
+  - Language guidelines: `.github/instructions/{language}.instructions.md`
+  - Testing: `.github/instructions/testing.instructions.md`
+  - Security: `.github/instructions/security.instructions.md`
+```
 
 ### 2. `.github/instructions/` Directory
 Create specific instruction files:
@@ -42,9 +64,24 @@ Create reusable skills as self-contained folders:
 
 ### 4. `.github/agents/` Directory
 Create specialized agents:
+- `engineer.agent.md` - Expert software engineering mode
 - `architect.agent.md` - Architecture planning mode
 - `reviewer.agent.md` - Code review mode
 - `debugger.agent.md` - Debugging mode
+
+Create all 4 agents — they're lightweight and useful regardless of project size. Agents that aren't needed can simply be ignored.
+
+**Skills vs Agents**: The `code-review/SKILL.md` skill provides a reusable, step-by-step code review procedure. The `reviewer.agent.md` agent defines a persistent persona with review-focused principles. Use the skill for on-demand review tasks; use the agent when you want Copilot to adopt a reviewer mindset for an entire conversation.
+
+**Finding Language-Specific Expert Agents**: Before creating the `engineer.agent.md`, check awesome-copilot for language-specific expert agents:
+1. **Fetch from awesome-copilot agents** directory: https://github.com/github/awesome-copilot/tree/main/agents
+2. **Look for matching expert agents** like:
+   - `expert-react-frontend-engineer.agent.md` (for React projects)
+   - `expert-dotnet-software-engineer.agent.md` (for .NET projects)
+   - `expert-cpp-software-engineer.agent.md` (for C++ projects)
+   - Similar patterns for other tech stacks
+3. **If a matching expert agent exists**, adapt it for the project
+4. **If no match exists**, create a generic software engineer agent using the template in the YAML Frontmatter section below
 
 **Agent Attribution**: When using content from awesome-copilot agents, add attribution comments:
 ```markdown
@@ -55,13 +92,18 @@ Create specialized agents:
 Create an Agentic Workflow source file:
 - `copilot-setup-steps.md` - Agentic Workflow definition for Coding Agent environment setup
 
-Also note that:
-- `copilot-setup-steps.lock.yml` is the compiled artifact generated from the `.md` file with `gh aw compile`
-- Do not hand-author the `.lock.yml` unless the user explicitly asks for generated output content
+**Workflow Compilation**:
+After creating `copilot-setup-steps.md`, instruct the user to generate the compiled artifact:
+```bash
+gh aw compile .github/workflows/copilot-setup-steps.md -o .github/workflows/copilot-setup-steps.lock.yml
+```
+- `copilot-setup-steps.lock.yml` is the compiled artifact generated from the `.md` file
+- Do not hand-author the `.lock.yml` file—it is always generated from the source `.md`
+- The user should commit both files to the repository
 
 **CRITICAL**: The workflow MUST follow current Agentic Workflow conventions:
 - The source workflow is a single `.md` file with YAML frontmatter and natural-language instructions
-- The `.lock.yml` file is the compiled artifact generated from the `.md` file
+- The `.lock.yml` file is the compiled artifact generated from the `.md` file with `gh aw compile`
 - Include appropriate triggers and minimum required permissions in the frontmatter
 - Customize the workflow instructions to the technology stack provided
 
@@ -181,6 +223,7 @@ project-root/
 │   │   └── debug-issue/
 │   │       └── SKILL.md
 │   ├── agents/
+│   │   ├── engineer.agent.md
 │   │   ├── architect.agent.md
 │   │   ├── reviewer.agent.md
 │   │   └── debugger.agent.md
@@ -196,49 +239,67 @@ Use this structure for all files:
 **Instructions (.instructions.md):**
 ```md
 ---
-applyTo: "**/*.ts,**/*.tsx"
+applyTo: "**/*.{lang-ext}"
+description: "Development standards for {Language}"
 ---
-# Project coding standards for TypeScript and React
+# {Language} coding standards
 
 Apply the repository-wide guidance from `../copilot-instructions.md` to all code.
 
-## TypeScript Guidelines
-- Use TypeScript for all new code
-- Follow functional programming principles where possible
-- Use interfaces for data structures and type definitions
-- Prefer immutable data (const, readonly)
-- Use optional chaining (?.) and nullish coalescing (??) operators
+## General Guidelines
+- Follow the project's established conventions and patterns
+- Prefer clear, readable code over clever abstractions
+- Use the language's idiomatic style and recommended practices
+- Keep modules focused and appropriately sized
 
-## React Guidelines
-- Use functional components with hooks
-- Follow the React hooks rules (no conditional hooks)
-- Use React. FC type for components with children
-- Keep components small and focused
-- Use CSS modules for component styling
-
+<!-- Adapt the sections below to match the project's specific technology choices and preferences -->
 ```
 
 **Skills (SKILL.md):**
 ```md
 ---
-name: setup-component
-description: Generate a new React form component
+name: {skill-name}
+description: {Brief description of what this skill does}
 ---
 
-# Setup Component
+# {Skill Name}
 
-Generate a new React form component based on the repository's established patterns.
+{One sentence describing what this skill does. Always follow the repository's established patterns.}
 
-Ask for the component name and fields if not provided.
+Ask for {required inputs} if not provided.
 
 ## Requirements
 - Use the existing design system and repository conventions
-- Prefer the project's standard form state management approach
-- Define clear types for form data when the stack supports it
+- Follow the project's established patterns and style
+- Adapt to the specific technology choices of this stack
 - Reuse existing validation and documentation patterns
 ```
 
-**Agents (.agent.md):**
+**Software Engineer (.agent.md):**
+```md
+<!-- Based on: https://github.com/github/awesome-copilot/blob/main/agents/expert-[stack]-software-engineer.agent.md -->
+---
+name: "Software Engineer"
+description: "Expert software engineering mode. Apply clean code, TDD, and architectural best practices."
+---
+
+You are an expert software engineer for this project's technology stack.
+
+Apply these principles in all work:
+- **Clean Code**: Write readable, maintainable code following SOLID principles (Robert C. Martin)
+- **Test-Driven Development**: Write tests first, focus on testability (Kent Beck)
+- **Modern CI/CD**: Embrace continuous integration and deployment practices (Jez Humble)
+- **Safe Refactoring**: Improve code without breaking functionality
+- **Design Patterns**: Use appropriate patterns for the stack; avoid over-engineering
+
+Focus on:
+- Identifying and addressing code smells
+- Suggesting architectural improvements without reinventing
+- Balancing pragmatism with best practices
+- Considering the full context and existing project patterns
+```
+
+**Architect (.agent.md):**
 ```md
 ---
 name: "Architect"
@@ -258,14 +319,21 @@ Use additional frontmatter fields only when the target Copilot environment suppo
 
 ## Execution Steps
 
-1. **Analyze the provided technology stack**
-2. **Create the directory structure**
-3. **Generate main copilot-instructions.md with project-wide standards**
-4. **Create language-specific instruction files using awesome-copilot references**
-5. **Generate reusable skills for common development tasks**
-6. **Set up specialized agents for different development scenarios**
-7. **Create the Agentic Workflow for Coding Agent** (`copilot-setup-steps.md`) and compiled lock file guidance (`copilot-setup-steps.lock.yml`)
-8. **Validate all files follow proper formatting and include necessary frontmatter**
+1. **Gather project information** - Ask the user for technology stack, project type, and development style if not provided
+2. **Research awesome-copilot patterns**:
+   - Use the fetch tool to explore awesome-copilot directories
+   - Check instructions: https://github.com/github/awesome-copilot/tree/main/instructions
+   - Check agents: https://github.com/github/awesome-copilot/tree/main/agents (especially for matching expert agents)
+   - Check skills: https://github.com/github/awesome-copilot/tree/main/skills
+   - Document all sources for attribution comments
+3. **Create the directory structure**
+4. **Generate main copilot-instructions.md** with project-wide standards
+5. **Create language-specific instruction files** using awesome-copilot references with attribution
+6. **Generate reusable skills** tailored to project needs
+7. **Set up specialized agents**, fetching from awesome-copilot where applicable (especially for expert engineer agents matching the tech stack)
+8. **Create the Agentic Workflow** (`copilot-setup-steps.md`) with setup and validation steps for the detected stack
+9. **Instruct the user to compile the workflow**: Run `gh aw compile .github/workflows/copilot-setup-steps.md -o .github/workflows/copilot-setup-steps.lock.yml`
+10. **Validate** all files follow proper formatting and include necessary frontmatter
 
 ## Post-Setup Instructions
 
@@ -312,24 +380,29 @@ Prepare the development environment for this repository.
 - Keep changes minimal and aligned with existing project conventions
 ```
 
-**KEEP WORKFLOWS SIMPLE** - In the markdown instructions, include only essential setup and validation steps for the detected stack:
+**Detect the Stack Dynamically**:
 
-**Node.js/JavaScript:**
-- Set up Node.js
-- Install dependencies with the project's package manager
-- Run the standard lint command if present
-- Run the standard test command if present
+Before generating the workflow, inspect the repository for key files to determine the technology stack:
 
-**Python:**
-- Set up Python
-- Install dependencies from the project's standard requirements or lock file
-- Run the standard lint command if present
-- Run the standard test command if present
+| Files Found | Tech Stack | Setup Steps |
+|------------|-----------|-------------|
+| `package.json` | Node.js/JavaScript/TypeScript | Install Node.js, install deps, run lint/test |
+| `requirements.txt`, `pyproject.toml` | Python | Install Python, install deps, run lint/test |
+| `pom.xml`, `build.gradle` | Java | Install JDK, build with Maven/Gradle, run test |
+| `go.mod` | Go | Install Go, run build, run tests |
+| `Cargo.toml` | Rust | Install Rust, cargo build, cargo test |
+| `*.csproj`, `*.sln` | .NET | Install .NET SDK, dotnet build, dotnet test |
+| `Gemfile` | Ruby | Install Ruby, bundle install, run tests |
 
-**Java:**
-- Set up the JDK version used by the project
-- Build with the repository's standard tool (Maven or Gradle)
-- Run the standard test command
+**If the stack cannot be determined from repository files**, ask the user: "What is your primary technology stack?" before generating the workflow.
+
+**KEEP WORKFLOWS SIMPLE** - In the markdown instructions, include only essential setup and validation steps appropriate for the detected stack:
+
+- Set up the primary language/runtime
+- Install dependencies using the repository's standard package manager/build tool
+- Run the standard lint command (if present in the repository)
+- Run the standard test command (if present in the repository)
+- Note that `copilot-setup-steps.lock.yml` will be generated from this `.md` file using `gh aw compile`
 
 **AVOID in workflows:**
 - ❌ Complex configuration setups
@@ -344,4 +417,3 @@ Prepare the development environment for this repository.
 - ✅ Simple linting (if standard)
 - ✅ Basic test running
 - ✅ Standard build commands
-- ✅ A note that the `.lock.yml` file should be generated with `gh aw compile`
