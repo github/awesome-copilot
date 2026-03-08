@@ -25,7 +25,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [awesome-copilot](../plugins/awesome-copilot/README.md) | Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills. | 5 items | github-copilot, discovery, meta, prompt-engineering, agents |
+| [awesome-copilot](../plugins/awesome-copilot/README.md) | Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills. | 4 items | github-copilot, discovery, meta, prompt-engineering, agents |
 | [azure-cloud-development](../plugins/azure-cloud-development/README.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 11 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [cast-imaging](../plugins/cast-imaging/README.md) | A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging. | 3 items | cast-imaging, software-analysis, architecture, quality, impact-analysis, devops |
 | [clojure-interactive-programming](../plugins/clojure-interactive-programming/README.md) | Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance. | 2 items | clojure, repl, interactive-programming |
