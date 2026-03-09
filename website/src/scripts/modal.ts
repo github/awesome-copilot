@@ -13,6 +13,7 @@ import {
   getResourceType,
   escapeHtml,
   getResourceIcon,
+  sanitizeUrl,
 } from "./utils";
 
 // Modal state
@@ -83,6 +84,17 @@ interface PluginItem {
   usage?: string | null;
 }
 
+interface PluginAuthor {
+  name: string;
+  url?: string;
+}
+
+interface PluginSource {
+  source: string;
+  repo?: string;
+  path?: string;
+}
+
 interface Plugin {
   id: string;
   name: string;
@@ -90,6 +102,12 @@ interface Plugin {
   path: string;
   items: PluginItem[];
   tags?: string[];
+  external?: boolean;
+  repository?: string | null;
+  homepage?: string | null;
+  author?: PluginAuthor | null;
+  license?: string | null;
+  source?: PluginSource | null;
 }
 
 interface PluginsData {
@@ -519,7 +537,114 @@ async function openPluginModal(
   title.textContent = plugin.name;
   document.title = `${plugin.name} | Awesome GitHub Copilot`;
 
-  // Render plugin view
+  // Render external plugin view (metadata + links) or local plugin view (items list)
+  if (plugin.external) {
+    renderExternalPluginModal(plugin, modalContent);
+  } else {
+    renderLocalPluginModal(plugin, modalContent);
+  }
+}
+
+/**
+ * Get the best URL for an external plugin, preferring the deep path within the repo
+ */
+function getExternalPluginUrl(plugin: Plugin): string {
+  if (plugin.source?.source === "github" && plugin.source.repo) {
+    const base = `https://github.com/${plugin.source.repo}`;
+    return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
+  }
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
+  return sanitizeUrl(plugin.repository || plugin.homepage);
+}
+
+/**
+ * Render modal content for an external plugin (no local files)
+ */
+function renderExternalPluginModal(
+  plugin: Plugin,
+  modalContent: HTMLElement
+): void {
+  const authorHtml = plugin.author?.name
+    ? `<div class="external-plugin-meta-row">
+        <span class="external-plugin-meta-label">Author</span>
+        <span class="external-plugin-meta-value">${
+          plugin.author.url
+            ? `<a href="${sanitizeUrl(plugin.author.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.author.name)}</a>`
+            : escapeHtml(plugin.author.name)
+        }</span>
+      </div>`
+    : "";
+
+  const repoHtml = plugin.repository
+    ? `<div class="external-plugin-meta-row">
+        <span class="external-plugin-meta-label">Repository</span>
+        <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.repository)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.repository)}</a></span>
+      </div>`
+    : "";
+
+  const homepageHtml =
+    plugin.homepage && plugin.homepage !== plugin.repository
+      ? `<div class="external-plugin-meta-row">
+          <span class="external-plugin-meta-label">Homepage</span>
+          <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.homepage)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.homepage)}</a></span>
+        </div>`
+      : "";
+
+  const licenseHtml = plugin.license
+    ? `<div class="external-plugin-meta-row">
+        <span class="external-plugin-meta-label">License</span>
+        <span class="external-plugin-meta-value">${escapeHtml(plugin.license)}</span>
+      </div>`
+    : "";
+
+  const sourceHtml = plugin.source?.repo
+    ? `<div class="external-plugin-meta-row">
+        <span class="external-plugin-meta-label">Source</span>
+        <span class="external-plugin-meta-value">GitHub: ${escapeHtml(plugin.source.repo)}${plugin.source.path ? ` (${escapeHtml(plugin.source.path)})` : ""}</span>
+      </div>`
+    : "";
+
+  const repoUrl = getExternalPluginUrl(plugin);
+
+  modalContent.innerHTML = `
+    <div class="collection-view">
+      <div class="collection-description">${escapeHtml(plugin.description || "")}</div>
+      ${
+        plugin.tags && plugin.tags.length > 0
+          ? `<div class="collection-tags">
+              <span class="resource-tag resource-tag-external">🔗 External Plugin</span>
+              ${plugin.tags.map((t) => `<span class="resource-tag">${escapeHtml(t)}</span>`).join("")}
+            </div>`
+          : `<div class="collection-tags">
+              <span class="resource-tag resource-tag-external">🔗 External Plugin</span>
+            </div>`
+      }
+      <div class="external-plugin-metadata">
+        ${authorHtml}
+        ${repoHtml}
+        ${homepageHtml}
+        ${licenseHtml}
+        ${sourceHtml}
+      </div>
+      <div class="external-plugin-cta">
+        <a href="${sanitizeUrl(repoUrl)}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener noreferrer">
+          View Repository →
+        </a>
+      </div>
+      <div class="external-plugin-note">
+        This is an external plugin maintained outside this repository. Browse the repository to see its contents and installation instructions.
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render modal content for a local plugin (item list)
+ */
+function renderLocalPluginModal(
+  plugin: Plugin,
+  modalContent: HTMLElement
+): void {
   modalContent.innerHTML = `
     <div class="collection-view">
       <div class="collection-description">${escapeHtml(
