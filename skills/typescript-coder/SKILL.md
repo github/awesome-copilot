@@ -673,13 +673,13 @@ type A = IsString<string>;   // true
 type B = IsString<number>;   // false
 
 // Practical example: Extract function return type
-type ReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
+type MyReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
 
 function getUser() {
   return { id: 1, name: "Alice" };
 }
 
-type User = ReturnType<typeof getUser>;  // { id: number; name: string }
+type User = MyReturnType<typeof getUser>;  // { id: number; name: string }
 ```
 
 ### Template Literal Types

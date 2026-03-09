@@ -87,18 +87,19 @@ type Numbers = ArrayElement<number[]>; // number
 ```
 
 ```ts
+// These mirror TypeScript's built-in utility types, but use custom names
 // Get return type of a function
-type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
+type MyReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
 
 // Get parameter types as a tuple
-type Parameters<T> = T extends (...args: infer P) => any ? P : never;
+type MyParameters<T> = T extends (...args: infer P) => any ? P : never;
 
 // Get constructor parameter types
-type ConstructorParameters<T extends new (...args: any) => any> =
+type MyConstructorParameters<T extends new (...args: any) => any> =
   T extends new (...args: infer P) => any ? P : never;
 
 // Get instance type from a constructor
-type InstanceType<T extends new (...args: any) => any> =
+type MyInstanceType<T extends new (...args: any) => any> =
   T extends new (...args: any) => infer R ? R : any;
 ```
 
@@ -1163,9 +1164,9 @@ type User = {
   createdAt: Date;
 };
 
-type GetterName<T> = `get${Capitalize<string & keyof T>}`;
+type GetterName<T, K extends keyof T> = `get${Capitalize<string & K>}`;
 type UserGetters = {
-  [K in keyof User as GetterName<User>]: () => User[K];
+  [K in keyof User as GetterName<User, K>]: () => User[K];
 };
 // { getId: () => number; getName: () => string; ... }
 

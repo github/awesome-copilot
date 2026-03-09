@@ -765,6 +765,8 @@ const user1 = new User('johndoe', 'john@example.com'); // Works
 ### Parameter Decorators - Validation
 
 ```ts
+import "reflect-metadata";
+
 function validateParam(type: 'string' | 'number' | 'boolean') {
   return function (
     target: any,

@@ -505,7 +505,7 @@ type IsString<T> = T extends string ? true : false;
 
 type ExtractArray<T> = T extends (infer U)[] ? U : never;
 
-type NonNullable<T> = T extends null | undefined ? never : T;
+type MyNonNullable<T> = T extends null | undefined ? never : T;
 ```
 
 ### Template Literal Types
