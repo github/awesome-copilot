@@ -120,7 +120,7 @@ You don't need these — everything works with mouse clicks. But if you want to 
 | A | Arrow |
 | T | Text |
 | N | New sticky note |
-| Delete | Delete selected item |
+| Delete | Delete selected item (not yet supported) |
 | Ctrl+Z | Undo |
 | Ctrl+Shift+Z | Redo |
 | Space + drag | Pan the canvas |
