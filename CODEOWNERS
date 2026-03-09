@@ -15,3 +15,6 @@
 # Added via #codeowner from PR #929
 /plugins/napkin/ @dvelton
 /skills/napkin/ @dvelton
+
+# Added via #codeowner from PR #888
+/skills/github-issues/ @labudis
