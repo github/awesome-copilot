@@ -372,7 +372,6 @@ class Range implements Iterable<number> {
 ```
 
 For older compile targets, enable full iterator support:
-
 ```ts
 // tsconfig.json
 // { "compilerOptions": { "target": "ES5", "downlevelIteration": true } }
@@ -382,26 +381,24 @@ For older compile targets, enable full iterator support:
 
 - Reference material for [JSX](https://www.typescriptlang.org/docs/handbook/jsx.html)
 
-To use JSX: name files `.tsx` and set the `jsx` compiler option.
+TypeScript supports JSX syntax for projects that use JSX-based libraries. To use JSX: name files `.tsx` and set the `jsx` compiler option.
 
 ```ts
 // tsconfig.json
-// { "compilerOptions": { "jsx": "react-jsx", "jsxImportSource": "react" } }
+// { "compilerOptions": { "jsx": "preserve" } }  // or "react-jsx", etc.
 ```
 
 JSX emission modes:
 
-| Mode | Input | Output | File |
-|------|-------|--------|------|
+| Mode | Input | Output | File Extension |
+|------|-------|--------|----------------|
 | `preserve` | `<div />` | `<div />` | `.jsx` |
 | `react` | `<div />` | `React.createElement("div")` | `.js` |
-| `react-native` | `<div />` | `<div />` | `.js` |
 | `react-jsx` | `<div />` | `_jsx("div", {})` | `.js` |
-| `react-jsxdev` | `<div />` | `_jsxDEV("div", {})` | `.js` |
 
 ```tsx
 // Intrinsic elements — lowercase, mapped via JSX.IntrinsicElements
-const a = <div className="box" />;
+const element = <div className="box" />;
 
 // Value-based elements — capitalized components
 function MyButton(props: { label: string }) {
@@ -418,20 +415,14 @@ interface ButtonProps {
 function Button({ label, onClick, disabled }: ButtonProps) {
   return <button onClick={onClick} disabled={disabled}>{label}</button>;
 }
-// <Button label="Submit" onClick={() => {}} />   ✅
-// <Button label="Submit" />                      ❌ missing onClick
 
 // Generic components
 function Identity<T>(props: { value: T; render: (val: T) => JSX.Element }) {
   return props.render(props.value);
 }
-
-// Per-file JSX factory override
-/** @jsx h */
-// import { h } from "preact";
 ```
 
-Key compiler options: `jsx`, `jsxFactory` (legacy custom factory), `jsxFragmentFactory`, `jsxImportSource`.
+Key compiler options: `jsx`, `jsxFactory`, `jsxFragmentFactory`, `jsxImportSource`.
 
 ## Mixins
 
@@ -577,7 +568,6 @@ Pitfalls of using namespaces in module files:
 | Deep nesting | `App.Utils.Strings.trim` becomes unwieldy |
 
 When to use modules vs namespaces:
-
 - **Modules**: all new applications and libraries, any code using a bundler or Node.js
 - **Namespaces**: `.d.ts` declaration files for global scripts, legacy non-module scripts, UMD global library typings
 
@@ -699,7 +689,6 @@ Key rules:
 | `noResolve` | With `--noResolve` flag, `reference path` directives are ignored |
 
 Common use in published `.d.ts` files:
-
 ```ts
 // mylib.d.ts
 /// <reference types="node" />
@@ -756,7 +745,7 @@ enum Color  { Red, Green }
 
 let n: number = Status.Active; // OK — numeric enums are compatible with number
 
-// Class compatibility — only instance members compared (static ignore)
+// Class compatibility — only instance members compared (statics ignored)
 class A { feet = 4; }
 class B { feet = 4; name = ""; }
 let ca: A = new B(); // OK

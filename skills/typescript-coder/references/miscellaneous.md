@@ -1219,7 +1219,7 @@ const age = userGetters.getAge();   // number
 /** @typedef {import('./types').User} User */
 
 // Importing types from node_modules
-/** @typedef {import('express').Request} ExpressRequest */
+/** @typedef {import('http').IncomingMessage} HttpRequest */
 
 // Importing with renaming
 /** @typedef {import('./api').default as ApiClient} ApiClient */
@@ -1646,62 +1646,6 @@ fetchData()
 
 // Or use void for intentionally ignored errors
 void fetchData().catch(console.error);
-```
-
-### Error Boundaries in React
-
-```tsx
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-}
-
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  public state: ErrorBoundaryState = {
-    hasError: false
-  };
-
-  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
-    // Log to error reporting service
-  }
-
-  public render() {
-    if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="error-boundary">
-          <h2>Something went wrong</h2>
-          <p>{this.state.error?.message}</p>
-          <button onClick={() => this.setState({ hasError: false })}>
-            Try again
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-// Usage
-function App() {
-  return (
-    <ErrorBoundary fallback={<div>Oops! Something broke.</div>}>
-      <MyComponent />
-    </ErrorBoundary>
-  );
-}
 ```
 
 ### Best Practices - Don't Swallow Errors

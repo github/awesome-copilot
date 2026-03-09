@@ -36,8 +36,8 @@ npx tsc
 ```
 
 ```bash
-Version X.Y.Z
-tsc: The TypeScript Compiler - Version X.Y.Z
+Version 4.5.5
+tsc: The TypeScript Compiler - Version 4.5.5
 ```
 
 ### Configuring compiler

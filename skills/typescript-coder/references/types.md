@@ -1425,42 +1425,41 @@ tsc --outFile sample.js main.ts
 ### Namespace Augmentation
 
 ```ts
-// Original namespace
-declare namespace Express {
+// Original namespace in a library
+declare namespace App {
   interface Request {
-    user?: { id: number; name: string };
+    id: string;
+    timestamp: number;
   }
   interface Response {
-    json(data: any): void;
+    send(data: any): void;
   }
 }
 
 // Later in your application (e.g., in a .d.ts file)
-declare namespace Express {
+declare namespace App {
   // Augment the Request interface
   interface Request {
     // Add custom properties
-    requestTime?: number;
+    userId?: number;
     // Add methods
     log(message: string): void;
   }
 
   // Add new types
-  interface UserSession {
-    userId: number;
+  interface Session {
+    token: string;
     expires: Date;
   }
 }
 
 // Usage in your application
-const app = express();
-
-app.use((req: Express.Request, res: Express.Response, next) => {
+function handleRequest(req: App.Request, res: App.Response) {
   // Augmented properties and methods are available
-  req.requestTime = Date.now();
-  req.log('Request started');
-  next();
-});
+  req.userId = 123;
+  req.log('Request received');
+  res.send({ success: true });
+}
 ```
 
 ### Generic Namespaces
