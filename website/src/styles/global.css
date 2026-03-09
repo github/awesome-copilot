@@ -562,7 +562,7 @@ body:has(#main-content) {
 
 .btn-primary {
   background: var(--color-accent);
-  color: white;
+  color: var(--sl-color-text-invert) !important;
   border-color: transparent;
   font-weight: 600;
 }
@@ -1237,17 +1237,19 @@ body:has(#main-content) {
   background: var(--gradient-primary);
   border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
   opacity: 0;
-  transition: opacity var(--transition);
+  transition: opacity var(--transition), left var(--transition);
 }
 
 .resource-item:hover {
   background: var(--color-card-hover);
   transform: translateX(4px);
   box-shadow: var(--shadow);
+  border-radius: 0px var(--border-radius-lg) var(--border-radius-lg) 0px;
 }
 
 .resource-item:hover::before {
   opacity: 1;
+  left: -4px;
 }
 
 .resource-info {
