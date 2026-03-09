@@ -4,3 +4,7 @@
 # Agentic Workflows
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
+
+# Added via #codeowner from PR #930
+/plugins/automate-this/ @dvelton
+/skills/automate-this/ @dvelton
