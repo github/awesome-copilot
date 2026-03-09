@@ -1314,8 +1314,12 @@ html, body {
           currentPath = { type: 'pen', points: [pt], color: currentColor, stroke: currentStroke };
         } else {
           eraserDidErase = false;
+          const redoStackBeforeEraser = redoStack.slice();
           saveState();
           eraseAt(pt.x, pt.y, 16);
+          if (!eraserDidErase) {
+            redoStack = redoStackBeforeEraser;
+          }
         }
         break;
       }
