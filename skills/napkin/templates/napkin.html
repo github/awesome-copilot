@@ -722,13 +722,13 @@ html, body {
 
   <!-- Undo / Redo -->
   <div class="toolbar-group">
-    <button class="tool-btn" id="undo-btn" title="Undo (Cmd+Z)">
+    <button class="tool-btn" id="undo-btn" title="Undo (Ctrl/Cmd+Z)">
       <span class="icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 105.64-10.36L1 10"/></svg>
       </span>
       <span class="label">Undo</span>
     </button>
-    <button class="tool-btn" id="redo-btn" title="Redo (Cmd+Shift+Z)">
+    <button class="tool-btn" id="redo-btn" title="Redo (Ctrl/Cmd+Shift+Z)">
       <span class="icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-5.64-10.36L23 10"/></svg>
       </span>
@@ -858,6 +858,7 @@ html, body {
   let isDrawing = false;
   let isPanning = false;
   let spaceHeld = false;
+  let eraserDidErase = false;
   let panStartX = 0, panStartY = 0;
   let panViewStartX = 0, panViewStartY = 0;
 
@@ -1120,6 +1121,26 @@ html, body {
     return null;
   }
 
+  // ── roundRect fallback for older browsers ──────────────────────
+  function safeRoundRect(ctx, x, y, w, h, radii) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, w, h, radii);
+      return;
+    }
+    const r = Array.isArray(radii) ? radii : [radii, radii, radii, radii];
+    const [tl, tr, br, bl] = r.length === 4 ? r : r.length === 2 ? [r[0], r[1], r[0], r[1]] : [r[0], r[0], r[0], r[0]];
+    ctx.moveTo(x + tl, y);
+    ctx.lineTo(x + w - tr, y);
+    ctx.arcTo(x + w, y, x + w, y + tr, tr);
+    ctx.lineTo(x + w, y + h - br);
+    ctx.arcTo(x + w, y + h, x + w - br, y + h, br);
+    ctx.lineTo(x + bl, y + h);
+    ctx.arcTo(x, y + h, x, y + h - bl, bl);
+    ctx.lineTo(x, y + tl);
+    ctx.arcTo(x, y, x + tl, y, tl);
+    ctx.closePath();
+  }
+
   // ── Eraser ───────────────────────────────────────────────────────
   function eraseAt(cx, cy, radius) {
     const r2 = radius * radius;
@@ -1147,6 +1168,7 @@ html, body {
     });
 
     if (drawingObjects.length !== before) {
+      eraserDidErase = true;
       render();
       return true;
     }
@@ -1292,6 +1314,8 @@ html, body {
         if (currentTool === 'pen') {
           currentPath = { type: 'pen', points: [pt], color: currentColor, stroke: currentStroke };
         } else {
+          eraserDidErase = false;
+          saveState();
           eraseAt(pt.x, pt.y, 16);
         }
         break;
@@ -1383,7 +1407,10 @@ html, body {
     isDrawing = false;
 
     if (currentTool === 'eraser') {
-      saveState();
+      if (!eraserDidErase) {
+        // Nothing was erased — pop the pre-erase state we saved on pointerdown
+        undoStack.pop();
+      }
       return;
     }
 
@@ -1815,7 +1842,7 @@ html, body {
         // Body
         ectx.fillStyle = c.bg;
         ectx.beginPath();
-        ectx.roundRect(note.x, note.y, note.w, note.h, 4);
+        safeRoundRect(ectx, note.x, note.y, note.w, note.h, 4);
         ectx.fill();
 
         // Reset shadow
@@ -1827,7 +1854,7 @@ html, body {
         // Header
         ectx.fillStyle = c.header;
         ectx.beginPath();
-        ectx.roundRect(note.x, note.y, note.w, 24, [4, 4, 0, 0]);
+        safeRoundRect(ectx, note.x, note.y, note.w, 24, [4, 4, 0, 0]);
         ectx.fill();
 
         // Text
