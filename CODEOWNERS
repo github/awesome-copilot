@@ -4,3 +4,23 @@
 # Agentic Workflows
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
+
+# Added via #codeowner from PR #930
+/plugins/automate-this/ @dvelton
+/skills/automate-this/ @dvelton
+
+# Added via #codeowner from PR #915
+/skills/cli-mastery/ @DUBSOpenHub
+
+# Added via #codeowner from PR #929
+/plugins/napkin/ @dvelton
+/skills/napkin/ @dvelton
+
+# Added via #codeowner from PR #888
+/skills/github-issues/ @labudis
+
+# Added via #codeowner from PR #884
+/skills/github-issues/ @labudis
+
+# Added via #codeowner from PR #889
+/skills/copilot-spaces/ @labudis

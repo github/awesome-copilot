@@ -1,0 +1,30 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default {...Astro.props}><slot /></Default>
+
+<div class="made-by">
+  <p>Made with ❤️ by our amazing <a href="/contributors/">contributors</a></p>
+</div>
+
+<style>
+  .made-by {
+    text-align: center;
+    padding: 1rem 0 1.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+
+  .made-by a {
+    color: var(--sl-color-gray-3);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    transition: color 0.2s ease;
+  }
+
+  .made-by a:hover {
+    color: var(--sl-color-accent);
+  }
+</style>
