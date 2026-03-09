@@ -13,6 +13,7 @@ import {
   getResourceType,
   escapeHtml,
   getResourceIcon,
+  sanitizeUrl,
 } from "./utils";
 
 // Modal state
@@ -552,7 +553,8 @@ function getExternalPluginUrl(plugin: Plugin): string {
     const base = `https://github.com/${plugin.source.repo}`;
     return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
   }
-  return plugin.repository || plugin.homepage || "#";
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
+  return sanitizeUrl(plugin.repository || plugin.homepage);
 }
 
 /**
@@ -567,7 +569,7 @@ function renderExternalPluginModal(
         <span class="external-plugin-meta-label">Author</span>
         <span class="external-plugin-meta-value">${
           plugin.author.url
-            ? `<a href="${escapeHtml(plugin.author.url)}" target="_blank" rel="noopener">${escapeHtml(plugin.author.name)}</a>`
+            ? `<a href="${sanitizeUrl(plugin.author.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.author.name)}</a>`
             : escapeHtml(plugin.author.name)
         }</span>
       </div>`
@@ -576,7 +578,7 @@ function renderExternalPluginModal(
   const repoHtml = plugin.repository
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">Repository</span>
-        <span class="external-plugin-meta-value"><a href="${escapeHtml(plugin.repository)}" target="_blank" rel="noopener">${escapeHtml(plugin.repository)}</a></span>
+        <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.repository)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.repository)}</a></span>
       </div>`
     : "";
 
@@ -584,7 +586,7 @@ function renderExternalPluginModal(
     plugin.homepage && plugin.homepage !== plugin.repository
       ? `<div class="external-plugin-meta-row">
           <span class="external-plugin-meta-label">Homepage</span>
-          <span class="external-plugin-meta-value"><a href="${escapeHtml(plugin.homepage)}" target="_blank" rel="noopener">${escapeHtml(plugin.homepage)}</a></span>
+          <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.homepage)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.homepage)}</a></span>
         </div>`
       : "";
 
@@ -625,7 +627,7 @@ function renderExternalPluginModal(
         ${sourceHtml}
       </div>
       <div class="external-plugin-cta">
-        <a href="${escapeHtml(repoUrl)}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener">
+        <a href="${sanitizeUrl(repoUrl)}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener noreferrer">
           View Repository →
         </a>
       </div>

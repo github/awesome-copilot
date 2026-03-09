@@ -3,7 +3,7 @@
  */
 import { createChoices, getChoicesValues, type Choices } from '../choices';
 import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, escapeHtml, getGitHubUrl } from '../utils';
+import { fetchData, debounce, escapeHtml, getGitHubUrl, sanitizeUrl } from '../utils';
 import { setupModal, openFileModal } from '../modal';
 
 interface PluginAuthor {
@@ -78,7 +78,8 @@ function getExternalPluginUrl(plugin: Plugin): string {
     const base = `https://github.com/${plugin.source.repo}`;
     return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
   }
-  return plugin.repository || plugin.homepage || '#';
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
+  return sanitizeUrl(plugin.repository || plugin.homepage);
 }
 
 function renderItems(items: Plugin[], query = ''): void {
@@ -115,7 +116,7 @@ function renderItems(items: Plugin[], query = ''): void {
         </div>
       </div>
       <div class="resource-actions">
-        <a href="${githubHref}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
+        <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
       </div>
     </div>`;
   }).join('');

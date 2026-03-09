@@ -552,6 +552,7 @@ function generatePluginsData(gitDates) {
         fs.readFileSync(externalJsonPath, "utf-8")
       );
       if (Array.isArray(externalPlugins)) {
+        let addedCount = 0;
         for (const ext of externalPlugins) {
           if (!ext.name || !ext.description) {
             console.warn(
@@ -574,7 +575,7 @@ function generatePluginsData(gitDates) {
             id: ext.name,
             name: ext.name,
             description: ext.description || "",
-            path: `external/${ext.name}`,
+            path: `plugins/${ext.name}`,
             tags: tags,
             itemCount: 0,
             items: [],
@@ -589,9 +590,10 @@ function generatePluginsData(gitDates) {
               " "
             )} ${ext.author?.name || ""} ${ext.repository || ""}`.toLowerCase(),
           });
+          addedCount++;
         }
         console.log(
-          `  ✓ Loaded ${externalPlugins.length} external plugin(s)`
+          `  ✓ Loaded ${addedCount} external plugin(s)`
         );
       }
     } catch (e) {
