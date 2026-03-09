@@ -89,23 +89,14 @@ Create all 4 agents — they're lightweight and useful regardless of project siz
 ```
 
 ### 5. `.github/workflows/` Directory
-Create an Agentic Workflow source file:
-- `copilot-setup-steps.md` - Agentic Workflow definition for Coding Agent environment setup
+Create Coding Agent workflow file:
+- `copilot-setup-steps.yml` - GitHub Actions workflow for Coding Agent environment setup
 
-**Workflow Compilation**:
-After creating `copilot-setup-steps.md`, instruct the user to generate the compiled artifact:
-```bash
-gh aw compile .github/workflows/copilot-setup-steps.md -o .github/workflows/copilot-setup-steps.lock.yml
-```
-- `copilot-setup-steps.lock.yml` is the compiled artifact generated from the `.md` file
-- Do not hand-author the `.lock.yml` file—it is always generated from the source `.md`
-- The user should commit both files to the repository
-
-**CRITICAL**: The workflow MUST follow current Agentic Workflow conventions:
-- The source workflow is a single `.md` file with YAML frontmatter and natural-language instructions
-- The `.lock.yml` file is the compiled artifact generated from the `.md` file with `gh aw compile`
-- Include appropriate triggers and minimum required permissions in the frontmatter
-- Customize the workflow instructions to the technology stack provided
+**CRITICAL**: The workflow MUST follow this exact structure:
+- Job name MUST be `copilot-setup-steps`
+- Include proper triggers (workflow_dispatch, push, pull_request on the workflow file)
+- Set appropriate permissions (minimum required)
+- Customize steps based on the technology stack provided
 
 ## Content Guidelines
 
@@ -227,8 +218,7 @@ project-root/
 │   │   ├── reviewer.agent.md
 │   │   └── debugger.agent.md
 │   └── workflows/
-│       ├── copilot-setup-steps.md
-│       └── copilot-setup-steps.lock.yml
+│       └── copilot-setup-steps.yml
 ```
 
 ## YAML Frontmatter Template
@@ -330,9 +320,8 @@ Use additional frontmatter fields only when the target Copilot environment suppo
 5. **Create language-specific instruction files** using awesome-copilot references with attribution
 6. **Generate reusable skills** tailored to project needs
 7. **Set up specialized agents**, fetching from awesome-copilot where applicable (especially for expert engineer agents matching the tech stack)
-8. **Create the Agentic Workflow** (`copilot-setup-steps.md`) with setup and validation steps for the detected stack
-9. **Instruct the user to compile the workflow**: Run `gh aw compile .github/workflows/copilot-setup-steps.md -o .github/workflows/copilot-setup-steps.lock.yml`
-10. **Validate** all files follow proper formatting and include necessary frontmatter
+8. **Create the GitHub Actions workflow for Coding Agent** (`copilot-setup-steps.yml`)
+9. **Validate** all files follow proper formatting and include necessary frontmatter
 
 ## Post-Setup Instructions
 
@@ -358,56 +347,80 @@ Before completing, verify:
 
 ## Workflow Template Structure
 
-The `copilot-setup-steps.md` workflow should follow current Agentic Workflow conventions and KEEP IT SIMPLE:
+The `copilot-setup-steps.yml` workflow MUST follow this exact format and KEEP IT SIMPLE:
 
-```md
----
+```yaml
 name: "Copilot Setup Steps"
-description: "Prepare the repository environment for GitHub Copilot coding tasks"
 on:
   workflow_dispatch:
-permissions:
-  contents: read
----
-## Copilot Setup Steps
-Prepare the development environment for this repository.
-
-### Requirements
-- Detect the primary package manager and runtime from the repository
-- Install dependencies using the repository's standard commands
-- Run the default validation commands that are safe and fast for this stack
-- Keep changes minimal and aligned with existing project conventions
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      # Add ONLY basic technology-specific setup steps here
 ```
 
-**Detect the Stack Dynamically**:
+**KEEP WORKFLOWS SIMPLE** - Only include essential steps:
 
-Before generating the workflow, inspect the repository for key files to determine the technology stack:
+**Node.js/JavaScript:**
+```yaml
+- name: Set up Node.js
+  uses: actions/setup-node@v4
+  with:
+    node-version: "20"
+    cache: "npm"
+- name: Install dependencies
+  run: npm ci
+- name: Run linter
+  run: npm run lint
+- name: Run tests
+  run: npm test
+```
 
-| Files Found | Tech Stack | Setup Steps |
-|------------|-----------|-------------|
-| `package.json` | Node.js/JavaScript/TypeScript | Install Node.js, install deps, run lint/test |
-| `requirements.txt`, `pyproject.toml` | Python | Install Python, install deps, run lint/test |
-| `pom.xml`, `build.gradle` | Java | Install JDK, build with Maven/Gradle, run test |
-| `go.mod` | Go | Install Go, run build, run tests |
-| `Cargo.toml` | Rust | Install Rust, cargo build, cargo test |
-| `*.csproj`, `*.sln` | .NET | Install .NET SDK, dotnet build, dotnet test |
-| `Gemfile` | Ruby | Install Ruby, bundle install, run tests |
+**Python:**
+```yaml
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: "3.11"
+- name: Install dependencies
+  run: pip install -r requirements.txt
+- name: Run linter
+  run: flake8 .
+- name: Run tests
+  run: pytest
+```
 
-**If the stack cannot be determined from repository files**, ask the user: "What is your primary technology stack?" before generating the workflow.
-
-**KEEP WORKFLOWS SIMPLE** - In the markdown instructions, include only essential setup and validation steps appropriate for the detected stack:
-
-- Set up the primary language/runtime
-- Install dependencies using the repository's standard package manager/build tool
-- Run the standard lint command (if present in the repository)
-- Run the standard test command (if present in the repository)
-- Note that `copilot-setup-steps.lock.yml` will be generated from this `.md` file using `gh aw compile`
+**Java:**
+```yaml
+- name: Set up JDK
+  uses: actions/setup-java@v4
+  with:
+    java-version: "17"
+    distribution: "temurin"
+- name: Build with Maven
+  run: mvn compile
+- name: Run tests
+  run: mvn test
+```
 
 **AVOID in workflows:**
 - ❌ Complex configuration setups
 - ❌ Multiple environment configurations
 - ❌ Advanced tooling setup
 - ❌ Custom scripts or complex logic
+- ❌ Multiple package managers
 - ❌ Database setup or external services
 
 **INCLUDE only:**
