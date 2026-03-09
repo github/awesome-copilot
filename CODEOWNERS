@@ -11,3 +11,7 @@
 
 # Added via #codeowner from PR #915
 /skills/cli-mastery/ @DUBSOpenHub
+
+# Added via #codeowner from PR #929
+/plugins/napkin/ @dvelton
+/skills/napkin/ @dvelton
