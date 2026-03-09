@@ -27,7 +27,7 @@ Comments add notes to code without affecting display. Browsers ignore comments.
 - Can be used as content in most elements
 - **Cannot** be used inside tags (e.g., within attributes)
 - **Cannot** be nested
-- Not allowed in `<script>`, `<style>`, `<title>`, `<textarea>` (raw text elements)
+- In raw-text/RCDATA elements like `<script>`, `<style>`, `<title>`, and `<textarea>`, the `<!--` / `-->` sequences are treated as literal text, not HTML comments (they may affect JS/CSS if used)
 - First `-->` after `<!--` closes the comment
 
 **Example**:

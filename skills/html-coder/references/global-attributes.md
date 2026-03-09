@@ -277,7 +277,7 @@ Global attributes are attributes that can be applied to **any HTML element**, re
 - Used for fragment identifiers (`#main-header` in URLs)
 - Used with `<label for="id">` to associate labels with inputs
 - Convention: lowercase with hyphens or camelCase
-- Cannot start with a number
+- May start with a number, but such IDs need escaping in some CSS selectors (for example, `#\31 23` to select `id="123"`)
 
 ---
 
@@ -292,7 +292,7 @@ Global attributes are attributes that can be applied to **any HTML element**, re
 <div inert>
   <button>Cannot be clicked</button>
   <a href="#">Cannot be focused</a>
-  <input type="text">Cannot be edited</input>
+  <input type="text" value="Cannot be edited" />
 </div>
 ```
 

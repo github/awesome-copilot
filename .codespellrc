@@ -42,12 +42,7 @@
 
 # aNULL - HTTPS configuration cipher string
 
-# brunch - A late morning meal, combining breakfast and lunch
-
-# capela - Portuguese word for chapel
-
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,brunch,capela
-
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL
 # Skip certain files and directories
 
 skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus
