@@ -118,8 +118,10 @@ You don't need these — everything works with mouse clicks. But if you want to 
 | R | Rectangle |
 | C | Circle |
 | A | Arrow |
+| L | Line |
 | T | Text |
 | N | New sticky note |
+| E | Eraser |
 | Delete | Delete selected item (not yet supported) |
 | Ctrl+Z | Undo |
 | Ctrl+Shift+Z | Redo |
