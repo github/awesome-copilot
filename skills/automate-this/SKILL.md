@@ -99,9 +99,9 @@ Before proposing automation, understand what the user actually has to work with.
 ```bash
 echo "=== OS ===" && uname -a
 echo "=== Shell ===" && echo $SHELL
-echo "=== Python ===" && which python3 && python3 --version 2>&1 || echo "not installed"
-echo "=== Node ===" && which node && node --version 2>&1 || echo "not installed"
-echo "=== Homebrew ===" && which brew && echo "installed" || echo "not installed"
+echo "=== Python ===" && { which python3 && python3 --version 2>&1; } || echo "not installed"
+echo "=== Node ===" && { which node && node --version 2>&1; } || echo "not installed"
+echo "=== Homebrew ===" && { which brew && echo "installed"; } || echo "not installed"
 echo "=== Common Tools ===" && for cmd in curl jq playwright selenium osascript automator crontab; do which $cmd 2>/dev/null && echo "$cmd: yes" || echo "$cmd: no"; done
 ```
 
