@@ -63,25 +63,13 @@ Create reusable skills as self-contained folders:
 - `debug-issue/SKILL.md` - Debugging assistance
 
 ### 4. `.github/agents/` Directory
-Create specialized agents:
-- `engineer.agent.md` - Expert software engineering mode
-- `architect.agent.md` - Architecture planning mode
-- `reviewer.agent.md` - Code review mode
-- `debugger.agent.md` - Debugging mode
+Always create these 4 agents:
+- `software-engineer.agent.md`
+- `architect.agent.md`
+- `reviewer.agent.md`
+- `debugger.agent.md`
 
-Create all 4 agents — they're lightweight and useful regardless of project size. Agents that aren't needed can simply be ignored.
-
-**Skills vs Agents**: The `code-review/SKILL.md` skill provides a reusable, step-by-step code review procedure. The `reviewer.agent.md` agent defines a persistent persona with review-focused principles. Use the skill for on-demand review tasks; use the agent when you want Copilot to adopt a reviewer mindset for an entire conversation.
-
-**Finding Language-Specific Expert Agents**: Before creating the `engineer.agent.md`, check awesome-copilot for language-specific expert agents:
-1. **Fetch from awesome-copilot agents** directory: https://github.com/github/awesome-copilot/tree/main/agents
-2. **Look for matching expert agents** like:
-   - `expert-react-frontend-engineer.agent.md` (for React projects)
-   - `expert-dotnet-software-engineer.agent.md` (for .NET projects)
-   - `expert-cpp-software-engineer.agent.md` (for C++ projects)
-   - Similar patterns for other tech stacks
-3. **If a matching expert agent exists**, adapt it for the project
-4. **If no match exists**, create a generic software engineer agent using the template in the YAML Frontmatter section below
+For each, fetch the most specific match from awesome-copilot agents. If none exists, use the generic template.
 
 **Agent Attribution**: When using content from awesome-copilot agents, add attribution comments:
 ```markdown
@@ -213,7 +201,7 @@ project-root/
 │   │   └── debug-issue/
 │   │       └── SKILL.md
 │   ├── agents/
-│   │   ├── engineer.agent.md
+│   │   ├── sofware-engineer.agent.md
 │   │   ├── architect.agent.md
 │   │   ├── reviewer.agent.md
 │   │   └── debugger.agent.md
