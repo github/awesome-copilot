@@ -95,20 +95,6 @@ When migrating SQL containing `TO_CHAR()`:
 
 ## Application Code Review
 
-### VB.NET Example
-
-```vb
-' Before (Oracle)
-StrSQL = "SELECT DISTINCT TO_CHAR(VESSEL_ID) AS VESSEL_ITEM " _
-       & "FROM UM001_CERTIFICATE_ISSUED " _
-       & "WHERE TO_CHAR(FISCAL_YEAR_APP_NUM) = '" + strYear + "'"
-
-' After (PostgreSQL)
-StrSQL = "SELECT DISTINCT CAST(VESSEL_ID AS TEXT) AS VESSEL_ITEM " _
-       & "FROM UM001_CERTIFICATE_ISSUED " _
-       & "WHERE CAST(FISCAL_YEAR_APP_NUM AS TEXT) = '" + strYear + "'"
-```
-
 ### C# Example
 
 ```csharp

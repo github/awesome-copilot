@@ -35,7 +35,6 @@ When a `SELECT INTO` statement in PostgreSQL does **not find any rows**, it:
 
 - Sets the `FOUND` variable to `false`
 - **Silently continues** execution without raising an exception
-- Leaves the target variable uninitialized
 
 This fundamental difference can cause tests to fail silently and logic errors in production code.
 

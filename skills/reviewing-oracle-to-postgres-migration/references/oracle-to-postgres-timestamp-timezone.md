@@ -14,7 +14,12 @@
 
 Oracle's `CURRENT_TIMESTAMP` returns a value in the **session timezone** and stores it in the column's declared precision. When .NET reads this value back via ODP.NET, it is surfaced as a `DateTime` with `Kind=Local`, reflecting the OS timezone of the client.
 
-PostgreSQL's `CURRENT_TIMESTAMP` and `NOW()` both return a `timestamptz` (timestamp with time zone) anchored to **UTC**, regardless of the session timezone setting. When Npgsql reads a `timestamptz` column back into a `DateTime`, it returns `Kind=Unspecified` by default — not `Kind=Utc` — unless the application explicitly configures timezone handling. This mismatch causes silent data corruption, incorrect comparisons, and off-by-N-hours bugs that are extremely difficult to trace.
+PostgreSQL's `CURRENT_TIMESTAMP` and `NOW()` both return a `timestamptz` (timestamp with time zone) anchored to **UTC**, regardless of the session timezone setting. How Npgsql surfaces this value depends on the driver version and configuration:
+
+- **Npgsql < 6 / legacy mode (`EnableLegacyTimestampBehavior = true`):** `timestamptz` columns are returned as `DateTime` with `Kind=Unspecified`. This is the source of silent timezone bugs when migrating from Oracle.
+- **Npgsql 6+ with legacy mode disabled (the new default):** `timestamptz` columns are returned as `DateTime` with `Kind=Utc`, and writing a `Kind=Unspecified` value throws an exception at insertion time.
+
+Projects that have not yet upgraded to Npgsql 6+, or that explicitly opt back into legacy mode, remain vulnerable to the `Kind=Unspecified` issue. This mismatch — and the ease of accidentally re-enabling legacy mode — causes silent data corruption, incorrect comparisons, and off-by-N-hours bugs that are extremely difficult to trace.
 
 ---
 
@@ -23,7 +28,7 @@ PostgreSQL's `CURRENT_TIMESTAMP` and `NOW()` both return a `timestamptz` (timest
 | Aspect | Oracle | PostgreSQL |
 |---|---|---|
 | `CURRENT_TIMESTAMP` type | `TIMESTAMP WITH LOCAL TIME ZONE` | `timestamptz` (UTC-normalised) |
-| Client `DateTime.Kind` via driver | `Local` | `Unspecified` (Npgsql default) |
+| Client `DateTime.Kind` via driver | `Local` | `Unspecified` (Npgsql < 6 / legacy mode); `Utc` (Npgsql 6+ default) |
 | Session timezone influence | Yes — affects stored/returned value | Affects *display* only; UTC stored internally |
 | NOW() equivalent | `SYSDATE` / `CURRENT_TIMESTAMP` | `NOW()` = `CURRENT_TIMESTAMP` (both return `timestamptz`) |
 | Implicit conversion on comparison | Oracle applies session TZ offset | PostgreSQL compares UTC; session TZ is display-only |
@@ -58,7 +63,7 @@ The session timezone does **not** affect the stored UTC value of a `timestamptz`
 
 ### 1. Configure Npgsql for UTC via Connection String or AppContext
 
-Set `Npgsql.EnableLegacyTimestampBehavior` to `false` (the new default from Npgsql 6+) so that `timestamptz` values are always returned as `DateTime` with `Kind=Utc`:
+Npgsql 6+ ships with `EnableLegacyTimestampBehavior` set to `false` by default, which causes `timestamptz` values to be returned as `DateTime` with `Kind=Utc`. Explicitly setting the switch at startup is still recommended to guard against accidental opt-in to legacy mode (e.g., via a config file or a transitive dependency) and to make the intent visible to future maintainers:
 
 ```csharp
 // Program.cs / Startup.cs — apply once at application start
