@@ -276,6 +276,32 @@
       "version": "1.0.0"
     },
     {
+      "name": "sciagent",
+      "description": "Scientific analysis agents with built-in rigor enforcement — planning, data QC, code review, reporting, and reproducibility. 9 agents and 9 skills for researchers and data scientists.",
+      "version": "1.2.0",
+      "author": {
+        "name": "smestern",
+        "url": "https://github.com/smestern"
+      },
+      "homepage": "https://github.com/smestern/sciagent",
+      "keywords": [
+        "scientific-analysis",
+        "data-analysis",
+        "rigor",
+        "reproducibility",
+        "data-qc",
+        "code-review",
+        "report-writing"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/smestern/sciagent",
+      "source": {
+        "source": "github",
+        "repo": "smestern/sciagent-plugin",
+        "ref": "v1.2.0"
+      }
+    },
+    {
       "name": "security-best-practices",
       "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
