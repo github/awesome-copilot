@@ -8,3 +8,6 @@
 # Added via #codeowner from PR #930
 /plugins/automate-this/ @dvelton
 /skills/automate-this/ @dvelton
+
+# Added via #codeowner from PR #915
+/skills/cli-mastery/ @DUBSOpenHub
