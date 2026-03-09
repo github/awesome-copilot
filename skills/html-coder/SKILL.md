@@ -22,17 +22,21 @@ Expert skill for professional HTML development with focus on semantic markup, ac
 
 - **Semantic HTML**: Document structure, content sections, accessibility-first markup
 - **Forms**: All input types, validation attributes, fieldsets, labels
-- **Media**: Responsive images, audio/video, Canvas, SVG  
+- **Media**: Responsive images, audio/video, Canvas, SVG
 - **HTML5 APIs**: Web Storage, Geolocation, Drag & Drop, Web Workers
 - **Accessibility**: ARIA, screen reader support, WCAG compliance
 
 ## Essential References
 
 Core documentation for HTML experts:
-- `references/reference.md` - Complete HTML element and attribute reference
-- `references/essentials.md` - Semantic markup, validation, responsive techniques
-- `references/quickstart.md` - Fast reference cheatsheet
-- `references/standards.md` - HTML5 specifications and standards
+
+- [`references/add-css-style.md`](references/add-css-style.md) - Add CSS via `link` tag, inline, or embedded in html
+- [`references/add-javascript.md`](references/add-javascript.md) - Add JavaScript via `script src="link.js"` tag, inline `script`, or embedded in html
+- [`references/attributes.md`](references/attributes.md) - HTML attribute essentials
+- [`references/essentials.md`](references/essentials.md) - Semantic markup, validation, responsive techniques
+- [`references/global-attributes.md`](references/global-attributes.md) - Complete global attribute information
+- [`references/glossary.md`](references/glossary.md) - Complete HTML element and attribute reference
+- [`references/standards.md`](references/standards.md) - HTML5 specifications and standards
 
 ## Best Practices
 
@@ -72,7 +76,7 @@ Core documentation for HTML experts:
   <fieldset>
     <legend>Contact</legend>
     <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required 
+    <input type="email" id="email" name="email" required
            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
     <button type="submit">Send</button>
   </fieldset>
@@ -101,5 +105,3 @@ Core documentation for HTML experts:
 - **MDN Web Docs**: https://developer.mozilla.org/en-US/docs/Web/HTML
 
 ---
-
-**Collaborates with**: `make-skill-template` for creating new skills, `finalize-agent-prompt` for prompt refinement.
