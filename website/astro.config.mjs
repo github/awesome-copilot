@@ -76,6 +76,7 @@ export default defineConfig({
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       components: {
         Head: "./src/components/Head.astro",
+        Footer: "./src/components/Footer.astro",
       },
     }),
     sitemap(),

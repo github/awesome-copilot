@@ -634,18 +634,22 @@ function generateContributorsData() {
     .filter((c) => !ignoreList.has(c.login))
     .map((c) => {
       const contributions = c.contributions || [];
-      contributions.forEach((t) => allContributions.add(t));
+      contributions
+        .filter((t) => typeSymbols[t]?.symbol)
+        .forEach((t) => allContributions.add(t));
       return {
         login: c.login,
         name: c.name || c.login,
         avatar_url: c.avatar_url || `https://github.com/${c.login}.png`,
         profile: c.profile || `https://github.com/${c.login}`,
-        contributions,
-        contributionSymbols: contributions.map((t) => ({
-          type: t,
-          symbol: typeSymbols[t]?.symbol || t,
-          description: typeSymbols[t]?.description || t,
-        })),
+        contributions: contributions.filter((t) => typeSymbols[t]?.symbol),
+        contributionSymbols: contributions
+          .filter((t) => typeSymbols[t]?.symbol)
+          .map((t) => ({
+            type: t,
+            symbol: typeSymbols[t].symbol,
+            description: typeSymbols[t].description || t,
+          })),
       };
     });
 
