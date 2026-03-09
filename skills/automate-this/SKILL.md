@@ -14,8 +14,8 @@ The user records themselves doing something repetitive or tedious, hands you the
 Before analyzing any recording, verify the required tools are available. Run these checks silently and only surface problems:
 
 ```bash
-which ffmpeg && ffmpeg -version | head -1
-which whisper || which whisper-cpp || echo "NO_WHISPER"
+command -v ffmpeg >/dev/null 2>&1 && ffmpeg -version 2>/dev/null | head -1 || echo "NO_FFMPEG"
+command -v whisper >/dev/null 2>&1 || command -v whisper-cpp >/dev/null 2>&1 || echo "NO_WHISPER"
 ```
 
 - **ffmpeg is required.** If missing, tell the user: `brew install ffmpeg` (macOS) or the equivalent for their OS.
@@ -30,10 +30,14 @@ Given a video file path (typically on `~/Desktop/`), extract both visual frames 
 Extract frames at one frame every 2 seconds. This balances coverage with context window limits.
 
 ```bash
-mkdir -p /tmp/automate-this-frames
-ffmpeg -i "<VIDEO_PATH>" -vf "fps=0.5" -q:v 2 /tmp/automate-this-frames/frame_%04d.jpg 2>&1 | tail -5
-ls /tmp/automate-this-frames/ | wc -l
+WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/automate-this-XXXXXX")
+chmod 700 "$WORK_DIR"
+mkdir -p "$WORK_DIR/frames"
+ffmpeg -y -i "<VIDEO_PATH>" -vf "fps=0.5" -q:v 2 -loglevel warning "$WORK_DIR/frames/frame_%04d.jpg"
+ls "$WORK_DIR/frames/" | wc -l
 ```
+
+Use `$WORK_DIR` for all subsequent temp file paths in the session. The per-run directory with mode 0700 ensures extracted frames are only readable by the current user.
 
 If the recording is longer than 5 minutes (more than 150 frames), increase the interval to one frame every 4 seconds to stay within context limits. Tell the user you're sampling less frequently for longer recordings.
 
@@ -48,12 +52,21 @@ ffprobe -i "<VIDEO_PATH>" -show_streams -select_streams a -loglevel error | head
 If audio exists:
 
 ```bash
-ffmpeg -i "<VIDEO_PATH>" -ac 1 -ar 16000 /tmp/automate-this-audio.wav -y 2>&1 | tail -3
-whisper /tmp/automate-this-audio.wav --model small --language en --output_format txt --output_dir /tmp/ 2>&1 | tail -5
-cat /tmp/automate-this-audio.txt
+ffmpeg -y -i "<VIDEO_PATH>" -ac 1 -ar 16000 -loglevel warning "$WORK_DIR/audio.wav"
+
+# Use whichever whisper binary is available
+if command -v whisper >/dev/null 2>&1; then
+  whisper "$WORK_DIR/audio.wav" --model small --language en --output_format txt --output_dir "$WORK_DIR/"
+  cat "$WORK_DIR/audio.txt"
+elif command -v whisper-cpp >/dev/null 2>&1; then
+  whisper-cpp -m "$(brew --prefix 2>/dev/null)/share/whisper-cpp/models/ggml-small.bin" -l en -f "$WORK_DIR/audio.wav" -otxt -of "$WORK_DIR/audio"
+  cat "$WORK_DIR/audio.txt"
+else
+  echo "NO_WHISPER"
+fi
 ```
 
-If `whisper` is not installed, check for `whisper-cpp` as an alternative. If neither is available and the recording has audio, inform the user they're missing narration context and ask if they want to install Whisper or proceed without it.
+If neither whisper binary is available and the recording has audio, inform the user they're missing narration context and ask if they want to install Whisper (`pip install openai-whisper` or `brew install whisper-cpp`) or proceed with visual-only analysis.
 
 ## Phase 2: Reconstruct the Process
 
@@ -99,10 +112,10 @@ Before proposing automation, understand what the user actually has to work with.
 ```bash
 echo "=== OS ===" && uname -a
 echo "=== Shell ===" && echo $SHELL
-echo "=== Python ===" && { which python3 && python3 --version 2>&1; } || echo "not installed"
-echo "=== Node ===" && { which node && node --version 2>&1; } || echo "not installed"
-echo "=== Homebrew ===" && { which brew && echo "installed"; } || echo "not installed"
-echo "=== Common Tools ===" && for cmd in curl jq playwright selenium osascript automator crontab; do which $cmd 2>/dev/null && echo "$cmd: yes" || echo "$cmd: no"; done
+echo "=== Python ===" && { command -v python3 && python3 --version 2>&1; } || echo "not installed"
+echo "=== Node ===" && { command -v node && node --version 2>&1; } || echo "not installed"
+echo "=== Homebrew ===" && { command -v brew && echo "installed"; } || echo "not installed"
+echo "=== Common Tools ===" && for cmd in curl jq playwright selenium osascript automator crontab; do command -v $cmd >/dev/null 2>&1 && echo "$cmd: yes" || echo "$cmd: no"; done
 ```
 
 Use this to constrain proposals to tools the user already has. Never propose automation that requires installing five new things unless the simpler path genuinely doesn't work.
@@ -225,7 +238,7 @@ When the user picks a tier:
 After analysis is complete (regardless of outcome), clean up extracted frames and audio:
 
 ```bash
-rm -rf /tmp/automate-this-frames /tmp/automate-this-audio.wav /tmp/automate-this-audio.txt
+rm -rf "$WORK_DIR"
 ```
 
 Tell the user you're cleaning up temporary files so they know nothing is left behind.

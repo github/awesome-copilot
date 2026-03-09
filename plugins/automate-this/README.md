@@ -76,7 +76,7 @@ Each tier includes the working code, instructions to test it with a dry run, and
 
 ## Privacy
 
-Everything runs locally. Your video frames are extracted to `/tmp/`, analyzed in your Copilot CLI session, and deleted when analysis is complete. If you use Whisper for transcription, that also runs locally — no audio is sent to external services.
+Frame extraction (ffmpeg) and audio transcription (Whisper) run entirely on your machine. Extracted frames and audio are written to a secure temporary directory and deleted when analysis is complete. The extracted frames and transcript are sent to the AI model powering your Copilot CLI session for analysis — this is the same model and data pipeline used by all Copilot interactions. No data is sent to additional third-party services beyond what Copilot already uses.
 
 ## Source
 
