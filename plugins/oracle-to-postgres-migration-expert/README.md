@@ -91,7 +91,7 @@ The agent expects and creates the following structure in your repository:
 └── oracle-to-postgres-migration/
     ├── Reports/
     │   ├── Master Migration Plan.md
-    │   ├── Integration Testing Plan.md
+    │   ├── {Project} Integration Testing Plan.md
     │   ├── {Project} Application Migration Report.md
     │   ├── BUG_REPORT_*.md
     │   └── TestResults/
