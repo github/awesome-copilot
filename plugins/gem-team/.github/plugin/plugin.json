@@ -1,7 +1,7 @@
 {
   "name": "gem-team",
-  "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing.",
-  "version": "1.2.0",
+  "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead.",
+  "version": "1.2.1",
   "author": {
     "name": "Awesome Copilot Community"
   },

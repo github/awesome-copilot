@@ -900,6 +900,12 @@ async function main() {
     `✓ Generated ${samplesData.totalRecipes} recipes in ${samplesData.totalCookbooks} cookbooks (${samplesData.filters.languages.length} languages, ${samplesData.filters.tags.length} tags)`
   );
 
+  // Count contributors from .all-contributorsrc for manifest stats
+  const contributorsRcPath = path.join(ROOT_FOLDER, ".all-contributorsrc");
+  const contributorCount = fs.existsSync(contributorsRcPath)
+    ? (JSON.parse(fs.readFileSync(contributorsRcPath, "utf-8")).contributors || []).length
+    : 0;
+
   const searchIndex = generateSearchIndex(
     agents,
     instructions,
@@ -967,6 +973,7 @@ async function main() {
       workflows: workflows.length,
       plugins: plugins.length,
       tools: tools.length,
+      contributors: contributorCount,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,
     },

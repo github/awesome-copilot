@@ -96,6 +96,6 @@ deployment_approval:
 - Gate production/security changes via approval
 - Verify health checks and resources
 - Remove orphaned resources
-- Return JSON; autonomous
+- Return JSON; autonomous; no artifacts except explicitly requested.
 </directives>
 </agent>

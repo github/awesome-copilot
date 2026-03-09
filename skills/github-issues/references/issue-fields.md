@@ -125,3 +125,67 @@ mutation {
   }
 }'
 ```
+
+## Searching by field values
+
+### GraphQL bulk query (recommended)
+
+The most reliable way to find issues by field value is to fetch issues via GraphQL and filter by `issueFieldValues`. The search qualifier syntax (`field.name:value`) is not yet reliable across all environments.
+
+```bash
+# Find all open P1 issues in a repo
+gh api graphql -H "GraphQL-Features: issue_fields" -f query='
+{
+  repository(owner: "OWNER", name: "REPO") {
+    issues(first: 100, states: OPEN) {
+      nodes {
+        number
+        title
+        updatedAt
+        assignees(first: 3) { nodes { login } }
+        issueFieldValues(first: 10) {
+          nodes {
+            __typename
+            ... on IssueFieldSingleSelectValue {
+              name
+              field { ... on IssueFieldSingleSelect { name } }
+            }
+          }
+        }
+      }
+    }
+  }
+}' --jq '
+  [.data.repository.issues.nodes[] |
+    select(.issueFieldValues.nodes[] |
+      select(.field.name == "Priority" and .name == "P1")
+    ) |
+    {number, title, updatedAt, assignees: [.assignees.nodes[].login]}
+  ]'
+```
+
+**Schema notes for `IssueFieldSingleSelectValue`:**
+- The selected option's display text is in `.name` (not `.value`)
+- Also available: `.color`, `.description`, `.id`
+- The parent field reference is in `.field` (use inline fragment to get the field name)
+
+### Search qualifier syntax (experimental)
+
+Issue fields may also be searchable using dot notation in search queries. This requires `advanced_search=true` on REST or `ISSUE_ADVANCED` search type on GraphQL, but results are inconsistent and may return 0 results even when matching issues exist.
+
+```
+field.priority:P0                  # Single-select equals value
+field.target-date:>=2026-04-01     # Date comparison
+has:field.priority                 # Has any value set
+no:field.priority                  # Has no value set
+```
+
+Field names use the **slug** (lowercase, hyphens for spaces). For example, "Target Date" becomes `target-date`.
+
+```bash
+# REST API (may not return results in all environments)
+gh api "search/issues?q=repo:owner/repo+field.priority:P0+is:open&advanced_search=true" \
+  --jq '.items[] | "#\(.number): \(.title)"'
+```
+
+> **Warning:** The colon notation (`field:Priority:P1`) is silently ignored. If using search qualifiers, always use dot notation (`field.priority:P1`). However, the GraphQL bulk query approach above is more reliable. See [search.md](search.md) for the full search guide.
