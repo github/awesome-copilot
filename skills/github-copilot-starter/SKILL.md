@@ -112,9 +112,10 @@ gh aw compile .github/workflows/copilot-setup-steps.md -o .github/workflows/copi
 For each file, follow these principles:
 
 **MANDATORY FIRST STEP**: Always use the fetch tool to research existing patterns before creating any content:
-1. **Fetch from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
-2. **Fetch specific instruction, agent, skill, and workflow files** from the relevant directories
-3. **Check for existing patterns** that match the technology stack
+1. **Fetch specific instruction from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
+2. **Fetch specific agents from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
+3. **Fetch specific skills from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
+4. **Check for existing patterns** that match the technology stack
 
 **Primary Approach**: Reference and adapt existing instructions from awesome-copilot repository:
 - **Use existing content** when available - don't reinvent the wheel
@@ -183,8 +184,6 @@ description: "Java Spring Boot development standards"
 - **Instructions**: https://github.com/github/awesome-copilot/tree/main/instructions
 - **Agents**: https://github.com/github/awesome-copilot/tree/main/agents
 - **Skills**: https://github.com/github/awesome-copilot/tree/main/skills
-- **Workflows**: https://github.com/github/awesome-copilot/tree/main/workflows
-- **Docs**: https://github.com/github/awesome-copilot/tree/main/docs
 
 **Awesome-Copilot Areas to Check:**
 - **Frontend Web Development**: React, Angular, Vue, TypeScript, CSS frameworks
