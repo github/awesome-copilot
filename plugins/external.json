@@ -16,5 +16,23 @@
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills"
     }
+  },
+  {
+    "name": "sciagent",
+    "description": "Scientific analysis agents with built-in rigor enforcement — planning, data QC, code review, reporting, and reproducibility. 9 agents and 9 skills for researchers and data scientists.",
+    "version": "1.2.0",
+    "author": {
+      "name": "smestern",
+      "url": "https://github.com/smestern"
+    },
+    "homepage": "https://github.com/smestern/sciagent",
+    "keywords": ["scientific-analysis", "data-analysis", "rigor", "reproducibility", "data-qc", "code-review", "report-writing"],
+    "license": "MIT",
+    "repository": "https://github.com/smestern/sciagent",
+    "source": {
+      "source": "github",
+      "repo": "smestern/sciagent-plugin",
+      "ref": "v1.2.0"
+    }
   }
 ]
