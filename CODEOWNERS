@@ -8,3 +8,7 @@
 # Added via #codeowner from PR #930
 /plugins/automate-this/ @dvelton
 /skills/automate-this/ @dvelton
+
+# Added via #codeowner from PR #929
+/plugins/napkin/ @dvelton
+/skills/napkin/ @dvelton
