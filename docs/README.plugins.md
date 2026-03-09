@@ -25,6 +25,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
+| [automate-this](../plugins/automate-this/README.md) | Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription. | 1 items | automation, screen-recording, workflow, video-analysis, process-automation, scripting, productivity, copilot-cli |
 | [awesome-copilot](../plugins/awesome-copilot/README.md) | Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills. | 4 items | github-copilot, discovery, meta, prompt-engineering, agents |
 | [azure-cloud-development](../plugins/azure-cloud-development/README.md) | Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications. | 11 items | azure, cloud, infrastructure, bicep, terraform, serverless, architecture, devops |
 | [cast-imaging](../plugins/cast-imaging/README.md) | A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging. | 3 items | cast-imaging, software-analysis, architecture, quality, impact-analysis, devops |

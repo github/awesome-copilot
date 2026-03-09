@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "automate-this",
+      "source": "automate-this",
+      "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
+      "version": "1.0.0"
+    },
+    {
       "name": "awesome-copilot",
       "source": "awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
