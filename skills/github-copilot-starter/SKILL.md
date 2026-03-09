@@ -13,6 +13,7 @@ Ask the user for the following information if not provided:
 2. **Project Type**: (e.g., web app, API, mobile app, desktop app, library, etc.)
 3. **Additional Technologies**: (e.g., database, cloud provider, testing frameworks, etc.)
 4. **Development Style**: (strict standards, flexible, specific patterns)
+5. **GitHub Actions / Coding Agent**: Does the project use GitHub Actions? (yes/no — determines whether to generate `copilot-setup-steps.yml`)
 
 ## Configuration Files to Create
 
@@ -79,7 +80,9 @@ For each, fetch the most specific match from awesome-copilot agents. If none exi
 <!-- Based on/Inspired by: https://github.com/github/awesome-copilot/blob/main/agents/[filename].agent.md -->
 ```
 
-### 5. `.github/workflows/` Directory
+### 5. `.github/workflows/` Directory (only if user uses GitHub Actions)
+Skip this section entirely if the user answered "no" to GitHub Actions.
+
 Create Coding Agent workflow file:
 - `copilot-setup-steps.yml` - GitHub Actions workflow for Coding Agent environment setup
 
@@ -208,7 +211,7 @@ project-root/
 │   │   ├── architect.agent.md
 │   │   ├── reviewer.agent.md
 │   │   └── debugger.agent.md
-│   └── workflows/
+│   └── workflows/                        # only if GitHub Actions is used
 │       └── copilot-setup-steps.yml
 ```
 
@@ -274,8 +277,6 @@ The plan consists of a Markdown document that describes the implementation plan,
 * Testing: A list of tests that need to be implemented to verify the feature or refactoring task.
 ```
 
-Use additional frontmatter fields only when the target Copilot environment supports and needs them.
-
 ## Execution Steps
 
 1. **Gather project information** - Ask the user for technology stack, project type, and development style if not provided
@@ -290,7 +291,7 @@ Use additional frontmatter fields only when the target Copilot environment suppo
 5. **Create language-specific instruction files** using awesome-copilot references with attribution
 6. **Generate reusable skills** tailored to project needs
 7. **Set up specialized agents**, fetching from awesome-copilot where applicable (especially for expert engineer agents matching the tech stack)
-8. **Create the GitHub Actions workflow for Coding Agent** (`copilot-setup-steps.yml`)
+8. **Create the GitHub Actions workflow for Coding Agent** (`copilot-setup-steps.yml`) — skip if user does not use GitHub Actions
 9. **Validate** all files follow proper formatting and include necessary frontmatter
 
 ## Post-Setup Instructions
@@ -315,7 +316,7 @@ Before completing, verify:
 - [ ] Documentation standards are clear
 - [ ] Code review standards are defined
 
-## Workflow Template Structure
+## Workflow Template Structure (only if GitHub Actions is used)
 
 The `copilot-setup-steps.yml` workflow MUST follow this exact format and KEEP IT SIMPLE:
 
