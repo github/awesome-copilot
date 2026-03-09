@@ -35,6 +35,7 @@ export default defineConfig({
             { label: "Workflows", link: "/workflows/" },
             { label: "Plugins", link: "/plugins/" },
             { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
           ],
         },
         {

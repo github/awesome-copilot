@@ -1,0 +1,98 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+
+<StarlightPage frontmatter={{ title: 'Contributors', description: 'The wonderful people who have contributed to Awesome GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <main id="main-content">
+    <PageHeader title="🌟 Contributors" description="The wonderful people who have contributed to Awesome GitHub Copilot" />
+
+    <div class="page-content">
+      <div class="container">
+        <div class="search-bar">
+          <label for="search-input" class="sr-only">Search contributors</label>
+          <input type="text" id="search-input" placeholder="Search contributors..." autocomplete="off">
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar" id="filters-bar">
+          <div class="filter-group">
+            <label for="filter-contribution">Contribution Type:</label>
+            <select id="filter-contribution" multiple aria-label="Filter by contribution type"></select>
+          </div>
+          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+        </div>
+
+        <div class="results-count" id="results-count" aria-live="polite"></div>
+        <div class="contributor-grid" id="contributor-grid" role="list">
+          <div class="loading" aria-live="polite">Loading contributors...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    import '../scripts/pages/contributors';
+  </script>
+
+  <style>
+    .contributor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .contributor-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 1rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--sl-color-gray-5);
+      background: var(--sl-color-bg);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      text-align: center;
+    }
+
+    .contributor-card:hover {
+      border-color: var(--sl-color-accent);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .contributor-avatar {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+    }
+
+    .contributor-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+      line-height: 1.3;
+      color: var(--sl-color-text);
+    }
+
+    .contributor-login {
+      font-size: 0.75rem;
+      color: var(--sl-color-gray-2);
+    }
+
+    .contributor-contributions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.2rem;
+      margin-top: 0.25rem;
+    }
+
+    .contributor-symbol {
+      font-size: 1rem;
+      cursor: default;
+    }
+  </style>
+</StarlightPage>

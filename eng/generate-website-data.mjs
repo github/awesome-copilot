@@ -613,6 +613,52 @@ function generateToolsData() {
 }
 
 /**
+ * Generate contributors data from .all-contributorsrc
+ */
+function generateContributorsData() {
+  const rcPath = path.join(ROOT_FOLDER, ".all-contributorsrc");
+
+  if (!fs.existsSync(rcPath)) {
+    console.warn("Warning: .all-contributorsrc not found, skipping contributors generation");
+    return { items: [], filters: { contributions: [] } };
+  }
+
+  const rc = JSON.parse(fs.readFileSync(rcPath, "utf-8"));
+  const contributors = rc.contributors || [];
+  const ignoreList = new Set(rc.ignoreList || []);
+  const typeSymbols = rc.types || {};
+
+  const allContributions = new Set();
+
+  const items = contributors
+    .filter((c) => !ignoreList.has(c.login))
+    .map((c) => {
+      const contributions = c.contributions || [];
+      contributions.forEach((t) => allContributions.add(t));
+      return {
+        login: c.login,
+        name: c.name || c.login,
+        avatar_url: c.avatar_url || `https://github.com/${c.login}.png`,
+        profile: c.profile || `https://github.com/${c.login}`,
+        contributions,
+        contributionSymbols: contributions.map((t) => ({
+          type: t,
+          symbol: typeSymbols[t]?.symbol || t,
+          description: typeSymbols[t]?.description || t,
+        })),
+      };
+    });
+
+  return {
+    items,
+    filters: {
+      contributions: Array.from(allContributions).sort(),
+    },
+    typeSymbols,
+  };
+}
+
+/**
  * Generate a combined index for search
  */
 function generateSearchIndex(
@@ -900,6 +946,11 @@ async function main() {
     `✓ Generated ${samplesData.totalRecipes} recipes in ${samplesData.totalCookbooks} cookbooks (${samplesData.filters.languages.length} languages, ${samplesData.filters.tags.length} tags)`
   );
 
+  const contributorsData = generateContributorsData();
+  console.log(
+    `✓ Generated ${contributorsData.items.length} contributors (${contributorsData.filters.contributions.length} contribution types)`
+  );
+
   const searchIndex = generateSearchIndex(
     agents,
     instructions,
@@ -952,6 +1003,11 @@ async function main() {
   );
 
   fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "contributors.json"),
+    JSON.stringify(contributorsData, null, 2)
+  );
+
+  fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "search-index.json"),
     JSON.stringify(searchIndex, null, 2)
   );
@@ -967,6 +1023,7 @@ async function main() {
       workflows: workflows.length,
       plugins: plugins.length,
       tools: tools.length,
+      contributors: contributorsData.items.length,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,
     },
