@@ -1160,7 +1160,7 @@ html, body {
           const ecy = obj.y + obj.h / 2;
           const dx = (cx - ecx) / (Math.abs(obj.w) / 2 + radius);
           const dy = (cy - ecy) / (Math.abs(obj.h) / 2 + radius);
-          return (dx * dx + dy * dy) > 0.5;
+          return (dx * dx + dy * dy) > 1.0;
         }
         default: return true;
       }
