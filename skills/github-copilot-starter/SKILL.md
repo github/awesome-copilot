@@ -42,11 +42,14 @@ List the primary language, frameworks, and key dependencies.
   - Language guidelines: `.github/instructions/{language}.instructions.md`
   - Testing: `.github/instructions/testing.instructions.md`
   - Security: `.github/instructions/security.instructions.md`
+  - Documentation: `.github/instructions/documentation.instructions.md`
+  - Performance: `.github/instructions/performance.instructions.md`
+  - Code review: `.github/instructions/code-review.instructions.md`
 ```
 
 ### 2. `.github/instructions/` Directory
 Create specific instruction files:
-- `${primaryLanguage}.instructions.md` - Language-specific guidelines
+- `{primaryLanguage}.instructions.md` - Language-specific guidelines
 - `testing.instructions.md` - Testing standards and practices
 - `documentation.instructions.md` - Documentation requirements
 - `security.instructions.md` - Security best practices
@@ -91,9 +94,9 @@ Create Coding Agent workflow file:
 For each file, follow these principles:
 
 **MANDATORY FIRST STEP**: Always use the fetch tool to research existing patterns before creating any content:
-1. **Fetch specific instruction from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
-2. **Fetch specific agents from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
-3. **Fetch specific skills from awesome-copilot docs**: https://github.com/github/awesome-copilot/tree/main/docs
+1. **Fetch specific instruction from awesome-copilot docs**: https://github.com/github/awesome-copilot/blob/main/docs/README.instructions.md
+2. **Fetch specific agents from awesome-copilot docs**: https://github.com/github/awesome-copilot/blob/main/docs/README.agents.md
+3. **Fetch specific skills from awesome-copilot docs**: https://github.com/github/awesome-copilot/blob/main/docs/README.skills.md
 4. **Check for existing patterns** that match the technology stack
 
 **Primary Approach**: Reference and adapt existing instructions from awesome-copilot repository:
@@ -201,7 +204,7 @@ project-root/
 │   │   └── debug-issue/
 │   │       └── SKILL.md
 │   ├── agents/
-│   │   ├── sofware-engineer.agent.md
+│   │   ├── software-engineer.agent.md
 │   │   ├── architect.agent.md
 │   │   ├── reviewer.agent.md
 │   │   └── debugger.agent.md
@@ -252,44 +255,23 @@ Ask for {required inputs} if not provided.
 - Reuse existing validation and documentation patterns
 ```
 
-**Software Engineer (.agent.md):**
+**Agents (.agent.md):**
 ```md
 ---
-name: "Software Engineer"
-description: "Principal software engineering mode. Balances craft excellence with pragmatic delivery."
+description: Generate an implementation plan for new features or refactoring existing code.
+tools: ['codebase', 'web/fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
+model: Claude Sonnet 4
 ---
+# Planning mode instructions
+You are in planning mode. Your task is to generate an implementation plan for a new feature or for refactoring existing code.
+Don't make any code edits, just generate a plan.
 
-You are a principal software engineer for this project's technology stack.
-Provide expert guidance that balances engineering excellence with pragmatic delivery.
+The plan consists of a Markdown document that describes the implementation plan, including the following sections:
 
-Apply these principles in all work:
-- **Fundamentals**: GoF patterns, SOLID, DRY, YAGNI, KISS — applied contextually, never dogmatically
-- **Clean Code**: Readable, maintainable code that minimizes cognitive load
-- **Test Strategy**: Unit, integration, and e2e tests; clear test pyramid ownership
-- **Quality Attributes**: Testability, maintainability, security, performance — balanced against delivery
-- **Technical Debt**: When identified, document consequences and offer to track via GitHub Issues
-
-Focus on:
-- Reviewing requirements, surfacing assumptions, identifying edge cases and risks
-- Implementing the best design that meets requirements without over-engineering
-- Anticipating future needs without building for them prematurely
-- Providing clear, actionable feedback with specific improvement recommendations
-```
-
-**Architect (.agent.md):**
-```md
----
-name: "Architect"
-description: "Generate an implementation plan for new features or refactoring tasks."
----
-
-You are in planning mode. Do not make code edits.
-
-The plan should include:
-- Overview
-- Requirements
-- Implementation steps
-- Testing
+* Overview: A brief description of the feature or refactoring task.
+* Requirements: A list of requirements for the feature or refactoring task.
+* Implementation Steps: A detailed list of steps to implement the feature or refactoring task.
+* Testing: A list of tests that need to be implemented to verify the feature or refactoring task.
 ```
 
 Use additional frontmatter fields only when the target Copilot environment supports and needs them.
