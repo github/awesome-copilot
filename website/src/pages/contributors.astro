@@ -295,11 +295,13 @@ import PageHeader from '../components/PageHeader.astro';
       margin-top: 1rem;
     }
 
-    /* Override table layout to create a card grid */
+    /* Override Starlight table defaults and reshape as card grid */
     .contributor-grid table {
       display: block;
       border: none;
-      width: 100%;
+      width: 100% !important;
+      overflow: visible !important;
+      margin: 0;
     }
 
     .contributor-grid thead {
@@ -319,20 +321,22 @@ import PageHeader from '../components/PageHeader.astro';
     /* Each td becomes a card */
     .contributor-grid td {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 1rem 0.75rem;
+      width: 100% !important;
+      padding: 1rem 0.5rem 0.75rem;
       border-radius: 12px;
-      border: 1px solid var(--sl-color-gray-5);
+      border: 1px solid var(--sl-color-gray-4);
       background: var(--sl-color-bg);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
-      gap: 0.4rem;
+      gap: 0.15rem;
     }
 
     .contributor-grid td:hover {
       border-color: var(--sl-color-accent);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
     }
 
     /* Hide <br> tags used by all-contributors for layout */
@@ -340,14 +344,16 @@ import PageHeader from '../components/PageHeader.astro';
       display: none;
     }
 
-    /* Profile link (first <a> in each td) */
+    /* Profile link takes full width so emojis wrap to next row */
     .contributor-grid td > a:first-child {
+      flex: 0 0 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
       text-decoration: none;
       color: inherit;
+      margin-bottom: 0.25rem;
     }
 
     /* Avatar images */
@@ -359,33 +365,35 @@ import PageHeader from '../components/PageHeader.astro';
     }
 
     /* Name text */
-    .contributor-grid td sub b {
+    .contributor-grid td sub {
       font-size: 0.85rem;
+      line-height: 1.3;
+    }
+
+    .contributor-grid td sub b {
       font-weight: 600;
       color: var(--sl-color-text);
     }
 
-    .contributor-grid td sub {
-      font-size: 0.85rem;
-    }
-
-    /* Contribution emoji links */
+    /* Contribution emoji links — flow inline */
     .contributor-grid td > a:not(:first-child) {
-      display: inline-flex;
+      display: inline !important;
       text-decoration: none;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      padding: 0.05rem;
       opacity: 0.85;
       transition: opacity 0.15s ease;
     }
 
     .contributor-grid td > a:not(:first-child):hover {
       opacity: 1;
+      transform: scale(1.15);
     }
 
     /* Footer styling */
     .contributor-grid tfoot {
       display: block;
-      margin-top: 1.5rem;
+      margin-top: 2rem;
     }
 
     .contributor-grid tfoot tr {
