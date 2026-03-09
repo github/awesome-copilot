@@ -30,31 +30,31 @@ You should see **napkin** in the list of available skills.
 
 Open Copilot CLI and type `let's napkin` (or "open a napkin" or "start a whiteboard"). Copilot creates a whiteboard and opens it in your browser.
 
-![Step 1 — Activate the napkin](../../skills/napkin/docs/step1-activate.svg)
+![Step 1 — Activate the napkin](../../skills/napkin/assets/step1-activate.svg)
 
 ### Step 2: Your whiteboard opens
 
 A clean whiteboard appears in your browser with simple drawing tools. If it's your first time, a quick welcome message explains how everything works.
 
-![Step 2 — The whiteboard opens](../../skills/napkin/docs/step2-whiteboard.svg)
+![Step 2 — The whiteboard opens](../../skills/napkin/assets/step2-whiteboard.svg)
 
 ### Step 3: Draw and brainstorm
 
 Use the tools to sketch ideas, add sticky notes, draw arrows between concepts — whatever helps you think. This is your space.
 
-![Step 3 — Draw and brainstorm](../../skills/napkin/docs/step3-draw.svg)
+![Step 3 — Draw and brainstorm](../../skills/napkin/assets/step3-draw.svg)
 
 ### Step 4: Share with Copilot
 
 When you're ready for Copilot's input, click the green **Share with Copilot** button. It saves a screenshot and copies your notes.
 
-![Step 4 — Share with Copilot](../../skills/napkin/docs/step4-share.svg)
+![Step 4 — Share with Copilot](../../skills/napkin/assets/step4-share.svg)
 
 ### Step 5: Copilot responds
 
 Go back to your terminal and say `check the napkin`. Copilot looks at your whiteboard — including your drawings — and responds.
 
-![Step 5 — Copilot responds](../../skills/napkin/docs/step5-response.svg)
+![Step 5 — Copilot responds](../../skills/napkin/assets/step5-response.svg)
 
 ## What's Included
 
@@ -68,7 +68,7 @@ Go back to your terminal and say `check the napkin`. Copilot looks at your white
 
 | Asset | Description |
 |-------|-------------|
-| `templates/napkin.html` | The whiteboard application — a single HTML file that opens in any browser, no installation needed |
+| `assets/napkin.html` | The whiteboard application — a single HTML file that opens in any browser, no installation needed |
 
 ## Whiteboard Features
 

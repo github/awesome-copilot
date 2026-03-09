@@ -16,7 +16,7 @@ The target audience is lawyers, PMs, and business stakeholders — not software 
 When the user invokes this skill — saying things like "let's napkin," "open a napkin," "start a whiteboard," or using the slash command — do the following:
 
 1. **Copy the bundled HTML template** from the skill assets to the user's Desktop.
-   - The template lives at `templates/napkin.html` relative to this SKILL.md file.
+   - The template lives at `assets/napkin.html` relative to this SKILL.md file.
    - Copy it to `~/Desktop/napkin.html`.
    - If `~/Desktop/napkin.html` already exists, ask the user whether they want to open the existing one or start fresh before overwriting.
 
@@ -150,5 +150,5 @@ It looks like we haven't started a napkin yet. Want me to open one for you?
 - The JSON clipboard data is **supplementary** — it provides precise text but does not capture freehand drawings.
 - Always check for the PNG first. If it isn't found, prompt the user to click "Share with Copilot."
 - If the clipboard doesn't have JSON data, proceed with the PNG alone.
-- The HTML template is located at `templates/napkin.html` relative to this SKILL.md file.
+- The HTML template is located at `assets/napkin.html` relative to this SKILL.md file.
 - If the noob-mode skill is also active, use its risk indicator format (green/yellow/red) when requesting file or bash permissions.
