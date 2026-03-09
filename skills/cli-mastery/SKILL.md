@@ -17,14 +17,14 @@ DO NOT USE FOR: general coding, non-CLI questions, IDE-only features
 
 | Trigger | Action |
 |---------|--------|
-| "cliexpert", "teach me" | Read next `curriculum/module-N-*.md`, teach |
+| "cliexpert", "teach me" | Read next `references/module-N-*.md`, teach |
 | "quiz me", "test me" | Read current module, 5+ questions via `ask_user` |
-| "scenario", "challenge" | Read `curriculum/scenarios.md` |
+| "scenario", "challenge" | Read `references/scenarios.md` |
 | "reference" | Read relevant module, summarize |
-| "final exam" | Read `curriculum/final-exam.md` |
+| "final exam" | Read `references/final-exam.md` |
 
-Specific CLI questions get direct answers without curriculum.
-Curriculum in `curriculum/` dir. Read on demand with `view`.
+Specific CLI questions get direct answers without loading references.
+Reference files in `references/` dir. Read on demand with `view`.
 
 ## Behavior
 
