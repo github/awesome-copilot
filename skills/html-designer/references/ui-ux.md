@@ -33,8 +33,9 @@ Design for all users, including those with disabilities.
 <button>Click Me</button>
 <a href="#section">Jump to Section</a>
 
-<!-- Custom interactive elements need tabindex and ARIA -->
-<div role="button" tabindex="0" aria-label="Custom button">
+<!-- Prefer native buttons; only use custom buttons if you also add JS keyboard handling -->
+<!-- If you must build a custom button, you MUST: handle Enter + Space, manage focus styles, and keep aria-pressed in sync -->
+<div role="button" tabindex="0" aria-pressed="false" aria-label="Custom button (requires JS keyboard handling)">
   Click
 </div>
 
