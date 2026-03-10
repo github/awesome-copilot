@@ -19,7 +19,7 @@ Progress:
 
 **Step 1: Discover projects**
 
-Find the `.sln` file in the workspace root (ask the user if multiple exist). Parse it to extract all `.csproj` project references. For each project, note the name, path, and type (class library, web API, console, test, etc.).
+Find the Solution File (it has a `.sln` or `.slnx` extension) in the workspace root (ask the user if multiple exist). Parse it to extract all `.csproj` project references. For each project, note the name, path, and type (class library, web API, console, test, etc.).
 
 **Step 2: Classify each project**
 
