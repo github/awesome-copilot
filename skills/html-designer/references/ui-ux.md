@@ -506,10 +506,11 @@ Design for mobile devices first, then enhance for larger screens.
 ```html
 <!-- Form with error feedback -->
 <form>
-  <div class="form-group" aria-invalid="true">
+  <div class="form-group">
     <label for="username">Username</label>
     <input 
-      type="text" 
+      aria-invalid="true"
+      type="text"
       id="username" 
       name="username"
       aria-describedby="usernameError"

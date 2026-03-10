@@ -168,7 +168,7 @@ Provide multiple ways to accomplish tasks:
 - Various contact options
 - Different input methods (mouse, keyboard, touch, voice)
 
-### 6. Prioritise Content
+### 6. Prioritize Content
 
 Focus on core content first:
 
