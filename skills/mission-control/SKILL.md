@@ -86,7 +86,7 @@ Keep it to one line when possible. If the user has selected more than 8 modules,
 
 ## Module Specifications
 
-Each module has three states: normal, warning, and critical. Use the appropriate state based on the data. Warning and critical states should be visually distinct so the user notices them through peripheral vision.
+Each module reports a severity level (for example: informational, normal, warning, or critical) and may use its own display labels for those levels. Map each module's labels onto these severity levels so you can drive consistent color and visual treatment across the status line. Warning and critical severities should be visually distinct so the user notices them through peripheral vision.
 
 ### Safety Net
 
@@ -98,7 +98,7 @@ Tracks git status and time since last commit.
 | Warning | `git: 3 unstaged 22m` | Unstaged changes exist or no commit in 20+ min |
 | Critical | `git: 8 unstaged 1h+` | Many unstaged changes or no commit in 60+ min |
 
-Data source: Run `git status --porcelain` and `git log -1 --format=%cr` to determine state. Track the count of lines in porcelain output (each line is an unstaged or staged change). Parse the relative time from the last commit.
+Data source: Run `git status --porcelain` and parse the two status columns to count only unstaged changes (where the worktree column is not a space), treating untracked files (`??`) as unstaged. Use `git log -1 --format=%ct` to get the last-commit timestamp in epoch seconds and compute minutes since that commit from the numeric value.
 
 ### Blast Radius
 
@@ -107,7 +107,7 @@ Tracks how many files and lines the agent has changed this session.
 | State | Display | Trigger |
 |---|---|---|
 | Light | `2F/8L` | Fewer than 5 files, fewer than 50 lines |
-| Heavy | `11F/342L/2D` | 5+ files or 50+ lines |
+| Heavy | `11F/342L` | 5+ files or 50+ lines, no deletions |
 | Critical | `11F/342L/2D` | Any files deleted (append D count) |
 
 Data source: Maintain an internal count of files edited, lines changed, and files deleted during the session. Increment these counters each time you use the edit, create, or delete tools. Format: `[Files]F/[Lines]L` with `/[Deleted]D` appended only if deletions have occurred.
@@ -181,8 +181,10 @@ Shows the current git branch and related context.
 | Clean | `feature/auth` | On a feature branch, up to date |
 | Behind | `feat/auth 3 behind` | Branch is behind its upstream |
 | PR open | `feat/auth PR #42` | An open PR exists for this branch |
+| No upstream | `feat/auth (local)` | Branch has no upstream configured |
+| Detached | `detached @ a1b2c3d` | HEAD is in detached state |
 
-Data source: Run `git branch --show-current` for branch name. Run `git rev-list --count HEAD..@{u}` for behind count. Use GitHub MCP tools to check for open PRs on the current branch if available.
+Data source: Run `git branch --show-current` for branch name. First, check whether the current HEAD has an upstream and is not in a detached state (for example, with `git rev-parse --abbrev-ref --symbolic-full-name @{u}` and treating failures as "no upstream" / "detached"). Only if an upstream exists, run `git rev-list --count HEAD..@{u}` for the behind count; otherwise, surface a dedicated "no upstream" or "detached" state instead of the raw git error. Use GitHub MCP tools to check for open PRs on the current branch if available.
 
 ### Cost Rate
 
@@ -190,8 +192,8 @@ Shows the premium request multiplier for the current model.
 
 | State | Display | Trigger |
 |---|---|---|
-| Free | `0x` | Model has no premium cost (e.g., Haiku) |
-| Standard | `1x` | Standard multiplier (e.g., Sonnet) |
+| Low | `0.25x` | Low-cost model (e.g., Haiku, GPT-5 mini, Gemini Flash) |
+| Standard | `1x` | Standard multiplier (e.g., Sonnet, GPT-5, Gemini Pro) |
 | Premium | `4x` | High multiplier (e.g., Opus) |
 
 Data source: Identify the current model from session context. Apply the published multiplier table:
