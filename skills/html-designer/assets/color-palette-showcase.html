@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Chromatic Lab - Color palette inspiration, theory, and tools for designers. Explore curated color combinations for your next project.">
+  <meta property="og:title" content="Chromatic Lab - Color Palette Library">
+  <meta property="og:description" content="Discover beautiful color palettes and learn color theory fundamentals">
+  <meta property="og:type" content="website">
+  <title>Chromatic Lab - Color Palette Library</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  
+  <!-- Header with subtle color accent -->
+  <header class="header-chromatic">
+    <div class="container">
+      <nav class="navbar-color" aria-label="Main navigation">
+        <a href="/" class="logo-chromatic">
+          <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="16" cy="16" r="6" fill="#FF6B6B"/>
+            <circle cx="16" cy="16" r="10" fill="none" stroke="#4ECDC4" stroke-width="2"/>
+            <circle cx="16" cy="16" r="14" fill="none" stroke="#45B7D1" stroke-width="1"/>
+          </svg>
+          <span>Chromatic Lab</span>
+        </a>
+        
+        <ul class="nav-menu-chromatic">
+          <li><a href="#palettes">Palettes</a></li>
+          <li><a href="#theory">Theory</a></li>
+          <li><a href="#tools">Tools</a></li>
+          <li><a href="#inspiration">Inspiration</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <main id="main">
+    <!-- Hero section with color emphasis -->
+    <section class="hero-chromatic">
+      <div class="container">
+        <div class="hero-content-color">
+          <h1 class="hero-title-chromatic">Color Shapes Perception</h1>
+          <p class="hero-subtitle-color">Explore curated palettes, master color theory, and discover combinations that bring your designs to life.</p>
+          
+          <!-- Color wheel visualization -->
+          <div class="color-wheel-display" aria-hidden="true">
+            <div class="wheel-segment wheel-red" style="--rotation: 0deg"></div>
+            <div class="wheel-segment wheel-orange" style="--rotation: 30deg"></div>
+            <div class="wheel-segment wheel-yellow" style="--rotation: 60deg"></div>
+            <div class="wheel-segment wheel-chartreuse" style="--rotation: 90deg"></div>
+            <div class="wheel-segment wheel-green" style="--rotation: 120deg"></div>
+            <div class="wheel-segment wheel-spring" style="--rotation: 150deg"></div>
+            <div class="wheel-segment wheel-cyan" style="--rotation: 180deg"></div>
+            <div class="wheel-segment wheel-azure" style="--rotation: 210deg"></div>
+            <div class="wheel-segment wheel-blue" style="--rotation: 240deg"></div>
+            <div class="wheel-segment wheel-violet" style="--rotation: 270deg"></div>
+            <div class="wheel-segment wheel-magenta" style="--rotation: 300deg"></div>
+            <div class="wheel-segment wheel-rose" style="--rotation: 330deg"></div>
+          </div>
+          
+          <div class="hero-stats-color">
+            <div class="stat-color">
+              <span class="stat-number-large">500+</span>
+              <span class="stat-label-color">Curated Palettes</span>
+            </div>
+            <div class="stat-color">
+              <span class="stat-number-large">12</span>
+              <span class="stat-label-color">Color Harmonies</span>
+            </div>
+            <div class="stat-color">
+              <span class="stat-number-large">∞</span>
+              <span class="stat-label-color">Possibilities</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Featured palettes section -->
+    <section id="palettes" class="palettes-showcase">
+      <div class="container">
+        <header class="section-header-color">
+          <h2>Featured Color Palettes</h2>
+          <p class="section-subtitle-color">Handpicked combinations for various moods, industries, and design styles</p>
+        </header>
+        
+        <div class="palette-grid">
+          <!-- Palette 1: Ocean Depths -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #0A2463" aria-label="Navy blue"></div>
+              <div class="color-swatch" style="background-color: #3E92CC" aria-label="Ocean blue"></div>
+              <div class="color-swatch" style="background-color: #6FCDDD" aria-label="Sky blue"></div>
+              <div class="color-swatch" style="background-color: #D8F1F3" aria-label="Ice blue"></div>
+              <div class="color-swatch" style="background-color: #FFFAFF" aria-label="White"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Ocean Depths</h3>
+              <p class="palette-description">Cool, calming palette evoking trust and professionalism. Perfect for financial services, healthcare, or technology brands.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Professional</span>
+                <span class="palette-tag">Cool</span>
+                <span class="palette-tag">Trust</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#0A2463</code>
+                <code>#3E92CC</code>
+                <code>#6FCDDD</code>
+                <code>#D8F1F3</code>
+                <code>#FFFAFF</code>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Palette 2: Sunset Vibes -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #FF6B6B" aria-label="Coral red"></div>
+              <div class="color-swatch" style="background-color: #FFB347" aria-label="Peach orange"></div>
+              <div class="color-swatch" style="background-color: #FFF5BA" aria-label="Light yellow"></div>
+              <div class="color-swatch" style="background-color: #C9ADA7" aria-label="Dusty rose"></div>
+              <div class="color-swatch" style="background-color: #9A8C98" aria-label="Mauve"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Sunset Vibes</h3>
+              <p class="palette-description">Warm, energetic palette creating enthusiasm and approachability. Ideal for creative agencies, food brands, or lifestyle products.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Energetic</span>
+                <span class="palette-tag">Warm</span>
+                <span class="palette-tag">Creative</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#FF6B6B</code>
+                <code>#FFB347</code>
+                <code>#FFF5BA</code>
+                <code>#C9ADA7</code>
+                <code>#9A8C98</code>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Palette 3: Forest Floor -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #1B4332" aria-label="Forest green"></div>
+              <div class="color-swatch" style="background-color: #2D6A4F" aria-label="Pine green"></div>
+              <div class="color-swatch" style="background-color: #52B788" aria-label="Sage green"></div>
+              <div class="color-swatch" style="background-color: #95D5B2" aria-label="Mint green"></div>
+              <div class="color-swatch" style="background-color: #D8F3DC" aria-label="Pale green"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Forest Floor</h3>
+              <p class="palette-description">Natural, earthy palette suggesting growth and sustainability. Perfect for environmental, wellness, or organic brands.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Natural</span>
+                <span class="palette-tag">Sustainable</span>
+                <span class="palette-tag">Growth</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#1B4332</code>
+                <code>#2D6A4F</code>
+                <code>#52B788</code>
+                <code>#95D5B2</code>
+                <code>#D8F3DC</code>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Palette 4: Midnight Elegance -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #14213D" aria-label="Deep navy"></div>
+              <div class="color-swatch" style="background-color: #2A3A5A" aria-label="Slate blue"></div>
+              <div class="color-swatch" style="background-color: #E5E5E5" aria-label="Light gray"></div>
+              <div class="color-swatch" style="background-color: #FCA311" aria-label="Gold"></div>
+              <div class="color-swatch" style="background-color: #FFFFFF" aria-label="White"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Midnight Elegance</h3>
+              <p class="palette-description">Sophisticated palette balancing dark tones with metallic accent. Ideal for luxury brands, premium products, or modern services.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Luxury</span>
+                <span class="palette-tag">Sophisticated</span>
+                <span class="palette-tag">Premium</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#14213D</code>
+                <code>#2A3A5A</code>
+                <code>#E5E5E5</code>
+                <code>#FCA311</code>
+                <code>#FFFFFF</code>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Palette 5: Soft Pastels -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #DDA15E" aria-label="Tan"></div>
+              <div class="color-swatch" style="background-color: #FEFAE0" aria-label="Cream"></div>
+              <div class="color-swatch" style="background-color: #FAEDCD" aria-label="Beige"></div>
+              <div class="color-swatch" style="background-color: #BC6C25" aria-label="Brown"></div>
+              <div class="color-swatch" style="background-color: #606C38" aria-label="Olive"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Soft Pastels</h3>
+              <p class="palette-description">Gentle, inviting palette with warm undertones. Works beautifully for artisan brands, bakeries, or handcrafted products.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Gentle</span>
+                <span class="palette-tag">Artisan</span>
+                <span class="palette-tag">Warm</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#DDA15E</code>
+                <code>#FEFAE0</code>
+                <code>#FAEDCD</code>
+                <code>#BC6C25</code>
+                <code>#606C38</code>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Palette 6: Monochrome Modern -->
+          <article class="palette-card">
+            <div class="palette-colors">
+              <div class="color-swatch" style="background-color: #000000" aria-label="Black"></div>
+              <div class="color-swatch" style="background-color: #3D3D3D" aria-label="Charcoal"></div>
+              <div class="color-swatch" style="background-color: #7A7A7A" aria-label="Gray"></div>
+              <div class="color-swatch" style="background-color: #CCCCCC" aria-label="Light gray"></div>
+              <div class="color-swatch" style="background-color: #FFFFFF" aria-label="White"></div>
+            </div>
+            <div class="palette-info">
+              <h3>Monochrome Modern</h3>
+              <p class="palette-description">Timeless grayscale palette emphasizing content and photography. Perfect for editorial, portfolio, or minimalist designs.</p>
+              <div class="palette-meta">
+                <span class="palette-tag">Minimalist</span>
+                <span class="palette-tag">Timeless</span>
+                <span class="palette-tag">Editorial</span>
+              </div>
+              <div class="palette-hex-codes">
+                <code>#000000</code>
+                <code>#3D3D3D</code>
+                <code>#7A7A7A</code>
+                <code>#CCCCCC</code>
+                <code>#FFFFFF</code>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Color theory section -->
+    <section id="theory" class="color-theory-section">
+      <div class="container">
+        <header class="section-header-color">
+          <h2>Color Theory Fundamentals</h2>
+          <p class="section-subtitle-color">Understanding the principles that make color combinations work</p>
+        </header>
+        
+        <div class="theory-grid">
+          <article class="theory-card">
+            <div class="theory-visual">
+              <div class="harmony-example harmony-complementary">
+                <div class="harmony-color" style="background-color: #FF6B6B"></div>
+                <div class="harmony-color" style="background-color: #6BFFBF"></div>
+              </div>
+            </div>
+            <h3>Complementary Colors</h3>
+            <p>Colors opposite on the color wheel create high contrast and vibrant combinations. Use for bold, attention-grabbing designs.</p>
+          </article>
+          
+          <article class="theory-card">
+            <div class="theory-visual">
+              <div class="harmony-example harmony-analogous">
+                <div class="harmony-color" style="background-color: #FF6B6B"></div>
+                <div class="harmony-color" style="background-color: #FFB347"></div>
+                <div class="harmony-color" style="background-color: #FFF5BA"></div>
+              </div>
+            </div>
+            <h3>Analogous Colors</h3>
+            <p>Adjacent colors on the wheel create harmonious, cohesive palettes. Ideal for creating smooth color transitions and unified designs.</p>
+          </article>
+          
+          <article class="theory-card">
+            <div class="theory-visual">
+              <div class="harmony-example harmony-triadic">
+                <div class="harmony-color" style="background-color: #FF6B6B"></div>
+                <div class="harmony-color" style="background-color: #6BFF6B"></div>
+                <div class="harmony-color" style="background-color: #6B6BFF"></div>
+              </div>
+            </div>
+            <h3>Triadic Colors</h3>
+            <p>Three colors equally spaced on the wheel offer balanced variety. Creates vibrant yet harmonious combinations.</p>
+          </article>
+          
+          <article class="theory-card">
+            <div class="theory-visual">
+              <div class="harmony-example harmony-monochromatic">
+                <div class="harmony-color" style="background-color: #1B4332"></div>
+                <div class="harmony-color" style="background-color: #2D6A4F"></div>
+                <div class="harmony-color" style="background-color: #52B788"></div>
+                <div class="harmony-color" style="background-color: #95D5B2"></div>
+              </div>
+            </div>
+            <h3>Monochromatic</h3>
+            <p>Variations of a single hue through tints, shades, and tones. The safest choice for creating sophisticated, unified designs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Color psychology section -->
+    <section class="color-psychology">
+      <div class="container">
+        <header class="section-header-color">
+          <h2>Color Psychology</h2>
+          <p class="section-subtitle-color">How colors influence emotions and perceptions</p>
+        </header>
+        
+        <div class="psychology-grid">
+          <article class="psychology-card red-theme">
+            <div class="psychology-color" style="background-color: #FF6B6B" aria-hidden="true"></div>
+            <h3>Red</h3>
+            <p><strong>Emotions:</strong> Energy, passion, urgency, excitement</p>
+            <p><strong>Use for:</strong> Calls-to-action, food brands, sales, alerts</p>
+          </article>
+          
+          <article class="psychology-card blue-theme">
+            <div class="psychology-color" style="background-color: #3E92CC" aria-hidden="true"></div>
+            <h3>Blue</h3>
+            <p><strong>Emotions:</strong> Trust, calm, professionalism, security</p>
+            <p><strong>Use for:</strong> Finance, healthcare, technology, corporate</p>
+          </article>
+          
+          <article class="psychology-card green-theme">
+            <div class="psychology-color" style="background-color: #52B788" aria-hidden="true"></div>
+            <h3>Green</h3>
+            <p><strong>Emotions:</strong> Growth, nature, health, tranquility</p>
+            <p><strong>Use for:</strong> Environmental, wellness, organic, financial growth</p>
+          </article>
+          
+          <article class="psychology-card yellow-theme">
+            <div class="psychology-color" style="background-color: #FFD93D" aria-hidden="true"></div>
+            <h3>Yellow</h3>
+            <p><strong>Emotions:</strong> Optimism, energy, warmth, caution</p>
+            <p><strong>Use for:</strong> Children's brands, highlights, warnings</p>
+          </article>
+          
+          <article class="psychology-card purple-theme">
+            <div class="psychology-color" style="background-color: #9B59B6" aria-hidden="true"></div>
+            <h3>Purple</h3>
+            <p><strong>Emotions:</strong> Luxury, creativity, wisdom, spirituality</p>
+            <p><strong>Use for:</strong> Beauty, premium brands, creative services</p>
+          </article>
+          
+          <article class="psychology-card orange-theme">
+            <div class="psychology-color" style="background-color: #FFB347" aria-hidden="true"></div>
+            <h3>Orange</h3>
+            <p><strong>Emotions:</strong> Enthusiasm, creativity, warmth, affordability</p>
+            <p><strong>Use for:</strong> Creative brands, entertainment, call-to-actions</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Tools section -->
+    <section id="tools" class="tools-section">
+      <div class="container-narrow">
+        <header class="section-header-centered">
+          <h2>Color Tools</h2>
+          <p class="section-subtitle-color">Resources to help you create and refine color palettes</p>
+        </header>
+        
+        <div class="tools-list">
+          <article class="tool-item">
+            <h3>Contrast Checker</h3>
+            <p>Ensure your color combinations meet WCAG accessibility standards for text readability.</p>
+            <a href="/tools/contrast" class="tool-link">Check Contrast →</a>
+          </article>
+          
+          <article class="tool-item">
+            <h3>Palette Generator</h3>
+            <p>Upload an image or choose a base color to generate harmonious palette suggestions.</p>
+            <a href="/tools/generator" class="tool-link">Generate Palette →</a>
+          </article>
+          
+          <article class="tool-item">
+            <h3>Gradient Builder</h3>
+            <p>Create smooth color gradients and export as CSS, SVG, or image files.</p>
+            <a href="/tools/gradients" class="tool-link">Build Gradients →</a>
+          </article>
+          
+          <article class="tool-item">
+            <h3>Color Blindness Simulator</h3>
+            <p>Test your designs for various types of color vision deficiency.</p>
+            <a href="/tools/simulator" class="tool-link">Test Accessibility →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer class="footer-chromatic">
+    <div class="container">
+      <div class="footer-content-color">
+        <div class="footer-brand-color">
+          <p class="footer-logo-text">Chromatic Lab</p>
+          <p class="footer-tagline">Color inspiration for designers</p>
+        </div>
+        
+        <nav class="footer-nav-color" aria-label="Footer navigation">
+          <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+              <li><a href="/palettes">All Palettes</a></li>
+              <li><a href="/trending">Trending</a></li>
+              <li><a href="/collections">Collections</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-col">
+            <h4>Learn</h4>
+            <ul>
+              <li><a href="/theory">Color Theory</a></li>
+              <li><a href="/articles">Articles</a></li>
+              <li><a href="/guides">Guides</a></li>
+            </ul>
+          </div>
+          
+          <div class="footer-col">
+            <h4>Tools</h4>
+            <ul>
+              <li><a href="/tools">All Tools</a></li>
+              <li><a href="/api">API</a></li>
+              <li><a href="/plugins">Plugins</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      
+      <div class="footer-bottom-color">
+        <p>&copy; 2026 Chromatic Lab. Made with color theory and love.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
