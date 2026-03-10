@@ -27,6 +27,7 @@ az extension add --name azure-devops
 az devops login --organization https://dev.azure.com/{org} --token YOUR_PAT_TOKEN
 
 # Set default organization and project (avoids repeating --org/--project)
+# PS: Legacy url {org}.visualstudio.com should be replace with dev.azure.com/{org}
 az devops configure --defaults organization=https://dev.azure.com/{org} project={project}
 
 # List current configuration
