@@ -92,10 +92,23 @@
           <article class="palette-card">
             <div class="palette-colors">
               <div class="color-swatch" style="background-color: #0A2463" aria-label="Navy blue"></div>
-              <div class="color-swatch" style="background-color: #3E92CC" aria-label="Ocean blue"></div>
-              <div class="color-swatch" style="background-color: #6FCDDD" aria-label="Sky blue"></div>
-              <div class="color-swatch" style="background-color: #D8F1F3" aria-label="Ice blue"></div>
-              <div class="color-swatch" style="background-color: #FFFAFF" aria-label="White"></div>
+<!--
+NOTE:
+generic non-focusable elements like `div` elements often won’t be
+exposed to assistive tech, so these labels may be ignored. If the the
+swatches are purely decorative, then use `aria-hidden="true"`, or
+give them an explicit accessible role/name strategy (e.g., role="img"
+and an accessible name, or include visible/visually-hidden text) so
+the palette is actually understandable with a screen reader.
+-->
+              <div class="color-swatch" style="background-color: #3E92CC" 
+                   aria-label="Ocean blue" role="img"></div>
+              <div class="color-swatch" style="background-color: #6FCDDD"
+                   aria-label="Sky blue" role="img"></div>
+              <div class="color-swatch" style="background-color: #D8F1F3"
+                   aria-label="Ice blue" role="img"></div>
+              <div class="color-swatch" style="background-color: #FFFAFF"
+                   aria-label="White" role="img"></div>
             </div>
             <div class="palette-info">
               <h3>Ocean Depths</h3>
