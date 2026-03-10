@@ -50,10 +50,10 @@ export async function initHomepage(): Promise<void> {
   if (searchIndex) {
     const search = new FuzzySearch<SearchItem>();
     search.setItems(searchIndex);
-    
+
     const searchInput = document.getElementById('global-search') as HTMLInputElement;
     const resultsDiv = document.getElementById('search-results');
-    
+
     if (searchInput && resultsDiv) {
       searchInput.addEventListener('input', debounce(() => {
         const query = searchInput.value.trim();
@@ -61,7 +61,7 @@ export async function initHomepage(): Promise<void> {
           resultsDiv.classList.add('hidden');
           return;
         }
-        
+
         const results = search.search(query).slice(0, 10);
         if (results.length === 0) {
           resultsDiv.innerHTML = '<div class="search-result-empty">No results found</div>';
@@ -87,44 +87,13 @@ export async function initHomepage(): Promise<void> {
         }
         resultsDiv.classList.remove('hidden');
       }, 200));
-      
+
       // Close results when clicking outside
       document.addEventListener('click', (e) => {
         if (!searchInput.contains(e.target as Node) && !resultsDiv.contains(e.target as Node)) {
           resultsDiv.classList.add('hidden');
         }
       });
-    }
-  }
-
-  // Load featured plugins
-  const pluginsData = await fetchData<PluginsData>('plugins.json');
-  if (pluginsData && pluginsData.items) {
-    const featured = pluginsData.items.filter(c => c.featured).slice(0, 6);
-    const featuredEl = document.getElementById('featured-plugins');
-    if (featuredEl) {
-      if (featured.length > 0) {
-        featuredEl.innerHTML = featured.map(c => `
-          <div class="card" data-path="${escapeHtml(c.path)}">
-            <h3>${escapeHtml(c.name)}</h3>
-            <p>${escapeHtml(truncate(c.description, 80))}</p>
-            <div class="resource-meta">
-              <span class="resource-tag">${c.itemCount} items</span>
-              ${c.tags?.slice(0, 3).map(t => `<span class="resource-tag">${escapeHtml(t)}</span>`).join('') || ''}
-            </div>
-          </div>
-        `).join('');
-
-        // Add click handlers
-        featuredEl.querySelectorAll('.card').forEach(el => {
-          el.addEventListener('click', () => {
-            const path = (el as HTMLElement).dataset.path;
-            if (path) openFileModal(path, 'plugin');
-          });
-        });
-      } else {
-        featuredEl.innerHTML = '<p style="text-align: center; color: var(--color-text-muted);">No featured plugins yet</p>';
-      }
     }
   }
 

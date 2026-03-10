@@ -215,6 +215,24 @@ export function escapeHtml(text: string): string {
 }
 
 /**
+ * Validate and sanitize URLs to prevent XSS attacks
+ * Only allows http/https protocols, returns '#' for invalid URLs
+ */
+export function sanitizeUrl(url: string | null | undefined): string {
+  if (!url) return '#';
+  try {
+    const parsed = new URL(url);
+    // Only allow http and https protocols
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+  return '#';
+}
+
+/**
  * Truncate text with ellipsis
  */
 export function truncate(text: string | undefined, maxLength: number): string {

@@ -544,6 +544,63 @@ function generatePluginsData(gitDates) {
     }
   }
 
+  // Load external plugins from plugins/external.json
+  const externalJsonPath = path.join(PLUGINS_DIR, "external.json");
+  if (fs.existsSync(externalJsonPath)) {
+    try {
+      const externalPlugins = JSON.parse(
+        fs.readFileSync(externalJsonPath, "utf-8")
+      );
+      if (Array.isArray(externalPlugins)) {
+        let addedCount = 0;
+        for (const ext of externalPlugins) {
+          if (!ext.name || !ext.description) {
+            console.warn(
+              `Skipping external plugin with missing name/description`
+            );
+            continue;
+          }
+
+          // Skip if a local plugin with the same name already exists
+          if (plugins.some((p) => p.id === ext.name)) {
+            console.warn(
+              `Skipping external plugin "${ext.name}" — local plugin with same name exists`
+            );
+            continue;
+          }
+
+          const tags = ext.keywords || ext.tags || [];
+
+          plugins.push({
+            id: ext.name,
+            name: ext.name,
+            description: ext.description || "",
+            path: `plugins/${ext.name}`,
+            tags: tags,
+            itemCount: 0,
+            items: [],
+            external: true,
+            repository: ext.repository || null,
+            homepage: ext.homepage || null,
+            author: ext.author || null,
+            license: ext.license || null,
+            source: ext.source || null,
+            lastUpdated: null,
+            searchText: `${ext.name} ${ext.description || ""} ${tags.join(
+              " "
+            )} ${ext.author?.name || ""} ${ext.repository || ""}`.toLowerCase(),
+          });
+          addedCount++;
+        }
+        console.log(
+          `  ✓ Loaded ${addedCount} external plugin(s)`
+        );
+      }
+    } catch (e) {
+      console.warn(`Failed to parse external plugins: ${e.message}`);
+    }
+  }
+
   // Collect all unique tags
   const allTags = [...new Set(plugins.flatMap((p) => p.tags))].sort();
 
