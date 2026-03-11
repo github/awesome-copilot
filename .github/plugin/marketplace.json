@@ -210,6 +210,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "oracle-to-postgres-migration-expert",
+      "source": "oracle-to-postgres-migration-expert",
+      "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ospo-sponsorship",
       "source": "ospo-sponsorship",
       "description": "Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms.",

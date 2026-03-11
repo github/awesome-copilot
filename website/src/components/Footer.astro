@@ -1,20 +1,74 @@
 ---
-import type { Props } from '@astrojs/starlight/props';
-import Default from '@astrojs/starlight/components/Footer.astro';
+import EditLink from "@astrojs/starlight/components/EditLink.astro";
+import LastUpdated from "@astrojs/starlight/components/LastUpdated.astro";
+import Pagination from "@astrojs/starlight/components/Pagination.astro";
+import config from "virtual:starlight/user-config";
+import { Icon } from "@astrojs/starlight/components";
 ---
 
-<Default {...Astro.props}><slot /></Default>
+<footer class="sl-flex">
+  <div class="meta sl-flex">
+    <EditLink />
+    <LastUpdated />
+  </div>
+  <Pagination />
 
-<div class="made-by">
-  <p>Made with ❤️ by our amazing <a href="/contributors/">contributors</a></p>
-</div>
+  {
+    config.credits && (
+      <a class="kudos sl-flex" href="https://starlight.astro.build">
+        <Icon name={"starlight"} /> {Astro.locals.t("starlight:builtWithStarlight.label")}
+      </a>
+    )
+  }
+
+  <p class="made-by">Made with ❤️ by our amazing <a href="/contributors/">contributors</a></p>
+</footer>
 
 <style>
+  footer {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .meta {
+    gap: 0.75rem 3rem;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+
+  .meta > :global(p:only-child) {
+    margin-inline-start: auto;
+  }
+
+  :global(.pagination-links:empty) {
+    display: none;
+  }
+
   .made-by {
     text-align: center;
-    padding: 1rem 0 1.5rem;
+    margin: 0 auto 0.75rem;
     font-size: var(--sl-text-xs);
     color: var(--sl-color-gray-3);
+  }
+
+  .kudos {
+    align-items: center;
+    gap: 0.5em;
+    margin: 0 auto;
+    font-size: var(--sl-text-xs);
+    text-decoration: none;
+    color: var(--sl-color-gray-3);
+  }
+
+  .kudos:hover {
+    color: var(--sl-color-white);
+  }
+
+  .kudos :global(svg) {
+    color: var(--sl-color-orange);
   }
 
   .made-by a {
