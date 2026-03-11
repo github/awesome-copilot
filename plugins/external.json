@@ -25,7 +25,7 @@
       "name": "smestern",
       "url": "https://github.com/smestern"
     },
-    "homepage": "https://github.com/smestern/sciagent",
+    "homepage": "https://github.com/smestern/sciagent-plugin",
     "keywords": ["scientific-analysis", "data-analysis", "rigor", "reproducibility", "data-qc", "code-review", "report-writing"],
     "license": "MIT",
     "repository": "https://github.com/smestern/sciagent",
