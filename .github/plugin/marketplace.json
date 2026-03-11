@@ -240,6 +240,32 @@
       "version": "1.0.0"
     },
     {
+      "name": "planetscale",
+      "description": "PlanetScale database tools — MCP server for querying schemas, running SQL, and getting performance insights, plus expert skills for MySQL, PostgreSQL, Vitess, and Postgres sharding.",
+      "version": "1.0.0",
+      "author": {
+        "name": "PlanetScale",
+        "url": "https://planetscale.com"
+      },
+      "homepage": "https://github.com/planetscale/vscode-agent-plugin",
+      "keywords": [
+        "database",
+        "mysql",
+        "postgresql",
+        "vitess",
+        "schema",
+        "sql",
+        "performance",
+        "planetscale"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/planetscale/vscode-agent-plugin",
+      "source": {
+        "source": "github",
+        "repo": "planetscale/vscode-agent-plugin"
+      }
+    },
+    {
       "name": "polyglot-test-agent",
       "source": "polyglot-test-agent",
       "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
