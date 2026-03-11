@@ -1,3 +1,5 @@
+import { getEmbeddedData as getEmbeddedPageData } from "./embedded-data";
+
 /**
  * Utility functions for the Awesome Copilot website
  */
@@ -43,6 +45,9 @@ export function getBasePath(): string {
 export async function fetchData<T = unknown>(
   filename: string
 ): Promise<T | null> {
+  const embeddedData = getEmbeddedPageData<T>(filename);
+  if (embeddedData !== null) return embeddedData;
+
   try {
     const basePath = getBasePath();
     const response = await fetch(`${basePath}data/${filename}`);
@@ -52,6 +57,17 @@ export async function fetchData<T = unknown>(
     console.error(`Error fetching ${filename}:`, error);
     return null;
   }
+}
+
+let jsZipPromise: Promise<typeof import("./jszip")> | null = null;
+
+/**
+ * Lazy-load JSZip only when downloads are requested
+ */
+export async function loadJSZip() {
+  jsZipPromise ??= import("./jszip");
+  const { default: JSZip } = await jsZipPromise;
+  return JSZip;
 }
 
 /**
@@ -209,9 +225,12 @@ export function debounce<T extends (...args: unknown[]) => void>(
  * Escape HTML to prevent XSS
  */
 export function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /**

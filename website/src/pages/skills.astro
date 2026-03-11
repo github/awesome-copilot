@@ -3,6 +3,11 @@ import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import skillsData from '../../public/data/skills.json';
+import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
+
+const initialItems = sortSkills(skillsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
@@ -37,10 +42,8 @@ import PageHeader from '../components/PageHeader.astro';
           <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
         </div>
         
-        <div class="results-count" id="results-count" aria-live="polite"></div>
-        <div class="resource-list" id="resource-list" role="list">
-          <div class="loading" aria-live="polite">Loading skills...</div>
-        </div>
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} skills</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
         <ContributeCTA resourceType="skills" />
       </div>
     </div>
@@ -48,6 +51,7 @@ import PageHeader from '../components/PageHeader.astro';
 
   <Modal />
 
+  <EmbeddedPageData filename="skills.json" data={skillsData} />
   <script>
     import '../scripts/pages/skills';
   </script>
