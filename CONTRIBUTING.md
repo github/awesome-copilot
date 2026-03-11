@@ -46,8 +46,7 @@ To maintain a safe, responsible, and high-signal collection, we will **not accep
 - **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
 - **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
 - **Duplicate Existing Model Strengths Without Meaningful Uplift**: Submissions that mainly tell Copilot to do work frontier models already handle well (for example, generic TypeScript, HTML, or other broadly-supported coding tasks) without addressing a clear gap, specialized workflow, or domain-specific constraint. These contributions are often lower value for users and can introduce weaker or conflicting guidance than the model's default behavior.
-
-If your contribution targets an area where models are already strong, be explicit about the gap it closes and the measurable value it adds beyond the default experience.
+- **Plugins from remote sources**: While the plugin design allows us to support plugins from other GitHub repos, or other Git endpoints, we are not accepting contributions that simply add plugins from external sources. Plugins from remote sources represent a security risk as we are unable to verify their content for the policies we enforce on this repository. This policy does not apply to repositories that are managed by Microsoft or GitHub.
 
 ## Quality Guidelines
 
