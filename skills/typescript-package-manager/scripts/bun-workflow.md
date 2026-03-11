@@ -607,6 +607,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+# In this CI snippet, oven-sh/setup-bun@v2 is referenced by the mutable tag v2 and configured with
+# bun-version: latest, so every run may pull new, unreviewed code for both the action and the runtime. If either
+# the action or the Bun distribution served for latest is compromised, an attacker could execute arbitrary code
+# in the workflow with access to the repository and secrets. Pin oven-sh/setup-bun to a specific commit SHA
+# and use a fixed Bun version (for example, an exact semantic version) to ensure the pipeline runs only known,
+# trusted artifacts.
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest

@@ -619,7 +619,7 @@ section "2. Type Coverage"
 # supply chain risk, require type-coverage to be present as a dev dependency and invoke the local binary (for
 # example via npx with --no-install or a direct package.json script) instead of dynamically downloading it in CI.
 
-if command -v npx type-coverage &>/dev/null || npx --yes type-coverage --version &>/dev/null; then
+if command -v npx &>/dev/null && npx --yes type-coverage --version &>/dev/null; then
   COVERAGE_OUTPUT=$(npx type-coverage --at-least 80 2>&1 || true)
   if echo "$COVERAGE_OUTPUT" | grep -q "type-coverage:"; then
     PERCENT=$(echo "$COVERAGE_OUTPUT" | grep -oP '\d+\.\d+(?=%)' | head -1)
@@ -924,13 +924,6 @@ jobs:
 
       - run: npm ci
 
-# In the sample GitHub Actions workflow, the Type coverage, Dead code check, and Circular dependency check
-# steps use bare npx type-coverage, npx knip, and npx madge, which may cause GitHub runners to download
-# and execute whatever versions of these third-party CLIs are current on npm. Because these tools are not
-# pinned via devDependencies and a lockfile, a compromised package could execute arbitrary code within your
-# CI job and access repository data or secrets. To reduce this supply-chain risk, install these CLIs as dev
-# dependencies and have the workflow invoke the local binaries (or npm scripts) instead of relying on
-# unpinned npx downloads.
 # In the sample GitHub Actions workflow, the Type coverage, Dead code check, and Circular dependency check
 # steps use bare npx type-coverage, npx knip, and npx madge, which may cause GitHub runners to download
 # and execute whatever versions of these third-party CLIs are current on npm. Because these tools are not

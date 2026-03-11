@@ -420,6 +420,11 @@ jobs:
 
 **pnpm:**
 ```yaml
+# This GitHub Actions example uses the third-party action pnpm/action-setup@v2 with only the mutable tag
+# v2, so CI will execute whatever code that tag references at the time of the run. A compromised action or
+# retargeted tag could be used to execute arbitrary code in your pipeline, exposing repository data and secrets.
+# To harden the workflow, pin pnpm/action-setup to a specific commit SHA rather than a floating tag so that
+# only vetted code is executed.
 - uses: pnpm/action-setup@v2
   with:
     version: 8
@@ -430,6 +435,11 @@ jobs:
 
 **bun:**
 ```yaml
+# This caching example uses oven-sh/setup-bun@v1 and bun-version: latest, which means each CI run can
+# download and execute new, unpinned code for both the action and the Bun runtime. A compromised action
+# release or a malicious latest Bun build could be used to execute arbitrary code in your pipeline with access to
+# repository contents and secrets. Pin oven-sh/setup-bun to a specific commit SHA and configure a fixed Bun
+# version rather than latest to keep the workflow on audited, immutable artifacts.
 - uses: oven-sh/setup-bun@v1
   with:
     bun-version: latest

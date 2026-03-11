@@ -109,8 +109,8 @@ npx tsc --init
 | Script | Command | Purpose |
 |--------|---------|---------|
 | `build` | `tsc -p tsconfig.build.json` | Compile TypeScript to JavaScript |
-| `build:watch` | `tsc --watch` | Compile in watch mode |
-| `build:clean` | `rimraf dist && tsc` | Clean then compile |
+| `build:watch` | `tsc -p tsconfig.build.json --watch` | Compile in watch mode |
+| `build:clean` | `npm run clean && npm run build` | Clean then compile |
 | `dev` | `tsx watch src/index.ts` | Run with live reload (no compile) |
 | `start` | `node dist/index.js` | Run compiled output |
 | `typecheck` | `tsc --noEmit` | Type-check without emitting files |

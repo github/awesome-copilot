@@ -134,7 +134,8 @@ function checkTsconfig() {
 
 function checkTypeCoverage() {
   console.log(c.bold('\n📊  Type coverage'));
-  if (!hasTool('type-coverage') && !existsSync(path.join('node_modules', '.bin', 'type-coverage'))) {
+  const typeCoverageBin = process.platform === 'win32' ? 'type-coverage.cmd' : 'type-coverage';
+  if (!hasTool('type-coverage') && !existsSync(path.join('node_modules', '.bin', typeCoverageBin))) {
     report('skip', 'type-coverage not installed', 'npm install -D type-coverage');
     return;
   }
@@ -143,7 +144,7 @@ The percent parsing regex only matches values with decimals ((\d+\.\d+)%). Some 
 */
   const out = tryRun('npx type-coverage --detail');
   if (!out) { report('fail', 'type-coverage failed to run'); return; }
-  const match = out.match(/(\d+\.\d+)%/);
+  const match = out.match(/(\d+(?:\.\d+)?)%/);
   if (match) {
     const pct = parseFloat(match[1]);
     if (pct >= 95) report('pass', `Type coverage ${pct}%`, 'Excellent');

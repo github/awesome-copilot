@@ -283,7 +283,7 @@ pnpm store verify
 Create `.npmrc` in project root:
 
 ```ini
-# Use specific pnpm version
+# Use specific Node.js version
 use-node-version=20.11.0
 
 # Strict peer dependencies
@@ -477,7 +477,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
-      
+# The sample CI workflow uses the third-party action pnpm/action-setup@v2, pinned only to the mutable tag
+# v2, which allows whatever code that tag points to at run time to execute in your pipeline. If this action is
+# compromised or the tag is retargeted, an attacker could run arbitrary code during the build with access to
+# repository contents and any configured secrets. Pin pnpm/action-setup to a specific commit SHA (or another
+# immutable reference) so that the workflow always runs a reviewed, unchanging version of the action.
       - uses: pnpm/action-setup@v2
         with:
           version: 8
