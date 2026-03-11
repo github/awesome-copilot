@@ -192,7 +192,7 @@ ${c.bold('Options:')}
 
 function printScripts() {
   console.log(c.bold('\n📜  Recommended package.json scripts\n'));
-  const scripts = buildScripts({ moduleType: 'cjs', includeTest: true, includeLint: true });
+  const scripts = buildScripts({ includeTest: true, includeLint: true });
   const block = JSON.stringify({ scripts }, null, 2);
   console.log(block);
   console.log(c.dim('\n  Add the above to your package.json\n'));
@@ -234,9 +234,11 @@ function auditTypes() {
     return;
   }
   const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
-  const allDeps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
+  const dependencies = pkg.dependencies || {};
+  const devDependencies = pkg.devDependencies || {};
+  const allDeps = Object.keys({ ...dependencies, ...devDependencies });
   const suggested = suggestTypes(allDeps);
-  const devDeps = Object.keys(pkg.devDependencies || {});
+  const devDeps = Object.keys(devDependencies);
   const missing = suggested.filter(t => !devDeps.includes(t));
 
   if (missing.length === 0) {

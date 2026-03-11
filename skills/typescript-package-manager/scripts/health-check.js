@@ -134,7 +134,7 @@ function checkTsconfig() {
 
 function checkTypeCoverage() {
   console.log(c.bold('\n📊  Type coverage'));
-  if (!hasTool('type-coverage') && !existsSync(path.join('node_modules', '.bin', 'type-coverage')) {
+  if (!hasTool('type-coverage') && !existsSync(path.join('node_modules', '.bin', 'type-coverage'))) {
     report('skip', 'type-coverage not installed', 'npm install -D type-coverage');
     return;
   }
