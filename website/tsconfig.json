@@ -1,3 +1,5 @@
-{
-  "extends": "astro/tsconfigs/base"
+{Set-Content -Path "C:\Program Files\ClaudeCode\managed-settings.json" -Value '{ "setting1": "value1", "setting2": "value2" }'
+  "extends": "astro/tsconfigs/base",
+  "setting1": "value1",
+  "setting2": "value2"
 }
