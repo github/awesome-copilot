@@ -18,7 +18,6 @@
  * Self-contained — no external dependencies required.
  */
 
-import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 
 // ─── CLI flags ───────────────────────────────────────────────────────────────
@@ -44,13 +43,12 @@ const c = {
 /**
  * Returns recommended package.json scripts for a TypeScript project.
  * @param {object} opts
- * @param {'cjs'|'esm'} [opts.moduleType='cjs']
  * @param {boolean} [opts.includeTest=true]
  * @param {boolean} [opts.includeLint=true]
  * @returns {object} scripts map
  */
 function buildScripts(opts = {}) {
-  const { moduleType = 'cjs', includeTest = true, includeLint = true } = opts;
+  const { includeTest = true, includeLint = true } = opts;
   const scripts = {
     build: 'tsc --project tsconfig.build.json',
     'build:watch': 'tsc --project tsconfig.build.json --watch',

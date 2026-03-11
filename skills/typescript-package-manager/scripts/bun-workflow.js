@@ -53,11 +53,6 @@ function detectBun() {
   return tryRun('bun --version');
 }
 
-/** Check if we're inside a git repo. */
-function isGitRepo() {
-  return existsSync('.git') || tryRun('git rev-parse --is-inside-work-tree') === 'true';
-}
-
 // ─── Template generators ─────────────────────────────────────────────────────
 
 /**
@@ -94,7 +89,7 @@ function buildBunTsconfig(target = 'app') {
       skipLibCheck: true,
       forceConsistentCasingInFileNames: true,
       // Bun globals
-      types: target === 'app' ? ['bun-types'] : [],
+      types: target === 'app' ? ['bun'] : [],
     },
     include: ['src'],
     exclude: ['node_modules', 'dist'],
@@ -120,7 +115,7 @@ function buildBunfig(opts = {}) {
 # Reference: https://bun.sh/docs/runtime/bunfig
 
 [install]
-# Use exact versions (like npm --save-exact)
+# Whether to use exact versions (like npm --save-exact)
 exact = false
 # Lifecycle scripts (postinstall etc.) — set false for untrusted packages
 lifecycle = true
@@ -180,7 +175,7 @@ function buildBunScripts(react = false) {
     lint: `eslint src --ext .ts${react ? ',.tsx' : ''}`,
     'lint:fix': `eslint src --ext .ts${react ? ',.tsx' : ''} --fix`,
     format: `prettier --write "src/**/*.ts${react ? 'x' : ''}"`,
-    clean: 'rm -rf dist',
+    clean: 'node -e "require(\'fs\').rmSync(\'dist\', { recursive: true, force: true })"',
     ci: 'bun run typecheck && bun test --coverage && bun run build',
   };
 }
@@ -211,8 +206,8 @@ function getMigrationSteps() {
     },
     {
       step: 5,
-      title: 'Add bun-types',
-      cmd: 'bun add -D bun-types',
+      title: 'Add Bun type definitions (@types/bun)',
+      cmd: 'bun add -D @types/bun',
     },
     {
       step: 6,

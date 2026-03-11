@@ -160,7 +160,7 @@ Find dependencies that lack TypeScript type definitions.
 
 ```bash
 # List all dependencies and check for types
-npx are-the-types-wrong
+attw
 ```
 
 ### Manual Check Script
@@ -208,7 +208,7 @@ npm install --save-dev \
 ```json
 {
   "scripts": {
-    "health:types": "npx are-the-types-wrong"
+    "health:types": "attw"
   }
 }
 ```

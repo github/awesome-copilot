@@ -6,7 +6,7 @@
  *
  * Usage:
  *   node health-check.js              # Run all checks
- *   node health-check.js --fix        # Run checks and attempt auto-fixes
+ *   node health-check.js --fix        # Run checks in fix mode (reserved for future auto-fix behavior)
  *   node health-check.js --ci         # CI mode (exit 1 on failures)
  *   node health-check.js --test       # Run built-in makeshift tests
  *
@@ -144,7 +144,7 @@ function checkDeadCode() {
   } else {
     const lines = out.split('\n').filter(Boolean).length;
     const status = lines > 10 ? 'fail' : 'warn';
-    report(status, `knip found ${lines} potential issues`, FIX ? 'review knip output above' : 'run --fix for details');
+    report(status, `knip found ${lines} potential issues`, 'review knip output above');
   }
 }
 

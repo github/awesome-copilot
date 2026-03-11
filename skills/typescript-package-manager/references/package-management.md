@@ -233,7 +233,7 @@ yarn audit
 pnpm audit
 
 # bun
-bun audit
+bun pm audit
 ```
 
 ### Security Best Practices
