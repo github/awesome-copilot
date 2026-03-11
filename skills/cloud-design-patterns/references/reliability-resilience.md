@@ -116,7 +116,7 @@
 - Ensuring single-instance execution of critical tasks
 
 **Implementation Considerations**:
-- Use distributed locking mechanisms (Redis, etcd, Zookeeper)
+- Use distributed locking mechanisms (Redis, etcd, ZooKeeper)
 - Handle leader failures with automatic re-election
 - Implement heartbeats to detect leader health
 - Ensure followers can become leaders quickly
