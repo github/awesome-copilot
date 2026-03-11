@@ -931,6 +931,13 @@ jobs:
 # CI job and access repository data or secrets. To reduce this supply-chain risk, install these CLIs as dev
 # dependencies and have the workflow invoke the local binaries (or npm scripts) instead of relying on
 # unpinned npx downloads.
+# In the sample GitHub Actions workflow, the Type coverage, Dead code check, and Circular dependency check
+# steps use bare npx type-coverage, npx knip, and npx madge, which may cause GitHub runners to download
+# and execute whatever versions of these third-party CLIs are current on npm. Because these tools are not
+# pinned via devDependencies and a lockfile, a compromised package could execute arbitrary code within your
+# CI job and access repository data or secrets. To reduce this supply-chain risk, install these CLIs as dev
+# dependencies and have the workflow invoke the local binaries (or npm scripts) instead of relying on
+# unpinned npx downloads.
       - name: Type check
         run: npx tsc --noEmit
 
