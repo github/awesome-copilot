@@ -1,0 +1,24 @@
+{
+  "name": "flowstudio-power-automate",
+  "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "power-automate",
+    "power-platform",
+    "flowstudio",
+    "mcp",
+    "model-context-protocol",
+    "cloud-flows",
+    "workflow-automation"
+  ],
+  "skills": [
+    "./skills/flowstudio-power-automate-mcp",
+    "./skills/flowstudio-power-automate-debug",
+    "./skills/flowstudio-power-automate-build"
+  ]
+}

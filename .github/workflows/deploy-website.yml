@@ -4,21 +4,7 @@
 name: Deploy Website to GitHub Pages
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-    paths:
-      - "website/**"
-      - "agents/**"
-      - "prompts/**"
-      - "instructions/**"
-      - "skills/**"
-      - "plugins/**"
-      - "cookbook/**"
-      - "eng/generate-website-data.mjs"
-      - ".github/workflows/deploy-website.yml"
-
-  # Allows you to run this workflow manually from the Actions tab
+  # Triggered manually from the Actions tab, or dispatched by the Publish to main workflow.
   workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages

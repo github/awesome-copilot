@@ -1,24 +1,30 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
 ---
 
-<BaseLayout title="Plugins" description="Curated plugins of prompts, agents, and skills for specific workflows" activeNav="plugins">
+<StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
   <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🔌 Plugins</h1>
-        <p>Curated plugins of prompts, agents, and skills for specific workflows</p>
-      </div>
-    </div>
+    <PageHeader title="🔌 Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" />
 
     <div class="page-content">
       <div class="container">
+        <div class="how-to-access">
+          <p><strong>Awesome Copilot is a default plugin marketplace</strong> — no setup required. Access it directly from your tools:</p>
+          <ul>
+            <li><strong>GitHub Copilot CLI</strong>: Type <code>/plugin marketplace browse awesome-copilot</code> in a Copilot session</li>
+            <li><strong>VS Code</strong>: Type <code>@agentPlugins</code> in the Extensions search view, or open the Command Palette and run <code>Chat: Plugins</code></li>
+          </ul>
+          <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+        </div>
+
         <div class="search-bar">
           <label for="search-input" class="sr-only">Search plugins</label>
           <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
         </div>
-        
+
         <div class="filters-bar" id="filters-bar">
           <div class="filter-group">
             <label for="filter-tag">Tag:</label>
@@ -32,11 +38,12 @@ import Modal from '../components/Modal.astro';
           </div>
           <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
         </div>
-        
+
         <div class="results-count" id="results-count" aria-live="polite"></div>
         <div class="resource-list" id="resource-list" role="list">
           <div class="loading" aria-live="polite">Loading plugins...</div>
         </div>
+        <ContributeCTA resourceType="plugins" />
       </div>
     </div>
   </main>
@@ -46,4 +53,29 @@ import Modal from '../components/Modal.astro';
   <script>
     import '../scripts/pages/plugins';
   </script>
-</BaseLayout>
+
+  <style>
+    .how-to-access {
+      background: var(--sl-color-bg-nav);
+      border: 1px solid var(--sl-color-hairline);
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .how-to-access p { margin: 0 0 0.5rem; }
+    .how-to-access p:last-child { margin-bottom: 0; }
+    .how-to-access ul {
+      margin: 0.25rem 0 0.5rem 1.25rem;
+      padding: 0;
+    }
+    .how-to-access li { margin: 0.2rem 0; }
+    .how-to-access code {
+      background: var(--sl-color-bg-inline-code);
+      padding: 0.1em 0.35em;
+      border-radius: 0.2rem;
+      font-size: 0.85em;
+    }
+  </style>
+</StarlightPage>

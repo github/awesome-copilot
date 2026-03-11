@@ -1,6 +1,6 @@
 ---
 name: winapp-cli
-description: 'Windows App Development CLI (winapp) for building, packaging, and deploying Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml, manage development certificates, add package identity for debugging, sign packages, or access Windows SDK build tools. Supports .NET, C++, Electron, Rust, Tauri, and cross-platform frameworks targeting Windows.'
+description: 'Windows App Development CLI (winapp) for building, packaging, and deploying Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml, manage development certificates, add package identity for debugging, sign packages, publish to the Microsoft Store, create external catalogs, or access Windows SDK build tools. Supports .NET (csproj), C++, Electron, Rust, Tauri, and cross-platform frameworks targeting Windows.'
 ---
 
 # Windows App Development CLI
@@ -21,6 +21,9 @@ Use this skill when you need to:
 - Build Windows apps using cross-platform frameworks (Electron, Rust, Tauri, Qt)
 - Set up CI/CD pipelines for Windows app deployment
 - Access Windows APIs that require package identity (notifications, Windows AI, shell integration)
+- Publish apps to the Microsoft Store via `winapp store`
+- Create external catalogs for asset management
+- Set up .NET (csproj) projects with Windows App SDK via NuGet
 
 ## Prerequisites
 
@@ -47,7 +50,7 @@ Add temporary package identity to executables for debugging Windows APIs that re
 
 ### 4. Manifest Management (`winapp manifest`)
 
-Generate AppxManifest.xml files and update image assets from source images, automatically creating all required sizes and aspect ratios.
+Generate AppxManifest.xml files and update image assets from source images, automatically creating all required sizes and aspect ratios. Supports manifest placeholders for dynamic content and qualified names in AppxManifest for flexible app identity definitions.
 
 ### 5. Certificate Management (`winapp cert`)
 
@@ -61,6 +64,14 @@ Sign MSIX packages and executables with PFX certificates, with optional timestam
 
 Run Windows SDK build tools with properly configured paths from any framework or build system.
 
+### 8. Microsoft Store Integration (`winapp store`)
+
+Run Microsoft Store Developer CLI commands directly from winapp, enabling store submission, package validation, and publishing workflows without leaving the CLI.
+
+### 9. External Catalog Creation (`winapp create-external-catalog`)
+
+Create external catalogs to streamline asset management for developers, separating catalog data from the main package.
+
 ## Usage Examples
 
 ### Example 1: Initialize and Package a Windows App
@@ -68,6 +79,8 @@ Run Windows SDK build tools with properly configured paths from any framework or
 ```bash
 # Initialize workspace with defaults
 winapp init
+# Note: init no longer auto-generates a certificate (v0.2.0+). Generate one explicitly:
+winapp cert generate
 
 # Build your application (framework-specific)
 # ...
@@ -115,7 +128,7 @@ npx winapp pack ./out --output MyElectronApp.msix
 
 ## Guidelines
 
-1. **Run `winapp init` first** - Always initialize your project before using other commands to ensure SDK setup, manifest, and certificates are configured.
+1. **Run `winapp init` first** - Always initialize your project before using other commands to ensure SDK setup and manifest are configured. Note: as of v0.2.0, `winapp init` no longer generates a development certificate automatically. Run `winapp cert generate` explicitly when you need to sign with a dev certificate.
 2. **Re-run `create-debug-identity` after manifest changes** - Package identity must be recreated whenever AppxManifest.xml is modified.
 3. **Use `--no-prompt` for CI/CD** - Prevents interactive prompts in automated pipelines by using default values.
 4. **Use `winapp restore` for shared projects** - Recreates the exact environment state defined in `winapp.yaml` across machines.
@@ -128,7 +141,11 @@ npx winapp pack ./out --output MyElectronApp.msix
 ```bash
 cd my-project
 winapp init
-# Creates: AppxManifest.xml, development certificate, SDK configuration, winapp.yaml
+# Creates: AppxManifest.xml, SDK configuration, winapp.yaml
+# Note: .NET (csproj) projects skip winapp.yaml and configure NuGet packages in the .csproj directly
+
+# Generate a dev signing certificate explicitly (no longer done by init)
+winapp cert generate
 ```
 
 ### Pattern: Package with Existing Certificate
@@ -161,6 +178,9 @@ winapp update --setup-sdks preview
 - Self-contained deployment increases package size by bundling the Windows App SDK runtime
 - Development certificates are for testing only; production requires trusted certificates
 - Some Windows APIs require specific capability declarations in the manifest
+- `winapp init` no longer auto-generates a certificate (v0.2.0+); run `winapp cert generate` explicitly
+- .NET (csproj) projects skip `winapp.yaml`; SDK packages are configured in the project file directly
+- winapp CLI uses the NuGet global cache for packages (not `%userprofile%/.winapp/packages`)
 - winapp CLI is in public preview and subject to change
 
 ## Windows APIs Enabled by Package Identity
@@ -190,6 +210,7 @@ Package identity unlocks access to powerful Windows APIs:
 
 - [GitHub Repository](https://github.com/microsoft/WinAppCli)
 - [Full CLI Documentation](https://github.com/microsoft/WinAppCli/blob/main/docs/usage.md)
+- [.NET Project Guide](https://github.com/microsoft/WinAppCli/blob/main/docs/guides/dotnet.md)
 - [Sample Applications](https://github.com/microsoft/WinAppCli/tree/main/samples)
 - [Windows App SDK](https://learn.microsoft.com/windows/apps/windows-app-sdk/)
 - [MSIX Packaging Overview](https://learn.microsoft.com/windows/msix/overview)

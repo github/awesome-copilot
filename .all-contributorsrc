@@ -4,8 +4,11 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
-    "README.md"
+    "README.md",
+    "website/src/pages/contributors.astro"
   ],
+    "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
+
   "imageSize": 100,
   "commit": false,
   "commitConvention": "none",
@@ -29,9 +32,9 @@
       "symbol": "🧰",
       "description": "Specialized skills for GitHub Copilot"
     },
-    "collections": {
+    "plugins": {
       "symbol": "🎁",
-      "description": "Curated collections of related content"
+      "description": "Curated plugins for GitHub Copilot"
     }
   },
   "ignoreList": [
@@ -51,7 +54,7 @@
       "contributions": [
         "agents",
         "code",
-        "collections",
+        "plugins",
         "doc",
         "infra",
         "instructions",
@@ -75,7 +78,7 @@
       "profile": "https://www.buymeacoffee.com/troystaylor",
       "contributions": [
         "agents",
-        "collections",
+        "plugins",
         "instructions",
         "prompts"
       ]
@@ -97,7 +100,7 @@
       "profile": "https://calva.io/",
       "contributions": [
         "agents",
-        "collections",
+        "plugins",
         "instructions",
         "prompts"
       ]
@@ -109,7 +112,7 @@
       "profile": "https://danielscottraynsford.com/",
       "contributions": [
         "agents",
-        "collections",
+        "plugins",
         "instructions",
         "prompts"
       ]
@@ -403,7 +406,7 @@
       "profile": "https://www.linkedin.com/in/griffinashe/",
       "contributions": [
         "agents",
-        "collections"
+        "plugins"
       ]
     },
     {
@@ -576,7 +579,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/129743?v=4",
       "profile": "http://brunoborges.io/",
       "contributions": [
-        "collections",
+        "plugins",
         "instructions"
       ]
     },
@@ -865,7 +868,7 @@
       "profile": "https://github.com/kewalaka",
       "contributions": [
         "agents",
-        "collections",
+        "plugins",
         "instructions"
       ]
     },
@@ -957,7 +960,7 @@
       "profile": "https://www.linkedin.com/in/niksac",
       "contributions": [
         "agents",
-        "collections"
+        "plugins"
       ]
     },
     {
@@ -1110,7 +1113,7 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/10256765?v=4",
       "profile": "https://github.com/oleksiyyurchyna",
       "contributions": [
-        "collections",
+        "plugins",
         "prompts"
       ]
     },
@@ -1809,6 +1812,24 @@
       "name": "Shibi Ramachandran",
       "avatar_url": "https://avatars.githubusercontent.com/u/6803434?v=4",
       "profile": "https://github.com/shibicr93",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "lupritz",
+      "name": "lupritz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/145381941?v=4",
+      "profile": "https://github.com/lupritz",
+      "contributions": [
+        "plugin"
+      ]
+    },
+    {
+      "login": "bhect0",
+      "name": "Héctor Benedicte",
+      "avatar_url": "https://avatars.githubusercontent.com/u/96436904?v=4",
+      "profile": "https://github.com/bhect0",
       "contributions": [
         "code"
       ]

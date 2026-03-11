@@ -232,3 +232,30 @@ tools:
       - github
       - copilot-customizations
       - validation
+
+  - id: vscode-agent-manager
+    name: VS Code Agent Manager
+    description: >-
+      VS Code Agent Manager is the essential toolkit for supercharging your GitHub Copilot experience.
+      Effortlessly discover, install, and manage custom Copilot Agents directly within VS Code.
+    category: VS Code Extensions
+    featured: true
+    requirements:
+      - VS Code version 1.106.0 or higher
+      - Internet connection to fetch repository data
+    links:
+      github: https://github.com/luizbon/vscode-agent-manager
+      vscode: vscode:extension/luizbon.vscode-agent-manager
+      vscode-insiders: vscode-insiders:extension/luizbon.vscode-agent-manager
+      marketplace: https://marketplace.visualstudio.com/items?itemName=luizbon.vscode-agent-manager
+    features:
+      - "🔍 Auto-Discovery: Point the Agent Manager to any GitHub repository, and it will automatically index all available agents"
+      - "📦 One-Click Installation: Install agents in seconds. Choose to install them globally (User Profile) for access in all projects, or locally (Workspace) for project-specific needs."
+      - "🔄 Smart Updates & Version Control: Stay up to date. The extension tracks installed versions against the remote source, alerting you when updates are available. View changelogs and author details at a glance."
+      - "🛡️ Git-Powered Reliability: Built on top of Git, ensuring that you always get the exact version of the agent you expect, with verified author and commit data."
+    tags:
+      - vscode
+      - extension
+      - copilot
+      - agent
+      - manager

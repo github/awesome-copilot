@@ -1,17 +1,17 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../components/Modal.astro';
 
 const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title="Home" activeNav="">
+<StarlightPage frontmatter={{ title: 'Awesome GitHub Copilot', template: 'splash', pagefind: false, prev: false, next: false, editUrl: false }} hasSidebar={false}>
   <main id="main-content">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="container">
         <h1 id="hero-heading">Awesome GitHub Copilot</h1>
-        <p class="hero-subtitle">Community-contributed instructions, prompts, agents, and skills to enhance your GitHub Copilot experience</p>
+        <p class="hero-subtitle">Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience</p>
         <div class="hero-search">
           <label for="global-search" class="sr-only">Search all resources</label>
           <input type="text" id="global-search" placeholder="Search all resources..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
@@ -32,14 +32,6 @@ const base = import.meta.env.BASE_URL;
               <p>Custom agents for specialized Copilot experiences</p>
             </div>
             <div class="card-count" data-count="agents" aria-label="Agent count">-</div>
-          </a>
-          <a href={`${base}prompts/`} class="card card-with-count" id="card-prompts">
-            <div class="card-icon" aria-hidden="true">🎯</div>
-            <div class="card-content">
-              <h3>Prompts</h3>
-              <p>Ready-to-use prompt templates for development tasks</p>
-            </div>
-            <div class="card-count" data-count="prompts" aria-label="Prompt count">-</div>
           </a>
           <a href={`${base}instructions/`} class="card card-with-count" id="card-instructions">
             <div class="card-icon" aria-hidden="true">📋</div>
@@ -65,6 +57,14 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="hooks" aria-label="Hook count">-</div>
           </a>
+          <a href={`${base}workflows/`} class="card card-with-count" id="card-workflows">
+            <div class="card-icon" aria-hidden="true">⚡</div>
+            <div class="card-content">
+              <h3>Workflows</h3>
+              <p>AI-powered automations for GitHub Actions</p>
+            </div>
+            <div class="card-count" data-count="workflows" aria-label="Workflow count">-</div>
+          </a>
           <a href={`${base}plugins/`} class="card card-with-count" id="card-plugins">
             <div class="card-icon" aria-hidden="true">🔌</div>
             <div class="card-content">
@@ -81,43 +81,17 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="tools" aria-label="Tool count">-</div>
           </a>
+          <a href={`${base}learning-hub/`} class="card card-with-count" id="card-learning-hub">
+            <div class="card-icon" aria-hidden="true">📚</div>
+            <div class="card-content">
+              <h3>Learning Hub</h3>
+              <p>Articles and guides to master GitHub Copilot</p>
+            </div>
+          </a>
         </div>
       </div>
     </section>
 
-    <!-- Featured Plugins -->
-    <section class="featured" aria-labelledby="featured-heading">
-      <div class="container">
-        <h2 id="featured-heading">Featured Plugins</h2>
-        <div id="featured-plugins" class="cards-grid" aria-live="polite">
-          <!-- Populated by JS -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Getting Started -->
-    <section class="getting-started" aria-labelledby="getting-started-heading">
-      <div class="container">
-        <h2 id="getting-started-heading">Getting Started</h2>
-        <div class="steps">
-          <div class="step">
-            <div class="step-number" aria-hidden="true">1</div>
-            <h3>Browse</h3>
-            <p>Explore agents, prompts, instructions, and skills</p>
-          </div>
-          <div class="step">
-            <div class="step-number" aria-hidden="true">2</div>
-            <h3>Preview</h3>
-            <p>Click any item to view its full content</p>
-          </div>
-          <div class="step">
-            <div class="step-number" aria-hidden="true">3</div>
-            <h3>Install</h3>
-            <p>One-click install to VS Code or copy to clipboard</p>
-          </div>
-        </div>
-      </div>
-    </section>
   </main>
 
   <Modal />
@@ -125,4 +99,4 @@ const base = import.meta.env.BASE_URL;
   <script>
     import '../scripts/pages/index';
   </script>
-</BaseLayout>
+</StarlightPage>

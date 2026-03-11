@@ -1,1 +1,0 @@
-../../../prompts/update-implementation-plan.prompt.md

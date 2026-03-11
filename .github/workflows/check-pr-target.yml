@@ -1,0 +1,35 @@
+name: Check PR Target Branch
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-target:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject PR targeting main
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '⚠️ **This PR targets `main`, but PRs should target `staged`.**',
+              '',
+              'The `main` branch is auto-published from `staged` and should not receive direct PRs.',
+              'Please close this PR and re-open it against the `staged` branch.',
+              '',
+              'You can change the base branch using the **Edit** button at the top of this PR,',
+              'or run: `gh pr edit ${{ github.event.pull_request.number }} --base staged`'
+            ].join('\n');
+
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'REQUEST_CHANGES',
+              body
+            });

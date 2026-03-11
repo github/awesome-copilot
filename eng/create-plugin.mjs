@@ -20,7 +20,7 @@ function prompt(question) {
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const out = { name: undefined, tags: undefined };
+  const out = { name: undefined, keywords: undefined };
 
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -29,22 +29,22 @@ function parseArgs() {
       i++;
     } else if (a.startsWith("--name=")) {
       out.name = a.split("=")[1];
-    } else if (a === "--tags" || a === "-t") {
-      out.tags = args[i + 1];
+    } else if (a === "--keywords" || a === "--tags" || a === "-t") {
+      out.keywords = args[i + 1];
       i++;
-    } else if (a.startsWith("--tags=")) {
-      out.tags = a.split("=")[1];
+    } else if (a.startsWith("--keywords=") || a.startsWith("--tags=")) {
+      out.keywords = a.split("=")[1];
     } else if (!a.startsWith("-") && !out.name) {
       // first positional -> name
       out.name = a;
-    } else if (!a.startsWith("-") && out.name && !out.tags) {
-      // second positional -> tags
-      out.tags = a;
+    } else if (!a.startsWith("-") && out.name && !out.keywords) {
+      // second positional -> keywords
+      out.keywords = a;
     }
   }
 
-  if (Array.isArray(out.tags)) {
-    out.tags = out.tags.join(",");
+  if (Array.isArray(out.keywords)) {
+    out.keywords = out.keywords.join(",");
   }
 
   return out;
@@ -108,23 +108,23 @@ async function createPlugin() {
       description = defaultDescription;
     }
 
-    // Get tags
-    let tags = [];
-    let tagInput = parsed.tags;
-    if (!tagInput) {
-      tagInput = await prompt(
-        "Tags (comma-separated, or press Enter for defaults): "
+    // Get keywords
+    let keywords = [];
+    let keywordInput = parsed.keywords;
+    if (!keywordInput) {
+      keywordInput = await prompt(
+        "Keywords (comma-separated, or press Enter for defaults): "
       );
     }
 
-    if (tagInput && tagInput.toString().trim()) {
-      tags = tagInput
+    if (keywordInput && keywordInput.toString().trim()) {
+      keywords = keywordInput
         .toString()
         .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag);
+        .map((kw) => kw.trim())
+        .filter((kw) => kw);
     } else {
-      tags = pluginId.split("-").slice(0, 3);
+      keywords = pluginId.split("-").slice(0, 3);
     }
 
     // Create directory structure
@@ -136,11 +136,10 @@ async function createPlugin() {
       name: pluginId,
       description,
       version: "1.0.0",
+      keywords,
       author: { name: "Awesome Copilot Community" },
       repository: "https://github.com/github/awesome-copilot",
       license: "MIT",
-      tags,
-      items: [],
     };
 
     fs.writeFileSync(
@@ -177,7 +176,7 @@ MIT
     console.log(`\n✅ Created plugin: ${pluginDir}`);
     console.log("\n📝 Next steps:");
     console.log(`1. Add agents, prompts, or instructions to plugins/${pluginId}/`);
-    console.log(`2. Update plugins/${pluginId}/.github/plugin/plugin.json to list your items`);
+    console.log(`2. Update plugins/${pluginId}/.github/plugin/plugin.json with your metadata`);
     console.log(`3. Edit plugins/${pluginId}/README.md to describe your plugin`);
     console.log("4. Run 'npm run build' to regenerate documentation");
   } catch (error) {

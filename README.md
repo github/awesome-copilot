@@ -2,34 +2,34 @@
 [![Powered by Awesome Copilot](https://img.shields.io/badge/Powered_by-Awesome_Copilot-blue?logo=githubcopilot)](https://aka.ms/awesome-github-copilot) [![GitHub contributors from allcontributors.org](https://img.shields.io/github/all-contributors/github/awesome-copilot?color=ee8449)](#contributors-)
 
 
-A community created collection of custom agents, prompts, and instructions to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
+A community created collection of custom agents and instructions to supercharge your GitHub Copilot experience across different domains, languages, and use cases.
 
 ## 🚀 What is Awesome GitHub Copilot?
 
 This repository provides a comprehensive toolkit for enhancing GitHub Copilot with specialized:
 
 - **👉 [Awesome Agents](docs/README.agents.md)** - Specialized GitHub Copilot agents that integrate with MCP servers to provide enhanced capabilities for specific workflows and tools
-- **👉 [Awesome Prompts](docs/README.prompts.md)** - Focused, task-specific prompts for generating code, documentation, and solving specific problems
 - **👉 [Awesome Instructions](docs/README.instructions.md)** - Comprehensive coding standards and best practices that apply to specific file patterns or entire projects
 - **👉 [Awesome Hooks](docs/README.hooks.md)** - Automated workflows triggered by specific events during development, testing, and deployment
+- **👉 [Awesome Agentic Workflows](docs/README.workflows.md)** - AI-powered repository automations that run coding agents in GitHub Actions with natural language instructions
 - **👉 [Awesome Skills](docs/README.skills.md)** - Self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks
-- **👉 [Awesome Plugins](docs/README.plugins.md)** - Curated plugins of related prompts, agents, and skills organized around specific themes and workflows
+- **👉 [Awesome Plugins](docs/README.plugins.md)** - Curated plugins of related agents and skills organized around specific themes and workflows
 - **👉 [Awesome Cookbook Recipes](cookbook/README.md)** - Practical, copy-paste-ready code snippets and real-world examples for working with GitHub Copilot tools and features
 
 ## 🌟 Featured Plugins
 
-Discover our curated plugins of prompts, agents, and skills organized around specific themes and workflows.
+Discover our curated plugins of agents and skills organized around specific themes and workflows.
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
-| [Awesome Copilot](plugins/awesome-copilot/README.md) | Meta prompts that help you discover and generate curated GitHub Copilot agents, collections, instructions, prompts, and skills. | 5 items | github-copilot, discovery, meta, prompt-engineering, agents |
+| [Awesome Copilot](plugins/awesome-copilot/README.md) | Meta skills that help you discover and generate curated GitHub Copilot agents, collections, instructions, and skills. | 5 items | github-copilot, discovery, meta, prompt-engineering, agents |
 | [Copilot SDK](plugins/copilot-sdk/README.md) | Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications. | 5 items | copilot-sdk, sdk, csharp, go, nodejs, typescript, python, ai, github-copilot |
 | [Partners](plugins/partners/README.md) | Custom agents that have been created by GitHub partners | 20 items | devops, security, database, cloud, infrastructure, observability, feature-flags, cicd, migration, performance |
 
 
 ## How to Install Customizations
 
-To make it easy to add these customizations to your editor, we have created an [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides a prompt for searching and installing prompts, instructions, agents, and skills directly from this repository. You'll need to have Docker installed and running to run the MCP server locally.
+To make it easy to add these customizations to your editor, we have created an [MCP Server](https://developer.microsoft.com/blog/announcing-awesome-copilot-mcp-server) that provides functionality for searching and installing instructions, agents, and skills directly from this repository. You'll need to have Docker installed and running to run the MCP server locally.
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install-0098FF?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?logo=visualstudiocode&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vscode-insiders) [![Install in Visual Studio](https://img.shields.io/badge/Visual_Studio-Install-C16FDE?logo=visualstudio&logoColor=white)](https://aka.ms/awesome-copilot/mcp/vs)
 
@@ -57,13 +57,13 @@ To make it easy to add these customizations to your editor, we have created an [
 
 ## 📄 llms.txt
 
-An [`llms.txt`](https://github.github.io/awesome-copilot/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, prompts, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
+An [`llms.txt`](https://awesome-copilot.github.com/llms.txt) file following the [llmstxt.org](https://llmstxt.org/) specification is available on the GitHub Pages site. This machine-readable file makes it easy for Large Language Models to discover and understand all available agents, instructions, and skills, providing a structured overview of the repository's resources with names and descriptions.
 
 ## 🔧 How to Use
 
 ### 🔌 Plugins
 
-Plugins are installable packages that bundle related agents, commands (prompts), and skills, making it easy to install a curated set of resources.
+Plugins are installable packages that bundle related agents and skills, making it easy to install a curated set of resources.
 
 #### Installing Plugins
 
@@ -85,13 +85,9 @@ Alternatively, you can use the `/plugin` command within a Copilot chat session t
 
 Custom agents can be used in Copilot coding agent (CCA), VS Code, and Copilot CLI (coming soon). For CCA, when assigning an issue to Copilot, select the custom agent from the provided list. In VS Code, you can activate the custom agent in the agents session, alongside built-in agents like Plan and Agent.
 
-### 🎯 Prompts
+### 🎯 Skills
 
-Use the `/` command in GitHub Copilot Chat to access prompts:
-
-```plaintext
-/awesome-copilot create-readme
-```
+Skills are self-contained folders with instructions and bundled resources that enhance AI capabilities for specialized tasks. They can be accessed through the GitHub Copilot interface or installed via plugins.
 
 ### 📋 Instructions
 
@@ -101,9 +97,13 @@ Instructions automatically apply to files based on their patterns and provide co
 
 Hooks enable automated workflows triggered by specific events during GitHub Copilot coding agent sessions (like sessionStart, sessionEnd, userPromptSubmitted). They can automate tasks like logging, auto-committing changes, or integrating with external services.
 
+### ⚡ Agentic Workflows
+
+[Agentic Workflows](https://github.github.com/gh-aw) are AI-powered repository automations that run coding agents in GitHub Actions. Defined in markdown with natural language instructions, they enable event-triggered and scheduled automation — from issue triage to daily reports.
+
 ## 🎯 Why Use Awesome GitHub Copilot?
 
-- **Productivity**: Pre-built agents, prompts and instructions save time and provide consistent results.
+- **Productivity**: Pre-built agents and instructions save time and provide consistent results.
 - **Best Practices**: Benefit from community-curated coding standards and patterns.
 - **Specialized Assistance**: Access expert-level guidance through specialized custom agents.
 - **Continuous Learning**: Stay updated with the latest patterns and practices across technologies.
@@ -112,7 +112,7 @@ Hooks enable automated workflows triggered by specific events during GitHub Copi
 
 We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to:
 
-- Add new prompts, instructions, hooks, agents, or skills
+- Add new instructions, hooks, workflows, agents, or skills
 - Improve existing content
 - Report issues or suggest enhancements
 
@@ -128,9 +128,10 @@ For AI coding agents working with this project, refer to [AGENTS.md](AGENTS.md) 
 ## 📖 Repository Structure
 
 ```plaintext
-├── prompts/          # Task-specific prompts (.prompt.md)
 ├── instructions/     # Coding standards and best practices (.instructions.md)
 ├── agents/           # AI personas and specialized modes (.agent.md)
+├── hooks/            # Automated hooks for Copilot coding agent sessions
+├── workflows/        # Agentic Workflows for GitHub Actions automation
 ├── plugins/          # Installable plugins bundling related items
 ├── scripts/          # Utility scripts for maintenance
 └── skills/           # AI capabilities for specialized tasks
@@ -152,7 +153,7 @@ The customizations in this repository are sourced from and created by third-part
 
 ---
 
-**Ready to supercharge your coding experience?** Start exploring our [prompts](docs/README.prompts.md), [instructions](docs/README.instructions.md), [hooks](docs/README.hooks.md), and [custom agents](docs/README.agents.md)!
+**Ready to supercharge your coding experience?** Start exploring our [instructions](docs/README.instructions.md), [hooks](docs/README.hooks.md), [skills](docs/README.skills.md), [agentic workflows](docs/README.workflows.md), and [custom agents](docs/README.agents.md)!
 
 ## Contributors ✨
 
@@ -164,12 +165,12 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.aaron-powell.com/"><img src="https://avatars.githubusercontent.com/u/434140?v=4?s=100" width="100px;" alt="Aaron Powell"/><br /><sub><b>Aaron Powell</b></sub></a><br /><a href="#agents-aaronpowell" title="Specialized agents for GitHub Copilot">🎭</a> <a href="https://github.com/github/awesome-copilot/commits?author=aaronpowell" title="Code">💻</a> <a href="#plugins-aaronpowell" title="Curated plugins of related content">🎁</a> <a href="https://github.com/github/awesome-copilot/commits?author=aaronpowell" title="Documentation">📖</a> <a href="#infra-aaronpowell" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#instructions-aaronpowell" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#maintenance-aaronpowell" title="Maintenance">🚧</a> <a href="#prompts-aaronpowell" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.aaron-powell.com/"><img src="https://avatars.githubusercontent.com/u/434140?v=4?s=100" width="100px;" alt="Aaron Powell"/><br /><sub><b>Aaron Powell</b></sub></a><br /><a href="#agents-aaronpowell" title="Specialized agents for GitHub Copilot">🎭</a> <a href="https://github.com/github/awesome-copilot/commits?author=aaronpowell" title="Code">💻</a> <a href="#plugins-aaronpowell" title="Curated plugins for GitHub Copilot">🎁</a> <a href="https://github.com/github/awesome-copilot/commits?author=aaronpowell" title="Documentation">📖</a> <a href="#infra-aaronpowell" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#instructions-aaronpowell" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#maintenance-aaronpowell" title="Maintenance">🚧</a> <a href="#prompts-aaronpowell" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://codemilltech.com/"><img src="https://avatars.githubusercontent.com/u/2053639?v=4?s=100" width="100px;" alt="Matt Soucoup"/><br /><sub><b>Matt Soucoup</b></sub></a><br /><a href="#infra-codemillmatt" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.buymeacoffee.com/troystaylor"><img src="https://avatars.githubusercontent.com/u/44444967?v=4?s=100" width="100px;" alt="Troy Simeon Taylor"/><br /><sub><b>Troy Simeon Taylor</b></sub></a><br /><a href="#agents-troystaylor" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-troystaylor" title="Curated plugins of related content">🎁</a> <a href="#instructions-troystaylor" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-troystaylor" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.buymeacoffee.com/troystaylor"><img src="https://avatars.githubusercontent.com/u/44444967?v=4?s=100" width="100px;" alt="Troy Simeon Taylor"/><br /><sub><b>Troy Simeon Taylor</b></sub></a><br /><a href="#agents-troystaylor" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-troystaylor" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#instructions-troystaylor" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-troystaylor" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/abbas133"><img src="https://avatars.githubusercontent.com/u/7757139?v=4?s=100" width="100px;" alt="Abbas"/><br /><sub><b>Abbas</b></sub></a><br /><a href="#agents-abbas133" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#instructions-abbas133" title="Custom instructions for GitHub Copilot">🧭</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://calva.io/"><img src="https://avatars.githubusercontent.com/u/30010?v=4?s=100" width="100px;" alt="Peter Strömberg"/><br /><sub><b>Peter Strömberg</b></sub></a><br /><a href="#agents-PEZ" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-PEZ" title="Curated plugins of related content">🎁</a> <a href="#instructions-PEZ" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-PEZ" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://danielscottraynsford.com/"><img src="https://avatars.githubusercontent.com/u/7589164?v=4?s=100" width="100px;" alt="Daniel Scott-Raynsford"/><br /><sub><b>Daniel Scott-Raynsford</b></sub></a><br /><a href="#agents-PlagueHO" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-PlagueHO" title="Curated plugins of related content">🎁</a> <a href="#instructions-PlagueHO" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-PlagueHO" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://calva.io/"><img src="https://avatars.githubusercontent.com/u/30010?v=4?s=100" width="100px;" alt="Peter Strömberg"/><br /><sub><b>Peter Strömberg</b></sub></a><br /><a href="#agents-PEZ" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-PEZ" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#instructions-PEZ" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-PEZ" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://danielscottraynsford.com/"><img src="https://avatars.githubusercontent.com/u/7589164?v=4?s=100" width="100px;" alt="Daniel Scott-Raynsford"/><br /><sub><b>Daniel Scott-Raynsford</b></sub></a><br /><a href="#agents-PlagueHO" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-PlagueHO" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#instructions-PlagueHO" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-PlagueHO" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jhauga"><img src="https://avatars.githubusercontent.com/u/10998676?v=4?s=100" width="100px;" alt="John Haugabook"/><br /><sub><b>John Haugabook</b></sub></a><br /><a href="#instructions-jhauga" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#prompts-jhauga" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
     </tr>
     <tr>
@@ -209,7 +210,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/guiopen"><img src="https://avatars.githubusercontent.com/u/94094527?v=4?s=100" width="100px;" alt="Guilherme do Amaral Alves "/><br /><sub><b>Guilherme do Amaral Alves </b></sub></a><br /><a href="#instructions-guiopen" title="Custom instructions for GitHub Copilot">🧭</a></td>
     </tr>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/griffinashe/"><img src="https://avatars.githubusercontent.com/u/6391612?v=4?s=100" width="100px;" alt="Griffin Ashe"/><br /><sub><b>Griffin Ashe</b></sub></a><br /><a href="#agents-griffinashe" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-griffinashe" title="Curated plugins of related content">🎁</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/griffinashe/"><img src="https://avatars.githubusercontent.com/u/6391612?v=4?s=100" width="100px;" alt="Griffin Ashe"/><br /><sub><b>Griffin Ashe</b></sub></a><br /><a href="#agents-griffinashe" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-griffinashe" title="Curated plugins for GitHub Copilot">🎁</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/anchildress1"><img src="https://avatars.githubusercontent.com/u/6563688?v=4?s=100" width="100px;" alt="Ashley Childress"/><br /><sub><b>Ashley Childress</b></sub></a><br /><a href="#agents-anchildress1" title="Specialized agents for GitHub Copilot">🎭</a> <a href="https://github.com/github/awesome-copilot/commits?author=anchildress1" title="Documentation">📖</a> <a href="#instructions-anchildress1" title="Custom instructions for GitHub Copilot">🧭</a> <a href="#infra-anchildress1" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/github/awesome-copilot/commits?author=anchildress1" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.senseof.tech/"><img src="https://avatars.githubusercontent.com/u/50712277?v=4?s=100" width="100px;" alt="Adrien Clerbois"/><br /><sub><b>Adrien Clerbois</b></sub></a><br /><a href="#agents-AClerbois" title="Specialized agents for GitHub Copilot">🎭</a> <a href="https://github.com/github/awesome-copilot/commits?author=AClerbois" title="Documentation">📖</a> <a href="#prompts-AClerbois" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Vhivi"><img src="https://avatars.githubusercontent.com/u/38220028?v=4?s=100" width="100px;" alt="ANGELELLI David"/><br /><sub><b>ANGELELLI David</b></sub></a><br /><a href="#agents-Vhivi" title="Specialized agents for GitHub Copilot">🎭</a></td>
@@ -231,7 +232,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/anschnapp"><img src="https://avatars.githubusercontent.com/u/17565996?v=4?s=100" width="100px;" alt="anschnapp"/><br /><sub><b>anschnapp</b></sub></a><br /><a href="#agents-anschnapp" title="Specialized agents for GitHub Copilot">🎭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hizahizi-hizumi"><img src="https://avatars.githubusercontent.com/u/163728895?v=4?s=100" width="100px;" alt="hizahizi-hizumi"/><br /><sub><b>hizahizi-hizumi</b></sub></a><br /><a href="#instructions-hizahizi-hizumi" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://jianminhuang.cc/"><img src="https://avatars.githubusercontent.com/u/6296280?v=4?s=100" width="100px;" alt="黃健旻 Vincent Huang"/><br /><sub><b>黃健旻 Vincent Huang</b></sub></a><br /><a href="#prompts-Jian-Min-Huang" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="http://brunoborges.io/"><img src="https://avatars.githubusercontent.com/u/129743?v=4?s=100" width="100px;" alt="Bruno Borges"/><br /><sub><b>Bruno Borges</b></sub></a><br /><a href="#plugins-brunoborges" title="Curated plugins of related content">🎁</a> <a href="#instructions-brunoborges" title="Custom instructions for GitHub Copilot">🧭</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://brunoborges.io/"><img src="https://avatars.githubusercontent.com/u/129743?v=4?s=100" width="100px;" alt="Bruno Borges"/><br /><sub><b>Bruno Borges</b></sub></a><br /><a href="#plugins-brunoborges" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#instructions-brunoborges" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.movinglive.ca/"><img src="https://avatars.githubusercontent.com/u/14792628?v=4?s=100" width="100px;" alt="Steve Magne"/><br /><sub><b>Steve Magne</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=MovingLive" title="Documentation">📖</a> <a href="#instructions-MovingLive" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://shaneneuville.com/"><img src="https://avatars.githubusercontent.com/u/5375137?v=4?s=100" width="100px;" alt="Shane Neuville"/><br /><sub><b>Shane Neuville</b></sub></a><br /><a href="#agents-PureWeen" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#instructions-PureWeen" title="Custom instructions for GitHub Copilot">🧭</a></td>
     </tr>
@@ -272,7 +273,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/SomeSolutionsArchitect"><img src="https://avatars.githubusercontent.com/u/139817767?v=4?s=100" width="100px;" alt="SomeSolutionsArchitect"/><br /><sub><b>SomeSolutionsArchitect</b></sub></a><br /><a href="#agents-SomeSolutionsArchitect" title="Specialized agents for GitHub Copilot">🎭</a></td>
     </tr>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kewalaka"><img src="https://avatars.githubusercontent.com/u/3146590?v=4?s=100" width="100px;" alt="Stu Mace"/><br /><sub><b>Stu Mace</b></sub></a><br /><a href="#agents-kewalaka" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-kewalaka" title="Curated plugins of related content">🎁</a> <a href="#instructions-kewalaka" title="Custom instructions for GitHub Copilot">🧭</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/kewalaka"><img src="https://avatars.githubusercontent.com/u/3146590?v=4?s=100" width="100px;" alt="Stu Mace"/><br /><sub><b>Stu Mace</b></sub></a><br /><a href="#agents-kewalaka" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-kewalaka" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#instructions-kewalaka" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/STRUDSO"><img src="https://avatars.githubusercontent.com/u/1543732?v=4?s=100" width="100px;" alt="Søren Trudsø Mahon"/><br /><sub><b>Søren Trudsø Mahon</b></sub></a><br /><a href="#instructions-STRUDSO" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://enakdesign.com/"><img src="https://avatars.githubusercontent.com/u/14024037?v=4?s=100" width="100px;" alt="Tj Vita"/><br /><sub><b>Tj Vita</b></sub></a><br /><a href="#agents-semperteneo" title="Specialized agents for GitHub Copilot">🎭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pelikhan"><img src="https://avatars.githubusercontent.com/u/4175913?v=4?s=100" width="100px;" alt="Peli de Halleux"/><br /><sub><b>Peli de Halleux</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=pelikhan" title="Code">💻</a></td>
@@ -284,7 +285,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://oskarthornblad.se/"><img src="https://avatars.githubusercontent.com/u/640102?v=4?s=100" width="100px;" alt="Oskar Thornblad"/><br /><sub><b>Oskar Thornblad</b></sub></a><br /><a href="#instructions-prewk" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/nischays"><img src="https://avatars.githubusercontent.com/u/54121853?v=4?s=100" width="100px;" alt="Nischay Sharma"/><br /><sub><b>Nischay Sharma</b></sub></a><br /><a href="#agents-nischays" title="Specialized agents for GitHub Copilot">🎭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Naikabg"><img src="https://avatars.githubusercontent.com/u/19915620?v=4?s=100" width="100px;" alt="Nikolay Marinov"/><br /><sub><b>Nikolay Marinov</b></sub></a><br /><a href="#agents-Naikabg" title="Specialized agents for GitHub Copilot">🎭</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/niksac"><img src="https://avatars.githubusercontent.com/u/20246918?v=4?s=100" width="100px;" alt="Nik Sachdeva"/><br /><sub><b>Nik Sachdeva</b></sub></a><br /><a href="#agents-niksacdev" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-niksacdev" title="Curated plugins of related content">🎁</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/niksac"><img src="https://avatars.githubusercontent.com/u/20246918?v=4?s=100" width="100px;" alt="Nik Sachdeva"/><br /><sub><b>Nik Sachdeva</b></sub></a><br /><a href="#agents-niksacdev" title="Specialized agents for GitHub Copilot">🎭</a> <a href="#plugins-niksacdev" title="Curated plugins for GitHub Copilot">🎁</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://onetipaweek.com/"><img src="https://avatars.githubusercontent.com/u/833231?v=4?s=100" width="100px;" alt="Nick Taylor"/><br /><sub><b>Nick Taylor</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=nickytonline" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://nicholasdbrady.github.io/cookbook/"><img src="https://avatars.githubusercontent.com/u/18353756?v=4?s=100" width="100px;" alt="Nick Brady"/><br /><sub><b>Nick Brady</b></sub></a><br /><a href="#agents-nicholasdbrady" title="Specialized agents for GitHub Copilot">🎭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/nastanford"><img src="https://avatars.githubusercontent.com/u/1755947?v=4?s=100" width="100px;" alt="Nathan Stanford Sr"/><br /><sub><b>Nathan Stanford Sr</b></sub></a><br /><a href="#instructions-nastanford" title="Custom instructions for GitHub Copilot">🧭</a></td>
@@ -305,7 +306,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/nativebpm"><img src="https://avatars.githubusercontent.com/u/33398121?v=4?s=100" width="100px;" alt="sauran"/><br /><sub><b>sauran</b></sub></a><br /><a href="#instructions-isauran" title="Custom instructions for GitHub Copilot">🧭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/samqbush"><img src="https://avatars.githubusercontent.com/u/74389839?v=4?s=100" width="100px;" alt="samqbush"/><br /><sub><b>samqbush</b></sub></a><br /><a href="#prompts-samqbush" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pareenaverma"><img src="https://avatars.githubusercontent.com/u/59843121?v=4?s=100" width="100px;" alt="pareenaverma"/><br /><sub><b>pareenaverma</b></sub></a><br /><a href="#agents-pareenaverma" title="Specialized agents for GitHub Copilot">🎭</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/oleksiyyurchyna"><img src="https://avatars.githubusercontent.com/u/10256765?v=4?s=100" width="100px;" alt="oleksiyyurchyna"/><br /><sub><b>oleksiyyurchyna</b></sub></a><br /><a href="#plugins-oleksiyyurchyna" title="Curated plugins of related content">🎁</a> <a href="#prompts-oleksiyyurchyna" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/oleksiyyurchyna"><img src="https://avatars.githubusercontent.com/u/10256765?v=4?s=100" width="100px;" alt="oleksiyyurchyna"/><br /><sub><b>oleksiyyurchyna</b></sub></a><br /><a href="#plugins-oleksiyyurchyna" title="Curated plugins for GitHub Copilot">🎁</a> <a href="#prompts-oleksiyyurchyna" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/time-by-waves"><img src="https://avatars.githubusercontent.com/u/34587654?v=4?s=100" width="100px;" alt="oceans-of-time"/><br /><sub><b>oceans-of-time</b></sub></a><br /><a href="#instructions-time-by-waves" title="Custom instructions for GitHub Copilot">🧭</a></td>
@@ -405,6 +406,10 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Arggon"><img src="https://avatars.githubusercontent.com/u/20962238?v=4?s=100" width="100px;" alt="Gonzalo"/><br /><sub><b>Gonzalo</b></sub></a><br /><a href="#prompts-Arggon" title="Reusable prompts for GitHub Copilot">⌨️</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://hachyderm.io/@0gis0"><img src="https://avatars.githubusercontent.com/u/175379?v=4?s=100" width="100px;" alt="Gisela Torres"/><br /><sub><b>Gisela Torres</b></sub></a><br /><a href="#agents-0GiS0" title="Specialized agents for GitHub Copilot">🎭</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/shibicr93"><img src="https://avatars.githubusercontent.com/u/6803434?v=4?s=100" width="100px;" alt="Shibi Ramachandran"/><br /><sub><b>Shibi Ramachandran</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=shibicr93" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lupritz"><img src="https://avatars.githubusercontent.com/u/145381941?v=4?s=100" width="100px;" alt="lupritz"/><br /><sub><b>lupritz</b></sub></a><br /><a href="#plugin-lupritz" title="Plugin/utility libraries">🔌</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bhect0"><img src="https://avatars.githubusercontent.com/u/96436904?v=4?s=100" width="100px;" alt="Héctor Benedicte"/><br /><sub><b>Héctor Benedicte</b></sub></a><br /><a href="https://github.com/github/awesome-copilot/commits?author=bhect0" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>

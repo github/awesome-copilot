@@ -7,7 +7,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "tags": [
+  "keywords": [
     "planning",
     "project-management",
     "epic",
@@ -17,78 +17,17 @@
     "architecture",
     "technical-spike"
   ],
-  "display": {
-    "ordering": "alpha",
-    "show_badge": true
-  },
-  "items": [
-    {
-      "path": "agents/task-planner.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/task-researcher.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/planner.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/plan.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/prd.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/implementation-plan.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "agents/research-technical-spike.agent.md",
-      "kind": "agent"
-    },
-    {
-      "path": "instructions/task-implementation.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "instructions/spec-driven-workflow-v1.instructions.md",
-      "kind": "instruction"
-    },
-    {
-      "path": "prompts/breakdown-feature-implementation.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-feature-prd.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-epic-arch.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/breakdown-epic-pm.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/update-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-github-issues-feature-from-implementation-plan.prompt.md",
-      "kind": "prompt"
-    },
-    {
-      "path": "prompts/create-technical-spike.prompt.md",
-      "kind": "prompt"
-    }
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/breakdown-feature-implementation",
+    "./skills/breakdown-feature-prd",
+    "./skills/breakdown-epic-arch",
+    "./skills/breakdown-epic-pm",
+    "./skills/create-implementation-plan",
+    "./skills/update-implementation-plan",
+    "./skills/create-github-issues-feature-from-implementation-plan",
+    "./skills/create-technical-spike"
   ]
 }

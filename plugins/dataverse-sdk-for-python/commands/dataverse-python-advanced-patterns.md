@@ -1,1 +1,0 @@
-../../../prompts/dataverse-python-advanced-patterns.prompt.md

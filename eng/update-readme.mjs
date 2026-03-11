@@ -10,19 +10,20 @@ import {
     HOOKS_DIR,
     INSTRUCTIONS_DIR,
     PLUGINS_DIR,
-    PROMPTS_DIR,
     repoBaseUrl,
     ROOT_FOLDER,
     SKILLS_DIR,
     TEMPLATES,
     vscodeInsidersInstallImage,
     vscodeInstallImage,
+    WORKFLOWS_DIR,
 } from "./constants.mjs";
 import {
     extractMcpServerConfigs,
     parseFrontmatter,
     parseSkillMetadata,
     parseHookMetadata,
+    parseWorkflowMetadata,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -342,63 +343,6 @@ function generateInstructionsSection(instructionsDir) {
 }
 
 /**
- * Generate the prompts section with a table of all prompts
- */
-function generatePromptsSection(promptsDir) {
-  // Check if directory exists
-  if (!fs.existsSync(promptsDir)) {
-    return "";
-  }
-
-  // Get all prompt files
-  const promptFiles = fs
-    .readdirSync(promptsDir)
-    .filter((file) => file.endsWith(".prompt.md"));
-
-  // Map prompt files to objects with title for sorting
-  const promptEntries = promptFiles.map((file) => {
-    const filePath = path.join(promptsDir, file);
-    const title = extractTitle(filePath);
-    return { file, filePath, title };
-  });
-
-  // Sort by title alphabetically
-  promptEntries.sort((a, b) => a.title.localeCompare(b.title));
-
-  console.log(`Found ${promptEntries.length} prompt files`);
-
-  // Return empty string if no files found
-  if (promptEntries.length === 0) {
-    return "";
-  }
-
-  // Create table header
-  let promptsContent = "| Title | Description |\n| ----- | ----------- |\n";
-
-  // Generate table rows for each prompt file
-  for (const entry of promptEntries) {
-    const { file, filePath, title } = entry;
-    const link = encodeURI(`prompts/${file}`);
-
-    // Check if there's a description in the frontmatter
-    const customDescription = extractDescription(filePath);
-
-    // Create badges for installation links
-    const badges = makeBadges(link, "prompt");
-
-    if (customDescription && customDescription !== "null") {
-      promptsContent += `| [${title}](../${link})<br />${badges} | ${formatTableCell(
-        customDescription
-      )} |\n`;
-    } else {
-      promptsContent += `| [${title}](../${link})<br />${badges} | | |\n`;
-    }
-  }
-
-  return `${TEMPLATES.promptsSection}\n${TEMPLATES.promptsUsage}\n\n${promptsContent}`;
-}
-
-/**
  * Generate MCP server links for an agent
  * @param {string[]} servers - Array of MCP server names
  * @param {{ name: string, displayName: string }[]} registryNames - Pre-loaded registry names to avoid async calls
@@ -578,6 +522,61 @@ function generateHooksSection(hooksDir) {
 }
 
 /**
+ * Generate the workflows section with a table of all agentic workflows
+ */
+function generateWorkflowsSection(workflowsDir) {
+  if (!fs.existsSync(workflowsDir)) {
+    console.log(`Workflows directory does not exist: ${workflowsDir}`);
+    return "";
+  }
+
+  // Get all .md workflow files (flat, no subfolders)
+  const workflowFiles = fs.readdirSync(workflowsDir).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
+  });
+
+  // Parse each workflow file
+  const workflowEntries = workflowFiles
+    .map((file) => {
+      const filePath = path.join(workflowsDir, file);
+      const metadata = parseWorkflowMetadata(filePath);
+      if (!metadata) return null;
+
+      return {
+        file,
+        name: metadata.name,
+        description: metadata.description,
+        triggers: metadata.triggers,
+        tags: metadata.tags,
+      };
+    })
+    .filter((entry) => entry !== null)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  console.log(`Found ${workflowEntries.length} workflow(s)`);
+
+  if (workflowEntries.length === 0) {
+    return "";
+  }
+
+  // Create table header
+  let content =
+    "| Name | Description | Triggers |\n| ---- | ----------- | -------- |\n";
+
+  // Generate table rows for each workflow
+  for (const workflow of workflowEntries) {
+    const link = `../workflows/${workflow.file}`;
+    const triggers = workflow.triggers.length > 0 ? workflow.triggers.join(", ") : "N/A";
+
+    content += `| [${workflow.name}](${link}) | ${formatTableCell(
+      workflow.description
+    )} | ${triggers} |\n`;
+  }
+
+  return `${TEMPLATES.workflowsSection}\n${TEMPLATES.workflowsUsage}\n\n${content}`;
+}
+
+/**
  * Generate the skills section with a table of all skills
  */
 function generateSkillsSection(skillsDir) {
@@ -710,7 +709,7 @@ function generateUnifiedModeSection(cfg) {
  * Read and parse a plugin.json file from a plugin directory.
  */
 function readPluginJson(pluginDir) {
-  const jsonPath = path.join(pluginDir, ".github", "plugin", "plugin.json");
+  const jsonPath = path.join(pluginDir, ".github/plugin", "plugin.json");
   if (!fs.existsSync(jsonPath)) return null;
   try {
     return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
@@ -783,13 +782,13 @@ function generatePluginsSection(pluginsDir) {
     const description = formatTableCell(
       plugin.description || "No description"
     );
-    const itemCount = plugin.items ? plugin.items.length : 0;
-    const tags = plugin.tags ? plugin.tags.join(", ") : "";
+    const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
+    const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
     const displayName = isFeatured ? `⭐ ${name}` : name;
 
-    pluginsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    pluginsContent += `| [${displayName}](${link}) | ${description} | ${itemCount} items | ${keywords} |\n`;
   }
 
   return `${TEMPLATES.pluginsSection}\n${TEMPLATES.pluginsUsage}\n\n${pluginsContent}`;
@@ -826,8 +825,8 @@ function generateFeaturedPluginsSection(pluginsDir) {
           const description = formatTableCell(
             plugin.description || "No description"
           );
-          const tags = plugin.tags ? plugin.tags.join(", ") : "";
-          const itemCount = plugin.items ? plugin.items.length : 0;
+          const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
+          const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
 
           return {
             dir,
@@ -835,7 +834,7 @@ function generateFeaturedPluginsSection(pluginsDir) {
             pluginId: name,
             name,
             description,
-            tags,
+            keywords,
             itemCount,
           };
         },
@@ -861,10 +860,10 @@ function generateFeaturedPluginsSection(pluginsDir) {
 
   // Generate table rows for each featured plugin
   for (const entry of featuredPlugins) {
-    const { dir, name, description, tags, itemCount } = entry;
+    const { dir, name, description, keywords, itemCount } = entry;
     const readmeLink = `plugins/${dir}/README.md`;
 
-    featuredContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${tags} |\n`;
+    featuredContent += `| [${name}](${readmeLink}) | ${description} | ${itemCount} items | ${keywords} |\n`;
   }
 
   return `${TEMPLATES.featuredPluginsSection}\n\n${featuredContent}`;
@@ -918,9 +917,9 @@ async function main() {
       /^##\s/m,
       "# "
     );
-    const promptsHeader = TEMPLATES.promptsSection.replace(/^##\s/m, "# ");
     const agentsHeader = TEMPLATES.agentsSection.replace(/^##\s/m, "# ");
     const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
+    const workflowsHeader = TEMPLATES.workflowsSection.replace(/^##\s/m, "# ");
     const skillsHeader = TEMPLATES.skillsSection.replace(/^##\s/m, "# ");
     const pluginsHeader = TEMPLATES.pluginsSection.replace(
       /^##\s/m,
@@ -932,13 +931,6 @@ async function main() {
       INSTRUCTIONS_DIR,
       instructionsHeader,
       TEMPLATES.instructionsUsage,
-      registryNames
-    );
-    const promptsReadme = buildCategoryReadme(
-      generatePromptsSection,
-      PROMPTS_DIR,
-      promptsHeader,
-      TEMPLATES.promptsUsage,
       registryNames
     );
     // Generate agents README
@@ -956,6 +948,15 @@ async function main() {
       HOOKS_DIR,
       hooksHeader,
       TEMPLATES.hooksUsage,
+      registryNames
+    );
+
+    // Generate workflows README
+    const workflowsReadme = buildCategoryReadme(
+      generateWorkflowsSection,
+      WORKFLOWS_DIR,
+      workflowsHeader,
+      TEMPLATES.workflowsUsage,
       registryNames
     );
 
@@ -987,9 +988,9 @@ async function main() {
       path.join(DOCS_DIR, "README.instructions.md"),
       instructionsReadme
     );
-    writeFileIfChanged(path.join(DOCS_DIR, "README.prompts.md"), promptsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
+    writeFileIfChanged(path.join(DOCS_DIR, "README.workflows.md"), workflowsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
     writeFileIfChanged(
       path.join(DOCS_DIR, "README.plugins.md"),

@@ -1,0 +1,185 @@
+/* Brand color overrides for Starlight */
+/* Purple (#8534F3) and Orange (#FE4C25) theme */
+
+/* ── Dark theme (default) ─────────────────────────────────── */
+:root {
+  --sl-color-accent-low: #1a0d33;
+  --sl-color-accent: #8534f3;
+  --sl-color-accent-high: #c9a5fa;
+  --sl-color-text-accent: #c9a5fa;
+
+  --sl-color-white: #f0f0f5;
+  --sl-color-gray-1: #d0d0da;
+  --sl-color-gray-2: #9898a6;
+  --sl-color-gray-3: #60607a;
+  --sl-color-gray-4: #30304a;
+  --sl-color-gray-5: #1a1a2e;
+  --sl-color-gray-6: #111120;
+  --sl-color-black: #0a0a0f;
+
+  --sl-font-system: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+}
+
+/* ── Light theme ───────────────────────────────────────────── */
+/* Starlight inverts the gray scale for light mode.
+   Because our customCss is unlayered it overrides Starlight's layered
+   theme swap, so we must provide the inverted palette ourselves. */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #f0e6ff;
+  --sl-color-accent: #6b21c8;
+  --sl-color-accent-high: #3b0d7a;
+  --sl-color-text-accent: #6b21c8;
+
+  --sl-color-white: #0a0a0f;
+  --sl-color-gray-1: #111120;
+  --sl-color-gray-2: #1a1a2e;
+  --sl-color-gray-3: #30304a;
+  --sl-color-gray-4: #60607a;
+  --sl-color-gray-5: #9898a6;
+  --sl-color-gray-6: #d0d0da;
+  --sl-color-black: #f0f0f5;
+}
+
+/* ── Sidebar readability ───────────────────────────────────── */
+nav[aria-label="Main"] a {
+  font-weight: 500 !important;
+}
+
+nav[aria-label="Main"] a[aria-current="page"] {
+  color: var(--sl-color-text-invert) !important;
+  font-weight: 600 !important;
+  border-inline-start-color: var(--sl-color-accent) !important;
+}
+
+/* ── Header brand styling ──────────────────────────────────── */
+.site-title {
+  font-weight: 700 !important;
+}
+header .site-title:hover {
+  color: var(--sl-color-accent-high) !important;
+}
+
+/* ── Browse Resources sidebar group ────────────────────────── */
+nav[aria-label="Main"] > ul > li:first-child details summary,
+nav[aria-label="Main"] > ul > li:first-child > a {
+  font-weight: 600;
+}
+
+/* ── Hide Starlight's auto-generated page title on custom splash pages ── */
+/* Only affects pages that have their own #main-content (custom pages) */
+/* Starlight generates a title h1; custom pages render their own h1 */
+main:has(#main-content) > .content-panel:has(h1#_top) {
+  display: none !important;
+}
+
+/* ── Pagefind search filter pills ──────────────────────────── */
+/* Restyle the default checkbox filters as horizontal pill toggles above results */
+
+/* Stack filters above results instead of side-by-side */
+#starlight__search .pagefind-ui__drawer {
+  flex-direction: column !important;
+}
+
+#starlight__search .pagefind-ui__filter-panel {
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: none !important;
+}
+
+#starlight__search .pagefind-ui__filter-panel-label {
+  display: none;
+}
+
+/* Remove the collapsible <details> wrapper — always show filters */
+#starlight__search .pagefind-ui__filter-block {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+#starlight__search .pagefind-ui__filter-block > summary {
+  display: none;
+}
+
+/* Hide the "type" group legend */
+#starlight__search .pagefind-ui__filter-group-label {
+  display: none;
+}
+
+/* Lay out filter values as a horizontal pill row */
+#starlight__search .pagefind-ui__filter-group {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0.375rem;
+  padding: 0.375rem 0 0.625rem;
+  border: none;
+  margin: 0;
+}
+
+/* Each pill: hide the checkbox, style the label as a pill */
+#starlight__search .pagefind-ui__filter-value {
+  display: contents;
+}
+
+/* Visually hidden but still focusable for keyboard a11y */
+#starlight__search .pagefind-ui__filter-checkbox {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#starlight__search .pagefind-ui__filter-value::before {
+  display: none !important;
+}
+
+#starlight__search .pagefind-ui__filter-label {
+  display: inline-flex !important;
+  width: auto !important;
+  align-items: center;
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  border: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-gray-2);
+  background: transparent;
+  text-transform: capitalize;
+}
+
+#starlight__search .pagefind-ui__filter-label:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent-high);
+}
+
+/* Keyboard focus ring for pill filters */
+#starlight__search .pagefind-ui__filter-checkbox:focus-visible + .pagefind-ui__filter-label {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+/* Active/checked pill state */
+#starlight__search .pagefind-ui__filter-checkbox:checked + .pagefind-ui__filter-label {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+  color: white;
+}
+
+#starlight__search .pagefind-ui__filter-checkbox:checked + .pagefind-ui__filter-label:hover {
+  opacity: 0.9;
+}

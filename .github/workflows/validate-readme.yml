@@ -2,12 +2,14 @@ name: Validate README.md
 
 on:
   pull_request:
+    branches: [staged]
     types: [opened, synchronize, reopened]
     paths:
       - "instructions/**"
       - "prompts/**"
       - "agents/**"
       - "plugins/**"
+      - "workflows/**"
       - "*.js"
       - "README.md"
       - "docs/**"

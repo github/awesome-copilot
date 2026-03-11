@@ -1,1 +1,0 @@
-../../../prompts/csharp-xunit.prompt.md
