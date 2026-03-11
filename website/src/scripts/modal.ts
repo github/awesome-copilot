@@ -2,6 +2,7 @@
  * Modal functionality for file viewing
  */
 
+import { marked } from "marked";
 import {
   fetchFileContent,
   fetchData,
@@ -15,6 +16,7 @@ import {
   getResourceIcon,
   sanitizeUrl,
 } from "./utils";
+import fm from "front-matter";
 
 // Modal state
 let currentFilePath: string | null = null;
@@ -173,7 +175,7 @@ export function setupModal(): void {
 
   if (!modal) return;
 
-  closeBtn?.addEventListener("click", closeModal);
+  closeBtn?.addEventListener("click", () => closeModal());
 
   modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
@@ -387,6 +389,26 @@ export async function openFileModal(
   const copyBtn = document.getElementById("copy-btn");
   const downloadBtn = document.getElementById("download-btn");
   const closeBtn = document.getElementById("close-modal");
+  const renderBtn = document.getElementById("render-btn");
+  const rawBtn = document.getElementById("raw-btn");
+
+  renderBtn.addEventListener("click", () => {
+    const { body: markdownBody } = fm(currentFileContent || "");
+    const markdown = marked(markdownBody, { async: false });
+    if (modalContent) {
+      modalContent.innerHTML = markdown;
+      renderBtn.classList.add("hidden");
+      rawBtn.classList.remove("hidden");
+    }
+  });
+
+  rawBtn.addEventListener("click", () => {
+    if (modalContent) {
+      modalContent.textContent = currentFileContent || "";
+      rawBtn.classList.add("hidden");
+      renderBtn.classList.remove("hidden");
+    }
+  });
 
   if (!modal || !title || !modalContent) return;
 
@@ -448,7 +470,7 @@ export async function openFileModal(
   if (downloadBtn) downloadBtn.style.display = "inline-flex";
 
   // Restore pre/code structure if it was replaced by plugin view
-  if (modalContent.tagName !== 'PRE') {
+  if (modalContent.tagName !== "PRE") {
     const modalBody = modalContent.parentElement;
     if (modalBody) {
       const pre = document.createElement("pre");
@@ -511,7 +533,8 @@ async function openPluginModal(
     modalBody.replaceChild(div, modalContent);
     modalContent = div;
   } else {
-    modalContent.innerHTML = '<div class="collection-loading">Loading plugin...</div>';
+    modalContent.innerHTML =
+      '<div class="collection-loading">Loading plugin...</div>';
   }
 
   // Load plugins data if not cached
@@ -551,7 +574,9 @@ async function openPluginModal(
 function getExternalPluginUrl(plugin: Plugin): string {
   if (plugin.source?.source === "github" && plugin.source.repo) {
     const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
+    return plugin.source.path
+      ? `${base}/tree/main/${plugin.source.path}`
+      : base;
   }
   // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
   return sanitizeUrl(plugin.repository || plugin.homepage);
@@ -569,7 +594,11 @@ function renderExternalPluginModal(
         <span class="external-plugin-meta-label">Author</span>
         <span class="external-plugin-meta-value">${
           plugin.author.url
-            ? `<a href="${sanitizeUrl(plugin.author.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.author.name)}</a>`
+            ? `<a href="${sanitizeUrl(
+                plugin.author.url
+              )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                plugin.author.name
+              )}</a>`
             : escapeHtml(plugin.author.name)
         }</span>
       </div>`
@@ -578,7 +607,11 @@ function renderExternalPluginModal(
   const repoHtml = plugin.repository
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">Repository</span>
-        <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.repository)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.repository)}</a></span>
+        <span class="external-plugin-meta-value"><a href="${sanitizeUrl(
+          plugin.repository
+        )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+        plugin.repository
+      )}</a></span>
       </div>`
     : "";
 
@@ -586,21 +619,31 @@ function renderExternalPluginModal(
     plugin.homepage && plugin.homepage !== plugin.repository
       ? `<div class="external-plugin-meta-row">
           <span class="external-plugin-meta-label">Homepage</span>
-          <span class="external-plugin-meta-value"><a href="${sanitizeUrl(plugin.homepage)}" target="_blank" rel="noopener noreferrer">${escapeHtml(plugin.homepage)}</a></span>
+          <span class="external-plugin-meta-value"><a href="${sanitizeUrl(
+            plugin.homepage
+          )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+          plugin.homepage
+        )}</a></span>
         </div>`
       : "";
 
   const licenseHtml = plugin.license
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">License</span>
-        <span class="external-plugin-meta-value">${escapeHtml(plugin.license)}</span>
+        <span class="external-plugin-meta-value">${escapeHtml(
+          plugin.license
+        )}</span>
       </div>`
     : "";
 
   const sourceHtml = plugin.source?.repo
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">Source</span>
-        <span class="external-plugin-meta-value">GitHub: ${escapeHtml(plugin.source.repo)}${plugin.source.path ? ` (${escapeHtml(plugin.source.path)})` : ""}</span>
+        <span class="external-plugin-meta-value">GitHub: ${escapeHtml(
+          plugin.source.repo
+        )}${
+        plugin.source.path ? ` (${escapeHtml(plugin.source.path)})` : ""
+      }</span>
       </div>`
     : "";
 
@@ -608,12 +651,18 @@ function renderExternalPluginModal(
 
   modalContent.innerHTML = `
     <div class="collection-view">
-      <div class="collection-description">${escapeHtml(plugin.description || "")}</div>
+      <div class="collection-description">${escapeHtml(
+        plugin.description || ""
+      )}</div>
       ${
         plugin.tags && plugin.tags.length > 0
           ? `<div class="collection-tags">
               <span class="resource-tag resource-tag-external">🔗 External Plugin</span>
-              ${plugin.tags.map((t) => `<span class="resource-tag">${escapeHtml(t)}</span>`).join("")}
+              ${plugin.tags
+                .map(
+                  (t) => `<span class="resource-tag">${escapeHtml(t)}</span>`
+                )
+                .join("")}
             </div>`
           : `<div class="collection-tags">
               <span class="resource-tag resource-tag-external">🔗 External Plugin</span>
@@ -627,7 +676,9 @@ function renderExternalPluginModal(
         ${sourceHtml}
       </div>
       <div class="external-plugin-cta">
-        <a href="${sanitizeUrl(repoUrl)}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener noreferrer">
+        <a href="${sanitizeUrl(
+          repoUrl
+        )}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener noreferrer">
           View Repository →
         </a>
       </div>

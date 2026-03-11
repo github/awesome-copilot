@@ -740,7 +740,7 @@ body:has(#main-content) {
   padding: 24px;
 }
 
-.modal.hidden {
+.modal.hidden, .hidden {
   display: none;
 }
 
