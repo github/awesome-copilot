@@ -26,21 +26,22 @@ The Docker Sandbox workspace is mounted via **virtiofs** (file sync between macO
 Run the bundled install script from the workspace root:
 
 ```bash
-bash .github/skills/sandbox-npm-install/install.sh
+bash skills/sandbox-npm-install/install.sh
 ```
 
 To also install Playwright browsers for E2E testing:
 
 ```bash
-bash .github/skills/sandbox-npm-install/install.sh --playwright
+bash skills/sandbox-npm-install/install.sh --playwright
 ```
 
 The script performs these steps automatically:
-1. Copies `package.json` and `package-lock.json` to `/home/agent/project-deps/`
-2. Runs `npm ci` on the local ext4 filesystem
-3. Symlinks `node_modules` back into the workspace
-4. Verifies all native binaries (esbuild, rollup, lightningcss, vite)
-5. Optionally installs Playwright browsers
+1. Detects the Docker Sandbox environment (refuses to run on native machines)
+2. Copies `package.json`, `package-lock.json`, and `.npmrc` (if present) to `/home/agent/project-deps/`
+3. Runs `npm ci` on the local ext4 filesystem
+4. Symlinks `node_modules` back into the workspace
+5. Verifies native binaries from your project's dependencies (esbuild, rollup, lightningcss, vite, if present)
+6. Optionally installs Playwright browsers
 
 If verification fails, run the script again — crashes can be intermittent.
 
