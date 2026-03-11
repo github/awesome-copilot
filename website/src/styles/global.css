@@ -1137,13 +1137,14 @@ body:has(#main-content) {
   margin-bottom: 0;
 }
 
-.choices__inner {
+.filters-bar .choices__inner {
   background-color: var(--color-bg);
   border-color: var(--color-border);
   border-radius: var(--border-radius);
   min-height: 42px;
   padding: 6px 10px;
   font-size: 14px;
+  color: var(--color-text);
 }
 
 .choices__input {
@@ -1151,6 +1152,12 @@ body:has(#main-content) {
   color: var(--color-text);
   font-size: 14px;
   padding: 4px 0;
+}
+
+.filters-bar .choices__input.choices__input--cloned {
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .choices__input::placeholder {
