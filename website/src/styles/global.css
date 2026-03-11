@@ -1077,6 +1077,7 @@ body:has(#main-content) {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin: 0px;
 }
 
 .filter-group label {
@@ -1095,12 +1096,17 @@ body:has(#main-content) {
   color: var(--color-text);
   min-width: 150px;
   cursor: pointer;
+  margin: 0px;
 }
 
 .filter-group select:focus {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-color: var(--color-accent);
+}
+
+.filters-bar button {
+  margin: 0px;
 }
 
 .checkbox-label {
@@ -1359,6 +1365,10 @@ body:has(#main-content) {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+}
+
+.resource-actions button {
+  margin: 0px;
 }
 
 /* Last Updated */
