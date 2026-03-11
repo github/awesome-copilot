@@ -312,7 +312,7 @@
         "report-writing"
       ],
       "license": "MIT",
-      "repository": "https://github.com/smestern/sciagent",
+      "repository": "https://github.com/smestern/sciagent-plugin",
       "source": {
         "source": "github",
         "repo": "smestern/sciagent-plugin",
