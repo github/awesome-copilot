@@ -1,6 +1,6 @@
 ---
 description: 'Scala 2.12/2.13 programming language coding conventions and best practices following Databricks style guide for functional programming, type safety, and production code quality.'
-applyTo: '**.scala, **/build.sbt, **/build.sc'
+applyTo: '**/*.scala, **/build.sbt, **/build.sc'
 ---
 
 # Scala Best Practices

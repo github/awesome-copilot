@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "automate-this",
+      "source": "automate-this",
+      "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
+      "version": "1.0.0"
+    },
+    {
       "name": "awesome-copilot",
       "source": "awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
@@ -162,6 +168,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "napkin",
+      "source": "napkin",
+      "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
+      "version": "1.0.0"
+    },
+    {
       "name": "noob-mode",
       "source": "noob-mode",
       "description": "Plain-English translation layer for non-technical Copilot CLI users. Translates every approval prompt, error message, and technical output into clear, jargon-free English with color-coded risk indicators.",
@@ -195,6 +207,12 @@
       "name": "openapi-to-application-python-fastapi",
       "source": "openapi-to-application-python-fastapi",
       "description": "Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "oracle-to-postgres-migration-expert",
+      "source": "oracle-to-postgres-migration-expert",
+      "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
       "version": "1.0.0"
     },
     {

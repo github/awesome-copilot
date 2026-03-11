@@ -562,7 +562,7 @@ body:has(#main-content) {
 
 .btn-primary {
   background: var(--color-accent);
-  color: white;
+  color: var(--sl-color-text-invert) !important;
   border-color: transparent;
   font-weight: 600;
 }
@@ -898,6 +898,71 @@ body:has(#main-content) {
 
 .collection-error {
   color: var(--color-error);
+}
+
+/* External plugin badge */
+.resource-tag-external {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-weight: 500;
+}
+
+/* External plugin modal metadata */
+.external-plugin-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.external-plugin-meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.external-plugin-meta-label {
+  color: var(--color-text-muted);
+  font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.external-plugin-meta-value {
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.external-plugin-meta-value a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.external-plugin-meta-value a:hover {
+  text-decoration: underline;
+}
+
+.external-plugin-cta {
+  margin-bottom: 16px;
+}
+
+.external-plugin-repo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.external-plugin-note {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.5;
 }
 
 /* Page Layouts */
@@ -1237,17 +1302,19 @@ body:has(#main-content) {
   background: var(--gradient-primary);
   border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
   opacity: 0;
-  transition: opacity var(--transition);
+  transition: opacity var(--transition), left var(--transition);
 }
 
 .resource-item:hover {
   background: var(--color-card-hover);
   transform: translateX(4px);
   box-shadow: var(--shadow);
+  border-radius: 0px var(--border-radius-lg) var(--border-radius-lg) 0px;
 }
 
 .resource-item:hover::before {
   opacity: 1;
+  left: -4px;
 }
 
 .resource-info {

@@ -44,7 +44,7 @@ mutation {
     issueId: "BLOCKED_ISSUE_NODE_ID"
     blockingIssueId: "BLOCKING_ISSUE_NODE_ID"
   }) {
-    blockedByIssue { number title }
+    blockingIssue { number title }
   }
 }
 ```
@@ -56,7 +56,7 @@ mutation {
     issueId: "BLOCKED_ISSUE_NODE_ID"
     blockingIssueId: "BLOCKING_ISSUE_NODE_ID"
   }) {
-    blockedByIssue { number title }
+    blockingIssue { number title }
   }
 }
 ```

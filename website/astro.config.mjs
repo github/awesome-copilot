@@ -35,6 +35,7 @@ export default defineConfig({
             { label: "Workflows", link: "/workflows/" },
             { label: "Plugins", link: "/plugins/" },
             { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
           ],
         },
         {
@@ -75,6 +76,7 @@ export default defineConfig({
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       components: {
         Head: "./src/components/Head.astro",
+        Footer: "./src/components/Footer.astro",
       },
     }),
     sitemap(),

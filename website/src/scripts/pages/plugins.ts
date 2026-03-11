@@ -3,8 +3,19 @@
  */
 import { createChoices, getChoicesValues, type Choices } from '../choices';
 import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, escapeHtml, getGitHubUrl } from '../utils';
+import { fetchData, debounce, escapeHtml, getGitHubUrl, sanitizeUrl } from '../utils';
 import { setupModal, openFileModal } from '../modal';
+
+interface PluginAuthor {
+  name: string;
+  url?: string;
+}
+
+interface PluginSource {
+  source: string;
+  repo?: string;
+  path?: string;
+}
 
 interface Plugin extends SearchItem {
   id: string;
@@ -13,6 +24,12 @@ interface Plugin extends SearchItem {
   tags?: string[];
   featured?: boolean;
   itemCount: number;
+  external?: boolean;
+  repository?: string | null;
+  homepage?: string | null;
+  author?: PluginAuthor | null;
+  license?: string | null;
+  source?: PluginSource | null;
 }
 
 interface PluginsData {
@@ -56,6 +73,15 @@ function applyFiltersAndRender(): void {
   if (countEl) countEl.textContent = countText;
 }
 
+function getExternalPluginUrl(plugin: Plugin): string {
+  if (plugin.source?.source === 'github' && plugin.source.repo) {
+    const base = `https://github.com/${plugin.source.repo}`;
+    return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
+  }
+  // Sanitize URLs from JSON to prevent XSS via javascript:/data: schemes
+  return sanitizeUrl(plugin.repository || plugin.homepage);
+}
+
 function renderItems(items: Plugin[], query = ''): void {
   const list = document.getElementById('resource-list');
   if (!list) return;
@@ -65,22 +91,35 @@ function renderItems(items: Plugin[], query = ''): void {
     return;
   }
 
-  list.innerHTML = items.map(item => `
-    <div class="resource-item" data-path="${escapeHtml(item.path)}">
+  list.innerHTML = items.map(item => {
+    const isExternal = item.external === true;
+    const metaTag = isExternal
+      ? `<span class="resource-tag resource-tag-external">🔗 External</span>`
+      : `<span class="resource-tag">${item.itemCount} items</span>`;
+    const authorTag = isExternal && item.author?.name
+      ? `<span class="resource-tag">by ${escapeHtml(item.author.name)}</span>`
+      : '';
+    const githubHref = isExternal
+      ? escapeHtml(getExternalPluginUrl(item))
+      : getGitHubUrl(item.path);
+
+    return `
+    <div class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}">
       <div class="resource-info">
         <div class="resource-title">${item.featured ? '⭐ ' : ''}${query ? search.highlight(item.name, query) : escapeHtml(item.name)}</div>
         <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
         <div class="resource-meta">
-          <span class="resource-tag">${item.itemCount} items</span>
+          ${metaTag}
+          ${authorTag}
           ${item.tags?.slice(0, 4).map(t => `<span class="resource-tag">${escapeHtml(t)}</span>`).join('') || ''}
           ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
         </div>
       </div>
       <div class="resource-actions">
-        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
+        <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   // Add click handlers
   list.querySelectorAll('.resource-item').forEach(el => {
