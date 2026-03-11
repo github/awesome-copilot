@@ -16,7 +16,6 @@ export interface RenderablePlugin {
   description?: string;
   path: string;
   tags?: string[];
-  featured?: boolean;
   itemCount: number;
   external?: boolean;
   repository?: string | null;
@@ -73,7 +72,7 @@ export function renderPluginsHtml(
       return `
         <div class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}">
           <div class="resource-info">
-            <div class="resource-title">${item.featured ? '⭐ ' : ''}${titleHtml}</div>
+            <div class="resource-title">${titleHtml}</div>
             <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
             <div class="resource-meta">
               ${metaTag}

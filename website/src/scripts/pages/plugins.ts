@@ -23,7 +23,6 @@ interface Plugin extends SearchItem, RenderablePlugin {
   name: string;
   path: string;
   tags?: string[];
-  featured?: boolean;
   itemCount: number;
   external?: boolean;
   repository?: string | null;
@@ -46,7 +45,6 @@ let search = new FuzzySearch<Plugin>();
 let tagSelect: Choices;
 let currentFilters = {
   tags: [] as string[],
-  featured: false
 };
 let resourceListHandlersReady = false;
 
@@ -60,14 +58,10 @@ function applyFiltersAndRender(): void {
   if (currentFilters.tags.length > 0) {
     results = results.filter(item => item.tags?.some(tag => currentFilters.tags.includes(tag)));
   }
-  if (currentFilters.featured) {
-    results = results.filter(item => item.featured);
-  }
 
   renderItems(results, query);
   const activeFilters: string[] = [];
   if (currentFilters.tags.length > 0) activeFilters.push(`${currentFilters.tags.length} tag${currentFilters.tags.length > 1 ? 's' : ''}`);
-  if (currentFilters.featured) activeFilters.push('featured');
   let countText = `${results.length} of ${allItems.length} plugins`;
   if (activeFilters.length > 0) {
     countText += ` (filtered by ${activeFilters.join(', ')})`;
@@ -107,7 +101,6 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
 export async function initPluginsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const featuredCheckbox = document.getElementById('filter-featured') as HTMLInputElement;
   const clearFiltersBtn = document.getElementById('clear-filters');
 
   setupResourceListHandlers(list as HTMLElement | null);
@@ -142,15 +135,9 @@ export async function initPluginsPage(): Promise<void> {
 
   searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
 
-  featuredCheckbox?.addEventListener('change', () => {
-    currentFilters.featured = featuredCheckbox.checked;
-    applyFiltersAndRender();
-  });
-
   clearFiltersBtn?.addEventListener('click', () => {
-    currentFilters = { tags: [], featured: false };
+    currentFilters = { tags: [] };
     tagSelect.removeActiveItems();
-    if (featuredCheckbox) featuredCheckbox.checked = false;
     if (searchInput) searchInput.value = '';
     applyFiltersAndRender();
   });
