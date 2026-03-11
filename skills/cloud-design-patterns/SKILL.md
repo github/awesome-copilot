@@ -56,7 +56,7 @@ These misconceptions can result in flawed workload designs. Design patterns don'
 | Security | 3 patterns | Identity, access control, content validation |
 | Event-Driven Architecture | 1 pattern | Event sourcing and audit trails |
 
-## References
+## External Links
 
 - [Cloud Design Patterns - Azure Architecture Center](https://learn.microsoft.com/azure/architecture/patterns/)
 - [Azure Well-Architected Framework](https://learn.microsoft.com/azure/architecture/framework/)
