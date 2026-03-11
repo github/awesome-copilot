@@ -1063,7 +1063,7 @@ body:has(#main-content) {
   gap: 16px;
   margin-bottom: 24px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   padding: 18px 20px;
   background: var(--color-glass);
   backdrop-filter: blur(10px);
@@ -1075,7 +1075,7 @@ body:has(#main-content) {
 
 .filter-group {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
 }
 
@@ -1122,8 +1122,10 @@ body:has(#main-content) {
 }
 
 .btn-small {
+  min-height: 32px;
   padding: 8px 14px;
   font-size: 13px;
+  line-height: 1;
 }
 
 /* Choices.js Theme Overrides */
@@ -1357,8 +1359,20 @@ body:has(#main-content) {
 
 .resource-actions {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
+  max-width: min(100%, 520px);
+}
+
+.resource-actions > * {
+  flex: 0 0 auto;
+}
+
+.resource-actions .btn {
+  margin: 0;
 }
 
 /* Last Updated */
