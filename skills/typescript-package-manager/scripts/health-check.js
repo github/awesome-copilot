@@ -11,7 +11,7 @@
  *   node health-check.js --test       # Run built-in makeshift tests
  *
  * Dependencies (install as needed):
- *   npm install -D type-coverage knip madge @arethetypeswrong/cli size-limit
+ *   npm install -D type-coverage knip madge @arethetypeswrong/cli
  */
 
 import { execSync } from 'child_process';
