@@ -37,7 +37,7 @@ If you are planning to contribute content that involves paid services, please re
 
 ## What We Don't Accept
 
-To maintain a safe, responsible, and constructive community, we will **not accept** contributions that:
+To maintain a safe, responsible, and high-signal collection, we will **not accept** contributions that:
 
 - **Violate Responsible AI Principles**: Content that attempts to circumvent Microsoft/GitHub's Responsible AI guidelines or promotes harmful AI usage
 - **Compromise Security**: Instructions designed to bypass security policies, exploit vulnerabilities, or weaken system security
@@ -45,6 +45,9 @@ To maintain a safe, responsible, and constructive community, we will **not accep
 - **Exploit Weaknesses**: Instructions that take advantage of vulnerabilities in other platforms or services
 - **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
 - **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
+- **Duplicate Existing Model Strengths Without Meaningful Uplift**: Submissions that mainly tell Copilot to do work frontier models already handle well (for example, generic TypeScript, HTML, or other broadly-supported coding tasks) without addressing a clear gap, specialized workflow, or domain-specific constraint. These contributions are often lower value for users and can introduce weaker or conflicting guidance than the model's default behavior.
+
+If your contribution targets an area where models are already strong, be explicit about the gap it closes and the measurable value it adds beyond the default experience.
 
 ## Quality Guidelines
 
