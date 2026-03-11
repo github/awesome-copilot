@@ -77,8 +77,16 @@ function buildScripts(opts = {}) {
     });
   }
 
+  const validateParts = ['npm run typecheck'];
+  if (includeLint) {
+    validateParts.push('npm run lint');
+  }
+  if (includeTest) {
+    validateParts.push('npm run test');
+  }
+
   Object.assign(scripts, {
-    validate: 'npm run typecheck && npm run lint && npm run test',
+    validate: validateParts.join(' && '),
     ci: 'npm run validate && npm run build',
     prepublishOnly: 'npm run ci',
   });
@@ -193,7 +201,7 @@ function printScripts() {
 function printTsconfig() {
   console.log(c.bold('\n⚙️   Recommended tsconfig.json (Node.js)\n'));
   console.log(JSON.stringify(buildTsconfig('node'), null, 2));
-  console.log(c.dim('\n  Also available: --tsconfig react, --tsconfig lib  (extend this script)\n'));
+  console.log(c.dim('\n  Tip: extend this script if you need additional presets (e.g., React or library tsconfig variants).\n'));
 }
 
 function printChecklist() {

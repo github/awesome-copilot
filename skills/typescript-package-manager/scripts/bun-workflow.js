@@ -174,7 +174,7 @@ function buildBunScripts(react = false) {
     typecheck: 'tsc --noEmit',
     lint: `eslint src --ext .ts${react ? ',.tsx' : ''}`,
     'lint:fix': `eslint src --ext .ts${react ? ',.tsx' : ''} --fix`,
-    format: `prettier --write "src/**/*.ts${react ? 'x' : ''}"`,
+    format: `prettier --write "${react ? 'src/**/*.{ts,tsx}' : 'src/**/*.ts'}"`,
     clean: 'node -e "require(\'fs\').rmSync(\'dist\', { recursive: true, force: true })"',
     ci: 'bun run typecheck && bun test --coverage && bun run build',
   };

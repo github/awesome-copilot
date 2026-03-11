@@ -41,18 +41,38 @@ const TEST  = args.includes('--test');
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
 
-/** Run a shell command and return stdout, or null on failure. */
+/** Run a shell command and return stdout/stderr output.
+ *  Returns:
+ *    - string: combined trimmed output when the command runs (even if exit code ≠ 0)
+ *    - null:   when the command cannot be spawned (e.g. ENOENT) or produces no output
+ */
 function tryRun(cmd, opts = {}) {
   try {
     return execSync(cmd, { encoding: 'utf8', stdio: 'pipe', ...opts }).trim();
-  } catch {
-    return null;
+  } catch (err) {
+    // If the command could not be spawned at all (e.g. not found), report null
+    if (err && (err.code === 'ENOENT' || err.errno === 'ENOENT')) {
+      return null;
+    }
+    // For non-zero exit codes, surface any available stdout/stderr so callers
+    // can present diagnostic output from tools like knip/madge/attw.
+    const stdout = err && err.stdout ? err.stdout.toString() : '';
+    const stderr = err && err.stderr ? err.stderr.toString() : '';
+    const combined = `${stdout}${stdout && stderr ? '\n' : ''}${stderr}`.trim();
+    return combined || null;
   }
 }
 
 /** Check whether a CLI tool is available on PATH. */
 function hasTool(name) {
-  return tryRun(`${process.platform === 'win32' ? 'where' : 'which'} ${name}`) !== null;
+  try {
+    execSync(`${process.platform === 'win32' ? 'where' : 'which'} ${name}`, {
+      stdio: 'pipe',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Parse the nearest tsconfig.json and return its parsed content, or null. */
@@ -114,10 +134,13 @@ function checkTsconfig() {
 
 function checkTypeCoverage() {
   console.log(c.bold('\n📊  Type coverage'));
-  if (!hasTool('type-coverage') && !existsSync('node_modules/.bin/type-coverage')) {
+  if (!hasTool('type-coverage') && !existsSync(path.join('node_modules', '.bin', 'type-coverage')) {
     report('skip', 'type-coverage not installed', 'npm install -D type-coverage');
     return;
   }
+/*
+The percent parsing regex only matches values with decimals ((\d+\.\d+)%). Some type-coverage outputs can be integers (e.g., 100%), which would incorrectly hit the “Could not parse” path. Consider allowing optional decimals when extracting the percentage.
+*/
   const out = tryRun('npx type-coverage --detail');
   if (!out) { report('fail', 'type-coverage failed to run'); return; }
   const match = out.match(/(\d+\.\d+)%/);

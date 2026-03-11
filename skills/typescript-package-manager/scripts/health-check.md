@@ -611,6 +611,9 @@ fi
 section "2. Type Coverage"
 # ─────────────────────────────────────────────────────────────────────────────
 
+/*
+The health-check.sh snippet uses npx --yes type-coverage to auto-install and execute the latest version of a third-party tool during the health check. When this script is wired into CI (as suggested later in the doc), it will pull unaudited code directly from the npm registry at build time, bypassing package.json and lockfile pinning, so a compromised type-coverage release could exfiltrate secrets or tamper with build artifacts. To reduce supply chain risk, require type-coverage to be present as a dev dependency and invoke the local binary (for example via npx with --no-install or a direct package.json script) instead of dynamically downloading it in CI.
+*/
 if command -v npx type-coverage &>/dev/null || npx --yes type-coverage --version &>/dev/null; then
   COVERAGE_OUTPUT=$(npx type-coverage --at-least 80 2>&1 || true)
   if echo "$COVERAGE_OUTPUT" | grep -q "type-coverage:"; then
@@ -671,6 +674,9 @@ fi
 section "4. Dead Code Detection"
 # ─────────────────────────────────────────────────────────────────────────────
 
+/*
+This npx --yes knip call auto-installs and executes the latest knip package whenever the health check runs, which in CI means arbitrary third-party code is fetched and executed at build time outside of your dependency and lockfile management. If knip (or its transitive dependencies) were compromised, an attacker could run code in the CI environment with access to repository contents and any configured secrets. Prefer declaring knip as a dev dependency and invoking the locally installed version (or using npx with installation disabled) so CI never implicitly downloads and runs unpinned tools.
+*/
 if npx --yes knip --version &>/dev/null 2>&1; then
   if $FIX; then
     npx knip --fix 2>&1 || warn "knip --fix completed with warnings"
@@ -691,6 +697,9 @@ fi
 section "5. Circular Dependencies"
 # ─────────────────────────────────────────────────────────────────────────────
 
+/*
+Similarly, this npx --yes madge usage will download and execute the newest madge release on each run if it is not already installed, which introduces supply chain risk when the script runs in CI. Because this bypasses package.json and lockfile pinning, a compromised madge version could run arbitrary code in your pipeline. It is safer to require madge as a dev dependency and only execute the local binary, avoiding any automatic install/execute behavior during CI.
+*/
 if npx --yes madge --version &>/dev/null 2>&1; then
   CIRCULAR=$(npx madge --circular --ts-config tsconfig.json src/ 2>&1 || true)
   if echo "$CIRCULAR" | grep -q "No circular"; then
@@ -762,6 +771,9 @@ section "8. Declaration File Validation"
 
 # Only check if we have a dist/ directory (published package)
 if [ -d "dist" ]; then
+/*
+The npx --yes @arethetypeswrong/cli invocation also auto-installs and runs the latest version of this tool whenever the health check is executed, which in a CI context means unpinned third-party code is fetched and executed with access to the build environment. This pattern bypasses dependency pinning and lockfiles, so a compromised @arethetypeswrong/cli release could be used to inject malicious behavior into your pipeline. To mitigate this, add @arethetypeswrong/cli as a dev dependency and run the local binary (or use npx without on-the-fly installation) instead of dynamically downloading it in CI.
+*/
   if npx --yes @arethetypeswrong/cli --version &>/dev/null 2>&1; then
     echo "Validating declaration files..."
     if npx attw --pack . 2>&1 | grep -q "No problems found"; then
