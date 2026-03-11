@@ -780,6 +780,10 @@ body:has(#main-content) {
   gap: 8px;
 }
 
+.modal-actions button, .modal-actions div {
+  margin: 0;
+}
+
 .modal-body {
   flex: 1;
   overflow: auto;
