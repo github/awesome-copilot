@@ -48,7 +48,7 @@ use doublecheck
 ```
 
 Once active:
-- Factual, legal, and analytical responses get automatic inline verification
+- Factual and analytical responses get automatic inline verification
 - Legal analysis, regulatory interpretation, compliance guidance, and content with case citations or statutory references automatically get the full verification report instead of inline summaries
 - If any claim rates DISPUTED or FABRICATION RISK during inline verification, the full report is generated automatically
 - Code, creative writing, and casual conversation are skipped (verification doesn't apply)

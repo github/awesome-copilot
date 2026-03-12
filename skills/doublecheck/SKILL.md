@@ -25,7 +25,7 @@ Before producing any substantive response, determine whether it contains verifia
 
 | Response type | Contains verifiable claims? | Action |
 |--------------|---------------------------|--------|
-| Factual analysis, legal guidance, regulatory interpretation | Yes -- high density | Run full verification report (see auto-escalation rule below) |
+| Factual analysis, legal guidance, regulatory interpretation, compliance guidance, or content with case citations or statutory references | Yes -- high density | Run full verification report (see high-stakes content rule below) |
 | Summary of a document, research, or data | Yes -- moderate density | Run inline verification on key claims |
 | Code generation, creative writing, brainstorming | Rarely | Skip verification; note that doublecheck mode doesn't apply to this type of content |
 | Casual conversation, clarifying questions, status updates | No | Skip verification silently |
@@ -52,7 +52,7 @@ Format:
 
 For active mode, prioritize speed. Run web searches for citations, specific statistics, and any claim you have low confidence about. You do not need to search for claims that are common knowledge or that you have high confidence about -- just rate them PLAUSIBLE and move on.
 
-If any claim rates DISPUTED or FABRICATION RISK, call it out prominently before the verification section so the user sees it immediately:
+If any claim rates DISPUTED or FABRICATION RISK, call it out prominently before the verification section so the user sees it immediately. When auto-escalation applies (see below), place this callout at the top of the full report, before the summary table:
 
 ```
 **Heads up:** I'm not confident about [specific claim]. I couldn't find a supporting source. You should verify this independently before relying on it.
@@ -60,7 +60,7 @@ If any claim rates DISPUTED or FABRICATION RISK, call it out prominently before 
 
 **Rule: Auto-escalate to full report for high-risk findings.**
 
-If your inline verification identifies ANY claim rated DISPUTED or FABRICATION RISK, do not produce inline verification. Instead, produce the full three-layer verification report using the template in `assets/verification-report-template.md`. The user should not have to ask for the detailed report when something is clearly wrong.
+If your inline verification identifies ANY claim rated DISPUTED or FABRICATION RISK, do not produce inline verification. Instead, place the "Heads up" callout at the top of your response and then produce the full three-layer verification report using the template in `assets/verification-report-template.md`. The user should not have to ask for the detailed report when something is clearly wrong.
 
 **Rule: Full report for high-stakes content.**
 
@@ -76,7 +76,7 @@ _Say "full report" for detailed three-layer verification with sources._
 
 **Rule: Offer full verification on request.**
 
-If the user says "run full verification," "verify that," "doublecheck that," or similar, run the complete three-layer pipeline (described below) and produce the full report using the template in `assets/verification-report-template.md`.
+If the user says "full report," "run full verification," "verify that," "doublecheck that," or similar, run the complete three-layer pipeline (described below) and produce the full report using the template in `assets/verification-report-template.md`.
 
 ### One-Shot Mode
 
