@@ -13,7 +13,7 @@ const initialItems = toolsData.items.map((item) => ({
 ---
 
 <StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🔧 Tools" description="MCP servers and developer tools for GitHub Copilot" />
 
     <div class="page-content">
@@ -55,7 +55,7 @@ const initialItems = toolsData.items.map((item) => ({
         <ContributeCTA resourceType="tools" />
       </div>
     </div>
-  </main>
+  </div>
 
   <EmbeddedPageData filename="tools.json" data={toolsData} />
 

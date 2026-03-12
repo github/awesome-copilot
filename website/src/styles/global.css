@@ -275,11 +275,16 @@ body:has(#main-content) {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  width: 100%;
   padding: 14px 18px;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   border-bottom: 1px solid var(--color-glass-border);
   transition: all var(--transition);
   text-align: left;
+  color: inherit;
+  font: inherit;
 }
 
 .search-result:last-child,
@@ -288,8 +293,14 @@ body:has(#main-content) {
 }
 
 .search-result:hover,
+.search-result:focus-visible,
 .search-result-item:hover {
   background: var(--color-bg-tertiary);
+}
+
+.search-result:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
 }
 
 .search-result-type {
@@ -1464,7 +1475,6 @@ body:has(#main-content) {
   justify-content: space-between;
   gap: 20px;
   transition: all var(--transition);
-  cursor: pointer;
   position: relative;
 }
 
@@ -1481,21 +1491,45 @@ body:has(#main-content) {
   transition: opacity var(--transition), left var(--transition);
 }
 
-.resource-item:hover {
+.resource-item:hover,
+.resource-item:focus-within {
   background: var(--color-card-hover);
   transform: translateX(4px);
   box-shadow: var(--shadow);
   border-radius: 0px var(--border-radius-lg) var(--border-radius-lg) 0px;
 }
 
-.resource-item:hover::before {
+.resource-item:hover::before,
+.resource-item:focus-within::before {
   opacity: 1;
   left: -4px;
+}
+
+.resource-preview {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resource-preview:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: var(--border-radius);
 }
 
 .resource-info {
   flex: 1;
   min-width: 0;
+  width: 100%;
 }
 
 .resource-title {
