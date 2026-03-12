@@ -1,13 +1,6 @@
 ---
 name: scoutqa-test
-description: >-
-    This skill should be used when the user asks to "test this website",
-    "run exploratory testing", "check for accessibility issues",
-    "verify the login flow works", "find bugs on this page", or requests
-    automated QA testing. Triggers on web application testing scenarios
-    including smoke tests, accessibility audits, e-commerce flows, and
-    user flow validation using ScoutQA CLI. Use this skill proactively
-    after implementing web application features to verify they work correctly.
+description: 'This skill should be used when the user asks to "test this website", "run exploratory testing", "check for accessibility issues", "verify the login flow works", "find bugs on this page", or requests automated QA testing. Triggers on web application testing scenarios including smoke tests, accessibility audits, e-commerce flows, and user flow validation using ScoutQA CLI. Use this skill proactively after implementing web application features to verify they work correctly.'
 ---
 
 # ScoutQA Testing Skill
@@ -86,7 +79,7 @@ The test continues running in the background while you continue other work.
 
 See "Presenting Results" section below for the complete format.
 
-### Command Options (create-execution)
+### Command Options
 
 - `--url` (required): Website URL to test (supports `localhost` / `127.0.0.1`)
 - `--prompt` (required): Natural language testing instructions
