@@ -69,6 +69,6 @@ Not typically needed for migration, but useful for rollback scenarios.
 
 - Labels are repo-scoped. The same label name can exist independently in different repos.
 - There is no MCP tool for listing repo labels. Use `gh label list` or the REST API.
-- The MCP tool `github-mcp-server-list_issues` supports a `labels` filter for fetching issues by label.
+- The MCP tool `mcp__github__list_issues` supports a `labels` filter for fetching issues by label.
 - Label names are case-insensitive for matching purposes, but the API preserves the original casing.
 - Maximum labels per issue: no hard limit, but practically dozens.

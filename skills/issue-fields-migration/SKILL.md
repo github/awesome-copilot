@@ -277,7 +277,7 @@ Follow these six phases in order. Always preview before executing.
 
 ```bash
 # Use MCP tool
-mcp__github__projects_list(project_owner: "{org}", project_number: {n}, action: "list_project_fields")
+mcp__github__projects_list(owner: "{org}", project_number: {n}, method: "list_project_fields")
 ```
 
 3. Fetch org issue fields:
@@ -300,7 +300,7 @@ gh api /orgs/{org}/issue-fields \
 | DATE | date | Yes, direct copy |
 | ITERATION | (none) | No equivalent; skip with warning |
 
-5. Present the proposed field mappings as a table. Let the user confirm, adjust, or skip fields.
+6. Present the proposed field mappings as a table. Let the user confirm, adjust, or skip fields.
 
 **Example output:**
 
@@ -370,7 +370,7 @@ gh api /repos/{owner}/{repo} --jq .id
 
 ```bash
 # Preferred: use MCP tool (handles pagination automatically)
-mcp__github__projects_list(project_owner: "{org}", project_number: {n}, action: "list_project_items")
+mcp__github__projects_list(owner: "{org}", project_number: {n}, method: "list_project_items")
 
 # Fallback for large projects: manual cursor-based pagination
 # Fetch 100 items per page, advancing the cursor each time.
@@ -495,13 +495,13 @@ Failed items:
 
 **User**: "I need to migrate Priority values from our project to the new org Priority issue field"
 
-**Action**: Follow Phases 1-6. Discover fields, map options, check permissions, scan items, preview, execute.
+**Action**: Follow Phases P1-P6. Discover fields, map options, check permissions, scan items, preview, execute.
 
 ### Example 2: Dry-Run Only
 
 **User**: "Show me what would happen if I migrated fields from project #42, but don't actually do it"
 
-**Action**: Follow Phases 1-5 only. Present the full dry-run report with every item listed. Do not execute.
+**Action**: Follow Phases P1-P5 only. Present the full dry-run report with every item listed. Do not execute.
 
 ### Example 3: Multiple Fields
 

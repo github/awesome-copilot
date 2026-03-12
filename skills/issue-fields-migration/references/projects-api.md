@@ -8,9 +8,9 @@ This reference covers the subset of the Projects V2 API needed for field migrati
 
 ```
 mcp__github__projects_list(
-  project_owner: "{org}",
+  owner: "{org}",
   project_number: {n},
-  action: "list_project_fields"
+  method: "list_project_fields"
 )
 ```
 
@@ -22,6 +22,7 @@ gh api graphql -f query='
     organization(login: "ORG") {
       projectV2(number: N) {
         fields(first: 30) {
+          pageInfo { hasNextPage endCursor }
           nodes {
             ... on ProjectV2Field {
               id
@@ -62,9 +63,9 @@ gh api graphql -f query='
 
 ```
 mcp__github__projects_list(
-  project_owner: "{org}",
+  owner: "{org}",
   project_number: {n},
-  action: "list_project_items"
+  method: "list_project_items"
 )
 ```
 
@@ -91,6 +92,7 @@ gh api graphql -f query='
               }
             }
             fieldValues(first: 20) {
+              pageInfo { hasNextPage endCursor }
               nodes {
                 ... on ProjectV2ItemFieldTextValue { text field { ... on ProjectV2Field { name } } }
                 ... on ProjectV2ItemFieldSingleSelectValue { name field { ... on ProjectV2SingleSelectField { name } } }
