@@ -14,7 +14,7 @@ A searchable database of 2,461 curated mobile development guidelines for Android
 - Flutter or React Native development
 - Security audits mapped to OWASP Mobile Top 10
 - Performance optimization and ANR/crash prevention
-- Architecture pattern selection (MVVM, MVI, Clean, Bloc, etc.)
+- Architecture pattern selection (MVVM, MVI, Clean Architecture, etc.)
 - Choosing libraries and Gradle dependencies
 - Code review against known anti-patterns
 
@@ -36,7 +36,7 @@ python3 search.py "<query>" --domain <domain> -n <max_results>
 
 | Domain | Description |
 |--------|-------------|
-| `architecture` | MVVM, MVI, Clean Architecture, Bloc, Redux |
+| `architecture` | MVVM, MVI, Clean Architecture, Redux |
 | `design-patterns` | Repository, Factory, Observer, Singleton |
 | `ui` | Compose, SwiftUI, UIKit, Flutter widgets |
 | `anti-patterns` | Common mistakes and how to fix them |
