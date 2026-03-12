@@ -24,3 +24,8 @@
 
 # Added via #codeowner from PR #889
 /skills/copilot-spaces/ @labudis
+
+# Added via #codeowner from PR #978
+/agents/doublecheck.agent.md @dvelton
+/plugins/doublecheck/ @dvelton
+/skills/doublecheck/ @dvelton

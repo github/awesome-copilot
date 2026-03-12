@@ -4,6 +4,9 @@ Thank you for your interest in contributing to the Awesome GitHub Copilot reposi
 
 ## Table of Contents
 
+- [What We Accept](#what-we-accept)
+- [What We Don't Accept](#what-we-dont-accept)
+- [Quality Guidelines](#quality-guidelines)
 - [How to Contribute](#how-to-contribute)
   - [Adding Instructions](#adding-instructions)
   - [Adding Prompts](#adding-prompts)
@@ -13,13 +16,46 @@ Thank you for your interest in contributing to the Awesome GitHub Copilot reposi
   - [Adding Hooks](#adding-hooks)
   - [Adding Agentic Workflows](#adding-agentic-workflows)
 - [Submitting Your Contribution](#submitting-your-contribution)
-- [What We Accept](#what-we-accept)
-- [What We Don't Accept](#what-we-dont-accept)
-- [Quality Guidelines](#quality-guidelines)
 - [Contributor Recognition](#contributor-recognition)
   - [Contribution Types](#contribution-types)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
+
+## What We Accept
+
+We welcome contributions covering any technology, framework, or development practice that helps developers work more effectively with GitHub Copilot. This includes:
+
+- Programming languages and frameworks
+- Development methodologies and best practices
+- Architecture patterns and design principles
+- Testing strategies and quality assurance
+- DevOps and deployment practices
+- Accessibility and inclusive design
+- Performance optimization techniques
+
+If you are planning to contribute content that involves paid services, please review our [Guidance for submissions involving paid services](https://github.com/github/awesome-copilot/discussions/968).
+
+## What We Don't Accept
+
+To maintain a safe, responsible, and high-signal collection, we will **not accept** contributions that:
+
+- **Violate Responsible AI Principles**: Content that attempts to circumvent Microsoft/GitHub's Responsible AI guidelines or promotes harmful AI usage
+- **Compromise Security**: Instructions designed to bypass security policies, exploit vulnerabilities, or weaken system security
+- **Enable Malicious Activities**: Content intended to harm other systems, users, or organizations
+- **Exploit Weaknesses**: Instructions that take advantage of vulnerabilities in other platforms or services
+- **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
+- **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
+- **Duplicate Existing Model Strengths Without Meaningful Uplift**: Submissions that mainly tell Copilot to do work frontier models already handle well (for example, generic TypeScript, HTML, or other broadly-supported coding tasks) without addressing a clear gap, specialized workflow, or domain-specific constraint. These contributions are often lower value for users and can introduce weaker or conflicting guidance than the model's default behavior.
+- **Plugins from remote sources**: While the plugin design allows us to support plugins from other GitHub repos, or other Git endpoints, we are not accepting contributions that simply add plugins from external sources. Plugins from remote sources represent a security risk as we are unable to verify their content for the policies we enforce on this repository. This policy does not apply to repositories that are managed by Microsoft or GitHub.
+
+## Quality Guidelines
+
+- **Be specific**: Generic instructions are less helpful than specific, actionable guidance
+- **Test your content**: Ensure your instructions or skills work well with GitHub Copilot
+- **Follow conventions**: Use consistent formatting and naming
+- **Keep it focused**: Each file should address a specific technology, framework, or use case
+- **Write clearly**: Use simple, direct language
+- **Promote best practices**: Encourage secure, maintainable, and ethical development practices
 
 ## How to Contribute
 
@@ -287,38 +323,6 @@ Create a daily summary of open issues for the team.
 
 > [!NOTE] 
 > We use [all-contributors](https://github.com/all-contributors/all-contributors) to recognize all types of contributions to the project. Jump to [Contributors Recognition](#contributor-recognition) to learn more!
-
-## What We Accept
-
-We welcome contributions covering any technology, framework, or development practice that helps developers work more effectively with GitHub Copilot. This includes:
-
-- Programming languages and frameworks
-- Development methodologies and best practices
-- Architecture patterns and design principles
-- Testing strategies and quality assurance
-- DevOps and deployment practices
-- Accessibility and inclusive design
-- Performance optimization techniques
-
-## What We Don't Accept
-
-To maintain a safe, responsible, and constructive community, we will **not accept** contributions that:
-
-- **Violate Responsible AI Principles**: Content that attempts to circumvent Microsoft/GitHub's Responsible AI guidelines or promotes harmful AI usage
-- **Compromise Security**: Instructions designed to bypass security policies, exploit vulnerabilities, or weaken system security
-- **Enable Malicious Activities**: Content intended to harm other systems, users, or organizations
-- **Exploit Weaknesses**: Instructions that take advantage of vulnerabilities in other platforms or services
-- **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
-- **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
-
-## Quality Guidelines
-
-- **Be specific**: Generic instructions are less helpful than specific, actionable guidance
-- **Test your content**: Ensure your instructions or skills work well with GitHub Copilot
-- **Follow conventions**: Use consistent formatting and naming
-- **Keep it focused**: Each file should address a specific technology, framework, or use case
-- **Write clearly**: Use simple, direct language
-- **Promote best practices**: Encourage secure, maintainable, and ethical development practices
 
 ## Contributor Recognition
 
