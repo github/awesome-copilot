@@ -48,8 +48,8 @@ use doublecheck
 ```
 
 Once active:
-- Factual and analytical responses get automatic inline verification
-- Legal analysis, regulatory interpretation, compliance guidance, and content with case citations or statutory references automatically get the full verification report instead of inline summaries
+- Simple factual lookups and single-claim answers get automatic inline verification summaries
+- Factual analysis, legal analysis, regulatory interpretation, compliance guidance, and content with case citations or statutory references automatically get the full verification report instead of inline summaries
 - If any claim rates DISPUTED or FABRICATION RISK during inline verification, the full report is generated automatically
 - Code, creative writing, and casual conversation are skipped (verification doesn't apply)
 - You can ask for a full deep-dive verification on any response by saying "full report" (or the legacy phrase "run full verification")
