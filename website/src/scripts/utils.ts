@@ -1,3 +1,5 @@
+import { getEmbeddedData as getEmbeddedPageData } from "./embedded-data";
+
 /**
  * Utility functions for the Awesome Copilot website
  */
@@ -43,6 +45,9 @@ export function getBasePath(): string {
 export async function fetchData<T = unknown>(
   filename: string
 ): Promise<T | null> {
+  const embeddedData = getEmbeddedPageData<T>(filename);
+  if (embeddedData !== null) return embeddedData;
+
   try {
     const basePath = getBasePath();
     const response = await fetch(`${basePath}data/${filename}`);
@@ -52,6 +57,17 @@ export async function fetchData<T = unknown>(
     console.error(`Error fetching ${filename}:`, error);
     return null;
   }
+}
+
+let jsZipPromise: Promise<typeof import("./jszip")> | null = null;
+
+/**
+ * Lazy-load JSZip only when downloads are requested
+ */
+export async function loadJSZip() {
+  jsZipPromise ??= import("./jszip");
+  const { default: JSZip } = await jsZipPromise;
+  return JSZip;
 }
 
 /**
@@ -209,9 +225,30 @@ export function debounce<T extends (...args: unknown[]) => void>(
  * Escape HTML to prevent XSS
  */
 export function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Validate and sanitize URLs to prevent XSS attacks
+ * Only allows http/https protocols, returns '#' for invalid URLs
+ */
+export function sanitizeUrl(url: string | null | undefined): string {
+  if (!url) return '#';
+  try {
+    const parsed = new URL(url);
+    // Only allow http and https protocols
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return url;
+    }
+  } catch {
+    // Invalid URL
+  }
+  return '#';
 }
 
 /**
@@ -228,10 +265,8 @@ export function truncate(text: string | undefined, maxLength: number): string {
 export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
   if (filePath.endsWith(".instructions.md")) return "instruction";
-  if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
-    return "skill";
-  if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
-    return "hook";
+  if (/(^|\/)skills\//.test(filePath)) return "skill";
+  if (/(^|\/)hooks\//.test(filePath)) return "hook";
   if (/(^|\/)workflows\//.test(filePath) && filePath.endsWith(".md"))
     return "workflow";
   // Check for plugin directories (e.g., plugins/<id>, plugins/<id>/)

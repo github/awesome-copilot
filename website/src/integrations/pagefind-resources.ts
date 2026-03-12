@@ -86,7 +86,7 @@ export default function pagefindResources(): AstroIntegration {
             records = [];
           }
 
-          // Use the base path from Astro config (e.g. "/awesome-copilot/")
+          // Use the base path from Astro config (e.g. "/")
           const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
 
           let added = 0;

@@ -3,16 +3,33 @@
  */
 import { createChoices, getChoicesValues, type Choices } from '../choices';
 import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, escapeHtml, getGitHubUrl } from '../utils';
+import { fetchData, debounce } from '../utils';
 import { setupModal, openFileModal } from '../modal';
+import { renderPluginsHtml, type RenderablePlugin } from './plugins-render';
 
-interface Plugin extends SearchItem {
+interface PluginAuthor {
+  name: string;
+  url?: string;
+}
+
+interface PluginSource {
+  source: string;
+  repo?: string;
+  path?: string;
+}
+
+interface Plugin extends SearchItem, RenderablePlugin {
   id: string;
   name: string;
   path: string;
   tags?: string[];
-  featured?: boolean;
   itemCount: number;
+  external?: boolean;
+  repository?: string | null;
+  homepage?: string | null;
+  author?: PluginAuthor | null;
+  license?: string | null;
+  source?: PluginSource | null;
 }
 
 interface PluginsData {
@@ -28,8 +45,8 @@ let search = new FuzzySearch<Plugin>();
 let tagSelect: Choices;
 let currentFilters = {
   tags: [] as string[],
-  featured: false
 };
+let resourceListHandlersReady = false;
 
 function applyFiltersAndRender(): void {
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -41,14 +58,10 @@ function applyFiltersAndRender(): void {
   if (currentFilters.tags.length > 0) {
     results = results.filter(item => item.tags?.some(tag => currentFilters.tags.includes(tag)));
   }
-  if (currentFilters.featured) {
-    results = results.filter(item => item.featured);
-  }
 
   renderItems(results, query);
   const activeFilters: string[] = [];
   if (currentFilters.tags.length > 0) activeFilters.push(`${currentFilters.tags.length} tag${currentFilters.tags.length > 1 ? 's' : ''}`);
-  if (currentFilters.featured) activeFilters.push('featured');
   let countText = `${results.length} of ${allItems.length} plugins`;
   if (activeFilters.length > 0) {
     countText += ` (filtered by ${activeFilters.join(', ')})`;
@@ -60,42 +73,37 @@ function renderItems(items: Plugin[], query = ''): void {
   const list = document.getElementById('resource-list');
   if (!list) return;
 
-  if (items.length === 0) {
-    list.innerHTML = '<div class="empty-state"><h3>No plugins found</h3><p>Try a different search term or adjust filters</p></div>';
-    return;
-  }
-
-  list.innerHTML = items.map(item => `
-    <div class="resource-item" data-path="${escapeHtml(item.path)}">
-      <div class="resource-info">
-        <div class="resource-title">${item.featured ? '⭐ ' : ''}${query ? search.highlight(item.name, query) : escapeHtml(item.name)}</div>
-        <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-        <div class="resource-meta">
-          <span class="resource-tag">${item.itemCount} items</span>
-          ${item.tags?.slice(0, 4).map(t => `<span class="resource-tag">${escapeHtml(t)}</span>`).join('') || ''}
-          ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
-        </div>
-      </div>
-      <div class="resource-actions">
-        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-      </div>
-    </div>
-  `).join('');
-
-  // Add click handlers
-  list.querySelectorAll('.resource-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const path = (el as HTMLElement).dataset.path;
-      if (path) openFileModal(path, resourceType);
-    });
+  list.innerHTML = renderPluginsHtml(items, {
+    query,
+    highlightTitle: (title, highlightQuery) => search.highlight(title, highlightQuery),
   });
+}
+
+function setupResourceListHandlers(list: HTMLElement | null): void {
+  if (!list || resourceListHandlersReady) return;
+
+  list.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('.resource-actions')) {
+      return;
+    }
+
+    const item = target.closest('.resource-item') as HTMLElement | null;
+    const path = item?.dataset.path;
+    if (path) {
+      openFileModal(path, resourceType);
+    }
+  });
+
+  resourceListHandlersReady = true;
 }
 
 export async function initPluginsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const featuredCheckbox = document.getElementById('filter-featured') as HTMLInputElement;
   const clearFiltersBtn = document.getElementById('clear-filters');
+
+  setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<PluginsData>('plugins.json');
   if (!data || !data.items) {
@@ -120,18 +128,16 @@ export async function initPluginsPage(): Promise<void> {
     applyFiltersAndRender();
   });
 
-  applyFiltersAndRender();
+  const countEl = document.getElementById('results-count');
+  if (countEl) {
+    countEl.textContent = `${allItems.length} of ${allItems.length} plugins`;
+  }
+
   searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
 
-  featuredCheckbox?.addEventListener('change', () => {
-    currentFilters.featured = featuredCheckbox.checked;
-    applyFiltersAndRender();
-  });
-
   clearFiltersBtn?.addEventListener('click', () => {
-    currentFilters = { tags: [], featured: false };
+    currentFilters = { tags: [] };
     tagSelect.removeActiveItems();
-    if (featuredCheckbox) featuredCheckbox.checked = false;
     if (searchInput) searchInput.value = '';
     applyFiltersAndRender();
   });
