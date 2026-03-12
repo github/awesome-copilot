@@ -76,17 +76,17 @@ if [[ ! -f /.dockerenv ]] && ! grep -q 'docker\|container' /proc/1/cgroup 2>/dev
   [[ "${FORCE_SANDBOX_INSTALL:-}" == "1" ]] || exit 1
 fi
 
-# Resolve DEPS_DIR to absolute path and validate safety
-DEPS_DIR="$(cd "$(dirname "$DEPS_DIR")" 2>/dev/null && echo "$(pwd)/$(basename "$DEPS_DIR")" || echo "$DEPS_DIR")"
-case "$DEPS_DIR" in
-  /|/bin|/boot|/dev|/etc|/home|/lib*|/opt|/proc|/root|/run|/sbin|/srv|/sys|/tmp|/usr|/var)
-    echo "ERROR: --deps-dir '$DEPS_DIR' is a protected system path. Refusing to continue."
-    exit 1 ;;
-esac
+# Validate DEPS_DIR is absolute and safe before any normalization
 if [[ "${DEPS_DIR#/}" == "$DEPS_DIR" ]]; then
   echo "ERROR: --deps-dir must be an absolute path (got '$DEPS_DIR')."
   exit 1
 fi
+DEPS_DIR="$(cd "$(dirname "$DEPS_DIR")" 2>/dev/null && echo "$(pwd)/$(basename "$DEPS_DIR")" || echo "$DEPS_DIR")"
+case "$DEPS_DIR" in
+  /|/bin|/boot|/dev|/etc|/home|/home/agent|/lib*|/opt|/proc|/root|/run|/sbin|/srv|/sys|/tmp|/usr|/var)
+    echo "ERROR: --deps-dir '$DEPS_DIR' is a protected system path. Refusing to continue."
+    exit 1 ;;
+esac
 
 if [[ -z "$WORKSPACE_CLIENT" ]]; then
   if [[ -f "$PWD/package.json" ]]; then
@@ -145,7 +145,7 @@ has_dep() {
   local dep="$1"
   node -e "
     const pkg=require(process.argv[1]);
-    const deps={...(pkg.dependencies||{}),...(pkg.devDependencies||{})};
+    const deps={...(pkg.dependencies||{}),...(pkg.devDependencies||{}),...(pkg.optionalDependencies||{}),...(pkg.peerDependencies||{})};
     process.exit(deps[process.argv[2]] ? 0 : 1);
   " "$WORKSPACE_CLIENT/package.json" "$dep"
 }
