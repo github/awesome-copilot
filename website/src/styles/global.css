@@ -1128,25 +1128,28 @@ body:has(#main-content) {
 
 /* Page Layouts */
 .page-header {
-  padding: 56px 0 40px;
+  padding: 40px 0 28px;
   border-bottom: 1px solid var(--color-glass-border);
 }
 
 .page-header h1 {
-  font-size: 36px;
+  font-size: clamp(2rem, 4vw, 2.25rem);
   font-weight: 800;
   color: var(--color-text);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .page-header p {
-  font-size: 17px;
+  font-size: 16px;
   color: var(--color-text-muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 42rem;
 }
 
 .page-header-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 24px;
 }
@@ -1160,9 +1163,9 @@ body:has(#main-content) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
+  margin-top: 0;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-accent);
   border: 1px solid var(--color-accent);
@@ -1188,23 +1191,36 @@ body:has(#main-content) {
 }
 
 .page-content {
-  padding: 40px 0 80px;
+  padding: 24px 0 80px;
 }
 
 /* Search and Filter Bar */
-.search-bar {
+.listing-toolbar {
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--color-glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--border-radius-lg);
+  position: relative;
+  z-index: 10;
+}
+
+.search-bar {
+  display: contents;
 }
 
 .search-bar input {
-  flex: 1;
-  min-width: 250px;
-  padding: 14px 18px;
-  font-size: 15px;
-  background: var(--color-glass);
+  flex: 1 1 220px;
+  min-width: 220px;
+  padding: 9px 14px;
+  font-size: 13px;
+  margin: 0;
+  background: var(--color-bg);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius-lg);
   color: var(--color-text);
@@ -1220,42 +1236,28 @@ body:has(#main-content) {
 
 /* Filters Bar */
 .filters-bar {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-  padding: 18px 20px;
-  background: var(--color-glass);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--color-glass-border);
-  border-radius: var(--border-radius-lg);
-  position: relative;
-  z-index: 10;
+  display: contents;
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin: 0px;
 }
 
-.filter-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text-muted);
-  white-space: nowrap;
+.filters-bar .filter-group > label:not(.checkbox-label) {
+  display: none;
 }
 
 .filter-group select {
-  padding: 8px 14px;
+  padding: 6px 10px;
   font-size: 13px;
   background: var(--color-bg);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--border-radius);
   color: var(--color-text);
-  min-width: 150px;
+  min-width: 130px;
   cursor: pointer;
   margin: 0px;
 }
@@ -1289,13 +1291,14 @@ body:has(#main-content) {
 }
 
 .btn-small {
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: 12px;
 }
 
 /* Choices.js Theme Overrides */
 .filter-group .choices {
-  min-width: 200px;
+  min-width: 170px;
+  margin-top: 0;
 }
 
 .choices {
@@ -1305,17 +1308,17 @@ body:has(#main-content) {
 .choices__inner {
   background-color: var(--color-bg);
   border-color: var(--color-border);
-  border-radius: var(--border-radius);
-  min-height: 42px;
-  padding: 6px 10px;
-  font-size: 14px;
+  border-radius: var(--border-radius-lg) !important;
+  min-height: 38px;
+  padding: 4px 8px;
+  font-size: 13px;
 }
 
 .choices__input {
   background-color: transparent;
   color: var(--color-text);
-  font-size: 14px;
-  padding: 4px 0;
+  font-size: 13px;
+  padding: 2px 0;
 }
 
 .choices__input::placeholder {
@@ -1433,8 +1436,14 @@ body:has(#main-content) {
 .results-count {
   font-size: 14px;
   color: var(--color-text-muted);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .listing-toolbar {
+    align-items: stretch;
+  }
 }
 
 /* Resource List */

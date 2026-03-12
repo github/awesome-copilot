@@ -25,17 +25,19 @@ const initialItems = pluginsData.items;
           <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
         </div>
 
-        <div class="search-bar">
-          <label for="search-input" class="sr-only">Search plugins</label>
-          <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
-        </div>
-
-        <div class="filters-bar" id="filters-bar">
-          <div class="filter-group">
-            <label for="filter-tag">Tag:</label>
-            <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search plugins</label>
+            <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
           </div>
-          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-tag">Tag:</label>
+              <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
         </div>
 
         <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} plugins</div>
