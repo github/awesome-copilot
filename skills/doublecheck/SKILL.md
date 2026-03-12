@@ -15,7 +15,7 @@ Doublecheck operates in two modes: **active mode** (persistent) and **one-shot m
 
 When the user invokes this skill without providing specific text to verify, activate persistent doublecheck mode. Respond with:
 
-> **Doublecheck is now active.** I'll automatically verify the factual claims in my responses before presenting them to you. For each substantive response, you'll see an inline verification summary with confidence ratings and source links. You can turn it off anytime by saying "turn off doublecheck."
+> **Doublecheck is now active.** I'll verify factual claims in my responses before presenting them. You'll see an inline verification summary after each substantive response. Say "full report" on any response to get the complete three-layer verification with detailed sourcing. Turn it off anytime by saying "turn off doublecheck."
 
 Then follow ALL of the rules below for the remainder of the conversation:
 
@@ -25,7 +25,7 @@ Before producing any substantive response, determine whether it contains verifia
 
 | Response type | Contains verifiable claims? | Action |
 |--------------|---------------------------|--------|
-| Factual analysis, legal guidance, regulatory interpretation | Yes -- high density | Run full inline verification |
+| Factual analysis, legal guidance, regulatory interpretation | Yes -- high density | Run full verification report (see auto-escalation rule below) |
 | Summary of a document, research, or data | Yes -- moderate density | Run inline verification on key claims |
 | Code generation, creative writing, brainstorming | Rarely | Skip verification; note that doublecheck mode doesn't apply to this type of content |
 | Casual conversation, clarifying questions, status updates | No | Skip verification silently |
@@ -56,6 +56,22 @@ If any claim rates DISPUTED or FABRICATION RISK, call it out prominently before 
 
 ```
 **Heads up:** I'm not confident about [specific claim]. I couldn't find a supporting source. You should verify this independently before relying on it.
+```
+
+**Rule: Auto-escalate to full report for high-risk findings.**
+
+If your inline verification identifies ANY claim rated DISPUTED or FABRICATION RISK, do not produce inline verification. Instead, produce the full three-layer verification report using the template in `assets/verification-report-template.md`. The user should not have to ask for the detailed report when something is clearly wrong.
+
+**Rule: Full report for high-stakes content.**
+
+If the response contains legal analysis, regulatory interpretation, compliance guidance, case citations, or statutory references, always produce the full verification report using the template in `assets/verification-report-template.md`. Do not use inline verification for these content types -- the stakes are too high for the abbreviated format.
+
+**Rule: Discoverability footer for inline verification.**
+
+When producing inline verification (not a full report), always append this line at the end of the verification section:
+
+```
+_Say "full report" for detailed three-layer verification with sources._
 ```
 
 **Rule: Offer full verification on request.**
