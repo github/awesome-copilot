@@ -59,12 +59,10 @@ export async function initHomepage(): Promise<void> {
 
       const hideResults = (): void => {
         resultsDiv.classList.add("hidden");
-        searchInput.setAttribute("aria-expanded", "false");
       };
 
       const showResults = (): void => {
         resultsDiv.classList.remove("hidden");
-        searchInput.setAttribute("aria-expanded", "true");
       };
 
       const getResultButtons = (): HTMLButtonElement[] =>
@@ -94,7 +92,7 @@ export async function initHomepage(): Promise<void> {
 
         const results = search.search(query).slice(0, 10);
         if (results.length === 0) {
-          resultsDiv.innerHTML = '<div class="search-result-empty" role="status">No results found</div>';
+          resultsDiv.innerHTML = '<div class="search-result-empty">No results found</div>';
           if (statusEl) {
             statusEl.textContent = 'No results found.';
           }
