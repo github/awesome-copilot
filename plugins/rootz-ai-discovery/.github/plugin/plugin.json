@@ -1,0 +1,29 @@
+{
+  "name": "rootz-ai-discovery",
+  "description": "Scan websites for AI Discovery configuration, analyze AI readiness, and generate .well-known/ai files for any project. Built on the open AI Discovery Standard (/.well-known/ai) — a three-tier architecture for machine-readable identity, knowledge, and feeds.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Rootz Corp",
+    "url": "https://rootz.global"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "Apache-2.0",
+  "keywords": [
+    "ai-discovery",
+    "well-known-ai",
+    "website-scanning",
+    "ai-readiness",
+    "identity",
+    "provenance",
+    "structured-data",
+    "geo"
+  ],
+  "agents": [
+    "./agents/rootz-ai-discovery.agent.md"
+  ],
+  "skills": [
+    "./skills/rootz-scan",
+    "./skills/rootz-discover",
+    "./skills/rootz-create"
+  ]
+}
