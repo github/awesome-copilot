@@ -265,10 +265,8 @@ export function truncate(text: string | undefined, maxLength: number): string {
 export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
   if (filePath.endsWith(".instructions.md")) return "instruction";
-  if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
-    return "skill";
-  if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
-    return "hook";
+  if (/(^|\/)skills\//.test(filePath)) return "skill";
+  if (/(^|\/)hooks\//.test(filePath)) return "hook";
   if (/(^|\/)workflows\//.test(filePath) && filePath.endsWith(".md"))
     return "workflow";
   // Check for plugin directories (e.g., plugins/<id>, plugins/<id>/)

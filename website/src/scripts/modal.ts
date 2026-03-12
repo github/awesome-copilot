@@ -18,10 +18,13 @@ import {
 } from "./utils";
 import fm from "front-matter";
 
+type ModalViewMode = "rendered" | "raw";
+
 // Modal state
 let currentFilePath: string | null = null;
 let currentFileContent: string | null = null;
 let currentFileType: string | null = null;
+let currentViewMode: ModalViewMode = "raw";
 let triggerElement: HTMLElement | null = null;
 let originalDocumentTitle: string | null = null;
 
@@ -36,6 +39,22 @@ interface ResourceData {
 }
 
 const resourceDataCache: Record<string, ResourceData | null> = {};
+
+interface SkillFile {
+  name: string;
+  path: string;
+}
+
+interface SkillItem extends ResourceItem {
+  skillFile: string;
+  files: SkillFile[];
+}
+
+interface SkillsData {
+  items: SkillItem[];
+}
+
+let skillsCache: SkillsData | null | undefined;
 
 const RESOURCE_TYPE_TO_JSON: Record<string, string> = {
   agent: "agents.json",
@@ -68,15 +87,311 @@ async function resolveResourceTitle(
   const item = data.items.find((i) => i.path === filePath);
   if (item) return item.title;
 
-  // For skills/hooks, the modal receives the file path (e.g. skills/foo/SKILL.md)
-  // but JSON stores the folder path (e.g. skills/foo)
-  const parentPath = filePath.substring(0, filePath.lastIndexOf("/"));
-  if (parentPath) {
-    const parentItem = data.items.find((i) => i.path === parentPath);
+  // For skills/hooks, bundled files live under the resource folder while
+  // JSON stores the folder path itself (for example, skills/foo).
+  const collectionRootPath =
+    type === "skill"
+      ? getCollectionRootPath(filePath, "skills")
+      : type === "hook"
+        ? getCollectionRootPath(filePath, "hooks")
+        : filePath.substring(0, filePath.lastIndexOf("/"));
+
+  if (collectionRootPath) {
+    const parentItem = data.items.find((i) => i.path === collectionRootPath);
     if (parentItem) return parentItem.title;
   }
 
   return fallback;
+}
+
+function getFileName(filePath: string): string {
+  return filePath.split("/").pop() || filePath;
+}
+
+function isMarkdownFile(filePath: string): boolean {
+  return /\.(md|markdown|mdx)$/i.test(filePath);
+}
+
+function getCollectionRootPath(filePath: string, collectionName: string): string | null {
+  const segments = filePath.split("/");
+  const collectionIndex = segments.indexOf(collectionName);
+  if (collectionIndex === -1 || segments.length <= collectionIndex + 1) {
+    return null;
+  }
+  return segments.slice(0, collectionIndex + 2).join("/");
+}
+
+function getSkillRootPath(filePath: string): string | null {
+  return getCollectionRootPath(filePath, "skills");
+}
+
+async function getSkillsData(): Promise<SkillsData | null> {
+  if (skillsCache === undefined) {
+    skillsCache = await fetchData<SkillsData>("skills.json");
+  }
+
+  return skillsCache;
+}
+
+async function getSkillItemByFilePath(filePath: string): Promise<SkillItem | null> {
+  if (getResourceType(filePath) !== "skill") return null;
+
+  const skillsData = await getSkillsData();
+  if (!skillsData) return null;
+
+  const rootPath = getSkillRootPath(filePath);
+  if (!rootPath) return null;
+
+  return (
+    skillsData.items.find(
+      (item) =>
+        item.path === rootPath ||
+        item.skillFile === filePath ||
+        item.files.some((file) => file.path === filePath)
+    ) || null
+  );
+}
+
+function updateModalTitle(titleText: string, filePath: string): void {
+  const title = document.getElementById("modal-title");
+  if (title) {
+    title.textContent = titleText;
+  }
+
+  const fileName = getFileName(filePath);
+  document.title =
+    titleText === fileName
+      ? `${titleText} | Awesome GitHub Copilot`
+      : `${titleText} · ${fileName} | Awesome GitHub Copilot`;
+}
+
+function getModalBody(): HTMLElement | null {
+  return document.querySelector<HTMLElement>(".modal-body");
+}
+
+function getModalContent(): HTMLElement | null {
+  return document.getElementById("modal-content");
+}
+
+function ensurePreContent(): HTMLPreElement | null {
+  let modalContent = getModalContent();
+  if (!modalContent) return null;
+
+  if (modalContent.tagName === "PRE") {
+    modalContent.className = "";
+    if (!modalContent.querySelector("code")) {
+      modalContent.innerHTML = "<code></code>";
+    }
+    return modalContent as HTMLPreElement;
+  }
+
+  const modalBody = getModalBody();
+  if (!modalBody) return null;
+
+  const pre = document.createElement("pre");
+  pre.id = "modal-content";
+  pre.innerHTML = "<code></code>";
+  modalBody.replaceChild(pre, modalContent);
+  return pre;
+}
+
+function ensureDivContent(className: string): HTMLDivElement | null {
+  let modalContent = getModalContent();
+  if (!modalContent) return null;
+
+  if (modalContent.tagName === "DIV") {
+    modalContent.className = className;
+    return modalContent as HTMLDivElement;
+  }
+
+  const modalBody = getModalBody();
+  if (!modalBody) return null;
+
+  const div = document.createElement("div");
+  div.id = "modal-content";
+  div.className = className;
+  modalBody.replaceChild(div, modalContent);
+  return div;
+}
+
+function renderPlainText(content: string): void {
+  const pre = ensurePreContent();
+  const codeEl = pre?.querySelector("code");
+  if (codeEl) {
+    codeEl.textContent = content;
+  }
+}
+
+const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
+  bicep: "bicep",
+  cjs: "javascript",
+  css: "css",
+  cs: "csharp",
+  go: "go",
+  html: "html",
+  java: "java",
+  js: "javascript",
+  json: "json",
+  jsx: "jsx",
+  md: "md",
+  markdown: "md",
+  mdx: "mdx",
+  mjs: "javascript",
+  ps1: "powershell",
+  psm1: "powershell",
+  py: "python",
+  rb: "ruby",
+  rs: "rust",
+  scss: "scss",
+  sh: "bash",
+  sql: "sql",
+  toml: "toml",
+  ts: "typescript",
+  tsx: "tsx",
+  txt: "text",
+  xml: "xml",
+  yaml: "yaml",
+  yml: "yaml",
+};
+
+const FILE_NAME_LANGUAGE_MAP: Record<string, string> = {
+  dockerfile: "dockerfile",
+  makefile: "makefile",
+};
+
+function getLanguageForFile(filePath: string): string {
+  const fileName = getFileName(filePath);
+  const lowerFileName = fileName.toLowerCase();
+
+  if (FILE_NAME_LANGUAGE_MAP[lowerFileName]) {
+    return FILE_NAME_LANGUAGE_MAP[lowerFileName];
+  }
+
+  const extension = lowerFileName.includes(".")
+    ? lowerFileName.split(".").pop()
+    : "";
+
+  if (extension && EXTENSION_LANGUAGE_MAP[extension]) {
+    return EXTENSION_LANGUAGE_MAP[extension];
+  }
+
+  return "text";
+}
+
+async function renderHighlightedCode(content: string, filePath: string): Promise<void> {
+  try {
+    const { codeToHtml } = await import("shiki");
+    const container = ensureDivContent("modal-code-content");
+    if (!container) return;
+
+    container.innerHTML = await codeToHtml(content, {
+      lang: getLanguageForFile(filePath),
+      themes: {
+        light: "github-light",
+        dark: "github-dark",
+      },
+    });
+  } catch {
+    renderPlainText(content);
+  }
+}
+
+function updateViewButtons(): void {
+  const renderBtn = document.getElementById("render-btn");
+  const rawBtn = document.getElementById("raw-btn");
+  const markdownFile = currentFilePath ? isMarkdownFile(currentFilePath) : false;
+
+  if (!renderBtn || !rawBtn) return;
+
+  if (!markdownFile) {
+    renderBtn.classList.add("hidden");
+    rawBtn.classList.add("hidden");
+    return;
+  }
+
+  if (currentViewMode === "rendered") {
+    renderBtn.classList.add("hidden");
+    rawBtn.classList.remove("hidden");
+    return;
+  }
+
+  rawBtn.classList.add("hidden");
+  renderBtn.classList.remove("hidden");
+}
+
+async function renderCurrentFileContent(): Promise<void> {
+  if (!currentFilePath) return;
+
+  updateViewButtons();
+
+  if (!currentFileContent) {
+    renderPlainText(
+      "Failed to load file content. Click the button below to view on GitHub."
+    );
+    return;
+  }
+
+  if (isMarkdownFile(currentFilePath) && currentViewMode === "rendered") {
+    const container = ensureDivContent("modal-rendered-content");
+    if (!container) return;
+
+    const { body: markdownBody } = fm(currentFileContent);
+    container.innerHTML = marked(markdownBody, { async: false });
+  } else {
+    await renderHighlightedCode(currentFileContent, currentFilePath);
+  }
+
+  const modalBody = getModalBody();
+  if (modalBody) {
+    modalBody.scrollTop = 0;
+  }
+}
+
+async function configureSkillFileSwitcher(filePath: string): Promise<void> {
+  const switcher = document.getElementById("modal-file-switcher");
+  const fileButtonLabel = document.getElementById("modal-file-button-label");
+  const menu = document.getElementById("modal-file-menu");
+
+  if (!switcher || !fileButtonLabel || !menu) return;
+
+  const skillItem = await getSkillItemByFilePath(filePath);
+  if (currentFilePath !== filePath) return;
+
+  if (!skillItem || skillItem.files.length <= 1) {
+    switcher.classList.add("hidden");
+    fileButtonLabel.textContent = "";
+    menu.innerHTML = "";
+    return;
+  }
+
+  fileButtonLabel.textContent = getFileName(filePath);
+  menu.innerHTML = skillItem.files
+    .map(
+      (file) =>
+        `<button type="button" class="modal-file-menu-item${
+          file.path === filePath ? " active" : ""
+        }" data-path="${escapeHtml(file.path)}" role="menuitemradio" aria-checked="${
+          file.path === filePath ? "true" : "false"
+        }">${escapeHtml(file.name)}</button>`
+    )
+    .join("");
+  switcher.classList.remove("hidden");
+}
+
+function hideSkillFileSwitcher(): void {
+  const switcher = document.getElementById("modal-file-switcher");
+  const fileButtonLabel = document.getElementById("modal-file-button-label");
+  const menu = document.getElementById("modal-file-menu");
+  const dropdown = document.getElementById("modal-file-dropdown");
+  const fileButton = document.getElementById("modal-file-button");
+  const fileToggle = document.getElementById("modal-file-toggle");
+
+  switcher?.classList.add("hidden");
+  dropdown?.classList.remove("open");
+  fileButton?.setAttribute("aria-expanded", "false");
+  fileToggle?.setAttribute("aria-expanded", "false");
+  if (fileButtonLabel) fileButtonLabel.textContent = "";
+  if (menu) menu.innerHTML = "";
 }
 
 // Plugin data cache
@@ -172,6 +487,12 @@ export function setupModal(): void {
   const copyBtn = document.getElementById("copy-btn");
   const downloadBtn = document.getElementById("download-btn");
   const shareBtn = document.getElementById("share-btn");
+  const renderBtn = document.getElementById("render-btn");
+  const rawBtn = document.getElementById("raw-btn");
+  const fileDropdown = document.getElementById("modal-file-dropdown");
+  const fileButton = document.getElementById("modal-file-button");
+  const fileToggle = document.getElementById("modal-file-toggle");
+  const fileMenu = document.getElementById("modal-file-menu");
 
   if (!modal) return;
 
@@ -221,11 +542,123 @@ export function setupModal(): void {
     }
   });
 
+  renderBtn?.addEventListener("click", async () => {
+    currentViewMode = "rendered";
+    await renderCurrentFileContent();
+  });
+
+  rawBtn?.addEventListener("click", async () => {
+    currentViewMode = "raw";
+    await renderCurrentFileContent();
+  });
+
+  const setFileMenuOpen = (isOpen: boolean): void => {
+    if (!fileDropdown) return;
+    fileDropdown.classList.toggle("open", isOpen);
+    fileButton?.setAttribute("aria-expanded", String(isOpen));
+    fileToggle?.setAttribute("aria-expanded", String(isOpen));
+  };
+
+  const toggleFileMenu = (event: Event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    const isOpen = !fileDropdown?.classList.contains("open");
+    setFileMenuOpen(Boolean(isOpen));
+    if (isOpen) {
+      fileMenu
+        ?.querySelector<HTMLElement>(".modal-file-menu-item.active, .modal-file-menu-item")
+        ?.focus();
+    }
+  };
+
+  fileButton?.addEventListener("click", toggleFileMenu);
+  fileToggle?.addEventListener("click", toggleFileMenu);
+
+  fileButton?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      toggleFileMenu(e);
+    }
+  });
+
+  fileToggle?.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      toggleFileMenu(e);
+    }
+  });
+
+  fileMenu?.addEventListener("click", async (event) => {
+    const target = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      ".modal-file-menu-item"
+    );
+    const targetPath = target?.dataset.path;
+    if (!target || !targetPath || !currentFileType) return;
+    setFileMenuOpen(false);
+    await openFileModal(
+      targetPath,
+      currentFileType,
+      true,
+      triggerElement || undefined
+    );
+  });
+
+  fileMenu?.addEventListener("keydown", async (event) => {
+    const items = Array.from(
+      fileMenu.querySelectorAll<HTMLButtonElement>(".modal-file-menu-item")
+    );
+    const currentIndex = items.findIndex((item) => item === event.target);
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        if (currentIndex >= 0 && currentIndex < items.length - 1) {
+          items[currentIndex + 1].focus();
+        }
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        if (currentIndex > 0) {
+          items[currentIndex - 1].focus();
+        } else {
+          fileButton?.focus();
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        setFileMenuOpen(false);
+        fileButton?.focus();
+        break;
+      case "Tab":
+        setFileMenuOpen(false);
+        break;
+      case "Enter":
+      case " ":
+        if (currentIndex >= 0 && currentFileType) {
+          const targetPath = items[currentIndex].dataset.path;
+          if (!targetPath) return;
+          event.preventDefault();
+          setFileMenuOpen(false);
+          await openFileModal(
+            targetPath,
+            currentFileType,
+            true,
+            triggerElement || undefined
+          );
+        }
+        break;
+    }
+  });
+
   // Setup install dropdown toggle
   setupInstallDropdown("install-dropdown");
 
   // Handle browser back/forward navigation
   window.addEventListener("hashchange", handleHashChange);
+
+  document.addEventListener("click", (e) => {
+    if (fileDropdown && !fileDropdown.contains(e.target as Node)) {
+      setFileMenuOpen(false);
+    }
+  });
 
   // Check for deep link on initial load
   handleHashChange();
@@ -374,8 +807,6 @@ export async function openFileModal(
 ): Promise<void> {
   const modal = document.getElementById("file-modal");
   const title = document.getElementById("modal-title");
-  let modalContent = document.getElementById("modal-content");
-  const contentEl = modalContent?.querySelector("code");
   const installDropdown = document.getElementById("install-dropdown");
   const installBtnMain = document.getElementById(
     "install-btn-main"
@@ -389,58 +820,29 @@ export async function openFileModal(
   const copyBtn = document.getElementById("copy-btn");
   const downloadBtn = document.getElementById("download-btn");
   const closeBtn = document.getElementById("close-modal");
-  const renderBtn = document.getElementById("render-btn");
-  const rawBtn = document.getElementById("raw-btn");
-
-  renderBtn.addEventListener("click", () => {
-    const { body: markdownBody } = fm(currentFileContent || "");
-    const markdown = marked(markdownBody, { async: false });
-    if (modalContent) {
-      modalContent.innerHTML = markdown;
-      renderBtn.classList.add("hidden");
-      rawBtn.classList.remove("hidden");
-    }
-  });
-
-  rawBtn.addEventListener("click", () => {
-    if (modalContent) {
-      modalContent.textContent = currentFileContent || "";
-      rawBtn.classList.add("hidden");
-      renderBtn.classList.remove("hidden");
-    }
-  });
-
-  if (!modal || !title || !modalContent) return;
+  if (!modal || !title) return;
 
   currentFilePath = filePath;
   currentFileType = type;
+  currentViewMode = "raw";
 
   // Track trigger element for focus return
-  triggerElement = trigger || (document.activeElement as HTMLElement);
+  triggerElement =
+    trigger || triggerElement || (document.activeElement as HTMLElement);
 
   // Update URL for deep linking
   if (updateUrl) {
     updateHash(filePath);
   }
 
-  // Show modal with loading state
-  const fallbackName = filePath.split("/").pop() || filePath;
-  title.textContent = fallbackName;
-  modal.classList.remove("hidden");
-
-  // Update document title to reflect the open file
   if (!originalDocumentTitle) {
     originalDocumentTitle = document.title;
   }
-  document.title = `${fallbackName} | Awesome GitHub Copilot`;
 
-  // Resolve the proper title from JSON data asynchronously
-  resolveResourceTitle(filePath, type).then((resolvedTitle) => {
-    if (currentFilePath === filePath) {
-      title.textContent = resolvedTitle;
-      document.title = `${resolvedTitle} | Awesome GitHub Copilot`;
-    }
-  });
+  // Show modal with loading state
+  const fallbackName = getFileName(filePath);
+  updateModalTitle(fallbackName, filePath);
+  modal.classList.remove("hidden");
 
   // Set focus to close button for accessibility
   setTimeout(() => {
@@ -449,6 +851,9 @@ export async function openFileModal(
 
   // Handle plugins differently - show as item list
   if (type === "plugin") {
+    const modalContent = getModalContent();
+    if (!modalContent) return;
+    hideSkillFileSwitcher();
     await openPluginModal(
       filePath,
       title,
@@ -460,27 +865,12 @@ export async function openFileModal(
     return;
   }
 
-  // Regular file modal
-  if (contentEl) {
-    contentEl.textContent = "Loading...";
-  }
-
   // Show copy/download buttons for regular files
   if (copyBtn) copyBtn.style.display = "inline-flex";
   if (downloadBtn) downloadBtn.style.display = "inline-flex";
-
-  // Restore pre/code structure if it was replaced by plugin view
-  if (modalContent.tagName !== "PRE") {
-    const modalBody = modalContent.parentElement;
-    if (modalBody) {
-      const pre = document.createElement("pre");
-      pre.id = "modal-content";
-      pre.innerHTML = "<code></code>";
-      modalBody.replaceChild(pre, modalContent);
-      modalContent = pre;
-    }
-  }
-  const codeEl = modalContent.querySelector("code");
+  renderPlainText("Loading...");
+  hideSkillFileSwitcher();
+  updateViewButtons();
 
   // Setup install dropdown
   const vscodeUrl = getVSCodeInstallUrl(type, filePath, false);
@@ -496,16 +886,19 @@ export async function openFileModal(
     installDropdown.style.display = "none";
   }
 
-  // Fetch and display content
-  const fileContent = await fetchFileContent(filePath);
-  currentFileContent = fileContent;
+  const [resolvedTitle, fileContent] = await Promise.all([
+    resolveResourceTitle(filePath, type),
+    fetchFileContent(filePath),
+    type === "skill" ? configureSkillFileSwitcher(filePath) : Promise.resolve(),
+  ]);
 
-  if (fileContent && codeEl) {
-    codeEl.textContent = fileContent;
-  } else if (codeEl) {
-    codeEl.textContent =
-      "Failed to load file content. Click the button below to view on GitHub.";
+  if (currentFilePath !== filePath) {
+    return;
   }
+
+  updateModalTitle(resolvedTitle, filePath);
+  currentFileContent = fileContent;
+  await renderCurrentFileContent();
 }
 
 /**
@@ -796,7 +1189,9 @@ export function closeModal(updateUrl = true): void {
   currentFilePath = null;
   currentFileContent = null;
   currentFileType = null;
+  currentViewMode = "raw";
   triggerElement = null;
+  hideSkillFileSwitcher();
 }
 
 /**

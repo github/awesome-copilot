@@ -25,6 +25,7 @@
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
     "jszip": "^3.10.1",
-    "marked": "^17.0.4"
+    "marked": "^17.0.4",
+    "shiki": "^3.23.0"
   }
 }
