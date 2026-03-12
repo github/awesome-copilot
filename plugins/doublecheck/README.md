@@ -52,7 +52,7 @@ Once active:
 - Legal analysis, regulatory interpretation, compliance guidance, and content with case citations or statutory references automatically get the full verification report instead of inline summaries
 - If any claim rates DISPUTED or FABRICATION RISK during inline verification, the full report is generated automatically
 - Code, creative writing, and casual conversation are skipped (verification doesn't apply)
-- You can ask for a full deep-dive verification on any response by saying "full report"
+- You can ask for a full deep-dive verification on any response by saying "full report" (or the legacy phrase "run full verification")
 - Turn it off anytime with "turn off doublecheck"
 
 Turn it off anytime:
