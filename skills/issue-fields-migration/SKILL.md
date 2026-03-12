@@ -88,12 +88,20 @@ gh api /orgs/{org}/issue-fields \
   --jq '.[] | {id, name, content_type, options: [.options[]?.name]}'
 ```
 
-4. Ask the user which labels map to which issue field and option. Support these patterns:
+4. **Filtering** (for repos with many labels): if the repo has 50+ labels, group by common prefix (e.g., `priority-*`, `team-*`, `type-*`) or color. Let the user filter with "show labels matching priority" or "show blue labels" before mapping. Never dump 100+ labels at once.
+
+5. Ask the user which labels map to which issue field and option. Support these patterns:
    - **Single label to single field**: e.g., label "bug" → Type field, "Bug" option
    - **Multiple labels to one field** (bulk): e.g., labels p0, p1, p2, p3 → Priority field with matching options
    - **Multiple labels to multiple fields**: e.g., p1 → Priority + frontend → Team. Handle as separate mapping groups.
 
-5. Auto-suggest mappings: for each label, check if any issue field option matches the label name (case-insensitive, ignoring hyphens/underscores). Present suggestions for the user to confirm.
+6. **Auto-suggest mappings**: for each label, attempt to match issue field options using these patterns (in order):
+   - **Exact match** (case-insensitive): label `Bug` → option `Bug`
+   - **Prefix-number** (`{prefix}-{n}` → `{P}{n}`): label `priority-1` → option `P1`
+   - **Strip separators** (hyphens, underscores, spaces): label `good_first_issue` → option `Good First Issue`
+   - **Substring containment**: label `type: bug` → option `Bug`
+
+   Present all suggestions at once for the user to confirm, correct, or skip.
 
 **Example output:**
 
@@ -154,12 +162,18 @@ gh api /repos/{owner}/{repo} --jq '{full_name, id, permissions: .permissions}'
 
 ```bash
 gh issue list -R {owner}/{repo} --label "{label_name}" --state all \
-  --json number,title,labels --limit 1000
+  --json number,title,labels,type --limit 1000
 ```
 
-3. For multi-repo migrations, repeat across all specified repos.
+   **Warning**: `--limit 1000` silently truncates results. If you expect a label may have more than 1000 issues, paginate manually or verify the total count first (e.g., `gh issue list --label "X" --state all --json number | jq length`).
 
-4. For each issue found:
+   **PR filtering**: `gh issue list` returns both issues and PRs. Include `type` in the `--json` output and filter for `type == "Issue"` if the user only wants issues migrated.
+
+3. If **all selected labels return 0 issues**, stop and tell the user. Suggest: try different labels, check spelling, or try a different repository. Do not proceed with an empty migration.
+
+4. For multi-repo migrations, repeat across all specified repos.
+
+5. For each issue found:
    - Check if the issue already has a value for the target issue field (skip if set).
    - Detect multi-label conflicts (issue has two labels for the same field).
    - Apply the conflict resolution strategy chosen in Phase L2.
@@ -199,6 +213,8 @@ Sample changes (first 5):
 
 After migration, do you also want to remove the migrated labels from issues? (optional)
 
+Estimated time: ~24s (156 API calls at 0.15s each)
+
 Proceed?
 ```
 
@@ -207,12 +223,14 @@ Proceed?
 1. For each issue to migrate, write the issue field value (same endpoint as project field migration):
 
 ```bash
-echo '[{"field_id": "FIELD_ID", "value": "OPTION_NAME"}]' | \
+echo '{"issue_field_values": [{"field_id": FIELD_ID, "value": "OPTION_NAME"}]}' | \
   gh api /repositories/{repo_id}/issues/{number}/issue-field-values \
     -X POST \
     -H "X-GitHub-Api-Version: 2026-03-10" \
     --input -
 ```
+
+   Replace `FIELD_ID` with the integer field ID (e.g., `1`) and `OPTION_NAME` with the option name string.
 
 2. If the user opted to remove labels, remove each migrated label after successful field write:
 
@@ -410,6 +428,8 @@ Sample changes (first 5):
   github/repo-a#310: Due Date → "2025-04-01"
   github/repo-c#7:   Priority → "Critical"
 
+Estimated time: ~127s (847 API calls at 0.15s each)
+
 Proceed with migration? This will update 847 issues across 3 repositories.
 ```
 
@@ -420,12 +440,14 @@ Proceed with migration? This will update 847 issues across 3 repositories.
 2. For each item to migrate, write the issue field value:
 
 ```bash
-echo '[{"field_id": "FIELD_ID", "value": "VALUE"}]' | \
+echo '{"issue_field_values": [{"field_id": FIELD_ID, "value": "VALUE"}]}' | \
   gh api /repositories/{repo_id}/issues/{number}/issue-field-values \
     -X POST \
     -H "X-GitHub-Api-Version: 2026-03-10" \
     --input -
 ```
+
+   Replace `FIELD_ID` with the integer field ID (e.g., `1`) and `VALUE` with the value string.
 
 3. **Pacing**: add a 100ms delay between API calls. On HTTP 429 responses, use exponential backoff (1s, 2s, 4s, up to 30s).
 4. **Progress**: report status every 25 items (e.g., "Migrated 75/847 items...").
@@ -451,6 +473,7 @@ Failed items:
 
 - **Write endpoint quirk**: the REST API for writing issue field values uses `repository_id` (integer), not `owner/repo`. Always look up the repo ID first with `gh api /repos/{owner}/{repo} --jq .id`.
 - **Single-select values**: the REST API accepts option **names** as strings (not option IDs). This makes mapping straightforward for both project fields and labels.
+- **Reading values back**: when reading issue field values from the API response, use `.single_select_option.name` for the human-readable value. The `.value` property returns the internal option ID (an integer like `1201`), not the display name.
 - **API version header**: all issue fields endpoints require `X-GitHub-Api-Version: 2026-03-10`.
 - **Cross-repo items**: a project can contain issues from multiple repositories. Cache the repo ID per-repository to avoid redundant lookups.
 - **Preserve existing values**: never overwrite an issue field value that is already set. Skip those items.
@@ -460,6 +483,11 @@ Failed items:
 - **Label conflicts**: an issue can have multiple labels that map to the same single_select field. Always detect and resolve these before execution.
 - **Label removal is optional**: after migration, the user may want to keep labels as backup or remove them. Always ask before removing.
 - **URL-encode label names**: labels with spaces or special characters must be URL-encoded when used in REST API paths (e.g., `good%20first%20issue`).
+- **Script generation for scale**: for migrations of 100+ issues, generate a standalone shell script rather than executing API calls one at a time through the agent. This is faster, resumable, and avoids agent timeout issues.
+- **Idempotent migrations**: re-running a migration is safe. Issues that already have the target field value set will be skipped. This means you can safely resume a partial migration without duplicating work.
+- **`--limit 1000` truncation**: `gh issue list --limit 1000` silently stops at 1000 results. For labels with more issues, paginate with `--jq` and cursor-based pagination or run multiple filtered queries (e.g., by date range).
+- **macOS bash version**: macOS ships with bash 3.x, which does not support `declare -A` (associative arrays). Generated scripts should use POSIX-compatible constructs or note the incompatibility and suggest `brew install bash`.
+- **Issues vs PRs**: `gh issue list` returns both issues and pull requests. If the migration should only target issues, include `type` in `--json` output and filter for `type == "Issue"`.
 
 ## Examples
 
