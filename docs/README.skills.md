@@ -109,6 +109,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 | [dotnet-best-practices](../skills/dotnet-best-practices/SKILL.md) | Ensure .NET/C# code meets best practices for the solution/project. | None |
 | [dotnet-design-pattern-review](../skills/dotnet-design-pattern-review/SKILL.md) | Review the C#/.NET code for design pattern implementation and suggest improvements. | None |
 | [dotnet-upgrade](../skills/dotnet-upgrade/SKILL.md) | Ready-to-use prompts for comprehensive .NET framework upgrade analysis and execution | None |
+| [doublecheck](../skills/doublecheck/SKILL.md) | Three-layer verification pipeline for AI output. Extracts verifiable claims, finds supporting or contradicting sources via web search, runs adversarial review for hallucination patterns, and produces a structured verification report with source links for human review. | `assets/verification-report-template.md` |
 | [editorconfig](../skills/editorconfig/SKILL.md) | Generates a comprehensive and best-practice-oriented .editorconfig file based on project analysis and user preferences. | None |
 | [ef-core](../skills/ef-core/SKILL.md) | Get best practices for Entity Framework Core | None |
 | [entra-agent-user](../skills/entra-agent-user/SKILL.md) | Create Agent Users in Microsoft Entra ID from Agent Identities, enabling AI agents to act as digital workers with user identity capabilities in Microsoft 365 and Azure environments. | None |

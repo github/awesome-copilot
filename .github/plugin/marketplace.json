@@ -114,6 +114,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "doublecheck",
+      "source": "doublecheck",
+      "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
+      "version": "1.0.0"
+    },
+    {
       "name": "edge-ai-tasks",
       "source": "edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
