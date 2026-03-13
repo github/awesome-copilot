@@ -29,3 +29,6 @@
 /agents/doublecheck.agent.md @dvelton
 /plugins/doublecheck/ @dvelton
 /skills/doublecheck/ @dvelton
+
+# Added via #codeowner from PR #990
+/skills/issue-fields-migration/ @labudis

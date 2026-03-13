@@ -5,14 +5,14 @@ on:
     types: [opened, synchronize, reopened]
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 tools:
   github:
     toolsets: [repos, pull_requests]
 safe-outputs:
   add-comment:
     max: 1
-    update-comment: true
+    hide-older-comments: true
   noop:
 ---
 
