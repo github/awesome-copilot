@@ -39,7 +39,7 @@ skill-name/
 
 ### CLI Alternative
 
-If the Learn MCP server is not available, use the `mslearn` CLI via Bash instead:
+If the Learn MCP server is not available, use the `mslearn` CLI from a terminal or shell (for example, Bash, PowerShell, or cmd) instead:
 
 ```bash
 # Run directly (no install needed)

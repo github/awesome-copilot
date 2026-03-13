@@ -23,7 +23,7 @@ Use `microsoft_docs_fetch` after search when you need complete tutorials, all co
 
 ### CLI Alternative
 
-If the Learn MCP server is not available, use the `mslearn` CLI via Bash instead:
+If the Learn MCP server is not available, use the `mslearn` CLI from your terminal or shell (for example, Bash, PowerShell, or cmd) instead:
 
 ```bash
 # Run directly (no install needed)

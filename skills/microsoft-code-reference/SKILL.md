@@ -79,9 +79,9 @@ For simple lookups, step 1 alone may suffice. For complex API usage, complete al
 
 ## CLI Alternative
 
-If the Learn MCP server is not available, use the `mslearn` CLI via Bash instead:
+If the Learn MCP server is not available, use the `mslearn` CLI from a terminal or shell (for example, Bash, PowerShell, or cmd) instead:
 
-```bash
+```sh
 # Run directly (no install needed)
 npx @microsoft/learn-cli search "BlobClient UploadAsync Azure.Storage.Blobs"
 
