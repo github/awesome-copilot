@@ -14,9 +14,9 @@
     "sdk"
   ],
   "skills": [
-    "./skills/dataverse-python-quickstart/",
-    "./skills/dataverse-python-advanced-patterns/",
-    "./skills/dataverse-python-production-code/",
-    "./skills/dataverse-python-usecase-builder/"
+    "./skills/dataverse-python-quickstart",
+    "./skills/dataverse-python-advanced-patterns",
+    "./skills/dataverse-python-production-code",
+    "./skills/dataverse-python-usecase-builder"
   ]
 }
