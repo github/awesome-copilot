@@ -130,7 +130,7 @@ has_dep() {
   local dep="$1"
   node -e "
     const pkg=require(process.argv[1]);
-    const deps={...(pkg.dependencies||{}),...(pkg.devDependencies||{})};
+    const deps={...(pkg.dependencies||{}),...(pkg.devDependencies||{}),...(pkg.optionalDependencies||{})};
     process.exit(deps[process.argv[2]] ? 0 : 1);
   " "$WORKSPACE_CLIENT/package.json" "$dep"
 }
@@ -177,8 +177,14 @@ if [[ "$INSTALL_PLAYWRIGHT" == "true" ]]; then
   echo "→ Installing Playwright browsers..."
   if [[ "${EUID:-$(id -u)}" -eq 0 ]]; then
     npx playwright install --with-deps chromium
+  elif command -v sudo &>/dev/null && sudo -n true 2>/dev/null; then
+    # Non-root but passwordless sudo available — install browsers then system deps
+    npx playwright install chromium
+    sudo npx playwright install-deps chromium
   else
     npx playwright install chromium
+    echo "⚠ System dependencies not installed (no root/sudo access)."
+    echo "  Playwright tests may fail. Run: sudo npx playwright install-deps chromium"
   fi
 fi
 

@@ -44,7 +44,7 @@ bash scripts/install.sh
 2. Runs `npm ci` (or `npm install` if no lockfile) on the local filesystem
 3. Symlinks `node_modules` back into the workspace
 4. Verifies known native binaries (esbuild, rollup, lightningcss, vite) if present
-5. Optionally installs Playwright browsers
+5. Optionally installs Playwright browsers and system dependencies (uses `sudo` when available)
 
 If verification fails, run the script again — crashes can be intermittent during initial setup.
 
