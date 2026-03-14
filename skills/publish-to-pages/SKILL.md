@@ -17,7 +17,7 @@ gh auth status &>/dev/null || echo "MISSING: gh not authenticated — run 'gh au
 command -v python3 >/dev/null || echo "MISSING: python3 (needed for PPTX conversion)"
 ```
 
-`pandoc` is optional (PDF conversion). Don't block on it.
+`poppler-utils` is optional (PDF conversion via `pdftoppm`). Don't block on it.
 
 ## 2. Input Detection
 
@@ -45,11 +45,12 @@ python3 SKILL_DIR/scripts/convert-pptx.py INPUT_FILE /tmp/output.html
 If `python-pptx` is missing, tell the user: `pip install python-pptx`
 
 ### PDF
-Convert with pandoc:
+Convert with the included script (requires `poppler-utils` for `pdftoppm`):
 ```bash
-pandoc INPUT_FILE -o /tmp/output.html --self-contained
+python3 SKILL_DIR/scripts/convert-pdf.py INPUT_FILE /tmp/output.html
 ```
-If pandoc is missing, tell the user to install it or provide HTML instead.
+Each page is rendered as a PNG and base64-embedded into a self-contained HTML with slide navigation.
+If `pdftoppm` is missing, tell the user: `apt install poppler-utils` (or `brew install poppler` on macOS).
 
 ### Google Slides
 1. Extract the presentation ID from the URL (the long string between `/d/` and `/`)
@@ -85,5 +86,5 @@ Tell the user:
 - **Repo already exists:** Suggest appending a number (`my-slides-2`) or a date (`my-slides-2026`).
 - **Pages enablement fails:** Still return the repo URL. User can enable Pages manually in repo Settings.
 - **PPTX conversion fails:** Tell user to run `pip install python-pptx`.
-- **PDF conversion fails:** Suggest installing pandoc or converting to HTML manually.
+- **PDF conversion fails:** Suggest installing `poppler-utils` (`apt install poppler-utils` or `brew install poppler`).
 - **Google Slides download fails:** The presentation may not be publicly accessible. Ask user to make it viewable or download the PPTX manually.
