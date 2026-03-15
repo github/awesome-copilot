@@ -1,6 +1,6 @@
 ---
 description: 'Best practices for applying Object-Oriented Programming (OOP) design patterns, including Gang of Four (GoF) patterns and SOLID principles, to ensure clean, maintainable, and scalable code.'
-applyTo: '*'
+applyTo: '**/*.py, **/*.java, **/*.ts, **/*.js, **/*.cs'
 ---
 
 
@@ -78,24 +78,22 @@ When generating code involving algorithms, control flow, or communication betwee
 ## Logging and Error Handling
 
 - When applying design patterns, ensure that logging and error handling are integrated appropriately.
-- Use patterns like Decorator to add logging functionality without modifying existing code, and ensure that exceptions are handled gracefully to maintain the robustness of the application.
 - Fail safe, loud, clear and early.
 - Avoid silent failures and ensure that errors are logged with sufficient context to facilitate debugging and maintenance.
 - Use custom exceptions where appropriate to provide more meaningful error messages and to allow for more granular error handling in client code.
-- Use try-catch blocks judiciously, ensuring that they are used to handle expected error conditions rather than to control normal program flow.
-- Use finally blocks to ensure that resources are cleaned up properly, even in the case of exceptions.
+- Use exception blocks judiciously, ensuring that they are used to handle expected error conditions rather than to control normal program flow.
 - Use logging frameworks to manage log levels and outputs, allowing for better control over the logging behavior in different environments (e.g., development vs. production).
 - Use info, debug, warning, error and critical log levels appropriately in every class and function to provide clear insights into the application's behavior and potential issues. Consider implementing a centralized error handling mechanism (e.g., a global exception handler) to ensure consistent error responses and logging across the application.
 
 ## Documentation
 
 - When applying design patterns, ensure that the code is well-documented.
-- Use docstrings written in English to explain the purpose of classes and methods, and include comments that clarify complex logic or design decisions. Use the numpy pattern for documentating the parameters and resturns in the docstring unless another pattern is used in the exisitng code. Ask the developer at the first usage of this instruction which kind of docstring parameter and return he prefers, override the numpy docstring definition here and use this kind of docstring for all later programming tasks. This helps other developers understand the intent behind the code and how to use it effectively.
+- Use docstrings written in English to explain the purpose of classes and methods, and include comments that clarify complex logic or design decisions. Use the numpy pattern for documentating the parameters and resturns in the docstring unless another pattern is used in the existing code. Ask the developer at the first usage of this instruction which kind of docstring parameter and return he prefers, override the numpy docstring definition here and use this kind of docstring for all later programming tasks. This helps other developers understand the intent behind the code and how to use it effectively.
 - Consider using tools like Sphinx or JSDoc to generate documentation from your codebase, making it easier for developers to navigate and understand the available classes, methods, and their intended usage.
 - Additionally, maintain a high-level architectural overview in a README or dedicated documentation file that explains how different components and patterns fit together within the overall system architecture.
-- Devide your documentation into user documentation (how to use the code) and developer documentation (how the code works and how to maintain it). Ensure that both types of documentation are kept up-to-date as the code evolves.
+- Divide your documentation into user documentation (how to use the code) and developer documentation (how the code works and how to maintain it). Ensure that both types of documentation are kept up-to-date as the code evolves.
 - Use diagrams (e.g., UML) where appropriate to visually represent the relationships between classes and patterns, aiding in comprehension for developers who may be new to OOP design patterns.
 - Encourage a culture of documentation within the development team, emphasizing its importance for maintaining a clean and maintainable codebase.
-- Never explode in documentation by creating constantly new documentation files whiuch contain the same.
+- Never explode in documentation by creating constantly new documentation files which contain the same content.
 - Scan existing doc files to extend them or to build new required doc sheets in the same style as existing ones. Keep it concise, clear and focused on the most important aspects of the code and its design patterns.
 - Avoid redundant or overly verbose documentation that can overwhelm developers and obscure the key information they need to understand the codebase effectively.
