@@ -551,7 +551,7 @@ pixie test pixie_qa/tests/test_<feature>.py -v
 
 ## Memory Template
 
-```markdown
+````markdown
 # Eval Notes: <Project Name>
 
 ## How the application works
@@ -608,7 +608,7 @@ pixie test pixie_qa/tests/test_<feature>.py -v
 ### <date> — <test_name> failure
 
 <Full structured investigation as described in Stage 7>
-```
+````
 
 ---
 
