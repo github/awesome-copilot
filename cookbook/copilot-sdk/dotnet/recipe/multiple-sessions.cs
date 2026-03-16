@@ -10,20 +10,17 @@ await client.StartAsync();
 var session1 = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "gpt-5",
-    OnPermissionRequest = (_, _) => Task.FromResult(
-        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 var session2 = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "gpt-5",
-    OnPermissionRequest = (_, _) => Task.FromResult(
-        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 var session3 = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "claude-sonnet-4.5",
-    OnPermissionRequest = (_, _) => Task.FromResult(
-        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
 Console.WriteLine("Created 3 independent sessions");

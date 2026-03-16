@@ -11,8 +11,7 @@ var session = await client.CreateSessionAsync(new SessionConfig
 {
     SessionId = "user-123-conversation",
     Model = "gpt-5",
-    OnPermissionRequest = (_, _) => Task.FromResult(
-        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
 await session.SendAsync(new MessageOptions { Prompt = "Let's discuss TypeScript generics" });

@@ -61,8 +61,7 @@ try
             new SessionConfig
             {
                 Model = "gpt-5.1-codex-mini",
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+                OnPermissionRequest = PermissionHandler.ApproveAll
             });
         try
         {
@@ -130,8 +129,7 @@ try
                 // Pin the agent to the project directory
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved }),
+                OnPermissionRequest = PermissionHandler.ApproveAll,
             });
         try
         {

@@ -11,8 +11,7 @@ try
     var session = await client.CreateSessionAsync(new SessionConfig
     {
         Model = "gpt-5",
-        OnPermissionRequest = (_, _) => Task.FromResult(
-            new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+        OnPermissionRequest = PermissionHandler.ApproveAll
     });
 
     var done = new TaskCompletionSource<string>();

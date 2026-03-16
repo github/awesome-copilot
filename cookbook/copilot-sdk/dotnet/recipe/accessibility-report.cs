@@ -32,8 +32,7 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 {
   Model = "claude-opus-4.6",
   Streaming = true,
-  OnPermissionRequest = (_, _) => Task.FromResult(
-      new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved }),
+  OnPermissionRequest = PermissionHandler.ApproveAll,
   McpServers = new Dictionary<string, object>()
   {
     ["playwright"] =
