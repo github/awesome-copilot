@@ -49,7 +49,7 @@ try
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
                 OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                    new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved }),
             });
 
         try

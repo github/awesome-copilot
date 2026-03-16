@@ -58,7 +58,12 @@ try
 
         // Fresh session each iteration — context isolation is the point
         var session = await client.CreateSessionAsync(
-            new SessionConfig { Model = "gpt-5.1-codex-mini" });
+            new SessionConfig
+            {
+                Model = "gpt-5.1-codex-mini",
+                OnPermissionRequest = (_, _) => Task.FromResult(
+                    new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+            });
         try
         {
             var done = new TaskCompletionSource<string>();
@@ -126,7 +131,7 @@ try
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
                 OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                    new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved }),
             });
         try
         {

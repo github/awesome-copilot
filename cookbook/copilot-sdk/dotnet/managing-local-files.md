@@ -6,6 +6,7 @@ Use Copilot to intelligently organize files in a folder based on their metadata.
 >
 > ```bash
 > dotnet run recipe/managing-local-files.cs
+> dotnet run recipe/managing-local-files.cs -- /path/to/folder
 > ```
 
 ## Example scenario
@@ -24,7 +25,9 @@ await client.StartAsync();
 // Define tools for file operations
 var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5"
+    Model = "gpt-5",
+    OnPermissionRequest = (_, _) => Task.FromResult(
+        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
 });
 
 // Wait for completion
@@ -49,8 +52,8 @@ session.On(evt =>
     }
 });
 
-// Ask Copilot to organize files
-var targetFolder = @"C:\Users\Me\Downloads";
+// Use an explicit folder or default to the current directory
+var targetFolder = args.FirstOrDefault() ?? Environment.CurrentDirectory;
 
 await session.SendAsync(new MessageOptions
 {

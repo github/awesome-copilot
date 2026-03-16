@@ -7,9 +7,24 @@ await using var client = new CopilotClient();
 await client.StartAsync();
 
 // Create multiple independent sessions
-var session1 = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
-var session2 = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
-var session3 = await client.CreateSessionAsync(new SessionConfig { Model = "claude-sonnet-4.5" });
+var session1 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = (_, _) => Task.FromResult(
+        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+});
+var session2 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = (_, _) => Task.FromResult(
+        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+});
+var session3 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "claude-sonnet-4.5",
+    OnPermissionRequest = (_, _) => Task.FromResult(
+        new PermissionRequestResult { Kind = PermissionRequestResultKind.Approved })
+});
 
 Console.WriteLine("Created 3 independent sessions");
 
