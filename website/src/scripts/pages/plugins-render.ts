@@ -70,21 +70,23 @@ export function renderPluginsHtml(
           : escapeHtml(item.name);
 
       return `
-        <div class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}">
-          <div class="resource-info">
-            <div class="resource-title">${titleHtml}</div>
-            <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-            <div class="resource-meta">
-              ${metaTag}
-              ${authorTag}
-              ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
-              ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
+        <article class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}" role="listitem">
+          <button type="button" class="resource-preview">
+            <div class="resource-info">
+              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
+              <div class="resource-meta">
+                ${metaTag}
+                ${authorTag}
+                ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
+                ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
+              </div>
             </div>
-          </div>
+          </button>
           <div class="resource-actions">
             <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
           </div>
-        </div>
+        </article>
       `;
     })
     .join('');

@@ -11,7 +11,7 @@ const initialItems = pluginsData.items;
 ---
 
 <StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🔌 Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" />
 
     <div class="page-content">
@@ -45,7 +45,7 @@ const initialItems = pluginsData.items;
         <ContributeCTA resourceType="plugins" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
   <EmbeddedPageData filename="plugins.json" data={pluginsData} />

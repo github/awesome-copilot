@@ -10,6 +10,7 @@ import {
   copyToClipboard,
   showToast,
   downloadFile,
+  downloadZipBundle,
   shareFile,
   getResourceType,
   escapeHtml,
@@ -46,6 +47,7 @@ interface SkillFile {
 }
 
 interface SkillItem extends ResourceItem {
+  id: string;
   skillFile: string;
   files: SkillFile[];
 }
@@ -55,6 +57,10 @@ interface SkillsData {
 }
 
 let skillsCache: SkillsData | null | undefined;
+
+function getSkillDownloadName(skill: SkillItem): string {
+  return skill.id || skill.path.split("/").pop() || "skill";
+}
 
 const RESOURCE_TYPE_TO_JSON: Record<string, string> = {
   agent: "agents.json",
@@ -524,6 +530,24 @@ export function setupModal(): void {
 
   downloadBtn?.addEventListener("click", async () => {
     if (currentFilePath) {
+      if (currentFileType === "skill") {
+        const skill = await getSkillItemByFilePath(currentFilePath);
+        if (!skill || skill.files.length === 0) {
+          showToast("No files found for this skill.", "error");
+          return;
+        }
+
+        try {
+          await downloadZipBundle(getSkillDownloadName(skill), skill.files);
+          showToast("Download started!", "success");
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Download failed";
+          showToast(message, "error");
+        }
+        return;
+      }
+
       const success = await downloadFile(currentFilePath);
       showToast(
         success ? "Download started!" : "Download failed",
@@ -868,6 +892,12 @@ export async function openFileModal(
   // Show copy/download buttons for regular files
   if (copyBtn) copyBtn.style.display = "inline-flex";
   if (downloadBtn) downloadBtn.style.display = "inline-flex";
+  if (downloadBtn) {
+    downloadBtn.setAttribute(
+      "aria-label",
+      type === "skill" ? "Download skill as ZIP" : "Download file"
+    );
+  }
   renderPlainText("Loading...");
   hideSkillFileSwitcher();
   updateViewButtons();

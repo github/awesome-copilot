@@ -11,7 +11,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="⚡ Skills" description="Self-contained agent skills with instructions and bundled resources" />
 
     <div class="page-content">
@@ -49,7 +49,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
         <ContributeCTA resourceType="skills" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
 

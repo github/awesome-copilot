@@ -11,7 +11,7 @@ const initialItems = sortAgents(agentsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Custom Agents', description: 'Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🤖 Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" />
 
     <div class="page-content">
@@ -54,7 +54,7 @@ const initialItems = sortAgents(agentsData.items, 'title');
         <ContributeCTA resourceType="agents" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
   <EmbeddedPageData filename="agents.json" data={agentsData} />

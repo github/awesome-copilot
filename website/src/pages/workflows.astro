@@ -11,7 +11,7 @@ const initialItems = sortWorkflows(workflowsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Agentic Workflows', description: 'AI-powered repository automations that run coding agents in GitHub Actions', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="⚡ Agentic Workflows" description="">
       AI-powered repository automations that run coding agents in <a href="https://gh.io/gh-aw" target="_blank" rel="noopener">GitHub Actions</a>
     </PageHeader>
@@ -45,7 +45,7 @@ const initialItems = sortWorkflows(workflowsData.items, 'title');
         <ContributeCTA resourceType="workflows" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
   <EmbeddedPageData filename="workflows.json" data={workflowsData} />

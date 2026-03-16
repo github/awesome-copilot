@@ -59,41 +59,43 @@ export function renderHooksHtml(
           : escapeHtml(item.title);
 
       return `
-        <div class="resource-item" data-path="${escapeHtml(
+        <article class="resource-item" data-path="${escapeHtml(
           item.readmeFile
-        )}" data-hook-id="${escapeHtml(item.id)}">
-          <div class="resource-info">
-            <div class="resource-title">${titleHtml}</div>
-            <div class="resource-description">${escapeHtml(
-              item.description || "No description"
-            )}</div>
-            <div class="resource-meta">
-              ${item.hooks
-                .map(
-                  (hook) =>
-                    `<span class="resource-tag tag-hook">${escapeHtml(
-                      hook
-                    )}</span>`
-                )
-                .join("")}
-              ${item.tags
-                .map(
-                  (tag) =>
-                    `<span class="resource-tag tag-tag">${escapeHtml(
-                      tag
-                    )}</span>`
-                )
-                .join("")}
-              ${
-                item.assets.length > 0
-                  ? `<span class="resource-tag tag-assets">${
-                      item.assets.length
-                    } asset${item.assets.length === 1 ? "" : "s"}</span>`
-                  : ""
-              }
-              ${getLastUpdatedHtml(item.lastUpdated)}
+        )}" data-hook-id="${escapeHtml(item.id)}" role="listitem">
+          <button type="button" class="resource-preview">
+            <div class="resource-info">
+              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-description">${escapeHtml(
+                item.description || "No description"
+              )}</div>
+              <div class="resource-meta">
+                ${item.hooks
+                  .map(
+                    (hook) =>
+                      `<span class="resource-tag tag-hook">${escapeHtml(
+                        hook
+                      )}</span>`
+                  )
+                  .join("")}
+                ${item.tags
+                  .map(
+                    (tag) =>
+                      `<span class="resource-tag tag-tag">${escapeHtml(
+                        tag
+                      )}</span>`
+                  )
+                  .join("")}
+                ${
+                  item.assets.length > 0
+                    ? `<span class="resource-tag tag-assets">${
+                        item.assets.length
+                      } asset${item.assets.length === 1 ? "" : "s"}</span>`
+                    : ""
+                }
+                ${getLastUpdatedHtml(item.lastUpdated)}
+              </div>
             </div>
-          </div>
+          </button>
           <div class="resource-actions">
             <button class="btn btn-primary download-hook-btn" data-hook-id="${escapeHtml(
               item.id
@@ -108,7 +110,7 @@ export function renderHooksHtml(
               item.path
             )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
           </div>
-        </div>
+        </article>
       `;
     })
     .join("");

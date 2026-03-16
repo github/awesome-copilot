@@ -56,20 +56,22 @@ export function renderWorkflowsHtml(
           : escapeHtml(item.title);
 
       return `
-        <div class="resource-item" data-path="${escapeHtml(item.path)}">
-          <div class="resource-info">
-            <div class="resource-title">${titleHtml}</div>
-            <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-            <div class="resource-meta">
-              ${item.triggers.map((trigger) => `<span class="resource-tag tag-trigger">${escapeHtml(trigger)}</span>`).join('')}
-              ${getLastUpdatedHtml(item.lastUpdated)}
+        <article class="resource-item" data-path="${escapeHtml(item.path)}" role="listitem">
+          <button type="button" class="resource-preview">
+            <div class="resource-info">
+              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
+              <div class="resource-meta">
+                ${item.triggers.map((trigger) => `<span class="resource-tag tag-trigger">${escapeHtml(trigger)}</span>`).join('')}
+                ${getLastUpdatedHtml(item.lastUpdated)}
+              </div>
             </div>
-          </div>
+          </button>
           <div class="resource-actions">
             ${getActionButtonsHtml(item.path)}
             <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
           </div>
-        </div>
+        </article>
       `;
     })
     .join('');

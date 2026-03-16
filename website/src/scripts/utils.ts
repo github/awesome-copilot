@@ -70,6 +70,66 @@ export async function loadJSZip() {
   return JSZip;
 }
 
+export interface ZipDownloadFile {
+  name: string;
+  path: string;
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadZipBundle(
+  bundleName: string,
+  files: ZipDownloadFile[]
+): Promise<void> {
+  if (files.length === 0) {
+    throw new Error("No files found for this download.");
+  }
+
+  const JSZip = await loadJSZip();
+  const zip = new JSZip();
+  const folder = zip.folder(bundleName);
+
+  const fetchPromises = files.map(async (file) => {
+    try {
+      const response = await fetch(getRawGitHubUrl(file.path));
+      if (!response.ok) return null;
+
+      return {
+        name: file.name,
+        content: await response.text(),
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const results = await Promise.all(fetchPromises);
+  let addedFiles = 0;
+
+  for (const result of results) {
+    if (result && folder) {
+      folder.file(result.name, result.content);
+      addedFiles++;
+    }
+  }
+
+  if (addedFiles === 0) {
+    throw new Error("Failed to fetch any files");
+  }
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  triggerBlobDownload(blob, `${bundleName}.zip`);
+}
+
 /**
  * Fetch raw file content from GitHub
  */
@@ -156,15 +216,7 @@ export async function downloadFile(filePath: string): Promise<boolean> {
     const filename = filePath.split("/").pop() || "file.md";
 
     const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    triggerBlobDownload(blob, filename);
 
     return true;
   } catch (error) {

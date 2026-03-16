@@ -65,31 +65,33 @@ export function renderSkillsHtml(
           : escapeHtml(item.title);
 
       return `
-        <div class="resource-item" data-path="${escapeHtml(
+        <article class="resource-item" data-path="${escapeHtml(
           item.skillFile
-        )}" data-skill-id="${escapeHtml(item.id)}">
-          <div class="resource-info">
-            <div class="resource-title">${titleHtml}</div>
-            <div class="resource-description">${escapeHtml(
-              item.description || "No description"
-            )}</div>
-            <div class="resource-meta">
-              <span class="resource-tag tag-category">${escapeHtml(
-                item.category
-              )}</span>
-              ${
-                item.hasAssets
-                  ? `<span class="resource-tag tag-assets">${
-                      item.assetCount
-                    } asset${item.assetCount === 1 ? "" : "s"}</span>`
-                  : ""
-              }
-              <span class="resource-tag">${item.files.length} file${
-        item.files.length === 1 ? "" : "s"
-      }</span>
-              ${getLastUpdatedHtml(item.lastUpdated)}
+        )}" data-skill-id="${escapeHtml(item.id)}" role="listitem">
+          <button type="button" class="resource-preview">
+            <div class="resource-info">
+              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-description">${escapeHtml(
+                item.description || "No description"
+              )}</div>
+              <div class="resource-meta">
+                <span class="resource-tag tag-category">${escapeHtml(
+                  item.category
+                )}</span>
+                ${
+                  item.hasAssets
+                    ? `<span class="resource-tag tag-assets">${
+                        item.assetCount
+                      } asset${item.assetCount === 1 ? "" : "s"}</span>`
+                    : ""
+                }
+                <span class="resource-tag">${item.files.length} file${
+          item.files.length === 1 ? "" : "s"
+        }</span>
+                ${getLastUpdatedHtml(item.lastUpdated)}
+              </div>
             </div>
-          </div>
+          </button>
           <div class="resource-actions">
             <button class="btn btn-primary download-skill-btn" data-skill-id="${escapeHtml(
               item.id
@@ -104,7 +106,7 @@ export function renderSkillsHtml(
               item.path
             )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
           </div>
-        </div>
+        </article>
       `;
     })
     .join("");

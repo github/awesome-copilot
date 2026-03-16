@@ -61,17 +61,19 @@ export function renderInstructionsHtml(
           : escapeHtml(item.title);
 
       return `
-        <div class="resource-item" data-path="${escapeHtml(item.path)}">
-          <div class="resource-info">
-            <div class="resource-title">${titleHtml}</div>
-            <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-            <div class="resource-meta">
-              ${applyToText ? `<span class="resource-tag">applies to: ${escapeHtml(applyToText)}</span>` : ''}
-              ${item.extensions?.slice(0, 4).map((extension) => `<span class="resource-tag tag-extension">${escapeHtml(extension)}</span>`).join('') || ''}
-              ${item.extensions && item.extensions.length > 4 ? `<span class="resource-tag">+${item.extensions.length - 4} more</span>` : ''}
-              ${getLastUpdatedHtml(item.lastUpdated)}
+        <article class="resource-item" data-path="${escapeHtml(item.path)}" role="listitem">
+          <button type="button" class="resource-preview">
+            <div class="resource-info">
+              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
+              <div class="resource-meta">
+                ${applyToText ? `<span class="resource-tag">applies to: ${escapeHtml(applyToText)}</span>` : ''}
+                ${item.extensions?.slice(0, 4).map((extension) => `<span class="resource-tag tag-extension">${escapeHtml(extension)}</span>`).join('') || ''}
+                ${item.extensions && item.extensions.length > 4 ? `<span class="resource-tag">+${item.extensions.length - 4} more</span>` : ''}
+                ${getLastUpdatedHtml(item.lastUpdated)}
+              </div>
             </div>
-          </div>
+          </button>
           <div class="resource-actions">
             ${getInstallDropdownHtml('instructions', item.path, true)}
             ${getActionButtonsHtml(item.path, true)}
@@ -79,7 +81,7 @@ export function renderInstructionsHtml(
               GitHub
             </a>
           </div>
-        </div>
+        </article>
       `;
     })
     .join('');

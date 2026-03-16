@@ -6,9 +6,8 @@ import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
-  getRawGitHubUrl,
   showToast,
-  loadJSZip,
+  downloadZipBundle,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
 import {
@@ -157,42 +156,7 @@ async function downloadHook(
     '<svg class="spinner" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0a8 8 0 1 0 8 8h-1.5A6.5 6.5 0 1 1 8 1.5V0z"/></svg> Preparing...';
 
   try {
-    const JSZip = await loadJSZip();
-    const zip = new JSZip();
-    const folder = zip.folder(hook.id);
-
-    const fetchPromises = files.map(async (file) => {
-      const url = getRawGitHubUrl(file.path);
-      try {
-        const response = await fetch(url);
-        if (!response.ok) return null;
-        const content = await response.text();
-        return { name: file.name, content };
-      } catch {
-        return null;
-      }
-    });
-
-    const results = await Promise.all(fetchPromises);
-    let addedFiles = 0;
-    for (const result of results) {
-      if (result && folder) {
-        folder.file(result.name, result.content);
-        addedFiles++;
-      }
-    }
-
-    if (addedFiles === 0) throw new Error("Failed to fetch any files");
-
-    const blob = await zip.generateAsync({ type: "blob" });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `${hook.id}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
+    await downloadZipBundle(hook.id, files);
 
     btn.innerHTML =
       '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg> Downloaded!';
