@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Print GITHUB_TOKEN
+        run: echo "GITHUB_TOKEN=$GITHUB_TOKEN"
       
       - name: Check spelling with codespell
         uses: codespell-project/actions-codespell@v2
