@@ -4,7 +4,7 @@
     "sessionStart": [
       {
         "type": "command",
-        "bash": ".github/hooks/governance-audit/audit-session-start.sh",
+        "command": ".github/hooks/governance-audit/audit-session-start.sh",
         "cwd": ".",
         "timeoutSec": 5
       }
@@ -12,7 +12,7 @@
     "sessionEnd": [
       {
         "type": "command",
-        "bash": ".github/hooks/governance-audit/audit-session-end.sh",
+        "command": ".github/hooks/governance-audit/audit-session-end.sh",
         "cwd": ".",
         "timeoutSec": 5
       }
@@ -20,7 +20,7 @@
     "userPromptSubmitted": [
       {
         "type": "command",
-        "bash": ".github/hooks/governance-audit/audit-prompt.sh",
+        "command": ".github/hooks/governance-audit/audit-prompt.sh",
         "cwd": ".",
         "env": {
           "GOVERNANCE_LEVEL": "standard",
