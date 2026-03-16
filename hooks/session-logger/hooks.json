@@ -4,7 +4,7 @@
     "sessionStart": [
       {
         "type": "command",
-        "bash": ".github/hooks/session-logger/log-session-start.sh",
+        "command": ".github/hooks/session-logger/log-session-start.sh",
         "cwd": ".",
         "timeoutSec": 5
       }
@@ -12,7 +12,7 @@
     "sessionEnd": [
       {
         "type": "command",
-        "bash": ".github/hooks/session-logger/log-session-end.sh",
+        "command": ".github/hooks/session-logger/log-session-end.sh",
         "cwd": ".",
         "timeoutSec": 5
       }
@@ -20,7 +20,7 @@
     "userPromptSubmitted": [
       {
         "type": "command",
-        "bash": ".github/hooks/session-logger/log-prompt.sh",
+        "command": ".github/hooks/session-logger/log-prompt.sh",
         "cwd": ".",
         "env": {
           "LOG_LEVEL": "INFO"
