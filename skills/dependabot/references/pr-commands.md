@@ -35,13 +35,19 @@ These commands work on Dependabot PRs created by grouped version or security upd
 
 ## Usage Examples
 
-### Merge After CI
+### Merge After CI (Use Native GitHub Features)
 
-```
-@dependabot merge
+Auto-merge is the recommended replacement for the deprecated `@dependabot merge` command:
+
+```bash
+# Enable auto-merge via GitHub CLI
+gh pr merge <PR_NUMBER> --auto --squash
+
+# Or enable auto-merge via the GitHub UI:
+# PR → "Enable auto-merge" → select merge method → confirm
 ```
 
-Dependabot waits for all required CI checks to pass before merging.
+GitHub will automatically merge the PR once all required CI checks pass.
 
 ### Ignore a Major Version Bump
 
