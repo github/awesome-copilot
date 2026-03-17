@@ -10,6 +10,10 @@ tools:
   web-fetch:
   github:
     toolsets: [repos]
+allowed-domains:
+  - github.blog
+  - code.visualstudio.com
+  - nishanil.github.io
 safe-outputs:
   create-pull-request:
     labels: [automated-update, copilot-updates]
