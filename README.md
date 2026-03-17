@@ -6,7 +6,7 @@ A community-created collection of custom agents, instructions, skills, hooks, wo
 > [!TIP]
 > **Explore the full collection on the website →** [awesome-copilot.github.com](https://awesome-copilot.github.com)
 >
-> The website offers full-text search and filtering across 600+ resources, plus the [Tools](https://awesome-copilot.github.com/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://awesome-copilot.github.com/learning-hub) for guides and tutorials.
+> The website offers full-text search and filtering across hundreds of resources, plus the [Tools](https://awesome-copilot.github.com/tools) section for MCP servers and developer tooling, and the [Learning Hub](https://awesome-copilot.github.com/learning-hub) for guides and tutorials.
 >
 > **Using this collection in an AI agent?** A machine-readable [`llms.txt`](https://awesome-copilot.github.com/llms.txt) is available with structured listings of all agents, instructions, and skills.
 
@@ -31,6 +31,14 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
 ## Install a Plugin
+
+For most users, the **Awesome Copilot** marketplace is already registered in the Copilot CLI/VS Code, so you can install a plugin directly:
+
+```bash
+copilot plugin install <plugin-name>@awesome-copilot
+```
+
+If you are using an older Copilot CLI version or a custom setup and see an error that the marketplace is unknown, register it once and then install:
 
 ```bash
 copilot plugin marketplace add github/awesome-copilot
