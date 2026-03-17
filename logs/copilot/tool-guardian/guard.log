@@ -1,0 +1,2 @@
+{"timestamp":"2026-03-17T08:25:48Z","event":"guard_passed","mode":"block","tool":"bash"}
+{"timestamp":"2026-03-17T08:25:49Z","event":"threats_detected","mode":"block","tool":"bash","threat_count":1,"threats":[{"category":"destructive_file_ops","severity":"critical","match":"rm -rf /","suggestion":"Use targeted 'rm' on specific paths instead of root"}]}
