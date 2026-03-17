@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-17
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -92,6 +92,7 @@ Hooks can trigger on several lifecycle events:
 | `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
+| `preCompact` | Before context compaction starts | Save state, log compaction events, back up important context |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
@@ -126,6 +127,39 @@ Each hook entry supports these fields:
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+### Top-Level Configuration Flags
+
+In addition to per-event entries, `hooks.json` supports optional top-level flags:
+
+```json
+{
+  "version": 1,
+  "disableAllHooks": false,
+  "hooks": {
+    ...
+  }
+}
+```
+
+**disableAllHooks**: Set to `true` to temporarily disable all hooks from this configuration file without removing entries. Useful for debugging or emergency overrides.
+
+### User Confirmation via `ask` Permission
+
+`preToolUse` hooks can request user confirmation before a tool executes by outputting a JSON decision:
+
+```json
+{ "decision": "ask", "reason": "This command deletes files — please confirm." }
+```
+
+The three possible decisions are:
+- `"approve"` — proceed without prompting
+- `"deny"` — block the tool execution (non-zero exit code is also accepted)
+- `"ask"` — pause and present a confirmation dialog to the user
+
+### Cross-Platform Compatibility
+
+Hook configuration files work across VS Code, Claude Code, and the GitHub Copilot CLI without modification. Both camelCase (`postToolUse`) and PascalCase (`PostToolUse`) event names are accepted. Claude Code's nested `matcher`/`hooks` structure is also supported, so you can share a single `hooks.json` across environments.
 
 ### README.md
 

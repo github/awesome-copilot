@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-17
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -192,6 +192,26 @@ When you install a plugin, its components become available to Copilot CLI automa
 - **MCP servers** extend the tools available to agents
 
 You don't need to do any additional configuration after installing — the plugin's components integrate seamlessly into your workflow.
+
+### Loading Plugins from a Local Directory
+
+You can also load a plugin directly from a local path using `--plugin-dir`:
+
+```bash
+copilot --plugin-dir ./my-local-plugin
+```
+
+Plugins loaded this way support all standard manifest locations, including the `.claude-plugin/plugin.json` path used by the Open Plugins specification (in addition to `.github/plugin/plugin.json`). This makes it easy to share plugins between GitHub Copilot CLI and other AI coding tools that support the Open Plugins spec.
+
+### Open Plugins Spec Compatibility
+
+The Copilot CLI follows the [Open Plugins specification](https://openagentspec.com/), enabling plugins to work across multiple AI coding tools without modification. Relevant compatibility details:
+
+- **Manifest locations**: `.github/plugin/plugin.json` and `.claude-plugin/plugin.json` are both discovered automatically
+- **LSP configuration**: Both `.lsp.json` and `.github/lsp.json` are supported
+- **Hook event names**: Both camelCase (`postToolUse`) and PascalCase (`PostToolUse`) are accepted
+- **Path modes**: The `exclusive` path mode is supported for restricting file access
+- **Namespaces**: The `:` namespace separator is supported for scoping tools and agents
 
 ## Plugins from This Repository
 

@@ -3,7 +3,7 @@ title: 'Defining Custom Instructions'
 description: 'Learn how to create persistent, context-aware instructions that guide GitHub Copilot automatically across your codebase.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-12-02
+lastUpdated: 2026-03-17
 estimatedReadingTime: '8 minutes'
 tags:
   - instructions
@@ -100,7 +100,22 @@ export function UserProfile({ userId, onUpdate }: UserProfileProps) {
 
 ## Scoping Instructions Effectively
 
-The `applyTo` field determines which files receive the instruction's guidance.
+The `applyTo` field determines which files receive the instruction's guidance. It accepts a **string** (single pattern or comma-separated list) or an **array** of patterns:
+
+```yaml
+# String form — single pattern
+applyTo: '**/*.ts'
+
+# String form — comma-separated
+applyTo: '**/*.ts, **/*.tsx'
+
+# Array form
+applyTo:
+  - '**/*.ts'
+  - '**/*.tsx'
+```
+
+Both forms produce identical results; use whichever reads more clearly for your case.
 
 ### Common Scoping Patterns
 
@@ -131,6 +146,20 @@ applyTo: '**'
 
 **Expected Result**:
 When you work on a file matching the pattern, Copilot incorporates that instruction's context into suggestions and chat responses automatically.
+
+### Loading Instructions from Additional Directories
+
+By default, Copilot looks for instructions in `.github/instructions/` (and, depending on your editor, `.github/copilot-instructions.md`). You can add extra directories using the `COPILOT_CUSTOM_INSTRUCTIONS_DIRS` environment variable:
+
+```sh
+# Add a shared instructions directory alongside your .github folder
+export COPILOT_CUSTOM_INSTRUCTIONS_DIRS="/home/user/shared-instructions"
+```
+
+This is useful for:
+- **Team-wide templates** stored outside any single repository
+- **Personal standards** you want applied across all projects
+- **Monorepo scenarios** where instructions live in a parent directory
 
 ## Real Examples from the Repository
 

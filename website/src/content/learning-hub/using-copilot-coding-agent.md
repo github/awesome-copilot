@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-17
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -215,14 +215,23 @@ When the coding agent finishes, it opens a PR with:
 - File-by-file summaries of what changed
 - References back to the original issue
 
-### Reviewing the PR
+### The `/pr` Command
 
-Review coding agent PRs like any other:
+The Copilot CLI includes a dedicated `/pr` command for end-to-end PR management — useful both when working with the coding agent and in your regular development workflow:
 
-1. **Read the summary**: Understand what the agent did and why
-2. **Check the diff**: Verify the implementation matches your expectations
-3. **Run tests locally**: Confirm tests pass in your environment
-4. **Leave comments**: If something needs to change, comment on the PR
+```
+/pr              # Open the PR assistant
+/pr view         # Show current PR status in the terminal
+/pr view web     # Open the PR in your browser
+```
+
+The `/pr` command can:
+- **Create PRs** — Draft a PR description from your current branch and commits
+- **Fix CI failures** — Automatically diagnose and fix failing checks, then push updated commits
+- **Address review feedback** — Read reviewer comments and implement the requested changes
+- **Resolve merge conflicts** — Detect and resolve conflicts with the base branch
+
+This makes it easy to use the CLI to iterate on a PR from start to finish without leaving your terminal.
 
 ### Iterating with Comments
 
@@ -234,6 +243,21 @@ Also, add a test for the Retry-After header value.
 ```
 
 The agent will read your feedback, make changes, and push new commits to the same PR.
+
+### Multi-Turn Background Agents
+
+When you launch background sub-agents using the `task` tool, you can send follow-up messages without interrupting their work using the `write_agent` tool:
+
+```
+# In a Copilot CLI session
+# Launch a background agent
+task: "Refactor the authentication module to use JWT..."
+
+# Later, send a follow-up without cancelling the agent
+write_agent: "Also update the session middleware to handle token refresh"
+```
+
+This enables true multi-turn collaboration with background agents — you can steer work in progress, add context, or pivot direction while the agent continues in the background.
 
 ## Agent Skills and the Coding Agent
 
