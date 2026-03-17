@@ -5,7 +5,28 @@ import Modal from '../components/Modal.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<StarlightPage frontmatter={{ title: 'Awesome GitHub Copilot', template: 'splash', pagefind: false, prev: false, next: false, editUrl: false }} hasSidebar={false}>
+<StarlightPage
+  frontmatter={{
+    title: 'Awesome GitHub Copilot',
+    description:
+      'Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience',
+    template: 'splash',
+    pagefind: false,
+    prev: false,
+    next: false,
+    editUrl: false,
+    head: [
+      {
+        tag: 'meta',
+        attrs: {
+          property: 'og:type',
+          content: 'website',
+        },
+      },
+    ],
+  }}
+  hasSidebar={false}
+>
   <div id="main-content">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
