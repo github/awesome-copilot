@@ -35,3 +35,8 @@
 
 # Added via #codeowner from PR #1009
 /skills/publish-to-pages/ @AndreaGriffiths11
+
+# Added via #codeowner from PR #1049
+/skills/codeql/ @VeVarunSharma
+/skills/dependabot/ @VeVarunSharma
+/skills/secret-scanning/ @VeVarunSharma
