@@ -401,8 +401,7 @@
       "repository": "https://github.com/microsoft/skills-for-copilot-studio",
       "source": {
         "source": "github",
-        "repo": "microsoft/skills-for-copilot-studio",
-        "path": "./"
+        "repo": "microsoft/skills-for-copilot-studio"
       }
     },
     {
