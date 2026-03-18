@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-18
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,6 +93,7 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `subagentStart` | A subagent is spawned | Inject additional context into subagent prompts, log subagent spawning, enforce subagent governance |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
@@ -149,6 +150,28 @@ automatically before the agent commits changes.
 2. Copy the hooks.json to your `.github/hooks/` directory
 3. Adjust the formatter command for your project
 ```
+
+## Cross-Client Compatibility
+
+Hook configuration files work across GitHub Copilot CLI, VS Code, and Claude Code **without modification**. The CLI accepts both camelCase and PascalCase event names (e.g., `postToolUse` and `PostToolUse` are equivalent), and supports Claude Code's nested `matcher/hooks` structure alongside the standard flat format.
+
+```json
+{
+  "hooks": [
+    {
+      "matcher": { "event": "PostToolUse" },
+      "hooks": [
+        {
+          "type": "command",
+          "bash": "npx prettier --write ."
+        }
+      ]
+    }
+  ]
+}
+```
+
+This means a single `hooks.json` file can be committed to your repository and used by team members regardless of which Copilot-compatible client they use.
 
 ## Practical Examples
 
@@ -215,6 +238,28 @@ Block dangerous commands before they execute:
 ```
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+
+### Injecting Context into Subagents with subagentStart
+
+When your agent spawns subagents (for example via the `task` tool), the `subagentStart` hook fires for each one. You can use it to inject additional context into the subagent's prompt — such as environment information or project-specific constraints — or to log and govern subagent activity:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "./scripts/inject-subagent-context.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The hook receives context about the spawned subagent, allowing your script to output additional instructions that are injected into the subagent's starting prompt.
 
 ### Governance Audit
 

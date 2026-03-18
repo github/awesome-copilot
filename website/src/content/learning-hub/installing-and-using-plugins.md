@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-18
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -218,6 +218,23 @@ If you only need a single agent or skill (rather than a full plugin), you can st
 - Copy a hook configuration into `.github/hooks/`
 
 See [Using the Copilot Coding Agent](../using-copilot-coding-agent/) for details on this approach.
+
+## Open Plugin Spec Compatibility
+
+GitHub Copilot CLI is compatible with the [Open Plugin Specification](https://openpluginsspec.org/), meaning plugins authored for other AI tools can often be loaded directly. The CLI discovers plugin manifests from several locations:
+
+| Location | Description |
+|----------|-------------|
+| `.github/plugin/plugin.json` | Standard Awesome Copilot format |
+| `.claude-plugin/plugin.json` | Claude Code plugin format |
+| `.lsp.json` or `.github/lsp.json` | LSP server configuration |
+
+When using `--plugin-dir`, the CLI automatically scans for these manifest locations. This means a plugin built for Claude Code (using `.claude-plugin/plugin.json`) can be loaded in Copilot CLI without any modifications.
+
+**Additional compatibility notes**:
+- Both camelCase and PascalCase hook event names are accepted (e.g., `postToolUse` and `PostToolUse`)
+- The `:` namespace separator is supported in tool names
+- `exclusive` path mode is supported for more precise resource scoping
 
 ## Best Practices
 
