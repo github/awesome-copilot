@@ -344,18 +344,27 @@ export function formatResourceType(type: string): string {
 }
 
 /**
- * Get icon for resource type
+ * Get icon for resource type (returns SVG icon name)
  */
 export function getResourceIcon(type: string): string {
   const icons: Record<string, string> = {
-    agent: "🤖",
-    instruction: "📋",
-    skill: "⚡",
-    hook: "🪝",
-    workflow: "⚡",
-    plugin: "🔌",
+    agent: "robot",
+    instruction: "document",
+    skill: "lightning",
+    hook: "hook",
+    workflow: "workflow",
+    plugin: "plug",
   };
-  return icons[type] || "📄";
+  return icons[type] || "document";
+}
+
+/**
+ * Get SVG icon HTML for resource type
+ */
+export function getResourceIconSvg(type: string, size = 20): string {
+  const iconName = getResourceIcon(type);
+  // Return a placeholder span that will be replaced with actual SVG
+  return `<span class="resource-icon resource-icon--${iconName}" data-icon="${iconName}" data-size="${size}"></span>`;
 }
 
 /**

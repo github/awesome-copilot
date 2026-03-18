@@ -304,7 +304,6 @@ body:has(#main-content) {
 }
 
 .search-result-type {
-  font-size: 20px;
   flex-shrink: 0;
   width: 36px;
   height: 36px;
@@ -313,7 +312,22 @@ body:has(#main-content) {
   justify-content: center;
   background: var(--color-bg-tertiary);
   border-radius: var(--border-radius);
+  color: var(--color-primary);
 }
+
+.search-result-type svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Icon color variations by type */
+.search-result-type[data-icon="robot"] { color: #B870FF; }
+.search-result-type[data-icon="document"] { color: #F4A876; }
+.search-result-type[data-icon="lightning"] { color: #FE4C25; }
+.search-result-type[data-icon="hook"] { color: #C898FD; }
+.search-result-type[data-icon="workflow"] { color: #F08A3A; }
+.search-result-type[data-icon="plug"] { color: #10b981; }
+.search-result-type[data-icon="wrench"] { color: #60a5fa; }
 
 .search-result-title {
   font-weight: 600;
@@ -417,14 +431,24 @@ body:has(#main-content) {
 }
 
 .card-icon {
-  font-size: 40px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
-  display: inline-block;
-  transition: transform var(--transition);
+  color: var(--color-primary);
+  transition: transform var(--transition), color var(--transition);
+}
+
+.card-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .card:hover .card-icon {
   transform: scale(1.1);
+  color: var(--color-accent-hover);
 }
 
 .card h3 {
