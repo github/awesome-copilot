@@ -150,7 +150,7 @@ Once the user confirms:
    ```
    experiment	commit	metric	status	description
    ```
-   Add `results.tsv` and `run.log` to `.gitignore` (append if not already present) so they stay untracked.
+   Add `results.tsv` and `run.log` to `.git/info/exclude` (append if not already present) so they stay untracked without modifying any tracked files.
 
 4. **Run the baseline**: Execute the metric command on the current unmodified code.
    Record the result as experiment `0` with status `baseline` in `results.tsv`.
@@ -197,7 +197,10 @@ LOOP:
                - SAME OR WORSE: Revert. `git reset --hard HEAD~1`.
                  Log status = "discard".
                - CRASH: Attempt a quick fix (typo, import, simple error).
-                 If unfixable after 2 attempts, revert and log status = "crash".
+                 Amend the experiment commit (`git commit --amend`) with the fix
+                 and rerun. The experiment keeps its original number.
+                 If unfixable after 2 attempts, revert the entire experiment
+                 (`git reset --hard HEAD~1`) and log status = "crash".
 
   7. LOG     - Append a row to results.tsv:
                experiment_number  commit_hash  metric_value  status  description
@@ -261,7 +264,7 @@ experiment	commit	metric	status	description
 - Each experiment is committed before running
 - Failed experiments are reverted with `git reset --hard HEAD~1`
 - Successful experiments advance the branch
-- `results.tsv` and `run.log` stay untracked (added to `.gitignore`)
+- `results.tsv` and `run.log` stay untracked (added to `.git/info/exclude`)
 
 ### Key Principles
 
