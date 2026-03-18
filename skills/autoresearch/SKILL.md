@@ -3,9 +3,10 @@ name: autoresearch
 description: >-
   Autonomous iterative experimentation loop for any programming task. Guides the user through defining goals, measurable metrics, and scope constraints, then runs an autonomous loop of code changes, testing, measuring, and keeping/discarding results. Inspired by Karpathy's autoresearch. USE FOR: autonomous improvement, iterative optimization, experiment loop, auto research, performance tuning, automated experimentation, hill climbing, try things automatically, optimize code, run experiments, autonomous coding loop.
   DO NOT USE FOR: one-shot tasks, simple bug fixes, code review, or tasks without a measurable metric.
+license: MIT
+compatibility: Requires git. The project must be a git repository. Requires terminal access to run commands.
 metadata:
   author: luiscantero
-  license: MIT
   inspired-by: https://github.com/karpathy/autoresearch
 ---
 
@@ -151,7 +152,7 @@ Once the user confirms:
    ```
    experiment	commit	metric	status	description
    ```
-   This file should remain **untracked by git** (do not commit it).
+   Add `results.tsv` and `run.log` to `.gitignore` (append if not already present) so they stay untracked.
 
 4. **Run the baseline**: Execute the metric command on the current unmodified code.
    Record the result as experiment `0` with status `baseline` in `results.tsv`.
@@ -183,8 +184,10 @@ LOOP:
                Format: "experiment: <short description of what changed>"
 
   4. RUN     - Execute the metric command.
-               Redirect output to run.log: `<command> > run.log 2>&1`
-               Do NOT let output flood the context window.
+               Redirect output to run.log so it does not flood the context window.
+               Use shell-appropriate redirection:
+               - Bash/Zsh: `<command> > run.log 2>&1`
+               - PowerShell: `<command> *> run.log`
 
   5. MEASURE - Extract the metric from run.log.
                If extraction fails (crash/error), read the last 50 lines
@@ -260,7 +263,7 @@ experiment	commit	metric	status	description
 - Each experiment is committed before running
 - Failed experiments are reverted with `git reset --hard HEAD~1`
 - Successful experiments advance the branch
-- `results.tsv` stays untracked (not committed)
+- `results.tsv` and `run.log` stay untracked (added to `.gitignore`)
 
 ### Key Principles
 
