@@ -16,14 +16,13 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
+      logo: {
+        light: './public/images/Copilot_Icon_Black.svg',
+        dark: './public/images/Copilot_Icon_White.svg',
+        replacesTitle: false,
+      },
       description: siteDescription,
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/github/awesome-copilot",
-        },
-      ],
+      social: [],
       head: [
         {
           tag: "meta",

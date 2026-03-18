@@ -1,116 +1,138 @@
 ---
-// Theme Toggle Component
+// Theme Toggle Component - 3 state slider: Auto | Dark | Light
 ---
 
-<button
-  id="theme-toggle"
-  class="theme-toggle"
-  aria-label="Toggle dark mode"
-  title="Toggle dark mode (Cmd/Ctrl + Shift + L)"
->
-  <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/>
-      <line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/>
-      <line x1="21" y1="12" x2="23" y2="12"/>
-      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-    </svg>
-  </span>
-  <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  </span>
-</button>
+<div class="theme-toggle-container">
+  <button
+    id="theme-toggle"
+    class="theme-toggle"
+    aria-label="Toggle theme"
+    title="Change theme"
+  >
+    <span class="theme-icon moon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </span>
+    <span class="theme-icon auto" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2v10l4.5 4.5"/>
+      </svg>
+    </span>
+    <span class="theme-icon sun" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+        <line x1="12" y1="1" x2="12" y2="3"/>
+        <line x1="12" y1="21" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="3" y2="12"/>
+        <line x1="21" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      </svg>
+    </span>
+    <span class="theme-slider"></span>
+  </button>
+</div>
 
 <script>
   (function() {
+    // Move theme toggle to body level to escape any stacking contexts
+    const container = document.querySelector('.theme-toggle-container');
+    if (container && container.parentElement !== document.body) {
+      document.body.appendChild(container);
+    }
+
     const STORAGE_KEY = 'awesome-copilot-theme';
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
-    // Get initial theme
-    function getTheme() {
+    const themes = ['dark', 'auto', 'light'];
+    const icons = ['moon', 'auto', 'sun'];
+
+    function getThemeIndex() {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'dark' || stored === 'light') return stored;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    // Apply theme
-    function applyTheme(theme: string) {
-      if (theme === 'dark') {
-        html.setAttribute('data-theme', 'dark');
-        document.body.classList.remove('light');
-        document.body.classList.add('dark');
-      } else {
-        html.setAttribute('data-theme', 'light');
-        document.body.classList.remove('dark');
-        document.body.classList.add('light');
+      if (stored && themes.includes(stored)) {
+        return themes.indexOf(stored);
       }
+      // Default to auto (system preference)
+      return 1;
     }
 
-    // Toggle theme
-    function toggleTheme() {
-      const current = getTheme();
-      const next = current === 'dark' ? 'light' : 'dark';
-      localStorage.setItem(STORAGE_KEY, next);
-      applyTheme(next);
+    function applyTheme(index: number) {
+      const theme = themes[index];
+      if (theme === 'auto') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      } else {
+        html.setAttribute('data-theme', theme);
+      }
+
+      // Move slider
+      const slider = toggle?.querySelector('.theme-slider') as HTMLElement;
+      if (slider) {
+        slider.style.transform = `translateX(${index * 100}%)`;
+      }
+
+      // Highlight active icon
+      const themeToggle = document.querySelector('.theme-toggle');
+      themeToggle?.setAttribute('data-active', String(index));
+    }
+
+    function cycleTheme() {
+      const currentIndex = getThemeIndex();
+      const nextIndex = (currentIndex + 1) % themes.length;
+      localStorage.setItem(STORAGE_KEY, themes[nextIndex]);
+      applyTheme(nextIndex);
     }
 
     // Initialize
-    applyTheme(getTheme());
+    applyTheme(getThemeIndex());
 
     // Click handler
-    toggle?.addEventListener('click', toggleTheme);
+    toggle?.addEventListener('click', cycleTheme);
 
-    // Keyboard shortcut: Cmd/Ctrl + Shift + L
+    // Keyboard shortcut
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
-        toggleTheme();
+        cycleTheme();
       }
     });
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem(STORAGE_KEY)) {
-        applyTheme(e.matches ? 'dark' : 'light');
+      if (localStorage.getItem(STORAGE_KEY) === 'auto' || !localStorage.getItem(STORAGE_KEY)) {
+        applyTheme(1); // auto
       }
     });
   })();
 </script>
 
 <style>
-  .theme-toggle {
+  .theme-toggle-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    border: 1px solid var(--color-glass-border);
-    border-radius: var(--border-radius);
-    background: var(--color-glass);
-    color: var(--color-text);
+  }
+
+  .theme-toggle {
+    display: flex;
+    position: relative;
+    width: 108px;
+    height: 36px;
+    padding: 3px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-bg-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
-    position: relative;
     overflow: hidden;
   }
 
   .theme-toggle:hover {
-    background: var(--color-bg-tertiary);
     border-color: var(--color-accent);
-    transform: translateY(-1px);
-  }
-
-  .theme-toggle:active {
-    transform: translateY(0);
   }
 
   .theme-toggle:focus-visible {
@@ -118,41 +140,31 @@
     outline-offset: 2px;
   }
 
-  .theme-toggle-icon {
-    position: absolute;
-    transition: all 0.3s ease;
+  .theme-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 36px;
+    height: 30px;
+    border-radius: 16px;
+    color: var(--color-text-muted);
+    transition: all 0.2s ease;
+    z-index: 1;
+    font-weight: 400;
   }
 
-  /* Sun icon - shown in dark mode */
-  :root[data-theme="dark"] .theme-toggle-sun,
-  body.dark .theme-toggle-sun {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
+  .theme-icon.moon { color: #9898a6; }
+  .theme-icon.auto { color: #9898a6; }
+  .theme-icon.sun { color: #9898a6; }
+
+  .theme-toggle[data-active="0"] .moon,
+  .theme-toggle[data-active="1"] .auto,
+  .theme-toggle[data-active="2"] .sun {
+    color: var(--color-text);
+    font-weight: 700;
   }
 
-  :root[data-theme="dark"] .theme-toggle-moon,
-  body.dark .theme-toggle-moon {
-    opacity: 0;
-    transform: rotate(90deg) scale(0.5);
-  }
-
-  /* Moon icon - shown in light mode */
-  :root[data-theme="light"] .theme-toggle-sun,
-  body.light .theme-toggle-sun,
-  :root:not([data-theme]) .theme-toggle-sun,
-  body:not(.dark):not(.light) .theme-toggle-sun {
-    opacity: 0;
-    transform: rotate(-90deg) scale(0.5);
-  }
-
-  :root[data-theme="light"] .theme-toggle-moon,
-  body.light .theme-toggle-moon,
-  :root:not([data-theme]) .theme-toggle-moon,
-  body:not(.dark):not(.light) .theme-toggle-moon {
-    opacity: 1;
-    transform: rotate(0deg) scale(1);
+  .theme-slider {
+    display: none;
   }
 </style>
