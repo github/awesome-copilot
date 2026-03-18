@@ -47,6 +47,38 @@ interface PluginsData {
   items: Plugin[];
 }
 
+// Recent searches storage
+const RECENT_SEARCHES_KEY = 'awesome-copilot-recent-searches';
+const MAX_RECENT_SEARCHES = 5;
+
+function getRecentSearches(): string[] {
+  try {
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addRecentSearch(query: string): void {
+  if (!query.trim()) return;
+  const searches = getRecentSearches();
+  const filtered = searches.filter(s => s.toLowerCase() !== query.toLowerCase());
+  filtered.unshift(query);
+  const limited = filtered.slice(0, MAX_RECENT_SEARCHES);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(limited));
+}
+
+function removeRecentSearch(query: string): void {
+  const searches = getRecentSearches();
+  const filtered = searches.filter(s => s !== query);
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered));
+}
+
+function clearRecentSearches(): void {
+  localStorage.removeItem(RECENT_SEARCHES_KEY);
+}
+
 export async function initHomepage(): Promise<void> {
   // Load manifest for stats
   const manifest = await fetchData<Manifest>('manifest.json');
@@ -72,9 +104,11 @@ export async function initHomepage(): Promise<void> {
 
     if (searchInput && resultsDiv) {
       const statusEl = document.getElementById("global-search-status");
+      let isShowingRecent = false;
 
       const hideResults = (): void => {
         resultsDiv.classList.add("hidden");
+        isShowingRecent = false;
       };
 
       const showResults = (): void => {
@@ -83,7 +117,7 @@ export async function initHomepage(): Promise<void> {
 
       const getResultButtons = (): HTMLButtonElement[] =>
         Array.from(
-          resultsDiv.querySelectorAll<HTMLButtonElement>(".search-result")
+          resultsDiv.querySelectorAll<HTMLButtonElement>(".search-result, .search-recent-item")
         );
 
       const openResult = (resultEl: HTMLElement): void => {
@@ -95,24 +129,114 @@ export async function initHomepage(): Promise<void> {
         }
       };
 
+      // Render recent searches
+      const renderRecentSearches = (): void => {
+        const recent = getRecentSearches();
+        if (recent.length === 0) return;
+
+        const clockIcon = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+        const xIcon = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+        resultsDiv.innerHTML = `
+          <div class="search-recent-header">
+            <span>Recent Searches</span>
+            <button class="search-clear-recent" aria-label="Clear recent searches">Clear</button>
+          </div>
+          ${recent.map(query => `
+            <button type="button" class="search-recent-item" data-query="${escapeHtml(query)}">
+              <span class="search-recent-icon">${clockIcon}</span>
+              <span class="search-recent-text">${escapeHtml(query)}</span>
+              <button type="button" class="search-recent-remove" data-query="${escapeHtml(query)}" aria-label="Remove from history">
+                ${xIcon}
+              </button>
+            </button>
+          `).join('')}
+        `;
+
+        // Add click handlers for recent items
+        resultsDiv.querySelectorAll('.search-recent-item').forEach(item => {
+          item.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('.search-recent-remove')) return;
+            const query = (item as HTMLElement).dataset.query;
+            if (query) {
+              searchInput.value = query;
+              searchInput.dispatchEvent(new Event('input'));
+            }
+          });
+        });
+
+        // Add click handlers for remove buttons
+        resultsDiv.querySelectorAll('.search-recent-remove').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const query = (btn as HTMLElement).dataset.query;
+            if (query) {
+              removeRecentSearch(query);
+              renderRecentSearches();
+              if (getRecentSearches().length === 0) {
+                hideResults();
+              }
+            }
+          });
+        });
+
+        // Add clear all handler
+        const clearBtn = resultsDiv.querySelector('.search-clear-recent');
+        clearBtn?.addEventListener('click', () => {
+          clearRecentSearches();
+          hideResults();
+        });
+
+        isShowingRecent = true;
+        showResults();
+      };
+
+      // Show recent searches on focus when empty
+      searchInput.addEventListener('focus', () => {
+        if (searchInput.value.trim().length === 0) {
+          renderRecentSearches();
+        }
+      });
+
       searchInput.addEventListener('input', debounce(() => {
         const query = searchInput.value.trim();
         if (query.length < 2) {
-          resultsDiv.innerHTML = '';
+          if (query.length === 0) {
+            renderRecentSearches();
+          } else {
+            resultsDiv.innerHTML = '';
+            hideResults();
+          }
           if (statusEl) {
             statusEl.textContent = '';
           }
-          hideResults();
           return;
         }
 
+        isShowingRecent = false;
         const results = search.search(query).slice(0, 10);
         if (results.length === 0) {
-          resultsDiv.innerHTML = '<div class="search-result-empty">No results found</div>';
+          resultsDiv.innerHTML = `
+            <div class="search-result-empty">
+              <div class="search-result-empty-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="M21 21l-4.35-4.35"/>
+                  <path d="M8 8l6 6M14 8l-6 6"/>
+                </svg>
+              </div>
+              <div class="search-result-empty-title">No results found</div>
+              <div class="search-result-empty-hint">Try different keywords or check your spelling</div>
+            </div>
+          `;
           if (statusEl) {
             statusEl.textContent = 'No results found.';
           }
         } else {
+          // Add to recent searches when user gets results
+          addRecentSearch(query);
+
           resultsDiv.innerHTML = results.map(item => {
             const iconName = getResourceIcon(item.type);
             return `
@@ -187,6 +311,15 @@ export async function initHomepage(): Promise<void> {
       document.addEventListener('click', (e) => {
         if (!searchInput.contains(e.target as Node) && !resultsDiv.contains(e.target as Node)) {
           hideResults();
+        }
+      });
+
+      // Cmd/Ctrl + K to focus search
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          searchInput.focus();
+          searchInput.select();
         }
       });
     }

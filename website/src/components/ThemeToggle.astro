@@ -1,0 +1,158 @@
+---
+// Theme Toggle Component
+---
+
+<button
+  id="theme-toggle"
+  class="theme-toggle"
+  aria-label="Toggle dark mode"
+  title="Toggle dark mode (Cmd/Ctrl + Shift + L)"
+>
+  <span class="theme-toggle-icon theme-toggle-sun" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </span>
+  <span class="theme-toggle-icon theme-toggle-moon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </span>
+</button>
+
+<script>
+  (function() {
+    const STORAGE_KEY = 'awesome-copilot-theme';
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Get initial theme
+    function getTheme() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'dark' || stored === 'light') return stored;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    // Apply theme
+    function applyTheme(theme: string) {
+      if (theme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        document.body.classList.remove('light');
+        document.body.classList.add('dark');
+      } else {
+        html.setAttribute('data-theme', 'light');
+        document.body.classList.remove('dark');
+        document.body.classList.add('light');
+      }
+    }
+
+    // Toggle theme
+    function toggleTheme() {
+      const current = getTheme();
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(STORAGE_KEY, next);
+      applyTheme(next);
+    }
+
+    // Initialize
+    applyTheme(getTheme());
+
+    // Click handler
+    toggle?.addEventListener('click', toggleTheme);
+
+    // Keyboard shortcut: Cmd/Ctrl + Shift + L
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
+        e.preventDefault();
+        toggleTheme();
+      }
+    });
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem(STORAGE_KEY)) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  })();
+</script>
+
+<style>
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-glass-border);
+    border-radius: var(--border-radius);
+    background: var(--color-glass);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .theme-toggle:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  .theme-toggle:active {
+    transform: translateY(0);
+  }
+
+  .theme-toggle:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .theme-toggle-icon {
+    position: absolute;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Sun icon - shown in dark mode */
+  :root[data-theme="dark"] .theme-toggle-sun,
+  body.dark .theme-toggle-sun {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  :root[data-theme="dark"] .theme-toggle-moon,
+  body.dark .theme-toggle-moon {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+
+  /* Moon icon - shown in light mode */
+  :root[data-theme="light"] .theme-toggle-sun,
+  body.light .theme-toggle-sun,
+  :root:not([data-theme]) .theme-toggle-sun,
+  body:not(.dark):not(.light) .theme-toggle-sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+
+  :root[data-theme="light"] .theme-toggle-moon,
+  body.light .theme-toggle-moon,
+  :root:not([data-theme]) .theme-toggle-moon,
+  body:not(.dark):not(.light) .theme-toggle-moon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+</style>
