@@ -31,8 +31,16 @@ const base = import.meta.env.BASE_URL;
   <div id="main-content">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-animated-bg" aria-hidden="true">
+        <div class="hero-particle hero-particle-1"></div>
+        <div class="hero-particle hero-particle-2"></div>
+        <div class="hero-particle hero-particle-3"></div>
+      </div>
       <div class="container">
-        <h1 id="hero-heading">Awesome GitHub Copilot</h1>
+        <h1 id="hero-heading">
+          <span class="gradient-text">Awesome</span>
+          <span class="gradient-text-alt">GitHub Copilot</span>
+        </h1>
         <p class="hero-subtitle">Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience</p>
         <div class="hero-search">
           <label for="global-search" class="sr-only">Search all resources</label>
@@ -57,7 +65,7 @@ const base = import.meta.env.BASE_URL;
       <h2 id="quick-links-heading" class="sr-only">Browse Resources</h2>
       <div class="container">
         <div class="cards-grid">
-          <a href={`${base}agents/`} class="card card-with-count" id="card-agents">
+          <a href={`${base}agents/`} class="card card-with-count card-category-ai" id="card-agents" style="--animation-delay: 0ms;">
             <div class="card-icon" aria-hidden="true"><Icon name="robot" size={40} /></div>
             <div class="card-content">
               <h3>Agents</h3>
@@ -65,7 +73,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="agents" aria-label="Agent count">-</div>
           </a>
-          <a href={`${base}instructions/`} class="card card-with-count" id="card-instructions">
+          <a href={`${base}instructions/`} class="card card-with-count card-category-docs" id="card-instructions" style="--animation-delay: 50ms;">
             <div class="card-icon" aria-hidden="true"><Icon name="document" size={40} /></div>
             <div class="card-content">
               <h3>Instructions</h3>
@@ -73,7 +81,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="instructions" aria-label="Instruction count">-</div>
           </a>
-          <a href={`${base}skills/`} class="card card-with-count" id="card-skills">
+          <a href={`${base}skills/`} class="card card-with-count card-category-power" id="card-skills" style="--animation-delay: 100ms;">
             <div class="card-icon" aria-hidden="true"><Icon name="lightning" size={40} /></div>
             <div class="card-content">
               <h3>Skills</h3>
@@ -81,7 +89,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="skills" aria-label="Skill count">-</div>
           </a>
-          <a href={`${base}hooks/`} class="card card-with-count" id="card-hooks">
+          <a href={`${base}hooks/`} class="card card-with-count card-category-automation" id="card-hooks" style="--animation-delay: 150ms;">
             <div class="card-icon" aria-hidden="true"><Icon name="hook" size={40} /></div>
             <div class="card-content">
               <h3>Hooks</h3>
@@ -89,7 +97,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="hooks" aria-label="Hook count">-</div>
           </a>
-          <a href={`${base}workflows/`} class="card card-with-count" id="card-workflows">
+          <a href={`${base}workflows/`} class="card card-with-count card-category-automation" id="card-workflows" style="--animation-delay: 200ms;">
             <div class="card-icon" aria-hidden="true">
               <Icon name="workflow" size={40} />
             </div>
@@ -99,7 +107,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="workflows" aria-label="Workflow count">-</div>
           </a>
-          <a href={`${base}plugins/`} class="card card-with-count" id="card-plugins">
+          <a href={`${base}plugins/`} class="card card-with-count card-category-extension" id="card-plugins" style="--animation-delay: 250ms;">
             <div class="card-icon" aria-hidden="true">
               <Icon name="plug" size={40} />
             </div>
@@ -109,7 +117,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="plugins" aria-label="Plugin count">-</div>
           </a>
-          <a href={`${base}tools/`} class="card card-with-count" id="card-tools">
+          <a href={`${base}tools/`} class="card card-with-count card-category-dev" id="card-tools" style="--animation-delay: 300ms;">
             <div class="card-icon" aria-hidden="true">
               <Icon name="wrench" size={40} />
             </div>
@@ -119,7 +127,7 @@ const base = import.meta.env.BASE_URL;
             </div>
             <div class="card-count" data-count="tools" aria-label="Tool count">-</div>
           </a>
-          <a href={`${base}learning-hub/`} class="card card-with-count" id="card-learning-hub">
+          <a href={`${base}learning-hub/`} class="card card-with-count card-category-learn" id="card-learning-hub" style="--animation-delay: 350ms;">
             <div class="card-icon" aria-hidden="true">
               <Icon name="book" size={40} />
             </div>
