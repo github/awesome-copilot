@@ -70,5 +70,22 @@
       "repo": "dotnet/skills",
       "path": "plugins/dotnet-diag"
     }
+  },
+  {
+    "name": "agentskill-learn",
+    "description": "Discover and install 110,000+ AI agent skills from agentskill.sh. Search by keyword, install mid-session, and rate skills after use.",
+    "version": "1.0.0",
+    "author": {
+      "name": "agentskill.sh",
+      "url": "https://agentskill.sh"
+    },
+    "homepage": "https://agentskill.sh",
+    "keywords": ["skills", "marketplace", "registry", "agent-skills", "learn", "install"],
+    "license": "MIT",
+    "repository": "https://github.com/agentskill-sh/learn",
+    "source": {
+      "source": "github",
+      "repo": "agentskill-sh/learn"
+    }
   }
 ]
