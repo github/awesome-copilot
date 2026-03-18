@@ -44,7 +44,30 @@ const twitterDomain =
 {socialImageUrl && <meta property="og:image:secure_url" content={socialImageUrl} />}
 {socialImageType && <meta property="og:image:type" content={socialImageType} />}
 {socialImageAlt && <meta name="twitter:image:alt" content={socialImageAlt} />}
+
+<!-- Theme initialization script (runs early to prevent flash) -->
+<script is:inline>
+  (function() {
+    const STORAGE_KEY = 'awesome-copilot-theme';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = stored || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
 <script is:inline define:vars={{ basePath }}>
+  // Theme initialization - runs before page render to prevent flash
+  (function() {
+    const STORAGE_KEY = 'awesome-copilot-theme';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (stored === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+
   document.addEventListener('DOMContentLoaded', () => {
     document.body.dataset.basePath = basePath;
   });

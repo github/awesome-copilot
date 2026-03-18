@@ -2,6 +2,8 @@
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import Modal from '../components/Modal.astro';
 import Icon from '../components/Icon.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
+import BackToTop from '../components/BackToTop.astro';
 
 const base = import.meta.env.BASE_URL;
 ---
@@ -29,6 +31,11 @@ const base = import.meta.env.BASE_URL;
   hasSidebar={false}
 >
   <div id="main-content">
+    <!-- Theme Toggle - Fixed position -->
+    <div class="theme-toggle-container">
+      <ThemeToggle />
+    </div>
+
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="hero-animated-bg" aria-hidden="true">
@@ -143,6 +150,9 @@ const base = import.meta.env.BASE_URL;
   </div>
 
   <Modal />
+
+  <!-- Back to Top Button -->
+  <BackToTop />
 
   <script>
     import '../scripts/pages/index';
