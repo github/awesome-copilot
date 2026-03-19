@@ -25,7 +25,7 @@ fi
 INPUT=$(cat)
 
 MODE="${GUARD_MODE:-block}"
-LOG_DIR="${TOOL_GUARD_LOG_DIR:-logs/copilot/tool-guardian}"
+LOG_DIR="${TOOL_GUARD_LOG_DIR:-.github/logs/copilot/tool-guardian}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 mkdir -p "$LOG_DIR"

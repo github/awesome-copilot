@@ -33,20 +33,20 @@ AI coding agents can autonomously execute shell commands, file operations, and d
 1. Copy the hook folder to your repository:
 
    ```bash
-   cp -r .github/hooks/tool-guardian your-repo/.github/hooks/
+   cp -r hooks/tool-guardian your-repo/hooks/
    ```
 
 2. Ensure the script is executable:
 
    ```bash
-   chmod +x .github/hooks/tool-guardian/guard-tool.sh
+   chmod +x hooks/tool-guardian/guard-tool.sh
    ```
 
 3. Create the logs directory and add it to `.gitignore`:
 
    ```bash
-   mkdir -p logs/copilot/tool-guardian
-   echo "logs/" >> .gitignore
+   mkdir -p .github/logs/copilot/tool-guardian
+   echo ".github/logs/" >> .gitignore
    ```
 
 4. Commit the hook configuration to your repository's default branch.
@@ -62,7 +62,7 @@ The hook is configured in `hooks.json` to run on the `preToolUse` event:
     "preToolUse": [
       {
         "type": "command",
-        "bash": ".github/hooks/tool-guardian/guard-tool.sh",
+        "bash": "hooks/tool-guardian/guard-tool.sh",
         "cwd": ".",
         "env": {
           "GUARD_MODE": "block"
@@ -80,7 +80,7 @@ The hook is configured in `hooks.json` to run on the `preToolUse` event:
 |----------|--------|---------|-------------|
 | `GUARD_MODE` | `warn`, `block` | `block` | `warn` logs threats only; `block` exits non-zero to prevent tool execution |
 | `SKIP_TOOL_GUARD` | `true` | unset | Disable the guardian entirely |
-| `TOOL_GUARD_LOG_DIR` | path | `logs/copilot/tool-guardian` | Directory where guard logs are written |
+| `TOOL_GUARD_LOG_DIR` | path | `.github/logs/copilot/tool-guardian` | Directory where guard logs are written |
 | `TOOL_GUARD_ALLOWLIST` | comma-separated | unset | Patterns to skip (e.g., `git push --force,npm publish`) |
 
 ## How It Works
@@ -110,14 +110,14 @@ The hook is configured in `hooks.json` to run on the `preToolUse` event:
 ### Safe command (exit 0)
 
 ```bash
-echo '{"toolName":"bash","toolInput":"git status"}' | bash .github/hooks/tool-guardian/guard-tool.sh
+echo '{"toolName":"bash","toolInput":"git status"}' | bash hooks/tool-guardian/guard-tool.sh
 ```
 
 ### Blocked command (exit 1)
 
 ```bash
 echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
-  GUARD_MODE=block bash .github/hooks/tool-guardian/guard-tool.sh
+  GUARD_MODE=block bash hooks/tool-guardian/guard-tool.sh
 ```
 
 ```
@@ -135,19 +135,19 @@ echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
 
 ```bash
 echo '{"toolName":"bash","toolInput":"rm -rf /"}' | \
-  GUARD_MODE=warn bash .github/hooks/tool-guardian/guard-tool.sh
+  GUARD_MODE=warn bash hooks/tool-guardian/guard-tool.sh
 ```
 
 ### Allowlisted command (exit 0)
 
 ```bash
 echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
-  TOOL_GUARD_ALLOWLIST="git push --force" bash .github/hooks/tool-guardian/guard-tool.sh
+  TOOL_GUARD_ALLOWLIST="git push --force" bash hooks/tool-guardian/guard-tool.sh
 ```
 
 ## Log Format
 
-Guard events are written to `logs/copilot/tool-guardian/guard.log` in JSON Lines format:
+Guard events are written to `.github/logs/copilot/tool-guardian/guard.log` in JSON Lines format:
 
 ```json
 {"timestamp":"2026-03-16T10:30:00Z","event":"threats_detected","mode":"block","tool":"bash","threat_count":1,"threats":[{"category":"destructive_git_ops","severity":"critical","match":"git push --force origin main","suggestion":"Use 'git push --force-with-lease' or push to a feature branch"}]}
