@@ -89,6 +89,23 @@ export default defineConfig({
           items: ["learning-hub/github-copilot-terminology-glossary"],
         },
         {
+          label: "Copilot CLI for Beginners",
+          items: [
+            {
+              label: "Overview",
+              link: "/learning-hub/cli-for-beginners/",
+            },
+            "learning-hub/cli-for-beginners/00-quick-start",
+            "learning-hub/cli-for-beginners/01-setup-and-first-steps",
+            "learning-hub/cli-for-beginners/02-context-and-conversations",
+            "learning-hub/cli-for-beginners/03-development-workflows",
+            "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
+            "learning-hub/cli-for-beginners/05-skills",
+            "learning-hub/cli-for-beginners/06-mcp-servers",
+            "learning-hub/cli-for-beginners/07-putting-it-all-together",
+          ],
+        },
+        {
           label: "Hands-on",
           items: [
             {
