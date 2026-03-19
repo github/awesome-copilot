@@ -1,6 +1,6 @@
 ---
 name: secret-scanning
-description: 'Guide for configuring and managing GitHub secret scanning, push protection, custom patterns, secret alert remediation, and pre-commit secret scanning via the GitHub MCP Server in AI coding agents. Use this skill when enabling secret scanning, setting up push protection, defining custom patterns, triaging alerts, resolving blocked pushes, or scanning code changes for secrets before committing.'
+description: 'Guide for configuring and managing GitHub secret scanning, push protection, custom patterns, and secret alert remediation. For pre-commit secret scanning in AI coding agents via the GitHub MCP Server, this skill references the Advanced Security plugin (`advanced-security@copilot-plugins`). Use this skill when enabling secret scanning, setting up push protection, defining custom patterns, triaging alerts, resolving blocked pushes, or when an agent needs to scan code for secrets before committing.'
 ---
 
 # Secret Scanning
@@ -20,8 +20,7 @@ Use this skill when the request involves:
 - Excluding directories from secret scanning via `secret_scanning.yml`
 - Understanding alert types (user, partner, push protection)
 - Enabling validity checks or extended metadata checks
-- Scanning local code changes for secrets before committing (via MCP / AI coding agent)
-- Using the GitHub MCP Server's secret scanning tool in an agentic workflow
+- Scanning local code changes for secrets before committing (via MCP / AI coding agent) — see the **Pre-Commit Scanning via AI Coding Agents** section below for the recommended plugin
 
 ## How Secret Scanning Works
 
@@ -214,48 +213,31 @@ Dismiss with a documented reason:
 
 > For detailed alert types, validity checks, and REST API, search `references/alerts-and-remediation.md`.
 
-## Core Workflow — Pre-Commit Secret Scanning via MCP
+## Pre-Commit Scanning via AI Coding Agents
 
-Secret scanning can run **inside your AI coding agent** before code is ever pushed, using the GitHub MCP Server. This catches exposed secrets before they reach the repository or CI.
+For scanning code changes for secrets inside an AI coding agent before committing, install the **Advanced Security plugin** which provides the `run_secret_scanning` MCP tool and a dedicated scanning skill.
 
-### Prerequisites
+**GitHub Copilot CLI:**
+```
+/plugin install advanced-security@copilot-plugins
+```
 
-- GitHub Secret Protection enabled on the target repository
-- GitHub MCP Server configured in your IDE or agent environment
+**Visual Studio Code:**
+- Install the `advanced-security` agent plugin
+- Use `/secret-scanning` in Copilot Chat
 
-### How It Works
+See: [Advanced Security Plugin — Secret Scanning Skill](https://github.com/github/copilot-plugins/blob/main/plugins/advanced-security/skills/secret-scanning/SKILL.md)
 
-1. The agent gathers current code changes (staged diff or working tree changes)
-2. The agent calls the `secret_scanning` MCP tool with those changes
-3. The scanning engine returns structured results: file paths, line numbers, and secret types
-4. The agent presents findings and suggests remediations
-5. The user fixes the issues before committing
-6. The agent re-scans after fixes to confirm resolution; only then does it proceed with the commit or PR
+> Announced in [Secret scanning in AI coding agents via the GitHub MCP Server](https://github.blog/changelog/2026-03-17-secret-scanning-in-ai-coding-agents-via-the-github-mcp-server/) (March 2026)
 
-### Agent Instructions
+### When to use which
 
-When asked to scan for secrets before committing, the agent should:
-
-1. Gather the current code changes (staged diff or working tree diff)
-2. Call the `secret_scanning` MCP tool with the changes
-3. If secrets are detected, present for each finding:
-   - **File path** — which file contains the secret
-   - **Line number** — exact location in the file
-   - **Secret type** — e.g., GitHub PAT, AWS access key, generic password
-4. Suggest remediation for each finding: move to environment variables, a secrets vault, or a `.env` file excluded from version control
-5. Re-scan after fixes to confirm all findings are resolved; only proceed with the commit or PR once the scan returns clean
-
-### Example Prompts
-
-Use these to trigger a pre-commit scan:
-
-- "Scan my current changes for exposed secrets and show me the files and lines I should update before I commit."
-- "Check this diff for API keys, tokens, or credentials before I push."
-- "Are there any secrets in my staged changes?"
-
-### If the Tool Is Not Available
-
-If the `secret_scanning` MCP tool is not available in your environment, point the user to `references/mcp-setup.md` for installation and configuration instructions.
+| Need | Use |
+|---|---|
+| Enable/configure secret scanning on a repo | This skill |
+| Set up push protection or custom patterns | This skill |
+| Triage or remediate secret scanning alerts | This skill |
+| Scan code for secrets before committing (in agent) | Advanced Security plugin |
 
 ## Reference Files
 
@@ -267,5 +249,3 @@ For detailed documentation, load the following reference files as needed:
   - Search patterns: `custom pattern`, `regex`, `dry run`, `publish`, `organization`, `enterprise`, `Copilot`
 - `references/alerts-and-remediation.md` — Alert types, validity checks, extended metadata, generic alerts, secret removal, REST API
   - Search patterns: `user alert`, `partner alert`, `validity`, `metadata`, `generic`, `remediation`, `git history`, `REST API`
-- `references/mcp-setup.md` — Pre-commit scanning via GitHub MCP Server, IDE setup, plugin installation, example prompts
-  - Search patterns: `MCP`, `pre-commit`, `AI agent`, `coding agent`, `plugin`, `advanced-security`
