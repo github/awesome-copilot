@@ -7,8 +7,7 @@
     "README.md",
     "website/src/pages/contributors.astro"
   ],
-    "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
-
+  "contributorTemplate": "<a href=\"<%= contributor.profile %>\"><img src=\"<%= contributor.avatar_url %>\" width=\"<%= options.imageSize %>px;\" alt=\"\"/><br /><sub><b><%= contributor.name %></b></sub></a>",
   "imageSize": 100,
   "commit": false,
   "commitConvention": "none",
@@ -1832,6 +1831,15 @@
       "profile": "https://github.com/bhect0",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "sanjay-rb",
+      "name": "Sanjay Ramassery Babu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25894304?v=4",
+      "profile": "https://sanjay-rb.github.io",
+      "contributions": [
+        "content"
       ]
     }
   ]
