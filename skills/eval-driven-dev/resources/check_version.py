@@ -39,11 +39,21 @@ def main() -> int:
     resource_dir = Path(__file__).resolve().parent
 
     local_data = _load_local_version(resource_dir)
-    skill_location = local_data.get(
-        "skill_location",
-        "/github/awesome-copilot/skills/eval-driven-dev/",
-    )
-    version_url = f"https://raw.githubusercontent.com{skill_location}version.json"
+
+    # Prefer an explicit version URL if provided in version.json; otherwise,
+    # construct one using the known repository location and a relative
+    # skill_location path (defaulting to the eval-driven-dev skill directory).
+    version_url = local_data.get("version_url")
+    if not version_url:
+        skill_location = local_data.get(
+            "skill_location",
+            "skills/eval-driven-dev/",
+        )
+        version_url = (
+            "https://raw.githubusercontent.com/"
+            "github/awesome-copilot/main/"
+            f"{skill_location}resources/version.json"
+        )
     local_version = local_data.get("version", "0.0.0")
 
     print(
