@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check whether the eval-driven-dev skill is outdated and update it if needed."""
+"""Check whether the eval-driven-dev skill is outdated."""
 
 from __future__ import annotations
 
