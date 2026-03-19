@@ -36,7 +36,7 @@ python accessibility_report.py
 import asyncio
 from copilot import (
     CopilotClient, SessionConfig, MessageOptions,
-    SessionEvent, SessionEventType,
+    SessionEvent,
 )
 
 # ============================================================================
@@ -80,7 +80,7 @@ async def main():
 
     # Set up streaming event handling
     def handle_event(event: SessionEvent):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
+        if event.type.value == "assistant.message_delta":
             print(event.data.delta_content or "", end="", flush=True)
         elif event.type.value == "session.idle":
             done.set()
@@ -198,7 +198,7 @@ Unlike `send_and_wait`, this recipe uses streaming for real-time output:
 
 ```python
 def handle_event(event: SessionEvent):
-    if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
+    if event.type.value == "assistant.message_delta":
         print(event.data.delta_content or "", end="", flush=True)
     elif event.type.value == "session.idle":
         done.set()
