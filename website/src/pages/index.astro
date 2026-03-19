@@ -5,8 +5,29 @@ import Modal from '../components/Modal.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<StarlightPage frontmatter={{ title: 'Awesome GitHub Copilot', template: 'splash', pagefind: false, prev: false, next: false, editUrl: false }} hasSidebar={false}>
-  <main id="main-content">
+<StarlightPage
+  frontmatter={{
+    title: 'Awesome GitHub Copilot',
+    description:
+      'Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience',
+    template: 'splash',
+    pagefind: false,
+    prev: false,
+    next: false,
+    editUrl: false,
+    head: [
+      {
+        tag: 'meta',
+        attrs: {
+          property: 'og:type',
+          content: 'website',
+        },
+      },
+    ],
+  }}
+  hasSidebar={false}
+>
+  <div id="main-content">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="container">
@@ -14,8 +35,18 @@ const base = import.meta.env.BASE_URL;
         <p class="hero-subtitle">Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience</p>
         <div class="hero-search">
           <label for="global-search" class="sr-only">Search all resources</label>
-          <input type="text" id="global-search" placeholder="Search all resources..." autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
-          <div id="search-results" class="search-results hidden" role="listbox" aria-label="Search results"></div>
+          <p id="global-search-help" class="sr-only">
+            Type at least two characters to show matching resources, then press the Down Arrow key to move into the results.
+          </p>
+          <p id="global-search-status" class="sr-only" aria-live="polite"></p>
+          <input
+            type="text"
+            id="global-search"
+            placeholder="Search all resources..."
+            autocomplete="off"
+            aria-describedby="global-search-help global-search-status"
+          >
+          <div id="search-results" class="search-results hidden" aria-label="Search results"></div>
         </div>
       </div>
     </section>
@@ -92,7 +123,7 @@ const base = import.meta.env.BASE_URL;
       </div>
     </section>
 
-  </main>
+  </div>
 
   <Modal />
 

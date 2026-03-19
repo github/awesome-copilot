@@ -97,9 +97,28 @@
     },
     {
       "name": "dataverse",
-      "source": "dataverse",
-      "description": "Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands.",
-      "version": "1.0.0"
+      "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/Dataverse-skills",
+      "keywords": [
+        "dataverse",
+        "power-platform",
+        "microsoft",
+        "mcp",
+        "python",
+        "sdk"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/Dataverse-skills",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/Dataverse-skills",
+        "path": ".github/plugins/dataverse"
+      }
     },
     {
       "name": "dataverse-sdk-for-python",
@@ -111,6 +130,68 @@
       "name": "devops-oncall",
       "source": "devops-oncall",
       "description": "A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "dotnet",
+      "description": "Common everyday C#/.NET coding skills. Expected to be useful to all .NET developers.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/skills",
+      "keywords": [
+        "dotnet",
+        "csharp",
+        "coding",
+        "skills",
+        "csharp-script",
+        "single-file",
+        "nuget-publishing",
+        "pinvoke"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/skills",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills",
+        "path": "plugins/dotnet"
+      }
+    },
+    {
+      "name": "dotnet-diag",
+      "description": "Skills for .NET performance investigations, debugging, and incident analysis.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/skills",
+      "keywords": [
+        "dotnet",
+        "diagnostics",
+        "performance",
+        "debugging",
+        "tracing",
+        "symbolicate",
+        "android-tombstone",
+        "dump-collection",
+        "microbenchmarking",
+        "clr-activation"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/skills",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills",
+        "path": "plugins/dotnet-diag"
+      }
+    },
+    {
+      "name": "doublecheck",
+      "source": "doublecheck",
+      "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
       "version": "1.0.0"
     },
     {
@@ -298,6 +379,30 @@
       "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
       "version": "1.0.0"
+    },
+    {
+      "name": "skills-for-copilot-studio",
+      "description": "Microsoft Copilot Studio plugins for AI coding agents",
+      "version": "1.0.3",
+      "author": {
+        "name": "Microsoft Copilot Studio CAT Team",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
+      "keywords": [
+        "copilot",
+        "copilot-studio",
+        "studio",
+        "agent",
+        "microsoft",
+        "coding"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/skills-for-copilot-studio",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/skills-for-copilot-studio"
+      }
     },
     {
       "name": "software-engineering-team",

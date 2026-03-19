@@ -1,6 +1,7 @@
 ## Pull Request Checklist
 
 - [ ] I have read and followed the [CONTRIBUTING.md](https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md) guidelines.
+- [ ] I have read and followed the [Guidance for submissions involving paid services](https://github.com/github/awesome-copilot/discussions/968).
 - [ ] My contribution adds a new instruction, prompt, agent, skill, or workflow file in the correct directory.
 - [ ] The file follows the required naming convention.
 - [ ] The content is clearly structured and follows the example format.

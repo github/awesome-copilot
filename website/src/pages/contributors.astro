@@ -4,7 +4,7 @@ import PageHeader from '../components/PageHeader.astro';
 ---
 
 <StarlightPage frontmatter={{ title: 'Contributors', description: 'The wonderful people who have contributed to Awesome GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🌟 Contributors" description="The wonderful people who have contributed to Awesome GitHub Copilot" />
 
     <div class="page-content">
@@ -281,7 +281,7 @@ import PageHeader from '../components/PageHeader.astro';
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
 
   <style>
@@ -332,6 +332,7 @@ import PageHeader from '../components/PageHeader.astro';
       background: var(--sl-color-bg);
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       gap: 0.15rem;
+      margin-top: 0;
     }
 
     .contributor-grid td:hover {

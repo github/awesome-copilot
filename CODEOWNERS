@@ -24,3 +24,19 @@
 
 # Added via #codeowner from PR #889
 /skills/copilot-spaces/ @labudis
+
+# Added via #codeowner from PR #978
+/agents/doublecheck.agent.md @dvelton
+/plugins/doublecheck/ @dvelton
+/skills/doublecheck/ @dvelton
+
+# Added via #codeowner from PR #990
+/skills/issue-fields-migration/ @labudis
+
+# Added via #codeowner from PR #1009
+/skills/publish-to-pages/ @AndreaGriffiths11
+
+# Added via #codeowner from PR #1049
+/skills/codeql/ @VeVarunSharma
+/skills/dependabot/ @VeVarunSharma
+/skills/secret-scanning/ @VeVarunSharma

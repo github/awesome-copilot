@@ -48,8 +48,7 @@ try
                 // Pin the agent to the project directory
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                OnPermissionRequest = PermissionHandler.ApproveAll,
             });
 
         try

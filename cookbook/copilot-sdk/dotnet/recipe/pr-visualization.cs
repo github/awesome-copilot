@@ -132,6 +132,7 @@ await client.StartAsync();
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     SystemMessage = new SystemMessageConfig
     {
         Content = $"""

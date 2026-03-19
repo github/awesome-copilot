@@ -259,3 +259,51 @@ tools:
       - copilot
       - agent
       - manager
+
+  - id: groundhog-day
+    name: Groundhog Day
+    description: >-
+      Autonomous backup agent for GitHub Copilot CLI skills. Watches your
+      ~/.copilot/skills/ directory in real time, commits every change with
+      meaningful messages, and pushes to GitHub automatically. Starts on boot
+      via macOS LaunchAgent, restarts if it crashes, and requires zero
+      interaction after setup. One-line installer creates a backup repo,
+      seeds it with existing skills, and starts the watcher. Includes a daily
+      health check, sync locking, push retry, and empty-source protection.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - macOS or Linux
+      - GitHub CLI (gh) authenticated
+      - git
+      - fswatch (installed automatically via Homebrew on macOS)
+    links:
+      github: https://github.com/DUBSOpenHub/groundhog-day
+    features:
+      - "👀 Real-Time Watch: Detects every create, edit, rename, and delete in your skills directory using fswatch"
+      - "🔄 Auto Sync: Commits and pushes changes to GitHub with meaningful commit messages"
+      - "🏥 Daily Health Check: Automated 6 AM checkup validates watcher, repo state, remote sync, and log health"
+      - "⚡ One-Line Install: curl installer creates a backup repo, seeds existing skills, and starts the watcher"
+      - "🛡️ Built-In Safety: Sync locking, push retry, empty-source guard, and graceful shutdown"
+      - "🔁 Survives Reboots: macOS LaunchAgent keeps it alive across restarts"
+    configuration:
+      type: bash
+      content: |
+        # Install in one line
+        curl -fsSL https://raw.githubusercontent.com/DUBSOpenHub/groundhog-day/main/install.sh | bash
+
+        # Or install with Homebrew
+        brew install DUBSOpenHub/tap/groundhog-day
+
+        # Check status
+        groundhog status
+
+        # Run a manual health check
+        groundhog checkup
+    tags:
+      - cli
+      - backup
+      - skills
+      - automation
+      - macos
+      - launchagent
