@@ -33,7 +33,7 @@ AI coding agents can autonomously execute shell commands, file operations, and d
 1. Copy the hook folder to your repository:
 
    ```bash
-   cp -r hooks/tool-guardian .github/hooks/
+   cp -r .github/hooks/tool-guardian your-repo/.github/hooks/
    ```
 
 2. Ensure the script is executable:
@@ -110,14 +110,14 @@ The hook is configured in `hooks.json` to run on the `preToolUse` event:
 ### Safe command (exit 0)
 
 ```bash
-echo '{"toolName":"bash","toolInput":"git status"}' | bash hooks/tool-guardian/guard-tool.sh
+echo '{"toolName":"bash","toolInput":"git status"}' | bash .github/hooks/tool-guardian/guard-tool.sh
 ```
 
 ### Blocked command (exit 1)
 
 ```bash
 echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
-  GUARD_MODE=block bash hooks/tool-guardian/guard-tool.sh
+  GUARD_MODE=block bash .github/hooks/tool-guardian/guard-tool.sh
 ```
 
 ```
@@ -135,14 +135,14 @@ echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
 
 ```bash
 echo '{"toolName":"bash","toolInput":"rm -rf /"}' | \
-  GUARD_MODE=warn bash hooks/tool-guardian/guard-tool.sh
+  GUARD_MODE=warn bash .github/hooks/tool-guardian/guard-tool.sh
 ```
 
 ### Allowlisted command (exit 0)
 
 ```bash
 echo '{"toolName":"bash","toolInput":"git push --force origin main"}' | \
-  TOOL_GUARD_ALLOWLIST="git push --force" bash hooks/tool-guardian/guard-tool.sh
+  TOOL_GUARD_ALLOWLIST="git push --force" bash .github/hooks/tool-guardian/guard-tool.sh
 ```
 
 ## Log Format
