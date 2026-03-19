@@ -230,15 +230,6 @@ See: [Advanced Security Plugin — Secret Scanning Skill](https://github.com/git
 
 > Announced in [Secret scanning in AI coding agents via the GitHub MCP Server](https://github.blog/changelog/2026-03-17-secret-scanning-in-ai-coding-agents-via-the-github-mcp-server/) (March 2026)
 
-### When to use which
-
-| Need | Use |
-|---|---|
-| Enable/configure secret scanning on a repo | This skill |
-| Set up push protection or custom patterns | This skill |
-| Triage or remediate secret scanning alerts | This skill |
-| Scan code for secrets before committing (in agent) | Advanced Security plugin |
-
 ## Reference Files
 
 For detailed documentation, load the following reference files as needed:
