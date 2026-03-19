@@ -1,57 +1,63 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import agentsData from '../../public/data/agents.json';
 import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { renderAgentsHtml, sortAgents } from '../scripts/pages/agents-render';
+
+const initialItems = sortAgents(agentsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Custom Agents', description: 'Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🤖 Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" />
 
     <div class="page-content">
       <div class="container">
-        <div class="search-bar">
-          <label for="search-input" class="sr-only">Search agents</label>
-          <input type="text" id="search-input" placeholder="Search agents..." autocomplete="off">
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search agents</label>
+            <input type="text" id="search-input" placeholder="Search agents..." autocomplete="off">
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-model">Model:</label>
+              <select id="filter-model" multiple aria-label="Filter by model"></select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-tool">Tool:</label>
+              <select id="filter-tool" multiple aria-label="Filter by tool"></select>
+            </div>
+            <div class="filter-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="filter-handoffs">
+                Has Handoffs
+              </label>
+            </div>
+            <div class="filter-group">
+              <label for="sort-select">Sort:</label>
+              <select id="sort-select" aria-label="Sort by">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently Updated</option>
+              </select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
         </div>
-        
-        <!-- Filters -->
-        <div class="filters-bar" id="filters-bar">
-          <div class="filter-group">
-            <label for="filter-model">Model:</label>
-            <select id="filter-model" multiple aria-label="Filter by model"></select>
-          </div>
-          <div class="filter-group">
-            <label for="filter-tool">Tool:</label>
-            <select id="filter-tool" multiple aria-label="Filter by tool"></select>
-          </div>
-          <div class="filter-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="filter-handoffs">
-              Has Handoffs
-            </label>
-          </div>
-          <div class="filter-group">
-            <label for="sort-select">Sort:</label>
-            <select id="sort-select" aria-label="Sort by">
-              <option value="title">Name (A-Z)</option>
-              <option value="lastUpdated">Recently Updated</option>
-            </select>
-          </div>
-          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-        </div>
-        
-        <div class="results-count" id="results-count" aria-live="polite"></div>
-        <div class="resource-list" id="resource-list" role="list">
-          <div class="loading" aria-live="polite">Loading agents...</div>
-        </div>
+
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} agents</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderAgentsHtml(initialItems)}></div>
         <ContributeCTA resourceType="agents" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
+  <EmbeddedPageData filename="agents.json" data={agentsData} />
 
   <script>
     import '../scripts/pages/agents';

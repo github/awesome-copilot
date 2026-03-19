@@ -1,3 +1,5 @@
+import { getEmbeddedData as getEmbeddedPageData } from "./embedded-data";
+
 /**
  * Utility functions for the Awesome Copilot website
  */
@@ -43,6 +45,9 @@ export function getBasePath(): string {
 export async function fetchData<T = unknown>(
   filename: string
 ): Promise<T | null> {
+  const embeddedData = getEmbeddedPageData<T>(filename);
+  if (embeddedData !== null) return embeddedData;
+
   try {
     const basePath = getBasePath();
     const response = await fetch(`${basePath}data/${filename}`);
@@ -52,6 +57,77 @@ export async function fetchData<T = unknown>(
     console.error(`Error fetching ${filename}:`, error);
     return null;
   }
+}
+
+let jsZipPromise: Promise<typeof import("./jszip")> | null = null;
+
+/**
+ * Lazy-load JSZip only when downloads are requested
+ */
+export async function loadJSZip() {
+  jsZipPromise ??= import("./jszip");
+  const { default: JSZip } = await jsZipPromise;
+  return JSZip;
+}
+
+export interface ZipDownloadFile {
+  name: string;
+  path: string;
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadZipBundle(
+  bundleName: string,
+  files: ZipDownloadFile[]
+): Promise<void> {
+  if (files.length === 0) {
+    throw new Error("No files found for this download.");
+  }
+
+  const JSZip = await loadJSZip();
+  const zip = new JSZip();
+  const folder = zip.folder(bundleName);
+
+  const fetchPromises = files.map(async (file) => {
+    try {
+      const response = await fetch(getRawGitHubUrl(file.path));
+      if (!response.ok) return null;
+
+      return {
+        name: file.name,
+        content: await response.text(),
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const results = await Promise.all(fetchPromises);
+  let addedFiles = 0;
+
+  for (const result of results) {
+    if (result && folder) {
+      folder.file(result.name, result.content);
+      addedFiles++;
+    }
+  }
+
+  if (addedFiles === 0) {
+    throw new Error("Failed to fetch any files");
+  }
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  triggerBlobDownload(blob, `${bundleName}.zip`);
 }
 
 /**
@@ -140,15 +216,7 @@ export async function downloadFile(filePath: string): Promise<boolean> {
     const filename = filePath.split("/").pop() || "file.md";
 
     const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    triggerBlobDownload(blob, filename);
 
     return true;
   } catch (error) {
@@ -209,9 +277,12 @@ export function debounce<T extends (...args: unknown[]) => void>(
  * Escape HTML to prevent XSS
  */
 export function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /**
@@ -246,10 +317,8 @@ export function truncate(text: string | undefined, maxLength: number): string {
 export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
   if (filePath.endsWith(".instructions.md")) return "instruction";
-  if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
-    return "skill";
-  if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
-    return "hook";
+  if (/(^|\/)skills\//.test(filePath)) return "skill";
+  if (/(^|\/)hooks\//.test(filePath)) return "hook";
   if (/(^|\/)workflows\//.test(filePath) && filePath.endsWith(".md"))
     return "workflow";
   // Check for plugin directories (e.g., plugins/<id>, plugins/<id>/)

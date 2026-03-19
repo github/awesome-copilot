@@ -10,7 +10,8 @@ await client.StartAsync();
 // Define tools for file operations
 var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5"
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
 // Wait for completion
@@ -36,8 +37,7 @@ session.On(evt =>
 });
 
 // Ask Copilot to organize files
-// Change this to your target folder
-var targetFolder = @"C:\Users\Me\Downloads";
+var targetFolder = args.FirstOrDefault() ?? Environment.CurrentDirectory;
 
 await session.SendAsync(new MessageOptions
 {

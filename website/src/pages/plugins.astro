@@ -1,12 +1,17 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import pluginsData from '../../public/data/plugins.json';
 import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { renderPluginsHtml } from '../scripts/pages/plugins-render';
+
+const initialItems = pluginsData.items;
 ---
 
 <StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="🔌 Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" />
 
     <div class="page-content">
@@ -20,35 +25,30 @@ import PageHeader from '../components/PageHeader.astro';
           <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
         </div>
 
-        <div class="search-bar">
-          <label for="search-input" class="sr-only">Search plugins</label>
-          <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search plugins</label>
+            <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
+          </div>
+
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-tag">Tag:</label>
+              <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
         </div>
 
-        <div class="filters-bar" id="filters-bar">
-          <div class="filter-group">
-            <label for="filter-tag">Tag:</label>
-            <select id="filter-tag" multiple aria-label="Filter by tag"></select>
-          </div>
-          <div class="filter-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="filter-featured">
-              Featured Only
-            </label>
-          </div>
-          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-        </div>
-
-        <div class="results-count" id="results-count" aria-live="polite"></div>
-        <div class="resource-list" id="resource-list" role="list">
-          <div class="loading" aria-live="polite">Loading plugins...</div>
-        </div>
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} plugins</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderPluginsHtml(initialItems)}></div>
         <ContributeCTA resourceType="plugins" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
+  <EmbeddedPageData filename="plugins.json" data={pluginsData} />
 
   <script>
     import '../scripts/pages/plugins';

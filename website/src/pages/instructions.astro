@@ -1,46 +1,52 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import instructionsData from '../../public/data/instructions.json';
 import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import { renderInstructionsHtml, sortInstructions } from '../scripts/pages/instructions-render';
+
+const initialItems = sortInstructions(instructionsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Instructions', description: 'Coding standards and best practices for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <main id="main-content">
+  <div id="main-content">
     <PageHeader title="📋 Instructions" description="Coding standards and best practices for GitHub Copilot" />
 
     <div class="page-content">
       <div class="container">
-        <div class="search-bar">
-          <label for="search-input" class="sr-only">Search instructions</label>
-          <input type="text" id="search-input" placeholder="Search instructions..." autocomplete="off">
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search instructions</label>
+            <input type="text" id="search-input" placeholder="Search instructions..." autocomplete="off">
+          </div>
+          
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-extension">File Extension:</label>
+              <select id="filter-extension" multiple aria-label="Filter by file extension"></select>
+            </div>
+            <div class="filter-group">
+              <label for="sort-select">Sort:</label>
+              <select id="sort-select" aria-label="Sort by">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently Updated</option>
+              </select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
         </div>
         
-        <div class="filters-bar" id="filters-bar">
-          <div class="filter-group">
-            <label for="filter-extension">File Extension:</label>
-            <select id="filter-extension" multiple aria-label="Filter by file extension"></select>
-          </div>
-          <div class="filter-group">
-            <label for="sort-select">Sort:</label>
-            <select id="sort-select" aria-label="Sort by">
-              <option value="title">Name (A-Z)</option>
-              <option value="lastUpdated">Recently Updated</option>
-            </select>
-          </div>
-          <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-        </div>
-        
-        <div class="results-count" id="results-count" aria-live="polite"></div>
-        <div class="resource-list" id="resource-list" role="list">
-          <div class="loading" aria-live="polite">Loading instructions...</div>
-        </div>
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} instructions</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderInstructionsHtml(initialItems)}></div>
         <ContributeCTA resourceType="instructions" />
       </div>
     </div>
-  </main>
+  </div>
 
   <Modal />
+  <EmbeddedPageData filename="instructions.json" data={instructionsData} />
 
   <script>
     import '../scripts/pages/instructions';

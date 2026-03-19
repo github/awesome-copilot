@@ -58,7 +58,11 @@ try
 
         // Fresh session each iteration — context isolation is the point
         var session = await client.CreateSessionAsync(
-            new SessionConfig { Model = "gpt-5.1-codex-mini" });
+            new SessionConfig
+            {
+                Model = "gpt-5.1-codex-mini",
+                OnPermissionRequest = PermissionHandler.ApproveAll
+            });
         try
         {
             var done = new TaskCompletionSource<string>();
@@ -125,8 +129,7 @@ try
                 // Pin the agent to the project directory
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                OnPermissionRequest = PermissionHandler.ApproveAll,
             });
         try
         {
