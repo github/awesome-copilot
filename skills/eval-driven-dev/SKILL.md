@@ -9,7 +9,7 @@ This skill is about doing the work, not describing it. When a user asks you to s
 
 ## Version check (always first)
 
-Before doing anything else with this skill, check whether a newer version of the skill is available on github by running the script `check_version.py`.
+Before doing anything else with this skill, check whether a newer version of the skill is available on github by running `python resources/check_version.py` from the `skills/eval-driven-dev` skill root.
 
 If there is a newer version, you should reinstall the current skill with `npx skills add` and also upgrade the `pixie-qa` package in the user's environment (e.g. `pip install --upgrade pixie-qa`, or `uv`, or `poetry` etc).
 
