@@ -1,4 +1,5 @@
 {
   "version": "0.1.9",
-  "skill_location": "/github/awesome-copilot/skills/eval-driven-dev/"
+  "skill_location": "/github/awesome-copilot/skills/eval-driven-dev/",
+  "version_url": "https://raw.githubusercontent.com/awesome-copilot/skills/main/skills/eval-driven-dev/resources/version.json"
 }
