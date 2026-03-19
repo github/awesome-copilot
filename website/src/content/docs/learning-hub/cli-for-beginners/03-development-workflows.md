@@ -1,10 +1,10 @@
 ---
-title: '03 · Development Workflows'
-description: 'Apply Copilot CLI to real development loops such as code review, refactoring, debugging, testing, and git without losing beginner-safe habits.'
+title: "Development Workflows"
+description: "Apply Copilot CLI to real development loops such as code review, refactoring, debugging, testing, and git without losing beginner-safe habits."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '15 minutes'
+estimatedReadingTime: "15 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -54,16 +54,17 @@ Developers do not solve every problem the same way. Reviewing code, fixing a bug
 
 <img src="/images/learning-hub/copilot-cli-for-beginners/03/five-workflows-swimlane.png" alt="Five beginner-friendly Copilot CLI workflows shown as swimlanes" width="800" />
 
-| I want to... | Jump to |
-| --- | --- |
-| review changes before committing | [Workflow 1: Code review](#workflow-1-code-review) |
-| clean up messy code safely | [Workflow 2: Refactoring](#workflow-2-refactoring) |
-| track down a bug with real symptoms | [Workflow 3: Debugging](#workflow-3-debugging) |
-| generate broader test coverage | [Workflow 4: Test generation](#workflow-4-test-generation) |
-| improve commit and PR hygiene | [Workflow 5: Git integration](#workflow-5-git-integration) |
-| practice an end-to-end flow | [Putting it all together](#putting-it-all-together) |
+| I want to...                        | Jump to                                                    |
+| ----------------------------------- | ---------------------------------------------------------- |
+| review changes before committing    | [Workflow 1: Code review](#workflow-1-code-review)         |
+| clean up messy code safely          | [Workflow 2: Refactoring](#workflow-2-refactoring)         |
+| track down a bug with real symptoms | [Workflow 3: Debugging](#workflow-3-debugging)             |
+| generate broader test coverage      | [Workflow 4: Test generation](#workflow-4-test-generation) |
+| improve commit and PR hygiene       | [Workflow 5: Git integration](#workflow-5-git-integration) |
+| practice an end-to-end flow         | [Putting it all together](#putting-it-all-together)        |
 
 <a id="workflow-1-code-review"></a>
+
 <details>
 <summary><strong>Workflow 1: Code review</strong> — review files, inspect diffs, and use <code>/review</code></summary>
 
@@ -99,10 +100,10 @@ Generic reviews are okay. Focused reviews are usually better.
 
 Before using `/review`, it helps to know what git is showing you:
 
-| Change type | What it means | How to inspect it |
-| --- | --- | --- |
-| **Staged changes** | files added to the next commit | `git diff --staged` |
-| **Unstaged changes** | edited files not yet staged | `git diff` |
+| Change type          | What it means                  | How to inspect it   |
+| -------------------- | ------------------------------ | ------------------- |
+| **Staged changes**   | files added to the next commit | `git diff --staged` |
+| **Unstaged changes** | edited files not yet staged    | `git diff`          |
 
 ### Use the built-in review flow
 
@@ -117,12 +118,14 @@ That built-in flow is especially useful when you already have local edits and wa
 
 ![Code Review Demo](/images/learning-hub/copilot-cli-for-beginners/03/code-review-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 </details>
 
 <a id="workflow-2-refactoring"></a>
+
 <details>
 <summary><strong>Workflow 2: Refactoring</strong> — improve structure without changing the goal</summary>
 
@@ -158,6 +161,7 @@ Low-risk changes such as naming, helper extraction, type hints, and docstrings a
 </details>
 
 <a id="workflow-3-debugging"></a>
+
 <details>
 <summary><strong>Workflow 3: Debugging</strong> — describe the symptom, not just the file</summary>
 
@@ -195,12 +199,14 @@ A useful debugging prompt usually includes:
 
 ![Fix Bug Demo](/images/learning-hub/copilot-cli-for-beginners/03/fix-bug-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 </details>
 
 <a id="workflow-4-test-generation"></a>
+
 <details>
 <summary><strong>Workflow 4: Test generation</strong> — ask for edge cases, not just happy paths</summary>
 
@@ -239,12 +245,14 @@ That sequence keeps Copilot CLI helpful while leaving verification in your hands
 
 ![Test Generation Demo](/images/learning-hub/copilot-cli-for-beginners/03/test-gen-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 </details>
 
 <a id="workflow-5-git-integration"></a>
+
 <details>
 <summary><strong>Workflow 5: Git integration</strong> — explain diffs, draft commit messages, and summarize changes</summary>
 
@@ -274,7 +282,8 @@ Always read the generated commit message, PR summary, or checklist before you us
 
 ![Git Integration Demo](/images/learning-hub/copilot-cli-for-beginners/03/git-integration-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 </details>
@@ -290,6 +299,7 @@ If you are unsure about an API, library, or implementation pattern, ask Copilot 
 That often leads to better plans and fewer rework cycles.
 
 <a id="putting-it-all-together"></a>
+
 ## Putting it all together
 
 Here is a realistic beginner-friendly bug-fix workflow you can try end to end:

@@ -1,10 +1,10 @@
 ---
-title: '05 · Skills'
-description: 'Learn how skills auto-load task instructions, build a beginner-friendly skill, and practice using skills as repeatable workflow playbooks.'
+title: "Skills"
+description: "Learn how skills auto-load task instructions, build a beginner-friendly skill, and practice using skills as repeatable workflow playbooks."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '13 minutes'
+estimatedReadingTime: "13 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -20,7 +20,7 @@ relatedArticles:
 
 > **Turn a good prompt into a reusable playbook, let Copilot apply it automatically, and make common tasks more consistent without typing the same checklist every time.**
 
-Skills sit between general prompting and full custom agents. They do not change *who* Copilot is. They change *how a specific task gets carried out* by loading extra instructions when your prompt matches the skill.
+Skills sit between general prompting and full custom agents. They do not change _who_ Copilot is. They change _how a specific task gets carried out_ by loading extra instructions when your prompt matches the skill.
 
 > **Hands-on note:** The practice tasks in this chapter assume you are using the companion repo: [`github/copilot-cli-for-beginners`](https://github.com/github/copilot-cli-for-beginners). If you are following along inside this repository, use the top-level `skills/` folder to study real examples and patterns.
 
@@ -40,7 +40,7 @@ A drill is already useful, but the right attachment makes it much more effective
 
 <img src="/images/learning-hub/copilot-cli-for-beginners/05/power-tools-analogy.png" alt="Power tools analogy showing skills as specialized attachments for Copilot" width="800" />
 
-## *New to Skills?* Start Here!
+## _New to Skills?_ Start Here!
 
 If skills are new to you, do these three things first:
 
@@ -88,11 +88,11 @@ That is different from agents:
 
 <img src="/images/learning-hub/copilot-cli-for-beginners/05/skills-agents-mcp-comparison.png" alt="Comparison of agents, skills, and MCP in a Copilot workflow" width="800" />
 
-| Tool | What it changes | Best when... |
-| --- | --- | --- |
-| **Custom instructions** | Background project guidance | You want rules active in every session |
-| **Agent** | The specialist helping you | You want broad expertise across many tasks |
-| **Skill** | The steps Copilot follows for one kind of task | You want a repeatable checklist or output format |
+| Tool                    | What it changes                                | Best when...                                     |
+| ----------------------- | ---------------------------------------------- | ------------------------------------------------ |
+| **Custom instructions** | Background project guidance                    | You want rules active in every session           |
+| **Agent**               | The specialist helping you                     | You want broad expertise across many tasks       |
+| **Skill**               | The steps Copilot follows for one kind of task | You want a repeatable checklist or output format |
 
 A useful way to remember it:
 
@@ -131,7 +131,8 @@ What happens behind the scenes:
 
 ![Skill Trigger Demo](/images/learning-hub/copilot-cli-for-beginners/05/skill-trigger-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 This is why skills matter: they turn your team's “remember to also check...” knowledge into something reusable.
@@ -142,9 +143,9 @@ This is why skills matter: they turn your team's “remember to also check...”
 
 In a normal project, skills usually live in one of these locations:
 
-| Location | Scope |
-| --- | --- |
-| `.github/skills/` | Repo-specific skills shared with the team |
+| Location             | Scope                                     |
+| -------------------- | ----------------------------------------- |
+| `.github/skills/`    | Repo-specific skills shared with the team |
 | `~/.copilot/skills/` | Personal skills available across projects |
 
 > **Repo note:** This repository keeps examples in the top-level `skills/` directory because it catalogs shareable resources. In your own repo, prefer `.github/skills/`.
@@ -170,6 +171,7 @@ description: Use for security reviews, OWASP checks, and vulnerability scanning
 # Security Audit
 
 Check for:
+
 - injection vulnerabilities
 - missing authentication or authorization checks
 - plaintext secrets or sensitive logging
@@ -197,13 +199,13 @@ The more your description sounds like real prompts, the easier it is for Copilot
 
 The `/skills` command helps you inspect or refresh what is installed:
 
-| Command | What it does |
-| --- | --- |
-| `/skills list` | Shows all installed skills |
-| `/skills info <name>` | Displays details for one skill |
-| `/skills reload` | Reloads skills after you edit `SKILL.md` |
-| `/skills add <name>` | Adds or enables a skill |
-| `/skills remove <name>` | Removes or disables a skill |
+| Command                 | What it does                             |
+| ----------------------- | ---------------------------------------- |
+| `/skills list`          | Shows all installed skills               |
+| `/skills info <name>`   | Displays details for one skill           |
+| `/skills reload`        | Reloads skills after you edit `SKILL.md` |
+| `/skills add <name>`    | Adds or enables a skill                  |
+| `/skills remove <name>` | Removes or disables a skill              |
 
 A typical management loop looks like this:
 
@@ -220,7 +222,8 @@ copilot
 
 ![List Skills Demo](/images/learning-hub/copilot-cli-for-beginners/05/list-skills-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ### Finding community skills

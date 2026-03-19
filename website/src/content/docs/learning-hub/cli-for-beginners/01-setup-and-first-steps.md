@@ -1,10 +1,10 @@
 ---
-title: '01 · Setup and First Steps'
-description: 'Experience your first real Copilot CLI wins, learn the three main modes, and work through hands-on practice and assignment tasks.'
+title: "Setup and First Steps"
+description: "Experience your first real Copilot CLI wins, learn the three main modes, and work through hands-on practice and assignment tasks."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '14 minutes'
+estimatedReadingTime: "14 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -84,7 +84,8 @@ Then ask Copilot CLI to review one of the sample files:
 
 ![Code Review Demo](/images/learning-hub/copilot-cli-for-beginners/01/code-review-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what's shown here._
+
 </details>
 
 **Takeaway:** A focused code review can happen in seconds, and you never had to leave the terminal.
@@ -102,7 +103,8 @@ Still in the same session, try:
 
 ![Explain Code Demo](/images/learning-hub/copilot-cli-for-beginners/01/explain-code-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what's shown here._
+
 </details>
 
 A strong answer will not just paraphrase the file. It will explain the structure and intent in plain language, which is why this is such a good workflow for onboarding or learning a new codebase.
@@ -121,7 +123,8 @@ Now ask for a small piece of useful code:
 
 ![Generate Code Demo](/images/learning-hub/copilot-cli-for-beginners/01/generate-code-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what's shown here._
+
 </details>
 
 When you are done exploring, exit with:
@@ -142,11 +145,11 @@ The next beginner skill is knowing **how** to ask for help. Copilot CLI supports
 
 Think of Copilot CLI like going out to eat:
 
-| Mode | Dining analogy | Best when... |
-|---|---|---|
-| **Plan** | GPS route to the restaurant | You want to map out a bigger task before changing code |
-| **Interactive** | Talking to the waiter | You want back-and-forth discussion and follow-up questions |
-| **Programmatic** | Drive-through ordering | You want one quick answer in the shell or a script |
+| Mode             | Dining analogy              | Best when...                                               |
+| ---------------- | --------------------------- | ---------------------------------------------------------- |
+| **Plan**         | GPS route to the restaurant | You want to map out a bigger task before changing code     |
+| **Interactive**  | Talking to the waiter       | You want back-and-forth discussion and follow-up questions |
+| **Programmatic** | Drive-through ordering      | You want one quick answer in the shell or a script         |
 
 <img src="/images/learning-hub/copilot-cli-for-beginners/01/ordering-food-analogy.png" alt="Three ways to use GitHub Copilot CLI: Plan Mode, Interactive Mode, and Programmatic Mode" width="800" />
 
@@ -230,20 +233,21 @@ Programmatic mode gives you one result and exits. That makes it useful for scrip
 - Use **Programmatic** when you want one answer and then move on
 
 Autopilot exists too, but it makes more sense after you are comfortable reviewing plans and verifying results yourself.
+
 </details>
 
 ## Essential slash commands
 
 Start with these commands first:
 
-| Command | What it does | When to use it |
-|---|---|---|
-| `/help` | Shows available commands | When you forget a command |
-| `/clear` | Clears the conversation | When you switch topics |
-| `/plan` | Builds a step-by-step plan | For larger features or edits |
-| `/research` | Investigates a topic more deeply | When you need background before coding |
-| `/model` | Shows or changes model selection | When you want to inspect or switch models |
-| `/exit` | Ends the session | When you are done |
+| Command     | What it does                     | When to use it                            |
+| ----------- | -------------------------------- | ----------------------------------------- |
+| `/help`     | Shows available commands         | When you forget a command                 |
+| `/clear`    | Clears the conversation          | When you switch topics                    |
+| `/plan`     | Builds a step-by-step plan       | For larger features or edits              |
+| `/research` | Investigates a topic more deeply | When you need background before coding    |
+| `/model`    | Shows or changes model selection | When you want to inspect or switch models |
+| `/exit`     | Ends the session                 | When you are done                         |
 
 <details>
 <summary>Two more commands to remember later</summary>
@@ -252,6 +256,7 @@ Start with these commands first:
 - `!<command>` runs a shell command directly from inside Copilot CLI, like `!git status`
 
 They are powerful, but they are easier to appreciate once you are already working in a repository.
+
 </details>
 
 ## Practice
@@ -363,11 +368,11 @@ Try the same new task three ways: adding a `list_by_year()` method to the `BookC
 
 ### Common mistakes
 
-| Mistake | What happens | Fix |
-|---|---|---|
-| Typing `exit` instead of `/exit` | Copilot treats it as a prompt, not a command | Start slash commands with `/` |
-| Using `-p` for a multi-turn conversation | Each call starts fresh with no memory | Use interactive mode for iterative work |
-| Forgetting quotes around prompts with `$` or `!` | Your shell interprets special characters first | Wrap programmatic prompts in quotes |
+| Mistake                                          | What happens                                   | Fix                                     |
+| ------------------------------------------------ | ---------------------------------------------- | --------------------------------------- |
+| Typing `exit` instead of `/exit`                 | Copilot treats it as a prompt, not a command   | Start slash commands with `/`           |
+| Using `-p` for a multi-turn conversation         | Each call starts fresh with no memory          | Use interactive mode for iterative work |
+| Forgetting quotes around prompts with `$` or `!` | Your shell interprets special characters first | Wrap programmatic prompts in quotes     |
 
 ### Troubleshooting
 
@@ -376,6 +381,7 @@ Try the same new task three ways: adding a `list_by_year()` method to the `BookC
 **"Context too long"** — use `/clear` or start a fresh session.
 
 **"Rate limit exceeded"** — wait a bit and try again, especially for repeated programmatic calls.
+
 </details>
 
 ## Key takeaways

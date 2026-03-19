@@ -1,10 +1,10 @@
 ---
-title: '02 · Context and Conversations'
-description: 'Learn how richer context, multi-turn conversations, and saved sessions help Copilot CLI give more precise and useful answers.'
+title: "Context and Conversations"
+description: "Learn how richer context, multi-turn conversations, and saved sessions help Copilot CLI give more precise and useful answers."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '14 minutes'
+estimatedReadingTime: "14 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -62,12 +62,12 @@ The first beginner skill is simply telling Copilot CLI what to inspect.
 
 The `@` symbol references files and directories in your prompt.
 
-| Pattern | Use it for | Example |
-| --- | --- | --- |
-| `@file` | one file | `@README.md` |
-| `@file1 @file2` | comparing or connecting files | `@package.json @website/package.json` |
-| `@folder/` | reviewing a directory | `@website/src/content/docs/learning-hub/` |
-| `@image.png` | reviewing a screenshot or mockup | `@images/mockup.png` |
+| Pattern         | Use it for                       | Example                                   |
+| --------------- | -------------------------------- | ----------------------------------------- |
+| `@file`         | one file                         | `@README.md`                              |
+| `@file1 @file2` | comparing or connecting files    | `@package.json @website/package.json`     |
+| `@folder/`      | reviewing a directory            | `@website/src/content/docs/learning-hub/` |
+| `@image.png`    | reviewing a screenshot or mockup | `@images/mockup.png`                      |
 
 ### Try it now
 
@@ -105,7 +105,8 @@ Start with one clear target:
 
 ![File Context Demo](/images/learning-hub/copilot-cli-for-beginners/02/file-context-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ### Reference multiple files
@@ -148,7 +149,8 @@ A strong answer often surfaces things like:
 
 ![Multi-File Demo](/images/learning-hub/copilot-cli-for-beginners/02/multi-file-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ### Demo: understand a codebase quickly
@@ -187,7 +189,8 @@ Each follow-up builds on earlier answers, so you spend less time re-explaining t
 
 ![Multi-Turn Demo](/images/learning-hub/copilot-cli-for-beginners/02/multi-turn-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ### A simple multi-turn pattern
@@ -270,6 +273,7 @@ Once the basics feel comfortable, these next-level patterns are worth exploring:
 - `/session` and `/usage` when you want more session detail
 
 You do not need all of these on day one. The beginner win is knowing when to add context and when to trim it back.
+
 </details>
 
 ## Practice

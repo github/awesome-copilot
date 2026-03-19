@@ -1,10 +1,10 @@
 ---
-title: '04 · Agents and Custom Instructions'
-description: 'Use built-in and custom agents, decide what belongs in always-on instructions, and practice a repeatable Copilot CLI setup.'
+title: "Agents and Custom Instructions"
+description: "Use built-in and custom agents, decide what belongs in always-on instructions, and practice a repeatable Copilot CLI setup."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '12 minutes'
+estimatedReadingTime: "12 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -21,7 +21,7 @@ relatedArticles:
 
 > **Use the right specialist, keep project rules loaded automatically, and make Copilot CLI feel more consistent from one session to the next.**
 
-Chapter 03 showed you what Copilot CLI can *do*. This chapter shows you how to shape *how* it helps. Agents let you bring in a specialist for a task. Custom instructions give Copilot background rules it should remember every time it works in a repository.
+Chapter 03 showed you what Copilot CLI can _do_. This chapter shows you how to shape _how_ it helps. Agents let you bring in a specialist for a task. Custom instructions give Copilot background rules it should remember every time it works in a repository.
 
 > **Hands-on note:** The practice tasks in this chapter assume you are using the companion repo: [`github/copilot-cli-for-beginners`](https://github.com/github/copilot-cli-for-beginners). If you are only reading in the Learning Hub, focus on the concepts and use this repository's `agents/`, `instructions/`, and `AGENTS.md` files as examples.
 
@@ -41,7 +41,7 @@ When you need help with your house, you do not call one generic helper for every
 
 <img src="/images/learning-hub/copilot-cli-for-beginners/04/hiring-specialists-analogy.png" alt="Hiring specialists analogy showing how different agent types help with different tasks" width="800" />
 
-## *New to Agents?* Start Here!
+## _New to Agents?_ Start Here!
 
 If this is your first serious pass through agents, keep the first steps simple:
 
@@ -57,29 +57,29 @@ That is the core mental model for this chapter: **agents are specialists you cho
 
 ## Agents vs. custom instructions
 
-| Tool | Best for | How it activates |
-| --- | --- | --- |
-| **Built-in agent** | Planning, reviewing, initialization, and other built-in workflows | You invoke commands such as `/plan`, `/review`, or `/init` |
-| **Custom agent** | A specialist persona like Python reviewer, docs helper, or security reviewer | You choose it with `/agent` or `copilot --agent <name>` |
-| **Custom instructions** | Coding standards, architecture notes, testing rules, and team expectations | Copilot reads them automatically when it loads the repository |
+| Tool                    | Best for                                                                     | How it activates                                              |
+| ----------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Built-in agent**      | Planning, reviewing, initialization, and other built-in workflows            | You invoke commands such as `/plan`, `/review`, or `/init`    |
+| **Custom agent**        | A specialist persona like Python reviewer, docs helper, or security reviewer | You choose it with `/agent` or `copilot --agent <name>`       |
+| **Custom instructions** | Coding standards, architecture notes, testing rules, and team expectations   | Copilot reads them automatically when it loads the repository |
 
 A good rule of thumb:
 
-- use an **agent** when you want a specialist *right now*
-- use **instructions** when you want guidance to apply *all the time*
+- use an **agent** when you want a specialist _right now_
+- use **instructions** when you want guidance to apply _all the time_
 - use **both together** when you want a specialist working inside your project's rules
 
 ## Built-in agents you can use today
 
 You have already met some built-in agents in earlier chapters. Here they are again with a bit more context.
 
-| Agent | How to invoke it | What it is good at |
-| --- | --- | --- |
-| **Plan** | `/plan` or mode switching | Proposes a step-by-step implementation path before edits happen |
-| **Code review** | `/review` | Reviews current changes and calls out correctness or risk issues |
-| **Init** | `/init` | Scaffolds starting instructions and repo guidance |
-| **Explore** | Automatic | Investigates the codebase when Copilot needs to understand files or structure |
-| **Task** | Automatic | Runs commands such as tests, builds, or validations and reports back cleanly |
+| Agent           | How to invoke it          | What it is good at                                                            |
+| --------------- | ------------------------- | ----------------------------------------------------------------------------- |
+| **Plan**        | `/plan` or mode switching | Proposes a step-by-step implementation path before edits happen               |
+| **Code review** | `/review`                 | Reviews current changes and calls out correctness or risk issues              |
+| **Init**        | `/init`                   | Scaffolds starting instructions and repo guidance                             |
+| **Explore**     | Automatic                 | Investigates the codebase when Copilot needs to understand files or structure |
+| **Task**        | Automatic                 | Runs commands such as tests, builds, or validations and reports back cleanly  |
 
 ```bash
 copilot
@@ -97,10 +97,10 @@ A beginner-friendly takeaway: you do **not** need custom agents on day one. Buil
 
 Custom agents are markdown files ending in `.agent.md`. In your own project, put them in one of these places:
 
-| Location | Scope | Best for |
-| --- | --- | --- |
-| `.github/agents/` | Project-specific | Team-shared agents that belong in the repo |
-| `~/.copilot/agents/` | Personal | Agents you want available across all projects |
+| Location             | Scope            | Best for                                      |
+| -------------------- | ---------------- | --------------------------------------------- |
+| `.github/agents/`    | Project-specific | Team-shared agents that belong in the repo    |
+| `~/.copilot/agents/` | Personal         | Agents you want available across all projects |
 
 > **Repo note:** This repository stores community examples in the top-level `agents/` directory because it is a catalog of reusable resources. In a normal working repo, prefer `.github/agents/`.
 
@@ -130,6 +130,7 @@ A strong beginner-friendly custom agent usually has three ingredients:
 3. **A clear style** — concise, cautious, security-focused, teaching-oriented, and so on
 
 If an agent tries to do everything, it stops feeling special. The best custom agents are narrow enough that you instantly know when to use them.
+
 </details>
 
 ## Two ways to use custom agents
@@ -161,7 +162,8 @@ That is useful when you want a one-purpose session or a repeatable shell command
 
 ![Python Reviewer Demo](/images/learning-hub/copilot-cli-for-beginners/04/python-reviewer-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ## Specialist vs. generic: feel the difference
@@ -194,10 +196,10 @@ Agents help on demand. Custom instructions help all the time.
 
 The three most useful beginner formats are:
 
-| File | Use it when... |
-| --- | --- |
-| `AGENTS.md` | You want one human-readable guide for the whole project |
-| `.github/copilot-instructions.md` | You want one Copilot-specific instruction file |
+| File                                     | Use it when...                                                |
+| ---------------------------------------- | ------------------------------------------------------------- |
+| `AGENTS.md`                              | You want one human-readable guide for the whole project       |
+| `.github/copilot-instructions.md`        | You want one Copilot-specific instruction file                |
 | `.github/instructions/*.instructions.md` | You want smaller rules for a topic, language, or file pattern |
 
 A quick setup path is:
@@ -281,8 +283,8 @@ Use a scratch repo or the companion repo and build a small setup that combines o
 <details>
 <summary>💡 Hints</summary>
 
-- Put *task-specific behavior* in the agent: for example, “focus on Python typing and defensive programming.”
-- Put *repo-wide expectations* in instructions: naming rules, testing commands, or security requirements.
+- Put _task-specific behavior_ in the agent: for example, “focus on Python typing and defensive programming.”
+- Put _repo-wide expectations_ in instructions: naming rules, testing commands, or security requirements.
 - If your agent needs too many jobs, split it into two simpler agents instead.
 </details>
 

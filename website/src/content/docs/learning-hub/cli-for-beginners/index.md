@@ -140,7 +140,7 @@ If you want the richest experience, use the companion repository while reading t
 
 ## Suggested pace
 
-If you are brand new, Chapters 00 through 03 are enough to make Copilot CLI feel useful quickly. A practical beginner loop looks like this:
+If you are brand new, the first three chapters are enough to make Copilot CLI feel useful quickly. A practical beginner loop looks like this:
 
 1. start a session
 2. ask a focused question

@@ -1,5 +1,5 @@
 ---
-title: "07 · Putting It All Together"
+title: "Putting It All Together"
 description: "Combine prompts, planning, agents, skills, MCP, and light automation into a beginner-friendly workflow you can practice end to end."
 authors:
   - GitHub Copilot Learning Hub Team

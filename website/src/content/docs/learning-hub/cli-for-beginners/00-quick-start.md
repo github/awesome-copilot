@@ -1,10 +1,10 @@
 ---
-title: '00 · Quick Start'
-description: 'Install Copilot CLI, sign in, and confirm your first working session with a hands-on quick start that mirrors the companion course.'
+title: "Quick Start"
+description: "Install Copilot CLI, sign in, and confirm your first working session with a hands-on quick start that mirrors the companion course."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '10 minutes'
+estimatedReadingTime: "10 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -18,7 +18,7 @@ relatedArticles:
 prev: false
 ---
 
-> **Goal:** get from *not installed* to *successfully signed in and ready for Chapter 01* with as little friction as possible.
+> **Goal:** get from _not installed_ to _successfully signed in and ready for Chapter 01_ with as little friction as possible.
 
 > **Hands-on note:** This chapter works best with the companion repo [`github/copilot-cli-for-beginners`](https://github.com/github/copilot-cli-for-beginners), because the verification steps use the sample book app from the source course.
 
@@ -193,7 +193,8 @@ A good result is simply a helpful answer that proves the CLI is responding. Then
 
 ![Hello demo in Copilot CLI](/images/learning-hub/copilot-cli-for-beginners/00/hello-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what is shown here.*
+_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+
 </details>
 
 ### Step 2: run the sample book app

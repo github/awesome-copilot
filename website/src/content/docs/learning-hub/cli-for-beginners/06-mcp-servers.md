@@ -1,10 +1,10 @@
 ---
-title: '06 · MCP Servers'
-description: 'Learn how MCP servers let Copilot CLI reach trusted tools and live data, then practice beginner-friendly workflows with GitHub, filesystem, and documentation servers.'
+title: "MCP Servers"
+description: "Learn how MCP servers let Copilot CLI reach trusted tools and live data, then practice beginner-friendly workflows with GitHub, filesystem, and documentation servers."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-18
-estimatedReadingTime: '14 minutes'
+estimatedReadingTime: "14 minutes"
 tags:
   - copilot-cli
   - beginners
@@ -42,11 +42,11 @@ By the end of this chapter, you should be able to:
 
 Think of MCP servers like browser extensions:
 
-| Browser extension | What it connects to | MCP equivalent |
-| --- | --- | --- |
-| Password manager | Your password vault | **GitHub MCP** → repos, issues, pull requests, workflows |
-| Grammarly | Writing analysis service | **Context7** or docs-focused MCP → current library docs |
-| File manager | Cloud or local storage | **Filesystem MCP** → local files and folders |
+| Browser extension | What it connects to      | MCP equivalent                                           |
+| ----------------- | ------------------------ | -------------------------------------------------------- |
+| Password manager  | Your password vault      | **GitHub MCP** → repos, issues, pull requests, workflows |
+| Grammarly         | Writing analysis service | **Context7** or docs-focused MCP → current library docs  |
+| File manager      | Cloud or local storage   | **Filesystem MCP** → local files and folders             |
 
 Without extensions, your browser still works. With the right extensions, it becomes much more useful. MCP does the same for Copilot CLI. It gives Copilot carefully scoped access to the outside world so it can answer with **live context**, not just pasted snippets.
 
@@ -78,16 +78,17 @@ That small demo proves an important idea: **Copilot can inspect a system outside
 
 ![MCP Status Demo](/images/learning-hub/copilot-cli-for-beginners/06/mcp-status-demo.gif)
 
-*Demo output varies. Your model, permissions, and configured tools may differ from what is shown here.*
+_Demo output varies. Your model, permissions, and configured tools may differ from what is shown here._
+
 </details>
 
 ## What changes when MCP is available?
 
-| Without MCP | With MCP |
-| --- | --- |
-| “I can't see your GitHub issue unless you paste it.” | “Issue #42 is open, labeled `bug`, and mentions login failures.” |
-| “I don't know what files are in that folder.” | “There are multiple Markdown files in `website/src/content/docs/learning-hub/`.” |
-| “My docs knowledge may be outdated.” | “Here is the current pattern from the latest documentation.” |
+| Without MCP                                          | With MCP                                                                         |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| “I can't see your GitHub issue unless you paste it.” | “Issue #42 is open, labeled `bug`, and mentions login failures.”                 |
+| “I don't know what files are in that folder.”        | “There are multiple Markdown files in `website/src/content/docs/learning-hub/`.” |
+| “My docs knowledge may be outdated.”                 | “Here is the current pattern from the latest documentation.”                     |
 
 That is why MCP matters so much in real work. It reduces manual context gathering.
 
@@ -124,13 +125,13 @@ A small starter config often looks like this:
 <details>
 <summary>What do these JSON fields mean?</summary>
 
-| Field | Meaning |
-| --- | --- |
-| `mcpServers` | The collection of configured servers |
-| `type` | How the server is hosted; beginners will usually see `local` |
-| `command` | The command Copilot runs to start the server |
-| `args` | Extra arguments passed to that command |
-| `tools` | Which tools Copilot can use from that server |
+| Field        | Meaning                                                      |
+| ------------ | ------------------------------------------------------------ |
+| `mcpServers` | The collection of configured servers                         |
+| `type`       | How the server is hosted; beginners will usually see `local` |
+| `command`    | The command Copilot runs to start the server                 |
+| `args`       | Extra arguments passed to that command                       |
+| `tools`      | Which tools Copilot can use from that server                 |
 
 **Helpful JSON reminders:**
 
@@ -265,6 +266,7 @@ The important beginner takeaway is not the full implementation. It is that:
 3. Copilot can call those tools when the task matches
 
 If that sounds useful later, the source course's [custom MCP server guide](https://github.com/github/copilot-cli-for-beginners/blob/main/06-mcp-servers/mcp-custom-server.md) is a good next read.
+
 </details>
 
 ## Practice
@@ -361,12 +363,12 @@ If you want to practice without leaving `awesome-copilot`, do a similar investig
 
 ### Common mistakes
 
-| Mistake | What happens | Fix |
-| --- | --- | --- |
-| Assuming GitHub MCP must be installed manually | You waste time configuring the built-in server | Start with `/mcp show` and `/login` |
-| Editing the wrong config file | Your server never appears where you expect it | Use `~/.copilot/mcp-config.json` for personal setup or `.vscode/mcp.json` for workspace setup |
-| Invalid JSON in the config | MCP servers fail to load | Validate the JSON carefully and remove trailing commas |
-| Expecting one server to do everything | Copilot gives incomplete answers | Use the right server for the job: GitHub, filesystem, docs, or web |
+| Mistake                                        | What happens                                   | Fix                                                                                           |
+| ---------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Assuming GitHub MCP must be installed manually | You waste time configuring the built-in server | Start with `/mcp show` and `/login`                                                           |
+| Editing the wrong config file                  | Your server never appears where you expect it  | Use `~/.copilot/mcp-config.json` for personal setup or `.vscode/mcp.json` for workspace setup |
+| Invalid JSON in the config                     | MCP servers fail to load                       | Validate the JSON carefully and remove trailing commas                                        |
+| Expecting one server to do everything          | Copilot gives incomplete answers               | Use the right server for the job: GitHub, filesystem, docs, or web                            |
 
 ### Troubleshooting
 
