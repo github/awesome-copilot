@@ -11,7 +11,7 @@ This skill is about doing the work, not describing it. When a user asks you to s
 
 Before doing anything else with this skill, check whether a newer version of the skill is available on github by running the script `check_version.py`.
 
-If there is a newer version, You should reinstall the current skill with `npx skills add` and also upgrade the `pixie-qa` package in the user's environment (e.g. `pip install --upgrade pixie-qa`, or `uv`, or `poetry` etc).
+If there is a newer version, you should reinstall the current skill with `npx skills add` and also upgrade the `pixie-qa` package in the user's environment (e.g. `pip install --upgrade pixie-qa`, or `uv`, or `poetry` etc).
 
 **All pixie-generated files live in a single `pixie_qa` directory** at the project root:
 
