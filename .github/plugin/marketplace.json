@@ -258,7 +258,6 @@
       },
       "homepage": "https://github.com/dotnet/modernize-dotnet",
       "keywords": [
-        ".NET",
         "modernization",
         "upgrade",
         "migration",

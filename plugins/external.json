@@ -97,7 +97,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": [".NET", "modernization", "upgrade", "migration", "dotnet"],
+    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
