@@ -34,6 +34,17 @@ Ask the user for a **repo name** if not provided. Default: filename without exte
 
 ## 3. Conversion
 
+### Large File Handling
+
+Both conversion scripts automatically detect large files and switch to **external assets mode**:
+- **PPTX:** Files >20MB or with >50 images → images saved as separate files in `assets/`
+- **PDF:** Files >20MB or with >50 pages → page PNGs saved in `assets/`
+- Files >150MB print a warning (PPTX suggests PDF path instead)
+
+This keeps individual files well under GitHub's 100MB limit. Small files still produce a single self-contained HTML.
+
+You can force the behavior with `--external-assets` or `--no-external-assets`.
+
 ### HTML
 No conversion needed. Use the file directly as `index.html`.
 
@@ -41,6 +52,8 @@ No conversion needed. Use the file directly as `index.html`.
 Run the conversion script:
 ```bash
 python3 SKILL_DIR/scripts/convert-pptx.py INPUT_FILE /tmp/output.html
+# For large files, force external assets:
+python3 SKILL_DIR/scripts/convert-pptx.py INPUT_FILE /tmp/output.html --external-assets
 ```
 If `python-pptx` is missing, tell the user: `pip install python-pptx`
 
@@ -48,8 +61,10 @@ If `python-pptx` is missing, tell the user: `pip install python-pptx`
 Convert with the included script (requires `poppler-utils` for `pdftoppm`):
 ```bash
 python3 SKILL_DIR/scripts/convert-pdf.py INPUT_FILE /tmp/output.html
+# For large files, force external assets:
+python3 SKILL_DIR/scripts/convert-pdf.py INPUT_FILE /tmp/output.html --external-assets
 ```
-Each page is rendered as a PNG and base64-embedded into a self-contained HTML with slide navigation.
+Each page is rendered as a PNG and embedded into HTML with slide navigation.
 If `pdftoppm` is missing, tell the user: `apt install poppler-utils` (or `brew install poppler` on macOS).
 
 ### Google Slides
@@ -72,7 +87,9 @@ bash SKILL_DIR/scripts/publish.sh /path/to/index.html REPO_NAME public "Descript
 
 Pass `private` instead of `public` if the user requests it.
 
-The script creates the repo, pushes `index.html`, and enables GitHub Pages.
+The script creates the repo, pushes `index.html` (plus `assets/` if present), and enables GitHub Pages.
+
+**Note:** When external assets mode is used, the output HTML references files in `assets/`. The publish script automatically detects and copies the `assets/` directory alongside the HTML file. Make sure the HTML file and its `assets/` directory are in the same parent directory.
 
 ## 5. Output
 
