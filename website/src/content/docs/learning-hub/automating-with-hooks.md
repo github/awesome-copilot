@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-19
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,6 +93,7 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `subagentStart` | A subagent is spawned | Inject additional context into the subagent's prompt, log subagent creation |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
@@ -327,7 +328,12 @@ echo "Pre-commit checks passed ✅"
 
 **Q: Where do I put hooks configuration files?**
 
-A: Place them in the `.github/hooks/` directory in your repository (e.g., `.github/hooks/my-hook.json`). You can have multiple hook files — all are loaded automatically. This makes hooks available to all team members.
+A: You have two options:
+
+- **Repository hooks** (shared with all team members): Place them in the `.github/hooks/` directory (e.g., `.github/hooks/my-hook.json`). All JSON files in that directory are loaded automatically.
+- **Personal/user-level hooks**: Define them directly in your `settings.json`, `settings.local.json`, or `config.json` user settings files. This is useful for hooks you want to apply globally across all projects without committing them to a repository.
+
+Hook configuration files use the same `hooks` key regardless of where they're stored, and work across VS Code, Claude Code, and the CLI — both camelCase and PascalCase event names are accepted.
 
 **Q: Can hooks access the user's prompt text?**
 
