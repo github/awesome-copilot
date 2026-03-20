@@ -87,5 +87,23 @@
     "source": "github",
     "repo": "microsoft/skills-for-copilot-studio"
     }
+  },
+  {
+    "name": "modernize-dotnet",
+    "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
+    "version": "1.0.979-preview1",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/dotnet/modernize-dotnet",
+    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
+    "license": "MIT",
+    "repository": "https://github.com/dotnet/modernize-dotnet",
+    "source": {
+      "source": "github",
+      "repo": "dotnet/modernize-dotnet",
+      "path": "plugins/modernize-dotnet"
+    }
   }
 ]

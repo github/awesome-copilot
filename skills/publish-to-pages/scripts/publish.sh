@@ -22,9 +22,20 @@ gh repo create "$REPO_NAME" --"$VISIBILITY" --description "$DESCRIPTION"
 # Clone, push, enable pages
 TMPDIR=$(mktemp -d)
 git clone "https://github.com/$USERNAME/$REPO_NAME.git" "$TMPDIR"
+
+HTML_DIR=$(dirname "$HTML_FILE")
+
+# Copy HTML file as index.html
 cp "$HTML_FILE" "$TMPDIR/index.html"
+
+# Copy assets directory if it exists alongside the HTML file
+if [ -d "$HTML_DIR/assets" ]; then
+    cp -r "$HTML_DIR/assets" "$TMPDIR/assets"
+    echo "Copied assets/ directory ($(find "$HTML_DIR/assets" -type f | wc -l) files)"
+fi
+
 cd "$TMPDIR"
-git add index.html
+git add -A
 git commit -m "Publish content"
 git push origin main
 
