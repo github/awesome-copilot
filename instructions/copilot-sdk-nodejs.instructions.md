@@ -386,10 +386,12 @@ Sessions are independent and can run concurrently:
 ```typescript
 const session1 = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+});
 const session2 = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "claude-sonnet-4.5" });
+    model: "claude-sonnet-4.5",
+});
 
 await Promise.all([
   session1.send({ prompt: "Hello from session 1" }),

@@ -401,10 +401,12 @@ Sessions are independent and can run concurrently:
 ```python
 session1 = await client.create_session({
     "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-5"})
+    "model": "gpt-5",
+})
 session2 = await client.create_session({
     "on_permission_request": PermissionHandler.approve_all,
-    "model": "claude-sonnet-4.5"})
+    "model": "claude-sonnet-4.5",
+})
 
 await asyncio.gather(
     session1.send({"prompt": "Hello from session 1"}),

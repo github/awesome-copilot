@@ -57,8 +57,9 @@ async function ralphLoop(promptFile: string, maxIterations: number = 50) {
 
       // Fresh session each iteration — context isolation is the point
       const session = await client.createSession({
-    onPermissionRequest: approveAll,
-    model: "gpt-5.1-codex-mini" });
+        onPermissionRequest: approveAll,
+        model: "gpt-5.1-codex-mini",
+      });
       try {
         await session.sendAndWait({ prompt }, 600_000);
       } finally {

@@ -179,7 +179,9 @@ func doWork() error {
     defer client.Stop()
 
     session, err := client.CreateSession(ctx, &copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-5"})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-5",
+    })
     if err != nil {
         return fmt.Errorf("failed to create session: %w", err)
     }

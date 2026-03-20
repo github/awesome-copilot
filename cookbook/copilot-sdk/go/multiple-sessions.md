@@ -35,21 +35,27 @@ func main() {
 
     // Create multiple independent sessions
     session1, err := client.CreateSession(ctx, &copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-5"})
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "gpt-5",
+    })
     if err != nil {
         log.Fatal(err)
     }
     defer session1.Destroy()
 
     session2, err := client.CreateSession(ctx, &copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-5"})
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "gpt-5",
+    })
     if err != nil {
         log.Fatal(err)
     }
     defer session2.Destroy()
 
     session3, err := client.CreateSession(ctx, &copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "claude-sonnet-4.5"})
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "claude-sonnet-4.5",
+    })
     if err != nil {
         log.Fatal(err)
     }

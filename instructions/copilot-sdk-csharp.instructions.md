@@ -345,10 +345,16 @@ await session.SendAsync(new MessageOptions
 Sessions are independent and can run concurrently:
 
 ```csharp
-var session1 = await client.CreateSessionAsync(new SessionConfig {
-    OnPermissionRequest = PermissionHandler.ApproveAll, Model = "gpt-5" });
-var session2 = await client.CreateSessionAsync(new SessionConfig {
-    OnPermissionRequest = PermissionHandler.ApproveAll, Model = "claude-sonnet-4.5" });
+var session1 = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "gpt-5",
+});
+var session2 = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "claude-sonnet-4.5",
+});
 
 await session1.SendAsync(new MessageOptions { Prompt = "Hello from session 1" });
 await session2.SendAsync(new MessageOptions { Prompt = "Hello from session 2" });

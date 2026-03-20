@@ -367,9 +367,13 @@ Sessions are independent and can run concurrently:
 
 ```go
 session1, _ := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-5"})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-5",
+})
 session2, _ := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "claude-sonnet-4.5"})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "claude-sonnet-4.5",
+})
 
 session1.Send(copilot.MessageOptions{Prompt: "Hello from session 1"})
 session2.Send(copilot.MessageOptions{Prompt: "Hello from session 2"})
@@ -405,7 +409,8 @@ state := client.GetState()
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+})
 if err != nil {
     log.Fatalf("Failed to create session: %v", err)
 }
@@ -514,7 +519,9 @@ if err := client.Start(); err != nil {
 defer client.Stop()
 
 session, err := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-5"})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-5",
+})
 if err != nil {
     log.Fatal(err)
 }

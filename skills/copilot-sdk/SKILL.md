@@ -54,7 +54,8 @@ import { CopilotClient, approveAll } from "@github/copilot-sdk";
 const client = new CopilotClient();
 const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-4.1" });
+    model: "gpt-4.1",
+});
 
 const response = await session.sendAndWait({ prompt: "What is 2 + 2?" });
 console.log(response?.data.content);
@@ -105,7 +106,9 @@ func main() {
     defer client.Stop()
 
     session, err := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-4.1"})
+        OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+        Model:               "gpt-4.1",
+    })
     if err != nil {
         log.Fatal(err)
     }
@@ -125,8 +128,11 @@ func main() {
 using GitHub.Copilot.SDK;
 
 await using var client = new CopilotClient();
-await using var session = await client.CreateSessionAsync(new SessionConfig {
-    OnPermissionRequest = PermissionHandler.ApproveAll, Model = "gpt-4.1" });
+await using var session = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "gpt-4.1",
+});
 
 var response = await session.SendAndWaitAsync(new MessageOptions { Prompt = "What is 2 + 2?" });
 Console.WriteLine(response?.Data.Content);
@@ -672,7 +678,8 @@ const client = new CopilotClient({
 
 const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-4.1" });
+    model: "gpt-4.1",
+});
 ```
 
 #### Python
@@ -699,7 +706,9 @@ if err := client.Start(); err != nil {
 }
 
 session, _ := client.CreateSession(&copilot.SessionConfig{
-	OnPermissionRequest: copilot.PermissionHandler.ApproveAll, Model: "gpt-4.1"})
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-4.1",
+})
 ```
 
 #### .NET
@@ -709,8 +718,11 @@ using var client = new CopilotClient(new CopilotClientOptions
     CliUrl = "localhost:4321"
 });
 
-await using var session = await client.CreateSessionAsync(new SessionConfig {
-    OnPermissionRequest = PermissionHandler.ApproveAll, Model = "gpt-4.1" });
+await using var session = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "gpt-4.1",
+});
 ```
 
 **Note:** When `cliUrl` is provided, the SDK will not spawn or manage a CLI process - it only connects to the existing server.
@@ -787,8 +799,9 @@ await client.deleteSession("old-session-id");
 try {
     const client = new CopilotClient();
     const session = await client.createSession({
-    onPermissionRequest: approveAll,
-    model: "gpt-4.1" });
+        onPermissionRequest: approveAll,
+        model: "gpt-4.1",
+    });
     const response = await session.sendAndWait(
         { prompt: "Hello!" },
         30000 // timeout in ms
@@ -822,7 +835,8 @@ process.on("SIGINT", async () => {
 ```typescript
 const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-4.1" });
+    model: "gpt-4.1",
+});
 
 await session.sendAndWait({ prompt: "My name is Alice" });
 await session.sendAndWait({ prompt: "What's my name?" });
