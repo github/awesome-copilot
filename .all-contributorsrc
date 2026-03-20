@@ -2659,6 +2659,17 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "TemitayoAfolabi",
+      "name": "Temitayo Afolabi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/108681158?v=4",
+      "profile": "https://github.com/TemitayoAfolabi",
+      "contributions": [
+        "code",
+        "review",
+        "tool"
+      ]
     }
   ]
 }
