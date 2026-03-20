@@ -1,19 +1,12 @@
 ---
-title: 'GitHub Copilot CLI for Beginners'
-description: 'A source-faithful mirror of the companion GitHub Copilot CLI for Beginners course.'
+title: "GitHub Copilot CLI for Beginners"
+description: "A source-faithful mirror of the companion GitHub Copilot CLI for Beginners course."
 authors:
   - GitHub Copilot Learning Hub Team
 lastUpdated: 2026-03-20
 ---
 
 ![GitHub Copilot CLI for Beginners](/images/learning-hub/copilot-cli-for-beginners/overview/copilot-banner.png)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)&ensp;
-[![Open project in GitHub Codespaces](https://img.shields.io/badge/Codespaces-Open-blue?style=flat-square&logo=github)](https://codespaces.new/github/copilot-cli-for-beginners?hide_repo_select=true&ref=main&quickstart=true)&ensp;
-[![Official Copilot CLI documentation](https://img.shields.io/badge/GitHub-CLI_Documentation-00a3ee?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/copilot-cli)&ensp;
-[![Join AI Foundry Discord](https://img.shields.io/badge/Discord-AI_Community-blue?style=flat-square&logo=discord&color=5865f2&logoColor=fff)](https://aka.ms/foundry/discord)
-
-🎯 [What You'll Learn](#what-youll-learn) &ensp; ✅ [Prerequisites](#prerequisites) &ensp; 🤖 [Copilot Family](#understanding-the-github-copilot-family) &ensp; 📚 [Course Structure](#course-structure) &ensp; 📋 [Command Reference](#-github-copilot-cli-command-reference)
 
 # GitHub Copilot CLI for Beginners
 
@@ -55,12 +48,12 @@ Before starting, ensure you have:
 
 GitHub Copilot has evolved into a family of AI-powered tools. Here's where each one lives:
 
-| Product | Where It Runs | Description |
-|---------|---------------|----------|
-| [**GitHub Copilot CLI**](https://docs.github.com/copilot/how-tos/copilot-cli/cli-getting-started)<br>(this course) | Your terminal |  Terminal-native AI coding assistant  |
-| [**GitHub Copilot**](https://docs.github.com/copilot) | VS Code, Visual Studio, JetBrains, etc. | Agent mode, chat, inline suggestions  |
-| [**Copilot on GitHub.com**](https://github.com/copilot) | GitHub | Immersive chat about your repos, create agents, and more |
-| [**GitHub Copilot coding agent**](https://docs.github.com/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks) | GitHub  | Assign issues to agents, get PRs back |
+| Product                                                                                                                             | Where It Runs                           | Description                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------- |
+| [**GitHub Copilot CLI**](https://docs.github.com/copilot/how-tos/copilot-cli/cli-getting-started)<br>(this course)                  | Your terminal                           | Terminal-native AI coding assistant                      |
+| [**GitHub Copilot**](https://docs.github.com/copilot)                                                                               | VS Code, Visual Studio, JetBrains, etc. | Agent mode, chat, inline suggestions                     |
+| [**Copilot on GitHub.com**](https://github.com/copilot)                                                                             | GitHub                                  | Immersive chat about your repos, create agents, and more |
+| [**GitHub Copilot coding agent**](https://docs.github.com/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks) | GitHub                                  | Assign issues to agents, get PRs back                    |
 
 This course focuses on **GitHub Copilot CLI**, bringing AI assistance directly to your terminal.
 
@@ -68,16 +61,16 @@ This course focuses on **GitHub Copilot CLI**, bringing AI assistance directly t
 
 ![GitHub Copilot CLI Learning Path](/images/learning-hub/copilot-cli-for-beginners/overview/learning-path.png)
 
-| Chapter | Title | What You'll Build |
-|:-------:|-------|-------------------|
-| 00 | 🚀 [Quick Start](./00-quick-start/) | Installation and verification |
-| 01 | 👋 [First Steps](./01-setup-and-first-steps/) | Live demos + three interaction modes |
-| 02 | 🔍 [Context and Conversations](./02-context-and-conversations/) | Multi-file project analysis |
-| 03 | ⚡ [Development Workflows](./03-development-workflows/) | Code review, debug, test generation |
-| 04 | 🤖 [Create Specialized AI Assistants](./04-agents-and-custom-instructions/) | Custom agents for your workflow |
-| 05 | 🛠️ [Automate Repetitive Tasks](./05-skills/) | Skills that load automatically |
-| 06 | 🔌 [Connect to GitHub, Databases & APIs](./06-mcp-servers/) | MCP server integration |
-| 07 | 🎯 [Putting It All Together](./07-putting-it-all-together/) | Complete feature workflows |
+| Chapter | Title                                                                       | What You'll Build                    |
+| :-----: | --------------------------------------------------------------------------- | ------------------------------------ |
+|   00    | 🚀 [Quick Start](./00-quick-start/)                                         | Installation and verification        |
+|   01    | 👋 [First Steps](./01-setup-and-first-steps/)                               | Live demos + three interaction modes |
+|   02    | 🔍 [Context and Conversations](./02-context-and-conversations/)             | Multi-file project analysis          |
+|   03    | ⚡ [Development Workflows](./03-development-workflows/)                     | Code review, debug, test generation  |
+|   04    | 🤖 [Create Specialized AI Assistants](./04-agents-and-custom-instructions/) | Custom agents for your workflow      |
+|   05    | 🛠️ [Automate Repetitive Tasks](./05-skills/)                                | Skills that load automatically       |
+|   06    | 🔌 [Connect to GitHub, Databases & APIs](./06-mcp-servers/)                 | MCP server integration               |
+|   07    | 🎯 [Putting It All Together](./07-putting-it-all-together/)                 | Complete feature workflows           |
 
 ## 📖 How This Course Works
 
