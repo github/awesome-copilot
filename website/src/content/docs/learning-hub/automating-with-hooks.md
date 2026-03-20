@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-20
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -28,7 +28,7 @@ Hooks are shell commands or scripts that run automatically in response to lifecy
 - Hooks run as shell commands on the user's machine
 - They execute synchronously—the agent waits for them to complete
 - They can block actions (e.g., prevent commits that fail linting)
-- They're defined in JSON files stored at `.github/hooks/*.json` in your repository
+- They're defined in JSON configuration files (see [Where Hooks Are Configured](#where-hooks-are-configured))
 - They receive detailed context via JSON input, enabling context-aware automation
 - They can include bundled scripts for complex logic
 
@@ -58,7 +58,7 @@ hooks/
         └── check.sh
 ```
 
-> Note: Not all of these files are required for a generalised hook implementation. In your own repository, hooks are stored as JSON files in `.github/hooks/` (e.g., `.github/hooks/my-hook.json`). The folder structure above with README.md is specific to the Awesome Copilot repository for documentation purposes.
+> Note: Not all of these files are required for a generalised hook implementation. In your own repository, hooks can be stored in several places — see [Where Hooks Are Configured](#where-hooks-are-configured) below. The folder structure above with README.md is specific to the Awesome Copilot repository for documentation purposes.
 
 
 ### hooks.json
@@ -93,10 +93,30 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent activity |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+> **New in v1.0.7**: The `subagentStart` hook fires when a subagent is spawned. Your script can inject additional context into the subagent's initial prompt by writing JSON to stdout, making it useful for passing environment-specific information to autonomous subagents.
+
+## Where Hooks Are Configured
+
+Hooks can be defined in several places, giving you flexibility to apply them at different scopes:
+
+| Location | Scope | Best For |
+|----------|-------|---------|
+| `.github/hooks/*.json` | Repository-wide | Team hooks, version-controlled alongside code |
+| `settings.json` | User-level (CLI config) | Personal preferences applying to all sessions |
+| `settings.local.json` | User-level (local overrides) | Machine-specific hooks, excluded from version control |
+| `config.json` | CLI configuration | Global CLI-level hooks |
+
+**Repository hooks** (`.github/hooks/`) are the most common for team settings — they're committed to source control and apply to everyone working on the project.
+
+**User-level hooks** (`settings.json`, `settings.local.json`, `config.json`) apply personally across all your sessions, regardless of the repository. These are useful for personal automation like opening your preferred note-taking tool at session start.
+
+> **Security note**: Repo-level hooks are loaded only after folder trust is confirmed, helping protect against untrusted repositories running arbitrary scripts automatically.
 
 ### Event Configuration
 
@@ -327,7 +347,7 @@ echo "Pre-commit checks passed ✅"
 
 **Q: Where do I put hooks configuration files?**
 
-A: Place them in the `.github/hooks/` directory in your repository (e.g., `.github/hooks/my-hook.json`). You can have multiple hook files — all are loaded automatically. This makes hooks available to all team members.
+A: You have several options. For team-shared hooks, place them in `.github/hooks/` in your repository (e.g., `.github/hooks/my-hook.json`) — all files there are loaded automatically and are version-controlled. For personal hooks that apply across all your sessions, you can define them in `settings.json`, `settings.local.json`, or `config.json` in your CLI configuration directory. See [Where Hooks Are Configured](#where-hooks-are-configured) for details.
 
 **Q: Can hooks access the user's prompt text?**
 

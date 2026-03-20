@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-03-20
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -343,6 +343,22 @@ Configuration file: `~/.copilot-cli/config.json`
   "suggestions": true
 }
 ```
+
+#### File Search Configuration
+
+The CLI's `@` file mention search can be customized to control which files appear in results:
+
+**`include_gitignored`** — By default, gitignored files (e.g., build outputs, `node_modules`) are excluded from `@` file searches. Set this to `true` to include them when you need to reference generated or vendored files:
+
+```json
+{
+  "include_gitignored": true
+}
+```
+
+#### Extension Mode
+
+The **extension mode** setting controls how the CLI handles extensibility (MCP servers, plugins, and external integrations). Configure this in your CLI settings to restrict or enable third-party extensions according to your security policy.
 
 ## Common Questions
 
