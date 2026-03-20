@@ -489,6 +489,13 @@ function handleModalKeydown(e: KeyboardEvent, modal: HTMLElement): void {
  */
 export function setupModal(): void {
   const modal = document.getElementById("file-modal");
+
+  // Move modal to body level to escape ancestor stacking contexts
+  // This fixes the issue where modal appears below header/theme-toggle
+  if (modal && modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
+
   const closeBtn = document.getElementById("close-modal");
   const copyBtn = document.getElementById("copy-btn");
   const downloadBtn = document.getElementById("download-btn");
