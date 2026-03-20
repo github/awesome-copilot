@@ -1,17 +1,25 @@
 ---
 name: eval-driven-dev
 description: Instrument Python LLM apps, build golden datasets, write eval-based tests, run them, and root-cause failures — covering the full eval-driven development cycle. Make sure to use this skill whenever a user is developing, testing, QA-ing, evaluating, or benchmarking a Python project that calls an LLM, even if they don't say "evals" explicitly. Use for making sure an AI app works correctly, catching regressions after prompt changes, debugging why an agent started behaving differently, or validating output quality before shipping.
+license: MIT
+compatibility: Python 3.11+
+metadata:
+  version: 0.1.10
 ---
 
 # Eval-Driven Development with pixie
 
 This skill is about doing the work, not describing it. When a user asks you to set up evals for their app, you should be reading their code, editing their files, running commands, and producing a working test pipeline — not writing a plan for them to follow later.
 
-## Version check (always first)
+## Startup checks (always first)
 
-Before doing anything else with this skill, check whether a newer version of the skill is available on github by running `python resources/check_version.py` from the `skills/eval-driven-dev` skill root.
+Attempt to upgrade the `pixie-qa` package in the user's environment. Detect the package manager from the project (check for `uv.lock`, `poetry.lock`, `requirements.txt`, or a plain `pip` environment) and run the appropriate upgrade command:
 
-If there is a newer version, you should reinstall the current skill with `npx skills add` and also upgrade the `pixie-qa` package in the user's environment (e.g. `pip install --upgrade pixie-qa`, or `uv`, or `poetry` etc).
+- **uv**: `uv add pixie-qa --upgrade` (or `uv sync --upgrade-package pixie-qa`)
+- **poetry**: `poetry add pixie-qa@latest`
+- **pip**: `pip install --upgrade pixie-qa`
+
+If the upgrade fails (e.g., no network, version conflict), log the error and continue — a failed upgrade must not block the rest of the skill.
 
 **All pixie-generated files live in a single `pixie_qa` directory** at the project root:
 
