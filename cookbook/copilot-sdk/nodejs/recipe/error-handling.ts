@@ -5,8 +5,9 @@ const client = new CopilotClient();
 try {
     await client.start();
     const session = await client.createSession({
-    onPermissionRequest: approveAll,
-    model: "gpt-5" });
+        onPermissionRequest: approveAll,
+        model: "gpt-5",
+    });
 
     const response = await session.sendAndWait({ prompt: "Hello!" });
     console.log(response?.data.content);

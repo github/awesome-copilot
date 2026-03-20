@@ -554,7 +554,7 @@ await withClient(async (client) => {
 ### Simple Query-Response
 
 ```typescript
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 try {
@@ -562,7 +562,8 @@ try {
 
   const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+  });
   try {
     await new Promise<void>((resolve) => {
       session.on((event) => {

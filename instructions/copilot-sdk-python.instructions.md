@@ -541,14 +541,15 @@ finally:
 ### Simple Query-Response
 
 ```python
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 import asyncio
 
 async def main():
     async with CopilotClient() as client:
         async with await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-5"}) as session:
+            "on_permission_request": PermissionHandler.approve_all,
+            "model": "gpt-5",
+        }) as session:
             done = asyncio.Event()
 
             def handler(event):

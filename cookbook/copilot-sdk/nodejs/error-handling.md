@@ -24,8 +24,9 @@ const client = new CopilotClient();
 try {
     await client.start();
     const session = await client.createSession({
-    onPermissionRequest: approveAll,
-    model: "gpt-5" });
+        onPermissionRequest: approveAll,
+        model: "gpt-5",
+    });
 
     const response = await session.sendAndWait({ prompt: "Hello!" });
     console.log(response?.data.content);
@@ -59,7 +60,8 @@ try {
 ```typescript
 const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+});
 
 try {
     // sendAndWait with timeout (in milliseconds)
@@ -85,7 +87,8 @@ try {
 ```typescript
 const session = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+});
 
 // Start a request
 session.send({ prompt: "Write a very long story..." });

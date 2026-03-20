@@ -25,13 +25,16 @@ await client.start();
 // Create multiple independent sessions
 const session1 = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+});
 const session2 = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "gpt-5" });
+    model: "gpt-5",
+});
 const session3 = await client.createSession({
     onPermissionRequest: approveAll,
-    model: "claude-sonnet-4.5" });
+    model: "claude-sonnet-4.5",
+});
 
 // Each session maintains its own conversation history
 await session1.sendAndWait({ prompt: "You are helping with a Python project" });

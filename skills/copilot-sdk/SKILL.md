@@ -75,8 +75,9 @@ async def main():
     await client.start()
 
     session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1"})
+        "on_permission_request": PermissionHandler.approve_all,
+        "model": "gpt-4.1",
+    })
     response = await session.send_and_wait({"prompt": "What is 2 + 2?"})
 
     print(response.data.content)
@@ -175,8 +176,8 @@ async def main():
     await client.start()
 
     session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
+        "on_permission_request": PermissionHandler.approve_all,
+        "model": "gpt-4.1",
         "streaming": True,
     })
 
@@ -312,8 +313,8 @@ async def main():
     await client.start()
 
     session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
+        "on_permission_request": PermissionHandler.approve_all,
+        "model": "gpt-4.1",
         "streaming": True,
         "tools": [get_weather],
     })
@@ -497,8 +498,8 @@ async def main():
     await client.start()
 
     session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
+        "on_permission_request": PermissionHandler.approve_all,
+        "model": "gpt-4.1",
         "streaming": True,
         "tools": [get_weather],
     })
@@ -683,7 +684,8 @@ await client.start()
 
 session = await client.create_session({
     "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1"})
+    "model": "gpt-4.1",
+})
 ```
 
 #### Go
