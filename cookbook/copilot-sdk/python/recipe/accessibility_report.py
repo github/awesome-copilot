@@ -44,7 +44,6 @@ async def main():
                 "tools": ["*"],
             }
         },
-    ,
         on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()

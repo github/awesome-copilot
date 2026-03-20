@@ -115,8 +115,7 @@ The current working directory is: {os.getcwd()}
 - Be concise in your responses
 </instructions>
 """
-        }
-    ,
+        },
         on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()

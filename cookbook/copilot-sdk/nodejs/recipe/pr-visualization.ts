@@ -99,7 +99,7 @@ async function main() {
 
     const session = await client.createSession({
         onPermissionRequest: approveAll,
-    model: "gpt-5",
+        model: "gpt-5",
         systemMessage: {
             content: `
 <context>

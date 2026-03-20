@@ -77,7 +77,6 @@ async def main():
                 "tools": ["*"],
             }
         },
-    ,
         on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
@@ -191,7 +190,6 @@ session = await client.create_session(SessionConfig(
             "tools": ["*"],
         }
     },
-,
         on_permission_request=PermissionHandler.approve_all))
 ```
 
