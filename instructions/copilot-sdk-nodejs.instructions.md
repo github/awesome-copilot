@@ -107,7 +107,8 @@ const session = await client.createSession({
 ```typescript
 const session = await client.resumeSession("session-id", {
   tools: [myNewTool],
-,  onPermissionRequest: approveAll });
+  onPermissionRequest: approveAll,
+});
 ```
 
 ### Session Operations

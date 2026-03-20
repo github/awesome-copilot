@@ -139,7 +139,7 @@ Enable real-time output for better UX:
 
 ### TypeScript
 ```typescript
-import { CopilotClient, SessionEvent } from "@github/copilot-sdk";
+import { CopilotClient, approveAll, SessionEvent } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 const session = await client.createSession({
@@ -167,7 +167,7 @@ process.exit(0);
 ```python
 import asyncio
 import sys
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 from copilot.generated.session_events import SessionEventType
 
 async def main():
@@ -243,7 +243,7 @@ Define tools that Copilot can invoke during reasoning. When you define a tool, y
 
 ### TypeScript (JSON Schema)
 ```typescript
-import { CopilotClient, defineTool, SessionEvent } from "@github/copilot-sdk";
+import { CopilotClient, approveAll, defineTool, SessionEvent } from "@github/copilot-sdk";
 
 const getWeather = defineTool("get_weather", {
     description: "Get the current weather for a city",
@@ -291,7 +291,7 @@ process.exit(0);
 import asyncio
 import random
 import sys
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 from copilot.tools import define_tool
 from copilot.generated.session_events import SessionEventType
 from pydantic import BaseModel, Field
@@ -412,7 +412,7 @@ Build a complete interactive assistant:
 
 ### TypeScript
 ```typescript
-import { CopilotClient, defineTool, SessionEvent } from "@github/copilot-sdk";
+import { CopilotClient, approveAll, defineTool, SessionEvent } from "@github/copilot-sdk";
 import * as readline from "readline";
 
 const getWeather = defineTool("get_weather", {
@@ -477,7 +477,7 @@ prompt();
 import asyncio
 import random
 import sys
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 from copilot.tools import define_tool
 from copilot.generated.session_events import SessionEventType
 from pydantic import BaseModel, Field
