@@ -11,7 +11,6 @@ async def main():
     session = await client.create_session(SessionConfig(
         session_id="user-123-conversation",
         model="gpt-5",
-    ,
         on_permission_request=PermissionHandler.approve_all))
 
     await session.send_and_wait(MessageOptions(prompt="Let's discuss TypeScript generics"))

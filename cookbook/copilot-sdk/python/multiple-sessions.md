@@ -58,8 +58,7 @@ Use custom IDs for easier tracking:
 ```python
 session = await client.create_session(SessionConfig(
     session_id="user-123-chat",
-    model="gpt-5"
-,
+    model="gpt-5",
         on_permission_request=PermissionHandler.approve_all))
 
 print(session.session_id)  # "user-123-chat"

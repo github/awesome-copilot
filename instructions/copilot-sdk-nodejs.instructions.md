@@ -193,7 +193,7 @@ Set `streaming: true` in SessionConfig:
 const session = await client.createSession({
     onPermissionRequest: approveAll,
     model: "gpt-5",
-  streaming: true,
+    streaming: true,
 });
 ```
 

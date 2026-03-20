@@ -74,7 +74,7 @@ async function main() {
 
     const session = await client.createSession({
         onPermissionRequest: approveAll,
-    model: "claude-opus-4.6",
+        model: "claude-opus-4.6",
         streaming: true,
         mcpServers: {
             playwright: {
