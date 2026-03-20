@@ -76,26 +76,26 @@ If you cannot complete a task fully:
 **You MUST use the tools, libraries, and patterns already established in the codebase.**
 
 **BEFORE adding ANY new dependency or tool, check:**
-1. Is there an existing library in `package.json` or `pyproject.toml` that does this?
-2. Is there an existing utility, helper, or service in the codebase that handles this?
-3. Is there an established pattern for this type of functionality?
-4. If a new tool is genuinely needed, ASK the user first and explain why existing tools are insufficient
-5. Document the rationale for introducing the new tool and get approval from the team
-6. Is there an existing library in `.sfdx` folder that does this?
+1. Is there an existing managed package, unlocked package, or metadata-defined capability (see `sfdx-project.json` / `package.xml`) that already provides this?
+2. Is there an existing utility, helper, or service in the codebase (Apex classes, triggers, Flows, LWCs) that handles this?
+3. Is there an established pattern in this org or repository for this type of functionality?
+4. If a new tool or package is genuinely needed, ASK the user first and explain why existing tools are insufficient
+5. Document the rationale for introducing the new tool or package and get approval from the team
+6. Have you confirmed that the requirement cannot be met by enhancing existing Apex code or configuration (e.g., Flows, validation rules) instead of introducing a new dependency?
 
 **FORBIDDEN without explicit user approval:**
 
-- ❌ Adding new npm packages when existing packages provide the functionality
-- ❌ Introducing new state management libraries (use what's already configured)
-- ❌ Introducing new ORMs or database tools (use SQLAlchemy as established)
-- ❌ Adding new logging libraries (use the existing logging configuration)
+- ❌ Adding new npm or Node-based tooling when existing project tooling is sufficient
+- ❌ Adding new managed packages or unlocked packages without confirming need, impact, and governance
+- ❌ Introducing new data-access patterns or frameworks that conflict with established Apex service/repository patterns
+- ❌ Adding new logging frameworks instead of using existing Apex logging utilities or platform logging features
 - ❌ Adding alternative tools that duplicate existing functionality
 
 **When you encounter a need:**
 1. First, search the codebase for existing solutions
-2. Check existing dependencies for unused features that solve the problem
+2. Check existing dependencies (managed/unlocked packages, shared Apex utilities, org configuration) for unused features that solve the problem
 3. Follow established patterns even if you know a "better" way
-4. If a new tool is genuinely needed, ASK the user first and explain why existing tools are insufficient
+4. If a new tool or package is genuinely needed, ASK the user first and explain why existing tools are insufficient
 
 **The goal is consistency, not perfection. A consistent codebase is maintainable; a patchwork of "best" tools is not.**
 
