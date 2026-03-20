@@ -44,7 +44,7 @@ async function ralphLoop(mode: Mode, maxIterations: number) {
                 // Pin the agent to the project directory
                 workingDirectory: process.cwd(),
                 // Auto-approve tool calls for unattended operation
-                onPermissionRequest: async () => ({ allow: true }),
+                onPermissionRequest: approveAll,
             });
 
             // Log tool usage for visibility
