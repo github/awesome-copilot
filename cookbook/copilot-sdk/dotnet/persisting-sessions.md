@@ -46,7 +46,7 @@ await using var client = new CopilotClient();
 await client.StartAsync();
 
 // Resume the previous session
-var session = await client.ResumeSessionAsync("user-123-conversation");
+var session = await client.ResumeSessionAsync("user-123-conversation", new ResumeSessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
 
 // Previous context is restored
 await session.SendAsync(new MessageOptions { Prompt = "What were we discussing?" });

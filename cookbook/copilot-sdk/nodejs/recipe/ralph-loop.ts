@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 /**
  * Ralph loop: autonomous AI task loop with fresh context per iteration.

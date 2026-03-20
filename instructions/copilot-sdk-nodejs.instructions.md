@@ -30,7 +30,7 @@ yarn add @github/copilot-sdk
 ### Basic Client Setup
 
 ```typescript
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 await client.start();
@@ -74,6 +74,7 @@ Use `SessionConfig` for configuration:
 
 ```typescript
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     model: "gpt-5",
     streaming: true,
     tools: [...],
@@ -106,7 +107,7 @@ const session = await client.createSession({
 ```typescript
 const session = await client.resumeSession("session-id", {
   tools: [myNewTool],
-});
+,  onPermissionRequest: approveAll });
 ```
 
 ### Session Operations
@@ -190,7 +191,8 @@ Set `streaming: true` in SessionConfig:
 
 ```typescript
 const session = await client.createSession({
-  model: "gpt-5",
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
   streaming: true,
 });
 ```
@@ -243,7 +245,8 @@ Use `defineTool` for type-safe tool definitions:
 import { defineTool } from "@github/copilot-sdk";
 
 const session = await client.createSession({
-  model: "gpt-5",
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
   tools: [
     defineTool({
       name: "lookup_issue",
@@ -272,6 +275,7 @@ The SDK supports Zod schemas for parameters:
 import { z } from "zod";
 
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
   tools: [
     defineTool({
       name: "get_weather",
@@ -316,7 +320,8 @@ When Copilot invokes a tool, the client automatically:
 
 ```typescript
 const session = await client.createSession({
-  model: "gpt-5",
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
   systemMessage: {
     mode: "append",
     content: `
@@ -333,7 +338,8 @@ const session = await client.createSession({
 
 ```typescript
 const session = await client.createSession({
-  model: "gpt-5",
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
   systemMessage: {
     mode: "replace",
     content: "You are a helpful assistant.",
@@ -377,8 +383,12 @@ await session.send({
 Sessions are independent and can run concurrently:
 
 ```typescript
-const session1 = await client.createSession({ model: "gpt-5" });
-const session2 = await client.createSession({ model: "claude-sonnet-4.5" });
+const session1 = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5" });
+const session2 = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "claude-sonnet-4.5" });
 
 await Promise.all([
   session1.send({ prompt: "Hello from session 1" }),
@@ -392,6 +402,7 @@ Use custom API providers via `provider`:
 
 ```typescript
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
   provider: {
     type: "openai",
     baseUrl: "https://api.openai.com/v1",
@@ -422,7 +433,7 @@ await client.deleteSession(sessionId);
 ```typescript
 const lastId = await client.getLastSessionId();
 if (lastId) {
-  const session = await client.resumeSession(lastId);
+  const session = await client.resumeSession(lastId, { onPermissionRequest: approveAll });
 }
 ```
 
@@ -439,7 +450,7 @@ const state = client.getState();
 
 ```typescript
 try {
-  const session = await client.createSession();
+  const session = await client.createSession({ onPermissionRequest: approveAll });
   await session.send({ prompt: "Hello" });
 } catch (error) {
   console.error(`Error: ${error.message}`);
@@ -477,7 +488,7 @@ ALWAYS use try-finally or cleanup in a finally block:
 const client = new CopilotClient();
 try {
   await client.start();
-  const session = await client.createSession();
+  const session = await client.createSession({ onPermissionRequest: approveAll });
   try {
     // Use session...
   } finally {
@@ -507,7 +518,7 @@ async function withSession<T>(
   client: CopilotClient,
   fn: (session: CopilotSession) => Promise<T>,
 ): Promise<T> {
-  const session = await client.createSession();
+  const session = await client.createSession({ onPermissionRequest: approveAll });
   try {
     return await fn(session);
   } finally {
@@ -548,7 +559,9 @@ const client = new CopilotClient();
 try {
   await client.start();
 
-  const session = await client.createSession({ model: "gpt-5" });
+  const session = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5" });
   try {
     await new Promise<void>((resolve) => {
       session.on((event) => {
@@ -572,7 +585,7 @@ try {
 ### Multi-Turn Conversation
 
 ```typescript
-const session = await client.createSession();
+const session = await client.createSession({ onPermissionRequest: approveAll });
 
 async function sendAndWait(prompt: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
@@ -621,6 +634,7 @@ interface UserInfo {
 }
 
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
   tools: [
     defineTool({
       name: "get_user",

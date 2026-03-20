@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import { execSync } from "node:child_process";
 import * as readline from "node:readline";
 
@@ -98,7 +98,8 @@ async function main() {
     const client = new CopilotClient({ logLevel: "error" });
 
     const session = await client.createSession({
-        model: "gpt-5",
+        onPermissionRequest: approveAll,
+    model: "gpt-5",
         systemMessage: {
             content: `
 <context>

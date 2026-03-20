@@ -6,8 +6,11 @@ import sys
 import os
 import re
 from copilot import (
-    CopilotClient, SessionConfig, MessageOptions,
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
     SessionEvent,
+    PermissionHandler,
 )
 
 # ============================================================================
@@ -113,7 +116,8 @@ The current working directory is: {os.getcwd()}
 </instructions>
 """
         }
-    ))
+    ,
+        on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
 

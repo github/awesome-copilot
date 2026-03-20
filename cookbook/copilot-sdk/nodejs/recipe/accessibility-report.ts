@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import * as readline from "node:readline";
 
 // ============================================================================
@@ -38,7 +38,8 @@ async function main() {
     const client = new CopilotClient();
 
     const session = await client.createSession({
-        model: "claude-opus-4.6",
+        onPermissionRequest: approveAll,
+    model: "claude-opus-4.6",
         streaming: true,
         mcpServers: {
             playwright: {
