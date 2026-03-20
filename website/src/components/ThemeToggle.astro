@@ -57,8 +57,8 @@
       if (stored && themes.includes(stored)) {
         return themes.indexOf(stored);
       }
-      // Default to auto (system preference)
-      return 1;
+      // Default to light theme
+      return 2;
     }
 
     function applyTheme(index: number) {
@@ -104,14 +104,14 @@
 
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (localStorage.getItem(STORAGE_KEY) === 'auto' || !localStorage.getItem(STORAGE_KEY)) {
+      if (localStorage.getItem(STORAGE_KEY) === 'auto') {
         applyTheme(1); // auto
       }
     });
   })();
 </script>
 
-<style>
+<style is:global>
   .theme-toggle-container {
     display: flex;
     align-items: center;

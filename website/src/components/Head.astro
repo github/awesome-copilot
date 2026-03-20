@@ -50,23 +50,22 @@ const twitterDomain =
   (function() {
     const STORAGE_KEY = 'awesome-copilot-theme';
     const stored = localStorage.getItem(STORAGE_KEY);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = stored || (prefersDark ? 'dark' : 'light');
-    document.documentElement.setAttribute('data-theme', theme);
+
+    // Theme handling:
+    // - 'dark' or 'light' → set data-theme attribute to that value
+    // - 'auto' or unset → don't set data-theme (CSS media query handles system preference)
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.setAttribute('data-theme', stored);
+    }
+    // For 'auto' or unset, no attribute means CSS media query controls theme
   })();
 </script>
 
 <script is:inline define:vars={{ basePath }}>
-  // Theme initialization - runs before page render to prevent flash
-  (function() {
-    const STORAGE_KEY = 'awesome-copilot-theme';
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (stored === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  })();
+  // basePath setup for runtime use
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.dataset.basePath = basePath;
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     document.body.dataset.basePath = basePath;

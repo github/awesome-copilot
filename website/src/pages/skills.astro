@@ -4,6 +4,7 @@ import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import BackToTop from '../components/BackToTop.astro';
 import skillsData from '../../public/data/skills.json';
 import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
 
@@ -12,7 +13,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
 
 <StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="⚡ Skills" description="Self-contained agent skills with instructions and bundled resources" />
+    <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" />
 
     <div class="page-content">
       <div class="container">
@@ -21,7 +22,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
             <label for="search-input" class="sr-only">Search skills</label>
             <input type="text" id="search-input" placeholder="Search skills..." autocomplete="off">
           </div>
-          
+
           <div class="filters-bar" id="filters-bar">
             <div class="filter-group">
               <label for="filter-category">Category:</label>
@@ -43,7 +44,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
             <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
           </div>
         </div>
-        
+
         <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} skills</div>
         <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
         <ContributeCTA resourceType="skills" />
@@ -52,6 +53,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
   </div>
 
   <Modal />
+  <BackToTop />
 
   <EmbeddedPageData filename="skills.json" data={skillsData} />
   <script>

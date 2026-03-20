@@ -82,26 +82,6 @@ header.header .header-inner {
   max-width: 100%;
 }
 
-/* Starlight logo styling */
-header.header .site-title {
-  display: flex !important;
-  align-items: center;
-  gap: 8px !important;
-  flex-shrink: 0;
-}
-
-header.header .site-title a {
-  display: flex !important;
-  align-items: center;
-  text-decoration: none !important;
-}
-
-/* Logo sizing */
-header.header .logo img {
-  height: 32px !important;
-  width: auto !important;
-}
-
 header.header .header-actions {
   display: flex;
   align-items: center;

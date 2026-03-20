@@ -18,6 +18,11 @@
     const button = document.getElementById('back-to-top');
     if (!button) return;
 
+    // Move button to body level to escape stacking contexts
+    if (button.parentElement !== document.body) {
+      document.body.appendChild(button);
+    }
+
     // Show/hide button based on scroll position
     function toggleVisibility() {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
@@ -56,7 +61,7 @@
   })();
 </script>
 
-<style>
+<style is:global>
   .back-to-top {
     position: fixed;
     bottom: 24px;

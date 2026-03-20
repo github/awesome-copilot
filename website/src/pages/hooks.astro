@@ -4,6 +4,7 @@ import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import BackToTop from '../components/BackToTop.astro';
 import hooksData from '../../public/data/hooks.json';
 import { renderHooksHtml, sortHooks } from '../scripts/pages/hooks-render';
 
@@ -12,7 +13,7 @@ const initialItems = sortHooks(hooksData.items, 'title');
 
 <StarlightPage frontmatter={{ title: 'Hooks', description: 'Automated workflows triggered by Copilot coding agent events', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="🪝 Hooks" description="Automated workflows triggered by Copilot coding agent events" />
+    <PageHeader title="Hooks" description="Automated workflows triggered by Copilot coding agent events" icon="hook" />
 
     <div class="page-content">
       <div class="container">
@@ -21,7 +22,7 @@ const initialItems = sortHooks(hooksData.items, 'title');
             <label for="search-input" class="sr-only">Search hooks</label>
             <input type="text" id="search-input" placeholder="Search hooks..." autocomplete="off">
           </div>
-          
+
           <div class="filters-bar" id="filters-bar">
             <div class="filter-group">
               <label for="filter-hook">Hook Event:</label>
@@ -41,7 +42,7 @@ const initialItems = sortHooks(hooksData.items, 'title');
             <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
           </div>
         </div>
-        
+
         <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} hooks</div>
         <div class="resource-list" id="resource-list" role="list" set:html={renderHooksHtml(initialItems)}></div>
         <ContributeCTA resourceType="hooks" />
@@ -50,6 +51,7 @@ const initialItems = sortHooks(hooksData.items, 'title');
   </div>
 
   <Modal />
+  <BackToTop />
 
   <EmbeddedPageData filename="hooks.json" data={hooksData} />
   <script>
