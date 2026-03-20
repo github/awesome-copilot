@@ -35,8 +35,11 @@ python accessibility_report.py
 
 import asyncio
 from copilot import (
-    CopilotClient, SessionConfig, MessageOptions,
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
     SessionEvent,
+    PermissionHandler,
 )
 
 # ============================================================================
@@ -74,7 +77,8 @@ async def main():
                 "tools": ["*"],
             }
         },
-    ))
+    ,
+        on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
 
@@ -187,7 +191,8 @@ session = await client.create_session(SessionConfig(
             "tools": ["*"],
         }
     },
-))
+,
+        on_permission_request=PermissionHandler.approve_all))
 ```
 
 This gives the model access to Playwright browser tools like `browser_navigate`, `browser_snapshot`, and `browser_click`.
