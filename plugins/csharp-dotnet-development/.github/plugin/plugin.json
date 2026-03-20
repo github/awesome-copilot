@@ -14,16 +14,16 @@
     "testing"
   ],
   "agents": [
-    "./agents"
+    "./agents/expert-dotnet-software-engineer.md"
   ],
   "skills": [
-    "./skills/csharp-async",
-    "./skills/aspnet-minimal-api-openapi",
-    "./skills/csharp-xunit",
-    "./skills/csharp-nunit",
-    "./skills/csharp-mstest",
-    "./skills/csharp-tunit",
-    "./skills/dotnet-best-practices",
-    "./skills/dotnet-upgrade"
+    "./skills/csharp-async/",
+    "./skills/aspnet-minimal-api-openapi/",
+    "./skills/csharp-xunit/",
+    "./skills/csharp-nunit/",
+    "./skills/csharp-mstest/",
+    "./skills/csharp-tunit/",
+    "./skills/dotnet-best-practices/",
+    "./skills/dotnet-upgrade/"
   ]
 }
