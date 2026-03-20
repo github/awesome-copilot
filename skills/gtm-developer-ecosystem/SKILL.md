@@ -305,3 +305,7 @@ Is this a common question?
 ---
 
 *Based on building developer ecosystems at multiple platform companies, including the open vs curated marketplace decision, student program development (3-year arc building talent pipeline), and partner ecosystem growth. Not theory — patterns from building developer ecosystems that actually drove platform adoption and multi-year brand loyalty.*
+
+---
+
+*Author: [Smit Patel](https://linkedin.com/in/smitkpatel) · Full 11-skill GTM pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)*

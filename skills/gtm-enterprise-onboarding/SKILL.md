@@ -452,3 +452,7 @@ Are active users growing Week 6 → Week 12?
 ---
 
 *Based on enterprise onboarding across multiple platform companies — designing partner onboarding directly and collaborating closely with CS on customer onboarding. Not theory — lessons from seeing Week 4 ghosting happen repeatedly and learning that go-live ≠ success, and understanding the adoption cliff that kills 30% of deals in first year.*
+
+---
+
+*Author: [Smit Patel](https://linkedin.com/in/smitkpatel) · Full 11-skill GTM pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)*

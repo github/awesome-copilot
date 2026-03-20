@@ -564,3 +564,7 @@ Do they have incident response processes for tool failures?
 ---
 
 *Based on enterprise AI agent GTM across developer tools and infrastructure. Patterns drawn from working enterprise deal cycles selling autonomous AI products — some carried directly, others supported alongside sales leadership — including the positioning trap diagnosis that shifted from feature competition to structural differentiation, the ceiling-moment qualification that improved outbound conversion significantly, and frameworks tested across security, operations, and engineering buyer personas. Not theory — lessons from deals where "autonomous" killed conversations and "teammate" converted.*
+
+---
+
+*Author: [Smit Patel](https://linkedin.com/in/smitkpatel) · Full 11-skill GTM pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)*
