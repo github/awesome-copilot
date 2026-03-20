@@ -417,6 +417,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="http://weblogs.asp.net/jongalloway"><img src="https://avatars.githubusercontent.com/u/68539?v=4" width="100px;" alt=""/><br /><sub><b>Jon Galloway</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://jlbeard.com/"><img src="https://avatars.githubusercontent.com/u/4313198?v=4" width="100px;" alt=""/><br /><sub><b>Josh Beard</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://jpinzer.me/"><img src="https://avatars.githubusercontent.com/u/8357054?v=4" width="100px;" alt=""/><br /><sub><b>Julian</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TemitayoAfolabi"><img src="https://avatars.githubusercontent.com/u/108681158?v=4" width="100px;" alt=""/><br /><sub><b>Temitayo Afolabi</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
