@@ -215,8 +215,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead.",
-      "version": "1.2.1"
+      "description": "A modular multi-agent team for complex project execution with DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, parallel execution, TDD verification, and automated testing.",
+      "version": "1.3.0"
     },
     {
       "name": "go-mcp-development",
@@ -247,6 +247,29 @@
       "source": "mcp-m365-copilot",
       "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
       "version": "1.0.0"
+    },
+    {
+      "name": "modernize-dotnet",
+      "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
+      "version": "1.0.979-preview1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/modernize-dotnet",
+      "keywords": [
+        "modernization",
+        "upgrade",
+        "migration",
+        "dotnet"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/modernize-dotnet",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/modernize-dotnet",
+        "path": "plugins/modernize-dotnet"
+      }
     },
     {
       "name": "napkin",

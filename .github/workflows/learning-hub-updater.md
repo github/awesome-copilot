@@ -10,11 +10,11 @@ tools:
   web-fetch:
   github:
     toolsets: [repos]
-allowed-domains:
-  - github.blog
-  - code.visualstudio.com
-  - nishanil.github.io
 safe-outputs:
+  allowed-domains:
+    - github.blog
+    - code.visualstudio.com
+    - nishanil.github.io
   create-pull-request:
     labels: [automated-update, copilot-updates]
     title-prefix: "[bot] "
@@ -77,8 +77,10 @@ If the new information can be added to existing pages, edit those pages to inclu
 
 ## Step 4 — Open a pull request
 
-Create a pull request with your changes. The PR title should summarize what was updated (e.g., "Add/plan command and model marketplace documentation"). The PR body should list:
+Create a pull request with your changes, using the `staged` branch as the base branch. The PR title should summarize what was updated (e.g., "Add/plan command and model marketplace documentation"). The PR body should list:
 
 1. What new features or changes were found
 2. What sections of the guide were updated
 3. Links to the source announcements
+
+The PR should target the `staged` branch and include the labels `automated-update` and `copilot-updates`.
