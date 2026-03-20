@@ -1,298 +1,268 @@
 ---
-title: "Quick Start"
-description: "Install Copilot CLI, sign in, and confirm your first working session with a hands-on quick start that mirrors the companion course."
+title: '00 · Quick Start'
+description: 'Install GitHub Copilot CLI, authenticate, and verify your environment with the same flow as the source course.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-18
-estimatedReadingTime: "10 minutes"
-tags:
-  - copilot-cli
-  - beginners
-  - course
-  - quick-start
-prerequisites:
-  - Review the course overview for the full chapter map.
-relatedArticles:
-  - ./index.md
-  - ./01-setup-and-first-steps.md
-prev: false
+lastUpdated: 2026-03-20
 ---
 
-> **Goal:** get from _not installed_ to _successfully signed in and ready for Chapter 01_ with as little friction as possible.
+![Chapter 00: Quick Start](/images/learning-hub/copilot-cli-for-beginners/00/chapter-header.png)
 
-> **Hands-on note:** This chapter works best with the companion repo [`github/copilot-cli-for-beginners`](https://github.com/github/copilot-cli-for-beginners), because the verification steps use the sample book app from the source course.
+Welcome! In this chapter, you'll get GitHub Copilot CLI (Command Line Interface) installed, signed in with your GitHub account, and verified that everything works. This is a quick setup chapter. Once you're up and running, the real demos start in Chapter 01!
 
-Welcome! In this chapter, you'll install GitHub Copilot CLI, sign in with your GitHub account, and verify that everything works. This is the setup chapter, so keep the goal simple: finish with one working prompt and one working repo-aware example.
-
-## Learning objectives
+## 🎯 Learning Objectives
 
 By the end of this chapter, you'll have:
 
-- installed GitHub Copilot CLI
-- signed in with your GitHub account
-- verified that a basic interactive session works
-- confirmed that Copilot CLI can read local repository context
+- Installed GitHub Copilot CLI
+- Signed in with your GitHub account
+- Verified it works with a simple test
 
-> ⏱️ **Estimated time:** about 10 minutes total, including installation and sign-in.
+> ⏱️ **Estimated Time**: ~10 minutes (5 min reading + 5 min hands-on)
 
-## Prerequisites
+---
 
-Before starting, make sure you have:
+## ✅ Prerequisites
 
-- a GitHub account
-- GitHub Copilot access on that account
-- basic terminal comfort with commands like `cd` and `ls`
+- **GitHub Account** with Copilot access. [See subscription options](https://github.com/features/copilot/plans). Students/Teachers can access Copilot Pro for [free via GitHub Education](https://education.github.com/pack).
+- **Terminal basics**: Comfortable with commands like `cd` and `ls`
 
-### What "Copilot access" means
+### What "Copilot Access" Means
 
-GitHub Copilot CLI requires an account that can use Copilot. You can check your status at [github.com/settings/copilot](https://github.com/settings/copilot). Typical access paths include:
+GitHub Copilot CLI requires an active Copilot subscription. You can check your status at [github.com/settings/copilot](https://github.com/settings/copilot). You should see one of:
 
-- **Copilot Free** or another personal plan
-- **Copilot Business** through your organization
-- **Copilot Enterprise** through your enterprise
-- **GitHub Education** access for verified students and teachers
+- **Copilot Individual** - Personal subscription
+- **Copilot Business** - Through your organization
+- **Copilot Enterprise** - Through your enterprise
+- **GitHub Education** - Free for verified students/teachers
 
-If your settings page says you do not have access, fix that first. Installation alone will not unlock the CLI.
+If you see "You don't have access to GitHub Copilot," you'll need to use the free option, subscribe to a plan, or join an organization that provides access.
+
+---
 
 ## Installation
 
-> ⏱️ **Time estimate:** installation usually takes 2-5 minutes. Authentication usually takes another 1-2 minutes.
+> ⏱️ **Time estimate**: Installation takes 2-5 minutes. Authentication adds another 1-2 minutes.
 
-### Recommended: GitHub Codespaces
+### Recommended: GitHub Codespaces (Zero Setup)
 
-Codespaces is the fastest path if you want the original practice environment with minimal local setup.
+If you don't want to install any of the prerequisites, you can use GitHub Codespaces, which has the GitHub Copilot CLI ready to go (you'll need to sign in), pre-installs Python 3.13, pytest, and the GitHub CLI.
 
-1. Open the companion repo: [github/copilot-cli-for-beginners](https://github.com/github/copilot-cli-for-beginners)
-2. Fork it if you want to save your own progress
-3. Select **Code** → **Codespaces** → **Create codespace on main**
-4. Wait for the environment to finish provisioning
-5. Start working in the terminal that opens automatically
+1. [Fork this repository](https://github.com/github/copilot-cli-for-beginners/fork) to your GitHub account
+2. Select **Code** > **Codespaces** > **Create codespace on main**
+3. Wait a few minutes for the container to build
+4. You're ready to go! The terminal will open automatically in the Codespace environment.
 
-If you want a quick extra check inside the Codespace, run:
+> 💡 **Verify in Codespace**: Run `cd samples/book-app-project && python book_app.py help` to confirm Python and the sample app are working.
 
-```bash
-cd samples/book-app-project
-python book_app.py help
-```
+### Alternative: Local Installation
 
-That confirms the sample environment is ready before you even open Copilot CLI.
+> 💡 **Not sure which to pick?** Use `npm` if you have Node.js installed. Otherwise, choose the option that matches your system.
 
-### Alternative: local installation
+> 💡 **Python required for demos**: The course uses a Python sample app. If you're working locally, install [Python 3.10+](https://www.python.org/downloads/) before starting the demos.
 
-If you prefer your own machine, choose the install method that matches your system.
+> **Note:** While the primary examples shown throughout the course use Python (`samples/book-app-project`), JavaScript (`samples/book-app-project-js`) and C# (`samples/book-app-project-cs`) versions are also available if you prefer to work with those languages. Each sample has a README with instructions for running the app in that language.
 
-> **Which option should you pick?** Use `npm` if you already have Node.js installed. Otherwise choose the platform-native option that is easiest for you.
+Choose the method that works for your system:
 
-> **Local lab note:** The source course uses a Python sample app for many demos. If you plan to follow the book-app exercises locally, install Python 3.10+ as well.
-
-#### All platforms with npm
+### All Platforms (npm)
 
 ```bash
+# If you have Node.js installed, this is a quick way to get the CLI
 npm install -g @github/copilot
 ```
 
-#### macOS or Linux with Homebrew
+### macOS/Linux (Homebrew)
 
 ```bash
 brew install copilot-cli
 ```
 
-#### Windows with WinGet
+### Windows (WinGet)
 
 ```bash
 winget install GitHub.Copilot
 ```
 
-#### macOS or Linux with the install script
+### macOS/Linux (Install Script)
 
 ```bash
 curl -fsSL https://gh.io/copilot-install | bash
 ```
 
-<aside class="repo-launch-cta" aria-label="Quick start companion repository options">
-  <div class="repo-launch-cta__inner">
-    <p class="repo-launch-cta__eyebrow">Hands-on shortcut</p>
-    <h2 class="repo-launch-cta__title">Choose the repo path that matches how you learn</h2>
-    <p class="repo-launch-cta__description">Whether you want a zero-setup Codespace or a local clone you can keep, these links get you from the web lesson back into the original repo workflow quickly.</p>
-    <div class="repo-launch-cta__actions">
-      <a href="https://codespaces.new/github/copilot-cli-for-beginners?hide_repo_select=true&ref=main&quickstart=true" class="btn btn-primary" target="_blank" rel="noopener">Open in Codespaces</a>
-      <a href="https://github.com/github/copilot-cli-for-beginners/blob/main/00-quick-start/README.md" class="btn btn-outline" target="_blank" rel="noopener">View source chapter</a>
-      <a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-getting-started" class="btn btn-outline" target="_blank" rel="noopener">Open getting started guide</a>
-    </div>
-    <div class="repo-launch-cta__grid">
-      <div class="repo-launch-cta__card">
-        <h3>Fork before you edit</h3>
-        <p>Use <a href="https://github.com/github/copilot-cli-for-beginners" target="_blank" rel="noopener">the companion repo</a> for browsing, then fork it when you want your own progress, branches, or Codespace.</p>
-      </div>
-      <div class="repo-launch-cta__card">
-        <h3>Clone your fork locally</h3>
-        <p>Prefer your own terminal and editor? Clone your fork and work through the repo chapters there.</p>
-        <code class="repo-launch-cta__code">git clone https://github.com/YOUR-USERNAME/copilot-cli-for-beginners.git</code>
-      </div>
-      <div class="repo-launch-cta__card">
-        <h3>Keep command help open</h3>
-        <ul class="repo-launch-cta__card-links">
-          <li><a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-getting-started" target="_blank" rel="noopener">Official getting started guide</a></li>
-          <li><a href="https://docs.github.com/en/copilot/reference/cli-command-reference" target="_blank" rel="noopener">CLI command reference</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</aside>
+---
 
 ## Authentication
 
-Open a terminal in the root of the companion repository, or in another folder you trust, then start the CLI:
+Open a terminal window at the root of the `copilot-cli-for-beginners` repository, start the CLI and allow access to the folder.
 
 ```bash
 copilot
 ```
 
-On first launch, Copilot CLI may ask whether you trust the current folder so it can read local files. If you recognize the repository or directory, allow access.
+You'll be asked to trust the folder containing the repository (if you haven't already). You can trust it one time or across all future sessions.
 
-![Copilot CLI trust prompt shown before granting the tool access to a local folder](/images/learning-hub/copilot-cli-for-beginners/00/copilot-trust.png)
+<img src="/images/learning-hub/copilot-cli-for-beginners/00/copilot-trust.png" alt="Trusting files in a folder with the Copilot CLI" width="800"/>
 
-After you trust the folder, sign in from inside the session:
+After trusting the folder, you can sign in with your GitHub account.
 
-```text
+```
 > /login
 ```
 
-### What happens next
+**What happens next:**
 
-1. Copilot CLI shows a one-time device code
-2. Your browser opens GitHub's device authorization page
-3. Sign in to GitHub if needed
-4. Enter the code from the terminal
-5. Approve access and return to the CLI session
+1. Copilot CLI displays a one-time code (like `ABCD-1234`)
+2. Your browser opens to GitHub's device authorization page. Sign in to GitHub if you haven't already.
+3. Enter the code when prompted
+4. Select "Authorize" to grant GitHub Copilot CLI access
+5. Return to your terminal - you're now signed in!
 
-![GitHub device authorization flow for Copilot CLI sign-in](/images/learning-hub/copilot-cli-for-beginners/00/auth-device-flow.png)
+<img src="/images/learning-hub/copilot-cli-for-beginners/00/auth-device-flow.png" alt="Device Authorization Flow - showing the 5-step process from terminal login to signed-in confirmation" width="800"/>
 
-> **Tip:** sign-in usually persists across sessions. You should not need to repeat this every time unless your token expires or you sign out.
+*The device authorization flow: your terminal generates a code, you verify it in the browser, and Copilot CLI is authenticated.*
 
-## Verify it works
+**Tip**: The sign-in persists across sessions. You only need to do this once unless your token expires or you explicitly sign out.
 
-Keep the verification steps small and concrete. You want three wins: one successful response, one successful sample-app command, and one successful repo-aware prompt.
+---
 
-### Step 1: test a plain-English prompt
+## Verify It Works
 
-Inside the same `copilot` session, type:
+### Step 1: Test Copilot CLI
 
-```text
+Now that you're signed in, let's verify that Copilot CLI is working for you. In the terminal, start the CLI if you haven't already:
+
+```bash
 > Say hello and tell me what you can help with
 ```
 
-A good result is simply a helpful answer that proves the CLI is responding. Then exit when you are ready:
+After you receive a response, you can exit the CLI:
 
-```text
+```bash
 > /exit
 ```
+
+---
 
 <details>
 <summary>🎬 See it in action!</summary>
 
-![Hello demo in Copilot CLI](/images/learning-hub/copilot-cli-for-beginners/00/hello-demo.gif)
+![Hello Demo](/images/learning-hub/copilot-cli-for-beginners/00/hello-demo.gif)
 
-_Demo output varies. Your model, tools, and responses will differ from what is shown here._
+*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
 
 </details>
 
-### Step 2: run the sample book app
+---
 
-The source course uses a Python book collection app throughout the rest of the chapters. Make sure it runs before you move on.
+**Expected output**: A friendly response listing Copilot CLI's capabilities.
+
+### Step 2: Run the Sample Book App
+
+The course provides a sample app that you'll explore and improve throughout the course using the CLI *(You can see the code for this in /samples/book-app-project)*. Check that the *Python book collection terminal app* works before you get started. Run `python` or `python3` depending on your system.
+
+> **Note:** While the primary examples shown throughout the course use Python (`samples/book-app-project`), JavaScript (`samples/book-app-project-js`) and C# (`samples/book-app-project-cs`) versions are also available if you prefer to work with those languages. Each sample has a README with instructions for running the app in that language.
 
 ```bash
 cd samples/book-app-project
 python book_app.py list
 ```
 
-**Expected result:** you should see a list of five books, including titles like `The Hobbit`, `1984`, and `Dune`.
+**Expected output**: A list of 5 books including "The Hobbit", "1984", and "Dune".
 
-> **If `python` does not work on your system:** try `python3` instead.
+### Step 3: Try Copilot CLI with the Book App
 
-### Step 3: try one repository-aware prompt
-
-Go back to the repository root if needed, start Copilot CLI again, and ask about the sample project:
+Navigate back to the repository root first (if you ran Step 2):
 
 ```bash
-cd ../..
-copilot
-```
-
-```text
+cd ../..   # Back to the repository root if needed
+copilot 
 > What does @samples/book-app-project/book_app.py do?
 ```
 
-**Expected result:** a summary of the file's main commands and responsibilities.
+**Expected output**: A summary of the book app's main functions and commands.
 
-> **Practice cue:** If that works, try one follow-up prompt before you leave. For example: `How would you improve its command parsing?` That gives you an early taste of the multi-turn flow you will use heavily in Chapter 01.
+If you see an error, check the [troubleshooting section](#troubleshooting) below.
 
-If you are only using the Learning Hub and not the companion repo, substitute a file you do have locally, such as:
+Once you're done you can exit the Copilot CLI:
 
-```text
-> Summarize @README.md in one paragraph
+```bash
+> /exit
 ```
 
-## ▶️ Try it yourself
+---
 
-Work through the three verification steps above, then confirm that all of these are true:
+## ✅ You're Ready!
 
-- [ ] `copilot` launches successfully
-- [ ] `/login` completed and your session is authenticated
-- [ ] a plain-English prompt received a useful answer
-- [ ] the sample book app runs locally or in Codespaces
-- [ ] a repo-aware `@file` prompt worked at least once
+That's it for installation. The real fun starts in Chapter 01, where you'll:
 
-If you can check those off, you are ready for the real demos in Chapter 01.
+- Watch AI review the book app and find code quality issues instantly
+- Learn three different ways to use Copilot CLI
+- Generate working code from plain English
 
-## 📝 Assignment
+**[Continue to Chapter 01: First Steps →](../01-setup-and-first-steps/)**
 
-Set yourself up for the rest of the course without skipping the hands-on part:
-
-1. Open the companion repo locally or in Codespaces
-2. Install or verify GitHub Copilot CLI
-3. Sign in with `/login`
-4. Run `python book_app.py list` inside `samples/book-app-project`
-5. Start a `copilot` session and ask `What does @samples/book-app-project/book_app.py do?`
-6. Ask one follow-up question about that file
-
-**Success criteria:** you can launch the CLI, authenticate, run the sample app, and get one useful repo-aware answer before moving on.
+---
 
 ## Troubleshooting
 
-### `copilot: command not found`
+### "copilot: command not found"
 
-The CLI probably did not install correctly, or its binary is not on your `PATH`. Try another installation method and reopen the terminal.
+The CLI isn't installed. Try a different installation method:
+
+```bash
+# If brew failed, try npm:
+npm install -g @github/copilot
+
+# Or the install script:
+curl -fsSL https://gh.io/copilot-install | bash
+```
 
 ### "You don't have access to GitHub Copilot"
 
-Check your status at [github.com/settings/copilot](https://github.com/settings/copilot). If you use a work account, verify that your organization allows Copilot CLI access.
+1. Verify you have a Copilot subscription at [github.com/settings/copilot](https://github.com/settings/copilot)
+2. Check that your organization permits CLI access if using a work account
 
-### Authentication failed or expired
+### "Authentication failed"
 
-Start a new session and run:
+Re-authenticate:
 
-```text
+```bash
+copilot
 > /login
 ```
 
-### Browser did not open automatically
+### Browser doesn't open automatically
 
-Visit [github.com/login/device](https://github.com/login/device) manually and enter the code shown in the terminal.
+Manually visit [github.com/login/device](https://github.com/login/device) and enter the code shown in your terminal.
 
-### The sample app does not run
+### Token expired
 
-Double-check that you are in the companion repo and that Python is available. In local environments, try `python3 book_app.py list` if `python` is unavailable.
+Simply run `/login` again:
+
+```bash
+copilot
+> /login
+```
 
 ### Still stuck?
 
-- Read the [official getting started guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-getting-started)
-- Use the [CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference)
-- Head over to the [source chapter](https://github.com/github/copilot-cli-for-beginners/blob/main/00-quick-start/README.md)
+- Check the [GitHub Copilot CLI documentation](https://docs.github.com/copilot/concepts/agents/about-copilot-cli)
+- Search [GitHub Issues](https://github.com/github/copilot-cli/issues)
 
-## Key takeaways
+---
 
-1. **Codespaces is the fastest path** if you want a ready-made environment that matches the source course.
-2. **You have multiple installation choices** including npm, Homebrew, WinGet, and the install script.
-3. **Authentication is usually one-time** until your token expires.
-4. **The sample book app matters** because it becomes the shared practice project for later chapters.
+## 🔑 Key Takeaways
+
+1. **A GitHub Codespace is a quick way to get started** - Python, pytest, and GitHub Copilot CLI are all pre-installed so you can jump right into the demos
+2. **Multiple installation methods** - Choose what works for your system (Homebrew, WinGet, npm, or install script)
+3. **One-time authentication** - Login persists until token expires
+4. **The book app works** - You'll use `samples/book-app-project` throughout the entire course
+
+> 📚 **Official Documentation**: [Install Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli/cli-getting-started) for installation options and requirements.
+
+> 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
+
+---
+
+**[Continue to Chapter 01: First Steps →](../01-setup-and-first-steps/)**

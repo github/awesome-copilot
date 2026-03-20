@@ -1,155 +1,106 @@
 ---
-title: "Copilot CLI for Beginners"
-description: "A beginner-friendly Learning Hub course that adapts the companion Copilot CLI curriculum into a practical path from setup to everyday terminal workflows."
+title: 'GitHub Copilot CLI for Beginners'
+description: 'A source-faithful mirror of the companion GitHub Copilot CLI for Beginners course.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-18
-estimatedReadingTime: "8 minutes"
-tags:
-  - copilot-cli
-  - beginners
-  - course
-relatedArticles:
-  - ./copilot-cli-for-beginners-00-quick-start.md
-tableOfContents: false
+lastUpdated: 2026-03-20
 ---
 
-> **Learn GitHub Copilot CLI step by step without leaving the terminal.** This Learning Hub version keeps the structure of the original course, but reshapes it into a guided web experience with clearer practice cues, launch links, and chapter-by-chapter navigation.
+![GitHub Copilot CLI for Beginners](/images/learning-hub/copilot-cli-for-beginners/overview/copilot-banner.png)
 
-![Copilot CLI for Beginners course banner](/images/learning-hub/copilot-cli-for-beginners/overview/copilot-banner.png)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)&ensp;
+[![Open project in GitHub Codespaces](https://img.shields.io/badge/Codespaces-Open-blue?style=flat-square&logo=github)](https://codespaces.new/github/copilot-cli-for-beginners?hide_repo_select=true&ref=main&quickstart=true)&ensp;
+[![Official Copilot CLI documentation](https://img.shields.io/badge/GitHub-CLI_Documentation-00a3ee?style=flat-square&logo=github)](https://docs.github.com/en/copilot/how-tos/copilot-cli)&ensp;
+[![Join AI Foundry Discord](https://img.shields.io/badge/Discord-AI_Community-blue?style=flat-square&logo=discord&color=5865f2&logoColor=fff)](https://aka.ms/foundry/discord)
 
-GitHub Copilot CLI brings AI assistance directly into your shell. Instead of switching to a browser or IDE every time you need help, you can ask questions, inspect code, generate changes, review work, and automate tasks from the command line.
+🎯 [What You'll Learn](#what-youll-learn) &ensp; ✅ [Prerequisites](#prerequisites) &ensp; 🤖 [Copilot Family](#understanding-the-github-copilot-family) &ensp; 📚 [Course Structure](#course-structure) &ensp; 📋 [Command Reference](#-github-copilot-cli-command-reference)
 
-This course follows the companion repository [`github/copilot-cli-for-beginners`](https://github.com/github/copilot-cli-for-beginners), so you can either read here in the Learning Hub or launch the source repo and work through the original hands-on labs alongside each chapter.
+# GitHub Copilot CLI for Beginners
 
-## What you'll learn
+> **✨ Learn to supercharge your development workflow with AI-powered command-line assistance.**
 
-By the end of this course, you should be able to:
+GitHub Copilot CLI brings AI assistance directly to your terminal. Instead of switching to a browser or code editor, you can ask questions, generate full-featured applications, review code, generate tests, and debug issues without leaving your command line.
 
-- install and sign in to Copilot CLI confidently
-- understand where Copilot CLI fits within the broader GitHub Copilot product family
-- choose the right interaction style for a task: interactive, plan-first, or one-shot programmatic use
-- guide Copilot CLI with repository context, follow-up prompts, and practical workflow checks
-- apply Copilot CLI to code review, debugging, refactoring, automation, and integration scenarios
+Think of it as having a knowledgeable colleague available 24/7 who can read your code, explain confusing patterns, and help you work faster!
 
-## Who this course is for
+This course is designed for:
 
-This course is a good fit if you:
+- **Software Developers** who want to use AI from the command line
+- **Terminal users** who prefer keyboard-driven workflows over IDE integrations
+- **Teams looking to standardize** AI-assisted code review and development practices
 
-- are new to Copilot CLI and want a structured place to start
-- prefer keyboard-driven, terminal-first workflows
-- want a practical course that stays beginner-friendly without losing the original hands-on flow
-- learn best by copying prompts, testing them, and iterating on real files
+<a href="https://aka.ms/githubcopilotdevdays" target="_blank">
+  <picture>
+    <img src="/images/learning-hub/copilot-cli-for-beginners/overview/copilot-dev-days.png" alt="GitHub Copilot Dev Days - Find or host an event" width="100%" />
+  </picture>
+</a>
 
-## Before you start
+## 🎯 What You'll Learn
 
-You do **not** need prior Copilot CLI experience, but it helps to have:
+This hands-on course takes you from zero to productive with GitHub Copilot CLI. You'll work with a single Python book collection app throughout all chapters, progressively improving it using AI-assisted workflows. By the end, you'll confidently use AI to review code, generate tests, debug issues, and automate workflows: all from your terminal.
 
-- a GitHub account with Copilot access
-- basic terminal comfort with commands like `cd`, `ls`, and running commands
-- a safe repository or working folder you can explore
-- the companion repo ready if you want to follow the full book-app exercises from the source course
+**No AI experience required.** If you can use a terminal, you can learn this.
 
-## Understanding the GitHub Copilot family
+**Perfect for:** Developers, students, and anyone who has experience with software development.
 
-The source course begins by grounding Copilot CLI in the wider Copilot ecosystem. That context matters because it helps you choose the right tool for the job.
+## ✅ Prerequisites
 
-| Product                         | Where it runs                                 | Best for                                                                                               |
-| ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| **GitHub Copilot CLI**          | Your terminal                                 | Shell-native AI help, repo exploration, reviews, and coding workflows without leaving the command line |
-| **GitHub Copilot in editors**   | VS Code, Visual Studio, JetBrains, and others | Chat, inline suggestions, agent mode, and editor-centric coding help                                   |
-| **Copilot on GitHub.com**       | GitHub                                        | Repo-aware conversations, agent creation, and collaboration around code on the web                     |
-| **GitHub Copilot coding agent** | GitHub                                        | Assigning work to agents and receiving pull requests back                                              |
+Before starting, ensure you have:
 
-This Learning Hub course focuses on **GitHub Copilot CLI** specifically: how to get productive in the terminal, how to keep your workflow grounded in real repos, and how to verify that the help you receive is actually useful.
+- **GitHub account**: [Create one free](https://github.com/signup)<br>
+- **GitHub Copilot access**: [Free offering](https://github.com/features/copilot/plans), [Monthly subscription](https://github.com/features/copilot/plans), or [Free for students/teachers](https://education.github.com/pack)<br>
+- **Terminal basics**: Comfortable with `cd`, `ls`, running commands
 
-## Course structure
+## 🤖 Understanding the GitHub Copilot Family
 
-The original README lays out the course as a chapter-based path from setup to more advanced workflows. This web version keeps that structure intact.
+GitHub Copilot has evolved into a family of AI-powered tools. Here's where each one lives:
 
-![Copilot CLI learning path overview](/images/learning-hub/copilot-cli-for-beginners/overview/learning-path.png)
+| Product | Where It Runs | Description |
+|---------|---------------|----------|
+| [**GitHub Copilot CLI**](https://docs.github.com/copilot/how-tos/copilot-cli/cli-getting-started)<br>(this course) | Your terminal |  Terminal-native AI coding assistant  |
+| [**GitHub Copilot**](https://docs.github.com/copilot) | VS Code, Visual Studio, JetBrains, etc. | Agent mode, chat, inline suggestions  |
+| [**Copilot on GitHub.com**](https://github.com/copilot) | GitHub | Immersive chat about your repos, create agents, and more |
+| [**GitHub Copilot coding agent**](https://docs.github.com/copilot/using-github-copilot/using-copilot-coding-agent-to-work-on-tasks) | GitHub  | Assign issues to agents, get PRs back |
 
-| Chapter | Focus                                                                                             | What you'll do                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| 00      | [Quick Start](../copilot-cli-for-beginners-00-quick-start/)                                       | Install Copilot CLI, sign in, and verify your environment                                |
-| 01      | [Setup and First Steps](../copilot-cli-for-beginners-01-setup-and-first-steps/)                   | Experience your first wins, learn the three main modes, and practice follow-up prompting |
-| 02      | [Context and Conversations](../copilot-cli-for-beginners-02-context-and-conversations/)           | Work with files, folders, and multi-turn repo-aware conversations                        |
-| 03      | [Development Workflows](../copilot-cli-for-beginners-03-development-workflows/)                   | Apply Copilot CLI to reviews, debugging, tests, and everyday coding tasks                |
-| 04      | [Agents and Custom Instructions](../copilot-cli-for-beginners-04-agents-and-custom-instructions/) | Customize how Copilot works for your team and workflow                                   |
-| 05      | [Skills](../copilot-cli-for-beginners-05-skills/)                                                 | Package reusable behaviors and specialized capabilities                                  |
-| 06      | [MCP Servers](../copilot-cli-for-beginners-06-mcp-servers/)                                       | Connect Copilot CLI to external systems like GitHub, APIs, and databases                 |
-| 07      | [Putting It All Together](../copilot-cli-for-beginners-07-putting-it-all-together/)               | Combine the building blocks into fuller, end-to-end workflows                            |
+This course focuses on **GitHub Copilot CLI**, bringing AI assistance directly to your terminal.
 
-## How this course works
+## 📚 Course Structure
 
-Each chapter follows the same teaching pattern from the source material:
+![GitHub Copilot CLI Learning Path](/images/learning-hub/copilot-cli-for-beginners/overview/learning-path.png)
 
-1. **Core idea first** so you understand what the feature is for
-2. **Hands-on examples** you can copy into a terminal or session
-3. **Practice or assignment tasks** that push you past passive reading
-4. **A next-step chapter link** so the course still feels like a guided path
+| Chapter | Title | What You'll Build |
+|:-------:|-------|-------------------|
+| 00 | 🚀 [Quick Start](./00-quick-start/) | Installation and verification |
+| 01 | 👋 [First Steps](./01-setup-and-first-steps/) | Live demos + three interaction modes |
+| 02 | 🔍 [Context and Conversations](./02-context-and-conversations/) | Multi-file project analysis |
+| 03 | ⚡ [Development Workflows](./03-development-workflows/) | Code review, debug, test generation |
+| 04 | 🤖 [Create Specialized AI Assistants](./04-agents-and-custom-instructions/) | Custom agents for your workflow |
+| 05 | 🛠️ [Automate Repetitive Tasks](./05-skills/) | Skills that load automatically |
+| 06 | 🔌 [Connect to GitHub, Databases & APIs](./06-mcp-servers/) | MCP server integration |
+| 07 | 🎯 [Putting It All Together](./07-putting-it-all-together/) | Complete feature workflows |
 
-> **Reading note:** When you see lines that start with `>` in code blocks, those are prompts typed inside a `copilot` session. Plain shell commands run in your terminal outside the Copilot prompt.
+## 📖 How This Course Works
 
-## Choose how you'll follow along
+Each chapter follows the same pattern:
 
-If you want the richest experience, use the companion repository while reading these pages:
+1. **Real-World Analogy**: Understand the concept through familiar comparisons
+2. **Core Concepts**: Learn the essential knowledge
+3. **Hands-On Examples**: Run actual commands and see results
+4. **Assignment**: Practice what you learned
+5. **What's Next**: Preview of the following chapter
 
-| I want to...                            | Use this                                                                                                                                                                       |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Browse the original course              | [github/copilot-cli-for-beginners](https://github.com/github/copilot-cli-for-beginners)                                                                                        |
-| Launch instantly in a cloud environment | [Open the repo in Codespaces](https://codespaces.new/github/copilot-cli-for-beginners?hide_repo_select=true&ref=main&quickstart=true)                                          |
-| Work locally                            | `git clone https://github.com/github/copilot-cli-for-beginners.git`                                                                                                            |
-| Compare with the source course map      | [Original README](https://github.com/github/copilot-cli-for-beginners/blob/main/README.md)                                                                                     |
-| Keep the official docs nearby           | [Copilot CLI docs](https://docs.github.com/en/copilot/how-tos/copilot-cli) and the [CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) |
+**Code examples are runnable.** Every copilot text block in this course can be copied and run in your terminal.
 
-<aside class="repo-launch-cta" aria-label="Companion repository launch options">
-  <div class="repo-launch-cta__inner">
-    <p class="repo-launch-cta__eyebrow">Companion repo launch pad</p>
-    <h2 class="repo-launch-cta__title">Jump from the Learning Hub into the hands-on repo</h2>
-    <p class="repo-launch-cta__description">Use the companion repository when you want the original lab flow, a fork you can experiment in, or a ready-made Codespaces environment that matches the source course closely.</p>
-    <div class="repo-launch-cta__actions">
-      <a href="https://codespaces.new/github/copilot-cli-for-beginners?hide_repo_select=true&ref=main&quickstart=true" class="btn btn-primary" target="_blank" rel="noopener">Open in Codespaces</a>
-      <a href="https://github.com/github/copilot-cli-for-beginners" class="btn btn-outline" target="_blank" rel="noopener">View companion repo</a>
-      <a href="https://docs.github.com/en/copilot/how-tos/copilot-cli" class="btn btn-outline" target="_blank" rel="noopener">Read official CLI docs</a>
-    </div>
-    <div class="repo-launch-cta__grid">
-      <div class="repo-launch-cta__card">
-        <h3>Fork before you experiment</h3>
-        <p>Start in <a href="https://github.com/github/copilot-cli-for-beginners" target="_blank" rel="noopener">the public repo</a>, then fork it when you want your own branches, history, or Codespace.</p>
-      </div>
-      <div class="repo-launch-cta__card">
-        <h3>Open the original course map</h3>
-        <p>The <a href="https://github.com/github/copilot-cli-for-beginners/blob/main/README.md" target="_blank" rel="noopener">source README</a> is the fastest way to compare this web version with the original chapter flow.</p>
-      </div>
-      <div class="repo-launch-cta__card">
-        <h3>Clone locally</h3>
-        <p>If you prefer your own editor and terminal, clone your fork locally after you create it.</p>
-        <code class="repo-launch-cta__code">git clone https://github.com/YOUR-USERNAME/copilot-cli-for-beginners.git</code>
-      </div>
-      <div class="repo-launch-cta__card">
-        <h3>Keep the docs nearby</h3>
-        <ul class="repo-launch-cta__card-links">
-          <li><a href="https://docs.github.com/en/copilot/how-tos/copilot-cli" target="_blank" rel="noopener">Official Copilot CLI docs</a></li>
-          <li><a href="https://docs.github.com/en/copilot/reference/cli-command-reference" target="_blank" rel="noopener">CLI command reference</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</aside>
+## 📋 GitHub Copilot CLI Command Reference
 
-## Suggested pace
+The **[GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference)** helps you find commands and keyboard shortcuts to help you use Copilot CLI effectively.
 
-If you are brand new, the first three chapters are enough to make Copilot CLI feel useful quickly. A practical beginner loop looks like this:
+## 🙋 Getting Help
 
-1. start a session
-2. ask a focused question
-3. provide the right file or repo context
-4. review the result instead of blindly accepting it
-5. iterate, verify, or escalate to a more capable workflow
+- 🐛 **Found a bug?** [Open an Issue](https://github.com/github/copilot-cli-for-beginners/issues)
+- 🤝 **Want to contribute?** PRs welcome!
+- 📚 **Official Docs:** [GitHub Copilot CLI Documentation](https://docs.github.com/copilot/concepts/agents/about-copilot-cli)
 
-## Getting help while you learn
+## License
 
-- **Need installation help?** Keep [the getting started guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/cli-getting-started) open while you work through Chapter 00.
-- **Need command reminders?** Use the [CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference).
-- **Want the unadapted lesson flow?** Jump back to the [source course README](https://github.com/github/copilot-cli-for-beginners/blob/main/README.md).
+This project is licensed under the terms of the MIT open source license. Please refer to the [LICENSE](https://github.com/github/copilot-cli-for-beginners/blob/main/LICENSE) file for the full terms.
