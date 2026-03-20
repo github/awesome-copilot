@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
-"""Convert a PPTX file to a self-contained HTML presentation with formatting preserved."""
-import sys
+"""Convert a PPTX file to an HTML presentation with formatting preserved.
+
+Supports external assets mode for large files to avoid huge single-file HTML.
+"""
+import argparse
 import base64
 import io
+import os
 import re
+import sys
 from pathlib import Path
 
-try:
-    from pptx import Presentation
-    from pptx.util import Inches, Pt, Emu
-    from pptx.enum.text import PP_ALIGN
-    from pptx.dml.color import RGBColor
-except ImportError:
-    print("ERROR: python-pptx not installed. Install with: pip install python-pptx")
-    sys.exit(1)
+def _ensure_pptx():
+    try:
+        from pptx import Presentation
+        from pptx.enum.text import PP_ALIGN
+        return True
+    except ImportError:
+        print("ERROR: python-pptx not installed. Install with: pip install python-pptx")
+        sys.exit(1)
 
 
 def rgb_to_hex(rgb_color):
-    """Convert RGBColor to hex string."""
     if rgb_color is None:
         return None
     try:
@@ -27,7 +31,6 @@ def rgb_to_hex(rgb_color):
 
 
 def get_text_style(run):
-    """Extract inline text styling from a run."""
     styles = []
     try:
         if run.font.bold:
@@ -48,7 +51,7 @@ def get_text_style(run):
 
 
 def get_alignment(paragraph):
-    """Get CSS text-align from paragraph alignment."""
+    from pptx.enum.text import PP_ALIGN
     try:
         align = paragraph.alignment
         if align == PP_ALIGN.CENTER:
@@ -62,20 +65,7 @@ def get_alignment(paragraph):
     return "left"
 
 
-def extract_image(shape):
-    """Extract image from shape as base64 data URI."""
-    try:
-        image = shape.image
-        content_type = image.content_type
-        image_bytes = image.blob
-        b64 = base64.b64encode(image_bytes).decode('utf-8')
-        return f"data:{content_type};base64,{b64}"
-    except:
-        return None
-
-
 def get_shape_position(shape, slide_width, slide_height):
-    """Get shape position as percentages."""
     try:
         left = (shape.left / slide_width) * 100 if shape.left else 0
         top = (shape.top / slide_height) * 100 if shape.top else 0
@@ -87,12 +77,10 @@ def get_shape_position(shape, slide_width, slide_height):
 
 
 def get_slide_background(slide, prs):
-    """Extract slide background color from XML."""
     from pptx.oxml.ns import qn
     for source in [slide, slide.slide_layout]:
         try:
             bg_el = source.background._element
-            # Look for solidFill > srgbClr inside bgPr
             for sf in bg_el.iter(qn('a:solidFill')):
                 clr = sf.find(qn('a:srgbClr'))
                 if clr is not None and clr.get('val'):
@@ -103,14 +91,12 @@ def get_slide_background(slide, prs):
 
 
 def get_shape_fill(shape):
-    """Extract shape fill color from XML."""
     from pptx.oxml.ns import qn
     try:
         sp_pr = shape._element.find(qn('p:spPr'))
         if sp_pr is None:
             sp_pr = shape._element.find(qn('a:spPr'))
         if sp_pr is None:
-            # Try direct child
             for tag in ['{http://schemas.openxmlformats.org/drawingml/2006/main}spPr',
                         '{http://schemas.openxmlformats.org/presentationml/2006/main}spPr']:
                 sp_pr = shape._element.find(tag)
@@ -128,7 +114,6 @@ def get_shape_fill(shape):
 
 
 def render_paragraph(paragraph):
-    """Render a paragraph with inline formatting."""
     align = get_alignment(paragraph)
     parts = []
     for run in paragraph.runs:
@@ -147,12 +132,72 @@ def render_paragraph(paragraph):
     return f'<p style="text-align:{align};margin:0.3em 0;line-height:1.4">{content}</p>'
 
 
-def convert(pptx_path, output_path=None):
+def extract_image_data(shape):
+    """Extract raw image bytes and content type from a shape."""
+    try:
+        image = shape.image
+        return image.blob, image.content_type
+    except:
+        return None, None
+
+
+def count_images(prs):
+    """Count total images across all slides."""
+    count = 0
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.shape_type == 13 or hasattr(shape, "image"):
+                try:
+                    _ = shape.image
+                    count += 1
+                except:
+                    pass
+    return count
+
+
+CONTENT_TYPE_TO_EXT = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/gif': '.gif',
+    'image/bmp': '.bmp',
+    'image/tiff': '.tiff',
+    'image/svg+xml': '.svg',
+    'image/webp': '.webp',
+}
+
+
+def convert(pptx_path, output_path=None, external_assets=None):
+    _ensure_pptx()
+    from pptx import Presentation
+
+    file_size_mb = os.path.getsize(pptx_path) / (1024 * 1024)
+
+    # Pre-flight warning for very large files
+    if file_size_mb > 150:
+        print(f"WARNING: File is {file_size_mb:.0f}MB — consider using PDF conversion (convert-pdf.py) for better performance.")
+
     prs = Presentation(pptx_path)
     slide_width = prs.slide_width
     slide_height = prs.slide_height
     aspect_ratio = slide_width / slide_height if slide_height else 16/9
 
+    total_images = count_images(prs)
+
+    # Auto-detect external assets mode
+    if external_assets is None:
+        external_assets = file_size_mb > 20 or total_images > 50
+        if external_assets:
+            print(f"Auto-enabling external assets mode (file: {file_size_mb:.1f}MB, images: {total_images})")
+
+    output = output_path or str(Path(pptx_path).with_suffix('.html'))
+    output_dir = Path(output).parent
+
+    if external_assets:
+        assets_dir = output_dir / "assets"
+        assets_dir.mkdir(parents=True, exist_ok=True)
+
+    img_counter = 0
     slides_html = []
 
     for i, slide in enumerate(prs.slides, 1):
@@ -165,11 +210,20 @@ def convert(pptx_path, output_path=None):
 
             # Image
             if shape.shape_type == 13 or hasattr(shape, "image"):
-                data_uri = extract_image(shape)
-                if data_uri:
+                blob, content_type = extract_image_data(shape)
+                if blob:
+                    img_counter += 1
+                    if external_assets:
+                        ext = CONTENT_TYPE_TO_EXT.get(content_type, '.png')
+                        img_name = f"img-{img_counter:03d}{ext}"
+                        (assets_dir / img_name).write_bytes(blob)
+                        src = f"assets/{img_name}"
+                    else:
+                        b64 = base64.b64encode(blob).decode('utf-8')
+                        src = f"data:{content_type};base64,{b64}"
                     elements.append(
                         f'<div style="{pos_style};display:flex;align-items:center;justify-content:center">'
-                        f'<img src="{data_uri}" style="max-width:100%;max-height:100%;object-fit:contain" alt="">'
+                        f'<img src="{src}" style="max-width:100%;max-height:100%;object-fit:contain" alt="">'
                         f'</div>'
                     )
                     continue
@@ -205,7 +259,7 @@ def convert(pptx_path, output_path=None):
                     )
                 continue
 
-            # Decorative shape with fill (colored rectangles, bars, etc.)
+            # Decorative shape with fill
             fill = get_shape_fill(shape)
             if fill:
                 elements.append(
@@ -218,7 +272,6 @@ def convert(pptx_path, output_path=None):
         )
 
     title = "Presentation"
-    # Try to get title from first slide
     if prs.slides:
         for shape in prs.slides[0].shapes:
             if hasattr(shape, "text") and shape.text.strip() and len(shape.text.strip()) < 150:
@@ -293,14 +346,31 @@ scaleSlides();
 </script>
 </body></html>'''
 
-    output = output_path or str(Path(pptx_path).with_suffix('.html'))
     Path(output).write_text(html, encoding='utf-8')
+    output_size = os.path.getsize(output)
+
+    # Summary
     print(f"Converted to: {output}")
     print(f"Slides: {len(slides_html)}")
+    print(f"Images: {img_counter}")
+    print(f"Output size: {output_size / (1024*1024):.1f}MB")
+    print(f"External assets: {'yes' if external_assets else 'no'}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: convert-pptx.py <file.pptx> [output.html]")
-        sys.exit(1)
-    convert(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+    parser = argparse.ArgumentParser(description="Convert PPTX to HTML presentation")
+    parser.add_argument("input", help="Path to .pptx file")
+    parser.add_argument("output", nargs="?", help="Output HTML path (default: same name with .html)")
+    parser.add_argument("--external-assets", action="store_true", default=None,
+                        help="Save images as separate files in assets/ directory (auto-detected for large files)")
+    parser.add_argument("--no-external-assets", action="store_true",
+                        help="Force inline base64 even for large files")
+    args = parser.parse_args()
+
+    ext_assets = None  # auto-detect
+    if args.external_assets:
+        ext_assets = True
+    elif args.no_external_assets:
+        ext_assets = False
+
+    convert(args.input, args.output, external_assets=ext_assets)

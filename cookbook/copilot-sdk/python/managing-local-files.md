@@ -20,7 +20,7 @@ import asyncio
 import os
 from copilot import (
     CopilotClient, SessionConfig, MessageOptions,
-    SessionEvent, SessionEventType,
+    SessionEvent,
 )
 
 async def main():
@@ -35,11 +35,11 @@ async def main():
 
     # Event handler
     def handle_event(event: SessionEvent):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE:
+        if event.type.value == "assistant.message":
             print(f"\nCopilot: {event.data.content}")
-        elif event.type == SessionEventType.TOOL_EXECUTION_START:
+        elif event.type.value == "tool.execution_start":
             print(f"  → Running: {event.data.tool_name}")
-        elif event.type == SessionEventType.TOOL_EXECUTION_COMPLETE:
+        elif event.type.value == "tool.execution_complete":
             print(f"  ✓ Completed: {event.data.tool_call_id}")
         elif event.type.value == "session.idle":
             done.set()
