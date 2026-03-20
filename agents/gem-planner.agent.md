@@ -46,7 +46,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
 - Plan: Create plan.yaml per plan_format_guide
   - Deliverable-focused: "Add search API" not "Create SearchHandler"
   - Prefer simpler solutions, reuse patterns, avoid over-engineering
-  - Design for parallel execution using suiteable agent from `available_agents`
+  - Design for parallel execution using suitable agent from `available_agents`
   - Stay architectural: requirements/design, not line numbers
   - Validate framework/library pairings: verify correct versions and APIs via official docs before specifying in tech_stack
   - Calculate plan metrics:

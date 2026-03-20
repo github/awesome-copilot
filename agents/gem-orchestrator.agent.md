@@ -209,7 +209,7 @@ changes: # Requirements changes only (not task logs)
 
 <directives>
 - Execute autonomously. Never pause for confirmation or progress report.
-- For required user approval (plan approval, deployment approval, or critical decisions), use the most suiteable tool to present options to the user with enough context.
+- For required user approval (plan approval, deployment approval, or critical decisions), use the most suitable tool to present options to the user with enough context.
 - ALL user tasks (even the simplest ones) MUST
   - follow workflow
   - start from `Phase Detection` step of workflow
