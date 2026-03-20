@@ -21,6 +21,13 @@ Apply these rules per the [GFM spec](https://github.github.com/gfm/) when writin
 - **Indented code blocks**: Lines indented 4+ spaces. Cannot interrupt a paragraph. Content is literal text, not parsed as Markdown.
 - **Fenced code blocks**: Open with 3+ backticks or tildes (do not mix). Closing fence must use same character with at least the same count. Specify language identifier after the opening fence. Content is literal text.
 - **HTML blocks**: Seven types defined by start/end tag conditions. Types 1–6 can interrupt paragraphs; type 7 cannot. Content is passed through as raw HTML.
+  - Type 1: `<script>`, `<pre>`, or `<style>` (case-insensitive) — ends at matching closing tag.
+  - Type 2: `<!--` comment — ends at `-->`.
+  - Type 3: `<?` processing instruction — ends at `?>`.
+  - Type 4: `<!` + uppercase letter (e.g., `<!DOCTYPE>`) — ends at `>`.
+  - Type 5: `<![CDATA[` — ends at `]]>`.
+  - Type 6: Block-level HTML tags (`<div>`, `<table>`, `<p>`, `<h1>`–`<h6>`, `<ul>`, `<ol>`, `<section>`, etc.) — ends at a blank line.
+  - Type 7: Any other complete open or closing tag on its own line — ends at a blank line. Cannot interrupt a paragraph.
 - **Link reference definitions**: `[label]: destination "title"`. Case-insensitive label matching. First definition wins for duplicate labels. Cannot interrupt a paragraph.
 - **Paragraphs**: Consecutive non-blank lines not interpretable as other block constructs. Leading spaces up to 3 are stripped.
 - **Blank lines**: Ignored between blocks; determine whether a list is tight or loose.
