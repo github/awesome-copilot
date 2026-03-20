@@ -1,13 +1,13 @@
 ---
-name: eval-driven-dev
-description: Instrument Python LLM apps, build golden datasets, write eval-based tests, run them, and root-cause failures — covering the full eval-driven development cycle. Make sure to use this skill whenever a user is developing, testing, QA-ing, evaluating, or benchmarking a Python project that calls an LLM, even if they don't say "evals" explicitly. Use for making sure an AI app works correctly, catching regressions after prompt changes, debugging why an agent started behaving differently, or validating output quality before shipping.
+name: qa-eval
+description: Add instrumentation, build golden datasets, write eval-based tests, run them, and root-cause failures — Ensure your Python LLM app works correctly. Make sure to use this skill whenever a user is developing, testing, QA-ing, evaluating, or benchmarking a Python project that calls an LLM, even if they don't say "evals" explicitly. Use for making sure an AI app works correctly, catching regressions after prompt changes, debugging why an agent started behaving differently, or validating output quality before shipping.
 license: MIT
 compatibility: Python 3.11+
 metadata:
   version: 0.1.10
 ---
 
-# Eval-Driven Development with pixie
+# Eval-based QA for Python LLM Apps
 
 This skill is about doing the work, not describing it. When a user asks you to set up evals for their app, you should be reading their code, editing their files, running commands, and producing a working test pipeline — not writing a plan for them to follow later.
 
