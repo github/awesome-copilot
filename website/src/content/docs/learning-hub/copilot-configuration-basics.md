@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-03-21
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -146,6 +146,29 @@ Prevent Copilot from accessing specific files or directories.
 ```
 
 **Why it matters**: Exclude sensitive files, generated code, or dependencies from Copilot's context to improve suggestion relevance and protect confidential information.
+
+### File Search and Gitignore
+
+By default, Copilot's `@` file search omits files listed in `.gitignore`. You can opt in to include them using the `includeGitignored` config option in GitHub Copilot CLI:
+
+```json
+{
+  "includeGitignored": true
+}
+```
+
+**Why it matters**: Useful in monorepos or projects where generated or gitignored files (e.g., compiled outputs, build artifacts) contain important context that Copilot should be able to reference.
+
+### Config Settings: camelCase Names (CLI)
+
+In GitHub Copilot CLI, config settings use **camelCase** names. Older snake_case names still work for backward compatibility, but camelCase is the preferred form going forward:
+
+| Old Name (still works) | New Preferred Name |
+|------------------------|-------------------|
+| `include_co_authored_by` | `includeCoAuthoredBy` |
+| `effort_level` | `effortLevel` |
+| `auto_updates_channel` | `autoUpdatesChannel` |
+| `status_line` | `statusLine` |
 
 ## Repository-Level Configuration
 
@@ -335,14 +358,26 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 ### GitHub Copilot CLI
 
-Configuration file: `~/.copilot-cli/config.json`
+GitHub Copilot CLI stores configuration in `~/.copilot/settings.json`. Key CLI-specific settings:
 
 ```json
 {
-  "editor": "vim",
-  "suggestions": true
+  "effortLevel": "medium",
+  "includeCoAuthoredBy": true,
+  "autoUpdatesChannel": "stable",
+  "statusLine": true
 }
 ```
+
+> **Note**: Config setting names use camelCase (e.g., `effortLevel`). Older snake_case names (e.g., `effort_level`) still work for backward compatibility but camelCase is the preferred form going forward.
+
+**Useful CLI commands for session management**:
+
+| Command | What It Does |
+|---------|-------------|
+| `/undo` | Undo the last turn and revert all file changes made in that turn |
+| `--effort` | Shorthand alias for `--reasoning-effort` (set the reasoning budget) |
+| `--resume` | Resume a previous session by session ID or task ID |
 
 ## Common Questions
 

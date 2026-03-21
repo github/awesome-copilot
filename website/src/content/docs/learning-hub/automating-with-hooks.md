@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-21
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,10 +93,28 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent creation |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+### Cross-Platform Event Names
+
+Hook event names support both `camelCase` and `PascalCase` — for example, both `postToolUse` and `PostToolUse` are valid. This ensures the same `hooks.json` file works without modification across GitHub Copilot CLI, VS Code, and Claude Code.
+
+### Where to Define Hooks
+
+Hooks can be defined in several locations, loaded in this order:
+
+| Location | Scope | Example |
+|----------|-------|---------|
+| `.github/hooks/*.json` | Repository (shared via version control) | `.github/hooks/linting.json` |
+| `settings.json` | User or workspace settings | `~/.copilot/settings.json` |
+| `settings.local.json` | Local overrides (not version-controlled) | `.github/settings.local.json` |
+| `config.json` | Legacy config format | `~/.copilot/config.json` |
+
+For most teams, `.github/hooks/` is the right place — configuration is version-controlled and shared automatically. Use `settings.local.json` for hooks that should only run on your machine (e.g., personal notification scripts).
 
 ### Event Configuration
 
@@ -327,7 +345,7 @@ echo "Pre-commit checks passed ✅"
 
 **Q: Where do I put hooks configuration files?**
 
-A: Place them in the `.github/hooks/` directory in your repository (e.g., `.github/hooks/my-hook.json`). You can have multiple hook files — all are loaded automatically. This makes hooks available to all team members.
+A: The primary location is `.github/hooks/` in your repository (e.g., `.github/hooks/my-hook.json`). All JSON files in that directory are loaded automatically, making hooks available to every team member. You can also define hooks in `settings.json`, `settings.local.json`, or `config.json` for user-scoped or local-only hooks. See the "Where to Define Hooks" table above for details.
 
 **Q: Can hooks access the user's prompt text?**
 

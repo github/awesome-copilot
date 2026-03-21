@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-21
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -61,7 +61,15 @@ GitHub Copilot provides several **built-in tools** that are always available:
 
 ## Configuring MCP Servers
 
-MCP servers are configured per-workspace in `.vscode/mcp.json`:
+MCP servers are configured per-workspace. GitHub Copilot CLI looks for server definitions in the following files (all are supported):
+
+- `.vscode/mcp.json` — VS Code workspace configuration
+- `.mcp.json` — project-root configuration (portable across editors)
+- `devcontainer.json` — Dev Container configuration
+
+> **Note**: Workspace MCP servers from all three locations are loaded only after folder trust is confirmed.
+
+A typical `.vscode/mcp.json` or `.mcp.json` looks like this:
 
 ```json
 {
@@ -193,8 +201,9 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Principle of least privilege**: Only give MCP servers the minimum access they need. Use read-only database connections for analysis agents.
 - **Keep secrets out of config files**: Use `${input:variableName}` for API keys and connection strings, or load from environment variables.
 - **Document your servers**: Add comments or a README explaining which MCP servers your project uses and why.
-- **Version control carefully**: Commit `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
+- **Version control carefully**: Commit `.vscode/mcp.json` or `.mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
+- **Validate against a registry (experimental)**: Use the `MCP_ALLOWLIST` feature flag to validate MCP servers against configured registries before loading them. This is useful in enterprise environments where only approved servers should run. Enable it via the `experimentalFeatures` config or the `MCP_ALLOWLIST` environment variable.
 
 ## Common Questions
 
