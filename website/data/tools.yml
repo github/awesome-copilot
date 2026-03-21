@@ -307,3 +307,53 @@ tools:
       - automation
       - macos
       - launchagent
+
+  - id: skillfold
+    name: Skillfold
+    description: >-
+      Configuration language and compiler for multi-agent AI pipelines. Write a single YAML
+      config and compile it into platform-specific output for Copilot
+      (.github/copilot-instructions.md and .github/instructions/*.instructions.md),
+      Claude Code, Cursor, Windsurf, Codex, Gemini, and more. Supports typed state schemas,
+      conditional routing, parallel map execution, and pipeline visualization.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 18 or higher
+      - npm
+    links:
+      github: https://github.com/byronxlg/skillfold
+      npm: https://www.npmjs.com/package/skillfold
+      documentation: https://byronxlg.github.io/skillfold/
+    features:
+      - "Cross-platform compilation: One YAML config compiles to Copilot, Claude Code, Cursor, Windsurf, Codex, Gemini, and more"
+      - "Multi-agent pipelines: Wire agents into typed execution graphs with conditional routing and parallel map"
+      - "Typed state schema: Shared state with type checking, location validation, and write conflict detection"
+      - "Orchestrator generation: Auto-generate orchestrator agents from team flow definitions"
+      - "Pipeline runner: Execute pipelines locally with resume, dry-run, and error handling"
+      - "Shared skills library: 11 generic atomic skills importable from npm"
+    configuration:
+      type: bash
+      content: |
+        # Install globally
+        npm install -g skillfold
+
+        # Scaffold a new pipeline
+        skillfold init
+
+        # Compile to Copilot format
+        skillfold --target copilot
+
+        # Compile to all platforms
+        skillfold
+
+        # Validate config
+        skillfold validate
+    tags:
+      - cli
+      - npm
+      - multi-agent
+      - pipeline
+      - compiler
+      - copilot
+      - cross-platform
