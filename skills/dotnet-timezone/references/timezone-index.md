@@ -34,7 +34,6 @@ Use this file for common mappings between Windows timezone IDs and IANA timezone
 | W. Europe Standard Time | W. Europe Standard Time | Europe/Berlin | +01:00/+02:00 | Yes |
 | Central Europe Standard Time | Central Europe Standard Time | Europe/Budapest | +01:00/+02:00 | Yes |
 | Romance Standard Time | Romance Standard Time | Europe/Paris | +01:00/+02:00 | Yes |
-| Finland, Lithuania, Estonia Standard Time | FLE Standard Time | Europe/Helsinki | +02:00/+03:00 | Yes |
 | E. Europe Standard Time | E. Europe Standard Time | Asia/Nicosia | +02:00/+03:00 | Yes |
 | GTB Standard Time | GTB Standard Time | Europe/Bucharest | +02:00/+03:00 | Yes |
 | Russian Standard Time | Russian Standard Time | Europe/Moscow | +03:00 | No |
