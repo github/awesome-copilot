@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-22
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,10 +93,15 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+### Cross-Platform Event Name Compatibility
+
+Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
 
 ### Event Configuration
 
@@ -281,6 +286,28 @@ Send a Slack or Teams notification when an agent session completes:
 }
 ```
 
+### Injecting Context into Subagents
+
+The `subagentStart` hook fires when the main agent spawns a subagent (e.g., via the `task` tool). Use it to inject additional context—such as project conventions or security guidelines—directly into the subagent's prompt:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "echo 'Follow the team coding standards in .github/instructions/ for all code changes.'",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+This is especially useful in multi-agent workflows where subagents may not automatically inherit context from the parent session.
+
 ## Writing Hook Scripts
 
 For complex logic, use bundled scripts instead of inline bash commands:
@@ -327,7 +354,13 @@ echo "Pre-commit checks passed ✅"
 
 **Q: Where do I put hooks configuration files?**
 
-A: Place them in the `.github/hooks/` directory in your repository (e.g., `.github/hooks/my-hook.json`). You can have multiple hook files — all are loaded automatically. This makes hooks available to all team members.
+A: There are several supported locations, loaded in order of precedence:
+
+- **Repository-level** (shared with team): `.github/hooks/*.json` in your repository — all JSON files in this folder are loaded automatically
+- **Global settings**: `settings.json` or `settings.local.json` (user-level CLI config)
+- **Legacy config**: `config.json` (also supported)
+
+For team-wide hooks that everyone should use, `.github/hooks/` is the recommended location as it is version-controlled and shared automatically.
 
 **Q: Can hooks access the user's prompt text?**
 
