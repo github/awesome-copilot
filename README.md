@@ -422,6 +422,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/joeVenner"><img src="https://avatars.githubusercontent.com/u/61122897?v=4" width="100px;" alt=""/><br /><sub><b>JoeVenner</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pasindudilshan1"><img src="https://avatars.githubusercontent.com/u/146967638?v=4" width="100px;" alt=""/><br /><sub><b>Pasindu Premarathna</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
