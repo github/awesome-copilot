@@ -23,6 +23,25 @@ applyTo: '**/*.cs, **/host.json, **/local.settings.json, **/*.csproj'
 - Name orchestrators with the suffix `Orchestrator` (e.g., `ProcessOrderOrchestrator`), activities with the suffix `Activity` (e.g., `ChargePaymentActivity`), and entities with the suffix `Entity` (e.g., `CartEntity`).
 - Use constants or static readonly strings for activity/orchestrator/entity names passed to `CallActivityAsync`, `CallSubOrchestratorAsync`, and `GetEntityStateAsync` to prevent typos.
 
+## Configuration Files
+
+### local.settings.json
+- Always include `AzureWebJobsStorage` connection string for local development — Durable Functions requires storage to maintain orchestration state.
+- Use `"UseDevelopmentStorage=true"` or Azurite connection string for local testing — never use a production storage account from local dev.
+- Set `FUNCTIONS_WORKER_RUNTIME` to `"dotnet-isolated"` in local.settings.json.
+- For Netherite or MSSQL storage providers, include provider-specific connection strings (e.g., `EventHubsConnection` for Netherite).
+- Never commit `local.settings.json` to source control — add it to `.gitignore`; use `local.settings.json.example` with placeholder values instead.
+- Store sensitive values (storage keys, Event Hub connection strings) using Azure Key Vault locally via `@Microsoft.KeyVault(...)` references if needed.
+
+### host.json
+- Configure Durable Functions-specific settings under `"extensions": { "durableTask": { ... } }` — do not rely on defaults for production.
+- Set `"hubName"` to a meaningful, environment-specific value (e.g., `"MyAppProd"`, `"MyAppDev"`) to isolate Task Hubs across environments sharing the same storage account.
+- Tune `"maxConcurrentActivityFunctions"` and `"maxConcurrentOrchestratorFunctions"` based on expected throughput and hosting plan — defaults are conservative.
+- Enable extended sessions (`"extendedSessionsEnabled": true`) for long-running orchestrations on Premium/Dedicated plans to reduce replay overhead.
+- Configure the storage provider: use `"storageProvider": { "type": "netherite" }` or `"mssql"` for high-scale scenarios instead of default Azure Storage.
+- Set `"maxQueuePollingInterval"` appropriately — lower values increase responsiveness but increase storage transaction costs on Consumption plan.
+- Configure Application Insights sampling rate under `"logging": { "applicationInsights": { "samplingSettings": { ... } } }` to control telemetry volume.
+
 ## Orchestration Patterns
 
 ### Function Chaining
@@ -106,36 +125,6 @@ applyTo: '**/*.cs, **/host.json, **/local.settings.json, **/*.csproj'
 - For high-throughput scenarios, use the **Netherite** or **MSSQL** storage provider instead of the default Azure Storage provider to improve performance and reduce costs.
 - Avoid storing large payloads (>64KB) directly as orchestration inputs/outputs; store large data in Blob Storage and pass the reference (URL/ID) instead.
 
-## Existing Code Review Guidance
-
-- If `DateTime.UtcNow` or `DateTime.Now` is used inside an orchestrator, flag it and replace with `context.CurrentUtcDateTime`.
-- If `Guid.NewGuid()` or `Random` is used inside an orchestrator, flag it as non-deterministic and move it to an activity.
-- If direct HTTP calls (`HttpClient.GetAsync`, etc.) are made inside an orchestrator, flag them immediately and move the call into an activity function.
-- If `Task.Delay` or `Thread.Sleep` is used inside an orchestrator, replace with `context.CreateTimer`.
-- If orchestration history is growing unboundedly without `ContinueAsNew` on long-running loops, suggest adding `ContinueAsNew` to reset history.
-- If entity state is storing large collections or blob data, suggest externalizing large data to Blob Storage and storing only references in entity state.
-- If activity functions are not idempotent and the workflow has no retry/compensation logic, flag this as a reliability risk.
-
-
-## Configuration Files
-
-### local.settings.json
-- Always include `AzureWebJobsStorage` connection string for local development — Durable Functions requires storage to maintain orchestration state.
-- Use `"UseDevelopmentStorage=true"` or Azurite connection string for local testing — never use a production storage account from local dev.
-- Set `FUNCTIONS_WORKER_RUNTIME` to `"dotnet-isolated"` in local.settings.json.
-- For Netherite or MSSQL storage providers, include provider-specific connection strings (e.g., `EventHubsConnection` for Netherite).
-- Never commit `local.settings.json` to source control — add it to `.gitignore`; use `local.settings.json.example` with placeholder values instead.
-- Store sensitive values (storage keys, Event Hub connection strings) using Azure Key Vault locally via `@Microsoft.KeyVault(...)` references if needed.
-
-### host.json
-- Configure Durable Functions-specific settings under `"extensions": { "durableTask": { ... } }` — do not rely on defaults for production.
-- Set `"hubName"` to a meaningful, environment-specific value (e.g., `"MyAppProd"`, `"MyAppDev"`) to isolate Task Hubs across environments sharing the same storage account.
-- Tune `"maxConcurrentActivityFunctions"` and `"maxConcurrentOrchestratorFunctions"` based on expected throughput and hosting plan — defaults are conservative.
-- Enable extended sessions (`"extendedSessionsEnabled": true`) for long-running orchestrations on Premium/Dedicated plans to reduce replay overhead.
-- Configure the storage provider: use `"storageProvider": { "type": "netherite" }` or `"mssql"` for high-scale scenarios instead of default Azure Storage.
-- Set `"maxQueuePollingInterval"` appropriately — lower values increase responsiveness but increase storage transaction costs on Consumption plan.
-- Configure Application Insights sampling rate under `"logging": { "applicationInsights": { "samplingSettings": { ... } } }` to control telemetry volume.
-
 ## Testing Durable Functions
 
 - Use the `Microsoft.Azure.Functions.Worker.Extensions.DurableTask.Tests` NuGet package (if available) or manually mock `TaskOrchestrationContext` for unit testing orchestrators.
@@ -148,3 +137,13 @@ applyTo: '**/*.cs, **/host.json, **/local.settings.json, **/*.csproj'
 - Test compensation/error handling by forcing activity failures (throw exceptions in mocked activities) and asserting the orchestrator calls compensating activities.
 - Use `client.WaitForInstanceCompletionAsync` in integration tests instead of polling — it blocks until the orchestration completes or times out.
 - For entity tests, use `context.Entities.SignalEntityAsync` in test orchestrators and verify entity state via `client.ReadEntityStateAsync` after the orchestration completes.
+
+## Existing Code Review Guidance
+
+- If `DateTime.UtcNow` or `DateTime.Now` is used inside an orchestrator, flag it and replace with `context.CurrentUtcDateTime`.
+- If `Guid.NewGuid()` or `Random` is used inside an orchestrator, flag it as non-deterministic and move it to an activity.
+- If direct HTTP calls (`HttpClient.GetAsync`, etc.) are made inside an orchestrator, flag them immediately and move the call into an activity function.
+- If `Task.Delay` or `Thread.Sleep` is used inside an orchestrator, replace with `context.CreateTimer`.
+- If orchestration history is growing unboundedly without `ContinueAsNew` on long-running loops, suggest adding `ContinueAsNew` to reset history.
+- If entity state is storing large collections or blob data, suggest externalizing large data to Blob Storage and storing only references in entity state.
+- If activity functions are not idempotent and the workflow has no retry/compensation logic, flag this as a reliability risk.
