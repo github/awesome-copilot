@@ -259,11 +259,9 @@
       "homepage": "https://learn.microsoft.com",
       "keywords": [
         "microsoft",
-        "docs",
         "azure",
-        ".net",
+        "dotnet",
         "windows",
-        "api",
         "documentation",
         "rag",
         "dynamics",
