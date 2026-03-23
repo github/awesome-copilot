@@ -35,7 +35,7 @@ npx tsx accessibility-report.ts
 ```typescript
 #!/usr/bin/env npx tsx
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import * as readline from "node:readline";
 
 // ============================================================================
@@ -73,6 +73,7 @@ async function main() {
     const client = new CopilotClient();
 
     const session = await client.createSession({
+        onPermissionRequest: approveAll,
         model: "claude-opus-4.6",
         streaming: true,
         mcpServers: {
@@ -191,6 +192,7 @@ The recipe configures a local MCP server that runs alongside the session:
 
 ```typescript
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     mcpServers: {
         playwright: {
             type: "local",

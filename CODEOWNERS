@@ -44,3 +44,6 @@
 /skills/codeql/ @VeVarunSharma
 /skills/dependabot/ @VeVarunSharma
 /skills/secret-scanning/ @VeVarunSharma
+
+# Added via #codeowner from PR #1118
+/agents/github-actions-node-upgrade.agent.md @joshjohanning

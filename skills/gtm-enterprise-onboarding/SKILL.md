@@ -2,6 +2,9 @@
 name: gtm-enterprise-onboarding
 description: Four-phase framework for onboarding enterprise customers from contract to value realization. Use when implementing new enterprise customers, preventing churn during onboarding, or solving the adoption cliff that kills deals post-go-live. Includes the Week 4 ghosting pattern.
 license: MIT
+metadata:
+  author: Smit Patel (https://linkedin.com/in/smitkpatel)
+  source: https://github.com/beingsmit/technical-product-gtm
 ---
 
 # Enterprise Onboarding

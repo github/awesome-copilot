@@ -5,6 +5,7 @@ import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { renderPluginsHtml } from '../scripts/pages/plugins-render';
 
 const initialItems = pluginsData.items;
@@ -12,7 +13,7 @@ const initialItems = pluginsData.items;
 
 <StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="🔌 Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" />
+    <PageHeader title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" icon="plug" />
 
     <div class="page-content">
       <div class="container">
@@ -48,6 +49,7 @@ const initialItems = pluginsData.items;
   </div>
 
   <Modal />
+  <BackToTop />
   <EmbeddedPageData filename="plugins.json" data={pluginsData} />
 
   <script>

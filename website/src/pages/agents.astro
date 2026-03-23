@@ -5,6 +5,7 @@ import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { renderAgentsHtml, sortAgents } from '../scripts/pages/agents-render';
 
 const initialItems = sortAgents(agentsData.items, 'title');
@@ -12,7 +13,7 @@ const initialItems = sortAgents(agentsData.items, 'title');
 
 <StarlightPage frontmatter={{ title: 'Custom Agents', description: 'Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="🤖 Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" />
+    <PageHeader title="Custom Agents" description="Specialized agents that enhance GitHub Copilot for specific technologies, workflows, and domains" icon="robot" />
 
     <div class="page-content">
       <div class="container">
@@ -57,6 +58,7 @@ const initialItems = sortAgents(agentsData.items, 'title');
   </div>
 
   <Modal />
+  <BackToTop />
   <EmbeddedPageData filename="agents.json" data={agentsData} />
 
   <script>

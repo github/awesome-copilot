@@ -16,14 +16,9 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
+      favicon: "/images/favicon.svg",
       description: siteDescription,
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/github/awesome-copilot",
-        },
-      ],
+      social: [],
       head: [
         {
           tag: "meta",
