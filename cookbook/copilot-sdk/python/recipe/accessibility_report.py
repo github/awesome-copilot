@@ -2,8 +2,11 @@
 
 import asyncio
 from copilot import (
-    CopilotClient, SessionConfig, MessageOptions,
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
     SessionEvent,
+    PermissionHandler,
 )
 
 # ============================================================================
@@ -41,7 +44,7 @@ async def main():
                 "tools": ["*"],
             }
         },
-    ))
+        on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
 

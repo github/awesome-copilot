@@ -22,7 +22,7 @@ await session.DisposeAsync();
 Console.WriteLine("Session destroyed (state persisted)");
 
 // Resume the previous session
-var resumed = await client.ResumeSessionAsync("user-123-conversation");
+var resumed = await client.ResumeSessionAsync("user-123-conversation", new ResumeSessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
 Console.WriteLine($"Resumed: {resumed.SessionId}");
 
 await resumed.SendAsync(new MessageOptions { Prompt = "What were we discussing?" });

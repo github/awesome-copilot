@@ -2659,6 +2659,45 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "simonkurtz-MSFT",
+      "name": "Simon Kurtz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/84809797?v=4",
+      "profile": "https://github.com/simonkurtz-MSFT",
+      "contributions": [
+        "agents",
+        "infra",
+        "instructions"
+      ]
+    },
+    {
+      "login": "TemitayoAfolabi",
+      "name": "Temitayo Afolabi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/108681158?v=4",
+      "profile": "https://github.com/TemitayoAfolabi",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "joeVenner",
+      "name": "JoeVenner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/61122897?v=4",
+      "profile": "https://github.com/joeVenner",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "pasindudilshan1",
+      "name": "Pasindu Premarathna",
+      "avatar_url": "https://avatars.githubusercontent.com/u/146967638?v=4",
+      "profile": "https://github.com/pasindudilshan1",
+      "contributions": [
+        "skills"
+      ]
     }
   ]
 }

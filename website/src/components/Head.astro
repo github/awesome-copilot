@@ -44,7 +44,29 @@ const twitterDomain =
 {socialImageUrl && <meta property="og:image:secure_url" content={socialImageUrl} />}
 {socialImageType && <meta property="og:image:type" content={socialImageType} />}
 {socialImageAlt && <meta name="twitter:image:alt" content={socialImageAlt} />}
+
+<!-- Theme initialization script (runs early to prevent flash) -->
+<script is:inline>
+  (function() {
+    const STORAGE_KEY = 'awesome-copilot-theme';
+    const stored = localStorage.getItem(STORAGE_KEY);
+
+    // Theme handling:
+    // - 'dark' or 'light' → set data-theme attribute to that value
+    // - 'auto' or unset → don't set data-theme (CSS media query handles system preference)
+    if (stored === 'dark' || stored === 'light') {
+      document.documentElement.setAttribute('data-theme', stored);
+    }
+    // For 'auto' or unset, no attribute means CSS media query controls theme
+  })();
+</script>
+
 <script is:inline define:vars={{ basePath }}>
+  // basePath setup for runtime use
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.dataset.basePath = basePath;
+  });
+
   document.addEventListener('DOMContentLoaded', () => {
     document.body.dataset.basePath = basePath;
   });

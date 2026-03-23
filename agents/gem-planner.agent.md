@@ -31,7 +31,8 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
   - Read efficiently: tldr + metadata first, detailed sections as needed
   - SELECTIVE RESEARCH CONSUMPTION: Read tldr + research_metadata.confidence + open_questions first (≈30 lines). Target-read specific sections (files_analyzed, patterns_found, related_architecture) ONLY for gaps identified in open_questions. Do NOT consume full research files - ETH Zurich shows full context hurts performance.
   - READ GLOBAL RULES: If AGENTS.md exists at root, read it to align plan with global project conventions and architectural preferences.
-  - VALIDATE AGAINST PRD: If docs/prd.yaml exists, read it. Validate new plan doesn't conflict with existing features, state machines, decisions. Flag conflicts for user feedback.
+  - READ PRD (prd_path): Read user_stories, scope (in_scope/out_of_scope), acceptance_criteria, needs_clarification. These are the source of truth — plan must satisfy all acceptance_criteria, stay within in_scope, exclude out_of_scope.
+  - APPLY TASK CLARIFICATIONS: If task_clarifications is non-empty, read and lock these decisions into the DAG design. Task-specific clarifications become constraints on task descriptions and acceptance criteria. Do NOT re-question these — they are resolved.
   - initial: no plan.yaml → create new
   - replan: failure flag OR objective changed → rebuild DAG
   - extension: additive objective → append tasks
@@ -67,7 +68,9 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
   "plan_id": "string",
   "variant": "a | b | c (optional - for multi-plan)",
   "objective": "string", // Extracted objective from user request or task_definition
-  "complexity": "simple|medium|complex" // Required for pre-mortem logic
+  "complexity": "simple|medium|complex", // Required for pre-mortem logic
+  "task_clarifications": "array of {question, answer} from Discuss Phase (empty if skipped)",
+  "prd_path": "string (path to docs/prd.yaml)"
 }
 ```
 
@@ -148,6 +151,9 @@ tasks:
     status: string # pending | in_progress | completed | failed | blocked | needs_revision
     dependencies:
       - string
+    parallelizable: boolean # true = can sub-agent parallelize within wave (default: false)
+    conflicts_with:
+      - string # Task IDs that touch same files — runs serially even if dependencies allow parallel
     context_files:
       - string: string
     estimated_effort: string # small | medium | large

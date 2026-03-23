@@ -17,15 +17,24 @@ You need to run multiple conversations in parallel, each with its own context an
 ## Node.js
 
 ```typescript
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 await client.start();
 
 // Create multiple independent sessions
-const session1 = await client.createSession({ model: "gpt-5" });
-const session2 = await client.createSession({ model: "gpt-5" });
-const session3 = await client.createSession({ model: "claude-sonnet-4.5" });
+const session1 = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
+});
+const session2 = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
+});
+const session3 = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "claude-sonnet-4.5",
+});
 
 // Each session maintains its own conversation history
 await session1.sendAndWait({ prompt: "You are helping with a Python project" });
@@ -50,6 +59,7 @@ Use custom IDs for easier tracking:
 
 ```typescript
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     sessionId: "user-123-chat",
     model: "gpt-5",
 });
