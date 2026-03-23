@@ -115,7 +115,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://learn.microsoft.com",
-    "keywords": ["microsoft", "docs", "azure", ".net", "windows", "api", "documentation", "rag", "dynamics", "powerbi", "office", "code-samples"],
+    "keywords": ["microsoft", "azure", "dotnet", "windows", "api", "documentation", "rag", "dynamics", "powerbi", "code-samples"],
     "license": "MIT",
     "repository": "https://github.com/MicrosoftDocs/mcp",
     "source": {
