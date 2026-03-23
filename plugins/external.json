@@ -133,7 +133,6 @@
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
     "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
-    "license": "TODO",
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
