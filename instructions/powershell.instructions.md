@@ -100,7 +100,7 @@ function Set-ResourceConfiguration {
 
         # ✔️ CORRECT: Use `[switch]` with no default value
         [Parameter()]
-        [switch]$FalseByDefault,
+        [switch]$Force,
 
          # ❌ WRONG: Shows incorrect default assignment, however this is correct syntax (requires `[switch]` cast).
         [Parameter()]
