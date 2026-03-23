@@ -2,6 +2,9 @@
 name: gtm-technical-product-pricing
 description: Pricing strategy for technical products. Use when choosing usage-based vs seat-based, designing freemium thresholds, structuring enterprise pricing conversations, deciding when to raise prices, or using price as a positioning signal.
 license: MIT
+metadata:
+  author: Smit Patel (https://linkedin.com/in/smitkpatel)
+  source: https://github.com/beingsmit/technical-product-gtm
 ---
 
 # Technical Product Pricing
@@ -348,7 +351,3 @@ Is value ratio > 5x for most customers?
 ---
 
 *Based on pricing work at developer platforms and enterprise software companies, including enterprise price increases with zero customer loss, freemium threshold design that separated hobbyists from production users, partner pricing models, and pricing conversations across hundreds of enterprise deal cycles. Not theory — patterns from pricing decisions that directly impacted revenue.*
-
----
-
-*Author: [Smit Patel](https://linkedin.com/in/smitkpatel) · Full 11-skill GTM pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)*
