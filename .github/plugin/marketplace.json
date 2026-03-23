@@ -262,11 +262,11 @@
         "azure",
         "dotnet",
         "windows",
+        "api",
         "documentation",
         "rag",
         "dynamics",
         "powerbi",
-        "office",
         "code-samples"
       ],
       "license": "MIT",
