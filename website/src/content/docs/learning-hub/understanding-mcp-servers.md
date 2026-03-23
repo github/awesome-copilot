@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-23
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -61,7 +61,17 @@ GitHub Copilot provides several **built-in tools** that are always available:
 
 ## Configuring MCP Servers
 
-MCP servers are configured per-workspace in `.vscode/mcp.json`:
+MCP servers are configured per-workspace. GitHub Copilot CLI discovers server definitions from several locations (loaded in order):
+
+| File | Scope | Notes |
+|------|-------|-------|
+| `.mcp.json` | Repository root | Preferred for repo-shared configuration |
+| `.vscode/mcp.json` | VS Code workspace | VS Code–compatible workspace config |
+| `devcontainer.json` | Dev container | Available when running inside a container |
+
+> **Security**: Workspace MCP servers are loaded **only after folder trust is confirmed**. If you haven't explicitly trusted a folder, servers defined in its config files won't start — protecting you from malicious MCP server configurations in untrusted repositories.
+
+Example `.mcp.json` or `.vscode/mcp.json`:
 
 ```json
 {
@@ -193,8 +203,9 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Principle of least privilege**: Only give MCP servers the minimum access they need. Use read-only database connections for analysis agents.
 - **Keep secrets out of config files**: Use `${input:variableName}` for API keys and connection strings, or load from environment variables.
 - **Document your servers**: Add comments or a README explaining which MCP servers your project uses and why.
-- **Version control carefully**: Commit `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
+- **Version control carefully**: Commit `.mcp.json` or `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
+- **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
 
 ## Common Questions
 
