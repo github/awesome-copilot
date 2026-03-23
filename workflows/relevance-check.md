@@ -15,6 +15,8 @@ tools:
   github:
     toolsets: [default]
 safe-outputs:
+  noop:
+    report-as-issue: false
   add-comment:
     max: 1
 ---

@@ -13,6 +13,8 @@ tools:
   github:
     toolsets: [default]
 safe-outputs:
+  noop:
+    report-as-issue: false
   create-issue:
     title-prefix: "[Relevance Summary] "
     labels: [report]

@@ -49,6 +49,8 @@ tools:
   bash: true
 
 safe-outputs:
+  noop:
+    report-as-issue: false
   create-issue:
     max: 1
     title-prefix: "[Stale Repos] "
