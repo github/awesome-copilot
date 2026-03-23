@@ -126,6 +126,34 @@ Team-sizing rules:
 
 Maintain project learning artifacts under `.github/Lessons` and `.github/Memories`.
 
+### Learning Governance (Anti-Repetition and Drift Control)
+
+Apply these rules before creating, updating, or reusing any lesson or memory:
+
+1. Versioned Patterns (Required)
+- Every lesson and memory must include: `PatternId`, `PatternVersion`, `Status`, and `Supersedes`.
+- Allowed `Status` values: `active`, `deprecated`, `blocked`.
+- Increment `PatternVersion` for meaningful guidance updates.
+
+2. Pre-Write Dedupe Check (Required)
+- Search existing lessons/memories for similar root cause, decision, impacted area, and applicability.
+- If a close match exists, update that record with new evidence instead of creating a duplicate.
+- Create a new file only when the pattern is materially distinct.
+
+3. Conflict Resolution (Required)
+- If new evidence conflicts with an existing `active` pattern, do not keep both as active.
+- Mark the older conflicting pattern as `deprecated` (or `blocked` if unsafe).
+- Create/update the replacement pattern and link with `Supersedes`.
+- Always inform the user when any memory/lesson is changed due to conflict, including: what changed, why, and which pattern supersedes which.
+
+4. Safety Gate (Required)
+- Never apply or recommend patterns with `Status: blocked`.
+- Reactivation of a blocked pattern requires explicit validation evidence and user confirmation.
+
+5. Reuse Priority (Required)
+- Prefer the newest validated `active` pattern.
+- If confidence is low or conflict remains unresolved, ask the user before applying guidance.
+
 ### Lessons (`.github/Lessons`)
 
 When a mistake occurs, create a markdown file documenting what happened and how to prevent recurrence.
@@ -134,6 +162,15 @@ Template skeleton:
 
 ```markdown
 # Lesson: <short-title>
+
+## Metadata
+- PatternId:
+- PatternVersion:
+- Status: active | deprecated | blocked
+- Supersedes:
+- CreatedAt:
+- LastValidatedAt:
+- ValidationEvidence:
 
 ## Task Context
 - Triggering task:
@@ -172,6 +209,15 @@ Template skeleton:
 
 ```markdown
 # Memory: <short-title>
+
+## Metadata
+- PatternId:
+- PatternVersion:
+- Status: active | deprecated | blocked
+- Supersedes:
+- CreatedAt:
+- LastValidatedAt:
+- ValidationEvidence:
 
 ## Source Context
 - Triggering task:
