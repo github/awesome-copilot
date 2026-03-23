@@ -34,7 +34,7 @@ safe, and maintainable scripts. It aligns with Microsoft’s PowerShell cmdlet d
   - Document any custom aliases
   - Use full parameter names
 
-### Example -  Naming Conventions
+### Example - Naming Conventions
 
 ```powershell
 function Get-UserProfile {
