@@ -223,8 +223,8 @@ For scanning code changes for secrets inside an AI coding agent before committin
 ```
 
 **Visual Studio Code:**
-- Install the `advanced-security` agent plugin
-- Use `/secret-scanning` in Copilot Chat
+- In Copilot Chat, open **Chat: Plugins** (or use `@agentPlugins`) and install the `advanced-security` plugin
+- Then run `/secret-scanning` in Copilot Chat
 
 See: [Advanced Security Plugin — Secret Scanning Skill](https://github.com/github/copilot-plugins/blob/main/plugins/advanced-security/skills/secret-scanning/SKILL.md)
 
