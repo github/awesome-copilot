@@ -38,7 +38,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - IF task-specific (current scope only) → include in task_definition for planner
   - Skip entirely for simple complexity or if user explicitly says "skip discussion"
 - PRD Creation (after Discuss Phase):
-  - Use task_clarifications and architectural_decisions from `Discuss Phase`
+  - Use `task_clarifications` and architectural_decisions from `Discuss Phase`
   - Create docs/PRD.yaml (or update if exists) per <prd_format_guide>
   - Include: user stories, IN SCOPE, OUT OF SCOPE, acceptance criteria, NEEDS CLARIFICATION
   - PRD is the source of truth for research and planning
@@ -47,7 +47,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - simple: well-known patterns, clear objective, low risk
     - medium: some unknowns, moderate scope
     - complex: unfamiliar domain, security-critical, high integration risk
-  - Pass task_clarifications and prd_path to researchers
+  - Pass `task_clarifications` and `project_prd_path` to researchers
   - Identify multiple domains/ focus areas from user_request or user_feedback
   - For each focus area, delegate to `gem-researcher` via `runSubagent` (up to 4 concurrent) per `<delegation_protocol>`
 - Phase 2: Planning
@@ -101,7 +101,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     "focus_area": "string (optional)",
     "complexity": "simple|medium|complex",
     "task_clarifications": "array of {question, answer} (empty if skipped)",
-    "prd_path": "string"
+    "project_prd_path": "string"
   },
 
   "gem-planner": {
@@ -110,7 +110,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     "objective": "string",
     "complexity": "simple|medium|complex",
     "task_clarifications": "array of {question, answer} (empty if skipped)",
-    "prd_path": "string"
+    "project_prd_path": "string"
   },
 
   "gem-implementer": {

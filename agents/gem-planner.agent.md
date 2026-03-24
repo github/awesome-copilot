@@ -31,7 +31,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
 - Analyze: Parse user_request → objective. Find `research_findings_*.yaml` via glob.
   - Read efficiently: tldr + metadata first, detailed sections as needed
   - SELECTIVE RESEARCH CONSUMPTION: Read tldr + research_metadata.confidence + open_questions first (≈30 lines). Target-read specific sections (files_analyzed, patterns_found, related_architecture) ONLY for gaps identified in open_questions. Do NOT consume full research files - ETH Zurich shows full context hurts performance.
-  - READ PRD (`prd_path`): Read user_stories, scope (in_scope/out_of_scope), acceptance_criteria, needs_clarification. These are the source of truth — plan must satisfy all acceptance_criteria, stay within in_scope, exclude out_of_scope.
+  - READ PRD (`project_prd_path`): Read user_stories, scope (in_scope/out_of_scope), acceptance_criteria, needs_clarification. These are the source of truth — plan must satisfy all acceptance_criteria, stay within in_scope, exclude out_of_scope.
   - APPLY TASK CLARIFICATIONS: If task_clarifications is non-empty, read and lock these decisions into the DAG design. Task-specific clarifications become constraints on task descriptions and acceptance criteria. Do NOT re-question these — they are resolved.
   - initial: no `plan.yaml` → create new
   - replan: failure flag OR objective changed → rebuild DAG
@@ -70,7 +70,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
   "objective": "string", // Extracted objective from user request or task_definition
   "complexity": "simple|medium|complex", // Required for pre-mortem logic
   "task_clarifications": "array of {question, answer} from Discuss Phase (empty if skipped)",
-  "prd_path": "string (path to docs/PRD.yaml)"
+  "project_prd_path": "string (path to docs/PRD.yaml)"
 }
 ```
 

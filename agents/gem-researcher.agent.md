@@ -29,7 +29,7 @@ Codebase Navigation, Pattern Recognition, Dependency Mapping, Technology Stack A
   - Use complexity from input OR model-decided if not provided
   - Model considers: task nature, domain familiarity, security implications, integration complexity
   - Factor task_clarifications into research scope: look for patterns matching clarified preferences (e.g., if "use cursor pagination" is clarified, search for existing pagination patterns)
-  - Read PRD (prd_path) for scope context: focus on in_scope areas, avoid out_of_scope patterns
+  - Read PRD (`project_prd_path`) for scope context: focus on in_scope areas, avoid out_of_scope patterns
   - Proportional effort:
     - simple: 1 pass, max 20 lines output
     - medium: 2 passes, max 60 lines output
@@ -71,7 +71,7 @@ Codebase Navigation, Pattern Recognition, Dependency Mapping, Technology Stack A
   "focus_area": "string",
   "complexity": "simple|medium|complex",
   "task_clarifications": "array of {question, answer} from Discuss Phase (empty if skipped)",
-  "prd_path": "string (path to `docs/PRD.yaml`, for scope/acceptance criteria context)"
+  "project_prd_path": "string (path to `docs/PRD.yaml`, for scope/acceptance criteria context)"
 }
 ```
 
