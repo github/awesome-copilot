@@ -276,7 +276,11 @@ export function debounce<T extends (...args: unknown[]) => void>(
 /**
  * Escape HTML to prevent XSS
  */
-export function escapeHtml(text: string): string {
+export function escapeHtml(text: string | string[]): string {
+  if (Array.isArray(text)) {
+    return text.map(escapeHtml).join(", ");
+  }
+
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -290,17 +294,17 @@ export function escapeHtml(text: string): string {
  * Only allows http/https protocols, returns '#' for invalid URLs
  */
 export function sanitizeUrl(url: string | null | undefined): string {
-  if (!url) return '#';
+  if (!url) return "#";
   try {
     const parsed = new URL(url);
     // Only allow http and https protocols
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
       return url;
     }
   } catch {
     // Invalid URL
   }
-  return '#';
+  return "#";
 }
 
 /**

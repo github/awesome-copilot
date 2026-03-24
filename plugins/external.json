@@ -105,5 +105,22 @@
       "repo": "dotnet/modernize-dotnet",
       "path": "plugins/modernize-dotnet"
     }
+  },
+  {
+    "name": "microsoft-docs",
+    "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://learn.microsoft.com",
+    "keywords": ["microsoft", "azure", "dotnet", "windows", "api", "documentation", "rag", "dynamics", "powerbi", "code-samples"],
+    "license": "MIT",
+    "repository": "https://github.com/MicrosoftDocs/mcp",
+    "source": {
+      "source": "github",
+      "repo": "MicrosoftDocs/mcp"
+    }
   }
 ]
