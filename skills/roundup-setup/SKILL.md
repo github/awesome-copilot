@@ -55,17 +55,19 @@ This is the most important phase. The examples are what make the calibration act
 
 **First example:**
 
-Ask: "Paste in a recent status update, roundup email, or briefing you've written. Don't overthink which one -- whatever you sent most recently is perfect."
+Ask: "Paste in a recent status update, roundup email, or briefing you've written. Don't overthink which one -- whatever you sent most recently is perfect. Just paste the whole thing right here."
 
-Accept whatever they paste. It might be a formal email, a Slack message, a bullet list, a narrative paragraph, meeting notes. All valid.
+Accept whatever they paste. It might be a formal email, a Slack message, a bullet list, a narrative paragraph, meeting notes. Long or short. Messy formatting is fine -- you're reading for patterns, not presentation. All valid.
 
-After they paste, don't analyze yet. Just acknowledge receipt: "Got it, thanks."
+After they paste, don't analyze yet. Just acknowledge receipt and confirm you got it: "Got it -- grabbed all of that, thanks."
 
 **Additional examples (optional):**
 
-Ask: "Want to paste another? More examples help me triangulate your style vs. one-off choices. Totally fine to stop at one though."
+Ask: "Want to paste another one? If you write different updates for different audiences, a second example helps me see the range. Otherwise, one is plenty."
 
-Accept up to 3 total. Each additional example strengthens the calibration. If they decline, move on without pressure.
+If they paste a second, acknowledge it the same way. Then offer one more: "One more if you have it, or we can move on."
+
+Accept up to 3 total. Each additional example strengthens the calibration. If they decline at any point, move on without pressure. Don't ask more than twice after the first example.
 
 ---
 
