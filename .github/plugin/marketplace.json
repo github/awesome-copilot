@@ -201,6 +201,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "fastah-ip-geo-tools",
+      "source": "fastah-ip-geo-tools",
+      "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
+      "version": "0.0.9"
+    },
+    {
       "name": "figma",
       "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
       "version": "1.0.0",
