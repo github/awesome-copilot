@@ -258,6 +258,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "roundup",
+      "source": "roundup",
+      "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ruby-mcp-development",
       "source": "ruby-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support.",
