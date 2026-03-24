@@ -674,13 +674,13 @@ Replace each `{{.Metadata.X}}` placeholder in the template with the correspondin
 
 Locate this pattern in the template:
 ```javascript
-const commentMap = JSON.parse('{{.Comments}}');
+const commentMap = {{.Comments}};
 ```
 
-Replace `{{.Comments}}` with the serialized, single-quote-safe JSON string of the comments map loaded from `./run/data/comments.json`. Escape any single quotes inside the JSON so the result is a valid JavaScript single-quoted string:
+Replace `{{.Comments}}` with the serialized JSON object from `./run/data/comments.json`. The JSON is embedded directly as a JavaScript object literal (not inside a string), so no extra escaping is needed:
 
 ```python
-comments_json = json.dumps(comments, ensure_ascii=False).replace("'", "\\'")
+comments_json = json.dumps(comments)
 template = template.replace("{{.Comments}}", comments_json)
 ```
 
@@ -824,7 +824,7 @@ If `Messages` is empty, replace the entire matched region with an empty string (
 
 - The report must be readable in any modern browser without extra network dependencies beyond the CDN links already in the template (`leaflet`, `h3-js`, `bootstrap-icons`, Raleway font).
 - All values embedded in HTML must be **HTML-escaped** (`<`, `>`, `&`, `"`) to prevent rendering issues.
-- All values embedded inside JavaScript string literals (e.g., `commentMap`) must be **JSON-string-escaped** with single quotes additionally escaped.
+- `commentMap` is embedded as a direct JavaScript object literal (not inside a string), so no JS string escaping is needed — just emit valid JSON.
 - All values must be derived **only from analysis output**, not recomputed heuristically.
 
 
@@ -848,7 +848,7 @@ Perform a final verification pass using concrete, checkable assertions before pr
 
 **Check 3 — Accuracy bucket integrity**
 - Assert: `CityLevelAccuracy + RegionLevelAccuracy + CountryLevelAccuracy + DoNotGeolocate == TotalEntries - InvalidEntries`
-- **Note:** The accuracy buckets defined in Phase 3 say "Do not count entries with `HasError: true`", but the Check 3 formula above uses `TotalEntries - InvalidEntries` (which still includes ERROR entries). This means ERROR entries (those that parsed as valid IPs but failed validation) **are** counted in accuracy buckets by their geo-field presence. Only `InvalidEntries` (unparseable IP prefixes) are excluded. Follow the Check 3 formula as the authoritative rule.
+- **Note:** The accuracy buckets defined in Phase 3 say "Do not count entries with `HasError: true`", but the Check 3 formula above uses `TotalEntries - InvalidEntries` (which still includes ERROR entries). This means ERROR entries (those that parsed as valid IPs but failed validation) **are** counted in accuracy buckets by their geo-field presence. Only `InvalidEntries` (unparsable IP prefixes) are excluded. Follow the Check 3 formula as the authoritative rule.
 - On failure, trace and fix the bucketing logic before proceeding.
 
 **Check 4 — No duplicate line numbers**

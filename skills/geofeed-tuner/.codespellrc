@@ -1,0 +1,2 @@
+[codespell]
+skip = assets/*.json,references/rfc8805.txt

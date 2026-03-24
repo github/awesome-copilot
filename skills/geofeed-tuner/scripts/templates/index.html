@@ -976,7 +976,7 @@
          * @type {Object<number, string>}
          */
         // Comment map: stores CSV comments by line number 
-        const commentMap = JSON.parse('{{.Comments}}');
+        const commentMap = {{.Comments}};
 
         // Modal elements
         const modal = document.getElementById('locationModal');
@@ -1289,20 +1289,20 @@
                 // Build secondary info (show what's available)
                 let secondaryInfo = [];
                 if (match.placeName && locationType !== 'city') {
-                    secondaryInfo.push(`City: ${match.placeName}`);
+                    secondaryInfo.push(`City: ${escapeHtml(match.placeName)}`);
                 }
                 if (match.stateCode && locationType !== 'region') {
-                    secondaryInfo.push(`Region: ${match.stateCode}`);
+                    secondaryInfo.push(`Region: ${escapeHtml(match.stateCode)}`);
                 }
                 if (match.countryCode && locationType !== 'country') {
-                    secondaryInfo.push(`Country: ${match.countryCode}`);
+                    secondaryInfo.push(`Country: ${escapeHtml(match.countryCode)}`);
                 }
                     
                 matchItem.innerHTML = `
                     <div id="${mapId}" class="match-map"></div>
                     <div class="match-info-container">
-                        <div class="match-header">${primaryLocation}</div>
-                        ${secondaryInfo.length > 0 ? `<div class="location-details">${secondaryInfo.join(' • ')}</div>` : ''}
+                        <div class="match-header">${escapeHtml(primaryLocation)}</div>
+                        ${secondaryInfo.length > 0 ? `<div class="location-details">${secondaryInfo.join(' \u2022 ')}</div>` : ''}
                     </div>
                 `;
                 
@@ -1456,7 +1456,7 @@
                     }
 
                     L.marker([centerLat, centerLng]).addTo(mapInstance)
-                        .bindPopup(`<b>${match.placeName}</b><br>${match.stateCode}`);
+                        .bindPopup(`<b>${escapeHtml(match.placeName)}</b><br>${escapeHtml(match.stateCode)}`);
                     
                     maps[mapId] = mapInstance;
                     
