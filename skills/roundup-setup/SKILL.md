@@ -55,7 +55,7 @@ This is the most important phase. The examples are what make the calibration act
 
 **First example:**
 
-Ask: "Paste in a recent status update, roundup email, or briefing you've written. Don't overthink which one -- whatever you sent most recently is perfect. Just paste the whole thing right here."
+Ask: "Paste in a recent status update, roundup email, or briefing you've written. Don't overthink which one -- whatever you sent most recently is perfect. Just paste the whole thing right here. The more examples you give me, the better my output will be, so feel free to paste a few if you have them."
 
 Accept whatever they paste. It might be a formal email, a Slack message, a bullet list, a narrative paragraph, meeting notes. Long or short. Messy formatting is fine -- you're reading for patterns, not presentation. All valid.
 
@@ -63,7 +63,7 @@ After they paste, don't analyze yet. Just acknowledge receipt and confirm you go
 
 **Additional examples (optional):**
 
-Ask: "Want to paste another one? If you write different updates for different audiences, a second example helps me see the range. Otherwise, one is plenty."
+Ask: "Want to paste another one? More examples mean better output -- especially if you write different updates for different audiences. Otherwise, one is plenty."
 
 If they paste a second, acknowledge it the same way. Then offer one more: "One more if you have it, or we can move on."
 
