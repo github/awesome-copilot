@@ -138,5 +138,22 @@
       "source": "github",
       "repo": "figma/mcp-server-guide"
     }
+  },
+  {
+    "name": "chrome-devtools",
+    "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer.",
+    "version": "0.0.1",
+    "author": {
+      "name": "Chrome DevTools Team",
+      "url": "https://github.com/ChromeDevTools"
+    },
+    "homepage": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+    "keywords": ["chrome", "devtools", "mcp", "automation", "debugging", "performance", "testing", "browser"],
+    "license": "Apache-2.0",
+    "repository": "https://github.com/ChromeDevTools/chrome-devtools-mcp",
+    "source": {
+      "source": "github",
+      "repo": "ChromeDevTools/chrome-devtools-mcp"
+    }
   }
 ]
