@@ -137,7 +137,7 @@ Frame it as a draft:
 
 Then offer options using `ask_user`:
 
-- "Looks good -- save to Desktop" -- Save as a file on the user's Desktop. Use a descriptive filename like `roundup-leadership-2025-03-24.md`.
+- "Looks good -- save to Desktop" -- Save as a file to `~/Desktop` by default. If `~/Desktop` does not exist or is not writable, ask the user where to save. Use a descriptive filename like `roundup-leadership-2025-03-24.md`.
 - "Make it shorter" -- Compress while keeping the key points.
 - "Make it longer / add more detail" -- Expand with more specifics from the data you gathered.
 - "Adjust the tone" -- Ask what to change and regenerate.

@@ -41,9 +41,11 @@ Ask these one at a time with `ask_user`:
 
 1. **"What's your role?"** -- Let them describe it however they want. Title, responsibilities, domain -- however they think about what they do. Don't force a specific format.
 
-2. **"Who do you report to, and who's on your team?"** -- Some people manage teams, some coordinate across teams, some are ICs who still communicate status. The skill works for all of them. Don't assume hierarchy.
+2. **"Who do you report to?"** -- Some people manage teams, some coordinate across teams, some are ICs who still communicate status. The skill works for all of them. Don't assume hierarchy.
 
-3. **"In one sentence, what does your team work on?"** -- This calibrates domain vocabulary. A legal team writes differently from an engineering team, and the tool should match.
+3. **"Who's on your team?"** -- Direct reports, close collaborators, whoever they work with regularly.
+
+4. **"In one sentence, what does your team work on?"** -- This calibrates domain vocabulary. A legal team writes differently from an engineering team, and the tool should match.
 
 ---
 
