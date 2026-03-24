@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Convert a PDF to a self-contained HTML presentation.
+"""Convert a PDF to an HTML presentation.
 
-Each page is rendered as a PNG image (via pdftoppm) and base64-embedded
-into a single HTML file with slide navigation (arrows, swipe, click).
+Each page is rendered as a PNG image (via pdftoppm). Supports external assets
+mode for large files to avoid huge single-file HTML.
 
 Requirements: poppler-utils (pdftoppm)
-Usage: python3 convert-pdf.py input.pdf [output.html]
 """
 
+import argparse
 import base64
 import glob
 import os
@@ -17,18 +17,49 @@ import tempfile
 from pathlib import Path
 
 
-def convert(pdf_path: str, output_path: str | None = None, dpi: int = 150):
+def get_page_count(pdf_path):
+    """Get page count using pdfinfo if available."""
+    try:
+        result = subprocess.run(["pdfinfo", pdf_path], capture_output=True, text=True)
+        for line in result.stdout.splitlines():
+            if line.startswith("Pages:"):
+                return int(line.split(":")[1].strip())
+    except:
+        pass
+    return None
+
+
+def convert(pdf_path: str, output_path: str | None = None, dpi: int = 150, external_assets=None):
     pdf_path = str(Path(pdf_path).resolve())
     if not Path(pdf_path).exists():
         print(f"Error: {pdf_path} not found")
         sys.exit(1)
 
-    # Check for pdftoppm
     if subprocess.run(["which", "pdftoppm"], capture_output=True).returncode != 0:
         print("Error: pdftoppm not found. Install poppler-utils:")
         print("  apt install poppler-utils  # Debian/Ubuntu")
         print("  brew install poppler       # macOS")
         sys.exit(1)
+
+    file_size_mb = os.path.getsize(pdf_path) / (1024 * 1024)
+
+    if file_size_mb > 150:
+        print(f"WARNING: PDF is {file_size_mb:.0f}MB — conversion may be slow and memory-intensive.")
+
+    page_count = get_page_count(pdf_path)
+
+    # Auto-detect external assets mode
+    if external_assets is None:
+        external_assets = file_size_mb > 20 or (page_count is not None and page_count > 50)
+        if external_assets:
+            print(f"Auto-enabling external assets mode (file: {file_size_mb:.1f}MB, pages: {page_count or 'unknown'})")
+
+    output = output_path or str(Path(pdf_path).with_suffix('.html'))
+    output_dir = Path(output).parent
+
+    if external_assets:
+        assets_dir = output_dir / "assets"
+        assets_dir.mkdir(parents=True, exist_ok=True)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         prefix = os.path.join(tmpdir, "page")
@@ -48,15 +79,23 @@ def convert(pdf_path: str, output_path: str | None = None, dpi: int = 150):
         slides_html = []
         for i, page_path in enumerate(pages, 1):
             with open(page_path, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
+                page_bytes = f.read()
+
+            if external_assets:
+                img_name = f"img-{i:03d}.png"
+                (assets_dir / img_name).write_bytes(page_bytes)
+                src = f"assets/{img_name}"
+            else:
+                b64 = base64.b64encode(page_bytes).decode()
+                src = f"data:image/png;base64,{b64}"
+
             slides_html.append(
                 f'<section class="slide">'
                 f'<div class="slide-inner">'
-                f'<img src="data:image/png;base64,{b64}" alt="Page {i}">'
+                f'<img src="{src}" alt="Page {i}">'
                 f'</div></section>'
             )
 
-    # Try to extract title from filename
     title = Path(pdf_path).stem.replace("-", " ").replace("_", " ")
 
     html = f'''<!DOCTYPE html>
@@ -108,14 +147,30 @@ show(0);
 </script>
 </body></html>'''
 
-    output = output_path or str(Path(pdf_path).with_suffix('.html'))
     Path(output).write_text(html, encoding='utf-8')
+    output_size = os.path.getsize(output)
+
     print(f"Converted to: {output}")
     print(f"Pages: {len(slides_html)}")
+    print(f"Output size: {output_size / (1024*1024):.1f}MB")
+    print(f"External assets: {'yes' if external_assets else 'no'}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: convert-pdf.py <file.pdf> [output.html]")
-        sys.exit(1)
-    convert(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+    parser = argparse.ArgumentParser(description="Convert PDF to HTML presentation")
+    parser.add_argument("input", help="Path to .pdf file")
+    parser.add_argument("output", nargs="?", help="Output HTML path (default: same name with .html)")
+    parser.add_argument("--external-assets", action="store_true", default=None,
+                        help="Save page images as separate files in assets/ directory (auto-detected for large files)")
+    parser.add_argument("--no-external-assets", action="store_true",
+                        help="Force inline base64 even for large files")
+    parser.add_argument("--dpi", type=int, default=150, help="Render DPI (default: 150)")
+    args = parser.parse_args()
+
+    ext_assets = None
+    if args.external_assets:
+        ext_assets = True
+    elif args.no_external_assets:
+        ext_assets = False
+
+    convert(args.input, args.output, dpi=args.dpi, external_assets=ext_assets)

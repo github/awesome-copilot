@@ -4,8 +4,6 @@
 import Choices from 'choices.js';
 import 'choices.js/public/assets/styles/choices.min.css';
 
-export type { Choices };
-
 /**
  * Get selected values from a Choices instance
  */

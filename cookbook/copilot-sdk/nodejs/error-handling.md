@@ -17,13 +17,16 @@ You need to handle various error conditions like connection failures, timeouts, 
 ## Basic try-catch
 
 ```typescript
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 
 try {
     await client.start();
-    const session = await client.createSession({ model: "gpt-5" });
+    const session = await client.createSession({
+        onPermissionRequest: approveAll,
+        model: "gpt-5",
+    });
 
     const response = await session.sendAndWait({ prompt: "Hello!" });
     console.log(response?.data.content);
@@ -55,7 +58,10 @@ try {
 ## Timeout handling
 
 ```typescript
-const session = await client.createSession({ model: "gpt-5" });
+const session = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
+});
 
 try {
     // sendAndWait with timeout (in milliseconds)
@@ -79,7 +85,10 @@ try {
 ## Aborting a request
 
 ```typescript
-const session = await client.createSession({ model: "gpt-5" });
+const session = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-5",
+});
 
 // Start a request
 session.send({ prompt: "Write a very long story..." });

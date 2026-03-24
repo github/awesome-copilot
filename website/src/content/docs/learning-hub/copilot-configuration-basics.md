@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-03-23
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -343,6 +343,19 @@ Configuration file: `~/.copilot-cli/config.json`
   "suggestions": true
 }
 ```
+
+CLI settings use **camelCase** naming. Key settings added in recent releases:
+
+| Setting | Description |
+|---------|-------------|
+| `includeCoAuthoredBy` | Include Co-authored-by trailer in commits |
+| `effortLevel` | Default reasoning effort level (`low`, `medium`, `high`) |
+| `autoUpdatesChannel` | Update channel (`stable`, `preview`) |
+| `statusLine` | Show status line in the terminal UI |
+| `include_gitignored` | Include gitignored files in `@` file search |
+| `extension_mode` | Control extensibility (agent tools and plugins) |
+
+> **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
 ## Common Questions
 

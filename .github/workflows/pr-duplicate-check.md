@@ -14,6 +14,7 @@ safe-outputs:
     max: 1
     hide-older-comments: true
   noop:
+    report-as-issue: false
 ---
 
 # PR Duplicate Check

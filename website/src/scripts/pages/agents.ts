@@ -8,7 +8,7 @@ import { setupModal, openFileModal } from '../modal';
 import { renderAgentsHtml, sortAgents, type AgentSortOption, type RenderableAgent } from './agents-render';
 
 interface Agent extends SearchItem, RenderableAgent {
-  model?: string;
+  model?: string | string[];
   tools?: string[];
   hasHandoffs?: boolean;
   lastUpdated?: string | null;
@@ -51,7 +51,7 @@ function applyFiltersAndRender(): void {
       if (currentFilters.models.includes('(none)') && !item.model) {
         return true;
       }
-      return item.model && currentFilters.models.includes(item.model);
+      return item.model && (Array.isArray(item.model) ? item.model.some(m => currentFilters.models.includes(m)) : currentFilters.models.includes(item.model));
     });
   }
 

@@ -77,6 +77,7 @@ func main() {
 
 	streaming := true
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 		Model:     "claude-opus-4.6",
 		Streaming: &streaming,
 		McpServers: map[string]interface{}{
@@ -214,6 +215,7 @@ The recipe configures a local MCP server that runs alongside the session:
 
 ```go
 session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     McpServers: map[string]interface{}{
         "playwright": map[string]interface{}{
             "type":    "local",
