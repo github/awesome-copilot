@@ -238,7 +238,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "A modular multi-agent team for complex project execution with Discuss Phase for requirements clarification, PRD creation, DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, wave-based parallel execution, PRD compliance verification, and automated testing.",
-      "version": "1.3.3"
+      "version": "1.3.4"
     },
     {
       "name": "go-mcp-development",
