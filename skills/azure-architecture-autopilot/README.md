@@ -180,11 +180,6 @@ All Azure services supported. AI/Data services have optimized templates; others 
 
 **Key types:** `ai_foundry` · `openai` · `ai_search` · `storage` · `adls` · `keyvault` · `fabric` · `databricks` · `aks` · `vm` · `app_service` · `function_app` · `cosmos_db` · `sql_server` · `postgresql` · `mysql` · `synapse` · `adf` · `apim` · `service_bus` · `logic_apps` · `event_grid` · `event_hub` · `container_apps` · `app_insights` · `log_analytics` · `firewall` · `front_door` · `load_balancer` · `expressroute` · `sentinel` · `redis` · `iot_hub` · `digital_twins` · `signalr` · `acr` · `bastion` · `vpn_gateway` · `data_explorer` · `document_intelligence` ...
 
----
-
-## 🤝 Related
-
-- **[az-diagram-autogen](https://pypi.org/project/az-diagram-autogen/)** — The standalone diagram engine on PyPI (used by this skill)
 
 ---
 

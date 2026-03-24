@@ -7,7 +7,7 @@ Generates interactive HTML diagrams with Azure official icons (Base64 inline).
 import json
 from datetime import datetime
 
-from .icons import get_icon_data_uri
+from icons import get_icon_data_uri
 
 _HAS_OFFICIAL_ICONS = True
 # Azure service icons: SVG, colors + official icon key mapping
