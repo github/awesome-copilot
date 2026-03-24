@@ -45,6 +45,49 @@ copilot plugin marketplace add github/awesome-copilot
 copilot plugin install <plugin-name>@awesome-copilot
 ```
 
+## Update Commands
+
+Use these commands to check and apply updates for installed resources in `.github/agents`, `.github/instructions`, and `.github/skills`.
+
+```bash
+# Build or refresh the update index
+npm run plugin:generate-update-index
+
+# Check for updates (full JSON report)
+npm run plugin:check-resource-updates
+
+# Check for updates (IDE-oriented compact summary)
+npm run plugin:check-resource-updates:ui
+
+# Apply safe updates (skips unknown drift by default)
+npm run plugin:apply-resource-updates
+
+# Apply updates with compact IDE summary
+npm run plugin:apply-resource-updates:ui
+
+# Force apply when managed baseline is missing
+npm run plugin:apply-resource-updates:force
+```
+
+Selector examples:
+
+```bash
+# Only agents
+npm run plugin:check-resource-updates -- --include "type:agent"
+
+# Exact match
+npm run plugin:check-resource-updates -- --include "exact:agent/debug"
+
+# Prefix match
+npm run plugin:check-resource-updates -- --include "prefix:agent/"
+
+# Regex match
+npm run plugin:check-resource-updates -- --include "regex:^agent/(debug|janitor)$"
+
+# Exclude a known item while applying
+npm run plugin:apply-resource-updates -- --include "prefix:agent/" --exclude "exact:agent/debug"
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) for AI agent guidance · [Security](SECURITY.md) · [Code of Conduct](CODE_OF_CONDUCT.md)

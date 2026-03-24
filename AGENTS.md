@@ -41,6 +41,18 @@ npm run plugin:validate
 # Generate marketplace.json only
 npm run plugin:generate-marketplace
 
+# Generate update index used by update automation
+npm run plugin:generate-update-index
+
+# Check update status for installed .github resources
+npm run plugin:check-resource-updates
+
+# Apply updates safely (skip unknown drift by default)
+npm run plugin:apply-resource-updates
+
+# Force apply updates even when baseline is missing
+npm run plugin:apply-resource-updates:force
+
 # Create a new plugin
 npm run plugin:create -- --name <plugin-name>
 
@@ -163,6 +175,9 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 # Run all validation checks
 npm run plugin:validate
 npm run skill:validate
+
+# Validate update check/apply automation behavior
+npm run plugin:test-resource-updates
 
 # Build and verify README generation
 npm run build
