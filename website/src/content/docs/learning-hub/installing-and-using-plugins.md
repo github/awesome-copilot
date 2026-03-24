@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-22
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -176,6 +176,16 @@ copilot plugin update my-plugin
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+### Loading Plugins from a Local Directory
+
+You can load plugins directly from a local directory without installing them from a marketplace, using the `--plugin-dir` flag when starting Copilot:
+
+```bash
+copilot --plugin-dir /path/to/my-plugin
+```
+
+Plugins loaded this way appear in `/plugin list` under a separate **External Plugins** section, clearly distinguished from marketplace-installed plugins. This is useful for testing local plugins in development or loading private plugins that aren't published to any marketplace.
 
 ### Where Plugins Are Stored
 

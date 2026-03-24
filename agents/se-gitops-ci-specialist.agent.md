@@ -59,7 +59,7 @@ Build reliable CI/CD pipelines, debug deployment failures quickly, and ensure ev
 18.16.0
 
 # CI config (.github/workflows/deploy.yml)
-- uses: actions/setup-node@v3
+- uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3.9.1
   with:
     node-version-file: '.node-version'
 ```
@@ -112,7 +112,7 @@ main:
   run: npm audit --audit-level=high
 
 - name: Secret scanning
-  uses: trufflesecurity/trufflehog@main
+  uses: trufflesecurity/trufflehog@6c05c4a00b91aa542267d8e32a8254774799d68d # v3.93.8
 ```
 
 ## Step 4: Debugging Methodology
@@ -209,7 +209,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
       - run: npm ci
       - run: npm test
 

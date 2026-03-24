@@ -1,0 +1,38 @@
+name: Build Website
+
+on:
+  pull_request:
+    branches: [staged]
+    paths:
+      - website
+      - agents
+      - skills
+      - plugins
+      - instructions
+      - hooks
+      - workflows
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0 # Full history needed for git-based last updated dates
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install website dependencies
+        run: npm ci
+        working-directory: ./website
+
+      - name: Build Astro site
+        run: npm run website:build

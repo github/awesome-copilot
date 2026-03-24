@@ -307,3 +307,50 @@ tools:
       - automation
       - macos
       - launchagent
+
+  - id: copilot-swarm-orchestrator
+    name: Copilot Swarm Orchestrator
+    description: >-
+      Parallel AI workflow orchestrator for GitHub Copilot CLI. Coordinates multiple
+      specialized agents across wave-based execution with dependency-aware scheduling,
+      evidence-based verification, six quality gates, cost governance, and persistent
+      learning. Runs as a standalone CLI or as an MCP server exposing execution runs,
+      agent profiles, and quality gates via JSON-RPC over stdio.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 18 or higher
+      - Git 2.20+ (worktree support)
+      - GitHub Copilot CLI installed and authenticated
+    links:
+      github: https://github.com/moonrunnerkc/copilot-swarm-orchestrator
+      npm: https://www.npmjs.com/package/copilot-swarm-orchestrator
+    features:
+      - "🌊 Wave Execution: Parallel agent scheduling with dependency-aware wave splitting"
+      - "🔍 Evidence Verification: Every agent proves its work via transcript analysis before merge"
+      - "🚦 Six Quality Gates: Lint, type-check, test coverage, security, complexity, documentation"
+      - "💰 Cost Governance: Premium request estimation, tracking, and budget enforcement"
+      - "🔌 MCP Server: 4 tools and 5 resources over JSON-RPC stdio transport"
+      - "🧠 Persistent Learning: Cross-run knowledge base with pattern detection and retry calibration"
+    configuration:
+      type: bash
+      content: |
+        # Install globally from npm
+        npm install -g copilot-swarm-orchestrator
+
+        # Run a demo
+        swarm demo-fast
+
+        # Plan and execute a goal
+        swarm run --goal "Build a REST API with auth and tests"
+
+        # Start the MCP server
+        swarm mcp-server
+    tags:
+      - cli
+      - npm
+      - mcp
+      - orchestration
+      - verification
+      - quality-gates
+      - cost-governance

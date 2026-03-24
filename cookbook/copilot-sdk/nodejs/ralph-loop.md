@@ -43,7 +43,7 @@ The minimal Ralph loop — the SDK equivalent of `while :; do cat PROMPT.md | co
 
 ```typescript
 import { readFile } from "fs/promises";
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 async function ralphLoop(promptFile: string, maxIterations: number = 50) {
   const client = new CopilotClient();
@@ -56,7 +56,10 @@ async function ralphLoop(promptFile: string, maxIterations: number = 50) {
       console.log(`\n=== Iteration ${i}/${maxIterations} ===`);
 
       // Fresh session each iteration — context isolation is the point
-      const session = await client.createSession({ model: "gpt-5.1-codex-mini" });
+      const session = await client.createSession({
+        onPermissionRequest: approveAll,
+        model: "gpt-5.1-codex-mini",
+      });
       try {
         await session.sendAndWait({ prompt }, 600_000);
       } finally {

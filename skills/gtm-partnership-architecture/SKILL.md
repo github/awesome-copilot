@@ -2,6 +2,9 @@
 name: gtm-partnership-architecture
 description: Build and scale partner ecosystems that drive revenue and platform adoption. Use when building partner programs from scratch, tiering partnerships, managing co-marketing, making build-vs-partner decisions, or structuring crawl-walk-run partner deployment.
 license: MIT
+metadata:
+  author: Smit Patel (https://linkedin.com/in/smitkpatel)
+  source: https://github.com/beingsmit/technical-product-gtm
 ---
 
 # Partnership Architecture

@@ -48,7 +48,7 @@ The minimal Ralph loop — the SDK equivalent of `while :; do cat PROMPT.md | co
 ```python
 import asyncio
 from pathlib import Path
-from copilot import CopilotClient, MessageOptions, SessionConfig
+from copilot import CopilotClient, MessageOptions, SessionConfig, PermissionHandler
 
 
 async def ralph_loop(prompt_file: str, max_iterations: int = 50):
@@ -63,7 +63,8 @@ async def ralph_loop(prompt_file: str, max_iterations: int = 50):
 
             # Fresh session each iteration — context isolation is the point
             session = await client.create_session(
-                SessionConfig(model="gpt-5.1-codex-mini")
+                SessionConfig(model="gpt-5.1-codex-mini",
+        on_permission_request=PermissionHandler.approve_all)
             )
             try:
                 await session.send_and_wait(

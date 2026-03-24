@@ -3,8 +3,11 @@
 import asyncio
 import os
 from copilot import (
-    CopilotClient, SessionConfig, MessageOptions,
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
     SessionEvent,
+    PermissionHandler,
 )
 
 async def main():
@@ -13,7 +16,8 @@ async def main():
     await client.start()
 
     # Create session
-    session = await client.create_session(SessionConfig(model="gpt-5"))
+    session = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
 

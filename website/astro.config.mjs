@@ -16,14 +16,9 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
+      favicon: "/images/favicon.svg",
       description: siteDescription,
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/github/awesome-copilot",
-        },
-      ],
+      social: [],
       head: [
         {
           tag: "meta",
@@ -120,7 +115,12 @@ export default defineConfig({
   trailingSlash: "always",
   vite: {
     build: {
-      sourcemap: true,
+      // Production sourcemaps trigger a known warning in the expressive-code Vite plugin.
+      // The docs site does not need emitted JS sourcemaps for its validation build.
+      sourcemap: false,
+      // Starlight ships large syntax-highlighting chunks that are expected for this site.
+      // Raise the threshold so Vite only warns on materially larger regressions.
+      chunkSizeWarningLimit: 900,
     },
     css: {
       devSourcemap: true,

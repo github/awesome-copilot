@@ -10,7 +10,7 @@ export interface RenderableAgent {
   title: string;
   description?: string;
   path: string;
-  model?: string;
+  model?: string | string[];
   tools?: string[];
   hasHandoffs?: boolean;
   lastUpdated?: string | null;

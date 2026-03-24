@@ -201,6 +201,28 @@
       "version": "1.0.0"
     },
     {
+      "name": "figma",
+      "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Figma",
+        "url": "https://www.figma.com"
+      },
+      "homepage": "https://github.com/figma/mcp-server-guide",
+      "keywords": [
+        "figma",
+        "design",
+        "mcp",
+        "ui",
+        "code-connect"
+      ],
+      "repository": "https://github.com/figma/mcp-server-guide",
+      "source": {
+        "source": "github",
+        "repo": "figma/mcp-server-guide"
+      }
+    },
+    {
       "name": "flowstudio-power-automate",
       "source": "flowstudio-power-automate",
       "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
@@ -247,6 +269,34 @@
       "source": "mcp-m365-copilot",
       "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
       "version": "1.0.0"
+    },
+    {
+      "name": "microsoft-docs",
+      "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://learn.microsoft.com",
+      "keywords": [
+        "microsoft",
+        "azure",
+        "dotnet",
+        "windows",
+        "api",
+        "documentation",
+        "rag",
+        "dynamics",
+        "powerbi",
+        "code-samples"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/MicrosoftDocs/mcp",
+      "source": {
+        "source": "github",
+        "repo": "MicrosoftDocs/mcp"
+      }
     },
     {
       "name": "modernize-dotnet",
