@@ -218,7 +218,7 @@ Dismiss with a documented reason:
 For scanning code changes for secrets inside an AI coding agent before committing, install the **Advanced Security plugin** which provides the `run_secret_scanning` MCP tool and a dedicated scanning skill.
 
 **GitHub Copilot CLI:**
-```
+```bash
 /plugin install advanced-security@copilot-plugins
 ```
 
