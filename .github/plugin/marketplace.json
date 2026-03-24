@@ -78,6 +78,29 @@
       "version": "1.0.0"
     },
     {
+      "name": "crestapps-orchardcore",
+      "description": "Orchard Core skills for GitHub Copilot CLI backed by CrestApps.AgentSkills.",
+      "version": "1.0.0",
+      "author": {
+        "name": "CrestApps",
+        "url": "https://github.com/CrestApps"
+      },
+      "homepage": "https://github.com/CrestApps/CrestApps.AgentSkills/tree/main/plugins/crestapps-orchardcore",
+      "keywords": [
+        "orchard-core",
+        "copilot-cli",
+        "skills",
+        "dotnet"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/CrestApps/CrestApps.AgentSkills",
+      "source": {
+        "source": "github",
+        "repo": "CrestApps/CrestApps.AgentSkills",
+        "path": "plugins/crestapps-orchardcore"
+      }
+    },
+    {
       "name": "csharp-dotnet-development",
       "source": "csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
