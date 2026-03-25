@@ -30,6 +30,8 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 
 Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
+- [Cortex](https://github.com/SKULLFIRE07/cortex-memory) - Persistent AI memory for coding assistants. Auto-captures decisions, patterns, and context from Claude Code, Cursor, and Cline sessions. 3-layer memory. VSCode extension + CLI + MCP server. Free.
+
 ## Install a Plugin
 
 For most users, the **Awesome Copilot** marketplace is already registered in the Copilot CLI/VS Code, so you can install a plugin directly:
