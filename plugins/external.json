@@ -89,7 +89,7 @@
     }
   },
   {
-    "name": "SDD Pilot",
+    "name": "sdd-pilot",
     "source": {
       "source": "github",
       "repo": "attilaszasz/sdd-pilot"
