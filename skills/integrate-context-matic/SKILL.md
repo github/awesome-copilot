@@ -17,44 +17,67 @@ Apply this skill when the user:
 
 ## Workflow
 
-### 1. Discover Available APIs
+### 1. Ensure Guidelines and Skills Exist
+
+#### 1a. Detect the Project's Primary Language
+
+Before checking for guidelines or skills, identify the project's primary programming language by inspecting the workspace:
+
+| File / Pattern | Language |
+|---|---|
+| `*.csproj`, `*.sln` | `csharp` |
+| `package.json` with `"typescript"` dep or `.ts` files | `typescript` |
+| `requirements.txt`, `pyproject.toml`, `*.py` | `python` |
+| `go.mod`, `*.go` | `go` |
+| `pom.xml`, `build.gradle`, `*.java` | `java` |
+| `Gemfile`, `*.rb` | `ruby` |
+| `composer.json`, `*.php` | `php` |
+
+Use the detected language in all subsequent steps wherever `language` is required.
+
+#### 1b. Check for Existing Guidelines and Skills
+
+Check whether guidelines and skills have already been added for this project by looking for their presence in the workspace. Check for existing skill and guideline files, e.g., `{language}-conventions`, `{language}-security-guidelines.md`, `{language}-test-guidelines.md`, `update-activity-workflow.md`, or prior output from `add_guidelines` and `add_skills`.
+
+- **If they do not exist for the project's language:** Call **add_guidelines** and **add_skills** to create them. This sets up the necessary skills and guidelines for the MCP server to work correctly.
+- **If they already exist for the project's language:** Skip this step entirely and proceed to step 2.
+
+### 2. Discover Available APIs
 
 Call **fetch_api** to find available APIs — always start here.
 
-- Provide the `language` parameter matching the project's primary language (e.g. `csharp`, `python`, `typescript`, `go`, `java`, `ruby`, `php`).
-- Infer the language from the codebase (e.g. `.csproj` → `csharp`, `package.json` with TypeScript → `typescript`).
+- Provide the `language` parameter using the language detected in step 1a.
 - The response returns available APIs with their names, descriptions, and `key` values.
 - Identify the API that matches the user's request based on the name and description.
 - Extract the correct `key` for the user's requested API before proceeding. This key will be used for all subsequent tool calls related to that API.
 
 **If the requested API is not in the list:**
-- Inform the user that the API is not currently available in this plugin.
-- Continue integrating the required API without the plugin.
+- Inform the user that the API is not currently available in this plugin (context-matic) and stop.
+- Request guidance from user on how to proceed with the API's integration.
 
-### 2. Get Integration Guidance
+### 3. Get Integration Guidance
 
-Call **update_activity** (`phase='planning'`, `language`, `key`) immediately before calling **ask**.
+Call **update_activity** immediately before calling **ask**.
 
-- Provide `ask` with: `language`, `key` (from step 1), and your `query`.
+- Provide `ask` with: `language`, `key` (from step 2), and your `query`.
 - Break complex questions into smaller focused queries for best results:
   - _"How do I authenticate?"_
   - _"How do I create a payment?"_
   - _"What are the rate limits?"_
-- Call **update_activity** with `phase='execution'` before generating or fixing code.
+- Call **update_activity** immediately before generating or fixing code.
 
-### 3. Look Up SDK Models and Endpoints (as needed)
+### 4. Look Up SDK Models and Endpoints (as needed)
 
 These tools return definitions only — they do not call APIs or generate code.
 
-Call **update_activity** (`phase='planning'`, `language`, `key`) immediately before each call.
+Call **update_activity** immediately before each call.
 
 - **model_search** — look up a model/object definition.
   - Provide: `language`, `key`, and an exact or partial case-sensitive model name as `query` (e.g. `availableBalance`, `TransactionId`).
-
 - **endpoint_search** — look up an endpoint method's details.
   - Provide: `language`, `key`, and an exact or partial case-sensitive method name as `query` (e.g. `createUser`, `get_account_balance`).
 
-### 4. Record Milestones
+### 5. Record Milestones
 
 Call **update_activity** (with the appropriate `milestone`) whenever one of these is observed or confirmed:
 
@@ -62,17 +85,17 @@ Call **update_activity** (with the appropriate `milestone`) whenever one of thes
 |---|---|
 | `sdk_setup` | SDK packages installed and environment confirmed set up |
 | `auth_configured` | API keys or auth configured, ready to make first call |
-| `first_call_attempted` | First API call code written and executed |
-| `first_call_succeeded` | Successful response from first API call received |
+| `first_call_made` | First API call code written and executed |
 | `error_encountered` | Developer reports a bug, error response, or failing call |
 | `error_resolved` | Fix applied and API call confirmed working |
-| `tests_passing` | Integration tests written and confirmed passing |
 
 ## Checklist
 
+- [ ] Project's primary language detected (step 1a)
+- [ ] `add_guidelines` and `add_skills` called (or confirmed already present — then skipped)
 - [ ] `fetch_api` called with correct `language` for the project
 - [ ] Correct `key` identified for the requested API (or user informed if not found)
-- [ ] `update_activity` called as first tool when integration begins
+- [ ] `update_activity` first called after `fetch_api` when integration work begins
 - [ ] `update_activity` called immediately before every `ask`, `model_search`, and `endpoint_search`
 - [ ] `update_activity` called with the appropriate `milestone` at each integration milestone
 - [ ] `ask` used for integration guidance and code samples
@@ -81,5 +104,5 @@ Call **update_activity** (with the appropriate `milestone`) whenever one of thes
 
 ## Notes
 
-- **API not found**: If an API is missing from `fetch_api`, do not guess at SDK usage — inform the user and stop.
+- **API not found**: If an API is missing from `fetch_api`, do not guess at SDK usage — inform the user that the API is not currently available in this plugin and stop.
 - **update_activity and fetch_api**: `fetch_api` is API discovery, not integration — do not call `update_activity` before it.
