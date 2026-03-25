@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-24
+lastUpdated: 2026-03-25
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -412,6 +412,22 @@ The `/undo` command reverts the last turn—including any file changes the agent
 ```
 
 Use `/undo` when the agent's last response went in an unwanted direction and you want to try a different approach from that point.
+
+The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
+
+```
+/cd ~/projects/my-other-repo
+```
+
+This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
+
+```bash
+gh copilot --effort high "Refactor the authentication module"
+```
+
+Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
 
 ## Common Questions
 
