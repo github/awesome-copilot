@@ -454,6 +454,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "SDD Pilot",
+      "source": {
+        "source": "github",
+        "repo": "attilaszasz/sdd-pilot"
+      },
+      "description": "Spec-driven development toolkit for GitHub Copilot and other coding agents, guiding systems from specification and architecture through planning, tasks, implementation, and quality control",
+      "version": "1.0.0",
+      "keywords": [
+        "spec-driven-development",
+        "sdd",
+        "copilot",
+        "architecture",
+        "planning",
+        "workflow",
+        "quality-control"
+      ],
+      "repository": "https://github.com/attilaszasz/sdd-pilot",
+      "homepage": "https://sdd-pilot.szaszattila.com/",
+      "author": {
+        "name": "Attila Szasz",
+        "url": "https://github.com/attilaszasz"
+      },
+      "license": "MIT"
+    },
+    {
       "name": "security-best-practices",
       "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
