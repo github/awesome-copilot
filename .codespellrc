@@ -48,4 +48,4 @@ ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afte
 
 # Skip certain files and directories
 
-skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc
+skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt

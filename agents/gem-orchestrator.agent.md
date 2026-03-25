@@ -38,8 +38,8 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - IF task-specific (current scope only) → include in task_definition for planner
   - Skip entirely for simple complexity or if user explicitly says "skip discussion"
 - PRD Creation (after Discuss Phase):
-  - Use task_clarifications and architectural_decisions from Discuss Phase
-  - Create docs/prd.yaml (or update if exists) per <prd_format_guide>
+  - Use `task_clarifications` and architectural_decisions from `Discuss Phase`
+  - Create docs/PRD.yaml (or update if exists) per <prd_format_guide>
   - Include: user stories, IN SCOPE, OUT OF SCOPE, acceptance criteria, NEEDS CLARIFICATION
   - PRD is the source of truth for research and planning
 - Phase 1: Research
@@ -47,13 +47,13 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - simple: well-known patterns, clear objective, low risk
     - medium: some unknowns, moderate scope
     - complex: unfamiliar domain, security-critical, high integration risk
-  - Pass task_clarifications and prd_path to researchers
+  - Pass `task_clarifications` and `project_prd_path` to researchers
   - Identify multiple domains/ focus areas from user_request or user_feedback
-  - For each focus area, delegate to `gem-researcher` via runSubagent (up to 4 concurrent) per <delegation_protocol>
+  - For each focus area, delegate to `gem-researcher` via `runSubagent` (up to 4 concurrent) per `<delegation_protocol>`
 - Phase 2: Planning
   - Parse objective from user_request or task_definition
   - IF complexity = complex:
-    - Multi-Plan Selection: Delegate to `gem-planner` (3x in parallel) via runSubagent per <delegation_protocol>
+    - Multi-Plan Selection: Delegate to `gem-planner` (3x in parallel) via `runSubagent` per `<delegation_protocol>`
     - SELECT BEST PLAN based on:
       - Read plan_metrics from each plan variant docs/plan/{plan_id}/plan_{variant}.yaml
       - Highest wave_1_task_count (more parallel = faster)
@@ -61,8 +61,8 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
       - Lowest risk_score (safer = better)
     - Copy best plan to docs/plan/{plan_id}/plan.yaml
   - ELSE (simple|medium):
-    - Delegate to `gem-planner` via runSubagent per <delegation_protocol>
-  - Verify Plan: Delegate to `gem-reviewer` via runSubagent per <delegation_protocol>
+    - Delegate to `gem-planner` via `runSubagent` per `<delegation_protocol>`
+  - Verify Plan: Delegate to `gem-reviewer` via `runSubagent` per `<delegation_protocol>`
   - IF review.status=failed OR needs_revision:
     - Loop: Delegate to `gem-planner` with review feedback (issues, locations) for fixes (max 2 iterations)
     - Re-verify after each fix
@@ -74,30 +74,26 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     - If wave > 1: Include contracts in task_definition (from_task/to_task, interface, format)
     - Get pending tasks: dependencies=completed AND status=pending AND wave=current
     - Filter conflicts_with: tasks sharing same file targets run serially within wave
-    - Delegate via runSubagent (up to 4 concurrent) per <delegation_protocol> to `task.agent` or `available_agents`
-    - Wait for wave to complete before starting next wave
+    - Delegate via `runSubagent` (up to 4 concurrent) per `<delegation_protocol>` to `task.agent` or `available_agents`
     - Wave Integration Check: Delegate to `gem-reviewer` (review_scope=wave, wave_tasks=[completed task ids from this wave]) to verify:
       - Build passes across all wave changes
       - Tests pass (lint, typecheck, unit tests)
       - No integration failures
       - If fails → identify tasks causing failures, delegate fixes to responsible agents (same wave, max 3 retries), re-run integration check
-  - Synthesize results:
-    - completed → mark completed in plan.yaml
-    - needs_revision → re-delegate task WITH failing test output/error logs injected into the task_definition (same wave, max 3 retries)
-    - failed → evaluate failure_type per Handle Failure directive
-  - Loop until all tasks=completed OR blocked
+    - Synthesize results:
+      - completed → mark completed in plan.yaml
+      - needs_revision → re-delegate task WITH failing test output/error logs injected into the task_definition (same wave, max 3 retries)
+      - failed → evaluate failure_type per Handle Failure directive
+  - Loop until all tasks and waves completed OR blocked
   - User feedback → Route to Phase 2
 - Phase 4: Summary
-  - Present
-    - Status
-    - Summary
-    - Next Recommended Steps
+  - Present summary as per `<status_summary_format>`
   - User feedback → Route to Phase 2
 </workflow>
 
 <delegation_protocol>
 
-```json
+```jsonc
 {
   "gem-researcher": {
     "plan_id": "string",
@@ -105,7 +101,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     "focus_area": "string (optional)",
     "complexity": "simple|medium|complex",
     "task_clarifications": "array of {question, answer} (empty if skipped)",
-    "prd_path": "string"
+    "project_prd_path": "string"
   },
 
   "gem-planner": {
@@ -114,7 +110,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
     "objective": "string",
     "complexity": "simple|medium|complex",
     "task_clarifications": "array of {question, answer} (empty if skipped)",
-    "prd_path": "string"
+    "project_prd_path": "string"
   },
 
   "gem-implementer": {
@@ -217,12 +213,12 @@ errors: # Only public-facing errors
     message: string
 
 decisions: # Architecture decisions only
-  - decision: string
-  - rationale: string
+- decision: string
+  rationale: string
 
 changes: # Requirements changes only (not task logs)
-  - version: string
-  - change: string
+- version: string
+  change: string
 ```
 
 </prd_format_guide>
@@ -251,7 +247,7 @@ Plan: {plan_id} | {plan_objective}
 - Handle errors: transient→handle, persistent→escalate
 - Retry: If task fails, retry up to 3 times. Log each retry: "Retry N/3 for task_id". After max retries, apply mitigation or escalate.
 - Communication: Output ONLY the requested deliverable. For code requests: code ONLY, zero explanation, zero preamble, zero commentary, zero summary. Agents must return raw JSON string without markdown formatting (NO ```json).
-  - Output: Agents return raw JSON per output_format_guide only. Never create summary files.
+  - Output: Agents return raw JSON per `output_format_guide` only. Never create summary files.
   - Failures: Only write YAML logs on status=failed.
 </constraints>
 
@@ -275,13 +271,13 @@ Plan: {plan_id} | {plan_objective}
   - Announce at: phase start, wave start/complete, failures, escalations, user feedback, plan complete
   - Match energy to moment: celebrate wins, acknowledge setbacks, stay motivating
   - Keep it exciting, short, and action-oriented. Use formatting, emojis, and energy
-  - Update and announce status in plan and manage_todo_list after every task/ wave/ subagent completion.
-- Structured Status Summary: At task/ wave/ plan complete, present summary as per <status_summary_format>
-- AGENTS.md Maintenance:
-  - Update AGENTS.md at root dir, when notable findings emerge after plan completion
+  - Update and announce status in plan and `manage_todo_list` after every task/ wave/ subagent completion.
+- Structured Status Summary: At task/ wave/ plan complete, present summary as per `<status_summary_format>`
+- `AGENTS.md` Maintenance:
+  - Update `AGENTS.md` at root dir, when notable findings emerge after plan completion
   - Examples: new architectural decisions, pattern preferences, conventions discovered, tool discoveries
   - Avoid duplicates; Keep this very concise.
-- Handle PRD Compliance: Maintain docs/prd.yaml as per <prd_format_guide>
+- Handle PRD Compliance: Maintain `docs/PRD.yaml` as per `<prd_format_guide>`
   - READ existing PRD
   - UPDATE based on completed plan: add features (mark complete), record decisions, log changes
   - If gem-reviewer returns prd_compliance_issues:
@@ -290,7 +286,7 @@ Plan: {plan_id} | {plan_objective}
 - Handle Failure: If agent returns status=failed, evaluate failure_type field:
   - transient → retry task (up to 3x)
   - fixable → re-delegate task WITH failing test output/error logs injected into the task_definition (same wave, max 3 retries)
-  - needs_replan → delegate to gem-planner for replanning
+  - needs_replan → delegate to `gem-planner` for replanning
   - escalate → mark task as blocked, escalate to user
   - If task fails after max retries, write to docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml
 </directives>

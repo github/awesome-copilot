@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-22
+lastUpdated: 2026-03-24
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -98,6 +98,26 @@ Hooks can trigger on several lifecycle events:
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+### sessionStart additionalContext
+
+The `sessionStart` hook supports an `additionalContext` field in its output. When your hook script writes JSON to stdout containing an `additionalContext` key, that text is **injected directly into the conversation** at the start of the session. This lets hooks dynamically provide environment-specific context—such as the current git branch, deployment environment, or team onboarding notes—without requiring the user to paste it manually.
+
+Example hook script that surfaces context:
+
+```bash
+#!/usr/bin/env bash
+# Output JSON with additionalContext to inject into the session
+cat <<EOF
+{
+  "additionalContext": "Current branch: $(git rev-parse --abbrev-ref HEAD). Open tickets: $(gh issue list --limit 3 --json number,title | jq -r '.[] | \"#\(.number) \(.title)\"' | tr '\n' '; ')"
+}
+EOF
+```
+
+### Extension Hooks Merging
+
+When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) each define hooks, all hook definitions are **merged** rather than the last one overwriting the others. This means you can layer hooks from different sources—a project's `.github/hooks/` file, an extension you have installed, and a personal settings file—and all of them will fire for the relevant events.
 
 ### Cross-Platform Event Name Compatibility
 
