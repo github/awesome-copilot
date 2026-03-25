@@ -24,7 +24,8 @@ try
     await client.StartAsync();
     var session = await client.CreateSessionAsync(new SessionConfig
     {
-        Model = "gpt-5"
+        Model = "gpt-5",
+        OnPermissionRequest = PermissionHandler.ApproveAll
     });
 
     var done = new TaskCompletionSource<string>();
@@ -76,7 +77,11 @@ catch (Exception ex)
 ## Timeout handling
 
 ```csharp
-var session = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
+var session = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
 
 try
 {
@@ -106,7 +111,11 @@ catch (OperationCanceledException)
 ## Aborting a request
 
 ```csharp
-var session = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
+var session = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
 
 // Start a request
 await session.SendAsync(new MessageOptions { Prompt = "Write a very long story..." });
@@ -141,7 +150,11 @@ Console.CancelKeyPress += async (sender, e) =>
 await using var client = new CopilotClient();
 await client.StartAsync();
 
-var session = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
+var session = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
 
 // ... do work ...
 
@@ -149,6 +162,8 @@ var session = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5
 ```
 
 ## Best practices
+
+Starting with Copilot SDK v0.1.28, permission handling is opt-in. If a session may need tool, file, or system access, set `OnPermissionRequest` explicitly when creating it.
 
 1. **Always clean up**: Use try-finally or `await using` to ensure `StopAsync()` is called
 2. **Handle connection errors**: The CLI might not be installed or running

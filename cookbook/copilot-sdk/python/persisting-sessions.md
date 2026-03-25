@@ -17,7 +17,7 @@ You want users to be able to continue a conversation even after closing and reop
 
 ```python
 import asyncio
-from copilot import CopilotClient, SessionConfig, MessageOptions
+from copilot import CopilotClient, SessionConfig, MessageOptions, PermissionHandler
 
 async def main():
     client = CopilotClient()
@@ -27,7 +27,7 @@ async def main():
     session = await client.create_session(SessionConfig(
         session_id="user-123-conversation",
         model="gpt-5",
-    ))
+        on_permission_request=PermissionHandler.approve_all))
 
     await session.send_and_wait(MessageOptions(prompt="Let's discuss TypeScript generics"))
 
@@ -49,7 +49,7 @@ client = CopilotClient()
 await client.start()
 
 # Resume the previous session
-session = await client.resume_session("user-123-conversation")
+session = await client.resume_session("user-123-conversation", on_permission_request=PermissionHandler.approve_all)
 
 # Previous context is restored
 await session.send_and_wait(MessageOptions(prompt="What were we discussing?"))

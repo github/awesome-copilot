@@ -42,8 +42,10 @@
 
 # aNULL - HTTPS configuration cipher string
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL
+# Wee, Sherif - proper name (Wee, Sherif, contributor names should not be flagged as typos)
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif
 
 # Skip certain files and directories
 
-skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus
+skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt

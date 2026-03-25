@@ -42,7 +42,7 @@ npx tsx pr-visualization.ts --repo github/copilot-sdk
 
 import { execSync } from "node:child_process";
 import * as readline from "node:readline";
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 // ============================================================================
 // Git & GitHub Detection
@@ -138,6 +138,7 @@ async function main() {
     const client = new CopilotClient({ logLevel: "error" });
 
     const session = await client.createSession({
+        onPermissionRequest: approveAll,
         model: "gpt-5",
         systemMessage: {
             content: `

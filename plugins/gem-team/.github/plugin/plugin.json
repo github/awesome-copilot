@@ -1,7 +1,7 @@
 {
   "name": "gem-team",
-  "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead.",
-  "version": "1.2.1",
+  "description": "A modular multi-agent team for complex project execution with Discuss Phase for requirements clarification, PRD creation, DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, wave-based parallel execution, PRD compliance verification, and automated testing.",
+  "version": "1.3.4",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -10,6 +10,7 @@
   "keywords": [
     "multi-agent",
     "orchestration",
+    "discuss-phase",
     "dag-planning",
     "parallel-execution",
     "tdd",

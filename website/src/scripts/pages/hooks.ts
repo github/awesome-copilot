@@ -6,24 +6,18 @@ import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
-  escapeHtml,
-  getGitHubUrl,
-  getRawGitHubUrl,
   showToast,
-  getLastUpdatedHtml,
+  downloadZipBundle,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
-import JSZip from "../jszip";
+import {
+  renderHooksHtml,
+  sortHooks,
+  type HookSortOption,
+  type RenderableHook,
+} from "./hooks-render";
 
-interface Hook extends SearchItem {
-  id: string;
-  path: string;
-  readmeFile: string;
-  hooks: string[];
-  tags: string[];
-  assets: string[];
-  lastUpdated?: string | null;
-}
+interface Hook extends SearchItem, RenderableHook {}
 
 interface HooksData {
   items: Hook[];
@@ -32,8 +26,6 @@ interface HooksData {
     tags: string[];
   };
 }
-
-type SortOption = "title" | "lastUpdated";
 
 const resourceType = "hook";
 let allItems: Hook[] = [];
@@ -44,17 +36,11 @@ let currentFilters = {
   hooks: [] as string[],
   tags: [] as string[],
 };
-let currentSort: SortOption = "title";
+let currentSort: HookSortOption = "title";
+let resourceListHandlersReady = false;
 
 function sortItems(items: Hook[]): Hook[] {
-  return [...items].sort((a, b) => {
-    if (currentSort === "lastUpdated") {
-      const dateA = a.lastUpdated ? new Date(a.lastUpdated).getTime() : 0;
-      const dateB = b.lastUpdated ? new Date(b.lastUpdated).getTime() : 0;
-      return dateB - dateA;
-    }
-    return a.title.localeCompare(b.title);
-  });
+  return sortHooks(items, currentSort);
 }
 
 function applyFiltersAndRender(): void {
@@ -104,84 +90,40 @@ function renderItems(items: Hook[], query = ""): void {
   const list = document.getElementById("resource-list");
   if (!list) return;
 
-  if (items.length === 0) {
-    list.innerHTML =
-      '<div class="empty-state"><h3>No hooks found</h3><p>Try a different search term or adjust filters</p></div>';
-    return;
-  }
+  list.innerHTML = renderHooksHtml(items, {
+    query,
+    highlightTitle: (title, highlightQuery) =>
+      search.highlight(title, highlightQuery),
+  });
+}
 
-  list.innerHTML = items
-    .map(
-      (item) => `
-    <div class="resource-item" data-path="${escapeHtml(
-      item.readmeFile
-    )}" data-hook-id="${escapeHtml(item.id)}">
-      <div class="resource-info">
-        <div class="resource-title">${
-          query ? search.highlight(item.title, query) : escapeHtml(item.title)
-        }</div>
-        <div class="resource-description">${escapeHtml(
-          item.description || "No description"
-        )}</div>
-        <div class="resource-meta">
-          ${item.hooks
-            .map(
-              (h) =>
-                `<span class="resource-tag tag-hook">${escapeHtml(h)}</span>`
-            )
-            .join("")}
-          ${item.tags
-            .map(
-              (t) =>
-                `<span class="resource-tag tag-tag">${escapeHtml(t)}</span>`
-            )
-            .join("")}
-          ${
-            item.assets.length > 0
-              ? `<span class="resource-tag tag-assets">${
-                  item.assets.length
-                } asset${item.assets.length === 1 ? "" : "s"}</span>`
-              : ""
-          }
-          ${getLastUpdatedHtml(item.lastUpdated)}
-        </div>
-      </div>
-      <div class="resource-actions">
-        <button class="btn btn-primary download-hook-btn" data-hook-id="${escapeHtml(
-          item.id
-        )}" title="Download as ZIP">
-          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-            <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/>
-            <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/>
-          </svg>
-          Download
-        </button>
-        <a href="${getGitHubUrl(
-          item.path
-        )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-      </div>
-    </div>
-  `
-    )
-    .join("");
+function setupResourceListHandlers(list: HTMLElement | null): void {
+  if (!list || resourceListHandlersReady) return;
 
-  // Add click handlers for opening modal
-  list.querySelectorAll(".resource-item").forEach((el) => {
-    el.addEventListener("click", (e) => {
-      if ((e.target as HTMLElement).closest(".resource-actions")) return;
-      const path = (el as HTMLElement).dataset.path;
-      if (path) openFileModal(path, resourceType);
-    });
+  list.addEventListener("click", (event) => {
+    const target = event.target as HTMLElement;
+    const downloadButton = target.closest(
+      ".download-hook-btn"
+    ) as HTMLButtonElement | null;
+    if (downloadButton) {
+      event.stopPropagation();
+      const hookId = downloadButton.dataset.hookId;
+      if (hookId) downloadHook(hookId, downloadButton);
+      return;
+    }
+
+    if (target.closest(".resource-actions")) {
+      return;
+    }
+
+    const item = target.closest(".resource-item") as HTMLElement | null;
+    const path = item?.dataset.path;
+    if (path) {
+      openFileModal(path, resourceType);
+    }
   });
 
-  // Add download handlers
-  list.querySelectorAll(".download-hook-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const hookId = (btn as HTMLElement).dataset.hookId;
-      if (hookId) downloadHook(hookId, btn as HTMLButtonElement);
-    });
-  });
+  resourceListHandlersReady = true;
 }
 
 async function downloadHook(
@@ -214,41 +156,7 @@ async function downloadHook(
     '<svg class="spinner" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 0a8 8 0 1 0 8 8h-1.5A6.5 6.5 0 1 1 8 1.5V0z"/></svg> Preparing...';
 
   try {
-    const zip = new JSZip();
-    const folder = zip.folder(hook.id);
-
-    const fetchPromises = files.map(async (file) => {
-      const url = getRawGitHubUrl(file.path);
-      try {
-        const response = await fetch(url);
-        if (!response.ok) return null;
-        const content = await response.text();
-        return { name: file.name, content };
-      } catch {
-        return null;
-      }
-    });
-
-    const results = await Promise.all(fetchPromises);
-    let addedFiles = 0;
-    for (const result of results) {
-      if (result && folder) {
-        folder.file(result.name, result.content);
-        addedFiles++;
-      }
-    }
-
-    if (addedFiles === 0) throw new Error("Failed to fetch any files");
-
-    const blob = await zip.generateAsync({ type: "blob" });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `${hook.id}.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(downloadUrl);
+    await downloadZipBundle(hook.id, files);
 
     btn.innerHTML =
       '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg> Downloaded!';
@@ -278,6 +186,8 @@ export async function initHooksPage(): Promise<void> {
   const sortSelect = document.getElementById(
     "sort-select"
   ) as HTMLSelectElement;
+
+  setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<HooksData>("hooks.json");
   if (!data || !data.items) {
@@ -321,7 +231,7 @@ export async function initHooksPage(): Promise<void> {
   });
 
   sortSelect?.addEventListener("change", () => {
-    currentSort = sortSelect.value as SortOption;
+    currentSort = sortSelect.value as HookSortOption;
     applyFiltersAndRender();
   });
 

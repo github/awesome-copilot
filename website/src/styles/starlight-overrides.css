@@ -14,8 +14,8 @@
   --sl-color-gray-3: #60607a;
   --sl-color-gray-4: #30304a;
   --sl-color-gray-5: #1a1a2e;
-  --sl-color-gray-6: #111120;
-  --sl-color-black: #0a0a0f;
+  --sl-color-gray-6: #0d0d12;
+  --sl-color-black: #0d0d12;
 
   --sl-font-system: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
@@ -37,8 +37,13 @@
   --sl-color-gray-3: #30304a;
   --sl-color-gray-4: #60607a;
   --sl-color-gray-5: #9898a6;
-  --sl-color-gray-6: #d0d0da;
-  --sl-color-black: #f0f0f5;
+  --sl-color-gray-6: #f5f5f7;
+  --sl-color-black: #fafafa;
+}
+
+:root[data-theme="light"] header.header {
+  background: rgba(250, 250, 250, 0.6) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ── Sidebar readability ───────────────────────────────────── */
@@ -58,6 +63,55 @@ nav[aria-label="Main"] a[aria-current="page"] {
 }
 header .site-title:hover {
   color: var(--sl-color-accent-high) !important;
+}
+
+/* ── Unified background ─────────────────────────────────────── */
+/* Clean header - solid background */
+header.header {
+  background: var(--sl-color-gray-6) !important;
+  border-bottom: 1px solid var(--sl-color-gray-5) !important;
+  z-index: 1000;
+  position: relative;
+}
+
+/* Header inner content for alignment */
+header.header .header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+}
+
+header.header .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Hide social icons in header - GitHub link moved to hero */
+header .social-icons {
+  display: none !important;
+}
+
+/* Move theme toggle inside header - align with header elements */
+.theme-toggle-container {
+  position: fixed !important;
+  top: 12px !important;
+  right: 80px !important;
+  z-index: 1001;
+}
+
+/* On custom splash pages, body already has the gradient bg.
+   Make Starlight's wrapper layers transparent so it shows through. */
+body:has(#main-content) {
+  --sl-color-bg: transparent;
+  --sl-color-bg-nav: transparent;
+}
+
+/* ── Hide Starlight's built-in theme selector (dropdown) ─── */
+/* We use our own custom ThemeToggle component instead */
+starlight-theme-select {
+  display: none !important;
 }
 
 /* ── Browse Resources sidebar group ────────────────────────── */

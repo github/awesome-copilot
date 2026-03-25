@@ -3,19 +3,43 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import pagefindResources from "./src/integrations/pagefind-resources";
 
+const site = "https://awesome-copilot.github.com/";
+const siteDescription =
+  "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience";
+const socialImageUrl = new URL("/images/social-image.png", site).toString();
+
 // https://astro.build/config
 export default defineConfig({
-  site: "https://awesome-copilot.github.com/",
+  site,
   base: "/",
   output: "static",
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
-      social: [
+      favicon: "/images/favicon.svg",
+      description: siteDescription,
+      social: [],
+      head: [
         {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/github/awesome-copilot",
+          tag: "meta",
+          attrs: {
+            property: "og:image",
+            content: socialImageUrl,
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            property: "og:image:alt",
+            content: siteDescription,
+          },
+        },
+        {
+          tag: "meta",
+          attrs: {
+            name: "twitter:image",
+            content: socialImageUrl,
+          },
         },
       ],
       customCss: ["./src/styles/starlight-overrides.css", "./src/styles/global.css"],
@@ -35,6 +59,7 @@ export default defineConfig({
             { label: "Workflows", link: "/workflows/" },
             { label: "Plugins", link: "/plugins/" },
             { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
           ],
         },
         {
@@ -75,6 +100,7 @@ export default defineConfig({
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       components: {
         Head: "./src/components/Head.astro",
+        Footer: "./src/components/Footer.astro",
       },
     }),
     sitemap(),
@@ -89,7 +115,12 @@ export default defineConfig({
   trailingSlash: "always",
   vite: {
     build: {
-      sourcemap: true,
+      // Production sourcemaps trigger a known warning in the expressive-code Vite plugin.
+      // The docs site does not need emitted JS sourcemaps for its validation build.
+      sourcemap: false,
+      // Starlight ships large syntax-highlighting chunks that are expected for this site.
+      // Raise the threshold so Vite only warns on materially larger regressions.
+      chunkSizeWarningLimit: 900,
     },
     css: {
       devSourcemap: true,

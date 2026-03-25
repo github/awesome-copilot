@@ -32,6 +32,7 @@ func main() {
 
     // Create session with a memorable ID
     session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
         SessionID: "user-123-conversation",
         Model:     "gpt-5",
     })
@@ -55,7 +56,7 @@ client.Start(ctx)
 defer client.Stop()
 
 // Resume the previous session
-session, _ := client.ResumeSession(ctx, "user-123-conversation")
+session, _ := client.ResumeSession(ctx, "user-123-conversation", &copilot.ResumeSessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 
 // Previous context is restored
 session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "What were we discussing?"})

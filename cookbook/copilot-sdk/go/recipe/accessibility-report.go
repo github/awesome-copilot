@@ -45,6 +45,7 @@ func main() {
 
 	streaming := true
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 		Model:     "claude-opus-4.6",
 		Streaming: &streaming,
 		McpServers: map[string]interface{}{

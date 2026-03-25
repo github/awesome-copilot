@@ -3,44 +3,16 @@
  */
 
 import { FuzzySearch, type SearchableItem } from "../search";
-import { fetchData, escapeHtml } from "../utils";
+import { fetchData, debounce } from "../utils";
 import { createChoices, getChoicesValues, type Choices } from "../choices";
 import { setupModal } from "../modal";
-
-// Types
-interface Language {
-  id: string;
-  name: string;
-  icon: string;
-  extension: string;
-}
-
-interface RecipeVariant {
-  doc: string;
-  example: string | null;
-}
-
-interface Recipe {
-  id: string;
-  name: string;
-  description: string;
-  tags: string[];
-  languages: string[];
-  variants: Record<string, RecipeVariant>;
-  external?: boolean;
-  url?: string | null;
-  author?: { name: string; url?: string } | null;
-}
-
-interface Cookbook {
-  id: string;
-  name: string;
-  description: string;
-  path: string;
-  featured: boolean;
-  languages: Language[];
-  recipes: Recipe[];
-}
+import {
+  getRecipeResultsCountText,
+  renderCookbookSectionsHtml,
+  type Cookbook,
+  type CookbookRecipeMatch,
+  type Language,
+} from "./samples-render";
 
 interface SamplesData {
   cookbooks: Cookbook[];
@@ -57,13 +29,16 @@ let samplesData: SamplesData | null = null;
 let search: FuzzySearch<SearchableItem> | null = null;
 let selectedLanguage: string | null = null;
 let selectedTags: string[] = [];
-let expandedRecipes: Set<string> = new Set();
 let tagChoices: Choices | null = null;
+let initialized = false;
 
 /**
  * Initialize the samples page
  */
 export async function initSamplesPage(): Promise<void> {
+  if (initialized) return;
+  initialized = true;
+
   try {
     // Load samples data
     samplesData = await fetchData<SamplesData>("samples.json");
@@ -90,7 +65,7 @@ export async function initSamplesPage(): Promise<void> {
     setupModal();
     setupFilters();
     setupSearch();
-    renderCookbooks();
+    setupRecipeListeners();
     updateResultsCount();
   } catch (error) {
     console.error("Failed to initialize samples page:", error);
@@ -186,14 +161,13 @@ function setupSearch(): void {
   ) as HTMLInputElement;
   if (!searchInput) return;
 
-  let debounceTimer: number;
-  searchInput.addEventListener("input", () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = window.setTimeout(() => {
+  searchInput.addEventListener(
+    "input",
+    debounce(() => {
       renderCookbooks();
       updateResultsCount();
-    }, 200);
-  });
+    }, 200)
+  );
 }
 
 /**
@@ -225,11 +199,7 @@ function clearFilters(): void {
 /**
  * Get filtered recipes
  */
-function getFilteredRecipes(): {
-  cookbook: Cookbook;
-  recipe: Recipe;
-  highlighted?: string;
-}[] {
+function getFilteredRecipes(): CookbookRecipeMatch[] {
   if (!samplesData || !search) return [];
 
   const searchInput = document.getElementById(
@@ -237,8 +207,7 @@ function getFilteredRecipes(): {
   ) as HTMLInputElement;
   const query = searchInput?.value.trim() || "";
 
-  let results: { cookbook: Cookbook; recipe: Recipe; highlighted?: string }[] =
-    [];
+  let results: CookbookRecipeMatch[] = [];
 
   if (query) {
     // Use fuzzy search - returns SearchableItem[] directly
@@ -250,8 +219,8 @@ function getFilteredRecipes(): {
       )!;
       return {
         cookbook,
-        recipe: recipe as unknown as Recipe,
-        highlighted: search!.highlight(recipe.title, query),
+        recipe: recipe as unknown as CookbookRecipeMatch["recipe"],
+        highlightedName: search!.highlight(recipe.title, query),
       };
     });
   } else {
@@ -285,202 +254,12 @@ function renderCookbooks(): void {
   const container = document.getElementById("samples-list");
   if (!container || !samplesData) return;
 
-  const filteredResults = getFilteredRecipes();
-
-  if (filteredResults.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <h3>No Results Found</h3>
-        <p>Try adjusting your search or filters.</p>
-      </div>
-    `;
-    return;
-  }
-
-  // Group by cookbook
-  const byCookbook = new Map<
-    string,
-    { cookbook: Cookbook; recipes: { recipe: Recipe; highlighted?: string }[] }
-  >();
-  filteredResults.forEach(({ cookbook, recipe, highlighted }) => {
-    if (!byCookbook.has(cookbook.id)) {
-      byCookbook.set(cookbook.id, { cookbook, recipes: [] });
-    }
-    byCookbook.get(cookbook.id)!.recipes.push({ recipe, highlighted });
+  container.innerHTML = renderCookbookSectionsHtml(getFilteredRecipes(), {
+    selectedLanguage,
   });
-
-  let html = "";
-  byCookbook.forEach(({ cookbook, recipes }) => {
-    html += renderCookbookSection(cookbook, recipes);
-  });
-
-  container.innerHTML = html;
 
   // Setup event listeners
   setupRecipeListeners();
-}
-
-/**
- * Render a cookbook section
- */
-function renderCookbookSection(
-  cookbook: Cookbook,
-  recipes: { recipe: Recipe; highlighted?: string }[]
-): string {
-  const languageTabs = cookbook.languages
-    .map(
-      (lang) => `
-    <button class="lang-tab${selectedLanguage === lang.id ? " active" : ""}"
-            data-lang="${lang.id}"
-            title="${lang.name}">
-      ${lang.icon}
-    </button>
-  `
-    )
-    .join("");
-
-  const recipeCards = recipes
-    .map(({ recipe, highlighted }) =>
-      renderRecipeCard(cookbook, recipe, highlighted)
-    )
-    .join("");
-
-  return `
-    <div class="cookbook-section" data-cookbook="${cookbook.id}">
-      <div class="cookbook-header">
-        <div class="cookbook-info">
-          <h2>${escapeHtml(cookbook.name)}</h2>
-          <p>${escapeHtml(cookbook.description)}</p>
-        </div>
-        <div class="cookbook-languages">
-          ${languageTabs}
-        </div>
-      </div>
-      <div class="recipes-grid">
-        ${recipeCards}
-      </div>
-    </div>
-  `;
-}
-
-/**
- * Render a recipe card
- */
-function renderRecipeCard(
-  cookbook: Cookbook,
-  recipe: Recipe,
-  highlightedName?: string
-): string {
-  const recipeKey = `${cookbook.id}-${recipe.id}`;
-  const isExpanded = expandedRecipes.has(recipeKey);
-
-  const tags = recipe.tags
-    .map((tag) => `<span class="recipe-tag">${escapeHtml(tag)}</span>`)
-    .join("");
-
-  // External recipe — link to external URL
-  if (recipe.external && recipe.url) {
-    const authorHtml = recipe.author
-      ? `<span class="recipe-author">by ${
-          recipe.author.url
-            ? `<a href="${escapeHtml(recipe.author.url)}" target="_blank" rel="noopener">${escapeHtml(recipe.author.name)}</a>`
-            : escapeHtml(recipe.author.name)
-        }</span>`
-      : "";
-
-    return `
-      <div class="recipe-card external${
-        isExpanded ? " expanded" : ""
-      }" data-recipe="${escapeHtml(recipeKey)}">
-        <div class="recipe-header">
-          <h3>${highlightedName || escapeHtml(recipe.name)}</h3>
-          <span class="recipe-badge external-badge" title="External project">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M3.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25v-3.5a.75.75 0 0 1 1.5 0v3.5A1.75 1.75 0 0 1 12.25 14h-8.5A1.75 1.75 0 0 1 2 12.25v-8.5C2 2.784 2.784 2 3.75 2Zm6.854-1h4.146a.25.25 0 0 1 .25.25v4.146a.25.25 0 0 1-.427.177L13.03 4.03 9.28 7.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0 1 10.604 1Z"/>
-            </svg>
-            Community
-          </span>
-        </div>
-        <p class="recipe-description">${escapeHtml(recipe.description)}</p>
-        ${authorHtml ? `<div class="recipe-author-line">${authorHtml}</div>` : ""}
-        <div class="recipe-tags">${tags}</div>
-        <div class="recipe-actions">
-          <a href="${escapeHtml(recipe.url)}"
-             class="btn btn-primary btn-small" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-            View on GitHub
-          </a>
-        </div>
-      </div>
-    `;
-  }
-
-  // Local recipe — existing behavior
-  // Determine which language to show
-  const displayLang = selectedLanguage || cookbook.languages?.[0]?.id || "nodejs";
-  const variant = recipe.variants[displayLang];
-
-  const langIndicators = (cookbook.languages ?? [])
-    .filter((lang) => recipe.variants[lang.id])
-    .map(
-      (lang) =>
-        `<span class="lang-indicator" title="${lang.name}">${lang.icon}</span>`
-    )
-    .join("");
-
-  return `
-    <div class="recipe-card${
-      isExpanded ? " expanded" : ""
-    }" data-recipe="${recipeKey}" data-cookbook="${
-    cookbook.id
-  }" data-recipe-id="${recipe.id}">
-      <div class="recipe-header">
-        <h3>${highlightedName || escapeHtml(recipe.name)}</h3>
-        <div class="recipe-langs">${langIndicators}</div>
-      </div>
-      <p class="recipe-description">${escapeHtml(recipe.description)}</p>
-      <div class="recipe-tags">${tags}</div>
-      <div class="recipe-actions">
-        ${
-          variant
-            ? `
-          <button class="btn btn-secondary btn-small view-recipe-btn" data-doc="${
-            variant.doc
-          }">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75zM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5z"/>
-            </svg>
-            View Recipe
-          </button>
-          ${
-            variant.example
-              ? `
-            <button class="btn btn-secondary btn-small view-example-btn" data-example="${variant.example}">
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                <path d="M4.72 3.22a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 0 1-1.06-1.06L7.69 7.5 4.72 4.28a.75.75 0 0 1 0-1.06zm6.25 1.06L10.22 5l.75.75-2.25 2.25 2.25 2.25-.75.75-.75-.72L11.97 7.5z"/>
-              </svg>
-              View Example
-            </button>
-          `
-              : ""
-          }
-          <a href="https://github.com/github/awesome-copilot/blob/main/${
-            variant.doc
-          }"
-             class="btn btn-secondary btn-small" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
-            </svg>
-            GitHub
-          </a>
-        `
-            : '<span class="no-variant">Not available for selected language</span>'
-        }
-      </div>
-    </div>
-  `;
 }
 
 /**
@@ -548,14 +327,7 @@ function updateResultsCount(): void {
 
   const filtered = getFilteredRecipes();
   const total = samplesData.totalRecipes;
-
-  if (filtered.length === total) {
-    resultsCount.textContent = `${total} recipe${total !== 1 ? "s" : ""}`;
-  } else {
-    resultsCount.textContent = `${filtered.length} of ${total} recipe${
-      total !== 1 ? "s" : ""
-    }`;
-  }
+  resultsCount.textContent = getRecipeResultsCountText(filtered.length, total);
 }
 
 // Auto-initialize when DOM is ready

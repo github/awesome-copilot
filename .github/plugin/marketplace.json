@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "automate-this",
+      "source": "automate-this",
+      "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
+      "version": "1.0.0"
+    },
+    {
       "name": "awesome-copilot",
       "source": "awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
@@ -91,9 +97,28 @@
     },
     {
       "name": "dataverse",
-      "source": "dataverse",
-      "description": "Comprehensive collection for Microsoft Dataverse integrations. Includes MCP setup commands.",
-      "version": "1.0.0"
+      "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/Dataverse-skills",
+      "keywords": [
+        "dataverse",
+        "power-platform",
+        "microsoft",
+        "mcp",
+        "python",
+        "sdk"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/Dataverse-skills",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/Dataverse-skills",
+        "path": ".github/plugins/dataverse"
+      }
     },
     {
       "name": "dataverse-sdk-for-python",
@@ -108,10 +133,100 @@
       "version": "1.0.0"
     },
     {
+      "name": "dotnet",
+      "description": "Common everyday C#/.NET coding skills. Expected to be useful to all .NET developers.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/skills",
+      "keywords": [
+        "dotnet",
+        "csharp",
+        "coding",
+        "skills",
+        "csharp-script",
+        "single-file",
+        "nuget-publishing",
+        "pinvoke"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/skills",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills",
+        "path": "plugins/dotnet"
+      }
+    },
+    {
+      "name": "dotnet-diag",
+      "description": "Skills for .NET performance investigations, debugging, and incident analysis.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/skills",
+      "keywords": [
+        "dotnet",
+        "diagnostics",
+        "performance",
+        "debugging",
+        "tracing",
+        "symbolicate",
+        "android-tombstone",
+        "dump-collection",
+        "microbenchmarking",
+        "clr-activation"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/skills",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills",
+        "path": "plugins/dotnet-diag"
+      }
+    },
+    {
+      "name": "doublecheck",
+      "source": "doublecheck",
+      "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
+      "version": "1.0.0"
+    },
+    {
       "name": "edge-ai-tasks",
       "source": "edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
       "version": "1.0.0"
+    },
+    {
+      "name": "fastah-ip-geo-tools",
+      "source": "fastah-ip-geo-tools",
+      "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
+      "version": "0.0.9"
+    },
+    {
+      "name": "figma",
+      "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Figma",
+        "url": "https://www.figma.com"
+      },
+      "homepage": "https://github.com/figma/mcp-server-guide",
+      "keywords": [
+        "figma",
+        "design",
+        "mcp",
+        "ui",
+        "code-connect"
+      ],
+      "repository": "https://github.com/figma/mcp-server-guide",
+      "source": {
+        "source": "github",
+        "repo": "figma/mcp-server-guide"
+      }
     },
     {
       "name": "flowstudio-power-automate",
@@ -128,8 +243,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular multi-agent team for complex project execution with DAG-based planning, parallel execution, TDD verification, and automated testing with energetic team lead.",
-      "version": "1.2.1"
+      "description": "A modular multi-agent team for complex project execution with Discuss Phase for requirements clarification, PRD creation, DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, wave-based parallel execution, PRD compliance verification, and automated testing.",
+      "version": "1.3.4"
     },
     {
       "name": "go-mcp-development",
@@ -159,6 +274,63 @@
       "name": "mcp-m365-copilot",
       "source": "mcp-m365-copilot",
       "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
+      "version": "1.0.0"
+    },
+    {
+      "name": "microsoft-docs",
+      "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://learn.microsoft.com",
+      "keywords": [
+        "microsoft",
+        "azure",
+        "dotnet",
+        "windows",
+        "api",
+        "documentation",
+        "rag",
+        "dynamics",
+        "powerbi",
+        "code-samples"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/MicrosoftDocs/mcp",
+      "source": {
+        "source": "github",
+        "repo": "MicrosoftDocs/mcp"
+      }
+    },
+    {
+      "name": "modernize-dotnet",
+      "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
+      "version": "1.0.979-preview1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/modernize-dotnet",
+      "keywords": [
+        "modernization",
+        "upgrade",
+        "migration",
+        "dotnet"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/modernize-dotnet",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/modernize-dotnet",
+        "path": "plugins/modernize-dotnet"
+      }
+    },
+    {
+      "name": "napkin",
+      "source": "napkin",
+      "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
       "version": "1.0.0"
     },
     {
@@ -195,6 +367,12 @@
       "name": "openapi-to-application-python-fastapi",
       "source": "openapi-to-application-python-fastapi",
       "description": "Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "oracle-to-postgres-migration-expert",
+      "source": "oracle-to-postgres-migration-expert",
+      "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
       "version": "1.0.0"
     },
     {
@@ -286,6 +464,30 @@
       "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
       "version": "1.0.0"
+    },
+    {
+      "name": "skills-for-copilot-studio",
+      "description": "Microsoft Copilot Studio plugins for AI coding agents",
+      "version": "1.0.3",
+      "author": {
+        "name": "Microsoft Copilot Studio CAT Team",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
+      "keywords": [
+        "copilot",
+        "copilot-studio",
+        "studio",
+        "agent",
+        "microsoft",
+        "coding"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/skills-for-copilot-studio",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/skills-for-copilot-studio"
+      }
     },
     {
       "name": "software-engineering-team",
