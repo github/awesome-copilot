@@ -516,5 +516,3 @@ Your learning doesn't stop here:
 ---
 
 **Great job! Now go build something amazing.**
-
-**[← Back to Chapter 06](../06-mcp-servers/)** | **[Return to Course Home →](../)**

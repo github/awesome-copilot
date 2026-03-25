@@ -868,5 +868,3 @@ In **[Chapter 06: MCP Servers](../06-mcp-servers/)**, you'll learn:
 - Multi-server workflows
 
 ---
-
-**[← Back to Chapter 04](../04-agents-and-custom-instructions/)** | **[Continue to Chapter 06 →](../06-mcp-servers/)**

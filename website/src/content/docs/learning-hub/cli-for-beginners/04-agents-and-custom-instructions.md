@@ -787,5 +787,3 @@ In **[Chapter 05: Skills System](../05-skills/)**, you'll learn:
 - When to use each one
 
 ---
-
-**[← Back to Chapter 03](../03-development-workflows/)** | **[Continue to Chapter 05 →](../05-skills/)**

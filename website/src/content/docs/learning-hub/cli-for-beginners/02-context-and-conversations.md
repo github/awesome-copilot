@@ -877,5 +877,3 @@ In **[Chapter 03: Development Workflows](../03-development-workflows/)**, you'll
 - Git integration
 
 ---
-
-**[← Back to Chapter 01](../01-setup-and-first-steps/)** | **[Continue to Chapter 03 →](../03-development-workflows/)**

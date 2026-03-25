@@ -938,5 +938,3 @@ In **[Chapter 07: Putting It All Together](../07-putting-it-all-together/)**, yo
 - Best practices for team environments
 
 ---
-
-**[← Back to Chapter 05](../05-skills/)** | **[Continue to Chapter 07 →](../07-putting-it-all-together/)**

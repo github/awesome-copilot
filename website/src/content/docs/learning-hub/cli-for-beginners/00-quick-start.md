@@ -264,5 +264,3 @@ copilot
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
 
 ---
-
-**[Continue to Chapter 01: First Steps →](../01-setup-and-first-steps/)**

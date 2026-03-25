@@ -646,5 +646,3 @@ In **[Chapter 02: Context and Conversations](../02-context-and-conversations/)**
 - How context management makes Copilot CLI truly powerful
 
 ---
-
-**[← Back to Course Home](../)** | **[Continue to Chapter 02 →](../02-context-and-conversations/)**

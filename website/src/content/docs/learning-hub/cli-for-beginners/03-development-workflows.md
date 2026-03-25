@@ -962,5 +962,3 @@ In **[Chapter 04: Agents and Custom Instructions](../04-agents-and-custom-instru
 - Custom instruction files for project standards
 
 ---
-
-**[← Back to Chapter 02](../02-context-and-conversations/)** | **[Continue to Chapter 04 →](../04-agents-and-custom-instructions/)**
