@@ -9,7 +9,6 @@ on:
       - "agents/**"
       - "plugins/**/skills/**"
       - "plugins/**/agents/**"
-      - ".github/workflows/skill-check.yml" # TEMPORARY: trigger on self for testing — remove after merge
 
 permissions:
   contents: read
