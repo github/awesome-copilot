@@ -26,11 +26,11 @@ correct mxGraph XML structure. All generated files open immediately in the
 
 | Diagram Type | Template Available | Description |
 |---|---|---|
-| Flowchart | `templates/flowchart.drawio` | Process flows with decisions and branches |
-| System Architecture | `templates/architecture.drawio` | Multi-tier / layered service architecture |
-| Sequence Diagram | `templates/sequence.drawio` | Actor lifelines and timed message flows |
-| ER Diagram | `templates/er-diagram.drawio` | Database tables with relationships |
-| UML Class Diagram | `templates/uml-class.drawio` | Classes, interfaces, enums, relationships |
+| Flowchart | `assets/templates/flowchart.drawio` | Process flows with decisions and branches |
+| System Architecture | `assets/templates/architecture.drawio` | Multi-tier / layered service architecture |
+| Sequence Diagram | `assets/templates/sequence.drawio` | Actor lifelines and timed message flows |
+| ER Diagram | `assets/templates/er-diagram.drawio` | Database tables with relationships |
+| UML Class Diagram | `assets/templates/uml-class.drawio` | Classes, interfaces, enums, relationships |
 | Network Topology | (use shape library) | Routers, servers, firewalls, subnets |
 | BPMN Workflow | (use shape library) | Business process events, tasks, gateways |
 | Mind Map | (manual) | Central topic with radiating branches |
@@ -65,7 +65,7 @@ If the request is ambiguous, infer the most sensible diagram type from context (
 
 ### Step 2 — Select a Template or Start Fresh
 
-- **Use a template** when the diagram type matches one in `templates/`. Copy the template structure and replace placeholder values.
+- **Use a template** when the diagram type matches one in `assets/templates/`. Copy the template structure and replace placeholder values.
 - **Start fresh** for novel layouts. Begin with the minimal valid skeleton:
 
 ```xml
@@ -452,11 +452,11 @@ All companion files are in `.github/skills/draw-io-diagram-generator/`:
 | `references/drawio-xml-schema.md` | Complete mxfile / mxGraphModel / mxCell attribute reference, coordinate system, reserved cells, validation rules |
 | `references/style-reference.md` | All style keys with allowed values, vertex and edge style keys, shape catalog, semantic color palette |
 | `references/shape-libraries.md` | All shape library categories (General, Flowchart, UML, ER, Network, BPMN, Mockup, K8s) with style strings |
-| `templates/flowchart.drawio` | Ready-to-use flowchart template |
-| `templates/architecture.drawio` | 4-tier system architecture template |
-| `templates/sequence.drawio` | 3-actor sequence diagram template |
-| `templates/er-diagram.drawio` | 3-table ER diagram with crow's foot relationships |
-| `templates/uml-class.drawio` | Interface + 2 classes + enum with relationship arrows |
+| `assets/templates/flowchart.drawio` | Ready-to-use flowchart template |
+| `assets/templates/architecture.drawio` | 4-tier system architecture template |
+| `assets/templates/sequence.drawio` | 3-actor sequence diagram template |
+| `assets/templates/er-diagram.drawio` | 3-table ER diagram with crow's foot relationships |
+| `assets/templates/uml-class.drawio` | Interface + 2 classes + enum with relationship arrows |
 | `scripts/validate-drawio.py` | Python script to validate XML structure of any .drawio file |
 | `scripts/add-shape.py` | Python CLI to add a new shape to an existing diagram |
 | `scripts/README.md` | How to use the scripts with examples |
