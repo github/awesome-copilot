@@ -22,7 +22,7 @@ SERVICE_ICONS = {
     "ai_foundry": {
         "icon_svg": '<rect x="6" y="10" width="36" height="28" rx="4" fill="#0078D4"/><rect x="12" y="16" width="10" height="8" rx="2" fill="white" opacity="0.9"/><rect x="26" y="16" width="10" height="8" rx="2" fill="white" opacity="0.9"/><rect x="12" y="27" width="24" height="5" rx="2" fill="white" opacity="0.6"/>',
         "color": "#0078D4", "bg": "#E8F4FD", "category": "AI",
-        "azure_icon_key": "azure_openai"
+        "azure_icon_key": "ai_foundry"
     },
     "ai_hub": {
         "icon_svg": '<rect x="6" y="10" width="36" height="28" rx="4" fill="#0078D4"/><circle cx="24" cy="24" r="8" fill="white" opacity="0.9"/><circle cx="24" cy="24" r="4" fill="#0078D4"/>',
@@ -57,7 +57,7 @@ SERVICE_ICONS = {
     "fabric": {
         "icon_svg": '<polygon points="24,6 42,18 42,34 24,46 6,34 6,18" fill="#E8740C" opacity="0.9"/><text x="24" y="30" text-anchor="middle" font-size="14" fill="white" font-weight="700">F</text>',
         "color": "#E8740C", "bg": "#FEF3E8", "category": "Data",
-        "azure_icon_key": "managed_service_fabric"
+        "azure_icon_key": "microsoft_fabric"
     },
     "synapse": {
         "icon_svg": '<circle cx="24" cy="24" r="18" fill="#0078D4"/><path d="M15 24 L24 15 L33 24 L24 33 Z" fill="white" opacity="0.9"/>',
@@ -407,8 +407,74 @@ CONNECTION_STYLES = {
 }
 
 
+_TYPE_ALIASES = {
+    # Azure ARM resource names → canonical diagram type
+    # Network
+    "private_endpoints": "pe", "private_endpoint": "pe",
+    "virtual_networks": "vnet", "virtual_network": "vnet",
+    "network_security_groups": "nsg", "network_security_group": "nsg",
+    "bastion_hosts": "bastion", "bastion_host": "bastion",
+    "application_gateways": "app_gateway", "application_gateway": "app_gateway",
+    "front_doors": "front_door", "front_door_and_cdn_profiles": "front_door",
+    "virtual_network_gateways": "vpn", "vpn_gateways": "vpn",
+    "load_balancers": "load_balancer",
+    "nat_gateways": "nat_gateway",
+    "expressroute_circuits": "expressroute",
+    "firewalls": "firewall",
+    "cdn_profiles": "cdn",
+    # Data
+    "data_factories": "adf", "data_factory": "adf",
+    "storage_accounts": "storage", "storage_account": "storage",
+    "data_lake": "adls", "adls_gen2": "adls", "data_lake_storage": "adls",
+    "fabric_capacities": "fabric", "fabric_capacity": "fabric", "microsoft_fabric": "fabric",
+    "synapse_workspaces": "synapse", "synapse_workspace": "synapse", "synapse_analytics": "synapse",
+    "cosmos": "cosmos_db", "cosmosdb": "cosmos_db", "documentdb": "cosmos_db",
+    "sql_databases": "sql_database", "sql_db": "sql_database",
+    "sql_servers": "sql_server",
+    "redis_caches": "redis", "redis_cache": "redis", "cache_redis": "redis",
+    "stream_analytics_jobs": "stream_analytics",
+    "databricks_workspaces": "databricks",
+    "data_explorer_clusters": "data_explorer", "azure_data_explorer": "data_explorer",
+    "postgresql_server": "postgresql", "postgresql_servers": "postgresql",
+    "mysql_server": "mysql", "mysql_servers": "mysql",
+    # AI
+    "cognitive_services": "ai_foundry", "ai_services": "ai_foundry", "foundry": "ai_foundry",
+    "azure_openai": "openai",
+    "cognitive_search": "search", "search_services": "search", "search_service": "search",
+    "machine_learning": "aml", "ml": "aml", "machine_learning_workspaces": "aml",
+    "form_recognizers": "document_intelligence",
+    "ai_studio": "ai_hub", "foundry_project": "ai_hub",
+    # Security
+    "key_vault": "keyvault", "key_vaults": "keyvault",
+    "sentinel": "sentinel", "azure_sentinel": "sentinel",
+    # Compute
+    "virtual_machines": "vm", "virtual_machine": "vm",
+    "app_services": "appservice", "web_apps": "appservice", "web_app": "appservice",
+    "function_apps": "function_app", "functions": "function_app",
+    "kubernetes_services": "aks", "managed_clusters": "aks", "kubernetes": "aks",
+    "container_registries": "acr",
+    "container_apps_environments": "container_apps",
+    "spring_apps": "spring_apps", "azure_spring_apps": "spring_apps",
+    "static_apps": "static_web_app", "static_web_apps": "static_web_app",
+    # Integration
+    "event_hubs": "event_hub",
+    "event_grid_topics": "event_grid", "event_grid_domains": "event_grid",
+    "api_management_services": "apim",
+    "service_bus_namespaces": "service_bus",
+    "logic_app": "logic_apps",
+    "notification_hubs": "notification_hub",
+    # Monitoring
+    "log_analytics_workspaces": "log_analytics",
+    "application_insights": "appinsights", "app_insight": "appinsights",
+    # IoT
+    "iot_hubs": "iot_hub",
+    # Management
+    "backup_vaults": "backup", "backup_vault": "backup",
+}
+
 def get_service_info(svc_type: str) -> dict:
     t = svc_type.lower().replace("-", "_").replace(" ", "_")
+    t = _TYPE_ALIASES.get(t, t)
     info = SERVICE_ICONS.get(t, SERVICE_ICONS["default"]).copy()
     # Add official Azure icon data URI if available
     azure_key = info.get("azure_icon_key", t)
@@ -418,10 +484,14 @@ def get_service_info(svc_type: str) -> dict:
 
 
 def generate_html(services: list, connections: list, title: str, vnet_info: str = "", hierarchy: list = None) -> str:
+    def _norm(t):
+        t = t.lower().replace("-", "_").replace(" ", "_")
+        return _TYPE_ALIASES.get(t, t)
+
     nodes_js = json.dumps([{
         "id": svc["id"],
         "name": svc["name"],
-        "type": svc.get("type", "default"),
+        "type": _norm(svc.get("type", "default")),
         "sku": svc.get("sku", ""),
         "private": svc.get("private", False),
         "details": svc.get("details", []),
@@ -445,7 +515,7 @@ def generate_html(services: list, connections: list, title: str, vnet_info: str 
         "dash": CONNECTION_STYLES.get(conn.get("type", "default"), CONNECTION_STYLES["default"])["dash"],
     } for conn in connections], ensure_ascii=False)
 
-    pe_count = sum(1 for s in services if s.get("type", "default") == "pe")
+    pe_count = sum(1 for s in services if _norm(s.get("type", "default")) == "pe")
     svc_count = len(services) - pe_count
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     vnet_info_js = json.dumps(vnet_info, ensure_ascii=False)
