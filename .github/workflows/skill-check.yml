@@ -25,12 +25,18 @@ jobs:
           fetch-depth: 0
 
       # ── Download & cache skill-validator ──────────────────────────
+      - name: Get cache key date
+        id: cache-date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
       - name: Restore skill-validator from cache
         id: cache-sv
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: .skill-validator
-          key: skill-validator-linux-x64-nightly
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          restore-keys: |
+            skill-validator-linux-x64-
 
       - name: Download skill-validator
         if: steps.cache-sv.outputs.cache-hit != 'true'
@@ -48,7 +54,7 @@ jobs:
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: .skill-validator
-          key: skill-validator-linux-x64-nightly
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
 
       # ── Detect changed skills & agents ────────────────────────────
       - name: Detect changed skills and agents
@@ -65,6 +71,9 @@ jobs:
           # Extract plugin skill directories
           PLUGIN_SKILL_DIRS=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/skills/[^/]+' | sort -u || true)
 
+          # Extract plugin agent files
+          PLUGIN_AGENT_FILES=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/agents/[^/]+\.agent\.md$' | sort -u || true)
+
           # Build CLI arguments for --skills
           SKILL_ARGS=""
           for dir in $SKILL_DIRS $PLUGIN_SKILL_DIRS; do
@@ -75,7 +84,7 @@ jobs:
 
           # Build CLI arguments for --agents
           AGENT_ARGS=""
-          for f in $AGENT_FILES; do
+          for f in $AGENT_FILES $PLUGIN_AGENT_FILES; do
             if [ -f "$f" ]; then
               AGENT_ARGS="$AGENT_ARGS $f"
             fi
