@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-03-26
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -226,7 +226,7 @@ Just like dining out, you'll naturally learn when each approach feels right.
 **Start with Interactive mode.** 
 - You can experiment and ask follow-up questions
 - Context builds naturally through conversation
-- Mistakes are easy to correct with `/clear`
+- Mistakes are easy to correct with `/new` (starts fresh, keeps old session in background) or `/clear` (abandons current session)
 
 Once you're comfortable, try:
 - **Programmatic mode** (`copilot -p "<your prompt>"`) for quick, one-off questions
@@ -365,16 +365,19 @@ copilot --allow-all -p "Review @myfile.py for issues"
 
 ## Essential Slash Commands
 
-These commands work in interactive mode. **Start with just these six** - they cover 90% of daily use:
+These commands work in interactive mode. **Start with just these seven** - they cover 90% of daily use:
 
 | Command | What It Does | When to Use |
 |---------|--------------|-------------|
 | `/help` | Show all available commands | When you forget a command |
-| `/clear` | Clear conversation and start fresh | When switching topics |
+| `/new` | Start a fresh conversation (keeps current session backgrounded, resumable with `/resume`) | When switching topics — preserves old session |
+| `/clear` | Abandon the current session entirely and start a new one | When you're done with the session and don't need it again |
 | `/plan` | Plan your work out before coding | For more complex features |
 | `/research` | Deep research using GitHub and web sources | When you need to investigate a topic before coding |
 | `/model` | Show or switch AI model | When you want to change the AI model |
 | `/exit` | End the session | When you're done |
+
+> 💡 **`/new` vs `/clear`**: Use `/new` when switching topics — it starts a fresh conversation but keeps your current session in the background so you can `/resume` it later. Use `/clear` when you're truly done with a session and don't need to revisit it.
 
 That's it for getting started! As you become comfortable, you can explore additional commands.
 
@@ -614,7 +617,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 
 **"Model not available"** - Your subscription may not include all models. Use `/model` to see what's available.
 
-**"Context too long"** - Your conversation has used the full context window. Use `/clear` to reset, or start a new session.
+**"Context too long"** - Your conversation has used the full context window. Use `/new` to start fresh while keeping the current session backgrounded, or `/clear` to discard and start over.
 
 **"Rate limit exceeded"** - Wait a few minutes and try again. Consider using programmatic mode for batch operations with delays.
 
@@ -629,7 +632,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 1. **Interactive mode** is for exploration and iteration - context carries forward. It's like having a conversation with someone who remembers what you've said up to that point.
 2. **Plan mode** is normally for more involved tasks. Review before implementation.
 3. **Programmatic mode** is for automation. No interaction needed.
-4. **Four essential commands** (`/help`, `/clear`, `/plan`, `/exit`) cover most daily use.
+4. **Essential commands** (`/help`, `/new`, `/clear`, `/plan`, `/exit`) cover most daily use.
 
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
 

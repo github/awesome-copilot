@@ -3,7 +3,7 @@ title: '02 · Context and Conversations'
 description: 'Learn how to give Copilot CLI richer context and build stronger multi-turn conversations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-03-26
 ---
 
 ![Chapter 02: Context and Conversations](/images/learning-hub/copilot-cli-for-beginners/02/chapter-header.png)
@@ -346,11 +346,15 @@ copilot
 > /context
 Context usage: 45,000 / 128,000 tokens (35%)
 
+> /new
+# Starts a fresh conversation while keeping this session backgrounded.
+# Use /resume to return to it later.
+
 > /clear
-# Wipes context and starts fresh. Use when switching topics
+# Abandons the current session entirely and starts a new one.
 ```
 
-> 💡 **When to use `/clear`**: If you've been reviewing `books.py` and want to switch to discussing `utils.py`, run `/clear` first. Otherwise stale context from the old topic may confuse responses.
+> 💡 **`/new` vs `/clear`**: Use `/new` when switching topics — it starts a fresh conversation but keeps the current session in the background so you can `/resume` it later. Use `/clear` only when you're certain you're done with the current session. If you've been reviewing `books.py` and want to switch to discussing `utils.py`, run `/new` first to keep your progress accessible.
 
 ---
 
@@ -410,7 +414,7 @@ No re-explaining. No re-reading files. Just continue working.
 
 ---
 
-**🎉 You now know the essentials!** The `@` syntax, session management (`--continue`/`--resume`/`/rename`), and context commands (`/context`/`/clear`) are enough to be highly productive. Everything below is optional. Return to it when you're ready.
+**🎉 You now know the essentials!** The `@` syntax, session management (`--continue`/`--resume`/`/rename`), and context commands (`/context`/`/new`/`/clear`) are enough to be highly productive. Everything below is optional. Return to it when you're ready.
 
 ---
 
@@ -520,7 +524,7 @@ Notice how each prompt builds on the previous work. This is the power of context
 
 ### Understanding Context Windows
 
-You already know `/context` and `/clear` from the essentials. Here's the deeper picture of how context windows work.
+You already know `/context`, `/new`, and `/clear` from the essentials. Here's the deeper picture of how context windows work.
 
 Every AI has a "context window," which is the amount of text it can consider at once.
 
@@ -566,16 +570,17 @@ copilot
 
 | Situation | Action | Why |
 |-----------|--------|-----|
-| Starting new topic | `/clear` | Removes irrelevant context |
+| Starting new topic | `/new` | Starts fresh while keeping current session backgrounded |
+| Done with current session | `/clear` | Abandons the session, frees up session list |
 | Long conversation | `/compact` | Summarizes history, frees tokens |
 | Need specific file | `@file.py` not `@folder/` | Loads only what you need |
-| Hitting limits | Start new session | Fresh 128K context |
+| Hitting limits | `/new` or start fresh session | Fresh 128K context |
 | Multiple topics | Use `/rename` per topic | Easy to resume right session |
 
 #### Best Practices for Large Codebases
 
 1. **Be specific**: `@samples/book-app-project/books.py` instead of `@samples/book-app-project/`
-2. **Clear between topics**: Use `/clear` when switching focus
+2. **Switch between topics with `/new`**: Starts a fresh conversation while keeping your current session in the background
 3. **Use `/compact`**: Summarize conversation to free up context
 4. **Use multiple sessions**: One session per feature or topic
 
@@ -813,7 +818,7 @@ Then resume with: `copilot --continue`
 | Forgetting `@` before filenames | Copilot CLI treats "books.py" as plain text | Use `@samples/book-app-project/books.py` to reference files |
 | Expecting sessions to persist automatically | Starting `copilot` fresh loses all previous context | Use `--continue` (last session) or `--resume` (pick a session) |
 | Referencing files outside current directory | "Permission denied" or "File not found" errors | Use `/add-dir /path/to/directory` to grant access |
-| Not using `/clear` when switching topics | Old context confuses responses about the new topic | Run `/clear` before starting a different task |
+| Not switching context when changing topics | Old context confuses responses about the new topic | Run `/new` before starting a different task (keeps old session backgrounded) |
 
 ### Troubleshooting
 
@@ -840,7 +845,7 @@ copilot --add-dir /path/to/directory
 
 **Context fills up too quickly**:
 - Be more specific with file references
-- Use `/clear` between different topics
+- Use `/new` to start fresh while keeping current session backgrounded
 - Split work across multiple sessions
 
 </details>
@@ -854,7 +859,7 @@ copilot --add-dir /path/to/directory
 1. **`@` syntax** gives Copilot CLI context about files, directories, and images
 2. **Multi-turn conversations** build on each other as context accumulates
 3. **Sessions auto-save**: use `--continue` or `--resume` to pick up where you left off
-4. **Context windows** have limits: manage them with `/context`, `/clear`, and `/compact`
+4. **Context windows** have limits: manage them with `/context`, `/new`, `/clear`, and `/compact`
 5. **Permission flags** (`--add-dir`, `--allow-all`) control multi-directory access. Use them wisely!
 6. **Image references** (`@screenshot.png`) help debug UI issues visually
 
