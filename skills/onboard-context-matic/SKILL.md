@@ -30,7 +30,7 @@ phase in order. Stop after each interaction point and wait for the user's reply 
 Begin with a brief, plain-language explanation of what the server does. Say it in your own words
 based on the following facts:
 
-> The **api-context-plugins** MCP server solves a fundamental problem with AI-assisted coding: general
+> The **context-matic** MCP server solves a fundamental problem with AI-assisted coding: general
 > models are trained on public code that is often outdated, incorrect, or missing entirely for newer
 > SDK versions. This server acts as a **live, version-aware grounding layer**. Instead of the agent
 > guessing at SDK usage from training data, it queries the server for the *exact* SDK models,
@@ -220,54 +220,54 @@ a formatted menu:
 
 **Quickstart: your first API call**
 ```
-/integrate-api-context-plugins Set up the Spotify TypeScript SDK and fetch my top 5 tracks.
+/integrate-context-matic Set up the Spotify TypeScript SDK and fetch my top 5 tracks.
 Show me the complete client initialization and the API call.
 ```
 ```
-/integrate-api-context-plugins How do I authenticate with the Twilio API and send an SMS?
+/integrate-context-matic How do I authenticate with the Twilio API and send an SMS?
 Give me the full PHP setup including the SDK client and the send call.
 ```
 ```
-/integrate-api-context-plugins Walk me through initializing the Slack API client in a Python script and posting a message to a channel.
+/integrate-context-matic Walk me through initializing the Slack API client in a Python script and posting a message to a channel.
 ```
 
 **Framework-specific integration**
 ```
-/integrate-api-context-plugins I'm building a Next.js app. Integrate the Google Maps Places API
+/integrate-context-matic I'm building a Next.js app. Integrate the Google Maps Places API
 to search for nearby restaurants and display them on a page. Use the TypeScript SDK.
 ```
 ```
-/integrate-api-context-plugins I'm using Laravel. Show me how to send a Twilio SMS when a user
+/integrate-context-matic I'm using Laravel. Show me how to send a Twilio SMS when a user
 registers. Include the PHP SDK setup, client initialization, and the controller code.
 ```
 ```
-/integrate-api-context-plugins I have an ASP.NET Core app. Add Twilio webhook handling so I can receive delivery status callbacks when an SMS is sent.
+/integrate-context-matic I have an ASP.NET Core app. Add Twilio webhook handling so I can receive delivery status callbacks when an SMS is sent.
 ```
 
 **Chaining tools for full integrations**
 ```
-/integrate-api-context-plugins I want to add real-time order shipping notifications to my
+/integrate-context-matic I want to add real-time order shipping notifications to my
 Next.js store. Use Twilio to send an SMS when the order status changes to "shipped". Show me
 the full integration: SDK setup, the correct endpoint and its parameters, and the TypeScript code.
 ```
 ```
-/integrate-api-context-plugins I need to post a Slack message every time a Spotify track changes
+/integrate-context-matic I need to post a Slack message every time a Spotify track changes
 in my playlist monitoring app. Walk me through integrating both APIs in TypeScript — start by
 discovering what's available, then show me the auth setup and the exact API calls.
 ```
 ```
-/integrate-api-context-plugins In my ASP.NET Core app, I want to geocode user addresses using
+/integrate-context-matic In my ASP.NET Core app, I want to geocode user addresses using
 Google Maps and cache the results. Look up the geocode endpoint and response model, then
 generate the C# code including error handling.
 ```
 
 **Debugging and error handling**
 ```
-/integrate-api-context-plugins My Spotify API call is returning 401. What OAuth flow should I
+/integrate-context-matic My Spotify API call is returning 401. What OAuth flow should I
 be using and how does the TypeScript SDK handle token refresh automatically?
 ```
 ```
-/integrate-api-context-plugins My Slack message posts are failing intermittently with rate limit
+/integrate-context-matic My Slack message posts are failing intermittently with rate limit
 errors. How does the Python SDK expose rate limit information and what's the recommended retry
 pattern?
 ```
