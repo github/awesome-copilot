@@ -1,0 +1,21 @@
+{
+  "name": "agent-skill-authoring",
+  "description": "Create and validate reusable agent skills with progressive disclosure, evaluation fixtures, and repository-ready structure.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "authoring",
+    "agents",
+    "copilot",
+    "validation",
+    "templates"
+  ],
+  "skills": [
+    "./skills/skill-creator/"
+  ]
+}

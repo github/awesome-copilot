@@ -1,0 +1,32 @@
+# Skill Authoring Example
+
+version: "1"
+
+defaults:
+  agent: codex
+  provider: local
+  trials: 3
+  timeout: 300
+  threshold: 1.0
+
+tasks:
+  - name: fix-skill-draft
+    instruction: |
+      Rewrite `draft/SKILL.md` so it follows the skill authoring standard.
+
+      Keep the file lean and production-ready while preserving the draft's purpose.
+      Requirements:
+      - Use YAML frontmatter at the top of the file.
+      - Include a non-empty `name`.
+      - Include a non-empty `description`.
+      - Include a clear "When to Use This Skill" section.
+      - Include an "Error Handling" section.
+
+    workspace:
+      - src: fixtures/broken-skill/SKILL.md
+        dest: draft/SKILL.md
+
+    graders:
+      - type: deterministic
+        run: node graders/check-skill.js
+        weight: 1

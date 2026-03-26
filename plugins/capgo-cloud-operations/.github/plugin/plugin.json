@@ -1,0 +1,31 @@
+{
+  "name": "capgo-cloud-operations",
+  "description": "Capgo cloud workflows for live updates, hosted builds, channel and release management, CLI operations, and organization administration for Capacitor apps.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "capgo",
+    "capacitor",
+    "live-updates",
+    "release-management",
+    "native-builds",
+    "ota",
+    "cli",
+    "operations",
+    "deployment",
+    "organization"
+  ],
+  "skills": [
+    "./skills/capgo-cli-usage/",
+    "./skills/capgo-cloud/",
+    "./skills/capgo-live-updates/",
+    "./skills/capgo-native-builds/",
+    "./skills/capgo-organization-management/",
+    "./skills/capgo-release-management/",
+    "./skills/capgo-release-workflows/"
+  ]
+}

@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "agent-skill-authoring",
+      "source": "agent-skill-authoring",
+      "description": "Create and validate reusable agent skills with progressive disclosure, evaluation fixtures, and repository-ready structure.",
+      "version": "1.0.0"
+    },
+    {
       "name": "automate-this",
       "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
@@ -52,6 +58,24 @@
       "source": "azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
       "version": "1.0.1"
+    },
+    {
+      "name": "capacitor-mobile-development",
+      "source": "capacitor-mobile-development",
+      "description": "Comprehensive toolkit for building Capacitor apps, covering plugin selection, native features, testing, debugging, UI polish, performance, accessibility, and app store release preparation.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "capacitor-modernization",
+      "source": "capacitor-modernization",
+      "description": "Upgrade and modernize Capacitor apps and plugins across major versions, migrate from legacy stacks, and move to newer native integration patterns such as Swift Package Manager.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "capgo-cloud-operations",
+      "source": "capgo-cloud-operations",
+      "description": "Capgo cloud workflows for live updates, hosted builds, channel and release management, CLI operations, and organization administration for Capacitor apps.",
+      "version": "1.0.0"
     },
     {
       "name": "cast-imaging",

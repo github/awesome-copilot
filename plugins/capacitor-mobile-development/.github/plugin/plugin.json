@@ -1,0 +1,44 @@
+{
+  "name": "capacitor-mobile-development",
+  "description": "Comprehensive toolkit for building Capacitor apps, covering plugin selection, native features, testing, debugging, UI polish, performance, accessibility, and app store release preparation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "capacitor",
+    "mobile",
+    "ionic",
+    "testing",
+    "debugging",
+    "performance",
+    "accessibility",
+    "push-notifications",
+    "deep-linking",
+    "app-store"
+  ],
+  "skills": [
+    "./skills/capacitor-accessibility/",
+    "./skills/capacitor-app-store/",
+    "./skills/capacitor-best-practices/",
+    "./skills/capacitor-ci-cd/",
+    "./skills/capacitor-deep-linking/",
+    "./skills/capacitor-keyboard/",
+    "./skills/capacitor-mcp/",
+    "./skills/capacitor-offline-first/",
+    "./skills/capacitor-performance/",
+    "./skills/capacitor-plugins/",
+    "./skills/capacitor-push-notifications/",
+    "./skills/capacitor-security/",
+    "./skills/capacitor-splash-screen/",
+    "./skills/capacitor-testing/",
+    "./skills/debugging-capacitor/",
+    "./skills/ionic-design/",
+    "./skills/ios-android-logs/",
+    "./skills/konsta-ui/",
+    "./skills/safe-area-handling/",
+    "./skills/tailwind-capacitor/"
+  ]
+}

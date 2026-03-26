@@ -1,0 +1,41 @@
+{
+  "name": "capacitor-modernization",
+  "description": "Upgrade and modernize Capacitor apps and plugins across major versions, migrate from legacy stacks, and move to newer native integration patterns such as Swift Package Manager.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "capacitor",
+    "migration",
+    "upgrades",
+    "cordova",
+    "ionic",
+    "swiftpm",
+    "cocoapods",
+    "modernization",
+    "plugins",
+    "mobile"
+  ],
+  "skills": [
+    "./skills/capacitor-app-upgrades/",
+    "./skills/capacitor-app-upgrade-v4-to-v5/",
+    "./skills/capacitor-app-upgrade-v5-to-v6/",
+    "./skills/capacitor-app-upgrade-v6-to-v7/",
+    "./skills/capacitor-app-upgrade-v7-to-v8/",
+    "./skills/capacitor-plugin-spm-support/",
+    "./skills/capacitor-plugin-upgrades/",
+    "./skills/capacitor-plugin-upgrade-v4-to-v5/",
+    "./skills/capacitor-plugin-upgrade-v5-to-v6/",
+    "./skills/capacitor-plugin-upgrade-v6-to-v7/",
+    "./skills/capacitor-plugin-upgrade-v7-to-v8/",
+    "./skills/cocoapods-to-spm/",
+    "./skills/cordova-to-capacitor/",
+    "./skills/framework-to-capacitor/",
+    "./skills/ionic-appflow-migration/",
+    "./skills/ionic-enterprise-sdk-migration/",
+    "./skills/sqlite-to-fast-sql/"
+  ]
+}
