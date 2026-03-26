@@ -8,7 +8,7 @@ description: Use when creating, editing, or generating draw.io diagram files (.d
 This skill enables you to generate, edit, and validate draw.io (`.drawio`) diagram files with
 correct mxGraph XML structure. All generated files open immediately in the
 [Draw.io VS Code extension](https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio)
-(`hediet.vscode-drawio`) without any manual fixes required.
+(`hediet.vscode-drawio`) without any manual fixes required. You can also open the files in the draw.io web app or desktop app if you prefer.
 
 ---
 
@@ -39,7 +39,7 @@ correct mxGraph XML structure. All generated files open immediately in the
 
 ## 2. Prerequisites
 
-- **draw.io VS Code extension** — `hediet.vscode-drawio` (extension id). Install with:
+- If running with VS Code integration enabled, Install the drawio extension: **draw.io VS Code extension** — `hediet.vscode-drawio` (extension id). Install with:
   ```
   ext install hediet.vscode-drawio
   ```
@@ -182,7 +182,7 @@ edgeStyle=entityRelationEdgeStyle;html=1;endArrow=ERmany;startArrow=ERone;
    python .github/skills/draw-io-diagram-generator/scripts/validate-drawio.py <path-to-file.drawio>
    ```
 3. **Tell the user** how to open the file:
-   > "Open `<filename>` in VS Code — it will render automatically with the draw.io extension."
+   > "Open `<filename>` in VS Code — it will render automatically with the draw.io extension. You can use draw.io's web app or desktop app as well if you prefer."
 4. **Provide a brief description** of what is in the diagram so the user knows what to expect.
 
 ---
@@ -436,7 +436,7 @@ When delivering a diagram, always provide:
 1. **The `.drawio` file** written to the requested path
 2. **A one-sentence summary** of what the diagram shows
 3. **How to open it**:
-   > "Open `<filename>` in VS Code — the draw.io extension will render it automatically."
+   > "Open `<filename>` in VS Code — the draw.io extension will render it automatically. Or you can open it in the draw.io web app or desktop app if you prefer."
 4. **How to edit it** (if the user is likely to customise):
    > "Click any shape to select it. Double-click to edit the label. Drag to reposition."
 5. **Validation status** — whether the validator script was run and passed
