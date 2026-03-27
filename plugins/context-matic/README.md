@@ -409,7 +409,7 @@ what's the recommended retry pattern?
 
 ## How APIMatic Generates context for an API
 
-![API integration using ContextMatic](assets/images/image.png)
+![API integration using ContextMatic](https://github.com/apimatic/context-matic/blob/dev/assets/images/image.png?raw=true)
 
 APIMatic takes your OpenAPI specification through the same SDK generation pipeline it uses to produce idiomatic, type-safe SDKs in 10+ languages. The resulting MCP server exposes the SDK documentation and integration patterns as structured tool responses that AI assistants can consume natively.
 
