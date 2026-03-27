@@ -432,20 +432,63 @@ Dynamically composed based on the user's confirmed service list. Below is the JS
 | `subscription` | | string | Subscription name (required when using hierarchy) |
 | `resourceGroup` | | string | Resource group name (required when using hierarchy) |
 
-**Service Type List (by category):**
+**Service Type — Canonical Reference:**
 
-| Category | Types |
-|----------|-------|
-| **AI** | `ai_foundry`, `ai_hub`, `openai`, `ai_search` / `search`, `document_intelligence` / `form_recognizer`, `aml` |
-| **Data** | `storage` / `adls`, `cosmos_db`, `sql_database`, `sql_server`, `databricks`, `data_factory` / `adf`, `fabric`, `redis`, `stream_analytics`, `synapse` |
-| **Security** | `keyvault` / `kv` |
-| **Compute** | `app_service` / `appservice`, `function_app`, `vm`, `aks`, `acr` / `container_registry` |
-| **Network** | `firewall`, `bastion`, `vpn_gateway` / `vpn`, `app_gateway`, `front_door`, `cdn`, `nsg`, `pe` |
-| **IoT** | `iot_hub` |
-| **Integration** | `event_hub` |
-| **Monitoring** | `log_analytics`, `app_insights` / `appinsights`, `monitor` |
-| **DevOps** | `devops` |
-| **Other** | `jumpbox`, `user`, etc. (unrecognized types use fuzzy matching + default icon) |
+> ⚠️ **CRITICAL**: Always use the **canonical type** from the table below. Do NOT use Azure ARM resource names (e.g., `private_endpoints`, `storage_accounts`, `data_factories`). The generator normalizes common variants, but using canonical types ensures correct icon rendering, PE detection, and color coding.
+
+| Category | Canonical Type | Azure Resource | Icon |
+|----------|---------------|----------------|------|
+| **AI** | `ai_foundry` | Microsoft.CognitiveServices/accounts (kind: AIServices) | AI Foundry |
+| | `openai` | Microsoft.CognitiveServices/accounts (kind: OpenAI) | Azure OpenAI |
+| | `ai_hub` | Foundry Project | AI Studio |
+| | `search` | Microsoft.Search/searchServices | Cognitive Search |
+| | `document_intelligence` | Microsoft.CognitiveServices/accounts (kind: FormRecognizer) | Form Recognizer |
+| | `aml` | Microsoft.MachineLearningServices/workspaces | Machine Learning |
+| **Data** | `fabric` | Microsoft.Fabric/capacities | Microsoft Fabric |
+| | `adf` | Microsoft.DataFactory/factories | Data Factory |
+| | `storage` | Microsoft.Storage/storageAccounts | Storage Account |
+| | `adls` | ADLS Gen2 (Storage with HNS) | Data Lake |
+| | `cosmos_db` | Microsoft.DocumentDB/databaseAccounts | Cosmos DB |
+| | `sql_database` | Microsoft.Sql/servers/databases | SQL Database |
+| | `sql_server` | Microsoft.Sql/servers | SQL Server |
+| | `databricks` | Microsoft.Databricks/workspaces | Databricks |
+| | `synapse` | Microsoft.Synapse/workspaces | Synapse Analytics |
+| | `redis` | Microsoft.Cache/redis | Redis Cache |
+| | `stream_analytics` | Microsoft.StreamAnalytics/streamingjobs | Stream Analytics |
+| | `postgresql` | Microsoft.DBforPostgreSQL/flexibleServers | PostgreSQL |
+| | `mysql` | Microsoft.DBforMySQL/flexibleServers | MySQL |
+| **Security** | `keyvault` | Microsoft.KeyVault/vaults | Key Vault |
+| | `sentinel` | Microsoft.SecurityInsights | Sentinel |
+| **Compute** | `appservice` | Microsoft.Web/sites | App Service |
+| | `function_app` | Microsoft.Web/sites (kind: functionapp) | Function App |
+| | `vm` | Microsoft.Compute/virtualMachines | Virtual Machine |
+| | `aks` | Microsoft.ContainerService/managedClusters | AKS |
+| | `acr` | Microsoft.ContainerRegistry/registries | Container Registry |
+| | `container_apps` | Microsoft.App/containerApps | Container Apps |
+| | `static_web_app` | Microsoft.Web/staticSites | Static Web App |
+| | `spring_apps` | Microsoft.AppPlatform/Spring | Spring Apps |
+| **Network** | `pe` | Microsoft.Network/privateEndpoints | Private Endpoint |
+| | `vnet` | Microsoft.Network/virtualNetworks | VNet |
+| | `nsg` | Microsoft.Network/networkSecurityGroups | NSG |
+| | `firewall` | Microsoft.Network/azureFirewalls | Firewall |
+| | `bastion` | Microsoft.Network/bastionHosts | Bastion |
+| | `app_gateway` | Microsoft.Network/applicationGateways | App Gateway |
+| | `front_door` | Microsoft.Cdn/profiles (Front Door) | Front Door |
+| | `vpn` | Microsoft.Network/virtualNetworkGateways | VPN Gateway |
+| | `load_balancer` | Microsoft.Network/loadBalancers | Load Balancer |
+| | `nat_gateway` | Microsoft.Network/natGateways | NAT Gateway |
+| | `cdn` | Microsoft.Cdn/profiles | CDN |
+| **IoT** | `iot_hub` | Microsoft.Devices/IotHubs | IoT Hub |
+| | `digital_twins` | Microsoft.DigitalTwins/digitalTwinsInstances | Digital Twins |
+| **Integration** | `event_hub` | Microsoft.EventHub/namespaces | Event Hub |
+| | `event_grid` | Microsoft.EventGrid/topics | Event Grid |
+| | `apim` | Microsoft.ApiManagement/service | API Management |
+| | `service_bus` | Microsoft.ServiceBus/namespaces | Service Bus |
+| | `logic_apps` | Microsoft.Logic/workflows | Logic Apps |
+| **Monitoring** | `log_analytics` | Microsoft.OperationalInsights/workspaces | Log Analytics |
+| | `appinsights` | Microsoft.Insights/components | App Insights |
+| | `monitor` | Azure Monitor | Monitor |
+| **Other** | `jumpbox`, `user`, `devops` | — | Special |
 
 **When Using Private Endpoints — PE Node Addition Required:**
 
