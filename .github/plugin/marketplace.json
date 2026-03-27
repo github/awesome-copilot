@@ -466,6 +466,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "shopify-plugin",
+      "description": "Shopify developer tools for building on the Shopify platform. Search Shopify docs, generate and validate GraphQL, Liquid, and UI extension code.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Shopify",
+        "url": "https://www.shopify.com"
+      },
+      "homepage": "https://github.com/Shopify/shopify-plugins",
+      "keywords": [
+        "shopify",
+        "mcp",
+        "graphql",
+        "liquid",
+        "storefront",
+        "admin-api",
+        "ecommerce"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/Shopify/shopify-plugins",
+      "source": {
+        "source": "github",
+        "repo": "Shopify/shopify-plugins"
+      }
+    },
+    {
       "name": "skills-for-copilot-studio",
       "description": "Microsoft Copilot Studio plugins for AI coding agents",
       "version": "1.0.3",
