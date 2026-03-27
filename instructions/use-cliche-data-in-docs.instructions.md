@@ -42,7 +42,7 @@ Use these generic, cliche substitutes in all documentation and examples:
 | **People** | Jane Doe, John Smith, Alice, Bob |
 | **Email addresses** | `jane.doe@example.com`, `admin@example.org` |
 | **Organizations** | Acme Corp, Contoso, Northwind Traders |
-| **Domains** | `example.com`, `example.org`, `test.local` |
+| **Domains** | `example.com`, `example.org`, `example.net` |
 | **Addresses** | 123 Main Street, Suite 100, Springfield |
 | **Phone numbers** | `(555) 123-4567` |
 | **Accounts / usernames** | `demo-user`, `test-account` |
