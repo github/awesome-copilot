@@ -2707,6 +2707,16 @@
       "contributions": [
         "projectManagement"
       ]
+    },
+    {
+      "login": "SriSatyaLokesh",
+      "name": "Satya K",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43106076?v=4",
+      "profile": "https://srisatyalokesh.is-a.dev",
+      "contributions": [
+        "code",
+        "design"
+      ]
     }
   ]
 }
