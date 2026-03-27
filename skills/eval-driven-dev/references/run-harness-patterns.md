@@ -137,11 +137,10 @@ from pixie_qa.scripts.mock_backends import (
     MockSynthesisBackend,
 )
 
-enable_storage()
-
 @observe
 def run_app(eval_input: dict) -> dict:
     """Run the voice agent through its real FastAPI app layer."""
+    enable_storage()
     # Patch external dependencies before importing the app
     with patch("myapp.app.transcription_backend", MockTranscriptionBackend()), \
          patch("myapp.app.synthesis_backend", MockSynthesisBackend()), \

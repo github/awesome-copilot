@@ -41,7 +41,7 @@ Make sure the python virtual environment is active and use the project's package
 
 ```bash
 # uv project (uv.lock exists):
-uv add pixie-qa
+uv add pixie-qa --upgrade
 
 # poetry project (poetry.lock exists):
 poetry add pixie-qa@latest
@@ -230,8 +230,8 @@ Each dataset item contains:
 
 - `eval_input`: the made-up input data (app input + external dependency data)
 - `expected_output`: case-specific expectation text (optional — only for test cases with expectations beyond the universal criteria). This is a reference for evaluation, not an exact expected answer.
-- `eval_output`: set to `"UNSET"` — produced at test time by the utility function from Step 3
 
+At test time, `eval_output` is produced by the utility function from Step 3 and is not stored in the dataset itself.
 Read `references/dataset-generation.md` for the dataset creation API, data shape matching, expected_output strategy, and validation checklist.
 
 #### 4c. Validate the dataset
