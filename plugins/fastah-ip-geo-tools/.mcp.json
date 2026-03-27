@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fastahIpGeofeed": {
+      "type": "http",
+      "url": "https://mcp.fastah.ai/mcp"
+    }
+  }
+}
