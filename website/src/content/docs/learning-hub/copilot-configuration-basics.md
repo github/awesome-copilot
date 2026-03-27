@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-03-27
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -394,6 +394,17 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
+In addition to the main config file, GitHub Copilot CLI reads two optional per-project files for repository-specific overrides:
+
+- `.claude/settings.json` — committed project settings
+- `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
+
+These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+### Model Picker
+
+The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
 ### CLI Session Commands
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
@@ -420,6 +431,16 @@ The `/cd` command changes the working directory for the current session. Each se
 ```
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `/allow-all` command (also accessible as `/yolo`) enables a mode where the agent can execute tools without per-action confirmation. It now supports explicit subcommands:
+
+```
+/allow-all on      # Enable allow-all mode
+/allow-all off     # Disable allow-all mode
+/allow-all show    # Check whether allow-all mode is currently active
+```
+
+Path permissions granted via `/allow-all` persist across `/clear`, so if you've granted access to a directory in one session, that access carries into the new session.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
