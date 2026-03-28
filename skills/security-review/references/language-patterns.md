@@ -6,12 +6,13 @@ Load the relevant section during Step 1 (Scope Resolution) after identifying lan
 
 ## JavaScript / TypeScript (Node.js, React, Next.js, Express)
 
-### Critical imports to flag
+### Critical APIs/calls to flag
 ```js
 eval()                    // arbitrary code execution
 Function('return ...')   // same as eval
 child_process.exec()     // command injection if user input reaches it
-fs.readFile/writeFile    // path traversal if user controls path
+fs.readFile              // path traversal if user controls path
+fs.writeFile             // path traversal if user controls path
 ```
 
 ### Express.js specific

@@ -19,7 +19,7 @@ Load this during Step 2 (Dependency Audit). Check versions in the project's lock
 | express | < 4.19.2 | Open redirect | >= 4.19.2 |
 | multer | < 1.4.4 | DoS | >= 1.4.4-lts.1 |
 | xml2js | < 0.5.0 | Prototype pollution | >= 0.5.0 |
-| fast-xml-parser | < 4.2.4 | ReDos | >= 4.2.4 |
+| fast-xml-parser | < 4.2.4 | ReDoS | >= 4.2.4 |
 | semver | < 7.5.2 | ReDoS | >= 7.5.2 |
 | tough-cookie | < 4.1.3 | Prototype pollution | >= 4.1.3 |
 | word-wrap | < 1.2.4 | ReDoS | >= 1.2.4 |

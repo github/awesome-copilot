@@ -30,9 +30,10 @@ github_pat_[a-zA-Z0-9]{82}
 sk_live_[a-zA-Z0-9]{24,}
 rk_live_[a-zA-Z0-9]{24,}
 
-# Twilio
-AC[a-z0-9]{32}  (Account SID)
-SK[a-z0-9]{32}  (API Key)
+# Twilio Account SID
+AC[a-z0-9]{32}
+# Twilio API Key
+SK[a-z0-9]{32}
 
 # SendGrid
 SG\.[a-zA-Z0-9\-_.]{66}
@@ -48,8 +49,8 @@ AIza[0-9A-Za-z\-_]{35}
 # Google OAuth
 [0-9]+-[0-9A-Za-z_]{32}\.apps\.googleusercontent\.com
 
-# Cloudflare
-[a-zA-Z0-9_\-]{37}  (near CF_API_TOKEN)
+# Cloudflare (near CF_API_TOKEN)
+[a-zA-Z0-9_\-]{37}
 
 # Mailgun
 key-[a-zA-Z0-9]{32}

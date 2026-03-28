@@ -127,7 +127,7 @@ Confidence: HIGH / MEDIUM / LOW
 
 Only include for CRITICAL and HIGH findings:
 
-```
+````
 🛠️  PATCH PROPOSALS
 ══════════════════
 ⚠️  REVIEW EACH PATCH BEFORE APPLYING — Nothing has been changed yet.
@@ -152,7 +152,7 @@ db.execute(query, [req.params.id]);
 
 Apply this patch? (Review first — AI-generated patches may need adjustment)
 ─────────────────────────────────────────────
-```
+````
 
 ---
 
@@ -170,7 +170,7 @@ Apply this patch? (Review first — AI-generated patches may need adjustment)
   1. Address all CRITICAL findings immediately
   2. Schedule HIGH findings for current sprint
   3. Add MEDIUM/LOW to your security backlog
-  4. Set up automated re-scanning in CI/CD (see ide-setup.md)
+  4. Set up automated re-scanning in CI/CD pipelines
 
 💡 NOTE: This is a static analysis scan. It does not execute your
    application and cannot detect all runtime vulnerabilities. Pair
