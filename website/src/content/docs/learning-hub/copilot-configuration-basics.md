@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-23
+lastUpdated: 2026-03-25
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -169,6 +169,43 @@ A well-organized Copilot configuration directory looks like this:
     ├── typescript-conventions.instructions.md
     └── api-design.instructions.md
 ```
+
+### Monorepo Support
+
+In monorepos with multiple packages or services, GitHub Copilot CLI discovers customizations at **every directory level** from your working directory up to the git repository root. This means each package or service can have its own `.github/` folder with specialized agents, instructions, skills, and MCP servers, while still inheriting configuration from parent directories.
+
+```
+my-monorepo/
+├── .github/
+│   └── instructions/
+│       └── shared-conventions.instructions.md   ← applies everywhere
+├── packages/
+│   ├── api/
+│   │   └── .github/
+│   │       └── agents/
+│   │           └── api-expert.agent.md           ← applies in packages/api/
+│   └── web/
+│       └── .github/
+│           └── instructions/
+│               └── react-conventions.instructions.md  ← applies in packages/web/
+```
+
+When you work inside `packages/api/`, Copilot loads configuration from `packages/api/.github/`, then `packages/.github/` (if it exists), then the root `.github/`. This layered discovery ensures the right context is active no matter where in the repository you're working.
+
+### Personal Skills Directory
+
+In addition to repository-level skills, GitHub Copilot CLI supports a **personal skills directory** at `~/.agents/skills/`. Skills you place here are discovered automatically across all your projects, making them ideal for personal workflows and reusable utilities that are not project-specific.
+
+```
+~/.agents/
+└── skills/
+    ├── my-review-style/
+    │   └── SKILL.md     ← available in all sessions
+    └── cleanup-todos/
+        └── SKILL.md
+```
+
+This personal directory aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, so skills defined here work consistently across tools.
 
 ### Custom Agents
 
@@ -356,6 +393,41 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `extension_mode` | Control extensibility (agent tools and plugins) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
+
+### CLI Session Commands
+
+GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
+
+| Command | Behaviour |
+|---------|-----------|
+| `/new [prompt]` | Starts a fresh conversation while keeping the current session backgrounded. You can switch back to backgrounded sessions. |
+| `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. |
+
+Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+The `/undo` command reverts the last turn—including any file changes the agent made—letting you course-correct without manually undoing edits:
+
+```
+/undo
+```
+
+Use `/undo` when the agent's last response went in an unwanted direction and you want to try a different approach from that point.
+
+The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
+
+```
+/cd ~/projects/my-other-repo
+```
+
+This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
+
+```bash
+gh copilot --effort high "Refactor the authentication module"
+```
+
+Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
 
 ## Common Questions
 

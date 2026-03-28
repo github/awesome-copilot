@@ -9,7 +9,7 @@
 /* Nerd Fonts for programming language icons */
 @font-face {
   font-family: 'Monaspace Argon NF';
-  src: url('../../public/fonts/MonaspaceArgonNF-Regular.woff2') format('woff2');
+  src: url('/fonts/MonaspaceArgonNF-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -703,6 +703,129 @@ body:has(#main-content) {
 
 .btn-icon:hover {
   color: var(--color-text);
+}
+
+
+/* Repo launch CTA */
+.repo-launch-cta {
+  margin: 32px 0;
+}
+
+.repo-launch-cta__inner {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.repo-launch-cta__inner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+}
+
+.repo-launch-cta__eyebrow {
+  display: inline-block;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-hover);
+}
+
+.repo-launch-cta__title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--color-text-emphasis);
+}
+
+.repo-launch-cta__description {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.repo-launch-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.repo-launch-cta__actions .btn {
+  white-space: nowrap;
+}
+
+.repo-launch-cta__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.repo-launch-cta__card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--border-radius);
+  padding: 18px;
+}
+
+.repo-launch-cta__card h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-emphasis);
+}
+
+.repo-launch-cta__card p {
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.repo-launch-cta__card-links {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--color-text-muted);
+}
+
+.repo-launch-cta__card-links li + li {
+  margin-top: 6px;
+}
+
+.repo-launch-cta__code {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--border-radius);
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .repo-launch-cta__inner {
+    padding: 24px;
+  }
+
+  .repo-launch-cta__actions {
+    flex-direction: column;
+  }
+
+  .repo-launch-cta__actions .btn {
+    justify-content: center;
+  }
 }
 
 /* Split Button Dropdown */

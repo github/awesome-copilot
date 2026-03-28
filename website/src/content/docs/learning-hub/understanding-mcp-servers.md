@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-23
+lastUpdated: 2026-03-24
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -206,6 +206,15 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Version control carefully**: Commit `.mcp.json` or `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
 - **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
+
+### Organization Policy for Third-Party MCP Servers
+
+GitHub organizations can enforce a policy that restricts which third-party MCP servers members are permitted to use. When this policy is active:
+
+- Copilot CLI **enforces** the policy for all users in the organization.
+- A **warning is shown** if a configured MCP server is blocked by the policy, so you know which servers are restricted before expecting them to work.
+
+If you see a warning that an MCP server is blocked, contact your organization administrator to find out which servers are on the allowlist, or switch to an approved alternative.
 
 ## Common Questions
 

@@ -47,7 +47,7 @@ Look for:
 
 ## Step 2 — Compare against the current Learning Hub
 
-Read the pages in the current Learning Hub and compare the features documented there against what you found in Step 1.
+Read the pages in the current Learning Hub and compare the features documented there against what you found in Step 1, with the exception of the `cli-for-beginners` section as we handle updates to that separately. Any suggested changes to those pages will be rejected.
 
 Identify:
 

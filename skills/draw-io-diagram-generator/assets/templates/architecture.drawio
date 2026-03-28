@@ -1,0 +1,160 @@
+<mxfile host="Electron" modified="2026-03-25T00:00:00.000Z" version="26.0.0">
+  <diagram id="architecture" name="Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1"
+                  tooltips="1" connect="1" arrows="1" fold="1"
+                  page="1" pageScale="1" pageWidth="1169" pageHeight="827"
+                  math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="2" value="System Architecture"
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;"
+                vertex="1" parent="1">
+          <mxGeometry x="330" y="30" width="500" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== TIER 1: CLIENT LAYER ====== -->
+        <mxCell id="tier1" value="Client Layer"
+                style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="100" width="1050" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- NOTE: Cells id="3" and id="4" use Cisco shape library.
+             Enable it in VS Code draw.io extension: More Shapes > Networking > Cisco.
+             If the library is unavailable, replace with:
+             style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" -->
+        <mxCell id="3" value="Web Browser"
+                style="shape=mxgraph.cisco.computers_and_peripherals.pc;html=1;pointerEvents=1;dashed=0;fillColor=#dae8fc;strokeColor=#6c8ebf;sketch=0;aspect=fixed;"
+                vertex="1" parent="tier1">
+          <mxGeometry x="60" y="40" width="100" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="4" value="Mobile App"
+                style="shape=mxgraph.cisco.computers_and_peripherals.mobile_phone;html=1;pointerEvents=1;dashed=0;fillColor=#dae8fc;strokeColor=#6c8ebf;sketch=0;aspect=fixed;"
+                vertex="1" parent="tier1">
+          <mxGeometry x="220" y="40" width="60" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="5" value="Third-party Client"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;"
+                vertex="1" parent="tier1">
+          <mxGeometry x="370" y="50" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== TIER 2: API GATEWAY ====== -->
+        <mxCell id="tier2" value="API Gateway / Load Balancer"
+                style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="270" width="1050" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="6" value="API Gateway"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="tier2">
+          <mxGeometry x="200" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="7" value="Auth / JWT"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="tier2">
+          <mxGeometry x="440" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="8" value="Rate Limiter"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;"
+                vertex="1" parent="tier2">
+          <mxGeometry x="680" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== TIER 3: SERVICES ====== -->
+        <mxCell id="tier3" value="Services Layer"
+                style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="440" width="1050" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="9" value="Order Service"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+                vertex="1" parent="tier3">
+          <mxGeometry x="60" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="10" value="User Service"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+                vertex="1" parent="tier3">
+          <mxGeometry x="280" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="11" value="Notification Service"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+                vertex="1" parent="tier3">
+          <mxGeometry x="500" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="12" value="Billing Service"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;"
+                vertex="1" parent="tier3">
+          <mxGeometry x="720" y="30" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ====== TIER 4: DATA LAYER ====== -->
+        <mxCell id="tier4" value="Data Layer"
+                style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="60" y="610" width="1050" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="13" value="Primary DB&#xa;(PostgreSQL)"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="tier4">
+          <mxGeometry x="100" y="20" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="14" value="Cache&#xa;(Redis)"
+                style="shape=mxgraph.flowchart.database;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="tier4">
+          <mxGeometry x="320" y="20" width="80" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="15" value="Message Queue&#xa;(Kafka)"
+                style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="tier4">
+          <mxGeometry x="540" y="35" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="16" value="Object Store&#xa;(S3)"
+                style="shape=mxgraph.flowchart.stored_data;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;"
+                vertex="1" parent="tier4">
+          <mxGeometry x="760" y="25" width="100" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- INTER-TIER CONNECTORS (tier-level, using absolute coords) -->
+
+        <!-- Client → API Gateway -->
+        <mxCell id="c1" value="HTTPS"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+                edge="1" source="tier1" target="tier2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- API Gateway → Services -->
+        <mxCell id="c2" value="REST / gRPC"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+                edge="1" source="tier2" target="tier3" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Services → Data -->
+        <mxCell id="c3" value="SQL / Cache / Events"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;"
+                edge="1" source="tier3" target="tier4" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
