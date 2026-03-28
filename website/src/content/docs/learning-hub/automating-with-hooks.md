@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-24
+lastUpdated: 2026-03-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,6 +93,7 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
@@ -122,6 +123,34 @@ When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) ea
 ### Cross-Platform Event Name Compatibility
 
 Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+### Plugin Hooks Environment Variables
+
+When hooks are defined inside a **plugin**, the hook scripts receive two additional environment variables automatically:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | The path to the current project (working) directory |
+| `CLAUDE_PLUGIN_DATA` | The path to a persistent data directory scoped to the plugin |
+
+You can also use these as **template variables** directly in the `bash` or `powershell` fields of your `hooks.json` configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/init.sh --project {{project_dir}}",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+This makes it straightforward to write plugin hooks that are portable across machines and projects without hardcoding paths.
 
 ### Event Configuration
 

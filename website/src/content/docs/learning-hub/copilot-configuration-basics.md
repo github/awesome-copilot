@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-03-28
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -394,6 +394,8 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
+In addition to the global `~/.copilot-cli/config.json`, the CLI also reads **`.claude/settings.json`** and **`.claude/settings.local.json`** in your repository root as additional per-repo configuration sources. This provides compatibility with Claude Code, allowing you to share settings between tools. Use `.claude/settings.local.json` (gitignored) for machine-specific overrides.
+
 ### CLI Session Commands
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
@@ -404,6 +406,14 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 | `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. |
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+
+```
+/rewind
+```
+
+Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
 
 The `/undo` command reverts the last turn—including any file changes the agent made—letting you course-correct without manually undoing edits:
 
@@ -420,6 +430,16 @@ The `/cd` command changes the working directory for the current session. Each se
 ```
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
+
+```
+/allow-all on     # enable allow-all mode
+/allow-all off    # disable allow-all mode
+/allow-all show   # check current allow-all status
+```
+
+> **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
