@@ -60,8 +60,8 @@
 | Tier | Description | Threats | Findings | Priority |
 |------|-------------|---------|----------|----------|
 | [Tier 1](3-findings.md#tier-1--direct-exposure-no-prerequisites) | Directly exploitable | [FILL] | [FILL] | 🔴 Critical Risk |
-| [Tier 2](3-findings.md#tier-2--conditional-risk-single-prerequisite) | Requires authenticated access | [FILL] | [FILL] | 🟠 Elevated Risk |
-| [Tier 3](3-findings.md#tier-3--defense-in-depth-multiple-prerequisites) | Requires prior compromise | [FILL] | [FILL] | 🟡 Moderate Risk |
+| [Tier 2](3-findings.md#tier-2--conditional-risk-authenticated--single-prerequisite) | Requires authenticated access | [FILL] | [FILL] | 🟠 Elevated Risk |
+| [Tier 3](3-findings.md#tier-3--defense-in-depth-prior-compromise--host-access) | Requires prior compromise | [FILL] | [FILL] | 🟡 Moderate Risk |
 | **Total** | | **[FILL]** | **[FILL]** | |
 
 <!-- ⛔ POST-TABLE CHECK: Verify Action Summary:

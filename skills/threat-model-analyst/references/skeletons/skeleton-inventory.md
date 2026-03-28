@@ -1,6 +1,7 @@
 # Skeleton: threat-inventory.json
 
 > **⛔ Use EXACT field names shown below. Common errors: `display_name` (wrong→`display`), `category` (wrong→`stride_category`), `name` (wrong→`title`).**
+> **⛔ The template below is shown inside a code fence for readability only — do NOT include the fence in the output file. The `.json` file must start with `{` on line 1.**
 
 ---
 
@@ -21,6 +22,7 @@
       "id": "[FILL: PascalCase]",
       "display": "[FILL: display name — NOT display_name]",
       "type": "[FILL: process / external_service / data_store / external_interactor]",
+      "tmt_type": "[FILL: SE.P.TMCore.* / SE.EI.TMCore.* / SE.DS.TMCore.* from tmt-element-taxonomy.md]",
       "boundary": "[FILL: boundary ID]",
       "boundary_kind": "[FILL: MachineBoundary / NetworkBoundary / ClusterBoundary / ProcessBoundary / PrivilegeBoundary / SandboxBoundary]",
       "aliases": [],
@@ -28,6 +30,7 @@
       "source_directories": ["[FILL: relative dirs]"],
       "fingerprint": {
         "component_type": "[FILL: process / external_service / data_store / external_interactor]",
+        "boundary_kind": "[FILL: MachineBoundary / NetworkBoundary / ClusterBoundary / ProcessBoundary / PrivilegeBoundary / SandboxBoundary]",
         "source_files": ["[FILL: relative paths]"],
         "source_directories": ["[FILL: relative dirs — MUST NOT be empty for process-type]"],
         "class_names": ["[FILL]"],
@@ -38,7 +41,8 @@
         "inbound_from": ["[FILL: component IDs that send data TO this component]"],
         "outbound_to": ["[FILL: component IDs this component sends data TO]"],
         "protocols": ["[FILL: gRPC / HTTPS / SQL / etc.]"]
-      }
+      },
+      "sidecars": ["[FILL: co-located sidecar names, or empty array]"]
     }
     [END-REPEAT]
   ],
@@ -98,11 +102,16 @@
       "cvss_score": [FILL: N.N],
       "cvss_vector": "[FILL: CVSS:4.0/AV:...]",
       "cwe": "[FILL: CWE-###]",
+      "owasp": "[FILL: A##:2025]",
       "tier": [FILL: 1/2/3],
       "effort": "[FILL: Low/Medium/High]",
+      "related_threats": ["[FILL: T##.X]"],
+      "evidence_files": ["[FILL: relative paths]"],
+      "component": "[FILL: display name]",
       "identity_key": {
         "component_id": "[FILL: PascalCase]",
-        "threat_ids": ["[FILL: T##.X]"]
+        "vulnerability": "[FILL: CWE-###]",
+        "attack_surface": "[FILL: file:key or endpoint]"
       }
     }
     [END-REPEAT]
@@ -115,6 +124,7 @@
     "total_threats": [FILL],
     "total_findings": [FILL],
     "threats_by_tier": { "T1": [FILL], "T2": [FILL], "T3": [FILL] },
+    "findings_by_tier": { "T1": [FILL], "T2": [FILL], "T3": [FILL] },
     "threats_by_stride": { "S": [FILL], "T": [FILL], "R": [FILL], "I": [FILL], "D": [FILL], "E": [FILL], "A": [FILL] },
     "findings_by_severity": { "Critical": [FILL], "Important": [FILL], "Moderate": [FILL], "Low": [FILL] }
   }

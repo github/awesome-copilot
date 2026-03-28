@@ -467,8 +467,7 @@ Data Store:           [("Name")]   → Cylinder
 
 ```
 Unidirectional:  A -->|"Label"| B
-Bidirectional:   A -->|"Label"| B
-                 B -->|"Label"| A
+Bidirectional:   A <-->|"Label"| B
 ```
 
 ## Quick Reference - Boundaries

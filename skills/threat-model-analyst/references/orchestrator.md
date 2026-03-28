@@ -474,7 +474,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    - `threats[0]` has key `"stride_category"` (NOT `"category"`) → if wrong, find-replace ALL occurrences
    - `threats[0].identity_key` has key `"component_id"` (threat→component link must be INSIDE `identity_key`, NOT a top-level `component_id` field on the threat) → if wrong, restructure
    - `threats[0]` has BOTH `"title"` (short name, e.g., "Information Disclosure — Redis unencrypted traffic") AND `"description"` (longer prose). If only `description` exists without `title`, create `title` from the first sentence of `description`. If `name` or `threat_name` exists instead of `title`, find-replace to `title`
-   - **Why this matters:** `compute_heatmap.py` and `patch_heatmap.py` depend on these exact field names. Wrong names cause zero-value heatmaps, broken component matching, and empty display labels in comparison reports.
+   - **Why this matters:** Downstream tooling depends on these exact field names. Wrong names cause zero-value heatmaps, broken component matching, and empty display labels in comparison reports.
    - **If ANY field name is wrong:** fix it NOW with find-replace on the JSON file before proceeding. Do NOT leave it for verification.
 
    - **This is the #1 quality issue observed in testing.** Large repos (20+ components, 80+ threats) frequently have truncated JSON arrays because the model runs out of output tokens. If ANY array is truncated, you MUST rebuild it before proceeding. Do NOT finalize with mismatched counts.

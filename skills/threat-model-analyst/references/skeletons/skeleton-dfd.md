@@ -3,6 +3,7 @@
 > **⛔ This is a raw Mermaid file — NO markdown wrapper. Line 1 MUST start with `%%{init:`.**
 > **The init block, classDefs, and linkStyle are FIXED — never change colors/strokes.**
 > **Diagram direction is ALWAYS `flowchart LR` — NEVER `flowchart TB`.**
+> **⛔ The template below is shown inside a code fence for readability only — do NOT include the fence in the output file.**
 
 ---
 

@@ -48,7 +48,7 @@ This file is the **single source of truth** for all verification rules that must
 - [ ] **Priority table has max 10 rows**: Count data rows in Priority by Tier and CVSS Score table — must be ≤ 10
 - [ ] **Priority table sort order**: All Tier 1 findings come first, then Tier 2, then Tier 3. Within each tier, higher CVSS scores come first. ❌ T2 finding appearing before a T1 finding → FAIL
 - [ ] **Priority table Finding hyperlinks**: Every Finding cell is a hyperlink `[FIND-XX](3-findings.md#find-xx-title-slug)`. Search for `](3-findings.md#` in every row — must be present. ❌ Plain text `FIND-XX` without link → FAIL
-- [ ] **Priority table anchor resolution**: For each hyperlink, verify the anchor slug matches the actual `### FIND-XX:` heading in 3-findings.md AS WRITTEN. Compute the anchor from the actual heading text (lowercase, spaces to hyphens, strip special chars). If the heading contains status tags like `[STILL PRESENT]`, the anchor must include those in the slug. The hyperlink must match whatever the heading actually is.
+- [ ] **Priority table anchor resolution**: For each hyperlink, verify the anchor slug matches the actual `### FIND-XX:` heading in 3-findings.md AS WRITTEN. Compute the anchor from the heading text (lowercase, spaces to hyphens, strip special chars). ❌ If any heading contains status tags like `[STILL PRESENT]` or `[NEW]`, that is a FAIL — status tags must NOT appear in headings (see Phase 2 check). Anchors should be computed from clean, tag-free heading text.
 - [ ] **Action Summary tier hyperlinks**: Tier 1, Tier 2, Tier 3 cells in the Action Summary table are hyperlinks to `3-findings.md#tier-N` anchors
 - [ ] `### Needs Verification` heading exists
 - [ ] `### Finding Overrides` heading exists
@@ -254,8 +254,8 @@ These checks validate each file independently. They can run in parallel.
 - [ ] **STRIDE Status values** — Every threat row's Status column uses exactly one of: `Open`, `Mitigated`, `Platform`. No `Partial`, `N/A`, or other ad-hoc values.
 - [ ] **A category labeled Abuse** — Search `2-stride-analysis.md` for `| Authorization |` as a STRIDE category label. FAIL if found. The "A" in STRIDE-A is always "Abuse" (business logic abuse, workflow manipulation, feature misuse), NEVER "Authorization". Also check N/A entries: `Authorization — N/A` is WRONG, must be `Abuse — N/A`.
 - [ ] **STRIDE-Coverage Consistency** — For every threat ID, the STRIDE Status and Coverage table Status must agree:
-  - STRIDE `Open` → Coverage `✅ Covered` (with a finding ID)
-  - STRIDE `Mitigated` → Coverage `✅ Covered` (with a finding ID)
+  - STRIDE `Open` → Coverage `✅ Covered (FIND-XX)` (finding documents vulnerability needing remediation)
+  - STRIDE `Mitigated` → Coverage `✅ Mitigated (FIND-XX)` (finding documents existing control the team built)
   - STRIDE `Platform` → Coverage `🔄 Mitigated by Platform`
   - If STRIDE says `Partial` but Coverage says `Mitigated by Platform` → **CONFLICT. Fix it.**
   - If STRIDE says `Open` but Coverage says `⚠️ Needs Review` → only valid if prerequisites ≠ `None`

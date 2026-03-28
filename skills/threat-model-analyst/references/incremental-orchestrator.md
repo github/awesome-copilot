@@ -222,7 +222,7 @@ Now generate all report files. **Read the relevant skill files before starting:*
 - **Read `skeletons/skeleton-dfd.md` and `skeletons/skeleton-summary-dfd.md` first**
 - Start from the old DFD's logical layout
 - **Same node IDs** for carried-forward components (critical for ID stability)
-- **New components:** Add with distinctive styling — use `classDef newComponent fill:#d4edda,stroke:#28a745,stroke-width:2px`
+- **New components:** Add with distinctive styling — use `classDef newComponent fill:#d4edda,stroke:#28a745,stroke-width:3px`
 - **Removed components:** Show as dashed with gray fill — use `classDef removedComponent fill:#e9ecef,stroke:#6c757d,stroke-width:1px,stroke-dasharray:5`
 - **Same flow IDs** for unchanged flows
 - **New flows:** New IDs continuing the sequence
@@ -565,18 +565,18 @@ Generate a self-contained HTML file that visualizes the comparison. All data com
   <!-- Gray card: Still Present (count) -->
 </div>
 
-<!-- Section 5: Component Status Grid -->
+<!-- Section 4: Component Status Grid -->
 <table class="component-grid">
   <!-- Row per component: ID | Type | Status (color-coded) | Source Files -->
 </table>
 
-<!-- Section 6: Threat/Finding Status Breakdown -->
+<!-- Section 5: Threat/Finding Status Breakdown -->
 <div class="status-breakdown">
   <!-- Grouped by status: Fixed items, New items, etc. -->
   <!-- Each item: ID | Title | Component | Status -->
 </div>
 
-<!-- Section 7: STRIDE Heatmap with Deltas -->
+<!-- Section 6: STRIDE Heatmap with Deltas -->
 <!-- ⛔ MANDATORY: Heatmap MUST have 13 columns including T1/T2/T3 after a divider -->
 <table class="stride-heatmap">
   <thead>
@@ -594,12 +594,12 @@ Generate a self-contained HTML file that visualizes the comparison. All data com
   </tbody>
 </table>
 
-<!-- Section 8: Needs Verification -->
+<!-- Section 7: Needs Verification -->
 <div class="needs-verification">
   <!-- Items where analysis disagrees with old report -->
 </div>
 
-<!-- Section 9: Footer -->
+<!-- Section 8: Footer -->
 <div class="footer">
   Model: {{model}} | Duration: {{duration}}
   Baseline: {{baseline_folder}} at {{baseline_sha}}

@@ -46,6 +46,7 @@ Create a timestamped folder at the start of analysis:
 | `2-stride-analysis.md` | Full STRIDE-A analysis for all components | Yes |
 | `3-findings.md` | Prioritized security findings with remediation | Yes |
 | `threat-inventory.json` | Structured JSON inventory for comparison matching | Yes |
+| `incremental-comparison.html` | Visual HTML comparison report (incremental mode only) | Conditional |
 
 ---
 
@@ -537,7 +538,7 @@ Include at end of Executive Summary:
 <!-- Tier 1 findings with Low remediation effort — high impact, quick fixes -->
 | Finding | Title | Why Quick |
 |---------|-------|-----------|
-| F-XX | [title] | [reason] |
+| FIND-XX | [title] | [reason] |
 ```
 
 ⚠️ **Quick Wins is a REQUIRED subsection.** The `### Quick Wins` heading and table MUST appear after the tier summary table inside Action Summary. If no low-effort findings exist, write: `### Quick Wins\n\nNo low-effort findings identified. All findings require Medium or High effort.`
@@ -774,8 +775,8 @@ This file enables automated comparison between two threat model runs.
 
   "flows": [
     {
-      "id": "DF_DaprSidecar_to_Redis",
-      "display": "DF25: Dapr → Redis",
+      "id": "DF_InferencingFlow_to_Redis",
+      "display": "DF25: InferencingFlow → Redis",
       "from": "InferencingFlow",
       "to": "RedisStateStore",
       "protocol": "TCP",
@@ -795,7 +796,7 @@ This file enables automated comparison between two threat model runs.
         "component_id": "RedisStateStore",
         "stride_category": "I",
         "attack_surface": "helmchart/values.yaml:redis.tls.enabled",
-        "data_flow_id": "DF_DaprSidecar_to_Redis"
+        "data_flow_id": "DF_InferencingFlow_to_Redis"
       },
       "title": "Information Disclosure — Redis unencrypted traffic",
       "description": "Redis state store transmits data without TLS...",
@@ -822,7 +823,7 @@ This file enables automated comparison between two threat model runs.
       "cwe": "CWE-306",
       "owasp": "A07:2025",
       "tier": 1,
-      "remediation_effort": "Low",
+      "effort": "Low",
       "related_threats": ["T05.I", "T05.T"],
       "evidence_files": ["helmchart/myapp/values.yaml"],
       "component": "Redis State Store"
@@ -838,7 +839,7 @@ This file enables automated comparison between two threat model runs.
     "threats_by_tier": { "T1": 12, "T2": 53, "T3": 32 },
     "findings_by_tier": { "T1": 7, "T2": 7, "T3": 4 },
     "findings_by_severity": { "Critical": 4, "Important": 8, "Moderate": 6 },
-    "stride_totals": { "S": 14, "T": 19, "R": 8, "I": 20, "D": 15, "E": 14, "A": 7 }
+    "threats_by_stride": { "S": 14, "T": 19, "R": 8, "I": 20, "D": 15, "E": 14, "A": 7 }
   }
 }
 ```
