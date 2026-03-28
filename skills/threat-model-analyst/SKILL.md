@@ -1,14 +1,6 @@
 ---
 name: threat-model-analyst
-description: >
-  Full STRIDE-A threat model analysis and comparison skill for repositories and systems.
-  Supports two modes: (1) Single analysis — full STRIDE-A threat model of a repository,
-  producing architecture overviews, DFD diagrams, STRIDE-A analysis, prioritized findings,
-  and executive assessments. (2) Comparison — security posture diff between two commits
-  or two existing threat model reports, producing an HTML comparison report with risk shift,
-  STRIDE heatmap, findings diff, and architecture changes.
-  Only activate when the user explicitly requests a threat model analysis, comparison,
-  or invokes /threat-model-analyst directly.
+description: 'Full STRIDE-A threat model analysis and incremental update skill for repositories and systems. Supports two modes: (1) Single analysis — full STRIDE-A threat model of a repository, producing architecture overviews, DFD diagrams, STRIDE-A analysis, prioritized findings, and executive assessments. (2) Incremental analysis — takes a previous threat model report as baseline, compares the codebase at the latest (or a given commit), and produces an updated report with change tracking (new, resolved, still-present threats), STRIDE heatmap, findings diff, and an embedded HTML comparison. Only activate when the user explicitly requests a threat model analysis, incremental update, or invokes /threat-model-analyst directly.'
 ---
 
 # Threat Model Analyst
@@ -37,9 +29,8 @@ Examples that trigger incremental mode:
   The incremental orchestrator inherits the old report's structure, verifies each item against
   current code, discovers new items, and produces a standalone report with embedded comparison.
 
-### Compare Mode (Deprecated — Use Incremental Mode)
-Compare mode has been superseded by incremental mode. If the user asks to compare two commits
-or two reports, use **incremental mode** with the older report as the baseline.
+### Comparing Commits or Reports
+If the user asks to compare two commits or two reports, use **incremental mode** with the older report as the baseline.
 → Read [incremental-orchestrator.md](./references/incremental-orchestrator.md) and follow the **incremental workflow**.
 
 ### Single Analysis Mode
@@ -80,5 +71,5 @@ Load the relevant file when performing each task:
 - Identify trust boundary violations and architectural risks
 - Write prioritized security findings with CVSS 4.0 / CWE / OWASP mappings
 
-**Compare Mode** (deprecated — use incremental mode instead):
+**Comparing commits or reports:**
 - To compare security posture between commits, use incremental mode with the older report as baseline

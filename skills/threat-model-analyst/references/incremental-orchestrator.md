@@ -611,7 +611,7 @@ Generate a self-contained HTML file that visualizes the comparison. All data com
 - Self-contained: ALL CSS in inline `<style>` block. No CDN links.
 - Color conventions: green (#28a745) = fixed, red (#dc3545) = new vulnerability, amber (#fd7e14) = previously unidentified, gray (#6c757d) = still present, blue (#2171b5) = modified
 - Print-friendly: include `@media print` styles
-- Use the same CSS variables as `compare-output-formats.md` for visual consistency
+- Use the same CSS color conventions defined above for visual consistency
 
 ---
 

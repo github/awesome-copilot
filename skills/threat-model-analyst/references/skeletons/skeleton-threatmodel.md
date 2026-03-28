@@ -6,7 +6,7 @@
 
 ---
 
-```markdown
+````markdown
 # Threat Model
 
 ## Data Flow Diagram
@@ -57,7 +57,7 @@
 [END-REPEAT]
 
 [END-CONDITIONAL]
-```
+````
 
 **Fixed rules:**
 - Use `DF01`, `DF02` for detailed flows; `SDF01`, `SDF02` for summary flows

@@ -1,6 +1,6 @@
 # Skeleton: incremental-comparison.html
 
-> **⛔ Self-contained HTML — ALL CSS inline. No CDN links. Follow this exact 9-section structure.**
+> **⛔ Self-contained HTML — ALL CSS inline. No CDN links. Follow this exact 8-section structure.**
 
 ---
 

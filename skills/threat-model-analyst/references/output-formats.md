@@ -803,11 +803,9 @@ This file enables automated comparison between two threat model runs.
       "prerequisites": "None",
       "affected_flow": "DF25",
       "mitigation": "Enable TLS on Redis connections",
-      "status": "open"
+      "status": "Open"
     }
   ],
-
-  **⛔ stride_category MUST be a SINGLE LETTER:** `S`, `T`, `R`, `I`, `D`, `E`, or `A`. NEVER use full names like `"Spoofing"` or `"Denial of Service"`. The heatmap computation and comparison matching depend on single-letter codes. If you write `"stride_category": "Denial of Service"` instead of `"stride_category": "D"`, the heatmap will show all zeros for STRIDE columns while tier columns have correct values — this is a critical data integrity bug.
 
   "findings": [
     {
@@ -844,6 +842,8 @@ This file enables automated comparison between two threat model runs.
   }
 }
 ```
+
+> **⛔ stride_category MUST be a SINGLE LETTER:** `S`, `T`, `R`, `I`, `D`, `E`, or `A`. NEVER use full names like `"Spoofing"` or `"Denial of Service"`. The heatmap computation and comparison matching depend on single-letter codes. If you write `"stride_category": "Denial of Service"` instead of `"stride_category": "D"`, the heatmap will show all zeros for STRIDE columns while tier columns have correct values — this is a critical data integrity bug.
 
 ### Incremental Analysis Extensions
 

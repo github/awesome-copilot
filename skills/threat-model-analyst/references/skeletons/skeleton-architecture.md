@@ -7,7 +7,7 @@
 
 ---
 
-```markdown
+````markdown
 # Architecture Overview
 
 ## System Purpose
@@ -130,4 +130,4 @@ sequenceDiagram
 [REPEAT: one row per key directory]
 | [FILL: path/] | [FILL] |
 [END-REPEAT]
-```
+````
