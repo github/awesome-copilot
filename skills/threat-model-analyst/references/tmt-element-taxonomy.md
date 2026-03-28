@@ -72,9 +72,9 @@ This is the **single authoritative file** for all TMT type classifications.
 | `SE.DF.TMCore.NamedPipe` | Named Pipe | IPC via named pipes |
 | `SE.DF.TMCore.SMB` | SMB | SMB/CIFS file shares |
 | `SE.DF.TMCore.UDP` | UDP | UDP sockets, datagram protocols |
-| `SE.DF.SSH` | SSH | SSH tunnels, SFTP, SCP |
-| `SE.DF.LDAP` | LDAP | LDAP queries, AD lookups |
-| `SE.DF.LDAPS` | LDAPS | Secure LDAP over TLS |
+| `SE.DF.TMCore.SSH` | SSH | SSH tunnels, SFTP, SCP |
+| `SE.DF.TMCore.LDAP` | LDAP | LDAP queries, AD lookups |
+| `SE.DF.TMCore.LDAPS` | LDAPS | Secure LDAP over TLS |
 | `SE.DF.TMCore.IPsec` | IPsec | VPN tunnels, IPsec-secured connections |
 | `SE.DF.TMCore.RPC` | RPC or DCOM | COM+, DCOM, RPC calls, WCF net.tcp |
 | `SE.DF.TMCore.ALPC` | ALPC | Advanced Local Procedure Call, Windows IPC |

@@ -1,6 +1,6 @@
 # Skeleton: 0.1-architecture.md
 
-> **⛔ Copy this skeleton VERBATIM. Replace `[FILL]` placeholders. Do NOT add/rename/reorder sections.**
+> **⛔ Copy the template content below VERBATIM (excluding the outer code fence). Replace `[FILL]` placeholders. Do NOT add/rename/reorder sections.**
 > **⛔ Key Components table columns are EXACTLY: `Component | Type | Description`. DO NOT rename to `Role`, `Change`, `Function`.**
 > **⛔ Technology Stack table columns are EXACTLY: `Layer | Technologies` (2 columns). DO NOT add `Version` column or rename `Layer` to `Category`.**
 > **⛔ Security Infrastructure Inventory and Repository Structure sections are MANDATORY — do NOT omit them.**

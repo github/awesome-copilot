@@ -149,7 +149,7 @@ Create a timestamped folder at the start of analysis:
 |---------|------|--------------|-------------|----------------|
 
 - **Type** = high-level DFD category: `Process`, `External Interactor`, or `Data Store`
-- **TMT Category** = specific TMT ID from tmt-element-taxonomy.md §1 (e.g. `SE.P.TMCore.WebSvc`, `SE.EI.TMCore.Browser`, `SE.DS.TMCore.SQLDatabase`)
+- **TMT Category** = specific TMT ID from tmt-element-taxonomy.md §1 (e.g. `SE.P.TMCore.WebSvc`, `SE.EI.TMCore.Browser`, `SE.DS.TMCore.SQL`)
 - For Kubernetes-based applications where pods run sidecars, add an optional **Co-located Sidecars** column (e.g. `MISE, Dapr` or `—`)
 
 ## Data Flow Table
@@ -738,22 +738,22 @@ This file enables automated comparison between two threat model runs.
       "id": "RedisStateStore",
       "display": "Redis State Store",
       "aliases": ["Redis", "StateStoreRedis"],
-      "type": "datastore",
+      "type": "data_store",
       "tmt_type": "SE.DS.TMCore.NoSQL",
       "boundary": "DataLayer",
       "boundary_kind": "ClusterBoundary",
-      "source_files": ["helmchart/edgerag/templates/redis-statefulset.yaml"],
+      "source_files": ["helmchart/myapp/templates/redis-statefulset.yaml"],
       "fingerprint": {
-        "component_type": "datastore",
+        "component_type": "data_store",
         "boundary_kind": "ClusterBoundary",
-        "source_files": ["helmchart/edgerag/templates/redis-statefulset.yaml"],
-        "source_directories": ["helmchart/edgerag/templates/"],
+        "source_files": ["helmchart/myapp/templates/redis-statefulset.yaml"],
+        "source_directories": ["helmchart/myapp/templates/"],
         "class_names": [],
         "namespace": "",
         "api_routes": [],
         "config_keys": ["REDIS_HOST", "REDIS_PORT"],
         "dependencies": [],
-        "inbound_from": ["InferencingFlow", "DaprSidecar"],
+        "inbound_from": ["InferencingFlow"],
         "outbound_to": [],
         "protocols": ["TCP"]
       },
@@ -767,8 +767,8 @@ This file enables automated comparison between two threat model runs.
       "display": "Data Layer",
       "aliases": ["Data Boundary", "Persistence Layer"],
       "kind": "ClusterBoundary",
-      "contains": ["RedisStateStore", "MilvusVectorDB"],
-      "contains_fingerprint": "MilvusVectorDB|RedisStateStore"
+      "contains": ["RedisStateStore", "VectorDB"],
+      "contains_fingerprint": "RedisStateStore|VectorDB"
     }
   ],
 
@@ -824,7 +824,7 @@ This file enables automated comparison between two threat model runs.
       "tier": 1,
       "remediation_effort": "Low",
       "related_threats": ["T05.I", "T05.T"],
-      "evidence_files": ["helmchart/edgerag/values.yaml"],
+      "evidence_files": ["helmchart/myapp/values.yaml"],
       "component": "Redis State Store"
     }
   ],

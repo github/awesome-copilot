@@ -1,6 +1,6 @@
 # Skeleton: 0-assessment.md
 
-> **⛔ Copy this skeleton VERBATIM. Replace `[FILL]` placeholders. Do NOT add/rename/reorder sections.**
+> **⛔ Copy the template content below VERBATIM (excluding the outer code fence). Replace `[FILL]` placeholders. Do NOT add/rename/reorder sections.**
 > `[FILL]` = single value | `[FILL-PROSE]` = paragraphs | `[REPEAT]...[END-REPEAT]` = N copies | `[CONDITIONAL]...[END-CONDITIONAL]` = include if condition met
 
 ---

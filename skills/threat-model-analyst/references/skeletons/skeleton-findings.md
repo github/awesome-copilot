@@ -1,6 +1,6 @@
 # Skeleton: 3-findings.md
 
-> **⛔ Copy this skeleton VERBATIM. Replace `[FILL]` placeholders. ALL 10 attribute rows are MANDATORY per finding. Organize by TIER, not by severity.**
+> **⛔ Copy the template content below VERBATIM (excluding the outer code fence). Replace `[FILL]` placeholders. ALL 10 attribute rows are MANDATORY per finding. Organize by TIER, not by severity.**
 > **⛔ DO NOT abbreviate attribute names. Use EXACT names: `SDL Bugbar Severity` (not `Severity`), `Exploitation Prerequisites` (not `Prerequisites`), `Exploitability Tier` (not `Tier`), `Remediation Effort` (not `Effort`), `CVSS 4.0` (not `CVSS Score`).**
 > **⛔ DO NOT use bold inline headers (`**Description:**`). Use `#### Description` markdown h4 headings.**
 > **⛔ Tier section headings MUST be: `## Tier 1 — Direct Exposure (No Prerequisites)`, NOT `## Tier 1 Findings`.**

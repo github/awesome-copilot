@@ -129,7 +129,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
 
    **Naming procedure (follow IN ORDER — stop at the first match):**
    1. **Primary class name** — Use the EXACT class name from the source code. Do NOT abbreviate, expand, or rephrase it.
-      - `BitNetManager.cs` → `BitNetManager` (NOT `BitNetServer`, NOT `BitNetService`)
+      - `TaskProcessor.cs` → `TaskProcessor` (NOT `TaskServer`, NOT `TaskService`)
       - `SessionStore.cs` → `SessionStore` (NOT `FileSessionStore`, NOT `SessionService`)
       - `TerminalUserInterface.cs` → `TerminalUserInterface` (NOT `TerminalUI`)
       - `PowerShellCommandExecutor.cs` → `PowerShellCommandExecutor` (NOT `PowerShellExecutor`)
@@ -147,7 +147,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    - Example: `metadata.name: devportal` in `templates/knowledge/devportal-deployment.yml` → component ID is `DevPortal`
    - Example: `metadata.name: phi-model` in `templates/knowledge/phi-deployment.yml` → component ID is `PhiModel`
    - **Why:** Helm templates frequently get reorganized (e.g., moved from `templates/` to `templates/knowledge/`) but the Kubernetes workload name stays the same. Using the workload name ensures the component ID survives directory reorganizations.
-   - `source_files` MUST include the deployment YAML path AND the application source code path (e.g., both `helmchart/edgerag/templates/knowledge/devportal-deployment.yml` AND `developer-portal/src/`)
+   - `source_files` MUST include the deployment YAML path AND the application source code path (e.g., both `helmchart/myapp/templates/knowledge/devportal-deployment.yml` AND `developer-portal/src/`)
    - `source_directories` MUST include BOTH the Helm template directory AND the source code directory
 
    **External Service Anchoring (for components without repo source code):**
@@ -165,17 +165,17 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    **⛔ FORBIDDEN naming patterns — NEVER use these:**
    - NEVER invent abstract names that don't correspond to a real class: `ConfigurationStore`, `LocalFileSystem`, `DataLayer`, `IngestionPipeline`, `BackendServer`
    - NEVER abbreviate a class name: `TerminalUI` for `TerminalUserInterface`, `PSExecutor` for `PowerShellCommandExecutor`
-   - NEVER substitute a synonym: `BitNetServer` for `BitNetManager`, `LLMService` for `ResponsesAPIService`
+   - NEVER substitute a synonym: `TaskServer` for `TaskProcessor`, `LLMService` for `ResponsesAPIService`
    - NEVER merge two separate classes into one component: `ResponsesAPIService` and `LLMService` are two different classes → two different components
    - NEVER create a component for something that doesn't exist in the code: if there's no Windows Registry access code, don't create a `WindowsRegistry` component
-   - NEVER rename between runs: if you called it `BitNetManager` in run 1, it MUST be `BitNetManager` in run 2
+   - NEVER rename between runs: if you called it `TaskProcessor` in run 1, it MUST be `TaskProcessor` in run 2
 
    **⛔ COMPONENT ANCHOR VERIFICATION (MANDATORY — do this BEFORE Step 2):**
    After identifying all components, create a mental checklist:
    ```
    For EACH component:
      Q: What is the EXACT filename or class that anchors this component?
-     A: [must cite a real file path, e.g., "src/MCP/Core/BitNetManager.cs"]
+     A: [must cite a real file path, e.g., "src/Core/TaskProcessor.cs"]
      If you cannot cite a real file → DELETE the component from your list
    ```
    This verification catches invented components like `WindowsRegistry` (no registry code exists), `ConfigurationStore` (no such class), `LocalFileSystem` (abstract concept, not a class).
@@ -198,7 +198,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    The comparison matching algorithm relies on these anchors MORE than on the component `id` field. Therefore:
    - `source_directories` MUST be populated for every process-type component (never empty `[]`)
    - `class_names` MUST include at least the primary class name
-   - `namespace` MUST be the actual code namespace (e.g., `AzureLocalMCP.Core.Servers.Health`), not a made-up grouping
+   - `namespace` MUST be the actual code namespace (e.g., `MyApp.Core.Servers.Health`), not a made-up grouping
    - These fields are what make a component identifiable across independent analysis runs, even if two LLMs pick different display names
 
    **⛔ COMPONENT ELIGIBILITY — What qualifies as a threat model component:**
@@ -283,7 +283,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    
    **⛔ EXTERNAL ENTITY INCLUSION RULES (addresses variance in which externals are modeled):**
    - **ALWAYS include `AzureAD` (or `EntraID`) as an external entity** if the code acquires tokens from Azure AD / Microsoft Entra ID (look for `ChainedTokenCredential`, `ManagedIdentityCredential`, `AzureCliCredential`, MSAL, or any OAuth2/OIDC flow).
-   - **ALWAYS include the infrastructure target** (e.g., `AzureLocalInfra`, `HCICluster`) as an external entity if the code sends commands to external infrastructure via PowerShell, REST, or WMI.
+   - **ALWAYS include the infrastructure target** (e.g., `OnPremInfra`, `HCICluster`) as an external entity if the code sends commands to external infrastructure via PowerShell, REST, or WMI.
    - **ALWAYS include `AzureOpenAI`** (or equivalent LLM endpoint) if the code calls a cloud LLM API.
    - **ALWAYS include `Operator`** as an external actor for CLI/TUI tools, admin tools, or operator consoles.
    - **Rule of thumb:** If the code has a client class or config for a service, that service is an external entity.
@@ -318,7 +318,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
    
    **BUT: for application-specific classes, use the EXACT class name from the code, NOT a technology label:**
    - `ResponsesAPIService.cs` → `ResponsesAPIService` (NOT `OpenAIService` — the class IS named ResponsesAPIService)
-   - `BitNetManager.cs` → `BitNetManager` (NOT `LocalLLM` — the class IS named BitNetManager)
+   - `TaskProcessor.cs` → `TaskProcessor` (NOT `LocalLLM` — the class IS named TaskProcessor)
    - `SessionStore.cs` → `SessionStore` (NOT `StatePersistence` — the class IS named SessionStore)
    **Component granularity rules (CRITICAL for stability):**
    - Model components at the **technology/service level**, not the script/file level
@@ -336,7 +336,7 @@ Sub-agents are **independent execution contexts** — they have no memory of the
 
    **⛔ STRIDE SCOPE RULE (addresses external entity analysis variance):**
    - STRIDE analysis in `2-stride-analysis.md` MUST include sections for ALL elements in the Element Table EXCEPT external actors (Operator, EndUser).
-   - External services (AzureOpenAI, AzureAD, AzureLocalInfra) DO get STRIDE sections — they are attack surfaces from YOUR system's perspective.
+   - External services (AzureOpenAI, AzureAD, OnPremInfra) DO get STRIDE sections — they are attack surfaces from YOUR system's perspective.
    - External actors (human users) do NOT get STRIDE sections — they are threat SOURCES, not targets.
    - This means: if you have 20 elements total and 1 is an external actor, you write 19 STRIDE sections.
 

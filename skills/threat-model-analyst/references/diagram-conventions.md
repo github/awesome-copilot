@@ -198,8 +198,7 @@ style BoundaryId fill:none,stroke:#e31a1c,stroke-width:3px,stroke-dasharray: 5 5
 
 ```
 Unidirectional:  A -->|"Label"| B
-Bidirectional:   A -->|"Label"| B
-                 B -->|"Label"| A
+Bidirectional:   A <-->|"Label"| B
 ```
 
 ### Data Flow IDs
