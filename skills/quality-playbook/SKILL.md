@@ -255,7 +255,7 @@ Key sections: bootstrap files, focus areas mapped to architecture, and these man
 - Grep before claiming missing
 - Do NOT suggest style changes — only flag things that are incorrect
 
-**Phase 2: Regression tests.** After the review produces BUG findings, write regression tests in `quality/test_regression.*` that reproduce each bug. Each test should fail on the current implementation, confirming the bug is real. Report results as a confirmation table (BUG CONFIRMED / FALSE POSITIVE / NEEDS INVESTIGATION). See `references/review_protocols.md` for the full regression test protocol.
+**Phase 2: Regression tests.** After the review produces BUG findings, write regression tests using the language-appropriate filenames described in `references/review_protocols.md` (for example, Go: `regression_test.go`, TypeScript: `regression.test.ts`) that reproduce each bug. Each test should fail on the current implementation, confirming the bug is real. Report results as a confirmation table (BUG CONFIRMED / FALSE POSITIVE / NEEDS INVESTIGATION). See `references/review_protocols.md` for the full regression test protocol.
 
 ### File 4: `quality/RUN_INTEGRATION_TESTS.md`
 
