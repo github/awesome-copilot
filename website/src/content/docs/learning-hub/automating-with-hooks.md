@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-24
+lastUpdated: 2026-03-29
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -151,6 +151,39 @@ Each hook entry supports these fields:
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+### Plugin Hook Environment Variables
+
+When hooks are defined inside a **plugin**, Copilot injects two extra environment variables so hook scripts can locate plugin-specific resources without hardcoding paths:
+
+| Variable | Value |
+|----------|-------|
+| `CLAUDE_PROJECT_DIR` | Absolute path to the current project root |
+| `CLAUDE_PLUGIN_DATA` | Absolute path to the plugin's data directory |
+
+These variables are also available as **template placeholders** in hook `bash` and `powershell` fields, so you can reference them directly in the hook JSON without writing a wrapper script:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/validate.sh {{project_dir}}",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}
+```
+
+| Template Variable | Expands To |
+|------------------|-----------|
+| `{{project_dir}}` | Absolute path to the current project root |
+| `{{plugin_data_dir}}` | Absolute path to the plugin's data directory |
+
+This makes plugin-bundled scripts portable across machines and projects — you never need to compute absolute paths yourself.
 
 ### README.md
 

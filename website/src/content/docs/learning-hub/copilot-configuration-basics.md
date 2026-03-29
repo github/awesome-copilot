@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-03-29
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -169,6 +169,15 @@ A well-organized Copilot configuration directory looks like this:
     ├── typescript-conventions.instructions.md
     └── api-design.instructions.md
 ```
+
+### Additional Config Sources
+
+In addition to `.github/`, GitHub Copilot CLI also reads settings from Claude Code–compatible files in the repository root. If present, these files are merged with other configuration sources:
+
+- `.claude/settings.json` — repo-level settings shared with the team (commit to version control)
+- `.claude/settings.local.json` — local overrides not intended for sharing (add to `.gitignore`)
+
+This means you can share Copilot configuration with teammates who use Claude Code, or maintain local overrides without modifying the shared `.github/` config.
 
 ### Monorepo Support
 
@@ -428,6 +437,25 @@ gh copilot --effort high "Refactor the authentication module"
 ```
 
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+
+The `/session rename` command renames the current session. When called without an argument it **auto-generates a meaningful name** from the conversation history, so you don't have to think of one yourself:
+
+```
+/session rename
+/session rename "auth-refactor-spike"
+```
+
+This is useful when you have several backgrounded sessions open and need to tell them apart at a glance.
+
+The `/allow-all` command (alias `/yolo`) enables autopilot mode, where Copilot approves all permission prompts without asking. It now accepts three subcommands:
+
+| Subcommand | Effect |
+|------------|--------|
+| `/allow-all on` | Enable allow-all for the current session |
+| `/allow-all off` | Disable allow-all and restore normal permission prompts |
+| `/allow-all show` | Display whether allow-all is currently active |
+
+Using `/allow-all off` (or the equivalent `/yolo off`) lets you re-enable the standard permission dialog after running in autopilot mode—without needing to start a new session.
 
 ## Common Questions
 
