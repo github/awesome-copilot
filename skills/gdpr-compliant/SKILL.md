@@ -114,7 +114,7 @@ For deep dives, read the reference files in `references/`:
 
 **MUST**
 - MUST NOT include personal data in URL paths or query parameters.
-  - ❌ `GET /users/john.doe@example.com`  ✅ `GET /users/{userId}`
+  - `GET /users/{userId}`
 - Authenticate all endpoints that return or accept personal data.
 - Extract the acting user's identity from the JWT — never from the request body.
 - Validate ownership on every resource: `if (resource.OwnerId != currentUserId) return 403`.
@@ -134,7 +134,7 @@ For deep dives, read the reference files in `references/`:
 
 **MUST**
 - Anonymize IPs in application logs — mask last octet (IPv4) or last 80 bits (IPv6).
-  - ❌ `192.168.1.42`  ✅ `192.168.1.xxx`
+  - `192.168.1.xxx`
 - MUST NOT log: passwords, tokens, session IDs, credentials, card numbers, national IDs, health data.
 - MUST NOT log full request/response bodies where PII may be present.
 - Enforce log retention — purge automatically after the defined period.
@@ -150,8 +150,8 @@ For deep dives, read the reference files in `references/`:
 
 **MUST**
 - Return generic error messages — never expose stack traces, internal paths, or DB errors.
-  - ❌ `"Column 'email' violates unique constraint on table 'users'"`
-  - ✅ `"A user with this email address already exists."`
+  - `"Column 'email' violates unique constraint on table 'users'"`
+  - `"A user with this email address already exists."`
 - Use **Problem Details (RFC 7807)** for all error responses.
 - Log the full error server-side with a correlation ID; return only the correlation ID to the client.
 
@@ -242,41 +242,41 @@ For deep dives, read the reference files in `references/`:
 ## 15. PR Review Checklist
 
 ### Data model
-- [ ] Every new PII column has a documented purpose and retention period.
-- [ ] Sensitive fields (health, financial, national ID) use column-level encryption.
-- [ ] No sequential integer PKs as public-facing identifiers.
+- Every new PII column has a documented purpose and retention period.
+- Sensitive fields (health, financial, national ID) use column-level encryption.
+- No sequential integer PKs as public-facing identifiers.
 
 ### API
-- [ ] No PII in URL paths or query parameters.
-- [ ] All endpoints returning personal data are authenticated.
-- [ ] Ownership checks present — user cannot access another user's resource.
-- [ ] Rate limiting applied to sensitive endpoints.
+- No PII in URL paths or query parameters.
+- All endpoints returning personal data are authenticated.
+- Ownership checks present — user cannot access another user's resource.
+- Rate limiting applied to sensitive endpoints.
 
 ### Logging
-- [ ] No passwords, tokens, or credentials logged.
-- [ ] IPs anonymized (last octet masked).
-- [ ] No full request/response bodies logged where PII may be present.
+- No passwords, tokens, or credentials logged.
+- IPs anonymized (last octet masked).
+- No full request/response bodies logged where PII may be present.
 
 ### Infrastructure
-- [ ] No public storage buckets or public-IP databases.
-- [ ] New cloud resources tagged with `DataClassification`.
-- [ ] Encryption at rest enabled for new storage resources.
-- [ ] New geographic regions for data storage are EEA-compliant or covered by SCCs.
+- No public storage buckets or public-IP databases.
+- New cloud resources tagged with `DataClassification`.
+- Encryption at rest enabled for new storage resources.
+- New geographic regions for data storage are EEA-compliant or covered by SCCs.
 
 ### Secrets & CI/CD
-- [ ] No secrets in source code or committed config files.
-- [ ] New secrets added to KMS and secrets inventory document.
-- [ ] CI/CD secrets masked in pipeline logs.
+- No secrets in source code or committed config files.
+- New secrets added to KMS and secrets inventory document.
+- CI/CD secrets masked in pipeline logs.
 
 ### Retention & erasure
-- [ ] Retention enforcement job or policy covers new data store or field.
-- [ ] Erasure pipeline updated to cover new data store.
+- Retention enforcement job or policy covers new data store or field.
+- Erasure pipeline updated to cover new data store.
 
 ### User rights & governance
-- [ ] Data export endpoint includes any new personal data field.
-- [ ] RoPA updated if a new processing activity is introduced.
-- [ ] New sub-processors have a signed DPA and a RoPA entry.
-- [ ] DPIA triggered if the change involves high-risk processing.
+- Data export endpoint includes any new personal data field.
+- RoPA updated if a new processing activity is introduced.
+- New sub-processors have a signed DPA and a RoPA entry.
+- DPIA triggered if the change involves high-risk processing.
 
 ---
 

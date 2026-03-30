@@ -25,17 +25,17 @@ before the system goes live. Respond to verified requests within **30 calendar d
 
 When `DELETE /api/v1/me` is called, the erasure pipeline MUST scrub:
 
-- [ ] Primary relational database (anonymize or delete rows)
-- [ ] Read replicas
-- [ ] Search index (Elasticsearch, Azure Cognitive Search, etc.)
-- [ ] In-memory cache (Redis, IMemoryCache)
-- [ ] Object storage (S3, Azure Blob — profile pictures, documents)
-- [ ] Email service logs (Brevo, SendGrid — delivery logs)
-- [ ] Analytics platform (Mixpanel, Amplitude, GA4 — user deletion API)
-- [ ] Audit logs (anonymize identifying fields — do not delete the event)
-- [ ] Backups (document the backup TTL; accept that backups expire naturally)
-- [ ] CDN edge cache (purge if personal data may be cached)
-- [ ] Third-party sub-processors (trigger their deletion API or document the manual step)
+- Primary relational database (anonymize or delete rows)
+- Read replicas
+- Search index (Elasticsearch, Azure Cognitive Search, etc.)
+- In-memory cache (Redis, IMemoryCache)
+- Object storage (S3, Azure Blob — profile pictures, documents)
+- Email service logs (Brevo, SendGrid — delivery logs)
+- Analytics platform (Mixpanel, Amplitude, GA4 — user deletion API)
+- Audit logs (anonymize identifying fields — do not delete the event)
+- Backups (document the backup TTL; accept that backups expire naturally)
+- CDN edge cache (purge if personal data may be cached)
+- Third-party sub-processors (trigger their deletion API or document the manual step)
 
 ### Data Export Format (`GET /api/v1/me/data-export`)
 
@@ -154,7 +154,7 @@ Minimum fields per sub-processor:
 | Service | Transactional email |
 | Data categories transferred | Email address, name, email content |
 | Processing location | EU (Paris) |
-| DPA signed | ✅ 2024-01-10 |
+| DPA signed |  2024-01-10 |
 | DPA URL / reference | [link] |
 | SCCs applicable | N/A (EU-based) |
 

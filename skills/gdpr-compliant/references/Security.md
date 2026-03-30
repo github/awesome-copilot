@@ -42,11 +42,11 @@ cloud/DevOps practices, CI/CD controls, incident response, architecture patterns
 
 | Algorithm | Parameters | Notes |
 |---|---|---|
-| **Argon2id** ✅ recommended | memory ≥ 64 MB, iterations ≥ 3, parallelism ≥ 4 | OWASP and NIST recommended |
-| **bcrypt** ✅ acceptable | cost factor ≥ 12 | Widely supported; use if Argon2id unavailable |
-| **scrypt** ✅ acceptable | N=32768, r=8, p=1 | Good alternative |
-| MD5 ❌ | — | Never — trivially broken |
-| SHA-1 / SHA-256 ❌ | — | Never for passwords — not designed for this purpose |
+| **Argon2id**  recommended | memory ≥ 64 MB, iterations ≥ 3, parallelism ≥ 4 | OWASP and NIST recommended |
+| **bcrypt**  acceptable | cost factor ≥ 12 | Widely supported; use if Argon2id unavailable |
+| **scrypt**  acceptable | N=32768, r=8, p=1 | Good alternative |
+| MD5  | — | Never — trivially broken |
+| SHA-1 / SHA-256  | — | Never for passwords — not designed for this purpose |
 
 **MUST**
 - Use a unique salt per password (built into all three algorithms above).
@@ -187,7 +187,7 @@ On erasure: delete the DEK from the KMS → all events for that user are effecti
   run: echo "::add-mask::${{ secrets.MY_SECRET }}"
 
 # MUST NOT: echo secrets to console
-- run: echo "Key=$API_KEY"   # ❌ Never
+- run: echo "Key=$API_KEY"   # Never
 
 # SHOULD: use OIDC federation (no long-lived keys)
 - uses: azure/login@v1
