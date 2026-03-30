@@ -2707,6 +2707,145 @@
       "contributions": [
         "projectManagement"
       ]
+    },
+    {
+      "login": "punit-fastah",
+      "name": "Punit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/257566774?v=4",
+      "profile": "https://github.com/punit-fastah",
+      "contributions": [
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "onsenturk",
+      "name": "Onur Senturk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44020466?v=4",
+      "profile": "https://www.youtube.com/@cloudarch",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "andrewstellman",
+      "name": "Andrew Stellman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7516297?v=4",
+      "profile": "https://mastodon.social/@andrewstellman",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "whoniiii",
+      "name": "Jeonghoon Lee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18215249?v=4",
+      "profile": "https://www.linkedin.com/in/jeonghlee8024",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "SriSatyaLokesh",
+      "name": "Satya K",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43106076?v=4",
+      "profile": "https://srisatyalokesh.is-a.dev/",
+      "contributions": [
+        "code",
+        "ideas",
+        "instructions"
+      ]
+    },
+    {
+      "login": "samikroy",
+      "name": "Samik Roy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20562985?v=4",
+      "profile": "https://github.com/samikroy",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "siminapasat",
+      "name": "Simina Pasat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16675781?v=4",
+      "profile": "https://github.com/siminapasat",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "garnertb",
+      "name": "Tyler Garner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1141646?v=4",
+      "profile": "https://github.com/garnertb",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "cheguv",
+      "name": "Vijay Chegu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21251550?v=4",
+      "profile": "https://github.com/cheguv",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "DTIBeograd",
+      "name": "DTIBeograd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30282550?v=4",
+      "profile": "https://github.com/DTIBeograd",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "behl1anmol",
+      "name": "Anmol Behl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37472462?v=4",
+      "profile": "https://github.com/behl1anmol",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "moonrunnerkc",
+      "name": "Brad Kinnard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/125813226?v=4",
+      "profile": "https://aftermathtech.com/",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "felickz",
+      "name": "Chad Bentz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1760475?v=4",
+      "profile": "https://felickz.github.io/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "MarcelloCuoghi",
+      "name": "Marcello Cuoghi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10816095?v=4",
+      "profile": "https://github.com/MarcelloCuoghi",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "joshjohanning",
+      "name": "Josh Johanning",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19912012?v=4",
+      "profile": "https://josh-ops.com/",
+      "contributions": [
+        "agents"
+      ]
     }
   ]
 }
