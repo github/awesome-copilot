@@ -248,7 +248,17 @@ jobs:
 
             core.setOutput('title', title);
             core.setOutput('body_file', 'report-body.md');
-            fs.writeFileSync('report-body.md', body);
+
+            // GitHub Issues/Discussions have a 65536 character body limit.
+            // Truncate the detail sections if the body exceeds the limit.
+            const MAX_BODY = 65000; // leave some margin
+            let finalBody = body;
+            if (finalBody.length > MAX_BODY) {
+              const truncMsg = '\n\n> **Note:** Output was truncated to fit GitHub\'s body size limit. See the [workflow run](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/workflows/skill-quality-report.yml) for full output.\n';
+              finalBody = finalBody.substring(0, MAX_BODY - truncMsg.length) + truncMsg;
+            }
+
+            fs.writeFileSync('report-body.md', finalBody);
 
       # ── Create Discussion (preferred) or Issue (fallback) ────────
       - name: Create Discussion
