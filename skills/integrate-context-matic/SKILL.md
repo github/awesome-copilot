@@ -1,6 +1,6 @@
 ---
 name: integrate-context-matic
-description: 'Discovers and integrates third-party APIs using the context-matic MCP server. Uses `fetch_api` to find available API SDKs, `ask` for integration guidance, `model_search` and `endpoint_search` for SDK details. Use when the user asks to integrate a third-party API, add an API client, implement features with an external API, or work with any third-party API or SDK.'
+description: Discovers and integrates third-party APIs using the context-matic MCP server. Uses `fetch_api` to find available API SDKs, `ask` for integration guidance, `model_search` and `endpoint_search` for SDK details. Use when the user asks to integrate a third-party API, add an API client, implement features with an external API, or work with any third-party API or SDK.
 ---
 
 # API Integration
@@ -37,10 +37,15 @@ Use the detected language in all subsequent steps wherever `language` is require
 
 #### 1b. Check for Existing Guidelines and Skills
 
-Check whether guidelines and skills have already been added for this project by looking for their presence in the workspace. Check for existing skill and guideline files, e.g., `{language}-conventions`, `{language}-security-guidelines.md`, `{language}-test-guidelines.md`, `update-activity-workflow.md`, or prior output from `add_guidelines` and `add_skills`.
+Check whether guidelines and skills have already been added for this project by looking for their presence in the workspace.
 
-- **If they do not exist for the project's language:** Call **add_guidelines** and **add_skills** to create them. This sets up the necessary skills and guidelines for the MCP server to work correctly.
-- **If they already exist for the project's language:** Skip this step entirely and proceed to step 2.
+- `{language}-conventions` is the skill produced by **add_skills**.
+- `{language}-security-guidelines.md` and `{language}-test-guidelines.md` are language-specific guideline files produced by **add_guidelines**.
+- `update-activity-workflow.md` is a workflow guideline file produced by **add_guidelines** (it is not language-specific).
+- Check these independently. Do not treat the presence of one set as proof that the other set already exists.
+- **If any required guideline files for this project are missing:** Call **add_guidelines**.
+- **If `{language}-conventions` is missing for the project's language:** Call **add_skills**.
+- **If all required guideline files and `{language}-conventions` already exist:** Skip this step and proceed to step 2.
 
 ### 2. Discover Available APIs
 
@@ -57,20 +62,15 @@ Call **fetch_api** to find available APIs — always start here.
 
 ### 3. Get Integration Guidance
 
-Call **update_activity** immediately before calling **ask**.
-
 - Provide `ask` with: `language`, `key` (from step 2), and your `query`.
 - Break complex questions into smaller focused queries for best results:
   - _"How do I authenticate?"_
   - _"How do I create a payment?"_
   - _"What are the rate limits?"_
-- Call **update_activity** immediately before generating or fixing code.
 
 ### 4. Look Up SDK Models and Endpoints (as needed)
 
 These tools return definitions only — they do not call APIs or generate code.
-
-Call **update_activity** immediately before each call.
 
 - **model_search** — look up a model/object definition.
   - Provide: `language`, `key`, and an exact or partial case-sensitive model name as `query` (e.g. `availableBalance`, `TransactionId`).
@@ -79,12 +79,12 @@ Call **update_activity** immediately before each call.
 
 ### 5. Record Milestones
 
-Call **update_activity** (with the appropriate `milestone`) whenever one of these is observed or confirmed:
+Call **update_activity** (with the appropriate `milestone`) whenever one of these is **concretely reached in code or infrastructure** — not merely mentioned or planned:
 
 | Milestone | When to pass it |
 |---|---|
-| `sdk_setup` | SDK packages installed and environment confirmed set up |
-| `auth_configured` | API keys or auth configured, ready to make first call |
+| `sdk_setup` | SDK package is installed in the project (e.g. `npm install`, `pip install`, `go get` has run and succeeded). |
+| `auth_configured` | API credentials are explicitly written into the project's runtime environment (e.g. present in a `.env` file, secrets manager, or config file) **and** referenced in actual code. |
 | `first_call_made` | First API call code written and executed |
 | `error_encountered` | Developer reports a bug, error response, or failing call |
 | `error_resolved` | Fix applied and API call confirmed working |
@@ -92,11 +92,11 @@ Call **update_activity** (with the appropriate `milestone`) whenever one of thes
 ## Checklist
 
 - [ ] Project's primary language detected (step 1a)
-- [ ] `add_guidelines` and `add_skills` called (or confirmed already present — then skipped)
+- [ ] `add_guidelines` called if guideline files were missing, otherwise skipped
+- [ ] `add_skills` called if `{language}-conventions` was missing, otherwise skipped
 - [ ] `fetch_api` called with correct `language` for the project
 - [ ] Correct `key` identified for the requested API (or user informed if not found)
-- [ ] `update_activity` first called after `fetch_api` when integration work begins
-- [ ] `update_activity` called immediately before every `ask`, `model_search`, and `endpoint_search`
+- [ ] `update_activity` called only when a milestone is concretely reached in code/infrastructure — never for questions, searches, or tool lookups
 - [ ] `update_activity` called with the appropriate `milestone` at each integration milestone
 - [ ] `ask` used for integration guidance and code samples
 - [ ] `model_search` / `endpoint_search` used as needed for SDK details
