@@ -12,8 +12,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
 
 jobs:
   skill-check:
@@ -135,82 +133,27 @@ jobs:
 
           echo "$OUTPUT"
 
-      # ── Post / update PR comment ──────────────────────────────────
-      - name: Post PR comment with results
-        if: steps.detect.outputs.total != '0'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      # ── Upload results for the commenting workflow ────────────────
+      - name: Save metadata
+        if: always()
+        run: |
+          mkdir -p sv-results
+          echo "${{ github.event.pull_request.number }}" > sv-results/pr-number.txt
+          echo "${{ steps.detect.outputs.total }}" > sv-results/total.txt
+          echo "${{ steps.detect.outputs.skill_count }}" > sv-results/skill-count.txt
+          echo "${{ steps.detect.outputs.agent_count }}" > sv-results/agent-count.txt
+          echo "${{ steps.check.outputs.exit_code }}" > sv-results/exit-code.txt
+          if [ -f sv-output.txt ]; then
+            cp sv-output.txt sv-results/sv-output.txt
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
-          script: |
-            const fs = require('fs');
-
-            const marker = '<!-- skill-validator-results -->';
-            const output = fs.readFileSync('sv-output.txt', 'utf8').trim();
-            const exitCode = '${{ steps.check.outputs.exit_code }}';
-            const skillCount = parseInt('${{ steps.detect.outputs.skill_count }}', 10);
-            const agentCount = parseInt('${{ steps.detect.outputs.agent_count }}', 10);
-            const totalChecked = skillCount + agentCount;
-
-            // Count errors, warnings, advisories from output
-            const errorCount = (output.match(/\bError\b/gi) || []).length;
-            const warningCount = (output.match(/\bWarning\b/gi) || []).length;
-            const advisoryCount = (output.match(/\bAdvisory\b/gi) || []).length;
-
-            let statusLine;
-            if (errorCount > 0) {
-              statusLine = `**${totalChecked} resource(s) checked** | ⛔ ${errorCount} error(s) | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
-            } else if (warningCount > 0) {
-              statusLine = `**${totalChecked} resource(s) checked** | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
-            } else {
-              statusLine = `**${totalChecked} resource(s) checked** | ✅ All checks passed`;
-            }
-
-            const body = [
-              marker,
-              '## 🔍 Skill Validator Results',
-              '',
-              statusLine,
-              '',
-              '<details>',
-              '<summary>Full output</summary>',
-              '',
-              '```',
-              output,
-              '```',
-              '',
-              '</details>',
-              '',
-              exitCode !== '0'
-                ? '> **Note:** Errors were found. These are currently reported as warnings and do not block merge. Please review and address when possible.'
-                : '',
-            ].join('\n');
-
-            // Find existing comment with our marker
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              per_page: 100,
-            });
-
-            const existing = comments.find(c => c.body.includes(marker));
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-              console.log(`Updated existing comment ${existing.id}`);
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-              console.log('Created new PR comment');
-            }
+          name: skill-validator-results
+          path: sv-results/
+          retention-days: 1
 
       - name: Post skip notice if no skills changed
         if: steps.detect.outputs.total == '0'

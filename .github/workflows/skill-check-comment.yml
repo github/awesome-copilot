@@ -1,0 +1,109 @@
+name: Skill Validator — PR Comment
+
+# Posts results from the "Skill Validator — PR Gate" workflow.
+# Runs with write permissions but never checks out PR code,
+# so it is safe for fork PRs.
+
+on:
+  workflow_run:
+    workflows: ["Skill Validator — PR Gate"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  actions: read # needed to download artifacts
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download results artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: skill-validator-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Post PR comment with results
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+
+            const total = parseInt(fs.readFileSync('total.txt', 'utf8').trim(), 10);
+            if (total === 0) {
+              console.log('No skills/agents were checked — skipping comment.');
+              return;
+            }
+
+            const prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim(), 10);
+            const exitCode = fs.readFileSync('exit-code.txt', 'utf8').trim();
+            const skillCount = parseInt(fs.readFileSync('skill-count.txt', 'utf8').trim(), 10);
+            const agentCount = parseInt(fs.readFileSync('agent-count.txt', 'utf8').trim(), 10);
+            const totalChecked = skillCount + agentCount;
+
+            const marker = '<!-- skill-validator-results -->';
+            const output = fs.readFileSync('sv-output.txt', 'utf8').trim();
+
+            // Count errors, warnings, advisories from output
+            const errorCount = (output.match(/\bError\b/gi) || []).length;
+            const warningCount = (output.match(/\bWarning\b/gi) || []).length;
+            const advisoryCount = (output.match(/\bAdvisory\b/gi) || []).length;
+
+            let statusLine;
+            if (errorCount > 0) {
+              statusLine = `**${totalChecked} resource(s) checked** | ⛔ ${errorCount} error(s) | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
+            } else if (warningCount > 0) {
+              statusLine = `**${totalChecked} resource(s) checked** | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
+            } else {
+              statusLine = `**${totalChecked} resource(s) checked** | ✅ All checks passed`;
+            }
+
+            const body = [
+              marker,
+              '## 🔍 Skill Validator Results',
+              '',
+              statusLine,
+              '',
+              '<details>',
+              '<summary>Full output</summary>',
+              '',
+              '```',
+              output,
+              '```',
+              '',
+              '</details>',
+              '',
+              exitCode !== '0'
+                ? '> **Note:** Errors were found. These are currently reported as warnings and do not block merge. Please review and address when possible.'
+                : '',
+            ].join('\n');
+
+            // Find existing comment with our marker
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+              console.log(`Updated existing comment ${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+              console.log('Created new PR comment');
+            }
