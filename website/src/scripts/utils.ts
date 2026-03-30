@@ -250,10 +250,11 @@ export function getQueryParam(name: string): string {
  */
 export function getQueryParamValues(name: string): string[] {
   if (typeof window === "undefined") return [];
-  return new URLSearchParams(window.location.search)
+  const values = new URLSearchParams(window.location.search)
     .getAll(name)
     .map((value) => value.trim())
     .filter(Boolean);
+  return Array.from(new Set(values));
 }
 
 /**

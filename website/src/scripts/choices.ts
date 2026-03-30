@@ -16,9 +16,10 @@ export function getChoicesValues(choices: Choices): string[] {
  * Restore selected values on a Choices instance.
  */
 export function setChoicesValues(choices: Choices, values: string[]): void {
-  for (const value of values) {
-    choices.setChoiceByValue(value);
-  }
+  // Clear any existing active items so that the final selection matches `values`
+  choices.removeActiveItems();
+  // Set all provided values as the current selection
+  choices.setChoiceByValue(values);
 }
 
 /**
