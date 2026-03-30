@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-28
+lastUpdated: 2026-03-30
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -412,9 +412,18 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 | Command | Behaviour |
 |---------|-----------|
 | `/new [prompt]` | Starts a fresh conversation while keeping the current session backgrounded. You can switch back to backgrounded sessions. |
-| `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. |
+| `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. MCP servers configured in your project are preserved in the new session. |
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
+
+```
+/session rename               # auto-generate a name from conversation history
+/session rename "My feature"  # set a specific name
+```
+
+Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
