@@ -394,7 +394,16 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
-In addition to the global `~/.copilot-cli/config.json`, the CLI also reads **`.claude/settings.json`** and **`.claude/settings.local.json`** in your repository root as additional per-repo configuration sources. This provides compatibility with Claude Code, allowing you to share settings between tools. Use `.claude/settings.local.json` (gitignored) for machine-specific overrides.
+In addition to the main config file, GitHub Copilot CLI reads two optional per-project files for repository-specific overrides:
+
+- `.claude/settings.json` — committed project settings
+- `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
+
+These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+### Model Picker
+
+The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
 ### CLI Session Commands
 

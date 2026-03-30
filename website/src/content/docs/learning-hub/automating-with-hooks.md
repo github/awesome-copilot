@@ -357,6 +357,34 @@ The `subagentStart` hook fires when the main agent spawns a subagent (e.g., via 
 
 This is especially useful in multi-agent workflows where subagents may not automatically inherit context from the parent session.
 
+### Plugin Hook Environment Variables
+
+When hooks are defined inside a **plugin**, Copilot CLI automatically injects two extra environment variables so scripts can locate project-specific and plugin-specific directories:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | Absolute path to the working project directory |
+| `CLAUDE_PLUGIN_DATA` | Absolute path to the plugin's persistent data directory |
+
+You can also reference these paths as template variables in your hook configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/format.sh {{project_dir}}",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}
+```
+
+This is useful for plugins that bundle scripts or data files alongside their hooks, since `{{plugin_data_dir}}` always points to the correct installed location regardless of where the plugin is installed.
+
 ## Writing Hook Scripts
 
 For complex logic, use bundled scripts instead of inline bash commands:
@@ -406,6 +434,7 @@ echo "Pre-commit checks passed ✅"
 A: There are several supported locations, loaded in order of precedence:
 
 - **Repository-level** (shared with team): `.github/hooks/*.json` in your repository — all JSON files in this folder are loaded automatically
+- **Claude/Copilot project settings**: `.claude/settings.json` and `.claude/settings.local.json` — hooks defined here are applied to the current repository without committing them to `.github/`
 - **Global settings**: `settings.json` or `settings.local.json` (user-level CLI config)
 - **Legacy config**: `config.json` (also supported)
 
