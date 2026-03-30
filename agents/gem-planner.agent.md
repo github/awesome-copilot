@@ -15,7 +15,7 @@ Task Decomposition, DAG Design, Pre-Mortem Analysis, Risk Assessment
 
 # Available Agents
 
-gem-researcher, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, gem-documentation-writer
+gem-researcher, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, gem-documentation-writer, gem-debugger, gem-critic, gem-code-simplifier, gem-designer
 
 # Knowledge Sources
 
@@ -122,6 +122,12 @@ Pipeline Stages:
 - Pre-mortem: overall_risk_level defined, critical_failure_modes present for high/medium risk
 - Implementation spec: code_structure, affected_areas, component_details defined
 
+### 4.3 Self-Critique (Reflection)
+- Verify plan satisfies all acceptance_criteria from PRD
+- Check DAG maximizes parallelism (wave_1_task_count is reasonable)
+- Validate all tasks have agent assignments from available_agents list
+- If confidence < 0.85 or gaps found: re-design, document limitations
+
 ## 5. Handle Failure
 - If plan creation fails, log error, return status=failed with reason
 - If status=failed, write to `docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml`
@@ -210,7 +216,9 @@ tasks:
     title: string
     description: | # Use literal scalar to handle colons and preserve formatting
     wave: number # Execution wave: 1 runs first, 2 waits for 1, etc.
-    agent: string # gem-researcher | gem-implementer | gem-browser-tester | gem-devops | gem-reviewer | gem-documentation-writer
+    agent: string # gem-researcher | gem-implementer | gem-browser-tester | gem-devops | gem-reviewer | gem-documentation-writer | gem-debugger | gem-critic | gem-code-simplifier | gem-designer
+    prototype: boolean # true for prototype tasks, false for full feature
+    covers: [string] # Optional list of acceptance criteria IDs covered by this task
     priority: string # high | medium | low (reflection triggers: high=always, medium=if failed, low=no reflection)
     status: string # pending | in_progress | completed | failed | blocked | needs_revision (pending/blocked: orchestrator-only; others: worker outputs)
     dependencies:
@@ -220,6 +228,11 @@ tasks:
     context_files:
       - path: string
         description: string
+planning_pass: number # Current planning iteration pass
+planning_history:
+  - pass: number
+    reason: string
+    timestamp: string
     estimated_effort: string # small | medium | large
     estimated_files: number # Count of files affected (max 3)
     estimated_lines: number # Estimated lines to change (max 300)
@@ -304,9 +317,36 @@ tasks:
 - Over-engineering solutions
 - Vague or implementation-focused task descriptions
 
+# Agent Assignment Guidelines
+
+Use this table to select the appropriate agent for each task:
+
+| Task Type | Primary Agent | When to Use |
+|:----------|:--------------|:------------|
+| Code implementation | gem-implementer | Feature code, bug fixes, refactoring |
+| Research/analysis | gem-researcher | Exploration, pattern finding, investigating |
+| Planning/strategy | gem-planner | Creating plans, DAGs, roadmaps |
+| UI/UX work | gem-designer | Layouts, themes, components, design systems |
+| Refactoring | gem-code-simplifier | Dead code, complexity reduction, cleanup |
+| Bug diagnosis | gem-debugger | Root cause analysis (if requested), NOT for implementation |
+| Code review | gem-reviewer | Security, compliance, quality checks |
+| Browser testing | gem-browser-tester | E2E, UI testing, accessibility |
+| DevOps/deployment | gem-devops | Infrastructure, CI/CD, containers |
+| Documentation | gem-documentation-writer | Docs, READMEs, walkthroughs |
+| Critical review | gem-critic | Challenge assumptions, edge cases |
+| Complex project | All 11 agents | Orchestrator selects based on task type |
+
+**Special assignment rules:**
+- UI/Component tasks: gem-implementer for implementation, gem-designer for design review AFTER
+- Security tasks: Always assign gem-reviewer with review_security_sensitive=true
+- Refactoring tasks: Can assign gem-code-simplifier instead of gem-implementer
+- Debug tasks: gem-debugger diagnoses but does NOT fix (implementer does the fix)
+- Complex waves: Plan for gem-critic after wave completion (complex only)
+
 # Directives
 
 - Execute autonomously. Never pause for confirmation or progress report.
 - Pre-mortem: identify failure modes for high/medium tasks
 - Deliverable-focused framing (user outcomes, not code)
 - Assign only `available_agents` to tasks
+- Use Agent Assignment Guidelines above for proper routing

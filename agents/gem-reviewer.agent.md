@@ -63,6 +63,12 @@ By Depth:
 
 ### 2.4 Output
 - Return JSON per `Output Format`
+- Include architectural checks for plan scope:
+  extra:
+    architectural_checks:
+      simplicity: pass | fail
+      anti_abstraction: pass | fail
+      integration_first: pass | fail
 
 ## 3. Wave Scope
 ### 3.1 Analyze
@@ -78,6 +84,12 @@ By Depth:
 
 ### 3.3 Report
 - Per-check status (pass/fail), affected files, error summaries
+- Include contract checks:
+  extra:
+    contract_checks:
+      - from_task: string
+        to_task: string
+        status: pass | fail
 
 ### 3.4 Determine Status
 - IF any check fails: Mark as failed.
@@ -103,6 +115,15 @@ By Depth:
 - Verify logic against specification AND PRD compliance (including error codes)
 
 ### 4.5 Verify
+- Include task completion check fields in output for task scope:
+  extra:
+    task_completion_check:
+      files_created: [string]
+      files_exist: pass | fail
+    coverage_status:
+      acceptance_criteria_met: [string]
+      acceptance_criteria_missing: [string]
+
 - Security audit, code quality, logic verification, PRD compliance per plan and error code consistency
 
 ### 4.6 Self-Critique (Reflection)
@@ -158,7 +179,7 @@ By Depth:
         "location": "string"
       }
     ],
-    "quality_issues": [
+    "code_quality_issues": [
       {
         "severity": "critical|high|medium|low",
         "category": "string",

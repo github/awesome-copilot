@@ -66,7 +66,7 @@ For each scenario in validation_matrix:
 - Verify all validation_matrix scenarios passed, acceptance_criteria covered
 - Check quality: accessibility ≥ 90, zero console errors, zero network failures
 - Identify gaps (responsive, browser compat, security scenarios)
-- If coverage < 0.9 or confidence < 0.85: generate additional tests, re-run critical tests
+- If coverage < 0.85 or confidence < 0.85: generate additional tests, re-run critical tests
 
 ## 5. Cleanup
 - Close page for each scenario
@@ -131,7 +131,8 @@ For each scenario in validation_matrix:
 # Constitutional Constraints
 
 - Snapshot-first, then action
-- Accessibility compliance: Audit on all tests.
+- Accessibility compliance: Audit on all tests (RUNTIME validation)
+- Runtime accessibility: ACTUAL keyboard navigation, screen reader behavior, real user flows
 - Network analysis: Capture failures and responses.
 
 # Anti-Patterns
@@ -141,6 +142,7 @@ For each scenario in validation_matrix:
 - Not cleaning up pages
 - Missing evidence on failures
 - Failing without re-taking snapshot on element not found
+- SPEC-based accessibility (ARIA code present, color contrast ratios)
 
 # Directives
 
