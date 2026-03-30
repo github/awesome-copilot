@@ -1,9 +1,22 @@
 /**
  * Instructions page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from '../choices';
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from '../choices';
 import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, setupDropdownCloseHandlers, setupActionHandlers } from '../utils';
+import {
+  fetchData,
+  debounce,
+  getQueryParam,
+  getQueryParamValues,
+  setupDropdownCloseHandlers,
+  setupActionHandlers,
+  updateQueryParams,
+} from '../utils';
 import { setupModal, openFileModal } from '../modal';
 import {
   renderInstructionsHtml,
@@ -93,6 +106,14 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? '',
+    extension: currentFilters.extensions,
+    sort: currentSort === 'title' ? '' : currentSort,
+  });
+}
+
 export async function initInstructionsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -112,14 +133,31 @@ export async function initInstructionsPage(): Promise<void> {
 
   extensionSelect = createChoices('#filter-extension', { placeholderValue: 'All Extensions' });
   extensionSelect.setChoices(data.filters.extensions.map(e => ({ value: e, label: e })), 'value', 'label', true);
+
+  const initialQuery = getQueryParam('q');
+  const initialExtensions = getQueryParamValues('extension').filter(extension => data.filters.extensions.includes(extension));
+  const initialSort = getQueryParam('sort');
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialExtensions.length > 0) {
+    currentFilters.extensions = initialExtensions;
+    setChoicesValues(extensionSelect, initialExtensions);
+  }
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById('filter-extension')?.addEventListener('change', () => {
     currentFilters.extensions = getChoicesValues(extensionSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   sortSelect?.addEventListener('change', () => {
     currentSort = sortSelect.value as InstructionSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   const countEl = document.getElementById('results-count');
@@ -127,7 +165,10 @@ export async function initInstructionsPage(): Promise<void> {
     countEl.textContent = `${allItems.length} of ${allItems.length} instructions`;
   }
 
-  searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
+  searchInput?.addEventListener('input', debounce(() => {
+    applyFiltersAndRender();
+    syncUrlState(searchInput);
+  }, 200));
 
   clearFiltersBtn?.addEventListener('click', () => {
     currentFilters = { extensions: [] };
@@ -136,8 +177,10 @@ export async function initInstructionsPage(): Promise<void> {
     if (searchInput) searchInput.value = '';
     if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
+  applyFiltersAndRender();
   setupModal();
   setupDropdownCloseHandlers();
   setupActionHandlers();

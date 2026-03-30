@@ -1,13 +1,21 @@
 /**
  * Hooks page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from "../choices";
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from "../choices";
 import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
+  getQueryParam,
+  getQueryParamValues,
   showToast,
   downloadZipBundle,
+  updateQueryParams,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
 import {
@@ -126,6 +134,15 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? "",
+    hook: currentFilters.hooks,
+    tag: currentFilters.tags,
+    sort: currentSort === "title" ? "" : currentSort,
+  });
+}
+
 async function downloadHook(
   hookId: string,
   btn: HTMLButtonElement
@@ -210,9 +227,26 @@ export async function initHooksPage(): Promise<void> {
     "label",
     true
   );
+
+  const initialQuery = getQueryParam("q");
+  const initialHooks = getQueryParamValues("hook").filter((hook) =>
+    data.filters.hooks.includes(hook)
+  );
+  const initialTags = getQueryParamValues("tag").filter((tag) =>
+    data.filters.tags.includes(tag)
+  );
+  const initialSort = getQueryParam("sort");
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialHooks.length > 0) {
+    currentFilters.hooks = initialHooks;
+    setChoicesValues(hookSelect, initialHooks);
+  }
+
   document.getElementById("filter-hook")?.addEventListener("change", () => {
     currentFilters.hooks = getChoicesValues(hookSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   // Setup tag filter
@@ -225,20 +259,33 @@ export async function initHooksPage(): Promise<void> {
     "label",
     true
   );
+  if (initialTags.length > 0) {
+    currentFilters.tags = initialTags;
+    setChoicesValues(tagSelect, initialTags);
+  }
   document.getElementById("filter-tag")?.addEventListener("change", () => {
     currentFilters.tags = getChoicesValues(tagSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
+  if (initialSort === "lastUpdated") {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as HookSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   applyFiltersAndRender();
   searchInput?.addEventListener(
     "input",
-    debounce(() => applyFiltersAndRender(), 200)
+    debounce(() => {
+      applyFiltersAndRender();
+      syncUrlState(searchInput);
+    }, 200)
   );
 
   clearFiltersBtn?.addEventListener("click", () => {
@@ -249,6 +296,7 @@ export async function initHooksPage(): Promise<void> {
     if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "title";
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   setupModal();
