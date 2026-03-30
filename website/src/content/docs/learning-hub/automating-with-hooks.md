@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-24
+lastUpdated: 2026-03-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,6 +93,7 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
@@ -122,6 +123,34 @@ When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) ea
 ### Cross-Platform Event Name Compatibility
 
 Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+### Plugin Hooks Environment Variables
+
+When hooks are defined inside a **plugin**, the hook scripts receive two additional environment variables automatically:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | The path to the current project (working) directory |
+| `CLAUDE_PLUGIN_DATA` | The path to a persistent data directory scoped to the plugin |
+
+You can also use these as **template variables** directly in the `bash` or `powershell` fields of your `hooks.json` configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/init.sh --project {{project_dir}}",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+This makes it straightforward to write plugin hooks that are portable across machines and projects without hardcoding paths.
 
 ### Event Configuration
 
@@ -328,6 +357,34 @@ The `subagentStart` hook fires when the main agent spawns a subagent (e.g., via 
 
 This is especially useful in multi-agent workflows where subagents may not automatically inherit context from the parent session.
 
+### Plugin Hook Environment Variables
+
+When hooks are defined inside a **plugin**, Copilot CLI automatically injects two extra environment variables so scripts can locate project-specific and plugin-specific directories:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | Absolute path to the working project directory |
+| `CLAUDE_PLUGIN_DATA` | Absolute path to the plugin's persistent data directory |
+
+You can also reference these paths as template variables in your hook configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/format.sh {{project_dir}}",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}
+```
+
+This is useful for plugins that bundle scripts or data files alongside their hooks, since `{{plugin_data_dir}}` always points to the correct installed location regardless of where the plugin is installed.
+
 ## Writing Hook Scripts
 
 For complex logic, use bundled scripts instead of inline bash commands:
@@ -377,6 +434,7 @@ echo "Pre-commit checks passed ✅"
 A: There are several supported locations, loaded in order of precedence:
 
 - **Repository-level** (shared with team): `.github/hooks/*.json` in your repository — all JSON files in this folder are loaded automatically
+- **Claude/Copilot project settings**: `.claude/settings.json` and `.claude/settings.local.json` — hooks defined here are applied to the current repository without committing them to `.github/`
 - **Global settings**: `settings.json` or `settings.local.json` (user-level CLI config)
 - **Legacy config**: `config.json` (also supported)
 

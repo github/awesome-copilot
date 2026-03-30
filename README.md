@@ -424,6 +424,25 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/joeVenner"><img src="https://avatars.githubusercontent.com/u/61122897?v=4" width="100px;" alt=""/><br /><sub><b>JoeVenner</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pasindudilshan1"><img src="https://avatars.githubusercontent.com/u/146967638?v=4" width="100px;" alt=""/><br /><sub><b>Pasindu Premarathna</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ecosystem"><img src="https://avatars.githubusercontent.com/u/2956973?v=4" width="100px;" alt=""/><br /><sub><b>ecosystem</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/punit-fastah"><img src="https://avatars.githubusercontent.com/u/257566774?v=4" width="100px;" alt=""/><br /><sub><b>Punit</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.youtube.com/@cloudarch"><img src="https://avatars.githubusercontent.com/u/44020466?v=4" width="100px;" alt=""/><br /><sub><b>Onur Senturk</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://mastodon.social/@andrewstellman"><img src="https://avatars.githubusercontent.com/u/7516297?v=4" width="100px;" alt=""/><br /><sub><b>Andrew Stellman</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/jeonghlee8024"><img src="https://avatars.githubusercontent.com/u/18215249?v=4" width="100px;" alt=""/><br /><sub><b>Jeonghoon Lee</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://srisatyalokesh.is-a.dev/"><img src="https://avatars.githubusercontent.com/u/43106076?v=4" width="100px;" alt=""/><br /><sub><b>Satya K</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/samikroy"><img src="https://avatars.githubusercontent.com/u/20562985?v=4" width="100px;" alt=""/><br /><sub><b>Samik Roy</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/siminapasat"><img src="https://avatars.githubusercontent.com/u/16675781?v=4" width="100px;" alt=""/><br /><sub><b>Simina Pasat</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/garnertb"><img src="https://avatars.githubusercontent.com/u/1141646?v=4" width="100px;" alt=""/><br /><sub><b>Tyler Garner</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cheguv"><img src="https://avatars.githubusercontent.com/u/21251550?v=4" width="100px;" alt=""/><br /><sub><b>Vijay Chegu</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/DTIBeograd"><img src="https://avatars.githubusercontent.com/u/30282550?v=4" width="100px;" alt=""/><br /><sub><b>DTIBeograd</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/behl1anmol"><img src="https://avatars.githubusercontent.com/u/37472462?v=4" width="100px;" alt=""/><br /><sub><b>Anmol Behl</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://aftermathtech.com/"><img src="https://avatars.githubusercontent.com/u/125813226?v=4" width="100px;" alt=""/><br /><sub><b>Brad Kinnard</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://felickz.github.io/"><img src="https://avatars.githubusercontent.com/u/1760475?v=4" width="100px;" alt=""/><br /><sub><b>Chad Bentz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarcelloCuoghi"><img src="https://avatars.githubusercontent.com/u/10816095?v=4" width="100px;" alt=""/><br /><sub><b>Marcello Cuoghi</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://josh-ops.com/"><img src="https://avatars.githubusercontent.com/u/19912012?v=4" width="100px;" alt=""/><br /><sub><b>Josh Johanning</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
