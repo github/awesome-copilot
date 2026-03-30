@@ -1,0 +1,27 @@
+{
+  "name": "superpowers-dev-workflow",
+  "description": "Structured AI-assisted development workflow with planning, execution, and verification gates for consistent Copilot outcomes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "superpowers",
+    "workflow",
+    "planning",
+    "verification",
+    "tdd",
+    "code-review"
+  ],
+  "agents": [
+    "./agents/superpowers-code-reviewer.md"
+  ],
+  "skills": [
+    "./skills/superpowers-planning-gate",
+    "./skills/superpowers-execution-gate",
+    "./skills/superpowers-verification-gate",
+    "./skills/superpowers-execution-prompt-pack"
+  ]
+}

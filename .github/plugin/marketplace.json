@@ -502,6 +502,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "superpowers-dev-workflow",
+      "source": "superpowers-dev-workflow",
+      "description": "Structured AI-assisted development workflow with planning, execution, and verification gates for consistent Copilot outcomes.",
+      "version": "0.1.0"
+    },
+    {
       "name": "swift-mcp-development",
       "source": "swift-mcp-development",
       "description": "Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.",
