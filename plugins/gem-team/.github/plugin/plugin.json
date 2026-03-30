@@ -1,25 +1,31 @@
 {
-  "name": "gem-team",
-  "description": "A modular multi-agent team for complex project execution with Discuss Phase for requirements clarification, PRD creation, DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, wave-based parallel execution, PRD compliance verification, and automated testing.",
-  "version": "1.3.4",
+  "agents": [
+    "./agents"
+  ],
   "author": {
     "name": "Awesome Copilot Community"
   },
-  "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT",
+  "description": "A modular, high-performance multi-agent orchestration framework for complex project execution, feature implementation, and automated verification.",
   "keywords": [
     "multi-agent",
     "orchestration",
-    "discuss-phase",
-    "dag-planning",
-    "parallel-execution",
     "tdd",
-    "verification",
-    "automation",
-    "security",
+    "ci-cd",
+    "security-audit",
+    "documentation",
+    "dag-planning",
+    "compliance",
+    "code-quality",
     "prd"
   ],
+<<<<<<< HEAD
   "agents": [
     "./agents"
   ]
+=======
+  "license": "MIT",
+  "name": "gem-team",
+  "repository": "https://github.com/github/awesome-copilot",
+  "version": "1.4.0"
+>>>>>>> 1c292d3b03d98766b64dfcd5b1e38bd5f2545fb1
 }

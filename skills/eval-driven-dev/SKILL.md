@@ -1,862 +1,378 @@
 ---
 name: eval-driven-dev
-description: Add instrumentation, build golden datasets, write eval-based tests, run them, root-cause failures, and iterate — Ensure your Python LLM application works correctly. Make sure to use this skill whenever a user is developing, testing, QA-ing, evaluating, or benchmarking a Python project that calls an LLM. Use for making sure an LLM application works correctly, catching regressions after prompt changes, fixing unexpected behavior, or validating output quality before shipping.
+description: >
+  Set up eval-based QA for Python LLM applications: instrument the app, build golden datasets,
+  write and run eval tests, and iterate on failures.
+  ALWAYS USE THIS SKILL when the user asks to set up QA, add tests, add evals,
+  evaluate, benchmark, fix wrong behaviors, improve quality, or do quality assurance for any Python project that calls an LLM model.
 license: MIT
 compatibility: Python 3.11+
 metadata:
-  version: 0.1.11
+  version: 0.2.0
 ---
 
-# Evaluation-Driven Development for Python LLM Applications
+# Eval-Driven Development for Python LLM Applications
 
-This skill is about doing the work, not describing it. When a user asks you to set up evals for their app, you should be reading their code, editing their files, running commands, and producing a working test pipeline — not writing a plan for them to follow later.
+You're building an **automated QA pipeline** that tests a Python application end-to-end — running it the same way a real user would, with real inputs — then scoring the outputs using evaluators and producing pass/fail results via `pixie test`.
 
-## Startup checks (always first)
+**What you're testing is the app itself** — its request handling, context assembly (how it gathers data, builds prompts, manages conversation state), routing, and response formatting. The app uses an LLM, which makes outputs non-deterministic — that's why you use evaluators (LLM-as-judge, similarity scores) instead of `assertEqual` — but the thing under test is the app's code, not the LLM.
 
-Attempt to upgrade the `pixie-qa` package in the user's environment. Detect the package manager from the project (check for `uv.lock`, `poetry.lock`, `requirements.txt`, or a plain `pip` environment) and run the appropriate upgrade command:
+**What's in scope**: the app's entire code path from entry point to response — never mock or skip any part of it. **What's out of scope**: external data sources the app reads from (databases, caches, third-party APIs, voice streams) — mock these to control inputs and reduce flakiness.
 
-- **uv**: `uv add pixie-qa --upgrade` (or `uv sync --upgrade-package pixie-qa`)
-- **poetry**: `poetry add pixie-qa@latest`
-- **pip**: `pip install --upgrade pixie-qa`
+**The deliverable is a working `pixie test` run with real scores** — not a plan, not just instrumentation, not just a dataset.
 
-If the upgrade fails (e.g., no network, version conflict), log the error and continue — a failed upgrade must not block the rest of the skill.
+This skill is about doing the work, not describing it. Read code, edit files, run commands, produce a working pipeline.
 
-**All pixie-generated files live in a single `pixie_qa` directory** at the project root:
+---
+
+## Before you start
+
+Run the following to keep the skill and package up to date. If any command fails or is blocked by the environment, continue — do not let failures here block the rest of the workflow.
+
+**Update the skill:**
+
+```bash
+npx skills update
+```
+
+**Upgrade the `pixie-qa` package**
+
+Make sure the python virtual environment is active and use the project's package manager:
+
+```bash
+# uv project (uv.lock exists):
+uv add pixie-qa --upgrade
+
+# poetry project (poetry.lock exists):
+poetry add pixie-qa@latest
+
+# pip / no lock file:
+pip install --upgrade pixie-qa
+```
+
+---
+
+## The workflow
+
+Follow Steps 1–5 straight through without stopping. Do not ask the user for confirmation at intermediate steps — verify each step yourself and continue.
+
+**Two modes:**
+
+- **Setup** ("set up evals", "add tests", "set up QA"): Complete Steps 1–5. After the test run, report results and ask whether to iterate.
+- **Iteration** ("fix", "improve", "debug"): Complete Steps 1–5 if not already done, then do one round of Step 6.
+
+If ambiguous: default to setup.
+
+---
+
+### Step 1: Understand the app and define eval criteria
+
+Read the source code to understand:
+
+1. **How it runs** — entry point, startup, config/env vars
+2. **The real entry point** — how a real user invokes the app (HTTP endpoint, CLI, function call). This is what the eval must exercise — not an inner function that bypasses the request pipeline.
+3. **The request pipeline** — trace the full path from entry point to response. What middleware, routing, state management, prompt assembly, retrieval, or formatting happens along the way? All of this is under test.
+4. **External dependencies (both directions)** — identify every external system the app talks to (databases, APIs, caches, queues, file systems, speech services). For each, understand:
+   - **Data flowing IN** (external → app): what data does the app read from this system? What shapes, types, realistic values? You'll make up this data for eval scenarios.
+   - **Data flowing OUT** (app → external): what does the app write, send, or mutate in this system? These are side-effects that evaluations may need to verify (e.g., "did the app create the right calendar entry?", "did it send the correct transfer request?").
+   - **How to mock it** — look for abstract base classes, protocols, or constructor-injected backends (e.g., `TranscriptionBackend`, `SynthesisBackend`, `StorageBackend`). These are testability seams — you'll create mock implementations of these interfaces. If there's no clean interface, you'll use `unittest.mock.patch` at the module boundary.
+5. **Use cases** — distinct scenarios, what good/bad output looks like
+
+Read `references/understanding-app.md` for detailed guidance on mapping data flows and the MEMORY.md template.
+
+Write your findings to `pixie_qa/MEMORY.md` before moving on. Include:
+
+- The entry point and the full request pipeline
+- Every external dependency, what it provides/receives, and how you'll mock it
+- The testability seams (pluggable interfaces, patchable module-level objects)
+
+Determine **high-level, application-specific eval criteria**:
+
+**Good criteria are specific to the app's purpose.** Examples:
+
+- Voice customer support agent: "Does the agent verify the caller's identity before transferring?", "Are responses concise enough for phone conversation (under 3 sentences)?", "Does the agent route to the correct department based on the caller's request?"
+- Research report generator: "Does the report address all sub-questions in the query?", "Are claims supported by the retrieved sources?", "Is the report structured with clear sections?"
+- RAG chatbot: "Are answers grounded in the retrieved context?", "Does it say 'I don't know' when the context doesn't contain the answer?"
+
+**Bad criteria are generic evaluator names dressed up as requirements.** Don't say "Factual accuracy" or "Response relevance" — say what factual accuracy or relevance means for THIS app.
+
+At this stage, don't pick evaluator classes or thresholds. That comes later in Step 5, after you've seen the real data shape.
+
+Record the criteria in `pixie_qa/MEMORY.md` and continue.
+
+> **Checkpoint**: MEMORY.md written with app understanding + eval criteria. Proceed to Step 2.
+
+---
+
+### Step 2: Instrument and observe a real run
+
+**Why this step**: You need to see the actual data flowing through the app before you can build anything. This step serves two goals:
+
+1. **Learn the data shapes** — what data flows in from external dependencies, and what side-effects flow out? What types, structures, realistic values? You'll need to make up this data for eval scenarios later.
+2. **Verify instrumentation captures what evaluators need** — do the traces contain the data required to assess each eval criterion from Step 1? If a criterion is "does the agent route to the correct department," the trace must capture the routing decision.
+
+**This is a normal app run with instrumentation — no mocks, no patches.**
+
+#### 2a. Decide what to instrument
+
+This is a reasoning step, not a coding step. Look at your eval criteria from Step 1 and your understanding of the codebase, and determine what data the evaluators will need:
+
+- **For each eval criterion**, ask: what observable data would prove this criterion is met or violated?
+- **Map that data to code locations** — which functions produce, consume, or transform that data?
+- **Those functions need `@observe`** — so their inputs and outputs are captured in traces.
+
+Examples:
+
+| Eval criterion                             | Data needed                                        | What to instrument                                           |
+| ------------------------------------------ | -------------------------------------------------- | ------------------------------------------------------------ |
+| "Routes to correct department"             | The routing decision (which department was chosen) | The routing/dispatch function                                |
+| "Responses grounded in retrieved context"  | The retrieved documents + the final response       | The retrieval function AND the response function             |
+| "Verifies caller identity before transfer" | Whether identity check happened, transfer decision | The identity verification function AND the transfer function |
+| "Concise phone-friendly responses"         | The final response text                            | The function that produces the LLM response                  |
+
+**LLM provider calls (OpenAI, Anthropic, etc.) are auto-captured** — `enable_storage()` activates OpenInference instrumentors that automatically trace every LLM API call with full input messages, output messages, token usage, and model parameters. You do NOT need `@observe` on the function that calls `client.chat.completions.create()` just to see the LLM interaction.
+
+**Use `@observe` for application-level functions** whose inputs, outputs, or intermediate states your evaluators need but that aren't visible from the LLM call alone. Examples: the app's entry-point function (to capture what the user sent and what the app returned), retrieval functions (to capture what context was fetched), routing functions (to capture dispatch decisions).
+
+`enable_storage()` goes at application startup. Read `references/instrumentation.md` for the full rules, code patterns, and anti-patterns for adding instrumentation.
+
+#### 2b. Add instrumentation and run the app
+
+Add `@observe` to the functions you identified in 2a. Then run the app normally — with its real external dependencies, or by manually interacting with it — to produce a **reference trace**. Do NOT mock or patch anything. This is an observation run.
+
+If the app can't run without infrastructure you don't have (a real database, third-party service credentials, etc.), use the simplest possible approach to get it running — a local Docker container, a test account, or ask the user for help. The goal is one real trace.
+
+```bash
+uv run pixie trace list
+uv run pixie trace last
+```
+
+#### 2c. Examine the reference trace
+
+Study the trace data carefully. This is your blueprint for everything that follows. Document:
+
+1. **Data from external dependencies (inbound)** — What did the app read from databases, APIs, caches? What are the shapes, types, and realistic value ranges? This is what you'll make up in eval_input for the dataset.
+2. **Side-effects (outbound)** — What did the app write to, send to, or mutate in external systems? These need to be captured by mocks and may be part of eval_output for verification.
+3. **Intermediate states** — What did the instrumentation capture beyond the final output? Tool calls, retrieved documents, routing decisions? Are these sufficient to evaluate every criterion from Step 1?
+4. **The eval_input / eval_output structure** — What does the `@observe`-decorated function receive as input and produce as output? Note the exact field names, types, and nesting.
+
+**Check instrumentation completeness**: For each eval criterion from Step 1, verify the trace contains the data needed to evaluate it. If not, add more `@observe` decorators and re-run.
+
+**Do not proceed until you understand the data shape and have confirmed the traces capture everything your evaluators need.**
+
+> **Checkpoint**: Instrumentation added based on eval criteria. Reference trace captured with real data. For each criterion, confirm the trace contains the data needed to evaluate it. Proceed to Step 3.
+
+---
+
+### Step 3: Write a utility function to run the full app end-to-end
+
+**Why this step**: You need a function that test cases can call. Given an eval_input (app input + mock data for external dependencies), it starts the real application with external dependencies patched, sends the input through the app's real entry point, and returns the eval_output (app response + captured side-effects).
+
+#### The contract
+
+```
+run_app(eval_input) → eval_output
+```
+
+- **eval_input** = application input (what the user sends) + data from external dependencies (what databases/APIs would return)
+- **eval_output** = application output (what the user sees) + captured side-effects (what the app wrote to external systems, captured by mocks) + captured intermediate states (tool calls, routing decisions, etc., captured by instrumentation)
+
+#### How to implement
+
+1. **Patch external dependencies** — use the mocking plan from Step 1 item 4. For each external dependency, either inject a mock implementation of its interface (cleanest) or `unittest.mock.patch` the module-level client. The mock returns data from eval_input and captures side-effects for eval_output.
+
+2. **Call the app through its real entry point** — the same way a real user or client would invoke it. Look at how the app is started: if it's a web server (FastAPI, Flask), use `TestClient` or HTTP requests. If it's a CLI, use subprocess. If it's a standalone function with no server or middleware, import and call it directly.
+
+3. **Collect the response** — the app's output becomes eval_output, along with any side-effects captured by mock objects.
+
+Read `references/run-harness-patterns.md` for concrete examples of entry point invocation for different app types.
+
+**Do NOT call an inner function** like `agent.respond()` directly just because it's simpler. The whole point is to test the app's real code path — request handling, state management, prompt assembly, routing. When you call an inner function directly, you skip all of that, and the test has to reimplement it. Now you're testing test code, not app code.
+
+#### Verify
+
+Take the eval_input from your Step 2 reference trace and feed it to the utility function. The outputs won't match word-for-word (non-deterministic), but verify:
+
+- **Same structure** — same fields present, same types, same nesting
+- **Same code path** — same routing decisions, same intermediate states captured
+- **Sensible values** — eval_output fields have real, meaningful data (not null, not empty, not error messages)
+
+**If it fails after two attempts**, stop and ask the user for help.
+
+> **Checkpoint**: Utility function implemented and verified. When fed the reference trace's eval_input, it produces eval_output with the same structure and exercises the same code path. Proceed to Step 4.
+
+---
+
+### Step 4: Build the dataset
+
+**Why this step**: The dataset is a collection of eval_input items (made up by you) that define the test scenarios. Each item may also carry case-specific expectations. The eval_output is NOT pre-populated in the dataset — it's produced at test time by the utility function from Step 3.
+
+#### 4a. Determine verification and expectations
+
+Before generating data, decide how each eval criterion from Step 1 will be checked.
+
+**Examine the reference trace from Step 2** and identify:
+
+- **Structural constraints** you can verify with code — JSON schema, required fields, value types, enum ranges, string length bounds. These become validation checks on your generated eval_inputs.
+- **Semantic constraints** that require judgment — "the mock customer profile should be realistic", "the conversation history should be topically coherent". Apply these yourself when crafting the data.
+- **Which criteria are universal vs. case-specific**:
+  - **Universal criteria** apply to ALL test cases the same way → implement in the test function (e.g., "responses must be under 3 sentences", "must not hallucinate information not in context")
+  - **Case-specific criteria** vary per test case → carry as `expected_output` in the dataset item (e.g., "should mention the caller's appointment on Tuesday", "should route to billing department")
+
+#### 4b. Generate eval_input items
+
+Create eval_input items that match the data shape from the reference trace:
+
+- **Application inputs** (user queries, requests) — make these up to cover the scenarios you identified in Step 1
+- **External dependency data** (database records, API responses, cache entries) — make these up in the exact shape you observed in the reference trace
+
+Each dataset item contains:
+
+- `eval_input`: the made-up input data (app input + external dependency data)
+- `expected_output`: case-specific expectation text (optional — only for test cases with expectations beyond the universal criteria). This is a reference for evaluation, not an exact expected answer.
+
+At test time, `eval_output` is produced by the utility function from Step 3 and is not stored in the dataset itself.
+Read `references/dataset-generation.md` for the dataset creation API, data shape matching, expected_output strategy, and validation checklist.
+
+#### 4c. Validate the dataset
+
+After building:
+
+1. **Execute `build_dataset.py`** — don't just write it, run it
+2. **Verify structural constraints** — each eval_input matches the reference trace's schema (same fields, same types)
+3. **Verify diversity** — items have meaningfully different inputs, not just minor variations
+4. **Verify case-specific expectations** — `expected_output` values are specific and testable, not vague
+5. For conversational apps, include items with conversation history
+
+> **Checkpoint**: Dataset created with diverse eval_inputs matching the reference trace's data shape. Proceed to Step 5.
+
+---
+
+### Step 5: Write and run eval tests
+
+**Why this step**: With the utility function built and the dataset ready, writing tests is straightforward — wire up the function, choose evaluators for each criterion, and run.
+
+#### 5a. Map criteria to evaluators
+
+For each eval criterion from Step 1, decide how to evaluate it:
+
+- **Can it be checked with a built-in evaluator?** (factual correctness → `FactualityEval`, exact match → `ExactMatchEval`, RAG faithfulness → `FaithfulnessEval`)
+- **Does it need a custom evaluator?** Most app-specific criteria do — use `create_llm_evaluator` with a prompt that operationalizes the criterion.
+- **Is it universal or case-specific?** Universal criteria go in the test function. Case-specific criteria use `expected_output` from the dataset.
+
+For open-ended LLM text, **never** use `ExactMatchEval` — LLM outputs are non-deterministic.
+
+`AnswerRelevancyEval` is **RAG-only** — it requires a `context` value in the trace. Returns 0.0 without it. For general relevance without RAG, use `create_llm_evaluator` with a custom prompt.
+
+Read `references/eval-tests.md` for the evaluator catalog, custom evaluator examples, and the test file boilerplate.
+
+#### 5b. Write the test file and run
+
+The test file wires together: a `runnable` (calls your utility function from Step 3), a reference to the dataset, and the evaluators you chose.
+
+Read `references/eval-tests.md` for the exact `assert_dataset_pass` API, required parameter names, and common mistakes to avoid. **Re-read the API reference immediately before writing test code** — do not rely on earlier context.
+
+Run with `pixie test` — not `pytest`:
+
+```bash
+uv run pixie test pixie_qa/tests/ -v
+```
+
+**After running, verify the scorecard:**
+
+1. Shows "N/M tests passed" with real numbers
+2. Does NOT say "No assert_pass / assert_dataset_pass calls recorded" (that means missing `await`)
+3. Per-evaluator scores appear with real values
+
+A test that passes with no recorded evaluations is worse than a failing test — it gives false confidence. Debug until real scores appear.
+
+> **Checkpoint**: Tests run and produce real scores.
+>
+> - **Setup mode**: Report results ("QA setup is complete. Tests show N/M passing.") and ask: "Want me to investigate the failures and iterate?" Stop here unless the user says yes.
+> - **Iteration mode**: Proceed directly to Step 6.
+>
+> If the test errors out (import failures, missing keys), that's a setup bug — fix and re-run. But if tests produce real pass/fail scores, that's the deliverable.
+
+---
+
+### Step 6: Investigate and iterate
+
+**Iteration mode only, or after the user confirmed in setup mode.**
+
+When tests fail, understand _why_ — don't just adjust thresholds until things pass.
+
+Read `references/investigation.md` for procedures and root-cause patterns.
+
+The cycle: investigate root cause → fix (prompt, code, or eval config) → rebuild dataset if needed → re-run tests → repeat.
+
+---
+
+## Quick reference
+
+### Imports
+
+```python
+from pixie import enable_storage, observe, assert_dataset_pass, ScoreThreshold, last_llm_call
+from pixie import FactualityEval, ClosedQAEval, create_llm_evaluator
+```
+
+Only `from pixie import ...` — never subpackages (`pixie.storage`, `pixie.evals`, etc.). There is no `pixie.qa` module.
+
+### CLI commands
+
+```bash
+uv run pixie test pixie_qa/tests/ -v    # Run eval tests (NOT pytest)
+uv run pixie trace list                 # List captured traces
+uv run pixie trace last                 # Show most recent trace
+uv run pixie trace show <id> --verbose  # Show specific trace
+uv run pixie dataset create <name>      # Create a new dataset
+```
+
+### Directory layout
 
 ```
 pixie_qa/
-  MEMORY.md              # your understanding and eval plan
-  observations.db        # SQLite trace DB (auto-created by enable_storage)
-  datasets/              # golden datasets (JSON files)
-  tests/                 # eval test files (test_*.py)
-  scripts/               # helper scripts (run_harness.py, build_dataset.py, etc.)
+  MEMORY.md      # your understanding and eval plan
+  datasets/      # golden datasets (JSON)
+  tests/         # eval test files (test_*.py)
+  scripts/       # run_app.py, build_dataset.py
 ```
 
----
+All pixie files go here — not at the project root, not in a top-level `tests/` directory.
 
-## Setup vs. Iteration: when to stop
+### Key concepts
 
-**This is critical.** What you do depends on what the user asked for.
+- **eval_input** = application input + data from external dependencies
+- **eval_output** = application output + captured side-effects + captured intermediate states (produced at test time by the utility function, NOT pre-populated in the dataset)
+- **expected_output** = case-specific evaluation reference (optional per dataset item)
+- **test function** = utility function (produces eval_output) + evaluators (check criteria)
 
-### "Setup QA" / "set up evals" / "add tests" (setup intent)
+### Evaluator selection
 
-The user wants a **working eval pipeline**. Your job is Stages 0–7: install, understand, instrument, build a run harness, capture real traces, write tests, build dataset, run tests. **Stop after the first test run**, regardless of whether tests pass or fail. Report:
+| Output type                           | Evaluator                                             | Notes                                                            |
+| ------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| Open-ended text with reference answer | `FactualityEval`, `ClosedQAEval`                      | Best default for most apps                                       |
+| Open-ended text, no reference         | `AnswerRelevancyEval`                                 | **RAG only** — needs `context` in trace. Returns 0.0 without it. |
+| Deterministic output                  | `ExactMatchEval`, `JSONDiffEval`                      | Never use for open-ended LLM text                                |
+| RAG with retrieved context            | `FaithfulnessEval`, `ContextRelevancyEval`            | Requires context capture in instrumentation                      |
+| Domain-specific quality               | `create_llm_evaluator(name=..., prompt_template=...)` | Custom LLM-as-judge — use for app-specific criteria              |
 
-1. What you set up (instrumentation, run harness, test file, dataset)
-2. The test results (pass/fail, scores)
-3. If tests failed: a **brief summary** of what failed and likely causes — but do NOT fix anything
+### What goes where: SKILL.md vs references
 
-Then ask: _"QA setup is complete. Tests show N/M passing. Want me to investigate the failures and start iterating?"_
+**This file** (SKILL.md) is loaded for the entire session. It contains the _what_ and _why_ — the reasoning, decision-making process, goals, and checkpoints for each step.
 
-Only proceed to Stage 8 (investigation and fixes) if the user confirms.
+**Reference files** are loaded when executing a specific step. They contain the _how_ — tactical API usage, code patterns, anti-patterns, troubleshooting, and ready-to-adapt examples.
 
-**Exception**: If the test run itself errors out (import failures, missing API keys, configuration bugs) — those are **setup problems**, not eval failures. Fix them and re-run until you get a clean test execution where pass/fail reflects actual app quality, not broken plumbing.
+When in doubt: if it's about _deciding what to do_, it's in SKILL.md. If it's about _how to implement that decision_, it's in a reference file.
 
-### "Fix" / "improve" / "debug" / "why is X failing" (iteration intent)
+### Reference files
 
-The user wants you to investigate and fix. Proceed through all stages including Stage 8 — investigate failures, root-cause them, apply fixes, rebuild dataset, re-run tests, iterate.
-
-### Ambiguous requests
-
-If the intent is unclear, default to **setup only** and ask before iterating. It's better to stop early and ask than to make unwanted changes to the user's application code.
-
----
-
-## Hard gates: when to STOP and get the user involved
-
-Some blockers cannot be worked around. When you hit one, **stop working and tell the user what you need** — do not guess, fabricate data, or skip ahead to later stages.
-
-### Missing API keys or credentials
-
-If the app or evaluators need an API key (e.g. `OPENAI_API_KEY`) and it's not set in the environment or `.env`, tell the user exactly which key is missing and wait for them to provide it. Do not:
-
-- Proceed with running the app or evals (they will fail)
-- Hardcode a placeholder key
-- Skip to later stages hoping it won't matter
-
-### Cannot run the app from a script
-
-If after reading the code (Stage 1) you cannot figure out how to invoke the app's core LLM-calling function from a standalone script — because it requires a running server, a webhook trigger, complex authentication, or external infrastructure you can't mock — **stop and ask the user**:
-
-> "I've identified `<function_name>` in `<file>` as the core function to evaluate, but it requires `<dependency>` which I can't easily mock. Can you either (a) show me how to call this function standalone, or (b) run the app yourself with a few representative inputs so I can capture traces?"
-
-### App errors during run harness execution
-
-If the run harness script (Stage 4) errors out and you can't fix it after two attempts, stop and share the error with the user. Common blockers include database connections, missing configuration files, authentication/OAuth flows, and hardware-specific dependencies.
-
-### Why stopping matters
-
-Every subsequent stage depends on having real traces from the actual app. If you can't run the app, you can't capture traces. If you can't capture traces, you can't build a real dataset. If you fabricate a dataset, the entire eval pipeline is testing a fiction, not the user's app. It's better to stop early and get the user's help than to produce an eval pipeline that tests the wrong thing.
-
----
-
-## The eval boundary: what to evaluate
-
-**Eval-driven development focuses on LLM-dependent behaviour.** The purpose is to catch quality regressions in the parts of the system that are non-deterministic and hard to test with traditional unit tests — namely, LLM calls and the decisions they drive.
-
-### In scope (evaluate this)
-
-- LLM response quality: factual accuracy, relevance, format compliance, safety
-- Agent routing decisions: did the LLM choose the right tool/handoff/action?
-- Prompt effectiveness: does the prompt produce the desired behaviour?
-- Multi-turn coherence: does the agent maintain context across turns?
-
-### Out of scope (do NOT evaluate this with evals)
-
-- **Tool implementations** (database queries, API calls, keyword matching, business logic) — these are traditional software; test them with unit tests
-- **Infrastructure** (authentication, rate limiting, caching, serialization)
-- **Deterministic post-processing** (formatting, filtering, sorting results)
-
-The boundary is: everything **downstream** of the LLM call (tools, databases, APIs) produces deterministic outputs that serve as **inputs** to the LLM-powered system. Eval tests should treat those as given facts and focus on what the LLM does with them.
-
-**Example**: If an FAQ tool has a keyword-matching bug that returns wrong data, that's a traditional bug — fix it with a regular code change, not by adjusting eval thresholds. The eval tests exist to verify that _given correct tool outputs_, the LLM agent produces correct user-facing responses.
-
-When building datasets and expected outputs, **use the actual tool/system outputs as ground truth**. The expected output for an eval case should reflect what a correct LLM response looks like _given the tool results the system actually produces_.
-
----
-
-## Stage 0: Ensure pixie-qa is Installed and API Keys Are Set
-
-Before doing anything else, check that the `pixie-qa` package is available:
-
-```bash
-python -c "import pixie" 2>/dev/null && echo "installed" || echo "not installed"
-```
-
-If it's not installed, install it:
-
-```bash
-pip install pixie-qa
-```
-
-This provides the `pixie` Python module, the `pixie` CLI, and the `pixie test` runner — all required for instrumentation and evals. Don't skip this step; everything else in this skill depends on it.
-
-### Verify API keys
-
-The application under test almost certainly needs an LLM provider API key (e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`). LLM-as-judge evaluators like `FactualityEval` also need `OPENAI_API_KEY`. **Before running anything**, verify the key is set:
-
-```bash
-[ -n "$OPENAI_API_KEY" ] && echo "OPENAI_API_KEY set" || echo "OPENAI_API_KEY missing"
-```
-
-If the key is not set: check whether the project uses a `.env` file. If it does, note that `python-dotenv` only loads `.env` when the app explicitly calls `load_dotenv()` — shell commands and the `pixie` CLI will not see variables from `.env` unless they're exported. Tell the user which key is missing and how to set it. **Do not proceed** with running the app or evals without a confirmed API key — you'll get failures that waste time and look like app bugs.
-
----
-
-## Stage 1: Understand the Application
-
-Before touching any code, spend time actually reading the source. The code will tell you more than asking the user would, and it puts you in a much better position to make good decisions about what and how to evaluate.
-
-### What to investigate
-
-1. **How the software runs**: What is the entry point? How do you start it? Is it a CLI, a server, a library function? What are the required arguments, config files, or environment variables?
-
-2. **All inputs to the LLM**: This is not limited to the user's message. Trace every piece of data that gets incorporated into any LLM prompt:
-
-   - User input (queries, messages, uploaded files)
-   - System prompts (hardcoded or templated)
-   - Retrieved context (RAG chunks, search results, database records)
-   - Tool definitions and function schemas
-   - Conversation history / memory
-   - Configuration or feature flags that change prompt behavior
-
-3. **All intermediate steps and outputs**: Walk through the code path from input to final output and document each stage:
-
-   - Retrieval / search results
-   - Tool calls and their results
-   - Agent routing / handoff decisions
-   - Intermediate LLM calls (e.g., summarization before final answer)
-   - Post-processing or formatting steps
-
-4. **The final output**: What does the user see? What format is it in? What are the quality expectations?
-
-5. **Use cases and expected behaviors**: What are the distinct things the app is supposed to handle? For each use case, what does a "good" response look like? What would constitute a failure?
-
-### Identify the eval-boundary function
-
-This is the single most important decision you'll make, and getting it right determines whether the eval pipeline tests the real app or a fiction.
-
-The **eval-boundary function** is the function in the actual production code that:
-
-1. Takes structured input (text, dict, message list) — not raw HTTP requests, audio streams, or webhook payloads
-2. Calls the LLM (directly or through a chain of internal calls)
-3. Returns the LLM's response (or a processed version of it)
-
-Everything **upstream** of this function (webhook handlers, voice-to-text processing, request parsing, authentication, session management) will be mocked or bypassed when building the run harness. Everything **at and below** this function is the real code you're evaluating.
-
-**Example**: In a Twilio voice AI app:
-
-- Twilio sends a webhook with audio → **upstream, mock this**
-- Audio processing converts speech to text → **upstream, mock this**
-- Call state is loaded from Redis → **upstream, mock or simplify this**
-- `agent.respond(user_text, conversation_history)` calls the LLM → **eval-boundary function**
-- Response text is converted to speech → **downstream, not part of eval**
-
-**Example**: In a FastAPI RAG chatbot:
-
-- HTTP endpoint receives POST request → **upstream, bypass this**
-- Request validation and auth → **upstream, bypass this**
-- `chatbot.answer(question, context)` retrieves docs and calls LLM → **eval-boundary function**
-- Response is formatted as JSON → **downstream, not part of eval**
-
-**Example**: In a simple CLI Q&A tool:
-
-- `main()` reads user input from stdin → **upstream, bypass this**
-- `answer_question(question)` calls the LLM → **eval-boundary function**
-
-When identifying the eval-boundary function, record:
-
-- The exact function name and file location
-- Its signature (parameter names and types)
-- What upstream dependencies it needs (clients, config objects, state)
-- Which of those dependencies require real credentials vs. can be mocked
-
-If you cannot identify a clear eval-boundary function — if the LLM call is deeply entangled with infrastructure code that can't be separated — **stop and ask the user**. See "Hard gates" above.
-
-### Write MEMORY.md
-
-Write your findings down in `pixie_qa/MEMORY.md`. This is the primary working document for the eval effort. It should be human-readable and detailed enough that someone unfamiliar with the project can understand the application and the eval strategy.
-
-**CRITICAL: MEMORY.md documents your understanding of the existing application code. It must NOT contain references to pixie commands, instrumentation code you plan to add, or scripts/functions that don't exist yet.** Those belong in later sections, only after they've been implemented.
-
-The understanding section should include:
-
-```markdown
-# Eval Notes: <Project Name>
-
-## How the application works
-
-### Entry point and execution flow
-
-<Describe how to start/run the app, what happens step by step>
-
-### Inputs to LLM calls
-
-<For each LLM call in the codebase, document:>
-
-- Where it is in the code (file + function name)
-- What system prompt it uses (quote it or summarize)
-- What user/dynamic content feeds into it
-- What tools/functions are available to it
-
-### Intermediate processing
-
-<Describe any steps between input and output:>
-- Retrieval, routing, tool execution, etc.
-- Include code pointers (file:line) for each step
-
-### Final output
-
-<What the user sees, what format, what the quality bar should be>
-
-### Use cases
-
-<List each distinct scenario the app handles, with examples of good/bad outputs>
-
-### Eval-boundary function
-
-- **Function**: `<class.method or function_name>`
-- **Location**: `<file:line>`
-- **Signature**: `<parameters and return type>`
-- **Upstream dependencies to mock**: <list what needs mocking for standalone execution>
-- **Why this boundary**: <explain why this is the right function to evaluate>
-
-## Evaluation plan
-
-### What to evaluate and why
-
-<Quality dimensions: factual accuracy, relevance, format compliance, safety, etc.>
-
-### Evaluation granularity
-
-<Which function/span boundary captures one "test case"? Why that boundary?>
-
-### Evaluators and criteria
-
-<For each eval test, specify: evaluator, dataset, threshold, reasoning>
-
-### Data needed for evaluation
-
-<What data points need to be captured, with code pointers to where they live>
-```
-
-If something is genuinely unclear from the code, ask the user — but most questions answer themselves once you've read the code carefully.
-
----
-
-## Stage 2: Decide What to Evaluate
-
-Now that you understand the app, you can make thoughtful choices about what to measure:
-
-- **What quality dimension matters most?** Factual accuracy for QA apps, output format for structured extraction, relevance for RAG, safety for user-facing text.
-- **Which span to evaluate:** the whole pipeline (`root`) or just the LLM call (`last_llm_call`)? If you're debugging retrieval, you might evaluate at a different point than if you're checking final answer quality.
-- **Which evaluators fit:** see `references/pixie-api.md` → Evaluators. For factual QA: `FactualityEval`. For structured output: `ValidJSONEval` / `JSONDiffEval`. For RAG pipelines: `ContextRelevancyEval` / `FaithfulnessEval`.
-- **Pass criteria:** `ScoreThreshold(threshold=0.7, pct=0.8)` means 80% of cases must score ≥ 0.7. Think about what "good enough" looks like for this app.
-- **Expected outputs:** `FactualityEval` needs them. Format evaluators usually don't.
-
-Update `pixie_qa/MEMORY.md` with the plan before writing any code.
-
----
-
-## Stage 3: Instrument the Application
-
-Add pixie instrumentation to the **existing production code**. The goal is to capture the inputs and outputs of functions that are already part of the application's normal execution path. Instrumentation must be on the **real code path** — the same code that runs when the app is used in production — so that traces are captured both during eval runs and real usage.
-
-### Add `enable_storage()` at application startup
-
-Call `enable_storage()` once at the beginning of the application's startup code — inside `main()`, or at the top of a server's initialization. **Never at module level** (top of a file outside any function), because that causes storage setup to trigger on import.
-
-Good places:
-
-- Inside `if __name__ == "__main__":` blocks
-- In a FastAPI `lifespan` or `on_startup` handler
-- At the top of `main()` / `run()` functions
-- Inside the `runnable` function in test files
-
-```python
-# ✅ CORRECT — at application startup
-async def main():
-    enable_storage()
-    ...
-
-# ✅ CORRECT — in a runnable for tests
-def runnable(eval_input):
-    enable_storage()
-    my_function(**eval_input)
-
-# ❌ WRONG — at module level, runs on import
-from pixie import enable_storage
-enable_storage()  # this runs when any file imports this module!
-```
-
-### Wrap existing functions with `@observe` or `start_observation`
-
-**CRITICAL: Instrument the production code path. Never create separate functions or alternate code paths for testing.**
-
-The `@observe` decorator or `start_observation` context manager goes on the **existing function** that the app actually calls during normal operation. If the app's entry point is an interactive `main()` loop, instrument `main()` or the core function it calls per user turn — not a new helper function that duplicates logic.
-
-```python
-# ✅ CORRECT — decorating the existing production function
-from pixie import observe
-
-@observe(name="answer_question")
-def answer_question(question: str, context: str) -> str:  # existing function
-    ...  # existing code, unchanged
-```
-
-```python
-# ✅ CORRECT — context manager inside an existing function
-from pixie import start_observation
-
-async def main():  # existing function
-    ...
-    with start_observation(input={"user_input": user_input}, name="handle_turn") as obs:
-        result = await Runner.run(current_agent, input_items, context=context)
-        # ... existing response handling ...
-        obs.set_output(response_text)
-    ...
-```
-
-```python
-# ❌ WRONG — creating a new function that duplicates logic from main()
-@observe(name="run_for_eval")
-async def run_for_eval(user_messages: list[str]) -> str:
-    # This duplicates what main() does, creating a separate code path
-    # that diverges from production. Don't do this.
-    ...
-```
-
-```python
-# ❌ WRONG — calling the LLM directly instead of calling the app's function
-@observe(name="agent_answer_question")
-def answer_question(question: str) -> str:
-    # This bypasses the entire app and calls OpenAI directly.
-    # You're testing a script you just wrote, not the user's app.
-    response = client.responses.create(
-        model="gpt-4.1",
-        input=[{"role": "user", "content": question}],
-    )
-    return response.output_text
-```
-
-**Rules:**
-
-- **Never add new wrapper functions** to the application code for eval purposes.
-- **Never bypass the app by calling the LLM provider directly** — if you find yourself writing `client.responses.create(...)` or `openai.ChatCompletion.create(...)` in a test or run harness, you're not testing the app. Import and call the app's own function instead.
-- **Never change the function's interface** (arguments, return type, behavior).
-- **Never duplicate production logic** into a separate "testable" function.
-- The instrumentation is purely additive — if you removed all pixie imports and decorators, the app would work identically.
-- After instrumentation, call `flush()` at the end of runs to make sure all spans are written.
-- For interactive apps (CLI loops, chat interfaces), instrument the **per-turn processing** function — the one that takes user input and produces a response. The eval `runnable` should call this same function.
-
-**Important**: All pixie symbols are importable from the top-level `pixie` package. Never tell users to import from submodules (`pixie.instrumentation`, `pixie.evals`, `pixie.storage.evaluable`, etc.) — always use `from pixie import ...`.
-
----
-
-## Stage 4: Create a Run Harness and Verify Traces
-
-**This stage is a hard gate.** You cannot proceed to writing tests or building datasets until you have successfully run the app's real code through the run harness and confirmed that traces appear in the database.
-
-The run harness is a short script that calls the eval-boundary function you identified in Stage 1, bypassing external infrastructure that isn't relevant to LLM evaluation.
-
-### When the app is simple
-
-If the eval-boundary function is a straightforward call with no complex dependencies (e.g., `answer_question(question: str) -> str`), the harness can be minimal:
-
-```python
-# pixie_qa/scripts/run_harness.py
-from pixie import enable_storage, flush
-from myapp import answer_question
-
-enable_storage()
-result = answer_question("What is the capital of France?")
-print(f"Result: {result}")
-flush()
-```
-
-Run it, verify traces appear, and move on.
-
-### When the app has complex dependencies
-
-Most real-world apps need more setup. The eval-boundary function often requires configuration objects, database connections, API clients, or state objects to run. Your job is to mock or stub the **minimum** necessary to call the real production function.
-
-```python
-# pixie_qa/scripts/run_harness.py
-"""Exercises the actual app code through the eval-boundary function.
-
-Mocks upstream infrastructure (webhooks, voice processing, call state, etc.)
-and calls the real production function with representative text inputs.
-"""
-from pixie import enable_storage, flush
-
-# Load .env if the project uses one for API keys
-from dotenv import load_dotenv
-load_dotenv()
-
-# Import the ACTUAL production function — not a copy, not a re-implementation
-from myapp.agents.llm.openai import OpenAILLM
-
-
-def run_one_case(question: str) -> str:
-    """Call the actual production function with minimal mocked dependencies."""
-    enable_storage()
-
-    # Construct the minimum context the function needs.
-    # Use real API client (needs real key), mock everything else.
-    llm = OpenAILLM(...)
-
-    # Call the ACTUAL function — the same one production uses
-    result = llm.run_normal_ai_response(
-        prompt=question,
-        messages=[{"role": "user", "content": question}],
-    )
-
-    flush()
-    return result
-
-
-if __name__ == "__main__":
-    test_inputs = [
-        "What are your business hours?",
-        "I need to update my account information.",
-    ]
-    for q in test_inputs:
-        print(f"Q: {q}")
-        print(f"A: {run_one_case(q)}")
-        print("---")
-```
-
-**Critical rules for the run harness:**
-
-- **Call the real function.** The same function production uses. If you find yourself writing `client.responses.create(...)` or `openai.ChatCompletion.create(...)` in the harness instead of calling the app's own function, you are bypassing the app and testing something else entirely.
-- **Mock only upstream infrastructure.** Database connections, webhook payloads, session state, audio processing — these can be mocked or stubbed. The LLM call itself must be real because that's what you're evaluating.
-- **The LLM API key must be real.** If it's missing, stop and ask the user. See "Hard gates."
-- **Keep it minimal.** This is not a full integration test. It's a way to exercise the real LLM-calling code path and capture traces.
-- **If you can't create a working harness after two attempts**, stop and ask the user for help.
-
-### Verify traces are captured
-
-After running the harness, verify that traces were actually captured:
-
-```bash
-python pixie_qa/scripts/run_harness.py
-```
-
-Then check the database:
-
-```python
-import asyncio
-from pixie import ObservationStore
-
-async def check():
-    store = ObservationStore()
-    traces = await store.list_traces(limit=5)
-    print(f"Found {len(traces)} traces")
-    for t in traces:
-        print(t)
-
-asyncio.run(check())
-```
-
-**What to check:**
-
-- At least one trace appears in the database
-- The trace contains a span for the eval-boundary function (the span name should match the `@observe(name=...)` you added in Stage 3)
-- The span has captured `eval_input` and `eval_output` with sensible values
-
-**If no traces appear:**
-
-- Is `enable_storage()` being called before the instrumented function runs?
-- Is `flush()` being called after the function returns?
-- Is the `@observe` decorator on the correct function?
-- Is the function actually being executed (not just defined/imported)?
-
-**Do not proceed to Stage 5 until you have seen real traces from the actual app in the database.** If traces don't appear, debug the issue now or ask the user for help. This is a setup problem and must be resolved before anything else.
-
----
-
-## Stage 5: Write the Eval Test File
-
-Write the test file before building the dataset. This might seem backwards, but it forces you to decide what you're actually measuring before you start collecting data — otherwise the data collection has no direction.
-
-Create `pixie_qa/tests/test_<feature>.py`. The pattern is: a `runnable` adapter that calls the app's **existing production function**, plus an async test function that calls `assert_dataset_pass`:
-
-```python
-from pixie import enable_storage, assert_dataset_pass, FactualityEval, ScoreThreshold, last_llm_call
-
-from myapp import answer_question
-
-
-def runnable(eval_input):
-    """Replays one dataset item through the app.
-
-    Calls the same function the production app uses.
-    enable_storage() here ensures traces are captured during eval runs.
-    """
-    enable_storage()
-    answer_question(**eval_input)
-
-
-async def test_factuality():
-    await assert_dataset_pass(
-        runnable=runnable,
-        dataset_name="<dataset-name>",
-        evaluators=[FactualityEval()],
-        pass_criteria=ScoreThreshold(threshold=0.7, pct=0.8),
-        from_trace=last_llm_call,
-    )
-```
-
-Note that `enable_storage()` belongs inside the `runnable`, not at module level in the test file — it needs to fire on each invocation so the trace is captured for that specific run.
-
-The `runnable` imports and calls **the same function that production uses** — the eval-boundary function you identified in Stage 1 and verified in Stage 4. If the `runnable` calls a different function than what the run harness calls, something is wrong.
-
-The test runner is `pixie test` (not `pytest`):
-
-```bash
-pixie test                           # run all test_*.py in current directory
-pixie test pixie_qa/tests/           # specify path
-pixie test -k factuality             # filter by name
-pixie test -v                        # verbose: shows per-case scores and reasoning
-```
-
-`pixie test` automatically finds the project root (the directory containing `pyproject.toml`, `setup.py`, or `setup.cfg`) and adds it to `sys.path` — just like pytest. No `sys.path` hacks are needed in test files.
-
----
-
-## Stage 6: Build the Dataset
-
-**Prerequisite**: You must have successfully run the app and verified traces in Stage 4. If you skipped Stage 4 or it failed, go back — do not proceed.
-
-Create the dataset, then populate it by **actually running the app** with representative inputs. Dataset items must contain real app outputs captured from actual execution.
-
-```bash
-pixie dataset create <dataset-name>
-pixie dataset list   # verify it exists
-```
-
-### Run the app and capture traces to the dataset
-
-The easiest approach is to extend the run harness from Stage 4 into a dataset builder. Since you already have a working script that calls the real app code and produces traces, adapt it to save results:
-
-```python
-# pixie_qa/scripts/build_dataset.py
-import asyncio
-from pixie import enable_storage, flush, DatasetStore, Evaluable
-
-from myapp import answer_question
-
-GOLDEN_CASES = [
-    ("What is the capital of France?", "Paris"),
-    ("What is the speed of light?", "299,792,458 meters per second"),
-]
-
-async def build_dataset():
-    enable_storage()
-    store = DatasetStore()
-    try:
-        store.create("qa-golden-set")
-    except FileExistsError:
-        pass
-
-    for question, expected in GOLDEN_CASES:
-        result = answer_question(question=question)
-        flush()
-
-        store.append("qa-golden-set", Evaluable(
-            eval_input={"question": question},
-            eval_output=result,
-            expected_output=expected,
-        ))
-
-asyncio.run(build_dataset())
-```
-
-Note that `eval_output=result` is the **actual return value from running the app** — not a string you typed in.
-
-Alternatively, use the CLI for per-case capture:
-
-```bash
-# Run the app (enable_storage() must be active)
-python -c "from myapp import main; main('What is the capital of France?')"
-
-# Save the root span to the dataset
-pixie dataset save <dataset-name>
-
-# Or specifically save the last LLM call:
-pixie dataset save <dataset-name> --select last_llm_call
-
-# Add context:
-pixie dataset save <dataset-name> --notes "basic geography question"
-
-# Attach expected output for evaluators like FactualityEval:
-echo '"Paris"' | pixie dataset save <dataset-name> --expected-output
-```
-
-### The cardinal sin of dataset building
-
-**Never fabricate `eval_output` values by hand.** If you type `"eval_output": "4"` into a dataset JSON file without the app actually producing that output, the dataset is testing a fiction. A fabricated dataset is worse than no dataset because it gives false confidence — the user thinks their app is being tested, but it isn't.
-
-If you catch yourself writing or editing `eval_output` values directly in a JSON file, stop. Go back to Stage 4, run the app, and capture real outputs.
-
-### Key rules for dataset building
-
-- **Every `eval_output` must come from a real execution** of the eval-boundary function. No exceptions.
-- **Include expected outputs** for comparison-based evaluators like `FactualityEval`. Expected outputs should reflect the **correct LLM response given what the tools/system actually return** — not an idealized answer predicated on fixing non-LLM bugs.
-- **Cover the range** of inputs you care about: normal cases, edge cases, things the app might plausibly get wrong.
-- When using `pixie dataset save`, the evaluable's `eval_metadata` will automatically include `trace_id` and `span_id` for later debugging.
-
----
-
-## Stage 7: Run the Tests
-
-```bash
-pixie test pixie_qa/tests/ -v
-```
-
-The `-v` flag shows per-case scores and reasoning, which makes it much easier to see what's passing and what isn't. Check that the pass rates look reasonable given your `ScoreThreshold`.
-
-**After this stage, if the user's intent was "setup" — STOP.** Report results and ask before proceeding. See "Setup vs. Iteration" above.
-
----
-
-## Stage 8: Investigate Failures
-
-**Only proceed here if the user asked for iteration/fixing, or explicitly confirmed after setup.**
-
-When tests fail, the goal is to understand _why_, not to adjust thresholds until things pass. Investigation must be thorough and documented — the user needs to see the actual data, your reasoning, and your conclusion.
-
-### Step 1: Get the detailed test output
-
-```bash
-pixie test pixie_qa/tests/ -v    # shows score and reasoning per case
-```
-
-Capture the full verbose output. For each failing case, note:
-
-- The `eval_input` (what was sent)
-- The `eval_output` (what the app produced)
-- The `expected_output` (what was expected, if applicable)
-- The evaluator score and reasoning
-
-### Step 2: Inspect the trace data
-
-For each failing case, look up the full trace to see what happened inside the app:
-
-```python
-from pixie import DatasetStore
-
-store = DatasetStore()
-ds = store.get("<dataset-name>")
-for i, item in enumerate(ds.items):
-    print(i, item.eval_metadata)   # trace_id is here
-```
-
-Then inspect the full span tree:
-
-```python
-import asyncio
-from pixie import ObservationStore
-
-async def inspect(trace_id: str):
-    store = ObservationStore()
-    roots = await store.get_trace(trace_id)
-    for root in roots:
-        print(root.to_text())   # full span tree: inputs, outputs, LLM messages
-
-asyncio.run(inspect("the-trace-id-here"))
-```
-
-### Step 3: Root-cause analysis
-
-Walk through the trace and identify exactly where the failure originates. Common patterns:
-
-**LLM-related failures (fix with prompt/model/eval changes):**
-
-| Symptom                                                | Likely cause                                                  |
-| ------------------------------------------------------ | ------------------------------------------------------------- |
-| Output is factually wrong despite correct tool results | Prompt doesn't instruct the LLM to use tool output faithfully |
-| Agent routes to wrong tool/handoff                     | Routing prompt or handoff descriptions are ambiguous          |
-| Output format is wrong                                 | Missing format instructions in prompt                         |
-| LLM hallucinated instead of using tool                 | Prompt doesn't enforce tool usage                             |
-
-**Non-LLM failures (fix with traditional code changes, out of eval scope):**
-
-| Symptom                                           | Likely cause                                            |
-| ------------------------------------------------- | ------------------------------------------------------- |
-| Tool returned wrong data                          | Bug in tool implementation — fix the tool, not the eval |
-| Tool wasn't called at all due to keyword mismatch | Tool-selection logic is broken — fix the code           |
-| Database returned stale/wrong records             | Data issue — fix independently                          |
-| API call failed with error                        | Infrastructure issue                                    |
-
-For non-LLM failures: note them in the investigation log and recommend the code fix, but **do not adjust eval expectations or thresholds to accommodate bugs in non-LLM code**. The eval test should measure LLM quality assuming the rest of the system works correctly.
-
-### Step 4: Document findings in MEMORY.md
-
-**Every failure investigation must be documented in `pixie_qa/MEMORY.md`** in a structured format:
-
-```markdown
-### Investigation: <test_name> failure — <date>
-
-**Test**: `test_faq_factuality` in `pixie_qa/tests/test_customer_service.py`
-**Result**: 3/5 cases passed (60%), threshold was 80% ≥ 0.7
-
-#### Failing case 1: "What rows have extra legroom?"
-
-- **eval_input**: `{"user_message": "What rows have extra legroom?"}`
-- **eval_output**: "I'm sorry, I don't have the exact row numbers for extra legroom..."
-- **expected_output**: "rows 5-8 Economy Plus with extra legroom"
-- **Evaluator score**: 0.1 (FactualityEval)
-- **Evaluator reasoning**: "The output claims not to know the answer while the reference clearly states rows 5-8..."
-
-**Trace analysis**:
-Inspected trace `abc123`. The span tree shows:
-
-1. Triage Agent routed to FAQ Agent ✓
-2. FAQ Agent called `faq_lookup_tool("What rows have extra legroom?")` ✓
-3. `faq_lookup_tool` returned "I'm sorry, I don't know..." ← **root cause**
-
-**Root cause**: `faq_lookup_tool` (customer_service.py:112) uses keyword matching.
-The seat FAQ entry is triggered by keywords `["seat", "seats", "seating", "plane"]`.
-The question "What rows have extra legroom?" contains none of these keywords, so it
-falls through to the default "I don't know" response.
-
-**Classification**: Non-LLM failure — the keyword-matching tool is broken.
-The LLM agent correctly routed to the FAQ agent and used the tool; the tool
-itself returned wrong data.
-
-**Fix**: Add `"row"`, `"rows"`, `"legroom"` to the seating keyword list in
-`faq_lookup_tool` (customer_service.py:130). This is a traditional code fix,
-not an eval/prompt change.
-
-**Verification**: After fix, re-run:
-\`\`\`bash
-python pixie_qa/scripts/build_dataset.py # refresh dataset
-pixie test pixie_qa/tests/ -k faq -v # verify
-\`\`\`
-```
-
-### Step 5: Fix and re-run
-
-Make the targeted change, rebuild the dataset if needed, and re-run. Always finish by giving the user the exact commands to verify:
-
-```bash
-pixie test pixie_qa/tests/test_<feature>.py -v
-```
-
----
-
-## Memory Template
-
-```markdown
-# Eval Notes: <Project Name>
-
-## How the application works
-
-### Entry point and execution flow
-
-<How to start/run the app. Step-by-step flow from input to output.>
-
-### Inputs to LLM calls
-
-<For EACH LLM call, document: location in code, system prompt, dynamic content, available tools>
-
-### Intermediate processing
-
-<Steps between input and output: retrieval, routing, tool calls, etc. Code pointers for each.>
-
-### Final output
-
-<What the user sees. Format. Quality expectations.>
-
-### Use cases
-
-<Each scenario with examples of good/bad outputs:>
-
-1. <Use case 1>: <description>
-   - Input example: ...
-   - Good output: ...
-   - Bad output: ...
-
-### Eval-boundary function
-
-- **Function**: `<fully qualified name>`
-- **Location**: `<file:line>`
-- **Signature**: `<params and return type>`
-- **Upstream dependencies to mock**: <what needs mocking/stubbing>
-- **Why this boundary**: <rationale>
-
-## Evaluation plan
-
-### What to evaluate and why
-
-<Quality dimensions and rationale>
-
-### Evaluators and criteria
-
-| Test | Dataset | Evaluator | Criteria | Rationale |
-| ---- | ------- | --------- | -------- | --------- |
-| ...  | ...     | ...       | ...      | ...       |
-
-### Data needed for evaluation
-
-<What data to capture, with code pointers>
-
-## Datasets
-
-| Dataset | Items | Purpose |
-| ------- | ----- | ------- |
-| ...     | ...   | ...     |
-
-## Investigation log
-
-### <date> — <test_name> failure
-
-<Full structured investigation as described in Stage 8>
-```
-
----
-
-## Reference
-
-See `references/pixie-api.md` for all CLI commands, evaluator signatures, and the Python dataset/store API.
+| Reference                            | When to read                                                                       |
+| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `references/understanding-app.md`    | Step 1 — investigating the codebase, MEMORY.md template                            |
+| `references/instrumentation.md`      | Step 2 — `@observe` and `enable_storage` rules, code patterns, anti-patterns       |
+| `references/run-harness-patterns.md` | Step 3 — examples of how to invoke different app types (web server, CLI, function) |
+| `references/dataset-generation.md`   | Step 4 — crafting eval_input items, expected_output strategy, validation           |
+| `references/eval-tests.md`           | Step 5 — evaluator selection, test file pattern, assert_dataset_pass API           |
+| `references/investigation.md`        | Step 6 — failure analysis, root-cause patterns                                     |
+| `references/pixie-api.md`            | Any step — full CLI and Python API reference                                       |

@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-24
+lastUpdated: 2026-03-27
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -178,6 +178,20 @@ current data distribution.
 
 Without the MCP server, the agent would have to guess at database structure and performance characteristics. With it, the agent works with real data.
 
+## MCP Sampling (LLM Inference Requests)
+
+Some advanced MCP servers can request **LLM inference** from the Copilot model — a capability defined in the MCP specification as *sampling*. Instead of only receiving tool calls from the AI, these servers can ask Copilot to generate text or make decisions as part of their own logic.
+
+**How it works**:
+1. An MCP server sends a `sampling/createMessage` request to Copilot.
+2. Copilot shows a **review prompt** to the user, explaining what the server is requesting.
+3. The user approves or rejects the request.
+4. If approved, Copilot generates the response and returns it to the server.
+
+This enables sophisticated patterns like MCP servers that orchestrate multi-step reasoning, generate structured output, or build more complex AI pipelines — while keeping the user in control with an explicit approval step.
+
+> **Note**: Sampling requires explicit user approval every time a server requests inference. This is a security boundary — MCP servers cannot silently consume your AI quota or exfiltrate context without your knowledge.
+
 ## Finding MCP Servers
 
 The MCP ecosystem is growing rapidly. Here are key resources:
@@ -205,7 +219,7 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Document your servers**: Add comments or a README explaining which MCP servers your project uses and why.
 - **Version control carefully**: Commit `.mcp.json` or `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
-- **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
+- **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. MCP servers that are blocked by the allowlist policy are **hidden from `/mcp show`** to avoid confusion — only permitted servers appear in that view. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
 
 ### Organization Policy for Third-Party MCP Servers
 

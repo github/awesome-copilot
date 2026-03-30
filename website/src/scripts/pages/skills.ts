@@ -1,13 +1,22 @@
 /**
  * Skills page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from "../choices";
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from "../choices";
 import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
+  getQueryParam,
+  getQueryParamFlag,
+  getQueryParamValues,
   showToast,
   downloadZipBundle,
+  updateQueryParams,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
 import {
@@ -120,6 +129,15 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? "",
+    category: currentFilters.categories,
+    hasAssets: currentFilters.hasAssets,
+    sort: currentSort === "title" ? "" : currentSort,
+  });
+}
+
 async function downloadSkill(
   skillId: string,
   btn: HTMLButtonElement
@@ -189,25 +207,52 @@ export async function initSkillsPage(): Promise<void> {
     "label",
     true
   );
+
+  const initialQuery = getQueryParam("q");
+  const initialCategories = getQueryParamValues("category").filter((category) =>
+    data.filters.categories.includes(category)
+  );
+  const initialSort = getQueryParam("sort");
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialCategories.length > 0) {
+    currentFilters.categories = initialCategories;
+    setChoicesValues(categorySelect, initialCategories);
+  }
+  if (getQueryParamFlag("hasAssets")) {
+    currentFilters.hasAssets = true;
+    if (hasAssetsCheckbox) hasAssetsCheckbox.checked = true;
+  }
+  if (initialSort === "lastUpdated") {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById("filter-category")?.addEventListener("change", () => {
     currentFilters.categories = getChoicesValues(categorySelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as SkillSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   applyFiltersAndRender();
   searchInput?.addEventListener(
     "input",
-    debounce(() => applyFiltersAndRender(), 200)
+    debounce(() => {
+      applyFiltersAndRender();
+      syncUrlState(searchInput);
+    }, 200)
   );
 
   hasAssetsCheckbox?.addEventListener("change", () => {
     currentFilters.hasAssets = hasAssetsCheckbox.checked;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   clearFiltersBtn?.addEventListener("click", () => {
@@ -218,6 +263,7 @@ export async function initSkillsPage(): Promise<void> {
     if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "title";
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   setupModal();
