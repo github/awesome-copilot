@@ -11,6 +11,33 @@
   },
   "plugins": [
     {
+      "name": "agent-dotfiles",
+      "description": "Write AI coding rules once, sync to every agent. Supports Command Code, Claude Code, Cursor, Copilot, Codex, and OpenCode.",
+      "version": "0.1.1",
+      "author": {
+        "name": "Saqib Ameen",
+        "url": "https://github.com/saqibameen"
+      },
+      "homepage": "https://agent-dotfiles.saqib.dev",
+      "keywords": [
+        "ai-rules",
+        "coding-agents",
+        "dotfiles",
+        "sync",
+        "copilot",
+        "claude",
+        "cursor",
+        "codex"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/saqibameen/agent-dotfiles",
+      "source": {
+        "source": "npm",
+        "package": "agent-dotfiles",
+        "version": "0.1.1"
+      }
+    },
+    {
       "name": "automate-this",
       "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",

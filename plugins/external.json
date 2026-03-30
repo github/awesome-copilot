@@ -138,5 +138,23 @@
       "source": "github",
       "repo": "figma/mcp-server-guide"
     }
+  },
+  {
+    "name": "agent-dotfiles",
+    "description": "Write AI coding rules once, sync to every agent. Supports Command Code, Claude Code, Cursor, Copilot, Codex, and OpenCode.",
+    "version": "0.1.1",
+    "author": {
+      "name": "Saqib Ameen",
+      "url": "https://github.com/saqibameen"
+    },
+    "homepage": "https://agent-dotfiles.saqib.dev",
+    "keywords": ["ai-rules", "coding-agents", "dotfiles", "sync", "copilot", "claude", "cursor", "codex"],
+    "license": "MIT",
+    "repository": "https://github.com/saqibameen/agent-dotfiles",
+    "source": {
+      "source": "npm",
+      "package": "agent-dotfiles",
+      "version": "0.1.1"
+    }
   }
 ]
