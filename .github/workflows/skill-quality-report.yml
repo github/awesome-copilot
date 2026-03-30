@@ -248,7 +248,51 @@ jobs:
 
             core.setOutput('title', title);
             core.setOutput('body_file', 'report-body.md');
-            fs.writeFileSync('report-body.md', body);
+
+            // GitHub Issues/Discussions enforce a body size limit on the
+            // UTF-8 payload (~65536 bytes). Use byte-based limits and prefer
+            // shrinking verbose <details> sections to keep markdown valid.
+            const MAX_BODY_BYTES = 65000; // leave some margin
+
+            function shrinkDetailsSections(markdown) {
+              return markdown.replace(
+                /<details([\s\S]*?)>[\s\S]*?<\/details>/g,
+                (match, attrs) => {
+                  const placeholder = '\n<summary>Details truncated</summary>\n\n' +
+                    "> Full output was truncated to fit GitHub's body size limit. " +
+                    'See the workflow run for complete output.\n';
+                  return `<details${attrs}>${placeholder}</details>`;
+                }
+              );
+            }
+
+            function trimToByteLimit(str, maxBytes) {
+              const buf = Buffer.from(str, 'utf8');
+              if (buf.length <= maxBytes) return str;
+              // Slice bytes and decode, which safely handles multi-byte chars
+              return buf.slice(0, maxBytes).toString('utf8').replace(/\uFFFD$/, '');
+            }
+
+            const truncNote = '\n\n> **Note:** Output was truncated to fit GitHub\'s body size limit. See the [workflow run](https://github.com/' + context.repo.owner + '/' + context.repo.repo + '/actions/workflows/skill-quality-report.yml) for full output.\n';
+            const truncNoteBytes = Buffer.byteLength(truncNote, 'utf8');
+
+            let finalBody = body;
+
+            if (Buffer.byteLength(finalBody, 'utf8') > MAX_BODY_BYTES) {
+              // First try: collapse <details> sections to reduce size
+              finalBody = shrinkDetailsSections(finalBody);
+            }
+
+            if (Buffer.byteLength(finalBody, 'utf8') > MAX_BODY_BYTES) {
+              // Last resort: hard byte-trim + truncation note
+              finalBody = trimToByteLimit(finalBody, MAX_BODY_BYTES - truncNoteBytes);
+            }
+
+            if (Buffer.byteLength(finalBody, 'utf8') < Buffer.byteLength(body, 'utf8')) {
+              finalBody += truncNote;
+            }
+
+            fs.writeFileSync('report-body.md', finalBody);
 
       # ── Create Discussion (preferred) or Issue (fallback) ────────
       - name: Create Discussion

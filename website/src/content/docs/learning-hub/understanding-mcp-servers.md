@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-27
+lastUpdated: 2026-03-30
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -138,6 +138,17 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 ```
 
 > **Security tip**: Use `${input:variableName}` for sensitive values. VS Code will prompt for these at runtime rather than storing them in the file.
+
+### Authentication
+
+Some MCP servers require authentication to connect to protected resources. GitHub Copilot CLI supports several authentication approaches:
+
+- **OAuth**: MCP servers can use the OAuth flow to authenticate with external services. The CLI handles the browser redirect and token storage automatically. This also works when running in ACP (Agent Coordination Protocol) mode.
+- **Microsoft Entra ID (Azure AD)**: MCP servers that authenticate via Microsoft Entra ID are fully supported. Once you complete the initial login, the CLI caches the authentication and **will not show the consent screen on subsequent connections** — you authenticate once per session rather than every time the server reconnects.
+- **API keys via environment variables**: Pass secrets through the `env` field in the MCP server configuration (see examples above). Never hardcode credentials in `.mcp.json`.
+- **`${input:variableName}` prompts**: VS Code will prompt for these values at runtime, keeping secrets out of committed files.
+
+> **Tip**: If your MCP server uses OAuth with Dynamic Client Registration but hosts its authorization metadata at a non-standard URL (as some enterprise servers like Atlassian Rovo do), Copilot CLI handles this automatically.
 
 ## How Agents Use MCP Tools
 

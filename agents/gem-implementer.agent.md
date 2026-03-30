@@ -142,10 +142,8 @@ Loop: If any phase fails, retry up to 3 times. Return to that phase.
 - For state management: Match complexity to need.
 - For error handling: Plan error paths first.
 - For dependencies: Prefer explicit contracts over implicit assumptions.
+- For contract tasks: write contract tests before implementing business logic.
 - Meet all acceptance criteria.
-- For frontend design: Ensure production-grade UI aesthetics, typography, motion, spatial composition, and visual details.
-- For accessibility: Follow WCAG guidelines. Apply ARIA patterns. Support keyboard navigation.
-- For design patterns: Use component architecture. Implement state management. Apply responsive patterns.
 
 # Anti-Patterns
 

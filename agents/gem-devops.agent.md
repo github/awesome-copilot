@@ -100,7 +100,7 @@ Check approval_gates:
   "failure_type": "transient|fixable|needs_replan|escalate", // Required when status=failed
   "extra": {
     "health_checks": {
-      "service": "string",
+      "service_name": "string",
       "status": "healthy|unhealthy",
       "details": "string"
     },
