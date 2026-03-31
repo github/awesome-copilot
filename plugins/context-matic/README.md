@@ -49,7 +49,7 @@ This list is growing. [Suggest a new API](#contributing) to request support for 
 
 ## What the Plugin Gives the Agent
 
-Once installed, the plugin exposes four tools to the agent. Each tool is mapped to a specific stage of the integration workflow:
+Once installed, the plugin exposes seven tools to the agent. Each tool is mapped to a specific stage of the integration workflow:
 
 | Tool | Developer task it enables |
 |------|--------------------------|
@@ -57,6 +57,9 @@ Once installed, the plugin exposes four tools to the agent. Each tool is mapped 
 | `ask` | Chat with API Copilot for step-by-step integration guidance and general API questions: authentication setup, client initialization, feature behavior, framework-specific patterns (e.g. "How do I initialize the Twilio client in Laravel?"), and idiomatic SDK code samples. |
 | `endpoint_search` | Returns an SDK endpoint method's description, input parameters, and response shape by method name. |
 | `model_search` | Returns an SDK model's full definition and its typed properties by name. Call this before writing code that constructs request bodies or reads response objects. |
+| `update_activity` | Records concrete integration milestones such as SDK setup, auth configuration, the first successful API call, and resolved errors. The agent calls this after a milestone has actually been reached in code or infrastructure. |
+| `add_guidelines` | Adds language-specific guideline files such as security, testing, or workflow guidance that the agent can follow during implementation. |
+| `add_skills` | Adds reusable project skills such as `{language}-conventions` so future API integration work can follow the project's language-specific conventions. |
 
 For step-by-step guidance on using these tools together, invoke the `/integrate-context-matic` skill in your agent. It tells the agent when and how to call each tool throughout your integration workflow.
 
@@ -64,17 +67,20 @@ For step-by-step guidance on using these tools together, invoke the `/integrate-
 
 ## From Prompt to Code: How the Tools Work Together
 
-The four tools are designed to chain together in a natural integration workflow. Here is a concrete example of what happens under the hood when the agent receives a real task:
+The seven tools are designed to chain together in a natural integration workflow. Here is a concrete example of what happens under the hood when the agent receives a real task:
 
 **Your prompt:** _"/integrate-context-matic Add Twilio SMS notifications to my Next.js app. Send a text when an order ships."_
 
 | Step | Tool called | What it returns |
 |------|-------------|----------------|
-| 1 | `fetch_api` (`language=typescript`) | Discovers Twilio is available; returns its `key` |
-| 2 | `ask` (`key=twilio`, query=_"How do I initialize the Twilio TypeScript client?"_) | Returns exact SDK setup code with auth configuration |
-| 3 | `endpoint_search` (`query=createMessage`) | Returns the method signature, required parameters, and auth requirements for the SMS send endpoint |
-| 4 | `model_search` (`query=CreateMessageRequest`) | Returns the full typed request model with every available field |
-| 5 | `ask` (`query="How do I handle delivery status callbacks in Next.js?"`) | Returns webhook handling code aligned to the Twilio SDK |
+| 1 | `add_guidelines` (`language=typescript`) | Adds project guideline files the agent can follow for security, testing, and implementation workflow before starting the API integration. |
+| 2 | `add_skills` (`language=typescript`) | Adds reusable language-specific skills such as conventions guidance so the project setup matches future integration work. |
+| 3 | `fetch_api` (`language=typescript`) | Discovers Twilio is available; returns its `key` |
+| 4 | `ask` (`key=twilio`, query=_"How do I initialize the Twilio TypeScript client?"_) | Returns exact SDK setup code with auth configuration |
+| 5 | `update_activity` (`milestone=auth_configured`) | Records that credentials are wired into the app and the integration is ready for the first live call |
+| 6 | `endpoint_search` (`query=createMessage`) | Returns the method signature, required parameters, and auth requirements for the SMS send endpoint |
+| 7 | `model_search` (`query=CreateMessageRequest`) | Returns the full typed request model with every available field |
+| 8 | `ask` (`query="How do I handle delivery status callbacks in Next.js?"`) | Returns webhook handling code aligned to the Twilio SDK |
 
 Each step completes in a single tool call. The agent handles the orchestration. You describe the goal, and it picks the right tool at the right time.
 
