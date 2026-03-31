@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-23
+lastUpdated: 2026-03-30
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -139,6 +139,17 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 
 > **Security tip**: Use `${input:variableName}` for sensitive values. VS Code will prompt for these at runtime rather than storing them in the file.
 
+### Authentication
+
+Some MCP servers require authentication to connect to protected resources. GitHub Copilot CLI supports several authentication approaches:
+
+- **OAuth**: MCP servers can use the OAuth flow to authenticate with external services. The CLI handles the browser redirect and token storage automatically. This also works when running in ACP (Agent Coordination Protocol) mode.
+- **Microsoft Entra ID (Azure AD)**: MCP servers that authenticate via Microsoft Entra ID are fully supported. Once you complete the initial login, the CLI caches the authentication and **will not show the consent screen on subsequent connections** — you authenticate once per session rather than every time the server reconnects.
+- **API keys via environment variables**: Pass secrets through the `env` field in the MCP server configuration (see examples above). Never hardcode credentials in `.mcp.json`.
+- **`${input:variableName}` prompts**: VS Code will prompt for these values at runtime, keeping secrets out of committed files.
+
+> **Tip**: If your MCP server uses OAuth with Dynamic Client Registration but hosts its authorization metadata at a non-standard URL (as some enterprise servers like Atlassian Rovo do), Copilot CLI handles this automatically.
+
 ## How Agents Use MCP Tools
 
 When an agent declares an MCP server in its `tools` array, Copilot can invoke that server's capabilities during conversation:
@@ -178,6 +189,20 @@ current data distribution.
 
 Without the MCP server, the agent would have to guess at database structure and performance characteristics. With it, the agent works with real data.
 
+## MCP Sampling (LLM Inference Requests)
+
+Some advanced MCP servers can request **LLM inference** from the Copilot model — a capability defined in the MCP specification as *sampling*. Instead of only receiving tool calls from the AI, these servers can ask Copilot to generate text or make decisions as part of their own logic.
+
+**How it works**:
+1. An MCP server sends a `sampling/createMessage` request to Copilot.
+2. Copilot shows a **review prompt** to the user, explaining what the server is requesting.
+3. The user approves or rejects the request.
+4. If approved, Copilot generates the response and returns it to the server.
+
+This enables sophisticated patterns like MCP servers that orchestrate multi-step reasoning, generate structured output, or build more complex AI pipelines — while keeping the user in control with an explicit approval step.
+
+> **Note**: Sampling requires explicit user approval every time a server requests inference. This is a security boundary — MCP servers cannot silently consume your AI quota or exfiltrate context without your knowledge.
+
 ## Finding MCP Servers
 
 The MCP ecosystem is growing rapidly. Here are key resources:
@@ -205,7 +230,16 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Document your servers**: Add comments or a README explaining which MCP servers your project uses and why.
 - **Version control carefully**: Commit `.mcp.json` or `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
-- **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
+- **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. MCP servers that are blocked by the allowlist policy are **hidden from `/mcp show`** to avoid confusion — only permitted servers appear in that view. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
+
+### Organization Policy for Third-Party MCP Servers
+
+GitHub organizations can enforce a policy that restricts which third-party MCP servers members are permitted to use. When this policy is active:
+
+- Copilot CLI **enforces** the policy for all users in the organization.
+- A **warning is shown** if a configured MCP server is blocked by the policy, so you know which servers are restricted before expecting them to work.
+
+If you see a warning that an MCP server is blocked, contact your organization administrator to find out which servers are on the allowlist, or switch to an approved alternative.
 
 ## Common Questions
 

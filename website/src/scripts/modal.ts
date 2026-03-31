@@ -1180,8 +1180,18 @@ function renderLocalPluginModal(
   // Add click handlers to plugin items
   modalContent.querySelectorAll(".collection-item").forEach((el) => {
     el.addEventListener("click", () => {
-      const path = (el as HTMLElement).dataset.path;
+      let path = (el as HTMLElement).dataset.path;
       const itemType = (el as HTMLElement).dataset.type;
+
+      switch (itemType) {
+        case "agent":
+          path = path.replace(".md", ".agent.md");
+          break;
+        case "skill":
+          path = `${path}/SKILL.md`;
+          break;
+      }
+
       if (path && itemType) {
         openFileModal(path, itemType);
       }

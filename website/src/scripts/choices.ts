@@ -13,6 +13,16 @@ export function getChoicesValues(choices: Choices): string[] {
 }
 
 /**
+ * Restore selected values on a Choices instance.
+ */
+export function setChoicesValues(choices: Choices, values: string[]): void {
+  // Clear any existing active items so that the final selection matches `values`
+  choices.removeActiveItems();
+  // Set all provided values as the current selection
+  choices.setChoiceByValue(values);
+}
+
+/**
  * Create a new Choices instance with sensible defaults
  */
 export function createChoices(selector: string | HTMLSelectElement, options: Partial<Choices['config']> = {}): Choices {

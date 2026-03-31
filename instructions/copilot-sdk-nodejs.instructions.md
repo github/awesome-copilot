@@ -206,11 +206,11 @@ Handle both delta events (incremental) and final events:
 await new Promise<void>((resolve) => {
   session.on((event) => {
     switch (event.type) {
-      case "assistant.message.delta":
+      case "assistant.message_delta":
         // Incremental text chunk
         process.stdout.write(event.data.deltaContent);
         break;
-      case "assistant.reasoning.delta":
+      case "assistant.reasoning_delta":
         // Incremental reasoning chunk (model-dependent)
         process.stdout.write(event.data.deltaContent);
         break;
@@ -665,7 +665,7 @@ const session = await client.createSession({
 let currentMessage = "";
 
 const unsubscribe = session.on((event) => {
-  if (event.type === "assistant.message.delta") {
+  if (event.type === "assistant.message_delta") {
     currentMessage += event.data.deltaContent;
     process.stdout.write(event.data.deltaContent);
   } else if (event.type === "assistant.message") {

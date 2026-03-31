@@ -148,7 +148,7 @@ A: No, Copilot doesn't automatically analyze all files in your repository. It fo
 
 **Q: How do I know what context Copilot is using?**
 
-A: In GitHub Copilot Chat, you can see which files are being referenced in responses. When Copilot generates suggestions, it's primarily using your currently open files and the code immediately surrounding your cursor. Using `#workspace` in chat explicitly searches across your entire repository.
+A: In GitHub Copilot Chat, you can see which files are being referenced in responses. When Copilot generates suggestions, it's primarily using your currently open files and the code immediately surrounding your cursor. Using `#codebase` in chat explicitly searches across your entire repository.
 
 **Q: Can I control what context is included?**
 

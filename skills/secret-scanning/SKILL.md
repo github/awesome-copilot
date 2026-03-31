@@ -1,6 +1,6 @@
 ---
 name: secret-scanning
-description: Guide for configuring and managing GitHub secret scanning, push protection, custom patterns, and secret alert remediation. This skill should be used when users need help enabling secret scanning, setting up push protection, defining custom secret patterns, triaging secret scanning alerts, or resolving blocked pushes.
+description: 'Guide for configuring and managing GitHub secret scanning, push protection, custom patterns, and secret alert remediation. For pre-commit secret scanning in AI coding agents via the GitHub MCP Server, this skill references the Advanced Security plugin (`advanced-security@copilot-plugins`). Use this skill when enabling secret scanning, setting up push protection, defining custom patterns, triaging alerts, resolving blocked pushes, or when an agent needs to scan code for secrets before committing.'
 ---
 
 # Secret Scanning
@@ -20,6 +20,7 @@ Use this skill when the request involves:
 - Excluding directories from secret scanning via `secret_scanning.yml`
 - Understanding alert types (user, partner, push protection)
 - Enabling validity checks or extended metadata checks
+- Scanning local code changes for secrets before committing (via MCP / AI coding agent) — see the **Pre-Commit Scanning via AI Coding Agents** section below for the recommended plugin
 
 ## How Secret Scanning Works
 
@@ -211,6 +212,23 @@ Dismiss with a documented reason:
 - **Used in tests** — secret is only in test code
 
 > For detailed alert types, validity checks, and REST API, search `references/alerts-and-remediation.md`.
+
+## Pre-Commit Scanning via AI Coding Agents
+
+For scanning code changes for secrets inside an AI coding agent before committing, install the **Advanced Security plugin** which provides the `run_secret_scanning` MCP tool and a dedicated scanning skill.
+
+**GitHub Copilot CLI:**
+```bash
+/plugin install advanced-security@copilot-plugins
+```
+
+**Visual Studio Code:**
+- In Copilot Chat, open **Chat: Plugins** (or use `@agentPlugins`) and install the `advanced-security` plugin
+- Then run `/secret-scanning` in Copilot Chat
+
+See: [Advanced Security Plugin — Secret Scanning Skill](https://github.com/github/copilot-plugins/blob/main/plugins/advanced-security/skills/secret-scanning/SKILL.md)
+
+> Announced in [Secret scanning in AI coding agents via the GitHub MCP Server](https://github.blog/changelog/2026-03-17-secret-scanning-in-ai-coding-agents-via-the-github-mcp-server/) (March 2026)
 
 ## Reference Files
 

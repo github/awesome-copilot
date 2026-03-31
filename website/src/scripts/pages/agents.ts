@@ -1,9 +1,23 @@
 /**
  * Agents page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from '../choices';
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from '../choices';
 import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, setupDropdownCloseHandlers, setupActionHandlers } from '../utils';
+import {
+  fetchData,
+  debounce,
+  getQueryParam,
+  getQueryParamFlag,
+  getQueryParamValues,
+  setupDropdownCloseHandlers,
+  setupActionHandlers,
+  updateQueryParams,
+} from '../utils';
 import { setupModal, openFileModal } from '../modal';
 import { renderAgentsHtml, sortAgents, type AgentSortOption, type RenderableAgent } from './agents-render';
 
@@ -111,6 +125,16 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? '',
+    model: currentFilters.models,
+    tool: currentFilters.tools,
+    handoffs: currentFilters.hasHandoffs,
+    sort: currentSort === 'title' ? '' : currentSort,
+  });
+}
+
 export async function initAgentsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
@@ -132,23 +156,46 @@ export async function initAgentsPage(): Promise<void> {
   // Initialize Choices.js for model filter
   modelSelect = createChoices('#filter-model', { placeholderValue: 'All Models' });
   modelSelect.setChoices(data.filters.models.map(m => ({ value: m, label: m })), 'value', 'label', true);
+
+  const initialQuery = getQueryParam('q');
+  const initialModels = getQueryParamValues('model').filter(model => data.filters.models.includes(model));
+  const initialTools = getQueryParamValues('tool').filter(tool => data.filters.tools.includes(tool));
+  const initialSort = getQueryParam('sort');
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialModels.length > 0) {
+    currentFilters.models = initialModels;
+    setChoicesValues(modelSelect, initialModels);
+  }
+
   document.getElementById('filter-model')?.addEventListener('change', () => {
     currentFilters.models = getChoicesValues(modelSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   // Initialize Choices.js for tool filter
   toolSelect = createChoices('#filter-tool', { placeholderValue: 'All Tools' });
   toolSelect.setChoices(data.filters.tools.map(t => ({ value: t, label: t })), 'value', 'label', true);
+  if (initialTools.length > 0) {
+    currentFilters.tools = initialTools;
+    setChoicesValues(toolSelect, initialTools);
+  }
   document.getElementById('filter-tool')?.addEventListener('change', () => {
     currentFilters.tools = getChoicesValues(toolSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   // Initialize sort select
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
   sortSelect?.addEventListener('change', () => {
     currentSort = sortSelect.value as AgentSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   const countEl = document.getElementById('results-count');
@@ -156,11 +203,20 @@ export async function initAgentsPage(): Promise<void> {
     countEl.textContent = `${allItems.length} of ${allItems.length} agents`;
   }
 
-  searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
+  searchInput?.addEventListener('input', debounce(() => {
+    applyFiltersAndRender();
+    syncUrlState(searchInput);
+  }, 200));
+
+  if (getQueryParamFlag('handoffs')) {
+    currentFilters.hasHandoffs = true;
+    if (handoffsCheckbox) handoffsCheckbox.checked = true;
+  }
 
   handoffsCheckbox?.addEventListener('change', () => {
     currentFilters.hasHandoffs = handoffsCheckbox.checked;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   clearFiltersBtn?.addEventListener('click', () => {
@@ -172,8 +228,10 @@ export async function initAgentsPage(): Promise<void> {
     if (searchInput) searchInput.value = '';
     if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
+  applyFiltersAndRender();
   setupModal();
   setupDropdownCloseHandlers();
   setupActionHandlers();
