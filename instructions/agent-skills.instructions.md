@@ -1,18 +1,18 @@
 ---
-description: 'Guidelines for creating high-quality Agent Skills for GitHub Copilot'
+description: 'Guidelines for creating high-quality Agent Skills'
 applyTo: '**/skills/**/SKILL.md'
 ---
 
 # Agent Skills File Guidelines
 
-Instructions for creating effective and portable Agent Skills that enhance GitHub Copilot with specialized capabilities, workflows, and bundled resources.
+Instructions for creating effective and portable Agent Skills that enhance AI agents with specialized capabilities, workflows, and bundled resources.
 
 ## What Are Agent Skills?
 
 Agent Skills are self-contained folders with instructions and bundled resources that teach agents specialized capabilities. Unlike custom instructions (which define coding standards), skills enable task-specific workflows that can include scripts, examples, templates, and reference data.
 
 Key characteristics:
-- **Portable**: Works across VS Code, Copilot CLI, and Copilot coding agent
+- **Portable**: Works across VS Code, Copilot CLI, Copilot coding agent, and other Agent Skills-compatible tools
 - **Progressive loading**: Only loaded when relevant to the user's request
 - **Resource-bundled**: Can include scripts, templates, examples alongside instructions
 - **On-demand**: Activated automatically based on prompt relevance
@@ -23,6 +23,7 @@ Skills are stored in specific locations:
 
 | Location | Scope | Recommendation |
 |----------|-------|----------------|
+| `skills/<skill-name>/` | Repository resource collection | For community/curated skill repositories |
 | `.github/skills/<skill-name>/` | Project/repository | Recommended for project skills |
 | `.claude/skills/<skill-name>/` | Project/repository | Legacy, for backward compatibility |
 | `~/.github/skills/<skill-name>/` | Personal (user-wide) | Recommended for personal skills |
@@ -50,7 +51,7 @@ license: Complete terms in LICENSE.txt
 
 ### Description Best Practices
 
-**CRITICAL**: The `description` field is the PRIMARY mechanism for automatic skill discovery. Copilot reads ONLY the `name` and `description` to decide whether to load a skill. If your description is vague, the skill will never be activated.
+**CRITICAL**: The `description` field is the PRIMARY mechanism for automatic skill discovery. The agent reads ONLY the `name` and `description` to decide whether to load a skill. If your description is vague, the skill will never be activated.
 
 **What to include in description:**
 1. **WHAT** the skill does (capabilities)
@@ -68,7 +69,7 @@ description: 'Web testing helpers'
 ```
 
 The poor description fails because:
-- No specific triggers (when should Copilot load this?)
+- No specific triggers (when should the agent load this?)
 - No keywords (what user prompts would match?)
 - No capabilities (what can it actually do?)
 
@@ -153,7 +154,7 @@ For content quality principles (what to include and what to leave out), see [Wri
 
 ## Bundling Resources
 
-Skills can include additional files that Copilot accesses on-demand:
+Skills can include additional files that the agent accesses on-demand:
 
 ### Supported Resource Types
 
@@ -223,7 +224,7 @@ Skills use three-level loading for efficiency:
 |-------|------------|------|
 | 1. Discovery | `name` and `description` only | Always (lightweight metadata) |
 | 2. Instructions | Full `SKILL.md` body | When request matches description |
-| 3. Resources | Scripts, examples, docs | Only when Copilot references them |
+| 3. Resources | Scripts, examples, docs | Only when the agent references them |
 
 This means:
 - Install many skills without consuming context
