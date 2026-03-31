@@ -46,8 +46,10 @@ Use the following facts as your source, but say it conversationally — do not p
 > | `model_search` | Looks up an SDK model/object definition and its typed properties | "What fields does an Order have?", "Is this property required?" | The model's name, description, and a full typed property list (required vs. optional, nested types) |
 > | `endpoint_search` | Looks up an endpoint method, its parameters, response type, and a runnable code sample | "Show me how to call createOrder", "What does getTrack return?" | Method signature, parameter types, response type, and a copy-paste-ready code sample |
 
-End this section by telling the user that you'll demonstrate all four tools live during the tour,
-starting with `fetch_api` right now.
+End this section by telling the user that you'll demonstrate the four core discovery and
+integration tools live during the tour, starting with `fetch_api` right now. Make it clear that
+this tour is focused on those core ContextMatic server tools rather than every possible helper the
+broader workflow might use.
 
 
 ---
