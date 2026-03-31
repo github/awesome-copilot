@@ -154,7 +154,10 @@ Tell the user:
 
 Before calling, say something like: *"Let me search for the `[model name]` model so you can see what the result looks like."*
 
-Pick a **representative model** from the chosen API (examples below) and call **`model_search`**:
+Pick a **representative model** from the chosen API (examples below) and call **`model_search`** with:
+- `key` = the previously chosen API key (for example, `paypal` or `spotify`)
+- `language` = the detected project language
+- `query` = the representative model name you picked
 
 | API key | Good demo query |
 |---|---|
