@@ -16,7 +16,7 @@
     "email": "developer@apimatic.io"
   },
   "homepage": "https://www.apimatic.io",
-  "repository": "https://github.com/apimatic/context-matic",
+  "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "skills": [
     "./skills/integrate-context-matic/",
