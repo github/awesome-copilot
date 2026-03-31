@@ -2,8 +2,45 @@
 
 This recipe demonstrates how to perform accessibility audits using GitHub Copilot in environments with **degraded infrastructure** or **low bandwidth**.
 
+<details>
+  <summary>🔍 View Architectural Workflow Diagram</summary>
+  
+```mermaid
+graph TD
+    %% Struttura dei nodi
+    subgraph Browser["🌍 Browser (Stateless Edge)"]
+        VanillaJS["Minimalist JS Injector"]
+        DOM["DOM Atoms (Semantics)"]
+    end
+    
+    subgraph Network["Low-Bandwidth / Degraded Net"]
+        DataJSON["Ultralight JSON Payload"]
+    end
+    
+    subgraph AI["GitHub Copilot (SRE Optimized)"]
+        AuditAI["Copilot WCAG 2.2 AAA Audit"]
+        FixAI["High-Resilience Fixes"]
+    end
+
+    %% Connessioni del Workflow
+    VanillaJS -->|1. Extract| DOM
+    DOM -->|2. Serialize| DataJSON
+    DataJSON -->|3. Transfer| AuditAI
+    AuditAI -->|4. Analyze| FixAI
+
+    %% Styling Accessibile (Bordi spessi, colori neutri ad alto contrasto)
+    classDef browser stroke:#2196f3,stroke-width:2px;
+    classDef network stroke:#fbc02d,stroke-width:2px,stroke-dasharray: 5 5;
+    classDef ai stroke:#4caf50,stroke-width:2px;
+    
+    class Browser,VanillaJS,DOM browser;
+    class Network,DataJSON network;
+    class AI,AuditAI,FixAI ai;
+```
+</details>
+
 ## Context
-Standard accessibility tools often require heavy dependencies (Playwright, Puppeteer). In global health equity scenarios—core to the **BiotechProject** vision—we need a "Zero-Framework" approach that runs entirely at the Edge.
+Standard accessibility tools often require heavy dependencies (Playwright, Puppeteer). In global health equity scenarios - core to the **BiotechProject** vision, we need a "Zero-Framework" approach that runs entirely at the Edge.
 
 ## The Recipe
 1. **Extract:** Use a minimalist Vanilla JS script to snapshot the semantic DOM.
