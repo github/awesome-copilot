@@ -35,7 +35,7 @@ graph TD
     Copilot --> Patch
     Patch --> App
 
-    %% Styling adattivo (Nessun fill fisso)
+    %% Styling
     style JSON stroke:#0277bd,stroke-width:2px,rx:5,ry:5
     style Copilot stroke:#fbc02d,stroke-width:2px,stroke-dasharray: 5 5,rx:5,ry:5
     style Patch stroke:#c62828,stroke-width:2px,rx:5,ry:5
