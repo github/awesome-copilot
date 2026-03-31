@@ -185,13 +185,18 @@ Tell the user:
 
 Before calling, say something like: *"Let me fetch the `[endpoint name]` endpoint so you can see the parameters and a live code sample."*
 
-Pick a **representative endpoint** for the chosen API and call **`endpoint_search`**:
+Pick a **representative endpoint** for the chosen API and call **`endpoint_search`** with an explicit argument object:
 
-| API key | Good demo query |
-|---|---|
-| `paypal` | `createOrder` |
-| `spotify` | `getTrack` |
+- `key`: the API key you are demonstrating (for example, `paypal` or `spotify`)
+- `query`: the endpoint / SDK method name you want to look up (for example, `createOrder` or `getTrack`)
+- `language`: the user's project language (for example, `"typescript"` or `"python"`)
 
+For example:
+
+| API key (`key`) | Endpoint name (`query`) | Example `language` |
+|---|---|---|
+| `paypal` | `createOrder` | user's project language |
+| `spotify` | `getTrack`   | user's project language |
 Display the result, pointing out:
 - The method name and description
 - The request parameters and their types
