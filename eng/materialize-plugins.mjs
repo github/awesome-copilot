@@ -50,7 +50,7 @@ function materializePlugins() {
   }
 
   const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter(entry => entry.isDirectory())
+    .filter(entry => entry.isDirectory() && entry.name !== "external")
     .map(entry => entry.name)
     .sort();
 

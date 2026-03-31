@@ -5,18 +5,18 @@ import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
-const EXTERNAL_PLUGINS_FILE = path.join(ROOT_FOLDER, "plugins", "external.json");
+const EXTERNAL_PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins", "external");
 const MARKETPLACE_FILE = path.join(ROOT_FOLDER, ".github/plugin", "marketplace.json");
 
 /**
  * Validate an external plugin entry has required fields and a non-local source
  * @param {object} plugin - External plugin entry
- * @param {number} index - Index in the array (for error messages)
+ * @param {string} filename - Source filename (for error messages)
  * @returns {string[]} - Array of validation error messages
  */
-function validateExternalPlugin(plugin, index) {
+function validateExternalPlugin(plugin, filename) {
   const errors = [];
-  const prefix = `external.json[${index}]`;
+  const prefix = `external/${filename}`;
 
   if (!plugin.name || typeof plugin.name !== "string") {
     errors.push(`${prefix}: "name" is required and must be a string`);
@@ -44,41 +44,56 @@ function validateExternalPlugin(plugin, index) {
 }
 
 /**
- * Read external plugin entries from external.json
+ * Read external plugin entries from individual JSON files in plugins/external/
  * @returns {Array} - Array of external plugin entries (merged as-is)
  */
 function readExternalPlugins() {
-  if (!fs.existsSync(EXTERNAL_PLUGINS_FILE)) {
+  if (!fs.existsSync(EXTERNAL_PLUGINS_DIR)) {
     return [];
   }
 
-  try {
-    const content = fs.readFileSync(EXTERNAL_PLUGINS_FILE, "utf8");
-    const plugins = JSON.parse(content);
-    if (!Array.isArray(plugins)) {
-      console.warn("Warning: external.json must contain an array");
-      return [];
-    }
+  const files = fs.readdirSync(EXTERNAL_PLUGINS_DIR)
+    .filter(f => f.endsWith(".json"))
+    .sort();
 
-    // Validate each entry
-    let hasErrors = false;
-    for (let i = 0; i < plugins.length; i++) {
-      const errors = validateExternalPlugin(plugins[i], i);
+  if (files.length === 0) {
+    return [];
+  }
+
+  const plugins = [];
+  let hasErrors = false;
+
+  for (const file of files) {
+    const filePath = path.join(EXTERNAL_PLUGINS_DIR, file);
+    try {
+      const content = fs.readFileSync(filePath, "utf8");
+      const plugin = JSON.parse(content);
+
+      if (typeof plugin !== "object" || Array.isArray(plugin)) {
+        console.error(`Error: external/${file} must contain a single JSON object`);
+        hasErrors = true;
+        continue;
+      }
+
+      const errors = validateExternalPlugin(plugin, file);
       if (errors.length > 0) {
         errors.forEach(e => console.error(`Error: ${e}`));
         hasErrors = true;
+      } else {
+        plugins.push(plugin);
       }
+    } catch (error) {
+      console.error(`Error reading external/${file}: ${error.message}`);
+      hasErrors = true;
     }
-    if (hasErrors) {
-      console.error("Error: external.json contains invalid entries");
-      process.exit(1);
-    }
-
-    return plugins;
-  } catch (error) {
-    console.error(`Error reading external.json: ${error.message}`);
-    return [];
   }
+
+  if (hasErrors) {
+    console.error("Error: one or more external plugin files contain invalid entries");
+    process.exit(1);
+  }
+
+  return plugins;
 }
 
 /**
@@ -114,9 +129,9 @@ function generateMarketplace() {
     process.exit(1);
   }
 
-  // Read all plugin directories
+  // Read all plugin directories (excluding the 'external' directory)
   const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter(entry => entry.isDirectory())
+    .filter(entry => entry.isDirectory() && entry.name !== "external")
     .map(entry => entry.name)
     .sort();
 

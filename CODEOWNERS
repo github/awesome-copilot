@@ -47,3 +47,13 @@
 
 # Added via #codeowner from PR #1118
 /agents/github-actions-node-upgrade.agent.md @joshjohanning
+
+# External plugins
+/plugins/external/dataverse.json @suyask-msft
+/plugins/external/azure.json @microsoft/ghcp4a
+/plugins/external/dotnet.json @ManishJayaswal
+/plugins/external/dotnet-diag.json @ManishJayaswal
+/plugins/external/skills-for-copilot-studio.json @ericsche
+/plugins/external/modernize-dotnet.json @tlmii
+/plugins/external/microsoft-docs.json @TianqiZhang
+/plugins/external/figma.json @siminapasat

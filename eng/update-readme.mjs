@@ -731,7 +731,7 @@ function generatePluginsSection(pluginsDir) {
   // Get all plugin directories
   const pluginDirs = fs
     .readdirSync(pluginsDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+    .filter((d) => d.isDirectory() && d.name !== "external")
     .map((d) => d.name);
 
   // Map plugin dirs to objects with name for sorting
@@ -806,7 +806,7 @@ function generateFeaturedPluginsSection(pluginsDir) {
   // Get all plugin directories
   const pluginDirs = fs
     .readdirSync(pluginsDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+    .filter((d) => d.isDirectory() && d.name !== "external")
     .map((d) => d.name);
 
   // Map plugin dirs to objects, filter for featured

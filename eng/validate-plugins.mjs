@@ -172,7 +172,7 @@ function validatePlugins() {
 
   const pluginDirs = fs
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+    .filter((d) => d.isDirectory() && d.name !== "external")
     .map((d) => d.name);
 
   if (pluginDirs.length === 0) {

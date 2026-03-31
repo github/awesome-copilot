@@ -504,7 +504,7 @@ function generatePluginsData(gitDates) {
 
   const pluginDirs = fs
     .readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory());
+    .filter((d) => d.isDirectory() && d.name !== "external");
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
@@ -544,19 +544,23 @@ function generatePluginsData(gitDates) {
     }
   }
 
-  // Load external plugins from plugins/external.json
-  const externalJsonPath = path.join(PLUGINS_DIR, "external.json");
-  if (fs.existsSync(externalJsonPath)) {
+  // Load external plugins from plugins/external/ directory
+  const externalDir = path.join(PLUGINS_DIR, "external");
+  if (fs.existsSync(externalDir)) {
     try {
-      const externalPlugins = JSON.parse(
-        fs.readFileSync(externalJsonPath, "utf-8")
-      );
-      if (Array.isArray(externalPlugins)) {
-        let addedCount = 0;
-        for (const ext of externalPlugins) {
+      const externalFiles = fs.readdirSync(externalDir)
+        .filter((f) => f.endsWith(".json"))
+        .sort();
+      let addedCount = 0;
+      for (const file of externalFiles) {
+        try {
+          const ext = JSON.parse(
+            fs.readFileSync(path.join(externalDir, file), "utf-8")
+          );
+
           if (!ext.name || !ext.description) {
             console.warn(
-              `Skipping external plugin with missing name/description`
+              `Skipping external plugin ${file} with missing name/description`
             );
             continue;
           }
@@ -591,13 +595,15 @@ function generatePluginsData(gitDates) {
             )} ${ext.author?.name || ""} ${ext.repository || ""}`.toLowerCase(),
           });
           addedCount++;
+        } catch (e) {
+          console.warn(`Failed to parse external plugin ${file}: ${e.message}`);
         }
-        console.log(
-          `  ✓ Loaded ${addedCount} external plugin(s)`
-        );
       }
+      console.log(
+        `  ✓ Loaded ${addedCount} external plugin(s)`
+      );
     } catch (e) {
-      console.warn(`Failed to parse external plugins: ${e.message}`);
+      console.warn(`Failed to read external plugins directory: ${e.message}`);
     }
   }
 
