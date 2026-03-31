@@ -303,7 +303,7 @@ Use numbered steps only for concrete, repeatable procedures (build, deploy, envi
 # ✅ Flexible
 When fixing error handling in API handlers:
 - Ensure all database operations have proper error handling
-- Use the project's ErrorHandler utility (see references/error-handling.md)
+- Use the project's ErrorHandler utility (see ./references/error-handling.md)
 - Log errors with enough context to debug in production
 ```
 
