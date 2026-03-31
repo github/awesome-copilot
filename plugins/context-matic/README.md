@@ -93,7 +93,7 @@ This plugin uses the ContextMatic MCP endpoint:
 https://chatbotapi.apimatic.io/mcp/plugins
 ```
 
-The plugin registers the MCP server through its root `.mcp.json` file so the server is available alongside the bundled skills.
+The plugin registers the MCP server through its plugin-root `.mcp.json` file so the server is available alongside the bundled skills.
 
 ---
 
