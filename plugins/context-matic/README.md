@@ -77,7 +77,7 @@ The seven tools are designed to chain together in a natural integration workflow
 | 2 | `add_skills` (`language=typescript`) | Adds reusable language-specific skills such as conventions guidance so the project setup matches future integration work. |
 | 3 | `fetch_api` (`language=typescript`) | Discovers Twilio is available; returns its `key` |
 | 4 | `ask` (`key=twilio`, query=_"How do I initialize the Twilio TypeScript client?"_) | Returns exact SDK setup code with auth configuration |
-| 5 | `update_activity` (`milestone=auth_configured`) | Records that credentials are wired into the app and the integration is ready for the first live call |
+| 5 | `update_activity` (`milestone=auth_configured`) | After the returned SDK/auth configuration has been added to the app, records that credentials are wired into the app and the integration is ready for the first live call |
 | 6 | `endpoint_search` (`query=createMessage`) | Returns the method signature, required parameters, and auth requirements for the SMS send endpoint |
 | 7 | `model_search` (`query=CreateMessageRequest`) | Returns the full typed request model with every available field |
 | 8 | `ask` (`query="How do I handle delivery status callbacks in Next.js?"`) | Returns webhook handling code aligned to the Twilio SDK |
