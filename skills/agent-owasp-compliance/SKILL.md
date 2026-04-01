@@ -56,22 +56,38 @@ Codebase → Scan for each ASI control:
 Look for input validation that runs **before** tool execution, not after LLM generation.
 
 ```python
+import re
+from pathlib import Path
+
 def check_asi_01(project_path: str) -> dict:
     """ASI-01: Is user input validated before reaching tool execution?"""
-    signals = {
-        "positive": [
-            "input_validation", "validate_input", "sanitize",
-            "classify_intent", "prompt_injection", "threat_detect",
-            "PolicyEvaluator", "PolicyEngine", "check_content",
-        ],
-        "negative": [
-            "eval(", "exec(", "subprocess.run(.*shell=True",
-            "os.system(", "input()",  # raw input passed to tools
-        ]
-    }
-    # Search codebase for these patterns
-    # Positive signals = controls exist
-    # Negative signals = potential vulnerabilities
+    positive_patterns = [
+        "input_validation", "validate_input", "sanitize",
+        "classify_intent", "prompt_injection", "threat_detect",
+        "PolicyEvaluator", "PolicyEngine", "check_content",
+    ]
+    negative_patterns = [
+        r"eval\(", r"exec\(", r"subprocess\.run\(.*shell=True",
+        r"os\.system\(",
+    ]
+
+    # Scan Python files for signals
+    root = Path(project_path)
+    positive_matches = []
+    negative_matches = []
+
+    for py_file in root.rglob("*.py"):
+        content = py_file.read_text(errors="ignore")
+        for pattern in positive_patterns:
+            if pattern in content:
+                positive_matches.append(f"{py_file.name}: {pattern}")
+        for pattern in negative_patterns:
+            if re.search(pattern, content):
+                negative_matches.append(f"{py_file.name}: {pattern}")
+
+    positive_found = len(positive_matches) > 0
+    negative_found = len(negative_matches) > 0
+
     return {
         "risk": "ASI-01",
         "name": "Prompt Injection",
@@ -122,6 +138,34 @@ def execute_tool(name: str, args: dict):
 
 ---
 
+## Check ASI-03: Excessive Agency
+
+Verify agent capabilities are bounded — not open-ended.
+
+**What to search for:**
+- Explicit capability lists or execution rings
+- Scope limits on what the agent can access
+- Principle of least privilege applied to tool access
+
+**Failing:** Agent has access to all tools by default.
+**Passing:** Agent capabilities defined as a fixed allowlist, unknown tools denied.
+
+---
+
+## Check ASI-04: Unauthorized Escalation
+
+Verify agents cannot promote their own privileges.
+
+**What to search for:**
+- Privilege level checks before sensitive operations
+- No self-promotion patterns (agent changing its own trust score or role)
+- Escalation requires external attestation (human or SRE witness)
+
+**Failing:** Agent can modify its own configuration or permissions.
+**Passing:** Privilege changes require out-of-band approval (e.g., Ring 0 requires SRE attestation).
+
+---
+
 ## Check ASI-05: Trust Boundary Violation
 
 In multi-agent systems, verify that agents verify each other's identity before accepting instructions.
@@ -145,6 +189,21 @@ def accept_task(sender_id: str, task: dict):
 
 ---
 
+## Check ASI-06: Insufficient Logging
+
+Verify all agent actions produce structured, tamper-evident audit entries.
+
+**What to search for:**
+- Structured logging for every tool call (not just print statements)
+- Audit entries include: timestamp, agent ID, tool name, args, result, policy decision
+- Append-only or hash-chained log format
+- Logs stored separately from agent-writable directories
+
+**Failing:** Agent actions logged via `print()` or not logged at all.
+**Passing:** Structured JSONL audit trail with chain hashes, exported to secure storage.
+
+---
+
 ## Check ASI-07: Insecure Identity
 
 Verify agents have cryptographic identity, not just string names.
@@ -162,6 +221,21 @@ Verify agents have cryptographic identity, not just string names.
 
 ---
 
+## Check ASI-08: Policy Bypass
+
+Verify policy enforcement is deterministic — not LLM-based.
+
+**What to search for:**
+- Policy evaluation uses deterministic logic (YAML rules, code predicates)
+- No LLM calls in the enforcement path
+- Policy checks cannot be skipped or overridden by the agent
+- Fail-closed behavior (if policy check errors, action is denied)
+
+**Failing:** Agent decides its own permissions via prompt ("Am I allowed to...?").
+**Passing:** PolicyEvaluator.evaluate() returns allow/deny in <0.1ms, no LLM involved.
+
+---
+
 ## Check ASI-09: Supply Chain Integrity
 
 Verify agent plugins and tools have integrity verification.
@@ -171,6 +245,21 @@ Verify agent plugins and tools have integrity verification.
 - Signature verification on plugin installation
 - Dependency pinning (no `@latest`, `>=` without upper bound)
 - SBOM generation
+
+---
+
+## Check ASI-10: Behavioral Anomaly
+
+Verify the system can detect and respond to agent behavioral drift.
+
+**What to search for:**
+- Circuit breakers that trip on repeated failures
+- Trust score decay over time (temporal decay)
+- Kill switch or emergency stop capability
+- Anomaly detection on tool call patterns (frequency, targets, timing)
+
+**Failing:** No mechanism to stop a misbehaving agent automatically.
+**Passing:** Circuit breaker trips after N failures, trust decays without activity, kill switch available.
 
 ---
 

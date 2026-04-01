@@ -9,6 +9,7 @@ description: |
   - Auditing which MCP servers a project registers and whether they're on an approved list
   - Checking for environment variable usage vs. hardcoded credentials in MCP configs
   - Any request like "is my MCP config secure?", "audit my MCP servers", or "check .mcp.json"
+  keywords: [mcp, security, audit, secrets, shell-injection, supply-chain, governance]
 ---
 
 # MCP Security Audit
@@ -112,6 +113,9 @@ def check_secrets(mcp_config: dict) -> list[dict]:
 Detect dangerous command patterns in MCP server args.
 
 ```python
+import json
+import re
+
 DANGEROUS_PATTERNS = [
     (r'\$\(', "Command substitution $(...)"),
     (r'`[^`]+`', "Backtick command substitution"),
@@ -145,11 +149,11 @@ def check_shell_injection(server_config: dict) -> list[dict]:
 
 ## Audit Check 3: Unpinned Dependencies
 
-Flag MCP servers using `@latest` or unversioned packages.
+Flag MCP servers using `@latest` in their package references.
 
 ```python
 def check_pinned_versions(server_config: dict) -> list[dict]:
-    """Check that MCP server dependencies use pinned versions."""
+    """Check that MCP server dependencies use pinned versions, not @latest."""
     findings = []
     args = server_config.get("args", [])
     for arg in args:
@@ -204,11 +208,14 @@ def audit_mcp_config(mcp_path: str) -> dict:
     results = {"file": str(path), "servers": {}, "summary": {}}
     total_findings = []
 
+    # Run secrets check once on the whole config (not per-server)
+    config_level_findings = check_secrets(config)
+    total_findings.extend(config_level_findings)
+
     for name, server_config in servers.items():
         if not isinstance(server_config, dict):
             continue
         findings = []
-        findings.extend(check_secrets(config))
         findings.extend(check_shell_injection(server_config))
         findings.extend(check_pinned_versions(server_config))
         results["servers"][name] = {

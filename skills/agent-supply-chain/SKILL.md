@@ -120,6 +120,10 @@ print(f"Generated manifest: {manifest['file_count']} files, "
 Check that current files match the manifest.
 
 ```python
+# Requires: hash_file() and generate_manifest() from Pattern 1 above
+import json
+from pathlib import Path
+
 def verify_manifest(plugin_dir: str) -> tuple[bool, list[str]]:
     """Verify plugin files against INTEGRITY.json."""
     root = Path(plugin_dir)
@@ -229,8 +233,17 @@ def promotion_check(plugin_dir: str) -> dict:
 
     # 2. Required files exist
     root = Path(plugin_dir)
-    required = ["README.md", ".claude-plugin/plugin.json"]
+    required = ["README.md"]
     missing = [f for f in required if not (root / f).exists()]
+
+    # Require at least one plugin manifest (supports both layouts)
+    manifest_paths = [
+        root / ".github/plugin/plugin.json",
+        root / ".claude-plugin/plugin.json",
+    ]
+    if not any(p.exists() for p in manifest_paths):
+        missing.append(".github/plugin/plugin.json (or .claude-plugin/plugin.json)")
+
     checks["required_files"] = {
         "passed": len(missing) == 0,
         "missing": missing
@@ -274,6 +287,8 @@ Add to your GitHub Actions workflow:
 ```yaml
 - name: Verify plugin integrity
   run: |
+    PLUGIN_DIR="${{ matrix.plugin || '.' }}"
+    cd "$PLUGIN_DIR"
     python -c "
     from pathlib import Path
     import json, hashlib, sys
