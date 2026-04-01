@@ -162,7 +162,7 @@ jobs:
             const combined = skillsOutput + '\n' + agentsOutput;
             const errorCount = (combined.match(/❌/g) || []).length;
             const warningCount = (combined.match(/⚠/g) || []).length;
-            const advisoryCount = (combined.match(/ℹ️/g) || []).length;
+            const advisoryCount = (combined.match(/ℹ\uFE0F?/g) || []).length;
 
             // Count total skills & agents checked
             let skillDirs = [];
