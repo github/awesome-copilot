@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-28
+lastUpdated: 2026-04-01
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -91,7 +91,8 @@ Hooks can trigger on several lifecycle events:
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
 | `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
-| `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
+| `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
+| `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
 | `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
@@ -205,6 +206,30 @@ automatically before the agent commits changes.
 ```
 
 ## Practical Examples
+
+### Handling Tool Failures with postToolUseFailure
+
+The `postToolUseFailure` hook fires when a tool call fails with an error — distinct from `postToolUse`, which only fires on success. Use it to log errors, send failure alerts, or implement retry logic:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUseFailure": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify-tool-failure.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+The hook receives JSON input describing which tool failed and the error message. This separation lets you write targeted failure-handling logic without adding conditional checks to your `postToolUse` hooks.
+
+> **Note**: Before v1.0.15, `postToolUse` fired for both successful and failed tool calls. If you have existing `postToolUse` hooks that handle failures, migrate that logic to `postToolUseFailure`.
 
 ### Auto-Format After Edits
 
