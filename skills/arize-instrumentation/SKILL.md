@@ -33,7 +33,7 @@ Before changing code:
    - package manager and app start command
    - whether the app is long-running, server-based, or a short-lived CLI/script
    - whether `ax` will be needed for post-change verification
-3. Do NOT proactively check `ax` installation or version. If `ax` is needed for verification later, just run it when the time comes. If it fails, see ax-setup.md.
+3. Do NOT proactively check `ax` installation or version. If `ax` is needed for verification later, just run it when the time comes. If it fails, see references/ax-profiles.md.
 4. Never silently replace a user-provided space ID, project name, or project ID. If the CLI, collector, and user input disagree, surface that mismatch as a concrete blocker.
 
 ## Phase 1: Analysis (read-only)
@@ -231,4 +231,4 @@ See the full setup at [Agent-Assisted Tracing Setup](https://arize.com/docs/ax/a
 
 ## Save Credentials for Future Use
 
-See ax-profiles.md § Save Credentials for Future Use.
+See references/ax-profiles.md § Save Credentials for Future Use.

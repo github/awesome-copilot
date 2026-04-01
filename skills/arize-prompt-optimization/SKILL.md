@@ -49,8 +49,8 @@ These columns carry the feedback data used for optimization:
 Proceed directly with the task — run the `ax` command you need. Do NOT check versions, env vars, or profiles upfront.
 
 If an `ax` command fails, troubleshoot based on the error:
-- `command not found` or version error → see ax-setup.md
-- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
+- `command not found` or version error → see references/ax-setup.md
+- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via references/ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
 - Space ID unknown → check `.env` for `ARIZE_SPACE_ID`, or run `ax spaces list -o json`, or ask the user
 - Project unclear → check `.env` for `ARIZE_DEFAULT_PROJECT`, or ask, or run `ax projects list -o json --limit 100` and present as selectable options
 - LLM provider call fails (missing OPENAI_API_KEY / ANTHROPIC_API_KEY) → check `.env`, load if present, otherwise ask the user
@@ -439,8 +439,8 @@ When optimizing prompts that use template variables:
 
 | Problem | Solution |
 |---------|----------|
-| `ax: command not found` | See ax-setup.md |
-| `No profile found` | No profile is configured. See ax-profiles.md to create one. |
+| `ax: command not found` | See references/ax-setup.md |
+| `No profile found` | No profile is configured. See references/ax-profiles.md to create one. |
 | No `input_messages` on span | Check span kind -- Chain/Agent spans store prompts on child LLM spans, not on themselves |
 | Prompt template is `null` | Not all instrumentations emit `prompt_template`. Use `input_messages` or `input.value` instead |
 | Variables lost after optimization | Verify the revised prompt preserves all `{var}` placeholders from the original |

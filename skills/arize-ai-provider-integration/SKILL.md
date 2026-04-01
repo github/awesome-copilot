@@ -18,8 +18,8 @@ description: "INVOKE THIS SKILL when creating, reading, updating, or deleting Ar
 Proceed directly with the task — run the `ax` command you need. Do NOT check versions, env vars, or profiles upfront.
 
 If an `ax` command fails, troubleshoot based on the error:
-- `command not found` or version error → see ax-setup.md
-- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
+- `command not found` or version error → see references/ax-setup.md
+- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via references/ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
 - Space ID unknown → check `.env` for `ARIZE_SPACE_ID`, or run `ax spaces list -o json`, or ask the user
 - LLM provider call fails (missing OPENAI_API_KEY / ANTHROPIC_API_KEY) → check `.env`, load if present, otherwise ask the user
 
@@ -246,7 +246,7 @@ Omit `--force` to get a confirmation prompt instead of deleting immediately.
 
 | Problem | Solution |
 |---------|----------|
-| `ax: command not found` | See ax-setup.md |
+| `ax: command not found` | See references/ax-setup.md |
 | `401 Unauthorized` | API key may not have access to this space. Verify key and space ID at https://app.arize.com/admin > API Keys |
 | `No profile found` | Run `ax profiles show --expand`; set `ARIZE_API_KEY` env var or write `~/.arize/config.toml` |
 | `Integration not found` | Verify with `ax ai-integrations list --space-id SPACE_ID` |
@@ -265,4 +265,4 @@ Omit `--force` to get a confirmation prompt instead of deleting immediately.
 
 ## Save Credentials for Future Use
 
-See ax-profiles.md § Save Credentials for Future Use.
+See references/ax-profiles.md § Save Credentials for Future Use.

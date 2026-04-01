@@ -19,8 +19,8 @@ The typical flow: export a dataset → process each example → collect outputs 
 Proceed directly with the task — run the `ax` command you need. Do NOT check versions, env vars, or profiles upfront.
 
 If an `ax` command fails, troubleshoot based on the error:
-- `command not found` or version error → see ax-setup.md
-- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
+- `command not found` or version error → see references/ax-setup.md
+- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via references/ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
 - Space ID unknown → check `.env` for `ARIZE_SPACE_ID`, or run `ax spaces list -o json`, or ask the user
 - Project unclear → check `.env` for `ARIZE_DEFAULT_PROJECT`, or ask, or run `ax projects list -o json --limit 100` and present as selectable options
 
@@ -312,9 +312,9 @@ ax experiments export EXPERIMENT_ID --stdout | jq -r '.[] | [.example_id, .outpu
 
 | Problem | Solution |
 |---------|----------|
-| `ax: command not found` | See ax-setup.md |
-| `401 Unauthorized` | API key is wrong, expired, or doesn't have access to this space. Fix the profile using ax-profiles.md. |
-| `No profile found` | No profile is configured. See ax-profiles.md to create one. |
+| `ax: command not found` | See references/ax-setup.md |
+| `401 Unauthorized` | API key is wrong, expired, or doesn't have access to this space. Fix the profile using references/ax-profiles.md. |
+| `No profile found` | No profile is configured. See references/ax-profiles.md to create one. |
 | `Experiment not found` | Verify experiment ID with `ax experiments list` |
 | `Invalid runs file` | Each run must have `example_id` and `output` fields |
 | `example_id mismatch` | Ensure `example_id` values match IDs from the dataset (export dataset to verify) |
@@ -323,4 +323,4 @@ ax experiments export EXPERIMENT_ID --stdout | jq -r '.[] | [.example_id, .outpu
 
 ## Save Credentials for Future Use
 
-See ax-profiles.md § Save Credentials for Future Use.
+See references/ax-profiles.md § Save Credentials for Future Use.
