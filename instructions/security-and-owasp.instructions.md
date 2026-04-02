@@ -134,9 +134,13 @@ const parsed = new URL(req.body.url);
 if (parsed.protocol !== 'https:') throw new Error('Only HTTPS allowed');
 const allowedHosts = ['api.example.com', 'cdn.example.com'];
 if (!allowedHosts.includes(parsed.hostname)) throw new Error('Host not allowed');
-// Resolve DNS to check actual IP (prevents DNS rebinding)
-const { address } = await dns.lookup(parsed.hostname);
-if (isPrivateIP(address)) throw new Error('Private IPs not allowed');
+// Resolve all A/AAAA records to prevent DNS rebinding via multiple IPs
+const resolved = await dns.lookup(parsed.hostname, { all: true });
+if (resolved.length === 0 || resolved.some(({ address }) => isPrivateIP(address))) {
+  throw new Error('Private or reserved IPs not allowed');
+}
+// Note: for production, pin the resolved IP in the HTTP client to prevent
+// TOCTOU rebinding between this check and fetch(). See undici Agent docs.
 const data = await fetch(parsed.toString(), { redirect: 'error' });
 ```
 
@@ -196,7 +200,7 @@ const result = parser.parse(req.body.xml);
 ### AU1: JWT Algorithm Confusion (alg:none)
 
 - **Severity**: CRITICAL
-- **Detection**: `jwt\.verify\([^)]*\)\s*(?!.*algorithms)`
+- **Detection**: `jwt\.verify\((?![^)]*\balgorithms\b)[^)]*\)`
 - **OWASP**: A07
 
 ```typescript
@@ -210,7 +214,7 @@ const decoded = jwt.verify(token, publicKey, { algorithms: ['RS256'] });
 ### AU2: JWT Without Expiration Check
 
 - **Severity**: CRITICAL
-- **Detection**: `jwt\.sign\([^)]*(?!.*exp)`
+- **Detection**: `jwt\.sign\((?![^)]*\b(?:expiresIn|exp)\b)[^)]*\)`
 - **OWASP**: A07
 
 ```typescript
@@ -284,7 +288,7 @@ req.session.regenerate((err) => {
 ### AU7: OAuth Without State Parameter
 
 - **Severity**: CRITICAL
-- **Detection**: `authorize\?.*(?!.*state=)`
+- **Detection**: `authorize\?(?![^\n#]*\bstate=)[^\n#]*`
 - **OWASP**: A07
 
 ```typescript
