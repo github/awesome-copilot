@@ -119,7 +119,7 @@ const clean = DOMPurify.sanitize(userContent);
 // BAD
 const data = await fetch(req.body.url);
 
-// GOOD — scheme allowlist + hostname allowlist + full DNS/IP validation
+// GOOD — scheme allowlist + hostname allowlist + DNS/IP validation (see TOCTOU note)
 import { promises as dns } from 'node:dns';
 
 function isPrivateIP(ip: string): boolean {
