@@ -123,7 +123,7 @@ session, err := client.ResumeSessionWithOptions("session-id", &copilot.ResumeSes
 
 ### Event Subscription Pattern
 
-ALWAYS use channels or done signals for waiting on session events:
+ALWAYS use channels or done signals to wait for session events:
 
 ```go
 done := make(chan struct{})
@@ -381,7 +381,7 @@ session2.Send(copilot.MessageOptions{Prompt: "Hello from session 2"})
 
 ## Bring Your Own Key (BYOK)
 
-Use custom API providers via `ProviderConfig`:
+Use custom API providers by configuring `ProviderConfig`:
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
@@ -437,7 +437,7 @@ session.On(func(evt copilot.SessionEvent) {
 
 ## Connectivity Testing
 
-Use Ping to verify server connectivity:
+Use `Ping` to verify server connectivity:
 
 ```go
 resp, err := client.Ping("test message")

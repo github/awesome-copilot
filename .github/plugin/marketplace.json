@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "arize-ax",
+      "source": "arize-ax",
+      "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
+      "version": "1.0.0"
+    },
+    {
       "name": "automate-this",
       "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
@@ -70,6 +76,12 @@
       "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
       "version": "1.0.0"
+    },
+    {
+      "name": "context-matic",
+      "source": "context-matic",
+      "description": "General-purpose AI models are trained on public code and documentation, much of it outdated. They have no awareness of an actual API version, latest SDKs, or recommended workflows. ContextMatic gives GitHub Copilot deterministic, version-aware API context generated directly from API definitions and SDKs. Instead of guessing from public examples, the agent is grounded in current SDK versions, idiomatic code samples, and recommended integration workflows.",
+      "version": "0.1.0"
     },
     {
       "name": "copilot-sdk",
@@ -391,6 +403,12 @@
       "name": "pcf-development",
       "source": "pcf-development",
       "description": "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps",
+      "version": "1.0.0"
+    },
+    {
+      "name": "phoenix",
+      "source": "phoenix",
+      "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",
       "version": "1.0.0"
     },
     {
