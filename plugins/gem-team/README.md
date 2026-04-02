@@ -1,55 +1,54 @@
-# Gem Team
+# 💎 Gem Team
 
 > A modular, high-performance multi-agent orchestration framework for spec-driven development, feature implementation, and automated verification.
 
 [![Copilot Plugin](https://img.shields.io/badge/Plugin-Awesome%20Copilot-0078D4?style=flat-square&logo=microsoft)](https://awesome-copilot.github.com/plugins/#file=plugins%2Fgem-team)
-![Version](https://img.shields.io/badge/Version-1.5.0-6366f1?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.5.1-6366f1?style=flat-square)
 
 ---
 
-## Why Gem Team?
+## 🤔 Why Gem Team?
+
+### ✨ Why It Works
+
+- ⚡ **10x Faster** — Parallel execution eliminates bottlenecks
+- 🏆 **Higher Quality** — Specialized agents + TDD + verification gates = fewer bugs
+- 🔒 **Built-in Security** — OWASP scanning on critical tasks
+- 👁️ **Full Visibility** — Real-time status, clear approval gates
+- 🛡️ **Resilient** — Pre-mortem analysis, failure handling, auto-replanning
+- ♻️ **Pattern Reuse** — Codebase pattern discovery prevents reinventing wheels
+- 🪞 **Self-Correcting** — All agents self-critique at 0.85 confidence threshold before returning results
+- ♿ **Accessibility-First** — WCAG compliance validated at both spec and runtime layers
+- 🔬 **Smart Debugging** — Root-cause analysis with stack trace parsing, regression bisection, and confidence-scored fix recommendations
+- 🚀 **Safe DevOps** — Idempotent operations, health checks, and mandatory approval gates for production
+- 🔗 **Traceable** — Self-documenting IDs link requirements → tasks → tests → evidence
+- 🎯 **Decision-Focused** — Research outputs highlight blockers and decision points for planners
+- 📋 **Rich Specification Creation** — PRD creation with user stories, IN/OUT of scope, acceptance criteria, and clarification tracking
+- 📐 **Spec-Driven Development** — Specifications define the "what" before the "how", with multi-step refinement rather than one-shot code generation from prompts
 
 ### Single-Agent Problems → Gem Team Solutions
 
 | Problem | Solution |
 |:--------|:---------|
 | Context overload | **Specialized agents** with focused expertise |
-| No specialization | **12 expert agents** with clear roles and zero overlap |
-| Sequential bottlenecks | **DAG-based parallel execution** (≤4 agents simultaneously) |
+| No specialization | **11 expert agents** with clear roles and zero overlap |
+| Sequential bottlenecks | **DAG-based parallel execution** (≤4 agents, ≤8 with `fast`) |
 | Missing verification | **TDD + mandatory verification gates** per agent |
 | Intent misalignment | **Discuss phase** captures intent; **clarification tracking** in PRD |
 | No audit trail | Persistent **`plan.yaml` and `PRD.yaml`** tracks every decision & outcome |
 | Over-engineering | **Architectural gates** validate simplicity; **gem-critic** challenges assumptions |
-| Untested accessibility | **WCAG spec validation** (designer) + **runtime checks** (browser tester) |
+| Untested accessibility | **WCAG spec validation** (gem-designer) + **runtime checks** (gem-browser-tester) |
 | Blind retries | **Diagnose-then-fix**: gem-debugger finds root cause, gem-implementer applies fix |
 | Single-plan risk | Complex tasks get **3 planner variants** → best DAG selected automatically |
 | Missed edge cases | **gem-critic** audits for logic gaps, boundary conditions, YAGNI violations |
-| Slow manual workflows | **Magic keywords** (`autopilot`, `simplify`, `critique`, `debug`, `fast`) skip to what you need |
-| Docs drift from code | **gem-documentation-writer** enforces code-documentation parity |
+| Docs drift from code | **Auto-included docs tasks** for new features ensures code-documentation parity |
 | Unsafe deployments | **Approval gates** block production/security changes until confirmed |
 | Browser fragmentation | **Multi-browser testing** via Chrome MCP, Playwright, and Agent Browser |
 | Broken contracts | **Contract verification** post-wave ensures dependent tasks integrate correctly |
 
-### Why It Works
-
-- **10x Faster** — Parallel execution eliminates bottlenecks
-- **Higher Quality** — Specialized agents + TDD + verification gates = fewer bugs
-- **Built-in Security** — OWASP scanning on critical tasks
-- **Full Visibility** — Real-time status, clear approval gates
-- **Resilient** — Pre-mortem analysis, failure handling, auto-replanning
-- **Pattern Reuse** — Codebase pattern discovery prevents reinventing wheels
-- **Self-Correcting** — All agents self-critique at 0.85 confidence threshold before returning results
-- **Accessibility-First** — WCAG compliance validated at both spec and runtime layers
-- **Smart Debugging** — Root-cause analysis with stack trace parsing, regression bisection, and confidence-scored fix recommendations
-- **Safe DevOps** — Idempotent operations, health checks, and mandatory approval gates for production
-- **Traceable** — Self-documenting IDs link requirements → tasks → tests → evidence
-- **Decision-Focused** — Research outputs highlight blockers and decision points for planners
-- **Rich Specification Creation** — PRD creation with user stories, IN/OUT of scope, acceptance criteria, and clarification tracking
-- **Spec-Driven Development** — Specifications define the "what" before the "how", with multi-step refinement rather than one-shot code generation from prompts
-
 ---
 
-## Installation
+## 📦 Installation
 
 ```bash
 # Using Copilot CLI
@@ -60,7 +59,7 @@ copilot plugin install gem-team@awesome-copilot
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```mermaid
 flowchart TB
@@ -135,7 +134,6 @@ flowchart TB
     detect --> |"Plan + pending"| EXEC
     detect --> |"Plan + feedback"| PHASE4
     detect --> |"All done"| SUMMARY
-    detect --> |"Magic keyword"| route
 
     DISCUSS --> PRD
     PRD --> PHASE3
@@ -152,7 +150,7 @@ flowchart TB
 
 ---
 
-## Core Workflow
+## 🔄 Core Workflow
 
 The Orchestrator follows a 6-phase workflow with automatic phase detection.
 
@@ -165,27 +163,26 @@ The Orchestrator follows a 6-phase workflow with automatic phase detection.
 | Plan + pending tasks | Execution Loop |
 | Plan + feedback | Planning |
 | All tasks done | Summary |
-| Magic keyword | Fast-track to specified agent/mode |
 
-### Phase 1: Discuss (medium|complex only)
+### 1️⃣ Phase 1: Discuss (medium|complex only)
 
 - **Identifies gray areas** → 2-4 context-aware options per question
 - **Asks 3-5 targeted questions** → Architectural decisions → `AGENTS.md`
 - **Task clarifications** captured for PRD creation
 
-### Phase 2: PRD Creation
+### 2️⃣ Phase 2: PRD Creation
 
 - **Creates** `docs/PRD.yaml` from Discuss Phase outputs
 - **Includes:** user stories, IN SCOPE, OUT OF SCOPE, acceptance criteria
 - **Tracks clarifications:** status (open/resolved/deferred) with owner assignment
 
-### Phase 3: Research
+### 3️⃣ Phase 3: Research
 
 - **Detects complexity** (simple/medium/complex)
 - **Delegates to gem-researcher** (≤4 concurrent) per focus area
-- **Output:** `docs/plan/{plan_id}/research_findings_{focus}.yaml`
+- **Output:** `docs/plan/{plan_id}/research_findings_{focus}.yaml` (or `docs/research_findings_{timestamp}.yaml` for standalone calls)
 
-### Phase 4: Planning
+### 4️⃣ Phase 4: Planning
 
 - **Complex:** 3 planner variants (a/b/c) → selects best
 - **gem-reviewer** validates with architectural checks (simplicity, anti-abstraction, integration-first)
@@ -193,10 +190,10 @@ The Orchestrator follows a 6-phase workflow with automatic phase detection.
 - **Planning history** tracks iteration passes for continuous improvement
 - **Output:** `docs/plan/{plan_id}/plan.yaml` (DAG + waves)
 
-### Phase 5: Execution
+### 5️⃣ Phase 5: Execution
 
 - **Executes in waves** (wave 1 first, wave 2 after)
-- **≤4 agents parallel** per wave (6-8 with `fast`/`parallel` keyword)
+- **≤4 agents parallel** per wave
 - **TDD cycle:** Red → Green → Refactor → Verify
 - **Contract-first:** Write contract tests before implementing tasks with dependencies
 - **Wave integration:** get_errors → build → lint/typecheck/tests → contract verification
@@ -204,7 +201,7 @@ The Orchestrator follows a 6-phase workflow with automatic phase detection.
 - **Prototype support:** Wave 1 can include prototype tasks to validate architecture early
 - **Auto-invocations:** gem-critic after each wave (complex); gem-designer validates UI tasks post-wave
 
-### Phase 6: Summary
+### 6️⃣ Phase 6: Summary
 
 - **Decision log:** All key decisions with rationale (backward reference to requirements)
 - **Production feedback:** How to verify in production, known limitations, rollback procedure
@@ -213,84 +210,86 @@ The Orchestrator follows a 6-phase workflow with automatic phase detection.
 
 ---
 
-## The Agent Team
+## 🤖 The Agent Team
 
 | Agent | Role | When to Use |
 |:------|:-----|:------------|
-| `gem-orchestrator` | **ORCHESTRATOR** | Coordinates multi-agent workflows, delegates tasks. Never executes directly. |
-| `gem-researcher` | **RESEARCHER** | Research, explore, analyze code, find patterns, investigate dependencies. Decision-focused output with blockers highlighted. |
-| `gem-planner` | **PLANNER** | Plan, design approach, break down work, estimate effort. Supports prototype tasks, planning passes, and multiple iterations. |
-| `gem-implementer` | **IMPLEMENTER** | Implement, build, create, code, write, fix (TDD). Uses contract-first approach for tasks with dependencies. |
-| `gem-browser-tester` | **BROWSER TESTER** | Test UI, browser tests, E2E, visual regression, accessibility. |
-| `gem-devops` | **DEVOPS** | Deploy, configure infrastructure, CI/CD, containers. |
-| `gem-reviewer` | **REVIEWER** | Review, audit, security scan, compliance. Never modifies. Performs architectural checks and contract verification. |
-| `gem-documentation-writer` | **DOCUMENTATION** | Document, write docs, README, API docs, diagrams. |
-| `gem-debugger` | **DEBUGGER** | Debug, diagnose, root cause analysis, trace errors. Never fixes. |
-| `gem-critic` | **CRITIC** | Critique, challenge assumptions, edge cases, over-engineering. |
-| `gem-code-simplifier` | **SIMPLIFIER** | Simplify, refactor, dead code removal, reduce complexity. |
-| `gem-designer` | **DESIGNER** | Design UI, create themes, layouts, validate accessibility. |
+| `gem-orchestrator` | 🎯 **ORCHESTRATOR** | Coordinates multi-agent workflows, delegates tasks. Never executes directly. |
+| `gem-researcher` | 🔍 **RESEARCHER** | Research, explore, analyze code, find patterns, investigate dependencies. Decision-focused output with blockers highlighted. |
+| `gem-planner` | 📋 **PLANNER** | Plan, design approach, break down work, estimate effort. Supports prototype tasks, planning passes, and multiple iterations. Auto-includes documentation tasks for new features. |
+| `gem-implementer` | 🔧 **IMPLEMENTER** | Implement, build, create, code, write, fix (TDD). Uses contract-first approach for tasks with dependencies. |
+| `gem-browser-tester` | 🧪 **BROWSER TESTER** | Test UI, browser tests, E2E, flow testing, visual regression, accessibility runtime validation. |
+| `gem-devops` | 🚀 **DEVOPS** | Deploy, configure infrastructure, CI/CD, containers with health checks and approval gates. |
+| `gem-reviewer` | 🛡️ **REVIEWER** | Review, audit, security scan, compliance. Never modifies. Performs architectural checks and contract verification. Validates: compliance with spec/PRD. |
+| `gem-documentation-writer` | 📝 **DOCUMENTATION** | Document, write docs, README, API docs, diagrams, walkthroughs. Auto-assigned to new feature tasks. |
+| `gem-debugger` | 🔬 **DEBUGGER** | Debug, diagnose, root cause analysis, trace errors. Never fixes - only diagnoses. |
+| `gem-critic` | 🎯 **CRITIC** | Critique, challenge assumptions, edge cases, over-engineering. Validates: approach correctness. |
+| `gem-code-simplifier` | ✂️ **SIMPLIFIER** | Simplify, refactor, dead code removal, reduce complexity. |
+| `gem-designer` | 🎨 **DESIGNER** | Design UI, create themes, layouts. Two modes: create (specs before) and validate (review after). Validates: accessibility spec compliance. |
 
 ---
 
-## Key Features
+## 🌟 Key Features
 
 | Feature | Description |
 |:--------|:------------|
-| **TDD (Red-Green-Refactor)** | Tests first → fail → minimal code → refactor → verify |
-| **Security-First** | OWASP scanning, secrets/PII detection, tiered depth review |
-| **Pre-Mortem Analysis** | Failure modes identified BEFORE execution |
-| **Multi-Plan Selection** | Complex tasks: 3 planner variants → selects best DAG |
-| **Wave-Based Execution** | Parallel agent execution with integration gates |
-| **Diagnose-then-Fix** | gem-debugger finds root cause → injects diagnosis → gem-implementer fixes |
-| **Approval Gates** | Security + deployment approval for sensitive ops |
-| **Multi-Browser Testing** | Chrome MCP, Playwright, Agent Browser |
-| **Codebase Patterns** | Avoids reinventing the wheel |
-| **Self-Critique** | Reflection step before output (0.85 confidence threshold) |
-| **Root-Cause Diagnosis** | Stack trace analysis, regression bisection |
-| **Constructive Critique** | Challenges assumptions, finds edge cases |
-| **Magic Keywords** | Fast-track modes: `autopilot`, `simplify`, `critique`, `debug`, `fast` |
-| **Docs-Code Parity** | Documentation verified against source code |
-| **Contract-First Development** | Contract tests written before implementation |
-| **Self-Documenting IDs** | Task/AC IDs encode lineage for traceability |
-| **Architectural Gates** | Plan review validates simplicity & integration-first |
-| **Prototype Wave** | Wave 1 can validate architecture before full implementation |
-| **Planning History** | Tracks iteration passes for continuous improvement |
-| **Clarification Tracking** | PRD tracks unresolved items with ownership |
+| 🧪 **TDD (Red-Green-Refactor)** | Tests first → fail → minimal code → refactor → verify |
+| 🔒 **Security-First** | OWASP scanning, secrets/PII detection, tiered depth review |
+| ⚠️ **Pre-Mortem Analysis** | Failure modes identified BEFORE execution |
+| 🗂️ **Multi-Plan Selection** | Complex tasks: 3 planner variants → selects best DAG |
+| 🌊 **Wave-Based Execution** | Parallel agent execution with integration gates |
+| 🩺 **Diagnose-then-Fix** | gem-debugger finds root cause → injects diagnosis → gem-implementer fixes |
+| 🚪 **Approval Gates** | Security + deployment approval for sensitive ops |
+| 🌐 **Multi-Browser Testing** | Chrome MCP, Playwright, Agent Browser |
+| 🧭 **Flow Testing** | Multi-step user journeys with shared state, branching, and flow-level assertions |
+| 🔄 **Codebase Patterns** | Avoids reinventing the wheel |
+| 🪞 **Self-Critique** | Reflection step before output (0.85 confidence threshold) |
+| 🔬 **Root-Cause Diagnosis** | Stack trace analysis, regression bisection |
+| 💬 **Constructive Critique** | Challenges assumptions, finds edge cases |
+| ⚡ **Magic Keywords** | Fast-track modes: `autopilot`, `simplify`, `critique`, `debug`, `fast` |
+| 📚 **Docs-Code Parity** | Documentation auto-included for new features |
+| 📝 **Contract-First Development** | Contract tests written before implementation |
+| 🔗 **Self-Documenting IDs** | Task/AC IDs encode lineage for traceability |
+| 🏛️ **Architectural Gates** | Plan review validates simplicity & integration-first |
+| 🧪 **Prototype Wave** | Wave 1 can validate architecture before full implementation |
+| 📈 **Planning History** | Tracks iteration passes for continuous improvement |
+| 📌 **Clarification Tracking** | PRD tracks unresolved items with ownership |
+| ⚖️ **Critic vs Reviewer Routing** | Critic validates approach, Reviewer validates compliance |
 
 ---
 
-## Knowledge Sources
+## 📚 Knowledge Sources
 
 All agents consult in priority order:
 
 | Source | Description |
 |:-------|:------------|
-| `docs/PRD.yaml` | Product requirements — scope and acceptance criteria |
-| Codebase patterns | Semantic search for implementations, reusable components |
-| `AGENTS.md` | Team conventions and architectural decisions |
-| Context7 | Library and framework documentation |
-| Official docs | Guides, configuration, reference materials |
-| Online search | Best practices, troubleshooting, GitHub issues |
+| 📋 `docs/PRD.yaml` | Product requirements — scope and acceptance criteria |
+| 🔎 Codebase patterns | Semantic search for implementations, reusable components |
+| 📄 `AGENTS.md` | Team conventions and architectural decisions |
+| 📖 Context7 | Library and framework documentation |
+| 🌐 Official docs | Guides, configuration, reference materials |
+| 🔍 Online search | Best practices, troubleshooting, GitHub issues |
 
 ---
 
-## Generated Artifacts
+## 📂 Generated Artifacts
 
 | Agent | Generates | Path |
 |:------|:----------|:-----|
-| gem-orchestrator | PRD | `docs/PRD.yaml` |
-| gem-planner | plan.yaml | `docs/plan/{plan_id}/plan.yaml` |
-| gem-researcher | findings | `docs/plan/{plan_id}/research_findings_{focus}.yaml` |
-| gem-critic | critique report | `docs/plan/{plan_id}/critique_{scope}.yaml` |
-| gem-browser-tester | evidence | `docs/plan/{plan_id}/evidence/{task_id}/` |
-| gem-designer | design specs | `docs/plan/{plan_id}/design_{task_id}.yaml` |
-| gem-code-simplifier | change log | `docs/plan/{plan_id}/simplification_{task_id}.yaml` |
-| gem-debugger | diagnosis | `docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml` |
-| gem-documentation-writer | docs | `docs/` (README, API docs, walkthroughs) |
+| gem-orchestrator | 📋 PRD | `docs/PRD.yaml` |
+| gem-planner | 📄 plan.yaml | `docs/plan/{plan_id}/plan.yaml` |
+| gem-researcher | 🔍 findings | `docs/plan/{plan_id}/research_findings_{focus}.yaml` |
+| gem-critic | 💬 critique report | `docs/plan/{plan_id}/critique_{scope}.yaml` |
+| gem-browser-tester | 🧪 evidence | `docs/plan/{plan_id}/evidence/{task_id}/` |
+| gem-designer | 🎨 design specs | `docs/plan/{plan_id}/design_{task_id}.yaml` |
+| gem-code-simplifier | ✂️ change log | `docs/plan/{plan_id}/simplification_{task_id}.yaml` |
+| gem-debugger | 🔬 diagnosis | `docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml` |
+| gem-documentation-writer | 📝 docs | `docs/` (README, API docs, walkthroughs) |
 
 ---
 
-## Agent Protocol
+## ⚙️ Agent Protocol
 
 ### Core Rules
 
@@ -320,14 +319,14 @@ All agents consult in priority order:
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License.
 
-## Support
+## 💬 Support
 
 If you encounter any issues or have questions, please [open an issue](https://github.com/mubaidr/gem-team/issues) on GitHub.
