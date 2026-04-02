@@ -119,14 +119,16 @@ const clean = DOMPurify.sanitize(userContent);
 // BAD
 const data = await fetch(req.body.url);
 
-// GOOD — allowlist + DNS resolution + protocol check
+// GOOD — scheme allowlist + hostname allowlist + full DNS/IP validation
 import { promises as dns } from 'node:dns';
 
 function isPrivateIP(ip: string): boolean {
-  // IPv4 private/reserved ranges
-  if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.)/.test(ip)) return true;
-  // IPv6 loopback and link-local
-  if (ip === '::1' || ip.startsWith('fe80:') || ip.startsWith('fc') || ip.startsWith('fd')) return true;
+  // Normalize IPv4-mapped IPv6 (e.g., ::ffff:127.0.0.1 → 127.0.0.1)
+  const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+  // IPv4 private/reserved/loopback ranges
+  if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.)/.test(normalized)) return true;
+  // IPv6 loopback, link-local, and unique-local
+  if (/^(::1|fe80::|fc|fd)/i.test(ip)) return true;
   return false;
 }
 
