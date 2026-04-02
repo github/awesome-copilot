@@ -44,7 +44,9 @@
 
 # Wee, Sherif - proper name (Wee, Sherif, contributor names should not be flagged as typos)
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif
+# queston - intentional misspelling example in skills/arize-dataset/SKILL.md demonstrating typo detection in field names
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston
 
 # Skip certain files and directories
 

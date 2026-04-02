@@ -1,0 +1,25 @@
+{
+  "name": "context-matic",
+  "description": "General-purpose AI models are trained on public code and documentation, much of it outdated. They have no awareness of an actual API version, latest SDKs, or recommended workflows. ContextMatic gives GitHub Copilot deterministic, version-aware API context generated directly from API definitions and SDKs. Instead of guessing from public examples, the agent is grounded in current SDK versions, idiomatic code samples, and recommended integration workflows.",
+  "version": "0.1.0",
+  "keywords": [
+    "api-context",
+    "api-integration",
+    "mcp",
+    "sdk",
+    "apimatic",
+    "third-party-apis",
+    "sdks"
+  ],
+  "author": {
+    "name": "APIMatic",
+    "email": "developer@apimatic.io"
+  },
+  "homepage": "https://www.apimatic.io",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/integrate-context-matic",
+    "./skills/onboard-context-matic"
+  ]
+}

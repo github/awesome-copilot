@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-01
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -99,6 +99,21 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 
 **env**: Environment variables passed to the server process. Use these for connection strings, API keys, and configuration—never hardcode secrets in the JSON file.
 
+### Managing Persistent MCP Configuration via Server RPCs
+
+In addition to file-based configuration, GitHub Copilot CLI exposes **server RPCs** that let MCP servers and tooling scripts manage the persistent MCP server registry at runtime. This enables programmatic setup — for example, an installer script that registers a server without requiring you to hand-edit a JSON file.
+
+The available RPCs are:
+
+| RPC | Description |
+|-----|-------------|
+| `mcp.config.list` | List all currently registered persistent MCP servers |
+| `mcp.config.add` | Add a new MCP server to the persistent configuration |
+| `mcp.config.update` | Update an existing registered server |
+| `mcp.config.remove` | Remove a server from the persistent configuration |
+
+These are especially useful for plugins and installer scripts that need to self-register or de-register their MCP server as part of install/uninstall flows, without requiring the user to manually edit config files.
+
 ### Common MCP Server Configurations
 
 **PostgreSQL** — Query databases and inspect schemas:
@@ -144,6 +159,8 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 Some MCP servers require authentication to connect to protected resources. GitHub Copilot CLI supports several authentication approaches:
 
 - **OAuth**: MCP servers can use the OAuth flow to authenticate with external services. The CLI handles the browser redirect and token storage automatically. This also works when running in ACP (Agent Coordination Protocol) mode.
+- **Device code flow (RFC 8628)**: When the CLI runs in a **headless or CI environment** where a browser redirect is not possible, it automatically falls back to the device code flow. You'll see a URL and a code to enter on another device to complete authentication.
+- **`/mcp auth`**: If a token expires or you need to switch accounts, run `/mcp auth` inside a session. This opens the re-authentication UI for any OAuth-enabled MCP server and supports account switching. You can re-authenticate without restarting the session.
 - **Microsoft Entra ID (Azure AD)**: MCP servers that authenticate via Microsoft Entra ID are fully supported. Once you complete the initial login, the CLI caches the authentication and **will not show the consent screen on subsequent connections** — you authenticate once per session rather than every time the server reconnects.
 - **API keys via environment variables**: Pass secrets through the `env` field in the MCP server configuration (see examples above). Never hardcode credentials in `.mcp.json`.
 - **`${input:variableName}` prompts**: VS Code will prompt for these values at runtime, keeping secrets out of committed files.

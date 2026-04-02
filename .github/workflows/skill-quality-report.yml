@@ -158,10 +158,11 @@ jobs:
             const codeowners = parseCodeowners();
 
             // Count findings
+            // The skill-validator uses emoji markers: ❌ for errors, ⚠ for warnings, ℹ for advisories
             const combined = skillsOutput + '\n' + agentsOutput;
-            const errorCount = (combined.match(/\bError\b/gi) || []).length;
-            const warningCount = (combined.match(/\bWarning\b/gi) || []).length;
-            const advisoryCount = (combined.match(/\bAdvisory\b/gi) || []).length;
+            const errorCount = (combined.match(/❌/g) || []).length;
+            const warningCount = (combined.match(/⚠/g) || []).length;
+            const advisoryCount = (combined.match(/ℹ\uFE0F?/g) || []).length;
 
             // Count total skills & agents checked
             let skillDirs = [];
