@@ -275,7 +275,7 @@ Never use array index as key if list can reorder.
 // GOOD — yield to browser
 async function handleClick() {
   setLoading(true);
-  await (scheduler?.yield?.() ?? new Promise(r => setTimeout(r, 0)));
+  await (globalThis.scheduler?.yield?.() ?? new Promise(r => setTimeout(r, 0)));
   const result = expensiveComputation(data);
   setResult(result);
 }
@@ -283,7 +283,7 @@ async function handleClick() {
 
 Move heavy work to Web Worker for best results.
 
-> **Note:** `scheduler.yield()` is supported in Chrome 129+, Firefox 129+, but NOT Safari as of April 2026. Fallback: `await (scheduler?.yield?.() ?? new Promise(r => setTimeout(r, 0)))`.
+> **Note:** `scheduler.yield()` is supported in Chrome 129+, Firefox 129+, but NOT Safari as of April 2026. Fallback: `await (globalThis.scheduler?.yield?.() ?? new Promise(r => setTimeout(r, 0)))`.
 
 ### J2: Layout Thrashing
 
