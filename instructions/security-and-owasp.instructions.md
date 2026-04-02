@@ -68,7 +68,7 @@ const valid = user && await verifyPassword(user.passwordHash, password);
 ### I3: Command Injection (exec with User Input)
 
 - **Severity**: CRITICAL
-- **Detection**: `(?:exec|execSync|execFile)\s*\(.*(?:req\.|params\.|query\.|body\.)`
+- **Detection**: `(?:exec|execSync|execFile|execFileSync)\s*\(.*(?:req\.|params\.|query\.|body\.)`
 - **OWASP**: A05
 
 ```typescript
