@@ -60,7 +60,7 @@ Never used or made an agent? Here's all you need to know to get started for this
    ```
    This invokes the Plan agent to create a step-by-step implementation plan.
 
-2. **See one of our custom agent examples:** It's simple to define an agent's instructions, look at our provided [python-reviewer.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/github/agents/python-reviewer.agent.md) file to see the pattern.
+2. **See one of our custom agent examples:** It's simple to define an agent's instructions, look at our provided [python-reviewer.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/agents/python-reviewer.agent.md) file to see the pattern.
 
 3. **Understand the core concept:** Agents are like consulting a specialist instead of a generalist. A "frontend agent" will focus on accessibility and component patterns automatically, you don't have to remind it because it is already specified in the agent's instructions.
 
@@ -148,7 +148,7 @@ When reviewing code, always check for:
 | `.github/agents/` | Project-specific | Team-shared agents with project conventions |
 | `~/.copilot/agents/` | Global (all projects) | Personal agents you use everywhere |
 
-**This project includes sample agent files in the [.github/agents/](../.github/agents/) folder**. You can write your own, or customize the ones already provided.
+**This project includes sample agent files in the [.github/agents/](https://github.com/github/copilot-cli-for-beginners/tree/main/.github/agents/) folder**. You can write your own, or customize the ones already provided.
 
 <details>
 <summary>📂 See the sample agents in this course</summary>
@@ -534,10 +534,10 @@ Use these names in the `tools` list:
 
 > 💡 **Note for beginners**: The examples below are templates. **Replace the specific technologies with whatever your project uses.** The important thing is the *structure* of the agent, not the specific technologies mentioned.
 
-This project includes working examples in the [.github/agents/](../.github/agents/) folder:
-- [hello-world.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/github/agents/hello-world.agent.md) - Minimal example, start here
-- [python-reviewer.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/github/agents/python-reviewer.agent.md) - Python code quality reviewer
-- [pytest-helper.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/github/agents/pytest-helper.agent.md) - Pytest testing specialist
+This project includes working examples in the [.github/agents/](https://github.com/github/copilot-cli-for-beginners/tree/main/.github/agents/) folder:
+- [hello-world.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/agents/hello-world.agent.md) - Minimal example, start here
+- [python-reviewer.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/agents/python-reviewer.agent.md) - Python code quality reviewer
+- [pytest-helper.agent.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/agents/pytest-helper.agent.md) - Pytest testing specialist
 
 For community agents, see [github/awesome-copilot](https://github.com/github/awesome-copilot).
 
