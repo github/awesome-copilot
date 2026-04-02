@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-02
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -93,6 +93,7 @@ Hooks can trigger on several lifecycle events:
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
+| `PermissionRequest` | When the CLI shows a **permission prompt** to the user | Programmatically approve or deny permission requests, enable auto-approval in CI/headless environments |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
 | `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
@@ -206,6 +207,42 @@ automatically before the agent commits changes.
 ```
 
 ## Practical Examples
+
+### Auto-Approve Permissions in CI with PermissionRequest
+
+The `PermissionRequest` hook fires when the CLI shows a permission prompt to the user — for example, when the agent wants to run a shell command for the first time. Unlike `preToolUse` (which can block specific tool *calls*), `PermissionRequest` intercepts the permission approval UI itself, making it ideal for **headless and CI environments** where no one is available to click "Allow".
+
+When your hook script exits with code `0`, the permission request is **approved**. Exit with a non-zero code to **deny** it (the user will still see the prompt).
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/ci-permission-policy.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Example policy script that auto-approves all permissions when running in CI:
+
+```bash
+#!/usr/bin/env bash
+# scripts/ci-permission-policy.sh
+# Auto-approve all permission requests in CI environments
+if [ "${CI}" = "true" ]; then
+  exit 0   # approve
+fi
+exit 1     # deny (let the user decide interactively)
+```
+
+> **Security note**: Use `PermissionRequest` hooks carefully. Blanket auto-approval in non-CI environments removes an important safety check. Scope the auto-approval logic precisely (e.g., only in CI, only for specific tools).
 
 ### Handling Tool Failures with postToolUseFailure
 
