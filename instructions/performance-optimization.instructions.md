@@ -64,9 +64,10 @@ Layout shift sources: images without dimensions, dynamically injected content, w
 <!-- BAD -->
 <link rel="stylesheet" href="/styles/main.css" />
 
-<!-- GOOD — inline critical CSS, defer the rest -->
+<!-- GOOD — inline critical CSS, defer the rest, and provide a noscript fallback -->
 <style>/* critical above-fold CSS */</style>
 <link rel="stylesheet" href="/styles/main.css" media="print" onload="this.media='all'" />
+<noscript><link rel="stylesheet" href="/styles/main.css" /></noscript>
 ```
 
 ### L2: Render-Blocking Synchronous Script
