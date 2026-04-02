@@ -1,18 +1,18 @@
 ---
-description: 'Guidelines for creating high-quality Agent Skills'
+description: 'Guidelines for creating high-quality Agent Skills for GitHub Copilot'
 applyTo: '**/skills/**/SKILL.md'
 ---
 
 # Agent Skills File Guidelines
 
-Instructions for creating effective and portable Agent Skills that enhance AI agents with specialized capabilities, workflows, and bundled resources.
+Instructions for creating effective and portable Agent Skills that enhance GitHub Copilot with specialized capabilities, workflows, and bundled resources.
 
 ## What Are Agent Skills?
 
-Agent Skills are self-contained folders with instructions and bundled resources that teach agents specialized capabilities. Unlike custom instructions (which define coding standards), skills enable task-specific workflows that can include scripts, examples, templates, and reference data.
+Agent Skills are self-contained folders with instructions and bundled resources that teach AI agents specialized capabilities. Unlike custom instructions (which define coding standards), skills enable task-specific workflows that can include scripts, examples, templates, and reference data.
 
 Key characteristics:
-- **Portable**: Works across VS Code, Copilot CLI, Copilot coding agent, and other Agent Skills-compatible tools
+- **Portable**: Works across VS Code, Copilot CLI, and Copilot coding agent
 - **Progressive loading**: Only loaded when relevant to the user's request
 - **Resource-bundled**: Can include scripts, templates, examples alongside instructions
 - **On-demand**: Activated automatically based on prompt relevance
@@ -23,7 +23,6 @@ Skills are stored in specific locations:
 
 | Location | Scope | Recommendation |
 |----------|-------|----------------|
-| `skills/<skill-name>/` | Repository resource collection | For community/curated skill repositories |
 | `.github/skills/<skill-name>/` | Project/repository | Recommended for project skills |
 | `.claude/skills/<skill-name>/` | Project/repository | Legacy, for backward compatibility |
 | `~/.github/skills/<skill-name>/` | Personal (user-wide) | Recommended for personal skills |
@@ -51,7 +50,7 @@ license: Complete terms in LICENSE.txt
 
 ### Description Best Practices
 
-**CRITICAL**: The `description` field is the PRIMARY mechanism for automatic skill discovery. The agent reads ONLY the `name` and `description` to decide whether to load a skill. If your description is vague, the skill will never be activated.
+**CRITICAL**: The `description` field is the PRIMARY mechanism for automatic skill discovery. Copilot reads ONLY the `name` and `description` to decide whether to load a skill. If your description is vague, the skill will never be activated.
 
 **What to include in description:**
 1. **WHAT** the skill does (capabilities)
@@ -69,13 +68,13 @@ description: 'Web testing helpers'
 ```
 
 The poor description fails because:
-- No specific triggers (when should the agent load this?)
+- No specific triggers (when should Copilot load this?)
 - No keywords (what user prompts would match?)
 - No capabilities (what can it actually do?)
 
 ### Body Content
 
-The body contains detailed instructions that the agent loads AFTER the skill is activated. Recommended sections:
+The body contains detailed instructions that Copilot loads AFTER the skill is activated. Recommended sections:
 
 | Section | Purpose |
 |---------|---------|
@@ -95,7 +94,7 @@ For content quality principles (what to include and what to leave out), see [Wri
 
 **`# Title`** — One sentence stating what the skill enables. Avoid generic phrasing; be specific about the domain.
 
-**`## When to Use This Skill`** — A bullet list of concrete scenarios that reinforce the description triggers. This helps the agent confirm it loaded the right skill.
+**`## When to Use This Skill`** — A bullet list of concrete scenarios that reinforce the description triggers. This helps Copilot confirm it loaded the right skill.
 
 ```markdown
 ## When to Use This Skill
@@ -105,7 +104,7 @@ For content quality principles (what to include and what to leave out), see [Wri
 - User wants to debug frontend behavior with browser console logs
 ```
 
-**`## Prerequisites`** — Only include if the skill requires tools, services, or configuration that the agent cannot assume are available. List exact install commands.
+**`## Prerequisites`** — Only include if the skill requires tools, services, or configuration that Copilot cannot assume are available. List exact install commands.
 
 ```markdown
 ## Prerequisites
@@ -135,7 +134,7 @@ For content quality principles (what to include and what to leave out), see [Wri
 - **Never** call `billing.charge()` without checking `user.hasPaymentMethod` first —
   the SDK throws an unrecoverable error instead of returning a failure.
 - The `currency` field expects ISO 4217 codes, not display names.
-  The agent often writes "dollars" instead of "USD".
+  Copilot often writes "dollars" instead of "USD".
 ```
 
 **`## Troubleshooting`** — Reactive fixes for known issues, presented as a table of symptom → solution pairs. Each row should be self-contained and actionable.
@@ -154,16 +153,16 @@ For content quality principles (what to include and what to leave out), see [Wri
 
 ## Bundling Resources
 
-Skills can include additional files that the agent accesses on-demand:
+Skills can include additional files that Copilot accesses on-demand:
 
 ### Supported Resource Types
 
 | Folder | Purpose | Loaded into Context? | Example Files |
 |--------|---------|---------------------|---------------|
 | `scripts/` | Executable automation that performs specific operations | When executed | `helper.py`, `validate.sh`, `build.ts` |
-| `references/` | Documentation the agent reads to inform decisions | Yes, when referenced | `api_reference.md`, `schema.md`, `workflow_guide.md` |
-| `assets/` | **Static files used AS-IS** in output (not modified by the agent) | No | `logo.png`, `brand-template.pptx`, `custom-font.ttf` |
-| `templates/` | **Starter code/scaffolds that the agent MODIFIES** and builds upon | Yes, when referenced | `viewer.html` (insert algorithm), `hello-world/` (extend) |
+| `references/` | Documentation the AI agent reads to inform decisions | Yes, when referenced | `api_reference.md`, `schema.md`, `workflow_guide.md` |
+| `assets/` | **Static files used AS-IS** in output (not modified by the AI agent) | No | `logo.png`, `brand-template.pptx`, `custom-font.ttf` |
+| `templates/` | **Starter code/scaffolds that the AI agent MODIFIES** and builds upon | Yes, when referenced | `viewer.html` (insert algorithm), `hello-world/` (extend) |
 
 ### Directory Structure Example
 
@@ -195,12 +194,12 @@ Skills can include additional files that the agent accesses on-demand:
 - A `report-template.html` copied as output format
 - A `custom-font.ttf` applied to text rendering
 
-**Templates** are starter code/scaffolds that **the agent actively modifies**:
-- A `scaffold.py` where the agent inserts logic
-- A `config.template` where the agent fills in values based on user requirements
-- A `hello-world/` project directory that the agent extends with new features
+**Templates** are starter code/scaffolds that **the AI agent actively modifies**:
+- A `scaffold.py` where the AI agent inserts logic
+- A `config.template` where the AI agent fills in values based on user requirements
+- A `hello-world/` project directory that the AI agent extends with new features
 
-**Rule of thumb**: If the agent reads and builds upon the file content → `templates/`. If the file is used as-is in output → `assets/`.
+**Rule of thumb**: If the AI agent reads and builds upon the file content → `templates/`. If the file is used as-is in output → `assets/`.
 
 ### Referencing Resources in SKILL.md
 
@@ -224,7 +223,7 @@ Skills use three-level loading for efficiency:
 |-------|------------|------|
 | 1. Discovery | `name` and `description` only | Always (lightweight metadata) |
 | 2. Instructions | Full `SKILL.md` body | When request matches description |
-| 3. Resources | Scripts, examples, docs | Only when the agent references them |
+| 3. Resources | Scripts, examples, docs | Only when Copilot references them |
 
 This means:
 - Install many skills without consuming context
@@ -279,21 +278,21 @@ Scripts enable evolution: even simple operations benefit from being implemented 
 
 ## Writing High-Impact Skills
 
-### Focus on What the Agent Doesn't Know
+### Focus on What Copilot Doesn't Know
 
-Do not include information the agent already knows from its training data — standard language syntax, common library usage, or well-documented API behavior. Every line in a skill should teach something the agent would otherwise get wrong or miss entirely. If the information is on the first page of official docs, leave it out. Focus on internal conventions, non-obvious defaults, version-specific quirks, and domain-specific workflows that change the agent's behavior.
+Do not include information Copilot already knows from its training data — standard language syntax, common library usage, or well-documented API behavior. Every line in a skill should teach something Copilot would otherwise get wrong or miss entirely. If the information is on the first page of official docs, leave it out. Focus on internal conventions, non-obvious defaults, version-specific quirks, and domain-specific workflows that change Copilot's behavior.
 
 ### Context Budget Awareness
 
-All skill descriptions share a limited portion of the available context window during discovery. Your description competes with every other installed skill for the agent's attention. Keep descriptions concise and keyword-dense — aim for the shortest text that still communicates WHAT, WHEN, and relevant KEYWORDS. Verbose descriptions don't just waste your own budget; they reduce visibility for every other skill in the system.
+All skill descriptions share a limited portion of the available context window during discovery. Your description competes with every other installed skill for Copilot's attention. Keep descriptions concise and keyword-dense — aim for the shortest text that still communicates WHAT, WHEN, and relevant KEYWORDS. Verbose descriptions don't just waste your own budget; they reduce visibility for every other skill in the system.
 
 ### Gotchas Are Your Highest-Signal Content
 
-The `## Gotchas` section is consistently the most valuable part of any skill — proactive warnings that prevent mistakes before they happen. This is distinct from `## Troubleshooting`, which provides reactive fixes after something goes wrong. Treat gotchas as a living section: every time the agent produces a wrong result, add a gotcha. Bold the key constraint, then explain why (e.g., "**Never** call `X()` without checking `Y` first — the SDK throws an unrecoverable error").
+The `## Gotchas` section is consistently the most valuable part of any skill — proactive warnings that prevent mistakes before they happen. This is distinct from `## Troubleshooting`, which provides reactive fixes after something goes wrong. Treat gotchas as a living section: every time Copilot produces a wrong result, add a gotcha. Bold the key constraint, then explain why (e.g., "**Never** call `X()` without checking `Y` first — the SDK throws an unrecoverable error").
 
 ### Prefer Flexible Guidelines Over Rigid Steps
 
-Use numbered steps only for concrete, repeatable procedures (build, deploy, environment setup) where the sequence genuinely matters. For open-ended tasks (debugging, refactoring, code review), provide decision criteria and reference information instead — the agent needs flexibility to adapt to the user's specific situation.
+Use numbered steps only for concrete, repeatable procedures (build, deploy, environment setup) where the sequence genuinely matters. For open-ended tasks (debugging, refactoring, code review), provide decision criteria and reference information instead — Copilot needs flexibility to adapt to the user's specific situation.
 
 ```markdown
 # ❌ Too rigid
@@ -310,7 +309,7 @@ When fixing error handling in API handlers:
 
 ### Use Progressive Disclosure for Large Skills
 
-If your SKILL.md exceeds ~200 lines, consider splitting detailed content into subdirectories. This reduces context consumption — the agent loads only the core instructions initially and pulls reference material on demand.
+If your SKILL.md exceeds ~200 lines, consider splitting detailed content into subdirectories. This reduces context consumption — Copilot loads only the core instructions initially and pulls reference material on demand.
 
 ```markdown
 ## Reference Files
@@ -359,7 +358,7 @@ Before publishing a skill:
 - [ ] `name` is lowercase with hyphens, ≤64 characters
 - [ ] `description` clearly states **WHAT** it does, **WHEN** to use it, and relevant **KEYWORDS**
 - [ ] `description` is concise and keyword-dense (respects context budget)
-- [ ] Body focuses on information the agent wouldn't know from training data
+- [ ] Body focuses on information Copilot wouldn't know from training data
 - [ ] Body includes when to use, prerequisites (if applicable), and core instructions
 - [ ] `## Gotchas` section present if skill involves non-obvious behavior, API quirks, or common traps
 - [ ] SKILL.md body under 500 lines (consider splitting into `references/` at ~200 lines; 500 is the hard maximum)
