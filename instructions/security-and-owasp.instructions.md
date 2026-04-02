@@ -241,7 +241,7 @@ localStorage.setItem('accessToken', token);
 res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'strict' });
 ```
 
-### AU4: Plaintext / Weak Password Hash (MD5/SHA1)
+### AU4: Plaintext / Fast Hash for Passwords (MD5/SHA-1/SHA-256)
 
 - **Severity**: CRITICAL
 - **Detection**: `(?:createHash|md5|sha1|sha256)\s*\(.*password`
