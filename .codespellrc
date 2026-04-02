@@ -46,7 +46,9 @@
 
 # queston - intentional misspelling example in skills/arize-dataset/SKILL.md demonstrating typo detection in field names
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston
+# nin - MongoDB $nin operator in security instructions NoSQL injection detection regex
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,nin
 
 # Skip certain files and directories
 
