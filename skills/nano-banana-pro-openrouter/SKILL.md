@@ -1,6 +1,6 @@
 ---
 name: nano-banana-pro-openrouter
-description: 'Generate or edit images via OpenRouter with the Gemini 3 Pro Image model. Use for prompt-only image generation, image edits, and multi-image compositing; supports 1K/2K/4K output.'
+description: 'Generate or edit images via OpenRouter image generation models (default: google/gemini-3-pro-image-preview). Use for prompt-only image generation, image edits, and multi-image compositing; supports 1K/2K/4K output.'
 metadata:
   emoji: 🍌
   requires:
@@ -16,7 +16,7 @@ metadata:
 
 ## Overview
 
-Generate or edit images with OpenRouter using the `google/gemini-3-pro-image-preview` model. Support prompt-only generation, single-image edits, and multi-image composition.
+Generate or edit images with OpenRouter using `google/gemini-3-pro-image-preview` as the default model. It supports prompt-only generation, single-image edits, and multi-image composition.
 
 ### Prompt-only generation
 
@@ -49,6 +49,11 @@ uv run {baseDir}/scripts/generate_image.py \
 
 - Use `--resolution` with `1K`, `2K`, or `4K`.
 - Default is `1K` if not specified.
+
+## Model selection
+
+- Use `--model <name>` only to override the default.
+- Default model is `google/gemini-3-pro-image-preview`.
 
 ## System prompt customization
 

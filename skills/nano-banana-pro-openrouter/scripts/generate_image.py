@@ -19,6 +19,7 @@ from openai import OpenAI
 
 
 # Configuration
+DEFAULT_MODEL = "google/gemini-3-pro-image-preview"
 MAX_INPUT_IMAGES = 3
 MIME_TO_EXT = {
     "image/png": ".png",
@@ -44,6 +45,11 @@ def parse_args():
       action="append",
       default=[],
       help=f"Optional input image path (repeatable, max {MAX_INPUT_IMAGES}).",
+    )
+    parser.add_argument(
+        "--model",
+        default=DEFAULT_MODEL,
+        help=f"OpenRouter model to use. Defaults to {DEFAULT_MODEL}.",
     )
     return parser.parse_args()
 
@@ -150,7 +156,7 @@ def main():
     })
 
     response = client.chat.completions.create(
-        model="google/gemini-3-pro-image-preview",
+        model=args.model,
         messages=messages,
         extra_body={
             "modalities": ["image", "text"],
