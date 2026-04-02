@@ -127,8 +127,8 @@ function isPrivateIP(ip: string): boolean {
   const normalized = ip.startsWith('::ffff:') ? ip.slice(7) : ip;
   // IPv4 private/reserved/loopback ranges
   if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.)/.test(normalized)) return true;
-  // IPv6 loopback, link-local, and unique-local
-  if (/^(::1|fe80::|fc|fd)/i.test(ip)) return true;
+  // IPv6 loopback, link-local (fe80::/10), and unique-local
+  if (/^(::1|fe[89ab]|fc|fd)/i.test(normalized)) return true;
   return false;
 }
 
