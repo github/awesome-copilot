@@ -196,8 +196,8 @@ function Update-ResourceStatus {
 - **ShouldProcess Implementation:**
   - Use `[CmdletBinding(SupportsShouldProcess = $true)]`
   - Set appropriate `ConfirmImpact` level
-  - Call `$PSCmdlet.ShouldProcess()` for system changes
-  - Use `ShouldContinue()` for additional confirmations
+  - Call `$PSCmdlet.ShouldProcess()` as close the the changes action
+  - Use `$PSCmdlet.ShouldContinue()` for additional confirmations
 
 - **Message Streams:**
   - `Write-Verbose` for operational details with `-Verbose`
@@ -319,9 +319,10 @@ function Remove-UserAccount {
                 return
             }
 
-            # ShouldProcess with Force parameter
+            # ShouldProcess enables -WhatIf and -Confirm support
             if ($PSCmdlet.ShouldProcess($Username, "Remove user account")) {
-                # ShouldContinue for additional confirmation when -Force is not used
+                # ShouldContinue provides an additional confirmation prompt for high-impact operations
+                # This prompt is bypassed when -Force is specified
                 if ($Force -or $PSCmdlet.ShouldContinue("Are you sure you want to remove '$Username'?", "Confirm Removal")) {
                     Write-Verbose "Removing user account: $Username"
                     
