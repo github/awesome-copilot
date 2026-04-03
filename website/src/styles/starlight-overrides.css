@@ -108,6 +108,18 @@ body:has(#main-content) {
   --sl-color-bg-nav: transparent;
 }
 
+/* Remove header border and Starlight padding/borders above the custom content.
+   Hero section (and its background grid) touches the header seamlessly,
+   completely eliminating any 'bar' or gap between them. */
+body:has(#main-content) header.header {
+  border-bottom: none !important;
+}
+
+body:has(#main-content) .content-panel {
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
 /* ── Hide Starlight's built-in theme selector (dropdown) ─── */
 /* We use our own custom ThemeToggle component instead */
 starlight-theme-select {
