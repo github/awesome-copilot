@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-03
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -90,6 +90,7 @@ Hooks can trigger on several lifecycle events:
 | `sessionStart` | Agent session begins or resumes | Initialize environments, log session starts, validate project state |
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
 | `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
+| `permissionRequest` | Agent requests permission to take an action | **Programmatically approve or deny** permission requests, auto-approve trusted action categories in CI/automation |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
@@ -100,6 +101,8 @@ Hooks can trigger on several lifecycle events:
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+> **New in 1.0.16**: The `permissionRequest` hook is a companion to `preToolUse` that fires when the agent requests permission for an action at the permission-prompt level, before the tool is invoked. Use it to programmatically approve trusted action categories in CI and automation pipelines without human interaction.
 
 ### sessionStart additionalContext
 
@@ -206,6 +209,51 @@ automatically before the agent commits changes.
 ```
 
 ## Practical Examples
+
+### Programmatic Permission Approval with permissionRequest
+
+The `permissionRequest` hook fires when the agent requests permission to take an action — before the agent's permission prompt is shown to the user. Use it to auto-approve certain categories of actions in CI and automation environments, or to implement policy-based controls over what the agent is allowed to do:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "permissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/approve-or-deny-permission.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The hook receives JSON input describing the requested action. Your script can exit `0` to approve the request, or non-zero to deny it. This is particularly useful in:
+
+- **CI pipelines**: Auto-approve read-only actions (file reads, searches) while denying write operations.
+- **Governance environments**: Enforce a policy that logs and approves only pre-defined action categories.
+- **Automated workflows**: Allow the agent to run without interactive prompts for well-understood tasks.
+
+```bash
+#!/usr/bin/env bash
+# approve-or-deny-permission.sh
+# Auto-approve read-only actions; deny everything else
+
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool // empty')
+
+case "$TOOL" in
+  read|search|glob|grep|list_dir)
+    exit 0  # Approve read-only tools
+    ;;
+  *)
+    echo "Permission denied for tool: $TOOL" >&2
+    exit 1  # Deny anything that modifies state
+    ;;
+esac
+```
 
 ### Handling Tool Failures with postToolUseFailure
 
