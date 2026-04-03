@@ -22,7 +22,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from copilot import CopilotClient, MessageOptions, SessionConfig, PermissionHandler
+from copilot import CopilotClient, MessageOptions, SessionConfig
 
 
 async def ralph_loop(mode: str = "build", max_iterations: int = 50):
@@ -47,8 +47,8 @@ async def ralph_loop(mode: str = "build", max_iterations: int = 50):
                 model="gpt-5.1-codex-mini",
                 # Pin the agent to the project directory
                 working_directory=str(Path.cwd()),
-                # Auto-approve tool calls for unattended operation
-                on_permission_request=PermissionHandler.approve_all,
+                # Auto-approve all tool calls (including file writes) for unattended operation
+                on_permission_request=lambda _req, _ctx: {"kind": "approved", "rules": []},
             ))
 
             # Log tool usage for visibility
@@ -62,7 +62,7 @@ async def ralph_loop(mode: str = "build", max_iterations: int = 50):
                     MessageOptions(prompt=prompt), timeout=600
                 )
             finally:
-                await session.destroy()
+                await session.disconnect()
 
             print(f"\nIteration {i} complete.")
 
