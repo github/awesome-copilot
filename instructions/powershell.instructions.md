@@ -351,7 +351,7 @@ function Remove-UserAccount {
 
     end {
         Write-Verbose 'User account removal process completed'
-        # Set ErrorActionPreference back to the value it had 
+        # Set ErrorActionPreference back to the value it had
         $ErrorActionPreference = $currentErrorActionValue
     }
 }
