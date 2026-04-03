@@ -91,7 +91,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Use line comments (`//`) for most comments
 - Use block comments (`/* */`) sparingly, mainly for package documentation
 - Document why, not what, unless the what is complex
-- Avoid emoji in comments and code
+- Avoid using emoji in comments and code
 
 ### Error Handling
 
@@ -224,7 +224,7 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 
 ### HTTP Clients
 
-- Keep the client struct focused on configuration and dependencies only (e.g., base URL, `*http.Client`, auth, default headers). It must not store per-request state
+- Keep the client struct focused on configuration and dependencies only (e.g., base URL, `*http.Client`, auth, default headers). It must not store any per-request state
 - Do not store or cache `*http.Request` inside the client struct, and do not persist request-specific state across calls; instead, construct a fresh request per method invocation
 - Methods should accept `context.Context` and input parameters, assemble the `*http.Request` locally (or via a short-lived builder/helper created per call), then call `c.httpClient.Do(req)`
 - If request-building logic is reused, factor it into unexported helper functions or a per-call builder type; never keep `http.Request` (URL params, body, headers) as fields on the long-lived client
@@ -368,6 +368,6 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Not understanding nil interfaces vs nil pointers
 - Forgetting to close resources (files, connections)
 - Using global variables unnecessarily
-- Over-using unconstrained types (e.g., `any`); prefer specific types or generic type parameters with constraints. If an unconstrained type is required, use `any` rather than `interface{}`
+- Overusing unconstrained types (e.g., `any`); prefer specific types or generic type parameters with constraints. If an unconstrained type is required, use `any` rather than `interface{}`
 - Not considering the zero value of types
 - **Creating duplicate `package` declarations** - this is a compile error; always check existing files before adding package declarations

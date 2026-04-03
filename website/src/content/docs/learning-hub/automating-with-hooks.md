@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-04-01
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -91,12 +91,67 @@ Hooks can trigger on several lifecycle events:
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
 | `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
-| `postToolUse` | After a tool completes execution | Log results, track usage, format code after edits, send failure alerts |
+| `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
+| `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
 | `agentStop` | Main agent finishes responding to a prompt | Run final linters/formatters, validate complete changes |
+| `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
+| `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+### sessionStart additionalContext
+
+The `sessionStart` hook supports an `additionalContext` field in its output. When your hook script writes JSON to stdout containing an `additionalContext` key, that text is **injected directly into the conversation** at the start of the session. This lets hooks dynamically provide environment-specific context—such as the current git branch, deployment environment, or team onboarding notes—without requiring the user to paste it manually.
+
+Example hook script that surfaces context:
+
+```bash
+#!/usr/bin/env bash
+# Output JSON with additionalContext to inject into the session
+cat <<EOF
+{
+  "additionalContext": "Current branch: $(git rev-parse --abbrev-ref HEAD). Open tickets: $(gh issue list --limit 3 --json number,title | jq -r '.[] | \"#\(.number) \(.title)\"' | tr '\n' '; ')"
+}
+EOF
+```
+
+### Extension Hooks Merging
+
+When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) each define hooks, all hook definitions are **merged** rather than the last one overwriting the others. This means you can layer hooks from different sources—a project's `.github/hooks/` file, an extension you have installed, and a personal settings file—and all of them will fire for the relevant events.
+
+### Cross-Platform Event Name Compatibility
+
+Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+### Plugin Hooks Environment Variables
+
+When hooks are defined inside a **plugin**, the hook scripts receive two additional environment variables automatically:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | The path to the current project (working) directory |
+| `CLAUDE_PLUGIN_DATA` | The path to a persistent data directory scoped to the plugin |
+
+You can also use these as **template variables** directly in the `bash` or `powershell` fields of your `hooks.json` configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/init.sh --project {{project_dir}}",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+This makes it straightforward to write plugin hooks that are portable across machines and projects without hardcoding paths.
 
 ### Event Configuration
 
@@ -151,6 +206,30 @@ automatically before the agent commits changes.
 ```
 
 ## Practical Examples
+
+### Handling Tool Failures with postToolUseFailure
+
+The `postToolUseFailure` hook fires when a tool call fails with an error — distinct from `postToolUse`, which only fires on success. Use it to log errors, send failure alerts, or implement retry logic:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUseFailure": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify-tool-failure.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+The hook receives JSON input describing which tool failed and the error message. This separation lets you write targeted failure-handling logic without adding conditional checks to your `postToolUse` hooks.
+
+> **Note**: Before v1.0.15, `postToolUse` fired for both successful and failed tool calls. If you have existing `postToolUse` hooks that handle failures, migrate that logic to `postToolUseFailure`.
 
 ### Auto-Format After Edits
 
@@ -281,6 +360,56 @@ Send a Slack or Teams notification when an agent session completes:
 }
 ```
 
+### Injecting Context into Subagents
+
+The `subagentStart` hook fires when the main agent spawns a subagent (e.g., via the `task` tool). Use it to inject additional context—such as project conventions or security guidelines—directly into the subagent's prompt:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "echo 'Follow the team coding standards in .github/instructions/ for all code changes.'",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+This is especially useful in multi-agent workflows where subagents may not automatically inherit context from the parent session.
+
+### Plugin Hook Environment Variables
+
+When hooks are defined inside a **plugin**, Copilot CLI automatically injects two extra environment variables so scripts can locate project-specific and plugin-specific directories:
+
+| Variable | Description |
+|----------|-------------|
+| `CLAUDE_PROJECT_DIR` | Absolute path to the working project directory |
+| `CLAUDE_PLUGIN_DATA` | Absolute path to the plugin's persistent data directory |
+
+You can also reference these paths as template variables in your hook configuration:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "{{plugin_data_dir}}/scripts/format.sh {{project_dir}}",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}
+```
+
+This is useful for plugins that bundle scripts or data files alongside their hooks, since `{{plugin_data_dir}}` always points to the correct installed location regardless of where the plugin is installed.
+
 ## Writing Hook Scripts
 
 For complex logic, use bundled scripts instead of inline bash commands:
@@ -327,7 +456,14 @@ echo "Pre-commit checks passed ✅"
 
 **Q: Where do I put hooks configuration files?**
 
-A: Place them in the `.github/hooks/` directory in your repository (e.g., `.github/hooks/my-hook.json`). You can have multiple hook files — all are loaded automatically. This makes hooks available to all team members.
+A: There are several supported locations, loaded in order of precedence:
+
+- **Repository-level** (shared with team): `.github/hooks/*.json` in your repository — all JSON files in this folder are loaded automatically
+- **Claude/Copilot project settings**: `.claude/settings.json` and `.claude/settings.local.json` — hooks defined here are applied to the current repository without committing them to `.github/`
+- **Global settings**: `settings.json` or `settings.local.json` (user-level CLI config)
+- **Legacy config**: `config.json` (also supported)
+
+For team-wide hooks that everyone should use, `.github/hooks/` is the recommended location as it is version-controlled and shared automatically.
 
 **Q: Can hooks access the user's prompt text?**
 

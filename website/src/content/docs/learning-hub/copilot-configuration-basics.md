@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-04-01
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -169,6 +169,43 @@ A well-organized Copilot configuration directory looks like this:
     ├── typescript-conventions.instructions.md
     └── api-design.instructions.md
 ```
+
+### Monorepo Support
+
+In monorepos with multiple packages or services, GitHub Copilot CLI discovers customizations at **every directory level** from your working directory up to the git repository root. This means each package or service can have its own `.github/` folder with specialized agents, instructions, skills, and MCP servers, while still inheriting configuration from parent directories.
+
+```
+my-monorepo/
+├── .github/
+│   └── instructions/
+│       └── shared-conventions.instructions.md   ← applies everywhere
+├── packages/
+│   ├── api/
+│   │   └── .github/
+│   │       └── agents/
+│   │           └── api-expert.agent.md           ← applies in packages/api/
+│   └── web/
+│       └── .github/
+│           └── instructions/
+│               └── react-conventions.instructions.md  ← applies in packages/web/
+```
+
+When you work inside `packages/api/`, Copilot loads configuration from `packages/api/.github/`, then `packages/.github/` (if it exists), then the root `.github/`. This layered discovery ensures the right context is active no matter where in the repository you're working.
+
+### Personal Skills Directory
+
+In addition to repository-level skills, GitHub Copilot CLI supports a **personal skills directory** at `~/.agents/skills/`. Skills you place here are discovered automatically across all your projects, making them ideal for personal workflows and reusable utilities that are not project-specific.
+
+```
+~/.agents/
+└── skills/
+    ├── my-review-style/
+    │   └── SKILL.md     ← available in all sessions
+    └── cleanup-todos/
+        └── SKILL.md
+```
+
+This personal directory aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, so skills defined here work consistently across tools.
 
 ### Custom Agents
 
@@ -343,6 +380,100 @@ Configuration file: `~/.copilot-cli/config.json`
   "suggestions": true
 }
 ```
+
+CLI settings use **camelCase** naming. Key settings added in recent releases:
+
+| Setting | Description |
+|---------|-------------|
+| `includeCoAuthoredBy` | Include Co-authored-by trailer in commits |
+| `effortLevel` | Default reasoning effort level (`low`, `medium`, `high`) |
+| `autoUpdatesChannel` | Update channel (`stable`, `preview`) |
+| `statusLine` | Show status line in the terminal UI |
+| `include_gitignored` | Include gitignored files in `@` file search |
+| `extension_mode` | Control extensibility (agent tools and plugins) |
+
+> **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
+
+In addition to the main config file, GitHub Copilot CLI reads two optional per-project files for repository-specific overrides:
+
+- `.claude/settings.json` — committed project settings
+- `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
+
+These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+### Model Picker
+
+The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+### CLI Session Commands
+
+GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
+
+| Command | Behaviour |
+|---------|-----------|
+| `/new [prompt]` | Starts a fresh conversation while keeping the current session backgrounded. You can switch back to backgrounded sessions. |
+| `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. MCP servers configured in your project are preserved in the new session. |
+
+Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
+
+```
+/session rename               # auto-generate a name from conversation history
+/session rename "My feature"  # set a specific name
+```
+
+Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
+
+```
+/rewind
+```
+
+Use `/rewind` when you want to branch off from a different point in the conversation, rather than just undoing the most recent turn.
+
+The `/undo` command reverts the last turn—including any file changes the agent made—letting you course-correct without manually undoing edits:
+
+```
+/undo
+```
+
+Use `/undo` when the agent's last response went in an unwanted direction and you want to try a different approach from that point.
+
+The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
+
+```
+/cd ~/projects/my-other-repo
+```
+
+This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `/share html` command exports the current session — including conversation history and any research reports — as a **self-contained interactive HTML file**:
+
+```
+/share html
+```
+
+The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
+
+The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
+
+```
+/allow-all on     # enable allow-all mode
+/allow-all off    # disable allow-all mode
+/allow-all show   # check current allow-all status
+```
+
+> **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
+
+The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
+
+```bash
+gh copilot --effort high "Refactor the authentication module"
+```
+
+Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
 
 ## Common Questions
 

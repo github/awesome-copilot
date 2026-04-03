@@ -34,19 +34,28 @@ func main() {
     defer client.Stop()
 
     // Create multiple independent sessions
-    session1, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "gpt-5"})
+    session1, err := client.CreateSession(ctx, &copilot.SessionConfig{
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "gpt-5",
+    })
     if err != nil {
         log.Fatal(err)
     }
     defer session1.Destroy()
 
-    session2, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "gpt-5"})
+    session2, err := client.CreateSession(ctx, &copilot.SessionConfig{
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "gpt-5",
+    })
     if err != nil {
         log.Fatal(err)
     }
     defer session2.Destroy()
 
-    session3, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "claude-sonnet-4.5"})
+    session3, err := client.CreateSession(ctx, &copilot.SessionConfig{
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    	Model:               "claude-sonnet-4.5",
+    })
     if err != nil {
         log.Fatal(err)
     }
@@ -70,6 +79,7 @@ Use custom IDs for easier tracking:
 
 ```go
 session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     SessionID: "user-123-chat",
     Model:     "gpt-5",
 })

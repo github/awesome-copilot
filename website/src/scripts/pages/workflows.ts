@@ -1,12 +1,20 @@
 /**
  * Workflows page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from "../choices";
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from "../choices";
 import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
+  getQueryParam,
+  getQueryParamValues,
   setupActionHandlers,
+  updateQueryParams,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
 import {
@@ -106,6 +114,14 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? "",
+    trigger: currentFilters.triggers,
+    sort: currentSort === "title" ? "" : currentSort,
+  });
+}
+
 export async function initWorkflowsPage(): Promise<void> {
   const list = document.getElementById("resource-list");
   const searchInput = document.getElementById(
@@ -139,14 +155,33 @@ export async function initWorkflowsPage(): Promise<void> {
     "label",
     true
   );
+
+  const initialQuery = getQueryParam("q");
+  const initialTriggers = getQueryParamValues("trigger").filter((trigger) =>
+    data.filters.triggers.includes(trigger)
+  );
+  const initialSort = getQueryParam("sort");
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialTriggers.length > 0) {
+    currentFilters.triggers = initialTriggers;
+    setChoicesValues(triggerSelect, initialTriggers);
+  }
+  if (initialSort === "lastUpdated") {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById("filter-trigger")?.addEventListener("change", () => {
     currentFilters.triggers = getChoicesValues(triggerSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as WorkflowSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   const countEl = document.getElementById("results-count");
@@ -156,7 +191,10 @@ export async function initWorkflowsPage(): Promise<void> {
 
   searchInput?.addEventListener(
     "input",
-    debounce(() => applyFiltersAndRender(), 200)
+    debounce(() => {
+      applyFiltersAndRender();
+      syncUrlState(searchInput);
+    }, 200)
   );
 
   clearFiltersBtn?.addEventListener("click", () => {
@@ -166,8 +204,10 @@ export async function initWorkflowsPage(): Promise<void> {
     if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "title";
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
+  applyFiltersAndRender();
   setupModal();
   setupActionHandlers();
 }

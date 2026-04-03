@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-03-25
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -267,7 +267,7 @@ Skills are stored in a `skills/` subdirectory, with each skill in its own folder
 
 **Personal skills** (shared across all your projects):
 ```
-~/.copilot/
+~/.agents/
 └── skills/
     └── code-review-checklist/
         └── SKILL.md

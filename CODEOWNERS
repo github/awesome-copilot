@@ -1,6 +1,10 @@
 # Default owner for everything
 * @aaronpowell
 
+# Adding Dan Wahlin as the owner for the CLI for Beginners content and images
+/website/src/content/docs/learning-hub/cli-for-beginners/ @DanWahlin
+/website/src/images/cli-for-beginners/ @DanWahlin
+
 # Agentic Workflows
 /workflows/ @brunoborges
 /.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
@@ -40,3 +44,6 @@
 /skills/codeql/ @VeVarunSharma
 /skills/dependabot/ @VeVarunSharma
 /skills/secret-scanning/ @VeVarunSharma
+
+# Added via #codeowner from PR #1118
+/agents/github-actions-node-upgrade.agent.md @joshjohanning

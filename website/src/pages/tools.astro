@@ -1,9 +1,11 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 import toolsData from '../../public/data/tools.json';
+import Modal from '../components/Modal.astro';
 import ContributeCTA from "../components/ContributeCTA.astro";
 import EmbeddedPageData from "../components/EmbeddedPageData.astro";
 import PageHeader from "../components/PageHeader.astro";
+import BackToTop from '../components/BackToTop.astro';
 import { renderToolsHtml } from "../scripts/pages/tools-render";
 
 const initialItems = toolsData.items.map((item) => ({
@@ -14,7 +16,7 @@ const initialItems = toolsData.items.map((item) => ({
 
 <StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="🔧 Tools" description="MCP servers and developer tools for GitHub Copilot" />
+    <PageHeader title="Tools" description="MCP servers and developer tools for GitHub Copilot" icon="wrench" />
 
     <div class="page-content">
       <div class="container">
@@ -57,6 +59,8 @@ const initialItems = toolsData.items.map((item) => ({
     </div>
   </div>
 
+  <Modal />
+  <BackToTop />
   <EmbeddedPageData filename="tools.json" data={toolsData} />
 
   <style is:global>

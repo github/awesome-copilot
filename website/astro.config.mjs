@@ -16,14 +16,9 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
+      favicon: "/images/favicon.svg",
       description: siteDescription,
-      social: [
-        {
-          icon: "github",
-          label: "GitHub",
-          href: "https://github.com/github/awesome-copilot",
-        },
-      ],
+      social: [],
       head: [
         {
           tag: "meta",
@@ -89,6 +84,23 @@ export default defineConfig({
           items: ["learning-hub/github-copilot-terminology-glossary"],
         },
         {
+          label: "Copilot CLI for Beginners",
+          items: [
+            {
+              label: "Overview",
+              link: "/learning-hub/cli-for-beginners/",
+            },
+            "learning-hub/cli-for-beginners/00-quick-start",
+            "learning-hub/cli-for-beginners/01-setup-and-first-steps",
+            "learning-hub/cli-for-beginners/02-context-and-conversations",
+            "learning-hub/cli-for-beginners/03-development-workflows",
+            "learning-hub/cli-for-beginners/04-agents-and-custom-instructions",
+            "learning-hub/cli-for-beginners/05-skills",
+            "learning-hub/cli-for-beginners/06-mcp-servers",
+            "learning-hub/cli-for-beginners/07-putting-it-all-together",
+          ],
+        },
+        {
           label: "Hands-on",
           items: [
             {
@@ -120,7 +132,12 @@ export default defineConfig({
   trailingSlash: "always",
   vite: {
     build: {
-      sourcemap: true,
+      // Production sourcemaps trigger a known warning in the expressive-code Vite plugin.
+      // The docs site does not need emitted JS sourcemaps for its validation build.
+      sourcemap: false,
+      // Starlight ships large syntax-highlighting chunks that are expected for this site.
+      // Raise the threshold so Vite only warns on materially larger regressions.
+      chunkSizeWarningLimit: 900,
     },
     css: {
       devSourcemap: true,

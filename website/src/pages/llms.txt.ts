@@ -1,17 +1,31 @@
 import type { APIRoute } from "astro";
+import { getCollection } from "astro:content";
 import agentsData from "../../public/data/agents.json";
 import instructionsData from "../../public/data/instructions.json";
 import skillsData from "../../public/data/skills.json";
 
 // Base URL for absolute links (to raw GitHub content)
 const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/github/awesome-copilot/main";
+const WEBSITE_BASE = "https://awesome-copilot.github.com";
 
-export const GET: APIRoute = () => {
+const normalizeDescription = (value?: string) =>
+  (value || "No description available").replace(/\s+/g, " ").trim();
+
+const learningHubRoute = (id: string) =>
+  id.replace(/\.md$/, "").replace(/\/index$/, "");
+
+export const GET: APIRoute = async () => {
   const agents = agentsData.items;
   const instructions = instructionsData.items;
   const skills = skillsData.items;
+  const learningHubArticles = (await getCollection("docs"))
+    .filter(({ id }) => id.startsWith("learning-hub/"))
+    .sort((left, right) =>
+      learningHubRoute(left.id).localeCompare(learningHubRoute(right.id)),
+    );
 
   const url = (path: string) => `${GITHUB_RAW_BASE}/${path}`;
+  const siteUrl = (route: string) => new URL(`${route}/`, WEBSITE_BASE).toString();
 
   let content = "";
 
@@ -31,14 +45,22 @@ export const GET: APIRoute = () => {
   content +=
     "- **Instructions**: Coding standards and best practices applied to specific file patterns\n";
   content +=
-    "- **Skills**: Self-contained folders with instructions and bundled resources for specialized tasks\n\n";
+    "- **Skills**: Self-contained folders with instructions and bundled resources for specialized tasks\n";
+  content +=
+    "- **Learning Hub**: Curated guides, tutorials, and reference material published on the website\n\n";
+
+  // Process Learning Hub documentation
+  content += "## Learning Hub\n\n";
+  for (const article of learningHubArticles) {
+    const description = normalizeDescription(article.data.description);
+    content += `- [${article.data.title}](${siteUrl(learningHubRoute(article.id))}): ${description}\n`;
+  }
+  content += "\n";
 
   // Process Agents
   content += "## Agents\n\n";
   for (const agent of agents) {
-    const description = (agent.description || "No description available")
-      .replace(/\s+/g, " ")
-      .trim();
+    const description = normalizeDescription(agent.description);
     content += `- [${agent.title}](${url(agent.path)}): ${description}\n`;
   }
   content += "\n";
@@ -46,9 +68,7 @@ export const GET: APIRoute = () => {
   // Process Instructions
   content += "## Instructions\n\n";
   for (const instruction of instructions) {
-    const description = (instruction.description || "No description available")
-      .replace(/\s+/g, " ")
-      .trim();
+    const description = normalizeDescription(instruction.description);
     content += `- [${instruction.title}](${url(instruction.path)}): ${description}\n`;
   }
   content += "\n";
@@ -56,9 +76,7 @@ export const GET: APIRoute = () => {
   // Process Skills
   content += "## Skills\n\n";
   for (const skill of skills) {
-    const description = (skill.description || "No description available")
-      .replace(/\s+/g, " ")
-      .trim();
+    const description = normalizeDescription(skill.description);
     content += `- [${skill.title}](${url(skill.skillFile)}): ${description}\n`;
   }
   content += "\n";

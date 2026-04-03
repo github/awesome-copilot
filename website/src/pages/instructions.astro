@@ -5,6 +5,7 @@ import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
 import { renderInstructionsHtml, sortInstructions } from '../scripts/pages/instructions-render';
 
 const initialItems = sortInstructions(instructionsData.items, 'title');
@@ -12,7 +13,7 @@ const initialItems = sortInstructions(instructionsData.items, 'title');
 
 <StarlightPage frontmatter={{ title: 'Instructions', description: 'Coding standards and best practices for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
   <div id="main-content">
-    <PageHeader title="📋 Instructions" description="Coding standards and best practices for GitHub Copilot" />
+    <PageHeader title="Instructions" description="Coding standards and best practices for GitHub Copilot" icon="document" />
 
     <div class="page-content">
       <div class="container">
@@ -21,7 +22,7 @@ const initialItems = sortInstructions(instructionsData.items, 'title');
             <label for="search-input" class="sr-only">Search instructions</label>
             <input type="text" id="search-input" placeholder="Search instructions..." autocomplete="off">
           </div>
-          
+
           <div class="filters-bar" id="filters-bar">
             <div class="filter-group">
               <label for="filter-extension">File Extension:</label>
@@ -37,7 +38,7 @@ const initialItems = sortInstructions(instructionsData.items, 'title');
             <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
           </div>
         </div>
-        
+
         <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} instructions</div>
         <div class="resource-list" id="resource-list" role="list" set:html={renderInstructionsHtml(initialItems)}></div>
         <ContributeCTA resourceType="instructions" />
@@ -46,6 +47,7 @@ const initialItems = sortInstructions(instructionsData.items, 'title');
   </div>
 
   <Modal />
+  <BackToTop />
   <EmbeddedPageData filename="instructions.json" data={instructionsData} />
 
   <script>
