@@ -3,7 +3,7 @@ title: '03 · Development Workflows'
 description: 'Mirror the source development workflow chapter covering review, debugging, testing, and git support.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-03
 ---
 
 ![Chapter 03: Development Workflows](/images/learning-hub/copilot-cli-for-beginners/03/chapter-header.png)
@@ -667,7 +667,7 @@ $(git diff main..HEAD)"
 
 ### Using /delegate for Background Tasks
 
-The `/delegate` command hands off work to the Copilot coding agent on GitHub. Use the `/delegate` slash command (or the `&` shortcut) to offload a well-defined task to a background agent.
+The `/delegate` command hands off work to the GitHub Copilot cloud agent. Use the `/delegate` slash command (or the `&` shortcut) to offload a well-defined task to a background agent.
 
 ```bash
 copilot

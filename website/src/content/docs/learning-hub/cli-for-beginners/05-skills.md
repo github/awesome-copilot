@@ -3,14 +3,14 @@ title: '05 · Automate Repetitive Tasks'
 description: 'Mirror the source chapter on skills that load automatically for repeated GitHub Copilot CLI workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-03
 ---
 
 ![Chapter 05: Skills System](/images/learning-hub/copilot-cli-for-beginners/05/chapter-header.png)
 
 > **What if Copilot could automatically apply your team's best practices without you having to explain them every time?**
 
-In this chapter, you'll learn about Agent Skills: folders of instructions that Copilot automatically loads when relevant to your task. While agents change *how* Copilot thinks, skills teach Copilot *specific ways to complete tasks*. You'll create a security audit skill that Copilot applies whenever you ask about security, build team-standard review criteria that ensure consistent code quality, and learn how skills work across Copilot CLI, VS Code, and the Copilot coding agent.
+In this chapter, you'll learn about Agent Skills: folders of instructions that Copilot automatically loads when relevant to your task. While agents change *how* Copilot thinks, skills teach Copilot *specific ways to complete tasks*. You'll create a security audit skill that Copilot applies whenever you ask about security, build team-standard review criteria that ensure consistent code quality, and learn how skills work across Copilot CLI, VS Code, and the GitHub Copilot cloud agent.
 
 
 ## 🎯 Learning Objectives

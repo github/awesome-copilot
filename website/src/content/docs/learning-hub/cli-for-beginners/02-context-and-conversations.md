@@ -3,7 +3,7 @@ title: '02 · Context and Conversations'
 description: 'Learn how to give Copilot CLI richer context and build stronger multi-turn conversations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-03
 ---
 
 ![Chapter 02: Context and Conversations](/images/learning-hub/copilot-cli-for-beginners/02/chapter-header.png)
@@ -338,19 +338,27 @@ copilot
 
 ### Check and Manage Context
 
-As you add files and conversation, Copilot CLI's [context window](https://github.com/github/copilot-cli-for-beginners/blob/main/GLOSSARY.md#context-window) fills up. Two commands help you stay in control:
+As you add files and conversation, Copilot CLI's [context window](https://github.com/github/copilot-cli-for-beginners/blob/main/GLOSSARY.md#context-window) fills up. Several commands are available to help you stay in control:
 
 ```bash
 copilot
 
 > /context
-Context usage: 45,000 / 128,000 tokens (35%)
+Context usage: 62k/200k tokens (31%)
 
 > /clear
-# Wipes context and starts fresh. Use when switching topics
+# Abandons the current session (no history saved) and starts a fresh conversation
+
+> /new
+# Ends the current session (saving it to history for search/resume) and starts a fresh conversation
+
+> /rewind
+# Opens a timeline picker allowing you to roll back to an earlier point in your conversation
 ```
 
-> 💡 **When to use `/clear`**: If you've been reviewing `books.py` and want to switch to discussing `utils.py`, run `/clear` first. Otherwise stale context from the old topic may confuse responses.
+> 💡 **When to use `/clear` or `/new`**: If you've been reviewing `books.py` and want to switch to discussing `utils.py`, run `/new` first (or `/clear` if you don't need the session history). Otherwise stale context from the old topic may confuse responses.
+
+> 💡 **Made a mistake or want to try a different approach?** Use `/rewind` (or press Esc twice) to open a **timeline picker** that lets you roll back to any earlier point in your conversation, not just the most recent one. This is useful when you went down the wrong path and want to backtrack without starting over entirely.
 
 ---
 
@@ -567,15 +575,16 @@ copilot
 | Situation | Action | Why |
 |-----------|--------|-----|
 | Starting new topic | `/clear` | Removes irrelevant context |
+| Went down wrong path | `/rewind` | Roll back to any earlier point |
 | Long conversation | `/compact` | Summarizes history, frees tokens |
 | Need specific file | `@file.py` not `@folder/` | Loads only what you need |
-| Hitting limits | Start new session | Fresh 128K context |
+| Hitting limits | `/new` or `/clear` | Fresh context |
 | Multiple topics | Use `/rename` per topic | Easy to resume right session |
 
 #### Best Practices for Large Codebases
 
 1. **Be specific**: `@samples/book-app-project/books.py` instead of `@samples/book-app-project/`
-2. **Clear between topics**: Use `/clear` when switching focus
+2. **Clear context between topics**: Use `/new` or `/clear` when switching focus
 3. **Use `/compact`**: Summarize conversation to free up context
 4. **Use multiple sessions**: One session per feature or topic
 
@@ -854,7 +863,7 @@ copilot --add-dir /path/to/directory
 1. **`@` syntax** gives Copilot CLI context about files, directories, and images
 2. **Multi-turn conversations** build on each other as context accumulates
 3. **Sessions auto-save**: use `--continue` or `--resume` to pick up where you left off
-4. **Context windows** have limits: manage them with `/context`, `/clear`, and `/compact`
+4. **Context windows** have limits: manage them with `/clear`, `/compact`, `/context`, `/new`, and `/rewind`
 5. **Permission flags** (`--add-dir`, `--allow-all`) control multi-directory access. Use them wisely!
 6. **Image references** (`@screenshot.png`) help debug UI issues visually
 

@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-03
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -70,7 +70,7 @@ Now let's see why developers are calling this "having a senior engineer on speed
 
 ### Demo 1: Code Review in Seconds
 
-The course includes sample files with intentional code quality issues. Let's review one:
+The course includes sample files with intentional code quality issues. If you're working on your local machine and haven't already cloned the repo, please run the `git clone` command below, navigate to the `copilot-cli-for-beginners` folder, and then run the `copilot` command.
 
 ```bash
 # Clone the course repository if you're working locally and haven't already
@@ -81,13 +81,13 @@ cd copilot-cli-for-beginners
 copilot
 ```
 
-Once inside the interactive session:
+Once inside the interactive Copilot CLI session, run the following:
 
 ```
 > Review @samples/book-app-project/book_app.py for code quality issues and suggest improvements
 ```
 
-> 💡 **What's the `@`?** The `@` symbol tells Copilot CLI to read a file. You'll learn all about this in Chapter 02. For now, just copy the command exactly as shown.
+> 💡 **What's the `@` symbol used for?** The `@` symbol tells Copilot CLI to read a file. You'll learn all about this in Chapter 02. For now, just copy the command exactly as shown.
 
 ---
 
@@ -369,11 +369,11 @@ These commands work in interactive mode. **Start with just these six** - they co
 
 | Command | What It Does | When to Use |
 |---------|--------------|-------------|
-| `/help` | Show all available commands | When you forget a command |
 | `/clear` | Clear conversation and start fresh | When switching topics |
+| `/help` | Show all available commands | When you forget a command |
+| `/model` | Show or switch AI model | When you want to change the AI model |
 | `/plan` | Plan your work out before coding | For more complex features |
 | `/research` | Deep research using GitHub and web sources | When you need to investigate a topic before coding |
-| `/model` | Show or switch AI model | When you want to change the AI model |
 | `/exit` | End the session | When you're done |
 
 That's it for getting started! As you become comfortable, you can explore additional commands.
@@ -389,20 +389,20 @@ That's it for getting started! As you become comfortable, you can explore additi
 
 | Command | What It Does |
 |---------|--------------|
-| `/init` | Initialize Copilot instructions for your repository |
 | `/agent` | Browse and select from available agents |
-| `/skills` | Manage skills for enhanced capabilities |
+| `/init` | Initialize Copilot instructions for your repository |
 | `/mcp` | Manage MCP server configuration |
+| `/skills` | Manage skills for enhanced capabilities |
 
-> 💡 Skills are covered in detail in [Chapter 05](../05-skills/). MCP servers are covered in [Chapter 06](../06-mcp-servers/).
+> 💡 Agents are covered in [Chapter 04](../04-agents-and-custom-instructions/), skills are covered in [Chapter 05](../05-skills/), and MCP servers are covered in [Chapter 06](../06-mcp-servers/).
 
 ### Models and Subagents
 
 | Command | What It Does |
 |---------|--------------|
-| `/model` | Show or switch AI model |
-| `/delegate` | Hand off task to Copilot coding agent on GitHub (agent in the cloud) |
+| `/delegate` | Hand off task to GitHub Copilot cloud agent |
 | `/fleet` | Split a complex task into parallel subtasks for faster completion |
+| `/model` | Show or switch AI model |
 | `/tasks` | View background subagents and detached shell sessions |
 
 ### Code
@@ -411,18 +411,18 @@ That's it for getting started! As you become comfortable, you can explore additi
 |---------|--------------|
 | `/diff` | Review the changes made in the current directory |
 | `/pr` | Operate on pull requests for the current branch |
-| `/review` | Run the code-review agent to analyze changes |
 | `/research` | Run deep research investigation using GitHub and web sources |
+| `/review` | Run the code-review agent to analyze changes |
 | `/terminal-setup` | Enable multiline input support (shift+enter and ctrl+enter) |
 
 ### Permissions
 
 | Command | What It Does |
 |---------|--------------|
-| `/allow-all` | Auto-approve all permission prompts for this session |
 | `/add-dir <directory>` | Add a directory to allowed list |
-| `/list-dirs` | Show all allowed directories |
+| `/allow-all [on|off|show]` | Auto-approve all permission prompts; use `on` to enable, `off` to disable, `show` to check current status |
 | `/cwd`, `/cd [directory]` | View or change working directory |
+| `/list-dirs` | Show all allowed directories |
 
 > ⚠️ **Use with caution**: `/allow-all` skips confirmation prompts. Great for trusted projects, but be careful with untrusted code.
 
@@ -430,21 +430,24 @@ That's it for getting started! As you become comfortable, you can explore additi
 
 | Command | What It Does |
 |---------|--------------|
-| `/resume` | Switch to a different session (optionally specify session ID) |
-| `/rename` | Rename the current session |
+| `/clear` | Abandons the current session (no history saved) and starts a fresh conversation |
+| `/compact` | Summarize conversation to reduce context usage |
 | `/context` | Show context window token usage and visualization |
+| `/new` | Ends the current session (saving it to history for search/resume) and starts a fresh conversation |
+| `/resume` | Switch to a different session (optionally specify session ID) |
+| `/rename` | Rename the current session (omit the name to auto-generate one) |
+| `/rewind` | Open a timeline picker to roll back to any earlier point in the conversation |
 | `/usage` | Display session usage metrics and statistics |
 | `/session` | Show session info and workspace summary |
-| `/compact` | Summarize conversation to reduce context usage |
 | `/share` | Export session as markdown file or GitHub gist |
 
 ### Help and Feedback
 
 | Command | What It Does |
 |---------|--------------|
-| `/help` | Show all available commands |
 | `/changelog` | Display changelog for CLI versions |
 | `/feedback` | Submit feedback to GitHub |
+| `/help` | Show all available commands |
 | `/theme` | View or set terminal theme |
 
 ### Quick Shell Commands
@@ -629,7 +632,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 1. **Interactive mode** is for exploration and iteration - context carries forward. It's like having a conversation with someone who remembers what you've said up to that point.
 2. **Plan mode** is normally for more involved tasks. Review before implementation.
 3. **Programmatic mode** is for automation. No interaction needed.
-4. **Four essential commands** (`/help`, `/clear`, `/plan`, `/exit`) cover most daily use.
+4. **Essential commands** (`/help`, `/clear`, `/plan`, `/research`, `/model`, `/exit`) cover most daily use.
 
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
 
