@@ -45,26 +45,7 @@ Find more with the GitHub code search: https://github.com/search?q=path%3A**%2F*
 | `isPrimary: true` (marks the onboarding entry point) | https://github.com/nickvdyck/webbundlr/blob/main/.tours/getting-started.tour |
 | `pattern` instead of `line` (regex-anchored steps) | https://github.com/nickvdyck/webbundlr/blob/main/.tours/architecture.tour |
 
-#### Notes on each
-
-**`coder/code-server` — Contributing**
-Opens with a `directory` step on `src/` that orients with a single sentence, then drives straight into `src/node/entry.ts` line 157. Clean external-contributor structure: orientation → entry point → key subsystems → links to FAQ docs via URI steps. Good model for any contributor tour.
-
-**`a11yproject/a11yproject.com` — Code Tour**
-Uses `selection` to highlight a block within `package.json` (start line 1, end varies) alongside a `line` for the same file. Shows how to vary step type on the same file. Note: the intro step in this tour is content-only — in some VS Code versions this renders blank. Prefer anchoring the first step to a file or directory and putting the welcome text in its description.
-
-**`lostintangent/rock-paper-scissors` — main.tour**
-Only 4–5 steps. Shows how a minimal tour can be complete: every step tells the reader something actionable, links to a specific line, and ends with a clear call to action ("try changing this and watch it take effect"). Good reference when writing a vibecoder or quick-explainer tour.
-
-**`lucasjellema/cloudnative-on-oci-2021` — multi-tour series**
-Multiple `.tour` files in the same repo, each scoped to a different cloud service. Browse the `.tours/` directory to see how a series is organized — separate files, clear scoped titles, and `nextTour` linking between them. Good model for a complex domain with a tour-series strategy.
-
-**Raw content tip:** If GitHub rate-limits the HTML view, prefix `raw.githubusercontent.com` and drop `/blob/`:
-```
-https://raw.githubusercontent.com/coder/code-server/main/.tours/contributing.tour
-https://raw.githubusercontent.com/a11yproject/a11yproject.com/main/.tours/code-tour.tour
-https://raw.githubusercontent.com/lostintangent/rock-paper-scissors/master/main.tour
-```
+**Raw content tip:** Prefix `raw.githubusercontent.com` and drop `/blob/` for raw JSON access.
 
 A great tour is not just annotated files. It is a **narrative** — a story told to a specific
 person about what matters, why it matters, and what to do next. Your goal is to write the tour
@@ -174,25 +155,7 @@ Never ask about `nextTour`, `commands`, `when`, or `stepMarker` unless the user 
 
 ### PR tour recipe
 
-When the user says "tour for this PR" or pastes a GitHub PR URL:
-
-1. Set `"ref"` to the PR's branch name
-2. Open with a `uri` step pointing to the PR itself — this gives the reviewer the full diff context
-3. Add a `uri` step for any related issue or RFC if linked in the PR description
-4. Cover **changed files first** — what changed and why
-5. Then add steps for **files not in the diff** that reviewers must understand to evaluate the change correctly (call sites, dependency files, tests)
-6. Flag invariants the change must preserve
-7. Close with a reviewer checklist: what to verify, what tests to run, what to watch out for
-
-```json
-[
-  { "uri": "https://github.com/org/repo/pull/456",
-    "title": "The PR", "description": "This PR refactors auth to use refresh tokens. Key concern: session invalidation during migration." },
-  { "file": "src/auth/tokenService.ts", "line": 12, "title": "What Changed: Token Issuing", "description": "..." },
-  { "file": "src/auth/middleware.ts", "line": 38, "title": "Unchanged But Critical", "description": "This file wasn't touched but depends on the token shape. Verify line 38 still matches." },
-  { "title": "Reviewer Checklist", "description": "- [ ] Session invalidation tested?\n- [ ] Old tokens still rejected after migration?\n- [ ] Refresh token rotation tested?" }
-]
-```
+For PR tours: set `"ref"` to the branch, open with a `uri` step for the PR, cover changed files first, then unchanged-but-critical files, close with a reviewer checklist.
 
 ### User-provided customization — always honor these
 
@@ -258,74 +221,11 @@ Don't suggest this unless the user asks — it requires editing source files, wh
 
 ---
 
-### Step types — the full toolkit
+### Step types — full reference
 
-**Content step** — narrative only, no file. Use for intro and closing. Max 2 per tour.
-```json
-{ "title": "Welcome", "description": "markdown..." }
-```
+All step types: **content** (intro/closing, max 2), **directory**, **file+line** (workhorse), **selection** (code block), **pattern** (regex match), **uri** (external link), **view** (focus VS Code panel), **commands** (run VS Code commands).
 
-**Directory step** — orient to a module. "What lives here."
-```json
-{ "directory": "src/services", "title": "Service Layer", "description": "..." }
-```
-
-**File + line step** — the workhorse. One specific meaningful line.
-```json
-{ "file": "src/auth/middleware.ts", "line": 42, "title": "Auth Gate", "description": "..." }
-```
-
-> **Path rule — always relative to repo root.** `"file"` and `"directory"` values must be relative to the repository root (the directory that contains `.tours/`). Never use an absolute path (`/Users/...`) and never use a leading `./`. If the repo root is `/projects/myapp` and the file is at `/projects/myapp/src/auth.ts`, write `"src/auth.ts"` — not `./src/auth.ts`, not `/projects/myapp/src/auth.ts`, not `auth.ts` (unless it's actually at the root).
-
-**Selection step** — a block of logic. Use when one line isn't enough (a function body, a config block, a type definition).
-```json
-{
-  "file": "src/core/pipeline.py",
-  "selection": { "start": { "line": 15, "character": 0 }, "end": { "line": 34, "character": 0 } },
-  "title": "The Request Pipeline",
-  "description": "..."
-}
-```
-
-**Pattern step** — match by regex instead of line number. Use when line numbers shift frequently (actively changing files, generated code).
-```json
-{ "file": "src/app.ts", "pattern": "export default class Application", "title": "...", "description": "..." }
-```
-
-**URI step** — link to an external resource: a PR, issue, RFC, ADR, architecture diagram, Notion doc. Use to bring in context that lives outside the codebase.
-```json
-{
-  "uri": "https://github.com/org/repo/pull/456",
-  "title": "The PR That Introduced This Pattern",
-  "description": "This design was debated in PR #456. The key tradeoff was..."
-}
-```
-
-**View step** — auto-focus a VS Code panel at this step (terminal, problems, scm, explorer).
-```json
-{ "file": "src/server.ts", "line": 1, "view": "terminal", "title": "...", "description": "..." }
-```
-
-**Commands step** — execute VS Code commands when the reader arrives. Add to any file step.
-```json
-{
-  "file": "src/server.ts", "line": 1,
-  "title": "Run It",
-  "description": "Hit the play button — you'll see the server boot sequence here.",
-  "commands": ["workbench.action.terminal.focus"]
-}
-```
-
-Useful commands:
-| Command | What it does |
-|---------|-------------|
-| `editor.action.goToDeclaration` | Jump to definition |
-| `editor.action.showHover` | Show type hover |
-| `references-view.findReferences` | Show all references |
-| `workbench.action.terminal.focus` | Open terminal |
-| `workbench.action.tasks.runTask` | Run a task |
-| `workbench.view.scm` | Open source control panel |
-| `workbench.view.explorer` | Open file explorer |
+> **Path rule:** `"file"` and `"directory"` must be relative to repo root. No absolute paths, no leading `./`.
 
 ---
 
@@ -373,30 +273,7 @@ Every description should answer four questions in order. You don't need four par
 **I — Implication**: Why does this matter for *this persona's goal specifically*?
 **G — Gotcha**: What would a smart person get wrong here? What's non-obvious, fragile, or surprising?
 
-**Bad description** (generic — could apply to any codebase):
-> "This is the authentication middleware. It checks if the user is authenticated before allowing access to protected routes."
-
-**Good description** (SMIG applied):
-> **S:** Every HTTP request passes through this file before reaching any controller — it's the sole auth checkpoint.
->
-> **M:** Notice the **dual-check pattern** on line 42: it validates the JWT signature *and* does a Redis lookup for the session. Both must pass. A valid JWT alone isn't enough if the session was revoked (logout, password reset, force-expire).
->
-> **I:** For a bug fixer: if a user reports being logged out unexpectedly, this is your first stop. Redis miss → 401 → silent logout is the most common failure path.
->
-> **G:** If Redis is down, line 53 propagates the error as a 401 — meaning a Redis outage silently logs everyone out. There's no circuit breaker here. This is tracked in ISSUE-4421, and the workaround is in `config/redis.ts` line 18.
-
-The good description tells the reader something they couldn't learn by reading the file themselves. It names the pattern, explains the design decision, flags the failure mode, and cross-references related context.
-
-**Persona vocabulary cheat sheet** — speak their language, not generic developer-speak:
-
-| Persona | Their vocabulary | Avoid |
-|---------|-----------------|-------|
-| New joiner | "this means", "you'll need to", "the team calls this" | acronyms, assumed context |
-| Bug fixer | "failure path", "where this breaks", "repro steps" | architecture history |
-| Security reviewer | "trust boundary", "untrusted input", "privilege escalation" | vague "be careful" |
-| PR reviewer | "invariant", "this must stay true", "the change story" | unrelated context |
-| Architect | "seam", "coupling", "extension point", "decision" | step-by-step walkthroughs |
-| Vibecoder | "the main loop", "ignore for now", "start here" | deep explanations |
+Descriptions should tell the reader something they couldn't learn by reading the file themselves. Name the pattern, explain the design decision, flag failure modes, and cross-reference related context.
 
 ---
 
@@ -415,24 +292,9 @@ The good description tells the reader something they couldn't learn by reading t
 4. **Closing** (content) — what the reader now understands, what they can do next,
    2–3 suggested follow-up tours. If `nextTour` is set, reference it by name here.
 
-### What makes a closing step excellent
+### Closing steps
 
-The closing is frequently the weakest step. Don't summarize — the reader just read it.
-Instead:
-
-❌ Bad closing (recap):
-> "In this tour we covered the entry point, the middleware stack, and the database layer."
-
-✅ Good closing (action + next):
-> "You now know enough to safely add a new route without breaking auth or session handling.
-> The danger zones to stay away from are `src/auth/tokenService.ts` (don't change the token shape without a migration plan) and `src/db/pool.ts` (connection limits are load-tested at current values).
->
-> **What's next:**
-> - If you're fixing a bug → jump to the **Bug Fixer: Payment Flow** tour for the specific path
-> - If you're adding a feature → the **Feature Explainer: Notifications** tour shows the full pattern
-> - If something's on fire → the **RCA: Incident Guide** tour maps the observability anchors"
-
-The good closing tells the reader what they're now capable of, what to avoid, and gives them a map of where to go next.
+Don't summarize — the reader just read it. Instead, tell them what they can now *do*, what to avoid, and suggest 2-3 follow-up tours.
 
 ---
 
@@ -440,26 +302,16 @@ The good closing tells the reader what they're now capable of, what to avoid, an
 
 | Persona | Goal | Must cover | Avoid |
 |---------|------|------------|-------|
-| **Vibecoder** | Get the vibe fast | Entry point, request flow, main modules. "Start here / Core loop / Ignore for now." Max 8 steps. | Deep dives, history, edge cases |
-| **New joiner** | Structured ramp-up | Directories, setup/run instructions, business context, service boundaries, team terms defined. | Advanced internals before basics |
-| **Reboarding engineer** | Catch up on what changed | What's new vs. what they remember. "This used to be X, now it's Y." | Re-explaining things they knew |
-| **Bug fixer** | Root cause fast | User action → trigger → fault points. Validation, branching, error handling. Repro hints + test locations. | Architecture tours, business context |
-| **RCA / incident investigator** | Why did it fail | Causality chain. State transitions, side effects, race conditions. Observability anchors. | Happy path |
-| **Feature explainer** | One feature end-to-end | UI → API → backend → storage. Feature flags, auth, edge cases, scope. | Unrelated features |
-| **Concept learner** | Understand a pattern | Concept intro → implementation → why this design → tradeoffs → common misunderstanding. | Code without conceptual framing |
-| **PR reviewer** | Review the change correctly | The change story, not just changed files. Invariants. Risky areas. Reviewer checklist. URI step for the PR. | Unrelated context |
-| **Maintainer** | Long-term health | Architectural intent. Extension points. "Do not bypass this layer." Long-lived invariants. | One-time setup concerns |
-| **Refactorer** | Safe restructuring | Seams, hidden deps, implicit contracts, coupling hotspots, safe extraction order. | Feature explanations |
-| **Performance optimizer** | Find bottlenecks | Hot paths, N+1, I/O, serialization. Caches, batching. Existing benchmarks. | Cold paths, setup code |
-| **Security reviewer** | Trust boundaries + abuse paths | Auth flow. Input validation. Secret handling. Sensitive sinks. Safe failure modes. | Unrelated business logic |
-| **Test writer** | Add good tests | Behavior contracts. Existing patterns. Mocking seams. Coverage gaps. High-value scenarios. | Implementation detail |
-| **API consumer** | Call the system correctly | Public surface, request/response shapes, auth, error semantics, stable vs. internal. | Internal implementation |
-| **Platform / infra engineer** | Operational understanding | Boot sequence, config loading, infra deps, background jobs, graceful shutdown. | Business logic |
-| **Data engineer** | Data lineage + schemas | Event emission, schema definitions, source-to-sink path, data quality, backfill. | UI / request flow |
-| **AI agent operator** | Deterministic navigation | Stable anchors, allowed edit zones, required validation steps. "Do not infer — read this file first." | Ambiguous or implied structure |
-| **Product-minded engineer** | Business rules in code | Domain language, business rules, feature toggles, "why does this weird code exist?" | Pure infrastructure |
-| **External contributor** | Contribute without breaking | Contribution-safe areas, code style, architecture landmines, typical first-timer mistakes. | Deep internals |
-| **Tech lead / architect** | Shape and rationale | Module boundaries, design tradeoffs, risk hotspots, future evolution. | Line-by-line walkthroughs |
+| **Vibecoder** | Get the vibe fast | Entry point, request flow, main modules. Max 8 steps. | Deep dives, edge cases |
+| **New joiner** | Structured ramp-up | Directories, setup, business context, service boundaries. | Advanced internals |
+| **Bug fixer** | Root cause fast | User action → trigger → fault points. Repro hints + test locations. | Architecture tours |
+| **RCA investigator** | Why did it fail | Causality chain, side effects, race conditions, observability. | Happy path |
+| **Feature explainer** | One feature end-to-end | UI → API → backend → storage. Feature flags, edge cases. | Unrelated features |
+| **PR reviewer** | Review the change correctly | Change story, invariants, risky areas, reviewer checklist. URI step for PR. | Unrelated context |
+| **Security reviewer** | Trust boundaries | Auth flow, input validation, secret handling, sensitive sinks. | Unrelated business logic |
+| **Refactorer** | Safe restructuring | Seams, hidden deps, coupling hotspots, safe extraction order. | Feature explanations |
+| **External contributor** | Contribute without breaking | Safe areas, code style, architecture landmines. | Deep internals |
+| **Tech lead / architect** | Shape and rationale | Module boundaries, design tradeoffs, risk hotspots. | Line-by-line walkthroughs |
 
 ---
 
@@ -474,38 +326,7 @@ launch the next automatically.
 - No duplicate steps between tours
 - Each tour standalone enough to be useful on its own
 
-**Common series patterns:**
-
-*Onboarding series (new joiner):*
-1. "Orientation" → repo structure, how to run it (isPrimary: true)
-2. "Core Request Flow" → entry to response, middleware chain
-3. "Data Layer" → models, migrations, query patterns
-4. "Testing Patterns" → how to write and run tests
-
-*Incident / debug series (bug fixer + RCA):*
-1. "Happy Path" → normal flow from trigger to response
-2. "Failure Modes" → where it can break and why
-3. "Observability Map" → logs, metrics, traces to look at
-
-*Architecture series (tech lead):*
-1. "Module Boundaries" → what lives where and why
-2. "Extension Points" → where to add new features
-3. "Danger Zones" → what must never be changed carelessly
-
-**When writing a series:** set `nextTour` in each tour to the `title` of the next one.
-The value must match exactly. Tell the reader in the closing step which tour comes next
-and why they should read it.
-
-### Hot files — anchor the series
-
-Some files deserve a step in almost every tour because they're where the system's core rules live. Identify 2–3 of these early and treat them as anchors:
-
-- The **main entry point** — every persona needs to see this
-- The **central router or dispatcher** — where requests branch
-- The **primary config loader** — where behavior is controlled
-- The **auth boundary** — the single place permissions are checked
-
-When the same file appears in multiple tours, give it a *different* framing each time — new joiners get "this is where the server starts", security reviewers get "this is the only place secrets are loaded".
+Set `nextTour` in each tour to the `title` of the next one (must match exactly). Each tour should be standalone enough to be useful on its own.
 
 ---
 
@@ -523,21 +344,15 @@ If asked for any of these, say clearly that it's not supported — do not sugges
 
 ---
 
-## Anti-patterns — what ruins a tour
+## Anti-patterns
 
-Avoid these. They are the most common failures.
-
-| Anti-pattern | What it looks like | The fix |
-|---|---|---|
-| **File listing** | Visiting `models.py`, `routes.py`, `utils.py` in sequence with descriptions like "this file contains the models" | Tell a story — each step should depend on having seen the previous one. Ask: "why does this step come after the last one?" |
-| **Generic descriptions** | "This is the main entry point of the application." | If your description would make sense for any repo, rewrite it. Name the specific pattern, decision, or gotcha that's unique to *this* codebase. |
-| **Line number guessing** | Writing `"line": 42` without reading the file | Never write a line number you didn't verify. Off-by-one lands the cursor on the wrong code and breaks trust instantly. |
-| **Ignoring the persona** | Security reviewer getting a folder structure tour | Step selection must reflect what this specific person is trying to accomplish. Cut every step that doesn't serve their goal. |
-| **Too many steps** | A 20-step "vibecoder" tour | Respecting depth means *actually cutting steps* — not just labeling it "quick." |
-| **Hallucinated files** | Steps pointing to files that don't exist | If a file doesn't exist in the repo, skip the step. Never use a placeholder. |
-| **Recap closing** | "In this tour we covered X, Y, and Z." | The closing should tell the reader what they can now *do*, what to watch out for, and where to go next. |
-| **Persona vocabulary mismatch** | Explaining JWTs to a security reviewer | Meet each persona where they are. Security reviewers know what a JWT is — tell them what's *wrong* with this implementation. |
-| **Broken `nextTour`** | `"nextTour"` value doesn't exactly match any tour title | Always copy the title string verbatim. A typo silently breaks the chain. |
+| Anti-pattern | Fix |
+|---|---|
+| **File listing** — visiting files with "this file contains..." | Tell a story; each step should depend on the previous one |
+| **Generic descriptions** | Name the specific pattern/gotcha unique to *this* codebase |
+| **Line number guessing** | Never write a line number you didn't verify by reading the file |
+| **Ignoring the persona** | Cut every step that doesn't serve their specific goal |
+| **Hallucinated files** | If a file doesn't exist, skip the step |
 
 ---
 
@@ -582,41 +397,13 @@ The validator checks:
 
 **Fix every error before proceeding.** Re-run until the validator reports ✓ or only warnings. Warnings are advisory — use your judgment. Do not show the user the tour until validation passes.
 
-**What actually breaks VS Code CodeTour** (the real causes of blank/broken steps):
-- **Content-only first step** — step 1 has no `file`, `directory`, or `uri`. VS Code opens to a blank page. Fix: anchor step 1 to a file or directory and put the intro text in its description.
-- **File path not relative to repo root** — absolute paths or `./`-prefixed paths silently fail to open. Fix: always use paths relative to where `.tours/` lives (e.g. `src/auth.ts`, not `./src/auth.ts`).
-- **Line number out of bounds** — VS Code opens the file but scrolls nowhere. The validator catches this.
+**Common VS Code issues:** Content-only first step renders blank (anchor to file/directory instead). Absolute or `./`-prefixed paths silently fail. Out-of-bounds line numbers scroll nowhere.
 
-These are the only structural issues that cause VS Code rendering failures. Description length, markdown formatting, and use of `\n` in JSON strings do NOT affect rendering.
+If you can't run scripts, manually verify: step 1 has `file`/`directory`, all paths exist, all line numbers are in bounds, `nextTour` matches exactly.
 
-If you can't run scripts, do the equivalent check manually:
-1. Confirm step 1 has a `file` or `directory` field
-2. Confirm every `file` path exists by reading it (relative to repo root, no leading `./`)
-3. Confirm every `line` is within the file's line count
-4. Confirm every `directory` exists
-5. Read the step titles in sequence — do they tell a coherent story?
-6. Confirm `nextTour` matches another tour's `title` exactly
+**Autoplay:** `isPrimary: true` + `.vscode/settings.json` with `{ "codetour.promptForPrimaryTour": true }` prompts on repo open. Omit `ref` for tours that should appear on any branch.
 
-**Autoplay on repo open** — `isPrimary: true` makes CodeTour show a "Start Tour?" prompt when the repo opens in VS Code. To make this reliable for everyone who clones the repo, also write `.vscode/settings.json`:
-
-```json
-{ "codetour.promptForPrimaryTour": true }
-```
-
-Without this file, the prompt depends on each user's global VS Code config. Committed to the repo, it fires for everyone automatically. Create this file whenever you set `isPrimary: true`.
-
-**`ref` and autoplay:** if the tour has `"ref": "main"`, CodeTour only prompts when the user is on that exact branch or tag. For tours that should appear on any branch, omit `ref`.
-
-**Share via vscode.dev** — the fastest way for someone to use the tour without
-cloning the repo. For any public GitHub repo with tours committed to `.tours/`,
-they can open it directly in the browser:
-
-```
-https://vscode.dev/github.com/<owner>/<repo>
-```
-
-VS Code Web will detect the `.tours/` directory and offer to start the tour.
-No install needed. Tell the user this URL in your summary when the repo is public.
+**Share:** For public repos, users can open tours at `https://vscode.dev/github.com/<owner>/<repo>` with no install.
 
 ---
 
