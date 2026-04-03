@@ -1,5 +1,6 @@
 ---
-description: "Instructions for a virtual scrum team that coordinates product, architecture, engineering, QA, DevOps, and security work for software delivery"
+description: 'Instructions for a virtual scrum team that coordinates product, architecture, engineering, QA, DevOps, and security work for software delivery'
+applyTo: '**'
 ---
 
 # Virtual Scrum Team
