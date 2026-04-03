@@ -1,7 +1,7 @@
 ---
 name: gsap-framer-scroll-animation
 description: >-
-  'Use this skill whenever the user wants to build scroll animations, scroll effects,
+  Use this skill whenever the user wants to build scroll animations, scroll effects,
   parallax, scroll-triggered reveals, pinned sections, horizontal scroll, text animations,
   or any motion tied to scroll position — in vanilla JS, React, or Next.js.
   Covers GSAP ScrollTrigger (pinning, scrubbing, snapping, timelines, horizontal scroll,
@@ -10,7 +10,7 @@ description: >-
   "animate on scroll", "fade in as I scroll", "make it scroll like Apple",
   "parallax effect", "sticky section", "scroll progress bar", or "entrance animation".
   Also triggers for Copilot prompt patterns for GSAP or Framer Motion code generation.
-  Pairs with the premium-frontend-ui skill for creative philosophy and design-level polish.'
+  Pairs with the premium-frontend-ui skill for creative philosophy and design-level polish.
 ---
 
 # GSAP & Framer Motion — Scroll Animations Skill
@@ -19,7 +19,7 @@ Production-grade scroll animations with GitHub Copilot prompts, ready-to-use cod
 
 > **Design Companion:** This skill provides the *technical implementation* for scroll-driven motion.
 > For the *creative philosophy*, design principles, and premium aesthetics that should guide **how**
-> and **when** to animate, always cross-reference the [premium-frontend-ui](../premium-frontend-ui/SKILL.md) skill.
+> and **when** to animate, always cross-reference the **premium-frontend-ui** skill.
 > Together they form a complete approach: premium-frontend-ui decides the **what** and **why**;
 > this skill delivers the **how**.
 
@@ -59,6 +59,14 @@ npm install motion   # new package name since mid-2025
 import { motion, useScroll, useTransform, useSpring } from 'motion/react';
 // legacy: import { motion } from 'framer-motion'  — also valid
 ```
+
+## Workflow
+
+1. Interpret the user's intent to identify if GSAP or Framer Motion is the best fit.
+2. Read the relevant reference document in `references/` for detailed APIs and patterns.
+3. Suggest the required package installation if not already present.
+4. Implement the scaffold for the animation structure, adhering to the requested format (React components, hook requirements, or vanilla JS).
+5. Apply the correct tools (scrolling vs in-view elements) ensuring accessibility options are present and hooks don't cause infinite re-renders.
 
 ## The 5 Most Common Scroll Patterns
 
@@ -115,7 +123,7 @@ tl.from('.title', { opacity: 0, y: 60 }).from('.img', { scale: 0.85 });
 - **Framer Next.js**: always add `'use client'` at top of any file using motion hooks
 - **Both**: animate only `transform` and `opacity` — avoid `width`, `height`, `box-shadow`
 - **Accessibility**: always check `prefers-reduced-motion` — see each reference file for patterns
-- **Premium polish**: follow the [premium-frontend-ui](../premium-frontend-ui/SKILL.md) principles for motion timing, easing curves, and restraint — animation should enhance, never overwhelm
+- **Premium polish**: follow the **premium-frontend-ui** skill principles for motion timing, easing curves, and restraint — animation should enhance, never overwhelm
 
 ## Copilot Prompting Tips
 
@@ -136,4 +144,4 @@ tl.from('.title', { opacity: 0, y: 60 }).from('.img', { scale: 0.85 });
 
 | Skill | Relationship |
 |---|---|
-| [premium-frontend-ui](../premium-frontend-ui/SKILL.md) | Creative philosophy, design principles, and aesthetic guidelines — defines *when* and *why* to animate |
+| **premium-frontend-ui** | Creative philosophy, design principles, and aesthetic guidelines — defines *when* and *why* to animate |

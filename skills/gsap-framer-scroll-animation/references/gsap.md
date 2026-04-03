@@ -58,16 +58,13 @@ gsap.to('.element', {
     trigger: '.section',         // Element whose position triggers the animation
     start: 'top 80%',            // "[trigger edge] [viewport edge]"
     end: 'bottom 20%',           // Where animation ends
-    scrub: true,                 // Link progress to scroll (true = instant)
-    scrub: 1,                    // Smooth scrub with 1s lag
-    pin: true,                   // Pin trigger element during scroll
-    pin: '.other-element',       // Pin a different element
+    scrub: 1,                    // Link progress to scroll; use true for instant scrub, or a number for smooth lag
+    pin: true,                   // Pin trigger element during scroll; use a selector/element to pin something else
     pinSpacing: true,            // Add space below pinned element (default: true)
     markers: true,               // Debug markers — REMOVE in production
     toggleActions: 'play none none reverse', // onEnter onLeave onEnterBack onLeaveBack
     toggleClass: 'active',       // CSS class added/removed when active
-    snap: 1,                     // Snap to nearest end position
-    snap: { snapTo: 'labels', duration: 0.3, ease: 'power1.inOut' },
+    snap: { snapTo: 'labels', duration: 0.3, ease: 'power1.inOut' }, // Or use a number like 1 to snap to increments
     fastScrollEnd: true,         // Force completion if user scrolls past fast
     horizontal: false,           // true for horizontal scroll containers
     anticipatePin: 1,            // Reduces pin jump (seconds to anticipate)
@@ -574,10 +571,12 @@ Destroy lenis on unmount if in React.
 
 ```js
 import Lenis from 'lenis';
+import { useEffect } from 'react';
 
 const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
 
-gsap.ticker.add(time => lenis.raf(time * 1000));
+const raf = (time) => lenis.raf(time * 1000);
+gsap.ticker.add(raf);
 gsap.ticker.lagSmoothing(0);
 lenis.on('scroll', ScrollTrigger.update);
 
@@ -585,7 +584,7 @@ lenis.on('scroll', ScrollTrigger.update);
 useEffect(() => {
   return () => {
     lenis.destroy();
-    gsap.ticker.remove(lenis.raf);
+    gsap.ticker.remove(raf);
   };
 }, []);
 ```

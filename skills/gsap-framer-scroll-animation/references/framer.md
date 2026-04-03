@@ -282,7 +282,6 @@ export function ParallaxSection() {
   return (
     <section ref={ref} className="relative h-screen overflow-hidden flex items-center justify-center">
       <motion.div
-        style={{ y: backgroundY, scale: 1.2 }}
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: 'url(/hero-bg.jpg)', y: backgroundY, scale: 1.2 }}
       />
@@ -406,19 +405,21 @@ Animate y, backgroundColor, boxShadow with motion.nav.
 
 ```tsx
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useScroll, useMotionValueEvent } from 'motion/react';
 
 export function Navbar() {
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
   const [hidden,   setHidden]   = useState(false);
-  const [prev,     setPrev]     = useState(0);
+  const prevRef = useRef(0);
 
   useMotionValueEvent(scrollY, 'change', latest => {
-    setScrolled(latest > 80);
-    setHidden(latest > prev && latest > 200);
-    setPrev(latest);
+    const nextScrolled = latest > 80;
+    const nextHidden = latest > prevRef.current && latest > 200;
+    setScrolled(current => (current === nextScrolled ? current : nextScrolled));
+    setHidden(current => (current === nextHidden ? current : nextHidden));
+    prevRef.current = latest;
   });
 
   return (
