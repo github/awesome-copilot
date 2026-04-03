@@ -237,7 +237,7 @@ function Remove-CacheFiles {
         
         # Demonstrates WhatIf support
         if ($PSCmdlet.ShouldProcess($Path, 'Remove cache files')) {
-            $files | Remove-Item -Force
+            $files | Remove-Item -Force -ErrorAction Stop
             Write-Verbose "Removed $($files.Count) cache files from $Path"
         }
     } catch {
@@ -301,7 +301,7 @@ function Remove-UserAccount {
 
     begin {
         Write-Verbose 'Starting user account removal process'
-        $ErrorActionPreference = $currentErrorActionValue
+        $currentErrorActionValue = $ErrorActionPreference
         $ErrorActionPreference = 'Stop'
     }
 
