@@ -213,6 +213,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "eyeball",
+      "source": "eyeball",
+      "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
+      "version": "1.0.0"
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
