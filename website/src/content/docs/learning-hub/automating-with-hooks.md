@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-04
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -98,6 +98,8 @@ Hooks can trigger on several lifecycle events:
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
+| `PermissionRequest` | When the agent is about to show a permission approval dialog | Programmatically approve or deny permission requests without user interaction |
+| `notification` | **Asynchronously** after shell completion, permission prompts, elicitation dialogs, or agent completion | Send async system alerts and log events without blocking the agent |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
 
@@ -124,6 +126,80 @@ When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) ea
 ### Cross-Platform Event Name Compatibility
 
 Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+### PermissionRequest Hook
+
+The `PermissionRequest` hook fires when the agent is about to display a **permission approval dialog** — a prompt asking the user to allow or deny a specific tool use or action. This lets you write scripts that approve trusted actions automatically without requiring manual user interaction.
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/auto-approve.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Unlike `preToolUse` (which runs before *every* tool call), `PermissionRequest` fires specifically for the interactive permission dialogs — making it suitable for CI/CD environments or unattended sessions where you want fully automated approvals for known-safe operations.
+
+### Enhanced preToolUse: permissionDecision Output
+
+In addition to controlling tool execution via exit codes, `preToolUse` hooks can now output a JSON object with a `permissionDecision` field. When the hook script writes `{"permissionDecision": "allow"}` to stdout, the tool approval prompt is **suppressed** and the tool proceeds without user confirmation:
+
+```bash
+#!/usr/bin/env bash
+# Auto-approve read-only tools, block destructive ones
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
+
+case "$TOOL" in
+  view|glob|grep|read)
+    echo '{"permissionDecision": "allow"}'
+    exit 0
+    ;;
+  *)
+    exit 0  # Default: show the normal approval prompt
+    ;;
+esac
+```
+
+This is useful for workflows where you want to pre-approve low-risk tools while still prompting for higher-risk operations.
+
+### notification Hook
+
+The `notification` hook is unique: it fires **asynchronously**, meaning the agent does not wait for it to finish before continuing work. It fires at key points in the session lifecycle:
+
+- After a shell command completes
+- When a permission prompt appears
+- When an elicitation dialog is shown
+- When the agent completes its response
+
+Use `notification` for logging and alerting integrations that should not block the agent:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "notification": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+> **Important**: `notification` hooks run in the background. Their exit code does **not** affect agent behavior — they cannot approve, deny, or block any action. Use them purely for observability and notifications.
 
 ### Plugin Hooks Environment Variables
 

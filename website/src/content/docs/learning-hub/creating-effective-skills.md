@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-04-04
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -34,6 +34,12 @@ Skills are folders containing a `SKILL.md` file and optional bundled assets. The
 - Skills can **bundle additional files** (reference docs, templates, scripts) alongside their instructions, giving the AI richer context
 - Skills are **more normalised across coding agent systems** via the open [Agent Skills specification](https://agentskills.io/home)
 - Skills still support **slash-command invocation** just like prompts did
+
+### Built-in CLI Skills
+
+Starting with v1.0.17, GitHub Copilot CLI ships with **built-in skills** that are available without any installation. These provide ready-made guidance for common tasks directly in the CLI. The first built-in skill covers [customizing the Copilot cloud agent's environment](../cli-for-beginners/) — helping you configure `.github/copilot-setup-steps.yml` and related setup.
+
+You can browse and invoke built-in skills just like your own project skills. They serve as both useful capabilities and reference examples for writing your own.
 
 ### How Skills Differ from Other Customizations
 

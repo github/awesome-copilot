@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-04-04
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -333,6 +333,34 @@ This repository provides a curated collection of agents, skills, and hooks desig
 4. The hooks will run automatically during coding agent sessions
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
+
+## Critic Agent (Experimental)
+
+GitHub Copilot CLI includes an experimental **Critic agent** that automatically reviews plans and complex implementations using a complementary AI model. Rather than relying on a single model to both generate and evaluate code, the Critic uses a separate model to independently critique the work — catching logical errors, missing edge cases, and implementation gaps earlier.
+
+**How it works**:
+
+```
+1. Coding agent develops a plan or implementation
+         ↓
+2. Critic agent reviews the work using a complementary model
+         ↓
+3. Critique is fed back to the coding agent
+         ↓
+4. Agent refines the plan or implementation
+         ↓
+5. Final result is higher quality before you see the PR
+```
+
+**Key characteristics**:
+- Available in **experimental mode** for Claude models only
+- Activates automatically during complex plans and implementations — no manual invocation needed
+- Runs transparently in the background as part of the agent's normal workflow
+- Helps catch a category of errors that single-model systems miss (the "blind spot" of self-evaluation)
+
+**Why it matters**: When the same model generates *and* evaluates its own code, it tends to miss the same classes of errors in both phases. The Critic agent's use of a complementary model introduces genuine independence — a design similar to code review by a second developer.
+
+> **Note**: The Critic agent is an experimental feature. Check the [CLI release notes](https://github.com/github/copilot-cli/releases) for the latest status.
 
 ## Hooks and the Coding Agent
 
