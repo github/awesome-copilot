@@ -11,7 +11,7 @@ Usage (called by the Copilot CLI skill, not typically invoked directly):
     python3 eyeball.py build \
         --source <path-or-url> \
         --output <output.docx> \
-        --sections sections.json
+        --sections '[{"heading": "Section 1", "analysis": "Example analysis text"}]'
 
     python3 eyeball.py setup-check
 
@@ -36,13 +36,38 @@ import tempfile
 
 try:
     import fitz  # PyMuPDF
+except ImportError:
+    fitz = None
+
+try:
     from PIL import Image, ImageDraw
+except ImportError:
+    Image = None
+    ImageDraw = None
+
+try:
     from docx import Document
     from docx.shared import Inches, Pt, RGBColor
-except ImportError as e:
-    print(f"Missing dependency: {e}", file=sys.stderr)
-    print("Run setup.sh or: pip3 install pymupdf pillow python-docx playwright", file=sys.stderr)
-    sys.exit(1)
+except ImportError:
+    Document = None
+    Inches = None
+    Pt = None
+    RGBColor = None
+
+
+def _check_core_deps():
+    """Raise if core dependencies are missing."""
+    missing = []
+    if fitz is None:
+        missing.append("pymupdf")
+    if Image is None:
+        missing.append("pillow")
+    if Document is None:
+        missing.append("python-docx")
+    if missing:
+        print(f"Missing dependencies: {', '.join(missing)}", file=sys.stderr)
+        print("Install with: pip3 install pymupdf pillow python-docx playwright", file=sys.stderr)
+        sys.exit(1)
 
 
 # ---------------------------------------------------------------------------
@@ -436,6 +461,7 @@ def cmd_setup_check():
         "Playwright": False,
         "Chromium browser": False,
         "Word (macOS)": False,
+        "Word (Windows)": False,
         "LibreOffice": False,
     }
 
@@ -476,6 +502,22 @@ def cmd_setup_check():
     if platform.system() == "Darwin" and os.path.exists("/Applications/Microsoft Word.app"):
         checks["Word (macOS)"] = True
 
+    if platform.system() == "Windows":
+        try:
+            import winreg
+            winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                           r"SOFTWARE\Microsoft\Office\ClickToRun\Configuration")
+            checks["Word (Windows)"] = True
+        except (ImportError, OSError):
+            # Fallback: check if win32com can dispatch Word
+            try:
+                import win32com.client
+                word = win32com.client.Dispatch("Word.Application")
+                word.Quit()
+                checks["Word (Windows)"] = True
+            except Exception:
+                pass
+
     if shutil.which("libreoffice") or shutil.which("soffice"):
         checks["LibreOffice"] = True
 
@@ -488,7 +530,7 @@ def cmd_setup_check():
         if name in ("PyMuPDF", "Pillow", "python-docx") and not ok:
             all_core = False
 
-    has_converter = checks["Word (macOS)"] or checks["LibreOffice"]
+    has_converter = checks["Word (macOS)"] or checks["Word (Windows)"] or checks["LibreOffice"]
     has_web = checks["Playwright"] and checks["Chromium browser"]
 
     print("")
@@ -515,6 +557,7 @@ def cmd_convert(args):
 
 def cmd_screenshot(args):
     """Generate a single screenshot from a PDF."""
+    _check_core_deps()
     pdf_doc = fitz.open(os.path.expanduser(args.source))
     anchors = json.loads(args.anchors)
     target_page = args.page
@@ -541,6 +584,7 @@ def cmd_screenshot(args):
 
 def cmd_build(args):
     """Build a complete analysis document."""
+    _check_core_deps()
     source = os.path.expanduser(args.source)
     output = os.path.expanduser(args.output)
     sections = json.loads(args.sections)
@@ -581,6 +625,7 @@ def cmd_build(args):
 
 def cmd_extract_text(args):
     """Extract text from a source document (for the AI to read before writing analysis)."""
+    _check_core_deps()
     source = os.path.expanduser(args.source)
 
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:

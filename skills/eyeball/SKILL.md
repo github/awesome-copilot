@@ -42,12 +42,7 @@ Before first use, check that dependencies are installed:
 python3 <path-to>/eyeball.py setup-check
 ```
 
-If anything is missing, run the setup script from the eyeball plugin directory:
-```bash
-bash <path-to>/setup.sh
-```
-
-Or install manually:
+If anything is missing, install the required dependencies:
 ```bash
 pip3 install pymupdf pillow python-docx playwright
 python3 -m playwright install chromium
@@ -62,7 +57,7 @@ Follow these steps exactly. The order matters.
 Before writing any analysis, extract and read the full text of the source document:
 
 ```bash
-python3 eyeball.py extract-text --source "<path-or-url>"
+python3 <path-to>/eyeball.py extract-text --source "<path-or-url>"
 ```
 
 Read the output carefully. Identify actual section numbers, headings, page numbers, and key language.
@@ -118,7 +113,7 @@ RIGHT -- includes the section number for precision, targets the correct page:
 Construct a JSON array of sections and call the build command:
 
 ```bash
-python3 eyeball.py build \
+python3 <path-to>/eyeball.py build \
   --source "<path-or-url>" \
   --output ~/Desktop/<title>.docx \
   --title "Analysis Title" \
