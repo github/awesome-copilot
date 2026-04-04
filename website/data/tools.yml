@@ -308,6 +308,41 @@ tools:
       - macos
       - launchagent
 
+  - id: ghostfree
+    name: GhostFree — Dependency Vulnerability Scanner
+    description: >-
+      An MCP server (with an easy-install VS Code Extension) that helps you find, triage, and fix dependency
+      vulnerabilities directly from your AI coding assistant. Scans manifest files across
+      Node.js, Python, Go, Rust, Java, and .NET projects, enriches findings with CVSS scores
+      and CWE classification from NVD, and flags actively exploited vulnerabilities via the
+      CISA Known Exploited Vulnerabilities (KEV) catalogue. No signup or API key required.
+    category: VS Code Extensions
+    featured: false
+    requirements:
+      - VS Code version 1.101.0 or higher
+      - Internet connection to fetch vulnerability data
+    links:
+      github: https://github.com/shane-js/ghostfree
+      npm: https://www.npmjs.com/package/ghostfree
+      vscode: vscode:extension/shane-js.ghostfree
+      vscode-insiders: vscode-insiders:extension/shane-js.ghostfree
+      marketplace: https://marketplace.visualstudio.com/items?itemName=shane-js.ghostfree
+    features:
+      - "🔍 Discover: Finds manifest files across Node.js, Python, Go, Rust, Java, and .NET projects"
+      - "🛡️ Scan: Queries OSV.dev for published CVEs across all discovered packages"
+      - "📊 Enrich: Fetches CVSS vectors and CWE classification from NVD"
+      - "🚨 KEV Check: Flags vulnerabilities listed as actively exploited by CISA"
+      - "✅ Accept Risks: Record and track accepted risks with justifications"
+      - "🔌 Zero Config: Installs the MCP server automatically — no JSON editing needed - just start it and run the `/ghostfree.scan` prompt"
+    tags:
+      - mcp
+      - security
+      - cve
+      - dependencies
+      - osv
+      - npm
+      - vscode
+
   - id: copilot-swarm-orchestrator
     name: Copilot Swarm Orchestrator
     description: >-
