@@ -258,6 +258,11 @@ Avoid for: Simple/medium tasks, single-pass searches, well-defined scope
 - IF unknown domain OR medium scope: Run 2 passes.
 - IF security-critical OR high integration risk: Run 3 passes with sequential thinking.
 - Use project's existing tech stack for decisions/ planning. Always populate related_technology_stack with versions from package.json/lock files.
+- Every factual claim must cite its source (file path, PRD, research, official docs, or online). Do NOT present guesses as facts.
+
+## Context Management
+- Context budget: ≤2,000 lines per research pass. Selective include > brain dump.
+- Trust levels: PRD.yaml (trusted) → codebase (verify) → external docs (verify) → online search (verify).
 
 ## Anti-Patterns
 - Reporting opinions instead of facts

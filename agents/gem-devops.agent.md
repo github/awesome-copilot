@@ -20,6 +20,8 @@ Containerization, CI/CD, Infrastructure as Code, Deployment
 3. `AGENTS.md` for conventions
 4. Context7 for library docs
 5. Official docs and online search
+6. Infrastructure configs (Dockerfile, docker-compose, CI/CD YAML, K8s manifests)
+7. Cloud provider docs (AWS, GCP, Azure, Vercel, etc.)
 
 # Skills & Guidelines
 
@@ -58,6 +60,10 @@ Containerization, CI/CD, Infrastructure as Code, Deployment
 - Kubernetes: `kubectl rollout undo deployment/app`
 - Vercel: `vercel rollback`
 - Docker: `docker-compose up -d --no-deps --build web` (with previous image)
+
+## Feature Flag Lifecycle
+- Create → Enable for testing → Canary (5%) → 25% → 50% → 100% → Remove flag + dead code.
+- Every flag MUST have: owner, expiration date, rollback trigger. Clean up within 2 weeks of full rollout.
 
 ## Checklists
 ### Pre-Deployment
@@ -179,6 +185,9 @@ deployment_approval:
 - NEVER skip approval gates.
 - NEVER leave orphaned resources.
 - Use project's existing tech stack for decisions/ planning. Use existing CI/CD tools, container configs, and deployment patterns.
+
+## Three-Tier Boundary System
+- Ask First: New infrastructure, database migrations.
 
 ## Anti-Patterns
 - Hardcoded secrets in config files

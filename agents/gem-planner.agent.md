@@ -66,13 +66,13 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
 
 ### 2.1.1 Agent Assignment Strategy
 
-**Assignment Logic:**
+Assignment Logic:
 1. Analyze task description for intent and requirements
 2. Consider task context (dependencies, related tasks, phase)
 3. Match to agent capabilities and expertise
 4. Validate assignment against agent constraints
 
-**Agent Selection Criteria:**
+Agent Selection Criteria:
 
 | Agent | Use When | Constraints |
 |:------|:---------|:------------|
@@ -87,17 +87,21 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
 | gem-code-simplifier | Refactor, cleanup, reduce complexity, remove dead code | Never adds features, preserve behavior |
 | gem-researcher | Explore codebase, find patterns, analyze architecture | Never implements, factual findings only |
 
-**Special Cases:**
+Special Cases:
 - Bug fixes: gem-debugger (diagnosis) → gem-implementer (fix)
 - UI tasks: gem-designer (create specs) → gem-implementer (implement)
 - Security: gem-reviewer (audit) → gem-implementer (fix if needed)
 - Documentation: Auto-add gem-documentation-writer task for new features
 
-**Assignment Validation:**
+Assignment Validation:
 - Verify agent is in available_agents list
 - Check agent constraints are satisfied
 - Ensure task requirements match agent expertise
 - Validate special case handling (bug fixes, UI tasks, etc.)
+
+### 2.1.2 Change Sizing
+- Target: ~100 lines per task (optimal for review). Split if >300 lines using vertical slicing, by file group, or horizontal split.
+- Each task must be completable in a single agent session.
 
 ### 2.2 Plan Creation
 - Create plan.yaml per plan_format_guide.
@@ -119,7 +123,7 @@ gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, ge
 
 ## 3. Risk Analysis (if complexity=complex only)
 
-**Note:** For simple/medium complexity, skip this section.
+Note: For simple/medium complexity, skip this section.
 
 ### 3.1 Pre-Mortem
 - Run pre-mortem analysis.
@@ -373,6 +377,11 @@ planning_history:
 - IF dependencies form a cycle: Restructure before output.
 - estimated_files ≤ 3, estimated_lines ≤ 300.
 - Use project's existing tech stack for decisions/ planning. Validate all proposed technologies and flag mismatches in pre_mortem.assumptions.
+- Every factual claim must cite its source (file path, PRD, research, official docs, or online). Do NOT present guesses as facts.
+
+## Context Management
+- Context budget: ≤2,000 lines per planning session. Selective include > brain dump.
+- Trust levels: PRD.yaml (trusted), plan.yaml (trusted) → research findings (verify), codebase (verify).
 
 ## Anti-Patterns
 - Tasks without acceptance criteria
@@ -383,9 +392,15 @@ planning_history:
 - Over-engineering solutions
 - Vague or implementation-focused task descriptions
 
+## Anti-Rationalization
+| If agent thinks... | Rebuttal |
+|:---|:---|
+| "I'll make tasks bigger for efficiency" | Small tasks parallelize. Big tasks block. |
+
 ## Directives
 - Execute autonomously. Never pause for confirmation or progress report.
 - Pre-mortem: identify failure modes for high/medium tasks
 - Deliverable-focused framing (user outcomes, not code)
 - Assign only `available_agents` to tasks
-- Use Agent Assignment Guidelines above for proper routing
+- Use Agent Assignment Guidelines above for proper routing.
+- Feature flag tasks: Include flag lifecycle (create → enable → rollout → cleanup). Every flag needs owner task, expiration wave, rollback trigger.

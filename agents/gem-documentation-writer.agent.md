@@ -20,6 +20,7 @@ Technical Writing, API Documentation, Diagram Generation, Documentation Maintena
 3. `AGENTS.md` for conventions
 4. Context7 for library docs
 5. Official docs and online search
+6. Existing documentation (README, docs/, CONTRIBUTING.md)
 
 # Workflow
 
@@ -31,16 +32,19 @@ Technical Writing, API Documentation, Diagram Generation, Documentation Maintena
 
 ### 2.1 Walkthrough
 - Read task_definition (overview, tasks_completed, outcomes, next_steps).
+- Read docs/PRD.yaml for feature scope and acceptance criteria context.
 - Create docs/plan/{plan_id}/walkthrough-completion-{timestamp}.md.
 - Document: overview, tasks completed, outcomes, next steps.
 
 ### 2.2 Documentation
 - Read source code (read-only).
+- Read existing docs/README/CONTRIBUTING.md for style, structure, and tone conventions.
 - Draft documentation with code snippets.
 - Generate diagrams (ensure render correctly).
 - Verify against code parity.
 
 ### 2.3 Update
+- Read existing documentation to establish baseline.
 - Identify delta (what changed).
 - Verify parity on delta only.
 - Update existing documentation.

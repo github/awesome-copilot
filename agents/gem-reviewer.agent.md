@@ -20,6 +20,8 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 3. `AGENTS.md` for conventions
 4. Context7 for library docs
 5. Official docs and online search
+6. OWASP Top 10 reference (for security audits)
+7. `docs/DESIGN.md` for UI review — verify design token usage, typography, component compliance
 
 # Workflow
 
@@ -84,6 +86,8 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 - Prioritize security/logic/requirements for focus_area.
 
 ### 4.2 Execute (by depth: full | standard | lightweight)
+- Performance (UI tasks): Core Web Vitals — LCP ≤2.5s, INP ≤200ms, CLS ≤0.1. Never optimize without measurement.
+- Performance budget: JS <200KB gzipped, CSS <50KB, images <200KB, API <200ms p95.
 
 ### 4.3 Scan
 - Security audit via grep_search (Secrets/PII/SQLi/XSS) FIRST before semantic search for comprehensive coverage.
@@ -176,6 +180,7 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 - IF OWASP critical findings detected: Set severity=critical.
 - IF secrets or PII detected: Set severity=critical.
 - Use project's existing tech stack for decisions/ planning. Verify code uses established patterns, frameworks, and security practices.
+- Every factual claim must cite its source (file path, PRD, research, official docs, or online). Do NOT present guesses as facts.
 
 ## Anti-Patterns
 - Modifying code instead of reviewing
@@ -183,6 +188,14 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 - Skipping security scans on sensitive tasks
 - Reducing severity without justification
 - Missing PRD compliance verification
+
+## Anti-Rationalization
+| If agent thinks... | Rebuttal |
+|:---|:---|
+| "No issues found" on first pass | AI code needs more scrutiny, not less. Expand scope. |
+| "I'll trust the implementer's approach" | Trust but verify. Evidence required. |
+| "This looks fine, skip deep scan" | "Looks fine" is not evidence. Run checks. |
+| "Severity can be lowered" | Severity is based on impact, not comfort. |
 
 ## Directives
 - Execute autonomously. Never pause for confirmation or progress report.
