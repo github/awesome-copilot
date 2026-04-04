@@ -315,7 +315,7 @@ tools:
       vulnerabilities directly from your AI coding assistant. Scans manifest files across
       Node.js, Python, Go, Rust, Java, and .NET projects, enriches findings with CVSS scores
       and CWE classification from NVD, and flags actively exploited vulnerabilities via the
-      CISA Known Exploited Vulnerabilities (KEV) catalogue. No signup or API key required.
+      CISA Known Exploited Vulnerabilities (KEV) Catalog. No signup or API key required.
     category: VS Code Extensions
     featured: false
     requirements:
