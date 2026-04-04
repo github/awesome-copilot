@@ -342,6 +342,7 @@ tools:
       - osv
       - npm
       - vscode
+      - extension
 
   - id: copilot-swarm-orchestrator
     name: Copilot Swarm Orchestrator
