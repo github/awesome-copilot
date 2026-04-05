@@ -241,26 +241,30 @@ def render_url_to_pdf(url, output_pdf_path):
         )
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, wait_until="networkidle", timeout=30000)
+        browser = None
+        try:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(url, wait_until="networkidle", timeout=30000)
 
-        # Clean up navigation/footer elements for cleaner output
-        page.evaluate("""
-            document.querySelectorAll(
-                'header, footer, nav, [data-testid="header"], [data-testid="footer"], '
-                + '.site-header, .site-footer, #cookie-banner, .cookie-consent'
-            ).forEach(el => el.remove());
-        """)
+            # Clean up navigation/footer elements for cleaner output
+            page.evaluate("""
+                document.querySelectorAll(
+                    'header, footer, nav, [data-testid="header"], [data-testid="footer"], '
+                    + '.site-header, .site-footer, #cookie-banner, .cookie-consent'
+                ).forEach(el => el.remove());
+            """)
 
-        page.pdf(
-            path=output_pdf_path,
-            format="Letter",
-            print_background=True,
-            margin={"top": "0.5in", "bottom": "0.5in",
-                    "left": "0.75in", "right": "0.75in"}
-        )
-        browser.close()
+            page.pdf(
+                path=output_pdf_path,
+                format="Letter",
+                print_background=True,
+                margin={"top": "0.5in", "bottom": "0.5in",
+                        "left": "0.75in", "right": "0.75in"}
+            )
+        finally:
+            if browser is not None:
+                browser.close()
 
 
 # ---------------------------------------------------------------------------

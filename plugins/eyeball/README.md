@@ -22,44 +22,25 @@ If the analysis says "Section 9.3 allows termination for cause with a 30-day cur
 
 ### Install the plugin
 
-Point your CLI at this repo and ask it to install the plugin for you, with this prompt:
+Install via the Copilot CLI plugin system. In a Copilot CLI conversation:
 
 ```
-Install the plugin at github.com/dvelton/eyeball for me.
-```
-
-Or:
-
-Install via the Copilot CLI plugin system, or clone the repo:
-
-```bash
-git clone https://github.com/dvelton/eyeball.git
+install the eyeball plugin from github/awesome-copilot
 ```
 
 ### Install dependencies
 
-**macOS / Linux:**
-
-```bash
-cd eyeball
-bash setup.sh
-```
-
-**Windows (PowerShell):**
-
-```powershell
-cd eyeball
-.\setup.ps1
-```
-
-**Manual install (any platform):**
+After installing the plugin, install the Python dependencies:
 
 ```bash
 pip install pymupdf pillow python-docx playwright
 python -m playwright install chromium
 ```
 
-On Windows, `pywin32` is also needed for Microsoft Word automation and is installed automatically by the setup script.
+On Windows, also install pywin32 for Word automation:
+```bash
+pip install pywin32
+```
 
 ### Verify setup
 
