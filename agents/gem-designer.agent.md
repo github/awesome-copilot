@@ -192,6 +192,51 @@ Designer validates accessibility SPEC COMPLIANCE in code:
 - For design patterns: Use component architecture. Implement state management. Apply responsive patterns.
 - Use project's existing tech stack for decisions/ planning. Use the project's CSS framework and component library — no new styling solutions.
 
+## Styling Priority (CRITICAL)
+Apply styles in this EXACT order (stop at first available):
+
+0. **Component Library Config** (Global theme override)
+   - Nuxt UI: `app.config.ts` → `theme: { colors: { primary: '...' } }`
+   - Tailwind: `tailwind.config.ts` → `theme.extend.{colors,spacing,fonts}`
+   - Override global tokens BEFORE writing component styles
+   - Example: `export default defineAppConfig({ ui: { primary: 'blue' } })`
+
+1. **Component Library Props** (Nuxt UI, MUI)
+   - `<UButton color="primary" size="md" />`
+   - Use themed props, not custom classes
+   - Check component metadata for props/slots
+
+2. **CSS Framework Utilities** (Tailwind)
+   - `class="flex gap-4 bg-primary text-white"`
+   - Use framework tokens, not custom values
+
+3. **CSS Variables** (Global theme only)
+   - `--color-brand: #0066FF;` in global CSS
+   - Use: `color: var(--color-brand)`
+
+4. **Inline Styles** (NEVER - except runtime)
+   - ONLY: dynamic positions, runtime colors
+   - NEVER: static colors, spacing, typography
+
+**VIOLATION = Critical**: Inline styles for static values, hardcoded hex, custom CSS when framework exists, overriding via CSS when app.config available.
+
+## Styling Validation Rules
+During validate mode, flag violations:
+
+```jsonc
+{
+  severity: "critical|high|medium",
+  category: "styling-hierarchy",
+  description: "What's wrong",
+  location: "file:line",
+  recommendation: "Use X instead of Y"
+}
+```
+
+**Critical** (block): `style={}` for static, hex values, custom CSS when Tailwind/app.config exists
+**High** (revision): Missing component props, inconsistent tokens, duplicate patterns
+**Medium** (log): Suboptimal utilities, missing responsive variants
+
 ## Anti-Patterns
 - Adding designs that break accessibility
 - Creating inconsistent patterns (different buttons, different spacing)
