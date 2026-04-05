@@ -86,7 +86,7 @@ class StrictProcessor(BaseProcessor):
 Prefer **small, focused protocols** over large monolithic ABCs.
 
 ```python
-# BAD: forces all implementors to handle read+write+delete+list
+# BAD: forces all implementers to handle read+write+delete+list
 class BigStorage(ABC):
     @abstractmethod
     def read(self): ...
@@ -213,7 +213,7 @@ def get_value() -> str | int: ...                           # ✗ Forces callers
 from typing import Protocol, runtime_checkable
 from abc import ABC, abstractmethod
 
-# Use Protocol when you don't control the implementor classes (duck typing)
+# Use Protocol when you don't control the implementer classes (duck typing)
 @runtime_checkable    # Makes isinstance() checks work at runtime
 class Serializable(Protocol):
     def to_dict(self) -> dict[str, object]: ...
