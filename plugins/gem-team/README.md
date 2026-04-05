@@ -285,6 +285,7 @@ All agents share: Execution rules, Constitutional rules, Anti-Patterns, and Dire
 | 🔄 **Codebase Patterns** | Avoids reinventing the wheel |
 | 🪞 **Self-Critique** | Reflection step before output (0.85 confidence threshold) |
 | 🔬 **Root-Cause Diagnosis** | Stack trace analysis, regression bisection |
+| 🛡️ **Auto-Generated Lint Rules** | Debugger recommends ESLint rules for recurring error patterns to prevent recurrence |
 | 💬 **Constructive Critique** | Challenges assumptions, finds edge cases |
 | ⚡ **Magic Keywords** | Fast-track routing: agent names in input trigger direct delegation (e.g., "simplify this" → gem-code-simplifier, "critique" → gem-critic, "debug" → gem-debugger) |
 | 📚 **Docs-Code Parity** | Documentation auto-included for new features |
@@ -381,7 +382,7 @@ Agents consult only the sources relevant to their role. Trust levels apply:
 | Agent | Verification |
 |:------|:-------------|
 | Implementer | get_errors → typecheck → unit tests → contract tests (if applicable) |
-| Debugger | reproduce → stack trace → root cause → fix recommendations |
+| Debugger | reproduce → stack trace → root cause → fix recommendations → lint rules (if recurring pattern) |
 | Critic | assumption audit → edge case discovery → over-engineering detection → logic gap analysis |
 | Browser Tester | validation matrix → console → network → accessibility |
 | Reviewer (task) | OWASP scan → code quality → logic → task_completion_check → coverage_status |

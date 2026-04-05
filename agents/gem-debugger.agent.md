@@ -131,6 +131,11 @@ Note: These skills complement workflow. Constitutional: NEVER implement — only
 - Estimate fix complexity: small | medium | large.
 - Prove-It Pattern: Recommend writing failing reproduction test FIRST, confirm it fails, THEN apply fix.
 
+### 5.2.1 ESLint Rule Recommendations
+IF root cause is recurrence-prone (common mistake, easy to repeat, no existing rule): recommend ESLint rule in `lint_rule_recommendations`.
+- Recommend custom only if no built-in covers pattern.
+- Skip: one-off errors, business logic bugs, environment-specific issues.
+
 ### 5.3 Prevention Recommendations
 - Suggest tests that would have caught this.
 - Identify patterns to avoid.
@@ -186,6 +191,7 @@ Note: These skills complement workflow. Constitutional: NEVER implement — only
     "root_cause": {"description": "string", "location": "string", "error_type": "runtime|logic|integration|configuration|dependency", "causal_chain": ["string"]},
     "reproduction": {"confirmed": "boolean", "steps": ["string"], "environment": "string"},
     "fix_recommendations": [{"approach": "string", "location": "string", "complexity": "small|medium|large", "trade_offs": "string"}],
+    "lint_rule_recommendations": [{"rule_name": "string", "rule_type": "built-in|custom", "eslint_config": "object", "rationale": "string", "affected_files": ["string"]}],
     "prevention": {"suggested_tests": ["string"], "patterns_to_avoid": ["string"]},
     "confidence": "number (0-1)"
   }

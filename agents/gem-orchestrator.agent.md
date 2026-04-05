@@ -382,7 +382,7 @@ After each agent completes, the orchestrator routes based on status AND extra fi
 | completed | gem-critic | verdict=pass | Aggregate findings, present to user |
 | completed | gem-critic | verdict=needs_changes | Include findings in status summary, proceed |
 | completed | gem-critic | verdict=blocking | Route findings to gem-planner for fixes (check extra.verdict, NOT status) |
-| completed | gem-debugger | - | IF code fix: delegate to gem-implementer. IF config/test/infra: delegate to original agent. |
+| completed | gem-debugger | - | IF code fix: delegate to gem-implementer. IF config/test/infra: delegate to original agent. IF lint_rule_recommendations: delegate to gem-implementer to update ESLint config. |
 | needs_revision | gem-browser-tester | - | gem-debugger → gem-implementer (if code bug) → gem-browser-tester re-verify. |
 | needs_revision | gem-devops | - | gem-debugger → gem-implementer (if code) or gem-devops retry (if infra) → re-verify. |
 | needs_revision | gem-implementer | - | gem-debugger → gem-implementer (with diagnosis) → re-verify. |
@@ -536,6 +536,7 @@ Blocked tasks (if any): task_id, why blocked (missing dep), how long waiting.
 - Handle Failure: If agent returns status=failed, evaluate failure_type field:
   - Transient: Retry task (up to 3 times).
   - Fixable: Delegate to `gem-debugger` for root-cause analysis. Validate confidence (≥0.7). Inject diagnosis. IF code fix → `gem-implementer`. IF infra/config → original agent. After fix → original agent re-verifies. Same wave, max 3 retries.
+  - IF debugger returns `lint_rule_recommendations`: Delegate to `gem-implementer` to add/update ESLint config with recommended rules. This prevents recurrence across the codebase.
   - Needs_replan: Delegate to gem-planner for replanning (include diagnosis if available).
   - Escalate: Mark task as blocked. Escalate to user (include diagnosis if available).
   - Flaky: (from gem-browser-tester) Test passed on retry. Log for investigation. Mark task as completed with flaky flag in plan.yaml. Do NOT count against retry budget.
