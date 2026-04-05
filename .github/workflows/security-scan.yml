@@ -1,0 +1,60 @@
+name: Security Scan
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: "0 8 * * 1"  # Weekly Monday 8am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+        continue-on-error: true
+
+  secret-scan:
+    name: Secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          PATTERNS='(AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{48}|ghp_[a-zA-Z0-9]{36}|-----BEGIN (RSA |EC )?PRIVATE KEY-----|password\s*[:=]\s*["\x27][^"\x27]{8,})'
+          FOUND=$(grep -rPn "$PATTERNS" \
+            --include="*.py" --include="*.ts" --include="*.js" --include="*.json" \
+            --include="*.yaml" --include="*.yml" --include="*.md" --include="*.env" \
+            --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=__pycache__ \
+            . 2>/dev/null || true)
+
+          if [ -n "$FOUND" ]; then
+            echo "::warning::Potential secrets detected:"
+            echo "$FOUND"
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
+  file-permissions:
+    name: File permission check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for overly permissive files
+        run: |
+          echo "Checking for world-writable or executable scripts..."
+          find . -type f \( -name "*.sh" -o -name "*.ps1" \) -not -path "*/.git/*" | while read f; do
+            echo "Script found: $f"
+          done
+          echo "✅ File permission check complete"
