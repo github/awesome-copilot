@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-05
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -97,9 +97,13 @@ Hooks can trigger on several lifecycle events:
 | `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
+| `notification` | **Asynchronously** on shell completion, permission prompts, elicitation dialogs, and agent completion | Send async alerts, log events without blocking the agent |
+| `PermissionRequest` | Before the agent presents a tool permission prompt to the user | **Programmatically approve or deny** individual permission requests, auto-approve trusted tools |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+>
+> As of v1.0.18, a `preToolUse` hook can also return `permissionDecision: 'allow'` in its JSON output to **suppress the tool approval prompt entirely** for that tool call. This is useful in automated workflows where your script validates the tool call and wants to silently approve it without interrupting the user.
 
 ### sessionStart additionalContext
 
@@ -206,6 +210,92 @@ automatically before the agent commits changes.
 ```
 
 ## Practical Examples
+
+### Async Notifications with the notification Hook
+
+The `notification` hook fires **asynchronously** — it does not block the agent — on events such as shell completion, permission prompts, elicitation dialogs, and agent completion. Use it for lightweight side-effects like sending a Slack alert or writing a log entry without slowing down the agent:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "notification": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify-async.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Because the hook runs asynchronously, timeouts are still enforced but a slow script will not delay the next agent action.
+
+> **Tip**: Prefer `notification` over `sessionEnd` for lightweight alerts. Save `sessionEnd` for cleanup work that must complete before the session closes.
+
+### Programmatic Permission Decisions with PermissionRequest
+
+The `PermissionRequest` hook fires **before** the agent displays a tool permission prompt to the user. Your script receives the permission request details as JSON input and can return a decision to approve or deny it without user interaction:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/auto-approve.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Example `auto-approve.sh` that approves read-only tools and denies everything else:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool // ""')
+
+case "$TOOL" in
+  read|codebase|search|grep|glob)
+    echo '{"decision": "allow"}'
+    ;;
+  *)
+    # Fall through to the normal permission prompt
+    echo '{"decision": "ask"}'
+    ;;
+esac
+```
+
+This is especially powerful in CI/CD pipelines or automated environments where you want a known set of tools to run without interruption.
+
+### Suppressing the Approval Prompt from preToolUse
+
+In addition to the `PermissionRequest` hook, a `preToolUse` hook can return `permissionDecision: 'allow'` in its JSON output to silently approve a specific tool call and suppress the approval prompt:
+
+```bash
+#!/usr/bin/env bash
+# pre-tool-use.sh — silently approve safe formatting tools
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool // ""')
+
+if [[ "$TOOL" == "edit" || "$TOOL" == "bash" ]]; then
+  # Perform your validation here, then approve silently
+  echo '{"permissionDecision": "allow"}'
+else
+  exit 0  # No decision — normal approval flow
+fi
+```
+
+Use this pattern when your `preToolUse` hook already validates the tool call and you want to combine validation and approval in a single step.
 
 ### Handling Tool Failures with postToolUseFailure
 
