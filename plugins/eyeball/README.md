@@ -1,8 +1,8 @@
-# Eyeball
+A tool to help verify AI statements, without (or at least with fewer) context switching pains.
 
 When AI analyzes a document and tells you "Section 10 requires mutual indemnification," how do you know Section 10 actually says that? Eyeball lets you see for yourself.
 
-Eyeball is a Copilot CLI plugin that generates document analyses as Word files with inline screenshots from the source material. Every factual claim in the analysis includes a highlighted excerpt from the original document, so you can verify each assertion without switching between files or hunting for the right page.
+This is a Copilot CLI plugin that generates document analyses as Word files with inline screenshots of relevant portions from the source material. Every factual claim in the analysis includes a highlighted excerpt from the original document, so you can verify each assertion without switching between files or hunting for the right page.
 
 ## What it does
 
@@ -10,7 +10,9 @@ You give Copilot a document (Word file, PDF, or web URL) and ask it to analyze s
 
 If the analysis says "Section 9.3 allows termination for cause with a 30-day cure period," the screenshot below it shows Section 9.3 from the actual document with that language highlighted. If the screenshot shows something different, the analysis is wrong and you can see it immediately.
 
-## Prerequisites
+## Installation
+
+### Prerequisites
 
 - [Copilot CLI](https://docs.github.com/copilot/concepts/agents/about-copilot-cli) installed and authenticated
 - Python 3.8 or later
@@ -18,24 +20,58 @@ If the analysis says "Section 9.3 allows termination for cause with a 30-day cur
   - Microsoft Word (macOS or Windows)
   - LibreOffice (any platform)
 
-## Setup
+### Install the plugin
 
-After installing the plugin, install the Python dependencies:
+Point your CLI at this repo and ask it to install the plugin for you, with this prompt:
 
-```bash
-pip3 install pymupdf pillow python-docx playwright
-python3 -m playwright install chromium
+```
+Install the plugin at github.com/dvelton/eyeball for me.
 ```
 
-Verify setup:
+Or:
+
+Install via the Copilot CLI plugin system, or clone the repo:
 
 ```bash
-python3 <plugin-path>/skills/eyeball/tools/eyeball.py setup-check
+git clone https://github.com/dvelton/eyeball.git
 ```
 
-## Usage
+### Install dependencies
 
-In a Copilot CLI conversation:
+**macOS / Linux:**
+
+```bash
+cd eyeball
+bash setup.sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+cd eyeball
+.\setup.ps1
+```
+
+**Manual install (any platform):**
+
+```bash
+pip install pymupdf pillow python-docx playwright
+python -m playwright install chromium
+```
+
+On Windows, `pywin32` is also needed for Microsoft Word automation and is installed automatically by the setup script.
+
+### Verify setup
+
+```bash
+python3 skills/eyeball/tools/eyeball.py setup-check
+```
+
+This shows which source types are supported on your machine.
+
+## How to use it
+
+In a Copilot CLI conversation, tell it to use eyeball and what you want analyzed:
 
 ```
 use eyeball on ~/Desktop/vendor-agreement.docx -- analyze the indemnification
@@ -51,15 +87,15 @@ developer-friendly aspects of these terms
 use eyeball to analyze this NDA for non-compete provisions
 ```
 
-Eyeball reads the source document, writes the analysis with exact section references, and generates a Word document on your Desktop with source screenshots inline.
+Eyeball activates, reads the source document, writes the analysis with exact section references, and generates a Word document on your Desktop with source screenshots inline.
 
-## Supported source types
+## What it supports
 
 | Source type | Requirements |
 |---|---|
 | PDF files | Python + PyMuPDF (included in setup) |
 | Web pages | Python + Playwright + Chromium (included in setup) |
-| Word documents (.docx) | Microsoft Word (macOS/Windows) or LibreOffice |
+| Word documents (.docx) | Microsoft Word (macOS/Windows) or LibreOffice (any platform). On Windows, pywin32 is also required (included in setup). |
 
 ## How it works
 
@@ -74,14 +110,16 @@ The screenshots are dynamically sized: if a section of analysis references text 
 
 ## Why screenshots instead of quoted text?
 
-Quoted text is easy to fabricate. A model can generate a plausible-sounding quote that doesn't actually appear in the source, and without checking, you'd never know. Screenshots from the rendered source are harder to fake -- they show the actual formatting, layout, and surrounding context of the original document. You can see at a glance whether the highlighted text matches the claim, and the surrounding text provides context that a cherry-picked quote might omit.
+In hallucination-sensitive contexts, sometimes we need to see receipts.
+
+Quoted text is easy to fabricate. A model can generate a plausible-sounding quote that doesn't actually appear in the source, and without checking, you'd never know. Screenshots from the rendered source are harder to fake; they show the actual formatting, layout, and surrounding context of the original document. You can see at a glance whether the highlighted text matches the claim, and the surrounding text provides context that a cherry-picked quote might omit.
 
 ## Limitations
 
 - Word document conversion requires Microsoft Word or LibreOffice. Without one of these, you can still use Eyeball with PDFs and web URLs.
-- Text search is string-matching. If the source document uses unusual encoding, ligatures, or non-standard characters, some searches may not match.
+- Text search is string-matching. If the source document uses unusual encoding, ligatures, or non-standard characters, some searches may not match. The skill instructions tell the AI to use verbatim phrases from the extracted text, which handles most cases.
 - Web page rendering depends on Playwright and may not perfectly capture all dynamic content (e.g., content loaded by JavaScript after page load, content behind login walls).
-- Screenshot quality depends on the source formatting. Dense multi-column layouts or very small text may produce less readable screenshots.
+- Screenshot quality depends on the source formatting. Dense multi-column layouts or very small text may produce less readable screenshots. Increase the DPI setting if needed.
 
 ## License
 
