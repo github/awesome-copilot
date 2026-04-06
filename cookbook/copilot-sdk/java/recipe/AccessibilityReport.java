@@ -43,12 +43,11 @@ public class AccessibilityReport {
             client.start().get();
 
             // Configure Playwright MCP server for browser automation
-            Map<String, Object> mcpConfig = Map.of(
-                "type", "local",
-                "command", "npx",
-                "args", List.of("@playwright/mcp@latest"),
-                "tools", List.of("*")
-            );
+            var mcpConfig = new McpServerConfig()
+                .setType("local")
+                .setCommand("npx")
+                .setArgs(List.of("@playwright/mcp@latest"))
+                .setTools(List.of("*"));
 
             var session = client.createSession(
                 new SessionConfig()

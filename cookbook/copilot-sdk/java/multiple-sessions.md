@@ -48,9 +48,9 @@ public class MultipleSessions {
             session3.sendAndWait(new MessageOptions().setPrompt("How do I initialize a module?")).get();
 
             // Clean up all sessions
-            session1.close();
-            session2.close();
-            session3.close();
+            session1.destroy().get();
+            session2.destroy().get();
+            session3.destroy().get();
         }
     }
 }
@@ -136,7 +136,7 @@ var session = client.createSession(new SessionConfig()
 
 session.sendAndWait(new MessageOptions().setPrompt("Hello!")).get();
 
-session.close();
+session.destroy().get();
 client.stop().get();
 executor.shutdown();
 ```

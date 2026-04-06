@@ -30,7 +30,8 @@ public class MultipleSessions {
             System.out.println("S3: " + s3.sendAndWait(new MessageOptions().setPrompt("Explain pattern matching")).get().getData().content());
 
             // Clean up
-            s1.close(); s2.close(); s3.close();
+            s1.destroy().get(); s2.destroy().get(); s3.destroy().get();
+            client.stop().get();
         }
     }
 }
