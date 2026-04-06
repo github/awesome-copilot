@@ -97,7 +97,7 @@ go run <filename>.go
 ### Java
 
 ```bash
-cd java/cookbook/recipe
+cd java/recipe
 jbang <FileName>.java
 ```
 

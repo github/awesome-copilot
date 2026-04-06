@@ -22,7 +22,12 @@ public class AccessibilityReport {
         var reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.print("Enter URL to analyze: ");
-        String url = reader.readLine().trim();
+        String urlLine = reader.readLine();
+        if (urlLine == null) {
+            System.out.println("No URL provided. Exiting.");
+            return;
+        }
+        String url = urlLine.trim();
         if (url.isEmpty()) {
             System.out.println("No URL provided. Exiting.");
             return;

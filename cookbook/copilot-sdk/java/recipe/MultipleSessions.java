@@ -25,9 +25,9 @@ public class MultipleSessions {
             var s1 = f1.get(); var s2 = f2.get(); var s3 = f3.get();
 
             // Send a message to each session
-            System.out.println("S1: " + s1.sendAndWait(new MessageOptions().setPrompt("Explain Java records")).get().getMessage());
-            System.out.println("S2: " + s2.sendAndWait(new MessageOptions().setPrompt("Explain sealed classes")).get().getMessage());
-            System.out.println("S3: " + s3.sendAndWait(new MessageOptions().setPrompt("Explain pattern matching")).get().getMessage());
+            System.out.println("S1: " + s1.sendAndWait(new MessageOptions().setPrompt("Explain Java records")).get().getData().content());
+            System.out.println("S2: " + s2.sendAndWait(new MessageOptions().setPrompt("Explain sealed classes")).get().getData().content());
+            System.out.println("S3: " + s3.sendAndWait(new MessageOptions().setPrompt("Explain pattern matching")).get().getData().content());
 
             // Clean up
             s1.destroy().get(); s2.destroy().get(); s3.destroy().get();

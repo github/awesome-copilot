@@ -27,7 +27,7 @@ npx --version
 ## Usage
 
 ```bash
-jbang AccessibilityReport.java
+jbang recipe/AccessibilityReport.java
 # Enter a URL when prompted
 ```
 

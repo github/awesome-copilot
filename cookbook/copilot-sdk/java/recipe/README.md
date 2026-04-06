@@ -54,10 +54,8 @@ jbang PRVisualization.java github/copilot-sdk
 jbang ManagingLocalFiles.java /path/to/your/folder
 ```
 
-**Ralph Loop in planning mode:**
+**Ralph Loop with a prompt file:**
 
-```bash
-jbang RalphLoop.java plan 5
 ```
 
 ## Why JBang?

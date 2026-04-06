@@ -24,8 +24,14 @@ public class ErrorHandling {
 
             session.close();
         } catch (ExecutionException ex) {
-            System.err.println("Error: " + ex.getCause().getMessage());
-            ex.getCause().printStackTrace();
+            Throwable cause = ex.getCause();
+            Throwable error = cause != null ? cause : ex;
+            System.err.println("Error: " + error.getMessage());
+            error.printStackTrace();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            System.err.println("Interrupted: " + ex.getMessage());
+            ex.printStackTrace();
         } catch (Exception ex) {
             System.err.println("Error: " + ex.getMessage());
             ex.printStackTrace();
