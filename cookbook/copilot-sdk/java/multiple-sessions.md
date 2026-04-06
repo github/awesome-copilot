@@ -23,35 +23,35 @@ import com.github.copilot.sdk.json.*;
 
 public class MultipleSessions {
     public static void main(String[] args) throws Exception {
-        var client = new CopilotClient();
-        client.start().get();
+        try (var client = new CopilotClient()) {
+            client.start().get();
 
-        // Create multiple independent sessions
-        var session1 = client.createSession(new SessionConfig()
-            .setModel("gpt-5")
-            .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
-        var session2 = client.createSession(new SessionConfig()
-            .setModel("gpt-5")
-            .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
-        var session3 = client.createSession(new SessionConfig()
-            .setModel("claude-sonnet-4.5")
-            .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
+            // Create multiple independent sessions
+            var session1 = client.createSession(new SessionConfig()
+                .setModel("gpt-5")
+                .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
+            var session2 = client.createSession(new SessionConfig()
+                .setModel("gpt-5")
+                .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
+            var session3 = client.createSession(new SessionConfig()
+                .setModel("claude-sonnet-4.5")
+                .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)).get();
 
-        // Each session maintains its own conversation history
-        session1.sendAndWait(new MessageOptions().setPrompt("You are helping with a Python project")).get();
-        session2.sendAndWait(new MessageOptions().setPrompt("You are helping with a TypeScript project")).get();
-        session3.sendAndWait(new MessageOptions().setPrompt("You are helping with a Go project")).get();
+            // Each session maintains its own conversation history
+            session1.sendAndWait(new MessageOptions().setPrompt("You are helping with a Python project")).get();
+            session2.sendAndWait(new MessageOptions().setPrompt("You are helping with a TypeScript project")).get();
+            session3.sendAndWait(new MessageOptions().setPrompt("You are helping with a Go project")).get();
 
-        // Follow-up messages stay in their respective contexts
-        session1.sendAndWait(new MessageOptions().setPrompt("How do I create a virtual environment?")).get();
-        session2.sendAndWait(new MessageOptions().setPrompt("How do I set up tsconfig?")).get();
-        session3.sendAndWait(new MessageOptions().setPrompt("How do I initialize a module?")).get();
+            // Follow-up messages stay in their respective contexts
+            session1.sendAndWait(new MessageOptions().setPrompt("How do I create a virtual environment?")).get();
+            session2.sendAndWait(new MessageOptions().setPrompt("How do I set up tsconfig?")).get();
+            session3.sendAndWait(new MessageOptions().setPrompt("How do I initialize a module?")).get();
 
-        // Clean up all sessions
-        session1.destroy().get();
-        session2.destroy().get();
-        session3.destroy().get();
-        client.stop().get();
+            // Clean up all sessions
+            session1.destroy().get();
+            session2.destroy().get();
+            session3.destroy().get();
+        }
     }
 }
 ```

@@ -54,8 +54,10 @@ jbang PRVisualization.java github/copilot-sdk
 jbang ManagingLocalFiles.java /path/to/your/folder
 ```
 
-**Ralph Loop with a prompt file:**
+**Ralph Loop with a custom prompt file:**
 
+```bash
+jbang RalphLoop.java PROMPT_build.md 20
 ```
 
 ## Why JBang?

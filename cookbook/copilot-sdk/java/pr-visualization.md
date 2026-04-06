@@ -118,10 +118,7 @@ public class PRVisualization {
                 Finally, summarize the PR health - average age, oldest PR, and how many might be considered stale.
                 """, owner, repoName);
 
-            session.send(new MessageOptions().setPrompt(prompt));
-
-            // Wait a bit for initial processing
-            Thread.sleep(10000);
+            session.sendAndWait(new MessageOptions().setPrompt(prompt)).get();
 
             // Interactive loop
             System.out.println("\n💡 Ask follow-up questions or type \"exit\" to quit.\n");
@@ -145,8 +142,7 @@ public class PRVisualization {
                         break;
                     }
 
-                    session.send(new MessageOptions().setPrompt(input));
-                    Thread.sleep(2000); // Give time for response
+                    session.sendAndWait(new MessageOptions().setPrompt(input)).get();
                 }
             }
 
