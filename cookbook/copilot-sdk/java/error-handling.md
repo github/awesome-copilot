@@ -150,27 +150,42 @@ try (var client = new CopilotClient()) {
 
 ## Handling tool errors
 
-When defining tools, return an error result to signal a failure back to the model instead of throwing.
+When defining tools, return an error string to signal a failure back to the model instead of throwing.
 
 ```java
-import com.github.copilot.sdk.json.ToolResultObject;
+import com.github.copilot.sdk.json.ToolDefinition;
+import java.util.concurrent.CompletableFuture;
 
-session.addTool(
-    ToolDefinition.builder()
-        .name("read_file")
-        .description("Read a file from disk")
-        .parameter("path", "string", "File path", true)
-        .build(),
-    (args) -> {
+var readFileTool = ToolDefinition.create(
+    "read_file",
+    "Read a file from disk",
+    Map.of(
+        "type", "object",
+        "properties", Map.of(
+            "path", Map.of("type", "string", "description", "File path")
+        ),
+        "required", List.of("path")
+    ),
+    invocation -> {
         try {
+            var path = (String) invocation.getArguments().get("path");
             var content = java.nio.file.Files.readString(
-                java.nio.file.Path.of(args.get("path").toString()));
-            return ToolResultObject.success(content);
-        } catch (IOException ex) {
-            return ToolResultObject.error("Failed to read file: " + ex.getMessage());
+                java.nio.file.Path.of(path));
+            return CompletableFuture.completedFuture(content);
+        } catch (java.io.IOException ex) {
+            return CompletableFuture.completedFuture(
+                "Error: Failed to read file: " + ex.getMessage());
         }
     }
 );
+
+// Register tools when creating the session
+var session = client.createSession(
+    new SessionConfig()
+        .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
+        .setModel("gpt-5")
+        .setTools(List.of(readFileTool))
+).get();
 ```
 
 ## Best practices
@@ -179,5 +194,5 @@ session.addTool(
 2. **Unwrap `ExecutionException`**: Call `getCause()` to inspect the real error — the outer `ExecutionException` is just a `CompletableFuture` wrapper.
 3. **Restore interrupt flag**: When catching `InterruptedException`, call `Thread.currentThread().interrupt()` to preserve the interrupted status.
 4. **Set timeouts**: Use `get(timeout, TimeUnit)` instead of bare `get()` for any call that could block indefinitely.
-5. **Return tool errors, don't throw**: Use `ToolResultObject.error()` so the model can recover gracefully.
+5. **Return tool errors, don't throw**: Return an error string from the `CompletableFuture` so the model can recover gracefully.
 6. **Log errors**: Capture error details for debugging — consider a logging framework like SLF4J for production applications.
