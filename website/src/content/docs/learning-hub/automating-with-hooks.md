@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-06
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -98,8 +98,10 @@ Hooks can trigger on several lifecycle events:
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
+| `PermissionRequest` | A tool permission prompt is about to be shown to the user | Programmatically approve or deny tool permission requests without user interaction |
+| `notification` | Shell command completes, a permission prompt fires, an elicitation dialog appears, or the agent finishes | Send async notifications, integrate with alerting systems, trigger external workflows |
 
-> **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+> **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations. To **silently approve** a tool without showing the user a permission prompt, return `{"permissionDecision": "allow"}` from your hook script — this suppresses the interactive approval dialog entirely.
 
 ### sessionStart additionalContext
 
@@ -295,6 +297,28 @@ Block dangerous commands before they execute:
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
 
+### Programmatic Permission Approval with PermissionRequest
+
+The `PermissionRequest` hook fires when a tool permission prompt is about to be shown to the user. Unlike `preToolUse` (which runs before every tool call), `PermissionRequest` specifically targets the interactive permission dialog — letting your scripts **silently approve or deny** without user interaction:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/auto-approve-safe-tools.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Your script receives JSON describing the permission request and can output `{"permissionDecision": "allow"}` to approve silently, or exit non-zero to deny. This is useful for CI environments or trusted workflows where you want to auto-approve a known-safe set of tools without pausing for user input.
+
 ### Governance Audit
 
 Scan user prompts for potential security threats and log session activity:
@@ -336,6 +360,28 @@ Scan user prompts for potential security threats and log session activity:
 ```
 
 This pattern is useful for enterprise environments that need to audit AI interactions for compliance.
+
+### Async Notifications with the notification Event
+
+The `notification` hook fires **asynchronously** (unlike all other hooks, which run synchronously) when any of these occur: a shell command completes, a permission prompt fires, an elicitation dialog appears, or the agent finishes. Because it's async, it doesn't block the agent:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "notification": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify-external.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+Use `notification` for integrating with external alerting systems, dashboards, or workflow triggers where you want to react to agent activity without slowing down the agent itself.
 
 ### Notification on Session End
 

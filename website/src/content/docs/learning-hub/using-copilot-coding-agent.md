@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-04-06
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -355,6 +355,7 @@ See [Automating with Hooks](../automating-with-hooks/) for configuration details
 - **Create skills for repeatable tasks**: If your team frequently does a specific type of work (migrations, API endpoints, test suites), create a skill with step-by-step guidance the agent can follow automatically.
 - **Use custom agents for specialized roles**: Create focused agent profiles for different types of work — a security reviewer, a test specialist, or an infrastructure expert.
 - **Define hooks for formatting**: Hooks ensure the agent's code meets your style requirements automatically, reducing review friction.
+- **Enable the Critic agent for higher-stakes work**: When using Claude models in experimental mode, the Critic agent automatically reviews plans and complex implementations using a complementary model to catch errors early — before they make it into a PR. This is especially useful for non-trivial tasks where a second set of eyes can prevent wasted review cycles.
 
 ### Choosing the Right Tasks
 
