@@ -1,6 +1,6 @@
 ---
 name: whatidid
-description: "Generate a branded HTML impact report showing what GitHub Copilot helped you accomplish — goals delivered, human effort equivalent, skills augmented, collaboration patterns, and estimation evidence grounded in peer-reviewed research. Works with any Copilot CLI or VS Code agent session."
+description: 'Generate a branded HTML impact report showing what GitHub Copilot helped you accomplish — goals delivered, human effort equivalent, skills augmented, collaboration patterns, and estimation evidence grounded in peer-reviewed research. Works with any Copilot CLI or VS Code agent session.'
 ---
 
 # What I Did (Copilot) — Impact Report Generator
