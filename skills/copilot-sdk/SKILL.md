@@ -69,17 +69,18 @@ Run: `npx tsx index.ts`
 ### Python
 ```python
 import asyncio
-from copilot import CopilotClient, PermissionHandler
+from copilot import CopilotClient
+from copilot.session import PermissionHandler
 
 async def main():
     client = CopilotClient()
     await client.start()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-    })
-    response = await session.send_and_wait({"prompt": "What is 2 + 2?"})
+    session = await client.create_session(
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+    )
+    response = await session.send_and_wait("What is 2 + 2?")
 
     print(response.data.content)
     await client.stop()
@@ -92,6 +93,7 @@ asyncio.run(main())
 package main
 
 import (
+    "context"
     "fmt"
     "log"
     "os"
@@ -99,13 +101,14 @@ import (
 )
 
 func main() {
+    ctx := context.Background()
     client := copilot.NewClient(nil)
-    if err := client.Start(); err != nil {
+    if err := client.Start(ctx); err != nil {
         log.Fatal(err)
     }
     defer client.Stop()
 
-    session, err := client.CreateSession(&copilot.SessionConfig{
+    session, err := client.CreateSession(ctx, &copilot.SessionConfig{
         OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
         Model:               "gpt-4.1",
     })
@@ -113,7 +116,7 @@ func main() {
         log.Fatal(err)
     }
 
-    response, err := session.SendAndWait(copilot.MessageOptions{Prompt: "What is 2 + 2?"}, 0)
+    response, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "What is 2 + 2?"})
     if err != nil {
         log.Fatal(err)
     }
@@ -174,18 +177,19 @@ process.exit(0);
 ```python
 import asyncio
 import sys
-from copilot import CopilotClient, PermissionHandler
+from copilot import CopilotClient
+from copilot.session import PermissionHandler
 from copilot.generated.session_events import SessionEventType
 
 async def main():
     client = CopilotClient()
     await client.start()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-    })
+    session = await client.create_session(
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+    )
 
     def handle_event(event):
         if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
@@ -195,7 +199,7 @@ async def main():
             print()
 
     session.on(handle_event)
-    await session.send_and_wait({"prompt": "Tell me a short joke"})
+    await session.send_and_wait("Tell me a short joke")
     await client.stop()
 
 asyncio.run(main())
@@ -203,7 +207,9 @@ asyncio.run(main())
 
 ### Go
 ```go
-session, err := client.CreateSession(&copilot.SessionConfig{
+ctx := context.Background()
+
+session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model:     "gpt-4.1",
     Streaming: true,
@@ -218,7 +224,7 @@ session.On(func(event copilot.SessionEvent) {
     }
 })
 
-_, err = session.SendAndWait(copilot.MessageOptions{Prompt: "Tell me a short joke"}, 0)
+_, err = session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Tell me a short joke"})
 ```
 
 ### .NET
@@ -298,7 +304,8 @@ process.exit(0);
 import asyncio
 import random
 import sys
-from copilot import CopilotClient, PermissionHandler
+from copilot import CopilotClient
+from copilot.session import PermissionHandler
 from copilot.tools import define_tool
 from copilot.generated.session_events import SessionEventType
 from pydantic import BaseModel, Field
@@ -318,12 +325,12 @@ async def main():
     client = CopilotClient()
     await client.start()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-        "tools": [get_weather],
-    })
+    session = await client.create_session(
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+        tools=[get_weather],
+    )
 
     def handle_event(event):
         if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
@@ -332,9 +339,7 @@ async def main():
 
     session.on(handle_event)
 
-    await session.send_and_wait({
-        "prompt": "What's the weather like in Seattle and Tokyo?"
-    })
+    await session.send_and_wait("What's the weather like in Seattle and Tokyo?")
 
     await client.stop()
 
@@ -368,7 +373,7 @@ getWeather := copilot.DefineTool(
     },
 )
 
-session, _ := client.CreateSession(&copilot.SessionConfig{
+session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model:     "gpt-4.1",
     Streaming: true,
@@ -484,7 +489,8 @@ prompt();
 import asyncio
 import random
 import sys
-from copilot import CopilotClient, PermissionHandler
+from copilot import CopilotClient
+from copilot.session import PermissionHandler
 from copilot.tools import define_tool
 from copilot.generated.session_events import SessionEventType
 from pydantic import BaseModel, Field
@@ -503,12 +509,12 @@ async def main():
     client = CopilotClient()
     await client.start()
 
-    session = await client.create_session({
-        "on_permission_request": PermissionHandler.approve_all,
-        "model": "gpt-4.1",
-        "streaming": True,
-        "tools": [get_weather],
-    })
+    session = await client.create_session(
+        on_permission_request=PermissionHandler.approve_all,
+        model="gpt-4.1",
+        streaming=True,
+        tools=[get_weather],
+    )
 
     def handle_event(event):
         if event.type == SessionEventType.ASSISTANT_MESSAGE_DELTA:
@@ -530,7 +536,7 @@ async def main():
             break
 
         sys.stdout.write("Assistant: ")
-        await session.send_and_wait({"prompt": user_input})
+        await session.send_and_wait(user_input)
         print("\n")
 
     await client.stop()
@@ -540,9 +546,86 @@ asyncio.run(main())
 
 ## MCP Server Integration
 
-Connect to MCP (Model Context Protocol) servers for pre-built tools. Connect to GitHub's MCP server for repository, issue, and PR access:
+Connect to MCP (Model Context Protocol) servers for pre-built tools.
 
-### TypeScript
+### Local Filesystem MCP Server (stdio)
+
+Use a local MCP server for safe, scoped filesystem access from the model.
+
+#### TypeScript
+```typescript
+const session = await client.createSession({
+    onPermissionRequest: approveAll,
+    model: "gpt-4.1",
+    mcpServers: {
+        filesystem: {
+            type: "stdio",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-filesystem", "."],
+            tools: ["*"],
+        },
+    },
+});
+```
+
+#### Python
+```python
+session = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    mcp_servers={
+        "filesystem": {
+            "type": "stdio",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+            "tools": ["*"],
+        },
+    },
+)
+```
+
+#### Go
+```go
+ctx := context.Background()
+
+session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+    Model: "gpt-4.1",
+    MCPServers: map[string]copilot.MCPServerConfig{
+        "filesystem": {
+            "type":    "stdio",
+            "command": "npx",
+            "args":    []string{"-y", "@modelcontextprotocol/server-filesystem", "."},
+            "tools":   []string{"*"},
+        },
+    },
+})
+```
+
+#### .NET
+```csharp
+await using var session = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "gpt-4.1",
+    McpServers = new Dictionary<string, object>
+    {
+        ["filesystem"] = new McpLocalServerConfig
+        {
+            Type = "stdio",
+            Command = "npx",
+            Args = ["-y", "@modelcontextprotocol/server-filesystem", "."],
+            Tools = ["*"],
+        },
+    },
+});
+```
+
+### Remote MCP Server (HTTP + headers)
+
+Use a remote MCP endpoint with custom headers for auth and allow all tools explicitly.
+
+#### TypeScript
 ```typescript
 const session = await client.createSession({
     onPermissionRequest: approveAll,
@@ -551,51 +634,72 @@ const session = await client.createSession({
         github: {
             type: "http",
             url: "https://api.githubcopilot.com/mcp/",
+            headers: {
+                Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+            },
+            tools: ["*"],
         },
     },
 });
 ```
 
-### Python
+#### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "mcp_servers": {
+import os
+
+session = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    mcp_servers={
         "github": {
             "type": "http",
             "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+                "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+            },
+            "tools": ["*"],
         },
     },
-})
+)
 ```
 
-### Go
+#### Go
 ```go
-session, _ := client.CreateSession(&copilot.SessionConfig{
+ctx := context.Background()
+
+session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-4.1",
     MCPServers: map[string]copilot.MCPServerConfig{
         "github": {
-            Type: "http",
-            URL:  "https://api.githubcopilot.com/mcp/",
+            "type": "http",
+            "url":  "https://api.githubcopilot.com/mcp/",
+            "headers": map[string]string{
+                "Authorization": "Bearer " + os.Getenv("GITHUB_TOKEN"),
+            },
+            "tools": []string{"*"},
         },
     },
 })
 ```
 
-### .NET
+#### .NET
 ```csharp
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
     OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-4.1",
-    McpServers = new Dictionary<string, McpServerConfig>
+    McpServers = new Dictionary<string, object>
     {
-        ["github"] = new McpServerConfig
+        ["github"] = new McpRemoteServerConfig
         {
             Type = "http",
             Url = "https://api.githubcopilot.com/mcp/",
+            Headers = new Dictionary<string, string>
+            {
+                ["Authorization"] = $"Bearer {Environment.GetEnvironmentVariable("GITHUB_TOKEN")}",
+            },
+            Tools = ["*"],
         },
     },
 });
@@ -621,16 +725,16 @@ const session = await client.createSession({
 
 ### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "custom_agents": [{
+session = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    custom_agents=[{
         "name": "pr-reviewer",
         "display_name": "PR Reviewer",
         "description": "Reviews pull requests for best practices",
         "prompt": "You are an expert code reviewer. Focus on security, performance, and maintainability.",
     }],
-})
+)
 ```
 
 ## System Message
@@ -650,13 +754,13 @@ const session = await client.createSession({
 
 ### Python
 ```python
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-    "system_message": {
+session = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+    system_message={
         "content": "You are a helpful assistant for our engineering team. Always be concise.",
     },
-})
+)
 ```
 
 ## External CLI Server
@@ -684,15 +788,15 @@ const session = await client.createSession({
 
 #### Python
 ```python
-client = CopilotClient({
-    "cli_url": "localhost:4321"
-})
+from copilot import CopilotClient, ExternalServerConfig
+
+client = CopilotClient(ExternalServerConfig(url="localhost:4321"))
 await client.start()
 
-session = await client.create_session({
-    "on_permission_request": PermissionHandler.approve_all,
-    "model": "gpt-4.1",
-})
+session = await client.create_session(
+    on_permission_request=PermissionHandler.approve_all,
+    model="gpt-4.1",
+)
 ```
 
 #### Go
@@ -701,11 +805,13 @@ client := copilot.NewClient(&copilot.ClientOptions{
     CLIUrl: "localhost:4321",
 })
 
-if err := client.Start(); err != nil {
+ctx := context.Background()
+
+if err := client.Start(ctx); err != nil {
     log.Fatal(err)
 }
 
-session, _ := client.CreateSession(&copilot.SessionConfig{
+session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 	Model:               "gpt-4.1",
 })
