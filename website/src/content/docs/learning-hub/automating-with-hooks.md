@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-07
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -26,7 +26,8 @@ Hooks are shell commands or scripts that run automatically in response to lifecy
 
 **Key characteristics**:
 - Hooks run as shell commands on the user's machine
-- They execute synchronously—the agent waits for them to complete
+- Most hooks execute synchronously—the agent waits for them to complete before continuing
+- The `notification` hook is an exception: it fires **asynchronously** without blocking the agent
 - They can block actions (e.g., prevent commits that fail linting)
 - They're defined in JSON files stored at `.github/hooks/*.json` in your repository
 - They receive detailed context via JSON input, enabling context-aware automation
@@ -98,8 +99,12 @@ Hooks can trigger on several lifecycle events:
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
+| `PermissionRequest` | Copilot requests user permission to run a tool | Programmatically approve or deny tool permission prompts without user interaction |
+| `notification` *(async)* | Shell command completes, a permission prompt appears, an elicitation dialog fires, or the agent completes | Send non-blocking notifications (Slack, Teams, desktop), log events without delaying the agent |
 
-> **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+> **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations. When your hook script outputs `{"permissionDecision": "allow"}` to stdout, the tool's built-in approval prompt is suppressed and the tool runs immediately — useful for whitelisting safe, repetitive operations without repeated prompts.
+
+> **Automatic approvals with `PermissionRequest`**: The `PermissionRequest` hook fires specifically when Copilot's permission UI would appear. Use it to auto-approve or deny requests programmatically (e.g., always allow read-only operations, always deny destructive writes in production paths) without interrupting the user.
 
 ### sessionStart additionalContext
 
@@ -295,6 +300,41 @@ Block dangerous commands before they execute:
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
 
+To **automatically approve** a specific tool without showing the built-in permission prompt, output `{"permissionDecision": "allow"}` to stdout from your hook script:
+
+```bash
+#!/usr/bin/env bash
+# Auto-approve read-only tools, prompt for everything else
+INPUT=$(cat)
+TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
+if [[ "$TOOL" == "codebase" || "$TOOL" == "search" ]]; then
+  echo '{"permissionDecision": "allow"}'
+fi
+# Exit 0 without output to use the default prompt behavior
+```
+
+### Auto-Approving with PermissionRequest
+
+The `PermissionRequest` hook fires specifically when Copilot's built-in permission UI would display a prompt. Use it to auto-approve or deny requests programmatically:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "type": "command",
+        "bash": "./scripts/auto-approve-permissions.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Your script receives the permission request details via JSON stdin and can output `{"permissionDecision": "allow"}` or `{"permissionDecision": "deny"}` to handle it programmatically, or exit without output to fall back to the default UI prompt.
+
 ### Governance Audit
 
 Scan user prompts for potential security threats and log session activity:
@@ -336,6 +376,34 @@ Scan user prompts for potential security threats and log session activity:
 ```
 
 This pattern is useful for enterprise environments that need to audit AI interactions for compliance.
+
+### Non-Blocking Notifications with the notification Hook
+
+The `notification` hook fires **asynchronously** — the agent doesn't wait for it to complete. This makes it ideal for notification-style integrations where you want to be informed of events without adding latency to the agent's workflow:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "notification": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+The `notification` hook fires on:
+- **Shell command completion** — a terminal command the agent ran has finished
+- **Permission prompts** — Copilot is requesting permission to use a tool
+- **Elicitation dialogs** — Copilot needs additional user input
+- **Agent completion** — the agent has finished responding
+
+Because it's asynchronous, this hook is great for sending Slack or Teams messages, updating dashboards, or logging to external systems — without adding any delay to the agent's work.
 
 ### Notification on Session End
 

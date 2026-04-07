@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-04-07
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -17,6 +17,8 @@ prerequisites:
 ---
 
 Skills are self-contained folders that package reusable capabilities—instructions, reference files, templates, and scripts—into a single unit that agents can discover automatically and users can invoke via slash commands. They enable teams to standardize common workflows like generating tests, reviewing code, or creating documentation, ensuring consistent, high-quality results across all team members.
+
+GitHub Copilot CLI also ships with a set of **built-in skills** that are available out of the box. These cover common tasks like customizing the Copilot cloud agent's environment. You can browse and invoke them just like custom skills, and they serve as useful examples when building your own.
 
 This article shows you how to design, structure, and optimize skills that solve real development challenges.
 

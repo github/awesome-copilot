@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-04-07
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -262,6 +262,10 @@ Keep agents focused—one persona per file. If you find an agent trying to do to
 **Q: How do I select a custom agent?**
 
 A: In VS Code, open Copilot Chat and use the agent picker dropdown at the top of the chat panel. Your custom agents appear alongside built-in options. You can also `@mention` an agent by name.
+
+**Q: What is the Critic agent?**
+
+A: The **Critic agent** is a built-in experimental feature (available for Claude models) that automatically reviews plans and complex implementations using a complementary model. When enabled, it runs in parallel with the primary agent to catch errors, inconsistencies, and missed requirements early — before you see the result. To try it, enable experimental mode when working with a Claude-powered agent.
 
 **Q: Can agents use skills?**
 
