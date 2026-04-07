@@ -478,6 +478,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "salesforce-development",
+      "source": "salesforce-development",
+      "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
+      "version": "1.0.0"
+    },
+    {
       "name": "security-best-practices",
       "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
