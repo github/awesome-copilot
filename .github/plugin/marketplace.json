@@ -481,7 +481,7 @@
       "name": "salesforce-development",
       "source": "salesforce-development",
       "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
