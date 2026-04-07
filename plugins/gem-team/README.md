@@ -30,6 +30,7 @@
 - ⚠️ **Pre-Mortem** — Failure modes identified BEFORE execution
 - 💬 **Constructive Critique** — gem-critic challenges assumptions, finds edge cases
 - 📝 **Contract-First** — Contract tests written before implementation
+- 📱 **Mobile Agents** — Native mobile implementation (React Native, Flutter) + iOS/Android testing
 
 ---
 
@@ -47,7 +48,7 @@ copilot plugin install gem-team@awesome-copilot
 ## 🏗️ Architecture
 
 ```mermaid
-flowchart LR
+flowchart
     USER["User Goal"]
 
     subgraph ORCH["Orchestrator"]
@@ -61,19 +62,6 @@ flowchart LR
         PLANNING["📝 Planning"]
         EXEC["⚙️ Execution"]
         SUMMARY["📊 Summary"]
-    end
-
-    subgraph AGENTS["Agents"]
-        researcher["gem-researcher"]
-        planner["gem-planner"]
-        implementer["gem-implementer"]
-        browser_tester["gem-browser-tester"]
-        reviewer["gem-reviewer"]
-        debugger["gem-debugger"]
-        critic["gem-critic"]
-        devops["gem-devops"]
-        docs["gem-documentation-writer"]
-        designer["gem-designer"]
     end
 
     DIAG["🔬 Diagnose-then-Fix"]
@@ -95,13 +83,8 @@ flowchart LR
     PLANNING -.-> |"critique"| critic
     PLANNING -.-> |"review"| reviewer
 
-    EXEC --> |"parallel ≤4"| implementer
-    EXEC --> |"parallel ≤4"| browser_tester
-    EXEC --> |"parallel ≤4"| devops
-    EXEC --> |"parallel ≤4"| docs
-
+    EXEC --> |"parallel ≤4"| agents
     EXEC --> |"post-wave (complex)"| critic
-    EXEC --> |"post-wave (UI)"| designer
 ```
 
 ---
