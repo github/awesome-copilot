@@ -56,15 +56,15 @@ You MUST NOT:
 | Related record graph or multiple objects at once | GraphQL `@wire(gql)` adapter |
 
 ### PICKLES Mindset for Every Component
-Go through each dimension before considering the component done:
+Go through each dimension (Prototype, Integrate, Compose, Keyboard, Look, Execute, Secure) before considering the component done:
 
-- **P**rototype — does the structure make sense before wiring up data?
-- **I**ntegrate — is the right data source pattern chosen (LDS / Apex / GraphQL / LMS)?
-- **C**ompose — are component boundaries clear? Can sub-components be reused?
-- **K**eyboard / Interaction — is everything operable by keyboard, not just mouse?
-- **L**ook — does it use SLDS 2 tokens and base components, not hardcoded styles?
-- **E**xecute — are re-render loops in `renderedCallback` avoided? Is wire caching considered?
-- **S**ecure — are `@AuraEnabled` methods enforcing CRUD/FLS? Is no user input rendered as raw HTML?
+- **Prototype** — does the structure make sense before wiring up data?
+- **Integrate** — is the right data source pattern chosen (LDS / Apex / GraphQL / LMS)?
+- **Compose** — are component boundaries clear? Can sub-components be reused?
+- **Keyboard** — is everything operable by keyboard, not just mouse?
+- **Look** — does it use SLDS 2 tokens and base components, not hardcoded styles?
+- **Execute** — are re-render loops in `renderedCallback` avoided? Is wire caching considered?
+- **Secure** — are `@AuraEnabled` methods enforcing CRUD/FLS? Is no user input rendered as raw HTML?
 
 ## ⛔ Non-Negotiable Quality Gates
 
