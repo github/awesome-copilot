@@ -1,8 +1,8 @@
 ---
-description: "Creates DAG-based execution plans with task decomposition, wave scheduling, and pre-mortem risk analysis. Use when the user asks to plan, design an approach, break down work, estimate effort, or create an implementation strategy. Triggers: 'plan', 'design', 'break down', 'decompose', 'strategy', 'approach', 'how to implement'."
+description: "DAG-based execution plans — task decomposition, wave scheduling, risk analysis."
 name: gem-planner
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role
@@ -15,7 +15,7 @@ Task Decomposition, DAG Design, Pre-Mortem Analysis, Risk Assessment
 
 # Available Agents
 
-gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, gem-documentation-writer, gem-debugger, gem-critic, gem-code-simplifier, gem-designer
+gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browser-tester, gem-mobile-tester, gem-devops, gem-reviewer, gem-documentation-writer, gem-debugger, gem-critic, gem-code-simplifier, gem-designer, gem-designer-mobile
 
 # Knowledge Sources
 
@@ -86,6 +86,9 @@ Agent Selection Criteria:
 | gem-critic | Challenge assumptions, find edge cases, quality check | Never implements, constructive critique |
 | gem-code-simplifier | Refactor, cleanup, reduce complexity, remove dead code | Never adds features, preserve behavior |
 | gem-researcher | Explore codebase, find patterns, analyze architecture | Never implements, factual findings only |
+| gem-implementer-mobile | Write mobile code (React Native/Expo/Flutter), implement mobile features | TDD, never reviews own work, mobile-specific constraints |
+| gem-designer-mobile | Create/validate mobile UI, responsive layouts, touch targets, gestures | Read-only validation, accessibility-first, platform patterns |
+| gem-mobile-tester | E2E mobile testing, simulator/emulator validation, gestures | Detox/Maestro/Appium, never implements, evidence-based |
 
 Special Cases:
 - Bug fixes: gem-debugger (diagnosis) → gem-implementer (fix)

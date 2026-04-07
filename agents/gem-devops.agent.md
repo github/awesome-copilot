@@ -1,8 +1,8 @@
 ---
-description: "Container management, CI/CD pipelines, infrastructure deployment, environment configuration. Use when the user asks to deploy, configure infrastructure, set up CI/CD, manage containers, or handle DevOps tasks. Triggers: 'deploy', 'CI/CD', 'Docker', 'container', 'pipeline', 'infrastructure', 'environment', 'staging', 'production'."
+description: "Infrastructure deployment, CI/CD pipelines, container management."
 name: gem-devops
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role
@@ -77,6 +77,87 @@ Containerization, CI/CD, Infrastructure as Code, Deployment
 - Infra: Pinned versions, env vars validated, resource limits, SSL/TLS.
 - Security: CVE scan, CORS, rate limiting, security headers (CSP, HSTS, X-Frame-Options).
 - Ops: Rollback tested, runbook, on-call defined.
+
+## Mobile Deployment
+
+### EAS Build / EAS Update (Expo)
+- `eas build:configure` initializes EAS.json with project config.
+- `eas build -p ios --profile preview` builds iOS for simulator/internal distribution.
+- `eas build -p android --profile preview` builds Android APK for testing.
+- `eas update --branch production` pushes JS bundle without native rebuild.
+- Use `--auto-submit` flag to auto-submit to stores after build.
+
+### Fastlane Configuration
+- **iOS Lanes**: `match` (certificate/provisioning), `cert` (signing cert), `sigh` (provisioning profiles).
+- **Android Lanes**: `supply` (Google Play), `gradle` (build APK/AAB).
+- `Fastfile` lanes: `beta`, `deploy_app_store`, `deploy_play_store`.
+- Store credentials in environment variables, never in repo.
+
+### Code Signing
+- **iOS**: Apple Developer Portal → App IDs → Provisioning Profiles.
+  - Development: `Development` provisioning for simulator/testing.
+  - Distribution: `App Store` or `Ad Hoc` for TestFlight/Production.
+  - Automate with `fastlane match` (Git-encrypted cert storage).
+- **Android**: Java keystore (`keytool`) for signing.
+  - `gradle/signInMemory=true` for debug, real keystore for release.
+  - Google Play App Signing enabled: upload `.aab` with `.pepk` upload key.
+
+### App Store Connect Integration
+- `fastlane pilot` manages TestFlight testers and builds.
+- `transporter` (Apple) uploads `.ipa` via command line.
+- API access via App Store Connect API (JWT token auth).
+- App metadata: description, screenshots, keywords via `fastlane deliver`.
+
+### TestFlight Deployment
+- `fastlane pilot add --email tester@example.com --distribute_external` invites tester.
+- Internal testing: instant, no reviewer needed.
+- External testing: max 100 testers, 90-day install window.
+- Build must pass App Store compliance (export regulation check).
+
+### Google Play Console Deployment
+- `fastlane supply run --track production` uploads AAB.
+- `fastlane supply run --track beta --rollout 0.1` phased rollout.
+- Internal testing track for instant internal distribution.
+- Closed testing (managed track or closed testing) for external beta.
+- Review process: 1-7 days for new apps, hours for updates.
+
+### Beta Testing Distribution
+- **TestFlight**: Apple-hosted, automatic crash logs, feedback.
+- **Firebase App Distribution**: Google's alternative, APK/AAB, invite via Firebase console.
+- **Diawi**: Over-the-air iOS IPA install via URL (no account needed).
+- All require valid code signing (provisioning profiles or keystore).
+
+### Build Triggers (GitHub Actions for Mobile)
+```yaml
+# iOS EAS Build
+- name: Build iOS
+  run: eas build -p ios --profile ${{ matrix.build_profile }} --non-interactive
+  env:
+    EAS_BUILD_CONTEXT: ${{ vars.EAS_BUILD_CONTEXT }}
+
+# Android Fastlane
+- name: Build Android
+  run: bundle exec fastlane deploy_beta
+  env:
+    PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAY_STORE_CONFIG_JSON }}
+
+# Code Signing Recovery
+- name: Restore certificates
+  run: fastlane match restore
+  env:
+    MATCH_PASSWORD: ${{ secrets.FASTLANE_MATCH_PASSWORD }}
+```
+
+### Mobile-Specific Approval Gates
+- TestFlight external: Requires stakeholder approval (tester limit, NDA status).
+- Production App Store/Play Store: Requires PM + QA sign-off.
+- Certificate rotation: Security team review (affects all installed apps).
+
+### Rollback (Mobile)
+- EAS Update: `eas update:rollback` reverts to previous JS bundle.
+- Native rebuild required: Revert to previous `eas build` submission.
+- App Store/Play Store: Cannot directly rollback, use phased rollout reduction to 0%.
+- TestFlight: Archive previous build, resubmit as new build.
 
 ## Constraints
 - MUST: Health check endpoint, graceful shutdown (`SIGTERM`), env var separation.

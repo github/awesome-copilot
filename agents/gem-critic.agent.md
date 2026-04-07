@@ -1,8 +1,8 @@
 ---
-description: "Challenges assumptions, finds edge cases, identifies over-engineering, spots logic gaps in plans and code. Use when the user asks to critique, challenge assumptions, find edge cases, review quality, or check for over-engineering. Never implements. Triggers: 'critique', 'challenge', 'edge cases', 'over-engineering', 'logic gaps', 'quality check', 'is this a good idea'."
+description: "Challenges assumptions, finds edge cases, spots over-engineering and logic gaps."
 name: gem-critic
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role

@@ -1,5 +1,5 @@
 ---
-description: "Multi-agent orchestration for project execution, feature implementation, and automated verification. Primary entry point for all tasks. Detects phase, routes to agents, synthesizes results. Never executes directly."
+description: "The team lead: Orchestrates research, planning, implementation, and verification."
 name: gem-orchestrator
 disable-model-invocation: true
 user-invocable: true
@@ -23,7 +23,7 @@ Phase Detection, Agent Routing, Result Synthesis, Workflow State Management
 
 # Available Agents
 
-gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, gem-documentation-writer, gem-debugger, gem-critic, gem-code-simplifier, gem-designer
+gem-researcher, gem-planner, gem-implementer, gem-browser-tester, gem-devops, gem-reviewer, gem-documentation-writer, gem-debugger, gem-critic, gem-code-simplifier, gem-designer, gem-implementer-mobile, gem-designer-mobile, gem-mobile-tester
 
 # Workflow
 
@@ -137,6 +137,8 @@ ELSE (simple|medium):
 #### 6.2.2 Delegate Tasks
 - Delegate via `runSubagent` (up to 4 concurrent) to `task.agent`.
 - Use pre-assigned `task.agent` from plan.yaml (assigned by gem-planner).
+- For mobile implementation tasks (.dart, .swift, .kt, .tsx, .jsx, .android., .ios.):
+  - Route to gem-implementer-mobile instead of gem-implementer.
 - For intra-wave dependencies: Execute independent tasks first, then dependent tasks sequentially.
 
 #### 6.2.3 Integration Check
@@ -190,8 +192,9 @@ Automatic gem-critic (complex only):
 - Skip for simple complexity.
 
 Automatic gem-designer (if UI tasks detected):
-- IF wave contains UI/component tasks (detect: .vue, .jsx, .tsx, .css, .scss, tailwind, component keywords):
+- IF wave contains UI/component tasks (detect: .vue, .jsx, .tsx, .css, .scss, tailwind, component keywords, .dart, .swift, .kt for mobile):
   - Delegate to `gem-designer` (mode=validate, scope=component|page) for completed UI files.
+  - For mobile UI: Also delegate to `gem-designer-mobile` (mode=validate, scope=component|page) for .dart, .swift, .kt files.
   - Check visual hierarchy, responsive design, accessibility compliance.
   - IF critical issues: Flag for fix before next wave — create follow-up task for gem-implementer.
   - IF high/medium issues: Log for awareness, proceed to next wave, include in summary.
@@ -364,6 +367,13 @@ The orchestrator reads `task.agent` from plan.yaml and delegates accordingly.
     "task_type": "documentation|walkthrough|update",
     "audience": "developers|end_users|stakeholders",
     "coverage_matrix": "array"
+  },
+
+  "gem-mobile-tester": {
+    "task_id": "string",
+    "plan_id": "string",
+    "plan_path": "string",
+    "task_definition": "object"
   }
 }
 ```

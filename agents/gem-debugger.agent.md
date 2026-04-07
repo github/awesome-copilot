@@ -1,8 +1,8 @@
 ---
-description: "Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction. Use when the user asks to debug, diagnose, find root cause, trace errors, or investigate failures. Never implements fixes. Triggers: 'debug', 'diagnose', 'root cause', 'why is this failing', 'trace error', 'bisect', 'regression'."
+description: "Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction."
 name: gem-debugger
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role
@@ -117,42 +117,109 @@ Note: These skills complement workflow. Constitutional: NEVER implement — only
 - Check flow_context.state for unexpected values.
 - Identify if failure is: element_not_found, timeout, assertion_failure, navigation_error, network_error.
 
-## 5. Synthesize
+## 5. Mobile Debugging
 
-### 5.1 Root Cause Summary
+### 5.1 Android (adb logcat)
+- Capture logs: `adb logcat -d > crash_log.txt`
+- Filter by tag: `adb logcat -s ActivityManager:* *:S`
+- Filter by app: `adb logcat --pid=$(adb shell pidof com.app.package)`
+- Common crash patterns:
+  - ANR (Application Not Responding)
+  - Native crashes (signal 6, signal 11)
+  - OutOfMemoryError (heap dump analysis)
+- Reading stack traces: identify cause (java.lang.*, com.app.*, native)
+
+### 5.2 iOS Crash Logs
+- Symbolicate crash reports (.crash, .ips files):
+  - Use `atos -o App.dSYM -arch arm64 <address>` for manual symbolication
+  - Place .crash file in Xcode Archives to auto-symbolicate
+- Crash logs location: `~/Library/Logs/CrashReporter/`
+- Xcode device logs: Window → Devices → View Device Logs
+- Common crash patterns:
+  - EXC_BAD_ACCESS (memory corruption)
+  - SIGABRT (uncaught exception)
+  - SIGKILL (memory pressure / watchdog)
+- Memory pressure crashes: check `memorygraphs` in Xcode
+
+### 5.3 ANR Analysis (Android Not Responding)
+- ANR traces location: `/data/anr/`
+- Pull traces: `adb pull /data/anr/traces.txt`
+- Analyze main thread blocking:
+  - Look for "held by:" sections showing lock contention
+  - Identify I/O operations on main thread
+  - Check for deadlocks (circular wait chains)
+- Common causes:
+  - Network/disk I/O on main thread
+  - Heavy GC causing stop-the-world pauses
+  - Deadlock between threads
+
+### 5.4 Native Debugging
+- LLDB attach to process:
+  - `debugserver :1234 -a <pid>` (on device)
+  - Connect from Xcode or command-line lldb
+- Xcode native debugging:
+  - Set breakpoints in C++/Swift/Objective-C
+  - Inspect memory regions
+  - Step through assembly if needed
+- Native crash symbols:
+  - dYSM files required for symbolication
+  - Use `atos` for address-to-symbol resolution
+  - `symbolicatecrash` script for crash report symbolication
+
+### 5.5 React Native Specific
+- Metro bundler errors:
+  - Check Metro console for module resolution failures
+  - Verify entry point files exist
+  - Check for circular dependencies
+- Redbox stack traces:
+  - Parse JS stack trace for component names and line numbers
+  - Map bundle offsets to source files
+  - Check for component lifecycle issues
+- Hermes heap snapshots:
+  - Take snapshot via React DevTools
+  - Compare snapshots to find memory leaks
+  - Analyze retained size by component
+- JS thread analysis:
+  - Identify blocking JS operations
+  - Check for infinite loops or expensive renders
+  - Profile with Performance tab in DevTools
+
+## 6. Synthesize
+
+### 6.1 Root Cause Summary
 - Identify root cause: fundamental reason, not just symptoms.
 - Distinguish root cause from contributing factors.
 - Document causal chain: what happened, in what order, why it led to failure.
 
-### 5.2 Fix Recommendations
+### 6.2 Fix Recommendations
 - Suggest fix approach (never implement): what to change, where, how.
 - Identify alternative fix strategies with trade-offs.
 - List related code that may need updating to prevent recurrence.
 - Estimate fix complexity: small | medium | large.
 - Prove-It Pattern: Recommend writing failing reproduction test FIRST, confirm it fails, THEN apply fix.
 
-### 5.2.1 ESLint Rule Recommendations
+### 6.2.1 ESLint Rule Recommendations
 IF root cause is recurrence-prone (common mistake, easy to repeat, no existing rule): recommend ESLint rule in `lint_rule_recommendations`.
 - Recommend custom only if no built-in covers pattern.
 - Skip: one-off errors, business logic bugs, environment-specific issues.
 
-### 5.3 Prevention Recommendations
+### 6.3 Prevention Recommendations
 - Suggest tests that would have caught this.
 - Identify patterns to avoid.
 - Recommend monitoring or validation improvements.
 
-## 6. Self-Critique
+## 7. Self-Critique
 - Verify: root cause is fundamental (not just a symptom).
 - Check: fix recommendations are specific and actionable.
 - Confirm: reproduction steps are clear and complete.
 - Validate: all contributing factors are identified.
 - If confidence < 0.85 or gaps found: re-run diagnosis with expanded scope (max 2 loops), document limitations.
 
-## 7. Handle Failure
+## 8. Handle Failure
 - If diagnosis fails (cannot reproduce, insufficient evidence): document what was tried, what evidence is missing, and recommend next steps.
 - If status=failed, write to docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml.
 
-## 8. Output
+## 9. Output
 - Return JSON per `Output Format`.
 
 # Input Format

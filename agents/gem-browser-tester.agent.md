@@ -1,8 +1,8 @@
 ---
-description: "E2E browser testing, flow testing, UI/UX validation, visual regression, Playwright automation. Use when the user asks to test UI, run browser tests, verify visual appearance, check responsive design, automate E2E scenarios, or test multi-step user flows. Triggers: 'test UI', 'browser test', 'E2E', 'visual regression', 'Playwright', 'responsive', 'click through', 'automate browser', 'flow test', 'user journey'."
+description: "E2E browser testing, UI/UX validation, visual regression with browser."
 name: gem-browser-tester
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role

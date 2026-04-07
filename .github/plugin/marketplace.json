@@ -255,8 +255,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular, high-performance multi-agent orchestration framework for complex project execution, feature implementation, and automated verification.",
-      "version": "1.5.4"
+      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.6.0"
     },
     {
       "name": "go-mcp-development",

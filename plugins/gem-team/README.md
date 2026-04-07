@@ -1,9 +1,9 @@
 # 💎 Gem Team
 
-> A modular, high-performance multi-agent orchestration framework for spec-driven development, feature implementation, and automated verification.
+> Multi-agent orchestration framework for spec-driven development and automated verification.
 
 [![Copilot Plugin](https://img.shields.io/badge/Plugin-Awesome%20Copilot-0078D4?style=flat-square&logo=microsoft)](https://awesome-copilot.github.com/plugins/#file=plugins%2Fgem-team)
-![Version](https://img.shields.io/badge/Version-1.5.4-6366f1?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.0-6366f1?style=flat-square)
 
 ---
 
@@ -125,20 +125,23 @@ flowchart LR
 
 ## 🤖 The Agent Team (Q2 2026 SOTA)
 
-| Role | When to Use | Output | Recommended LLM |
-|:-----|:------------|:-------|:----------------|
-| 🎯 **ORCHESTRATOR** (`gem-orchestrator`) | Multi-agent coordination, long workflows | 📋 PRD (`docs/PRD.yaml`) | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** GLM-5, Kimi K2.5, Qwen3.5-397B |
-| 🔍 **RESEARCHER** (`gem-researcher`) | Exploration, deep analysis, dependency tracing | 🔍 findings | **Closed:** Gemini 3.1 Pro, GPT-5.4, Claude Sonnet 4.6<br>**Open:** GLM-5, Qwen3.5-9B, DeepSeek-V3.2 |
-| 📋 **PLANNER** (`gem-planner`) | Decomposition, reasoning, multi-step design | 📄 plan.yaml | **Closed:** Gemini 3.1 Pro, Claude Sonnet 4.6, GPT-5.4<br>**Open:** Kimi K2.5 (Thinking), GLM-5, Qwen3.5-397B |
-| 🔧 **IMPLEMENTER** (`gem-implementer`) | Coding, building, TDD | 💻 code | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3-Coder-Next |
-| 🧪 **BROWSER TESTER** (`gem-browser-tester`) | UI + E2E + runtime validation | 🧪 evidence | **Closed:** GPT-5.4 (Native Computer Use), Claude Sonnet 4.6, Gemini 3.1 Flash-Lite<br>**Open:** Llama 4 Maverick, Qwen3.5-Flash, MiniMax M2.7 |
-| 🚀 **DEVOPS** (`gem-devops`) | Infra, CI/CD, reliability | 🌍 infra | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3.5-397B |
-| 🛡️ **REVIEWER** (`gem-reviewer`) | Audit, compliance, correctness | 📊 review report | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** Kimi K2.5, GLM-5, DeepSeek-V3.2 |
-| 📝 **DOCUMENTATION** (`gem-documentation-writer`) | Docs, README, structured writing | 📝 docs | **Closed:** Claude Sonnet 4.6, Gemini 3.1 Flash-Lite, GPT-5.4 Mini<br>**Open:** Llama 4 Scout, Qwen3.5-9B, MiniMax M2.7 |
-| 🔬 **DEBUGGER** (`gem-debugger`) | Root cause, tracing, diagnostics | 🔬 diagnosis | **Closed:** Gemini 3.1 Pro (Retrieval King), Claude Opus 4.6, GPT-5.4<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3-Coder-Next |
-| 🎯 **CRITIC** (`gem-critic`) | Challenge assumptions, edge cases | 💬 critique | **Closed:** Claude Sonnet 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** Kimi K2.5, GLM-5, Qwen3.5-397B |
-| ✂️ **SIMPLIFIER** (`gem-code-simplifier`) | Refactor, reduce complexity | ✂️ change log | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3-Coder-Next |
-| 🎨 **DESIGNER** (`gem-designer`) | UI/UX, accessibility, layouts | 🎨 DESIGN.md | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** Qwen3.5-397B, GLM-5, MiniMax M2.7 |
+| Role | Description | Output |
+|:-----|:------------|:-------|
+| 🎯 **ORCHESTRATOR** (`gem-orchestrator`) | The team lead: Orchestrates research, planning, implementation, and verification | 📋 PRD, plan.yaml |
+| 🔍 **RESEARCHER** (`gem-researcher`) | Codebase exploration — patterns, dependencies, architecture discovery | 🔍 findings |
+| 📋 **PLANNER** (`gem-planner`) | DAG-based execution plans — task decomposition, wave scheduling, risk analysis | 📄 plan.yaml |
+| 🔧 **IMPLEMENTER** (`gem-implementer`) | TDD code implementation — features, bugs, refactoring. Never reviews own work | 💻 code |
+| 🧪 **BROWSER TESTER** (`gem-browser-tester`) | E2E browser testing, UI/UX validation, visual regression with Playwright | 🧪 evidence |
+| 🚀 **DEVOPS** (`gem-devops`) | Infrastructure deployment, CI/CD pipelines, container management | 🌍 infra |
+| 🛡️ **REVIEWER** (`gem-reviewer`) | Security auditing, code review, OWASP scanning, PRD compliance verification | 📊 review report |
+| 📝 **DOCUMENTATION** (`gem-documentation-writer`) | Technical documentation, README files, API docs, diagrams, walkthroughs | 📝 docs |
+| 🔬 **DEBUGGER** (`gem-debugger`) | Root-cause analysis, stack trace diagnosis, regression bisection, error reproduction | 🔬 diagnosis |
+| 🎯 **CRITIC** (`gem-critic`) | Challenges assumptions, finds edge cases, spots over-engineering and logic gaps | 💬 critique |
+| ✂️ **SIMPLIFIER** (`gem-code-simplifier`) | Refactoring specialist — removes dead code, reduces complexity, consolidates duplicates | ✂️ change log |
+| 🎨 **DESIGNER** (`gem-designer`) | UI/UX design specialist — layouts, themes, color schemes, design systems, accessibility | 🎨 DESIGN.md |
+| 📱 **IMPLEMENTER-MOBILE** (`gem-implementer-mobile`) | Mobile implementation — React Native, Expo, Flutter with TDD | 💻 code |
+| 📱 **DESIGNER-MOBILE** (`gem-designer-mobile`) | Mobile UI/UX specialist — HIG, Material Design, safe areas, touch targets | 🎨 DESIGN.md |
+| 📱 **MOBILE TESTER** (`gem-mobile-tester`) | Mobile E2E testing — Detox, Maestro, iOS/Android simulators | 🧪 evidence |
 
 ### Agent File Skeleton
 
@@ -205,3 +208,24 @@ This project is licensed under the MIT License.
 ## 💬 Support
 
 If you encounter any issues or have questions, please [open an issue](https://github.com/mubaidr/gem-team/issues) on GitHub.
+
+---
+
+## 📋 Changelog
+
+### 1.6.0 (April 8, 2026)
+
+**New:**
+
+- Mobile agents — build, design, and test iOS/Android apps with gem-implementer-mobile, gem-designer-mobile, gem-mobile-tester
+
+**Improved:**
+
+- Concise agent descriptions — one-liners that quickly communicate what each agent does
+- Unified agent table — clean overview of all 15 agents with roles and outputs
+
+### 1.5.4
+
+**Bug Fixes:**
+
+- Fixed AGENTS.md pattern extraction logic for semantic search integration

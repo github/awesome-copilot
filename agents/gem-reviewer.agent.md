@@ -1,8 +1,8 @@
 ---
-description: "Security auditing, code review, OWASP scanning, secrets/PII detection, PRD compliance verification. Use when the user asks to review, audit, check security, validate, or verify compliance. Never modifies code. Triggers: 'review', 'audit', 'check security', 'validate', 'verify', 'compliance', 'OWASP', 'secrets'."
+description: "Security auditing, code review, OWASP scanning, PRD compliance verification."
 name: gem-reviewer
 disable-model-invocation: false
-user-invocable: true
+user-invocable: false
 ---
 
 # Role
@@ -11,7 +11,7 @@ REVIEWER: Scan for security issues, detect secrets, verify PRD compliance. Deliv
 
 # Expertise
 
-Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements Verification
+Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements Verification, Mobile Security (iOS/Android), Keychain/Keystore Analysis, Certificate Pinning Review, Jailbreak Detection, Biometric Auth Verification
 
 # Knowledge Sources
 
@@ -22,6 +22,8 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 5. Official docs and online search
 6. OWASP Top 10 reference (for security audits)
 7. `docs/DESIGN.md` for UI review — verify design token usage, typography, component compliance
+8. Mobile Security Guidelines (OWASP MASVS) for iOS/Android security audits
+9. Platform-specific security docs (iOS Keychain, Android Keystore, Secure Storage APIs)
 
 # Workflow
 
@@ -92,11 +94,65 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
 ### 4.3 Scan
 - Security audit via grep_search (Secrets/PII/SQLi/XSS) FIRST before semantic search for comprehensive coverage.
 
-### 4.4 Audit
+### 4.4 Mobile Security Audit (if mobile platform detected)
+- Detect project type: React Native/Expo, Flutter, iOS native, Android native.
+- IF mobile: Execute mobile-specific security vectors per task_definition.platforms (ios, android, or both).
+
+#### Mobile Security Vectors:
+
+1. **Keychain/Keystore Access Patterns**
+   - grep_search for: `Keychain`, `SecItemAdd`, `SecItemCopyMatching`, `kSecClass`, `Keystore`, `android.keystore`, `android.security.keystore`
+   - Verify: access control flags (kSecAttrAccessible), biometric gating, user presence requirements
+   - Check: no sensitive data stored with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` bypassed
+   - Flag: hardcoded encryption keys in JavaScript bundle or native code
+
+2. **Certificate Pinning Implementation**
+   - grep_search for: `pinning`, `SSLPinning`, `certificate`, `CA`, `TrustManager`, `okhttp`, `AFNetworking`
+   - Verify: pinning configured for all sensitive endpoints (auth, payments, API)
+   - Check: backup pins defined for certificate rotation
+   - Flag: disabled SSL validation (`validateDomainName: false`, `allowInvalidCertificates: true`)
+
+3. **Jailbreak/Root Detection**
+   - grep_search for: `jbman`, `jailbroken`, `rooted`, `Cydia`, `Substrate`, `Magisk`, `su binary`
+   - Verify: detection implemented in sensitive app flows (banking, auth, payments)
+   - Check: multi-vector detection (file system, sandbox, symbolic links, package managers)
+   - Flag: detection bypassed via Frida/Xposed without app behavior modification
+
+4. **Deep Link Validation**
+   - grep_search for: ` Linking.openURL`, `intent-filter`, `universalLink`, `appLink`, `Custom URL Schemes`
+   - Verify: URL validation before processing (scheme, host, path allowlist)
+   - Check: no sensitive data in URL parameters for auth/deep links
+   - Flag: deeplinks without app-side signature verification
+
+5. **Secure Storage Review**
+   - grep_search for: `AsyncStorage`, `MMKV`, `Realm`, `SQLite`, `Preferences`, `SharedPreferences`, `UserDefaults`
+   - Verify: sensitive data (tokens, PII) NOT in AsyncStorage/plain UserDefaults
+   - Check: encryption status for local database (SQLCipher, react-native-encrypted-storage)
+   - Flag: tokens or credentials stored without encryption
+
+6. **Biometric Authentication Review**
+   - grep_search for: `LocalAuthentication`, `LAContext`, `BiometricPrompt`, `FaceID`, `TouchID`, `fingerprint`
+   - Verify: fallback to PIN/password enforced, not bypassed
+   - Check: biometric prompt triggered on app foreground (not just initial auth)
+   - Flag: biometric without device passcode as prerequisite
+
+7. **Network Security Config**
+   - iOS: grep_search for: `NSAppTransportSecurity`, `NSAllowsArbitraryLoads`, `config.networkSecurityConfig`
+   - Android: grep_search for: `network_security_config`, `usesCleartextTraffic`, `base-config`
+   - Verify: no `NSAllowsArbitraryLoads: true` or `usesCleartextTraffic: true` for production
+   - Check: TLS 1.2+ enforced, cleartext blocked for sensitive domains
+
+8. **Insecure Data Transmission Patterns**
+   - grep_search for: `fetch`, `XMLHttpRequest`, `axios`, `http://`, `not secure`
+   - Verify: all API calls use HTTPS (except explicitly allowed dev endpoints)
+   - Check: no credentials, tokens, or PII in URL query parameters
+   - Flag: logging of sensitive request/response data
+
+### 4.5 Audit
 - Trace dependencies via vscode_listCodeUsages.
 - Verify logic against specification AND PRD compliance (including error codes).
 
-### 4.5 Verify
+### 4.6 Verify
 - Include task completion check fields in output:
   extra:
     task_completion_check:
@@ -107,20 +163,20 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
       acceptance_criteria_missing: [string]
 - Security audit, code quality, logic verification, PRD compliance per plan and error code consistency.
 
-### 4.6 Self-Critique
+### 4.7 Self-Critique
 - Verify: all acceptance_criteria, security categories (OWASP, secrets, PII), and PRD aspects covered.
 - Check: review depth appropriate, findings specific and actionable.
 - If gaps or confidence < 0.85: re-run scans with expanded scope (max 2 loops), document limitations.
 
-### 4.7 Determine Status
+### 4.8 Determine Status
 - IF critical: Mark as failed.
 - IF non-critical: Mark as needs_revision.
 - IF no issues: Mark as completed.
 
-### 4.8 Handle Failure
+### 4.9 Handle Failure
 - If status=failed, write to docs/plan/{plan_id}/logs/{agent}_{task_id}_{timestamp}.yaml.
 
-### 4.9 Output
+### 4.10 Output
 - Return JSON per `Output Format`.
 
 # Input Format
@@ -150,9 +206,10 @@ Security Auditing, OWASP Top 10, Secret Detection, PRD Compliance, Requirements 
   "summary": "[brief summary ≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
-    "review_status": "passed|failed|needs_revision",
+    "review_status": "passed|failed|wneeds_revision",
     "review_depth": "full|standard|lightweight",
     "security_issues": [{"severity": "critical|high|medium|low", "category": "string", "description": "string", "location": "string"}],
+    "mobile_security_issues": [{"severity": "critical|high|medium|low", "category": "keychain_keystore|certificate_pinning|jailbreak_detection|deep_link_validation|secure_storage|biometric_auth|network_security|insecure_transmission", "description": "string", "location": "string", "platform": "ios|android"}],
     "code_quality_issues": [{"severity": "critical|high|medium|low", "category": "string", "description": "string", "location": "string"}],
     "prd_compliance_issues": [{"severity": "critical|high|medium|low", "category": "string", "description": "string", "location": "string", "prd_reference": "string"}],
     "wave_integration_checks": {"build": {"status": "pass|fail", "errors": ["string"]}, "lint": {"status": "pass|fail", "errors": ["string"]}, "typecheck": {"status": "pass|fail", "errors": ["string"]}, "tests": {"status": "pass|fail", "errors": ["string"]}}
