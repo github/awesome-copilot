@@ -538,12 +538,12 @@ FreeCADGui.addWorkbench(MyWorkbench)
 # Date: 2026-04-07
 
 import FreeCAD
-import FreeCADGui
 import Part
 from FreeCAD import Base
 
 # Guard for GUI availability
 if FreeCAD.GuiUp:
+    import FreeCADGui
     from PySide2 import QtWidgets, QtCore
 
 def main():
@@ -552,9 +552,10 @@ def main():
         FreeCAD.Console.PrintError("No active document\n")
         return
 
-    sel = FreeCADGui.Selection.getSelection()
-    if not sel:
-        FreeCAD.Console.PrintWarning("No objects selected\n")
+    if FreeCAD.GuiUp:
+        sel = FreeCADGui.Selection.getSelection()
+        if not sel:
+            FreeCAD.Console.PrintWarning("No objects selected\n")
 
     # ... macro logic ...
 
