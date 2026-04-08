@@ -46,7 +46,7 @@
 
 # queston - intentional misspelling example in skills/arize-dataset/SKILL.md demonstrating typo detection in field names
 
-# Vertexes - freeCAD shape sub-elements used as property of obj.Shape
+# Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
 
 ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes
 

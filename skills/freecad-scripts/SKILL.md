@@ -164,6 +164,7 @@ edge = bspline.toShape()
 # --- Show in document ---
 Part.show(box, "MyBox")    # Quick display (adds to active doc)
 # Or explicitly:
+doc = FreeCAD.ActiveDocument or FreeCAD.newDocument()
 obj = doc.addObject("Part::Feature", "MyShape")
 obj.Shape = box
 doc.recompute()

@@ -259,6 +259,7 @@ print(gcode)
 
 ```python
 import Part
+import FreeCAD
 shape = obj.Shape
 mirrored = shape.mirror(FreeCAD.Vector(0,0,0), FreeCAD.Vector(1,0,0))  # mirror about YZ
 Part.show(mirrored, "Mirrored")
@@ -346,18 +347,23 @@ obj.ViewObject.ShapeColor = (0.8, 0.2, 0.2)
 ### Batch Export All Objects
 
 ```python
+import FreeCAD
 import Part
 import os
 
 doc = FreeCAD.ActiveDocument
 export_dir = "/path/to/export"
-os.makedirs(export_dir, exist_ok=True)
 
-for obj in doc.Objects:
-    if hasattr(obj, "Shape") and obj.Shape.Solids:
-        filepath = os.path.join(export_dir, f"{obj.Name}.step")
-        Part.export([obj], filepath)
-        FreeCAD.Console.PrintMessage(f"Exported {filepath}\n")
+if doc is None:
+    FreeCAD.Console.PrintMessage("No active document to export.\n")
+else:
+    os.makedirs(export_dir, exist_ok=True)
+
+    for obj in doc.Objects:
+        if hasattr(obj, "Shape") and obj.Shape.Solids:
+            filepath = os.path.join(export_dir, f"{obj.Name}.step")
+            Part.export([obj], filepath)
+            FreeCAD.Console.PrintMessage(f"Exported {filepath}\n")
 ```
 
 ### Timer / Progress Bar
@@ -381,12 +387,15 @@ progress.setValue(total_steps)
 ### Run a Macro Programmatically
 
 ```python
+import FreeCADGui
+import runpy
+
 # Execute a macro file
 FreeCADGui.runCommand("Std_Macro")  # Opens macro dialog
 
-# Or run directly
-exec(open("/path/to/macro.py").read())
+# Only execute trusted macros. Prefer an explicit path and a clearer runner.
+runpy.run_path("/path/to/macro.py", run_name="__main__")
 
-# Or use the FreeCAD macro runner
-FreeCADGui.doCommand('exec(open("/path/to/macro.py").read())')
+# Or use the FreeCAD macro runner with the same trusted, explicit path
+FreeCADGui.doCommand('import runpy; runpy.run_path("/path/to/macro.py", run_name="__main__")')
 ```
