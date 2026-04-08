@@ -99,6 +99,7 @@ placement = FreeCAD.Placement(
 obj.Placement = placement
 
 # Matrix (4x4 transformation)
+import math
 mat = FreeCAD.Matrix()
 mat.move(FreeCAD.Vector(10, 0, 0))
 mat.rotateZ(math.radians(45))
@@ -109,6 +110,7 @@ mat.rotateZ(math.radians(45))
 The Part module wraps OpenCASCADE and provides BRep solid modeling:
 
 ```python
+import FreeCAD
 import Part
 
 # --- Primitive Shapes ---

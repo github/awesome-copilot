@@ -37,6 +37,7 @@ MyWorkbench/
 ```python
 # Runs at FreeCAD startup (before GUI)
 # Register importers/exporters, add module paths, etc.
+import FreeCAD
 FreeCAD.addImportType("My Format (*.myf)", "MyImporter")
 FreeCAD.addExportType("My Format (*.myf)", "MyExporter")
 ```
@@ -80,6 +81,7 @@ class MyWorkbench(FreeCADGui.Workbench):
             "My_AdvancedCommand"
         ])
 
+        import FreeCAD
         FreeCAD.Console.PrintMessage("My Workbench initialized\n")
 
     def Activated(self):
@@ -171,6 +173,9 @@ import Fem
 import femmesh.femmesh2mesh
 
 doc = FreeCAD.ActiveDocument
+
+# Get the solid object to analyse (must already exist in the document)
+obj = doc.getObject("Body") or doc.Objects[0]
 
 # Create analysis
 analysis = ObjectsFem.makeAnalysis(doc, "Analysis")

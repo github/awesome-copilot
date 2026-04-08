@@ -63,6 +63,8 @@ FreeCADGui.addCommand("My_Command", MyCommand())
 Task panels appear in FreeCAD's left sidebar — the preferred way to build interactive tools:
 
 ```python
+import FreeCAD
+import FreeCADGui
 from PySide2 import QtWidgets, QtCore
 
 class MyTaskPanel:
@@ -209,7 +211,8 @@ class MyDialog(QtWidgets.QDialog):
 ### Loading a .ui File
 
 ```python
-from PySide2 import QtWidgets, QtUiTools
+import os
+from PySide2 import QtWidgets, QtUiTools, QtCore
 
 def loadUiFile(ui_path):
     """Load a Qt Designer .ui file."""

@@ -296,6 +296,8 @@ mesh = MeshPart.meshFromShape(
 )
 
 # Convert Mesh → Part
+import Part
+tolerance = 0.05
 shape = Part.Shape()
 shape.makeShapeFromMesh(mesh.Topology, tolerance)
 solid = Part.makeSolid(shape)
