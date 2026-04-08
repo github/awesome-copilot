@@ -20,6 +20,6 @@
     "performance"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ]
 }

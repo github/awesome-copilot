@@ -18,12 +18,12 @@
     "business-intelligence"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/power-bi-dax-optimization",
-    "./skills/power-bi-model-design-review",
-    "./skills/power-bi-performance-troubleshooting",
-    "./skills/power-bi-report-design-consultation"
+    "./skills/power-bi-dax-optimization/",
+    "./skills/power-bi-model-design-review/",
+    "./skills/power-bi-performance-troubleshooting/",
+    "./skills/power-bi-report-design-consultation/"
   ]
 }

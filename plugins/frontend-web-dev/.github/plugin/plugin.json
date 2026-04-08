@@ -19,10 +19,10 @@
     "vue"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/playwright-explore-website",
-    "./skills/playwright-generate-test"
+    "./skills/playwright-explore-website/",
+    "./skills/playwright-generate-test/"
   ]
 }

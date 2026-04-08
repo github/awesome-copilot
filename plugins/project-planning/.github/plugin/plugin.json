@@ -18,16 +18,16 @@
     "technical-spike"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/breakdown-feature-implementation",
-    "./skills/breakdown-feature-prd",
-    "./skills/breakdown-epic-arch",
-    "./skills/breakdown-epic-pm",
-    "./skills/create-implementation-plan",
-    "./skills/update-implementation-plan",
-    "./skills/create-github-issues-feature-from-implementation-plan",
-    "./skills/create-technical-spike"
+    "./skills/breakdown-feature-implementation/",
+    "./skills/breakdown-feature-prd/",
+    "./skills/breakdown-epic-arch/",
+    "./skills/breakdown-epic-pm/",
+    "./skills/create-implementation-plan/",
+    "./skills/update-implementation-plan/",
+    "./skills/create-github-issues-feature-from-implementation-plan/",
+    "./skills/create-technical-spike/"
   ]
 }

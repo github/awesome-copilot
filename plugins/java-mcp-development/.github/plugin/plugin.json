@@ -18,9 +18,9 @@
     "reactor"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/java-mcp-server-generator"
+    "./skills/java-mcp-server-generator/"
   ]
 }

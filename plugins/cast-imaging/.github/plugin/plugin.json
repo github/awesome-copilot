@@ -16,6 +16,6 @@
     "devops"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ]
 }

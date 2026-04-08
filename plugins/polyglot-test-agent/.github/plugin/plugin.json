@@ -20,9 +20,9 @@
     "go"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/polyglot-test-agent"
+    "./skills/polyglot-test-agent/"
   ]
 }

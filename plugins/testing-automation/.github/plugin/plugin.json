@@ -18,13 +18,13 @@
     "nunit"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/playwright-explore-website",
-    "./skills/playwright-generate-test",
-    "./skills/csharp-nunit",
-    "./skills/java-junit",
-    "./skills/ai-prompt-engineering-safety-review"
+    "./skills/playwright-explore-website/",
+    "./skills/playwright-generate-test/",
+    "./skills/csharp-nunit/",
+    "./skills/java-junit/",
+    "./skills/ai-prompt-engineering-safety-review/"
   ]
 }

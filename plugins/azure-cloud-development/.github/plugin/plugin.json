@@ -18,12 +18,12 @@
     "devops"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ],
   "skills": [
-    "./skills/azure-resource-health-diagnose",
-    "./skills/az-cost-optimize",
-    "./skills/import-infrastructure-as-code",
-    "./skills/azure-pricing"
+    "./skills/azure-resource-health-diagnose/",
+    "./skills/az-cost-optimize/",
+    "./skills/import-infrastructure-as-code/",
+    "./skills/azure-pricing/"
   ]
 }

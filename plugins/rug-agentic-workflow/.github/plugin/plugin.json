@@ -15,6 +15,6 @@
     "qa"
   ],
   "agents": [
-    "./agents"
+    "./agents/"
   ]
 }
