@@ -170,11 +170,13 @@ class MultiFormPanel:
 ## Standalone PySide Dialogs
 
 ```python
+import FreeCAD
+import FreeCADGui
 from PySide2 import QtWidgets, QtCore, QtGui
 
 class MyDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        super().__init__(parent or FreeCADGui.getMainWindow())
+        super().__init__(parent or (FreeCADGui.getMainWindow() if FreeCAD.GuiUp else None))
         self.setWindowTitle("My Dialog")
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
 

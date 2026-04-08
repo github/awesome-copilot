@@ -214,22 +214,19 @@ mesh = Mesh.Mesh("/path/to/file.stl")
 mesh.write("/path/to/output.stl")
 
 # Convert Part shape to Mesh
+import Part
 import MeshPart
-mesh = MeshPart.meshFromShape(Shape=obj.Shape, LinearDeflection=0.1,
+shape = Part.makeBox(1, 1, 1)
+mesh = MeshPart.meshFromShape(Shape=shape, LinearDeflection=0.1,
                                 AngularDeflection=0.5)
 
 # Convert Mesh to Part shape
-import Part
 shape = Part.Shape()
 shape.makeShapeFromMesh(mesh.Topology, 0.05)  # tolerance
 solid = Part.makeSolid(shape)
 ```
 
 ### Sketcher Module
-
-```python
-import Sketcher
-import Part
 
 # Create a sketch on XY plane
 sketch = doc.addObject("Sketcher::SketchObject", "MySketch")
