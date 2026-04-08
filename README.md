@@ -30,6 +30,7 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 
 Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
+- [Gitstar](https://gitstar.ai?utm_medium=github_readme&utm_source=awesome_list&utm_campaign=github_awesome-copilot) - Follow GitHub developers, see their activity feed, and discover trending repos in your stack.
 ## Install a Plugin
 
 For most users, the **Awesome Copilot** marketplace is already registered in the Copilot CLI/VS Code, so you can install a plugin directly:
