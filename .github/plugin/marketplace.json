@@ -352,6 +352,34 @@
       "version": "1.0.0"
     },
     {
+      "name": "omg",
+      "description": "Multi-agent orchestration — 25 specialized AI agents for architecture, security, code review, debugging, testing, planning, and autonomous execution.",
+      "version": "0.4.7",
+      "author": {
+        "name": "Matthias Falland",
+        "url": "https://www.the-trusted-advisor.com"
+      },
+      "homepage": "https://github.com/TheTrustedAdvisor/omg",
+      "keywords": [
+        "copilot",
+        "agents",
+        "orchestration",
+        "multi-agent",
+        "security",
+        "code-review",
+        "architecture",
+        "debugging",
+        "testing",
+        "planning"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/TheTrustedAdvisor/omg",
+      "source": {
+        "source": "github",
+        "repo": "TheTrustedAdvisor/omg"
+      }
+    },
+    {
       "name": "openapi-to-application-csharp-dotnet",
       "source": "openapi-to-application-csharp-dotnet",
       "description": "Generate production-ready .NET applications from OpenAPI specifications. Includes ASP.NET Core project scaffolding, controller generation, entity framework integration, and C# best practices.",
