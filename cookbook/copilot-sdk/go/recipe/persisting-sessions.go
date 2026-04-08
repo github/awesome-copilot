@@ -18,6 +18,7 @@ func main() {
 
 	// Create session with a memorable ID
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 		SessionID: "user-123-conversation",
 		Model:     "gpt-5",
 	})
@@ -36,7 +37,7 @@ func main() {
 	fmt.Println("Session destroyed (state persisted)")
 
 	// Resume the previous session
-	resumed, err := client.ResumeSession(ctx, "user-123-conversation")
+	resumed, err := client.ResumeSession(ctx, "user-123-conversation", &copilot.ResumeSessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 	if err != nil {
 		log.Fatal(err)
 	}

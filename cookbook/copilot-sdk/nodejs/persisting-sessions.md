@@ -17,13 +17,14 @@ You want users to be able to continue a conversation even after closing and reop
 ### Creating a session with a custom ID
 
 ```typescript
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 await client.start();
 
 // Create session with a memorable ID
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     sessionId: "user-123-conversation",
     model: "gpt-5",
 });
@@ -45,7 +46,7 @@ const client = new CopilotClient();
 await client.start();
 
 // Resume the previous session
-const session = await client.resumeSession("user-123-conversation");
+const session = await client.resumeSession("user-123-conversation", { onPermissionRequest: approveAll });
 
 // Previous context is restored
 await session.sendAndWait({ prompt: "What were we discussing?" });

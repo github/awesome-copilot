@@ -1,37 +1,63 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import samplesData from '../../../../public/data/samples.json';
 import Modal from '../../../components/Modal.astro';
+import EmbeddedPageData from '../../../components/EmbeddedPageData.astro';
+import {
+  getRecipeResultsCountText,
+  renderCookbookSectionsHtml,
+} from '../../../scripts/pages/samples-render';
+
+const initialRecipeMatches = samplesData.cookbooks.flatMap((cookbook) =>
+  cookbook.recipes.map((recipe) => ({ cookbook, recipe }))
+);
+
+const languageOptions = Array.from(
+  new Map(
+    samplesData.cookbooks.flatMap((cookbook) =>
+      cookbook.languages.map((language) => [language.id, language])
+    )
+  ).values()
+);
 ---
 
 <StarlightPage frontmatter={{ title: 'Cookbook', description: 'Code samples, recipes, and examples for building with GitHub Copilot' }}>
   <div class="cookbook-page">
-    <div class="search-bar">
-      <label for="search-input" class="sr-only">Search recipes</label>
-      <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off">
-    </div>
-
-    <div class="filters-bar" id="filters-bar">
-      <div class="filter-group">
-        <label for="filter-language">Language:</label>
-        <select id="filter-language" aria-label="Filter by language">
-          <option value="">All Languages</option>
-        </select>
+    <div class="listing-toolbar">
+      <div class="search-bar">
+        <label for="search-input" class="sr-only">Search recipes</label>
+        <input type="text" id="search-input" placeholder="Search recipes..." autocomplete="off">
       </div>
-      <div class="filter-group">
-        <label for="filter-tag">Tags:</label>
-        <select id="filter-tag" multiple aria-label="Filter by tags"></select>
+
+      <div class="filters-bar" id="filters-bar">
+        <div class="filter-group">
+          <label for="filter-language">Language:</label>
+          <select id="filter-language" aria-label="Filter by language">
+            <option value="">All Languages</option>
+            {languageOptions.map((language) => (
+              <option value={language.id}>{language.name}</option>
+            ))}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-tag">Tags:</label>
+          <select id="filter-tag" multiple aria-label="Filter by tags">
+            {samplesData.filters.tags.map((tag) => (
+              <option value={tag}>{tag}</option>
+            ))}
+          </select>
+        </div>
+        <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
       </div>
-      <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
     </div>
 
-    <div class="results-count" id="results-count" aria-live="polite"></div>
+    <div class="results-count" id="results-count" aria-live="polite">{getRecipeResultsCountText(samplesData.totalRecipes, samplesData.totalRecipes)}</div>
 
-    <div id="samples-list" role="list">
-      <div class="loading" aria-live="polite">Loading samples...</div>
-    </div>
+    <div id="samples-list" role="list" set:html={renderCookbookSectionsHtml(initialRecipeMatches)}></div>
   </div>
 
   <Modal />
+  <EmbeddedPageData filename="samples.json" data={samplesData} />
 
   <style is:global>
     /* Cookbook Section */

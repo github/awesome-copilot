@@ -1,3 +1,5 @@
+import { getEmbeddedData as getEmbeddedPageData } from "./embedded-data";
+
 /**
  * Utility functions for the Awesome Copilot website
  */
@@ -43,6 +45,9 @@ export function getBasePath(): string {
 export async function fetchData<T = unknown>(
   filename: string
 ): Promise<T | null> {
+  const embeddedData = getEmbeddedPageData<T>(filename);
+  if (embeddedData !== null) return embeddedData;
+
   try {
     const basePath = getBasePath();
     const response = await fetch(`${basePath}data/${filename}`);
@@ -52,6 +57,77 @@ export async function fetchData<T = unknown>(
     console.error(`Error fetching ${filename}:`, error);
     return null;
   }
+}
+
+let jsZipPromise: Promise<typeof import("./jszip")> | null = null;
+
+/**
+ * Lazy-load JSZip only when downloads are requested
+ */
+export async function loadJSZip() {
+  jsZipPromise ??= import("./jszip");
+  const { default: JSZip } = await jsZipPromise;
+  return JSZip;
+}
+
+export interface ZipDownloadFile {
+  name: string;
+  path: string;
+}
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadZipBundle(
+  bundleName: string,
+  files: ZipDownloadFile[]
+): Promise<void> {
+  if (files.length === 0) {
+    throw new Error("No files found for this download.");
+  }
+
+  const JSZip = await loadJSZip();
+  const zip = new JSZip();
+  const folder = zip.folder(bundleName);
+
+  const fetchPromises = files.map(async (file) => {
+    try {
+      const response = await fetch(getRawGitHubUrl(file.path));
+      if (!response.ok) return null;
+
+      return {
+        name: file.name,
+        content: await response.text(),
+      };
+    } catch {
+      return null;
+    }
+  });
+
+  const results = await Promise.all(fetchPromises);
+  let addedFiles = 0;
+
+  for (const result of results) {
+    if (result && folder) {
+      folder.file(result.name, result.content);
+      addedFiles++;
+    }
+  }
+
+  if (addedFiles === 0) {
+    throw new Error("Failed to fetch any files");
+  }
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  triggerBlobDownload(blob, `${bundleName}.zip`);
 }
 
 /**
@@ -140,15 +216,7 @@ export async function downloadFile(filePath: string): Promise<boolean> {
     const filename = filePath.split("/").pop() || "file.md";
 
     const blob = new Blob([content], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    triggerBlobDownload(blob, filename);
 
     return true;
   } catch (error) {
@@ -165,6 +233,83 @@ export async function shareFile(filePath: string): Promise<boolean> {
     window.location.pathname
   }#file=${encodeURIComponent(filePath)}`;
   return copyToClipboard(deepLinkUrl);
+}
+
+type QueryParamValue = string | string[] | boolean | null | undefined;
+
+/**
+ * Read a single query parameter.
+ */
+export function getQueryParam(name: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(name)?.trim() ?? "";
+}
+
+/**
+ * Read repeated query parameter values.
+ */
+export function getQueryParamValues(name: string): string[] {
+  if (typeof window === "undefined") return [];
+  const values = new URLSearchParams(window.location.search)
+    .getAll(name)
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return Array.from(new Set(values));
+}
+
+/**
+ * Read a boolean-style query parameter.
+ */
+export function getQueryParamFlag(name: string): boolean {
+  const value = getQueryParam(name).toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+/**
+ * Update query parameters while preserving the current hash.
+ */
+export function updateQueryParams(
+  updates: Record<string, QueryParamValue>
+): void {
+  if (typeof window === "undefined") return;
+
+  const url = new URL(window.location.href);
+
+  for (const [key, value] of Object.entries(updates)) {
+    url.searchParams.delete(key);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const normalized = item.trim();
+        if (normalized) {
+          url.searchParams.append(key, normalized);
+        }
+      }
+      continue;
+    }
+
+    if (typeof value === "boolean") {
+      if (value) {
+        url.searchParams.set(key, "1");
+      }
+      continue;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.trim();
+      if (normalized) {
+        url.searchParams.set(key, normalized);
+      }
+    }
+  }
+
+  const search = url.searchParams.toString();
+  const nextUrl = `${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+  const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  if (nextUrl !== currentUrl) {
+    history.replaceState(null, "", nextUrl);
+  }
 }
 
 /**
@@ -208,10 +353,17 @@ export function debounce<T extends (...args: unknown[]) => void>(
 /**
  * Escape HTML to prevent XSS
  */
-export function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+export function escapeHtml(text: string | string[]): string {
+  if (Array.isArray(text)) {
+    return text.map(escapeHtml).join(", ");
+  }
+
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /**
@@ -219,17 +371,17 @@ export function escapeHtml(text: string): string {
  * Only allows http/https protocols, returns '#' for invalid URLs
  */
 export function sanitizeUrl(url: string | null | undefined): string {
-  if (!url) return '#';
+  if (!url) return "#";
   try {
     const parsed = new URL(url);
     // Only allow http and https protocols
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
       return url;
     }
   } catch {
     // Invalid URL
   }
-  return '#';
+  return "#";
 }
 
 /**
@@ -246,10 +398,8 @@ export function truncate(text: string | undefined, maxLength: number): string {
 export function getResourceType(filePath: string): string {
   if (filePath.endsWith(".agent.md")) return "agent";
   if (filePath.endsWith(".instructions.md")) return "instruction";
-  if (/(^|\/)skills\//.test(filePath) && filePath.endsWith("SKILL.md"))
-    return "skill";
-  if (/(^|\/)hooks\//.test(filePath) && filePath.endsWith("README.md"))
-    return "hook";
+  if (/(^|\/)skills\//.test(filePath)) return "skill";
+  if (/(^|\/)hooks\//.test(filePath)) return "hook";
   if (/(^|\/)workflows\//.test(filePath) && filePath.endsWith(".md"))
     return "workflow";
   // Check for plugin directories (e.g., plugins/<id>, plugins/<id>/)
@@ -275,18 +425,58 @@ export function formatResourceType(type: string): string {
 }
 
 /**
- * Get icon for resource type
+ * Get icon for resource type (returns SVG icon name)
  */
 export function getResourceIcon(type: string): string {
   const icons: Record<string, string> = {
-    agent: "🤖",
-    instruction: "📋",
-    skill: "⚡",
-    hook: "🪝",
-    workflow: "⚡",
-    plugin: "🔌",
+    agent: "robot",
+    instruction: "document",
+    skill: "lightning",
+    hook: "hook",
+    workflow: "workflow",
+    plugin: "plug",
   };
-  return icons[type] || "📄";
+  return icons[type] || "document";
+}
+
+// Icon definitions with fill/stroke type info
+const iconDefs: Record<string, { path: string; fill?: boolean }> = {
+  // Agent icon - GitHub Primer's agent-24
+  robot: {
+    fill: true,
+    path: '<path d="M22.5 13.919v-.278a5.097 5.097 0 0 0-4.961-5.086.858.858 0 0 1-.754-.497l-.149-.327A6.414 6.414 0 0 0 10.81 4a6.133 6.133 0 0 0-6.13 6.32l.019.628a.863.863 0 0 1-.67.869A3.263 3.263 0 0 0 1.5 14.996v.108A3.397 3.397 0 0 0 4.896 18.5h1.577a.75.75 0 0 1 0 1.5H4.896A4.896 4.896 0 0 1 0 15.104v-.108a4.761 4.761 0 0 1 3.185-4.493l-.004-.137A7.633 7.633 0 0 1 10.81 2.5a7.911 7.911 0 0 1 7.176 4.58C21.36 7.377 24 10.207 24 13.641v.278a.75.75 0 0 1-1.5 0Z"/><path d="m12.306 11.77 3.374 3.375a.749.749 0 0 1 0 1.061l-3.375 3.375-.057.051a.751.751 0 0 1-1.004-.051.751.751 0 0 1-.051-1.004l.051-.057 2.845-2.845-2.844-2.844a.75.75 0 1 1 1.061-1.061ZM22.5 19.8H18a.75.75 0 0 1 0-1.5h4.5a.75.75 0 0 1 0 1.5Z"/>',
+  },
+  document: {
+    path: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  lightning: {
+    path: '<path d="M13 2 4.09 12.11a1.23 1.23 0 0 0 .13 1.72l.16.14a1.23 1.23 0 0 0 1.52 0L13 9.5V22l8.91-10.11a1.23 1.23 0 0 0-.13-1.72l-.16-.14a1.23 1.23 0 0 0-1.52 0L13 14.5V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  },
+  // Hook icon - GitHub Primer's sync-24
+  hook: {
+    fill: true,
+    path: '<path d="M3.38 8A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 9.215 7.182.75.75 0 1 0 1.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 0 0-9.5 5.452V4.75a.75.75 0 0 0-1.5 0V8.5a1 1 0 0 0 1 1h3.75a.75.75 0 0 0 0-1.5H3.38Zm-.595 6.318a.75.75 0 0 0-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 0 0 1.5 0V15.5a1 1 0 0 0-1-1h-3.75a.75.75 0 0 0 0 1.5h2.37A9.502 9.502 0 0 1 12 21.5c-4.446 0-8.181-3.055-9.215-7.182Z"/>',
+  },
+  // Workflow icon - GitHub Primer's workflow-24
+  workflow: {
+    fill: true,
+    path: '<path d="M1 3a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2H7v4.063C7 16.355 7.644 17 8.438 17H12.5v-2.5a2 2 0 0 1 2-2H21a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2v-2.5H8.437A2.939 2.939 0 0 1 5.5 15.562V11.5H3a2 2 0 0 1-2-2Zm2-.5a.5.5 0 0 0-.5.5v6.5a.5.5 0 0 0 .5.5h6.5a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5ZM14.5 14a.5.5 0 0 0-.5.5V21a.5.5 0 0 0 .5.5H21a.5.5 0 0 0 .5-.5v-6.5a.5.5 0 0 0-.5-.5Z"/>',
+  },
+  // Plug icon - GitHub Primer's plug-24
+  plug: {
+    fill: true,
+    path: '<path d="M7 11.5H2.938c-.794 0-1.438.644-1.438 1.437v8.313a.75.75 0 0 1-1.5 0v-8.312A2.939 2.939 0 0 1 2.937 10H7V6.151c0-.897.678-1.648 1.57-1.74l6.055-.626 1.006-1.174A1.752 1.752 0 0 1 16.96 2h1.29c.966 0 1.75.784 1.75 1.75V6h3.25a.75.75 0 0 1 0 1.5H20V14h3.25a.75.75 0 0 1 0 1.5H20v2.25a1.75 1.75 0 0 1-1.75 1.75h-1.29a1.75 1.75 0 0 1-1.329-.611l-1.006-1.174-6.055-.627A1.749 1.749 0 0 1 7 15.348Zm9.77-7.913v.001l-1.201 1.4a.75.75 0 0 1-.492.258l-6.353.657a.25.25 0 0 0-.224.249v9.196a.25.25 0 0 0 .224.249l6.353.657c.191.02.368.112.493.258l1.2 1.401a.252.252 0 0 0 .19.087h1.29a.25.25 0 0 0 .25-.25v-14a.25.25 0 0 0-.25-.25h-1.29a.252.252 0 0 0-.19.087Z"/>',
+  },
+};
+
+/**
+ * Get SVG icon HTML for resource type
+ */
+export function getResourceIconSvg(type: string, size = 20): string {
+  const iconName = getResourceIcon(type);
+  const icon = iconDefs[iconName] || iconDefs.document;
+  const fill = icon.fill ? 'fill="currentColor"' : 'fill="none"';
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" ${fill} aria-hidden="true">${icon.path}</svg>`;
 }
 
 /**

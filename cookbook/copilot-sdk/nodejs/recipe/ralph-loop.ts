@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 /**
  * Ralph loop: autonomous AI task loop with fresh context per iteration.
@@ -44,7 +44,7 @@ async function ralphLoop(mode: Mode, maxIterations: number) {
                 // Pin the agent to the project directory
                 workingDirectory: process.cwd(),
                 // Auto-approve tool calls for unattended operation
-                onPermissionRequest: async () => ({ allow: true }),
+                onPermissionRequest: approveAll,
             });
 
             // Log tool usage for visibility

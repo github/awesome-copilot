@@ -1,0 +1,395 @@
+name: Skill Quality Report — Nightly Scan
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # 3:00 AM UTC daily
+  workflow_dispatch: # allow manual trigger
+
+permissions:
+  contents: read
+  discussions: write
+  issues: write # fallback if Discussions are not enabled
+
+jobs:
+  nightly-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0 # full history for git-log author fallback
+
+      # ── Download & cache skill-validator ──────────────────────────
+      - name: Get cache key date
+        id: cache-date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore skill-validator from cache
+        id: cache-sv
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          restore-keys: |
+            skill-validator-linux-x64-
+
+      - name: Download skill-validator
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .skill-validator
+          curl -fsSL \
+            "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
+            -o .skill-validator/skill-validator-linux-x64.tar.gz
+          tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
+          rm .skill-validator/skill-validator-linux-x64.tar.gz
+          chmod +x .skill-validator/skill-validator
+
+      - name: Save skill-validator to cache
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+
+      # ── Run full scan ─────────────────────────────────────────────
+      - name: Run skill-validator check on all skills
+        id: check-skills
+        run: |
+          set +e
+          set -o pipefail
+          .skill-validator/skill-validator check \
+            --skills ./skills \
+            --verbose \
+            2>&1 | tee sv-skills-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          set +o pipefail
+          set -e
+
+      - name: Run skill-validator check on all agents
+        id: check-agents
+        run: |
+          set +e
+          set -o pipefail
+          AGENT_FILES=$(find agents -name '*.agent.md' -type f 2>/dev/null | tr '\n' ' ')
+          if [ -n "$AGENT_FILES" ]; then
+            .skill-validator/skill-validator check \
+              --agents $AGENT_FILES \
+              --verbose \
+              2>&1 | tee sv-agents-output.txt
+            echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "No agent files found."
+            echo "" > sv-agents-output.txt
+            echo "exit_code=0" >> "$GITHUB_OUTPUT"
+          fi
+          set +o pipefail
+          set -e
+
+      # ── Build report with author attribution ──────────────────────
+      - name: Build quality report
+        id: report
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const { execSync } = require('child_process');
+
+            // ── Parse CODEOWNERS ──────────────────────────────────
+            function parseCodeowners() {
+              const map = new Map();
+              try {
+                const raw = fs.readFileSync('CODEOWNERS', 'utf8');
+                for (const line of raw.split('\n')) {
+                  const trimmed = line.trim();
+                  if (!trimmed || trimmed.startsWith('#')) continue;
+                  const parts = trimmed.split(/\s+/);
+                  if (parts.length >= 2) {
+                    const filePath = parts[0].replace(/^\//, '').replace(/\/$/, '');
+                    const owners = parts.slice(1).filter(p => p.startsWith('@'));
+                    if (owners.length > 0) {
+                      map.set(filePath, owners);
+                    }
+                  }
+                }
+              } catch (e) {
+                console.log('Could not parse CODEOWNERS:', e.message);
+              }
+              return map;
+            }
+
+            // ── Resolve author for a path ─────────────────────────
+            function resolveAuthor(resourcePath, codeowners) {
+              // CODEOWNERS semantics: last matching rule wins.
+              // Also treat "*" as a match-all default rule.
+              let matchedOwners = null;
+              for (const [pattern, owners] of codeowners) {
+                if (
+                  pattern === '*' ||
+                  resourcePath === pattern ||
+                  resourcePath.startsWith(pattern + '/')
+                ) {
+                  matchedOwners = owners;
+                }
+              }
+              if (matchedOwners && matchedOwners.length > 0) {
+                return matchedOwners.join(', ');
+              }
+              // Fallback: git log
+              try {
+                const author = execSync(
+                  `git log --format='%aN' --follow -1 -- "${resourcePath}"`,
+                  { encoding: 'utf8' }
+                ).trim();
+                return author || 'unknown';
+              } catch {
+                return 'unknown';
+              }
+            }
+
+            // ── Parse skill-validator output ──────────────────────
+            // The output is a text report; we preserve it as-is and
+            // augment it with author info in the summary.
+            const skillsOutput = fs.readFileSync('sv-skills-output.txt', 'utf8').trim();
+            const agentsOutput = fs.existsSync('sv-agents-output.txt')
+              ? fs.readFileSync('sv-agents-output.txt', 'utf8').trim()
+              : '';
+
+            const codeowners = parseCodeowners();
+
+            // Count findings
+            // The skill-validator uses emoji markers: ❌ for errors, ⚠ for warnings, ℹ for advisories
+            const combined = skillsOutput + '\n' + agentsOutput;
+            const errorCount = (combined.match(/❌/g) || []).length;
+            const warningCount = (combined.match(/⚠/g) || []).length;
+            const advisoryCount = (combined.match(/ℹ\uFE0F?/g) || []).length;
+
+            // Count total skills & agents checked
+            let skillDirs = [];
+            try {
+              skillDirs = fs.readdirSync('skills', { withFileTypes: true })
+                .filter(d => d.isDirectory())
+                .map(d => d.name);
+            } catch {}
+
+            let agentFiles = [];
+            try {
+              agentFiles = fs.readdirSync('agents')
+                .filter(f => f.endsWith('.agent.md'));
+            } catch {}
+
+            // ── Build author-attributed summary ───────────────────
+            // Extract per-resource blocks from output.  The validator
+            // prints skill names as headers — we annotate them with
+            // the resolved owner.
+            function annotateWithAuthors(output, kind) {
+              if (!output) return '_No findings._';
+              const lines = output.split('\n');
+              const annotated = [];
+              for (const line of lines) {
+                // Skill names appear as headers, e.g. "## skill-name" or "skill-name:"
+                const headerMatch = line.match(/^(?:#{1,3}\s+)?([a-z0-9][a-z0-9-]+(?:\.[a-z0-9.-]+)?)\b/);
+                if (headerMatch) {
+                  const name = headerMatch[1];
+                  const resourcePath = kind === 'skill'
+                    ? `skills/${name}`
+                    : `agents/${name}.agent.md`;
+                  const author = resolveAuthor(resourcePath, codeowners);
+                  annotated.push(`${line}  — ${author}`);
+                } else {
+                  annotated.push(line);
+                }
+              }
+              return annotated.join('\n');
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+
+            const title = `Skill Quality Report — ${today}`;
+
+            const annotatedSkills = annotateWithAuthors(skillsOutput, 'skill');
+            const annotatedAgents = annotateWithAuthors(agentsOutput, 'agent');
+
+            // ── Body size management ──────────────────────────────
+            // GitHub body limit is ~65536 UTF-8 bytes for both
+            // Discussions and Issues. When the full report fits, we
+            // inline everything. When it doesn't, the body gets a
+            // compact summary and the verbose sections are written to
+            // separate files that get posted as follow-up comments.
+            const MAX_BYTES = 65000; // leave margin
+
+            function makeDetailsBlock(heading, summary, content) {
+              return [
+                `## ${heading}`, '',
+                '<details>',
+                `<summary>${summary}</summary>`, '',
+                '```', content, '```', '',
+                '</details>',
+              ].join('\n');
+            }
+
+            const summaryLines = [
+              `# ${title}`, '',
+              `**${skillDirs.length} skills** and **${agentFiles.length} agents** scanned.`, '',
+              '| Severity | Count |',
+              '|----------|-------|',
+              `| ⛔ Errors | ${errorCount} |`,
+              `| ⚠️ Warnings | ${warningCount} |`,
+              `| ℹ️ Advisories | ${advisoryCount} |`, '',
+              '---',
+            ];
+            const footer = `\n---\n\n_Generated by the [Skill Validator nightly scan](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/skill-quality-report.yml)._`;
+
+            const skillsBlock = makeDetailsBlock('Skills', 'Full skill-validator output for skills', annotatedSkills);
+            const agentsBlock = makeDetailsBlock('Agents', 'Full skill-validator output for agents', annotatedAgents);
+
+            // Try full inline body first
+            const fullBody = summaryLines.join('\n') + '\n\n' + skillsBlock + '\n\n' + agentsBlock + footer;
+
+            const commentParts = []; // overflow comment files
+
+            let finalBody;
+            if (Buffer.byteLength(fullBody, 'utf8') <= MAX_BYTES) {
+              finalBody = fullBody;
+            } else {
+              // Details won't fit inline — move them to follow-up comments
+              const bodyNote = '\n\n> **Note:** Detailed output is posted in the comments below (too large for the discussion body).\n';
+              finalBody = summaryLines.join('\n') + bodyNote + footer;
+
+              // Split each section into ≤65 KB chunks
+              function chunkContent(label, content) {
+                const prefix = `## ${label}\n\n\`\`\`\n`;
+                const suffix = '\n```';
+                const overhead = Buffer.byteLength(prefix + suffix, 'utf8');
+                const budget = MAX_BYTES - overhead;
+
+                const buf = Buffer.from(content, 'utf8');
+                if (buf.length <= budget) {
+                  return [prefix + content + suffix];
+                }
+                const parts = [];
+                let offset = 0;
+                let partNum = 1;
+                while (offset < buf.length) {
+                  const slice = buf.slice(offset, offset + budget).toString('utf8');
+                  // Remove trailing replacement char from mid-codepoint cut
+                  const clean = slice.replace(/\uFFFD$/, '');
+                  const hdr = `## ${label} (part ${partNum})\n\n\`\`\`\n`;
+                  parts.push(hdr + clean + suffix);
+                  offset += Buffer.byteLength(clean, 'utf8');
+                  partNum++;
+                }
+                return parts;
+              }
+
+              commentParts.push(...chunkContent('Skills', annotatedSkills));
+              commentParts.push(...chunkContent('Agents', annotatedAgents));
+            }
+
+            core.setOutput('title', title);
+            core.setOutput('body_file', 'report-body.md');
+
+            fs.writeFileSync('report-body.md', finalBody);
+
+            // Write overflow comment parts as numbered files
+            for (let i = 0; i < commentParts.length; i++) {
+              fs.writeFileSync(`report-comment-${i}.md`, commentParts[i]);
+            }
+            core.setOutput('comment_count', String(commentParts.length));
+
+      # ── Create Discussion (preferred) or Issue (fallback) ────────
+      - name: Create Discussion
+        id: create-discussion
+        continue-on-error: true
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const title = '${{ steps.report.outputs.title }}'.replace(/'/g, "\\'");
+            const body = fs.readFileSync('report-body.md', 'utf8');
+            const commentCount = parseInt('${{ steps.report.outputs.comment_count }}' || '0', 10);
+
+            // Find the "Skill Quality Reports" category
+            const categoriesResult = await github.graphql(`
+              query($owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  id
+                  discussionCategories(first: 25) {
+                    nodes { id name }
+                  }
+                }
+              }
+            `, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const repo = categoriesResult.repository;
+            const categories = repo.discussionCategories.nodes;
+            const category = categories.find(c =>
+              c.name === 'Skill Quality Reports'
+            );
+
+            if (!category) {
+              core.setFailed('Discussion category "Skill Quality Reports" not found. Falling back to issue.');
+              return;
+            }
+
+            const result = await github.graphql(`
+              mutation($repoId: ID!, $categoryId: ID!, $title: String!, $body: String!) {
+                createDiscussion(input: {
+                  repositoryId: $repoId,
+                  categoryId: $categoryId,
+                  title: $title,
+                  body: $body
+                }) {
+                  discussion { id url }
+                }
+              }
+            `, {
+              repoId: repo.id,
+              categoryId: category.id,
+              title: title,
+              body: body,
+            });
+
+            const discussionId = result.createDiscussion.discussion.id;
+            console.log(`Discussion created: ${result.createDiscussion.discussion.url}`);
+
+            // Post overflow detail comments
+            for (let i = 0; i < commentCount; i++) {
+              const commentBody = fs.readFileSync(`report-comment-${i}.md`, 'utf8');
+              await github.graphql(`
+                mutation($discussionId: ID!, $body: String!) {
+                  addDiscussionComment(input: {
+                    discussionId: $discussionId,
+                    body: $body
+                  }) {
+                    comment { id }
+                  }
+                }
+              `, { discussionId, body: commentBody });
+              console.log(`Posted detail comment ${i + 1}/${commentCount}`);
+            }
+
+      - name: Fallback — Create Issue
+        if: steps.create-discussion.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Create label if it doesn't exist (ignore errors if it already exists)
+          gh label create "skill-quality" --description "Automated skill quality reports" --color "d4c5f9" 2>/dev/null || true
+          ISSUE_URL=$(gh issue create \
+            --title "${{ steps.report.outputs.title }}" \
+            --body-file report-body.md \
+            --label "skill-quality")
+          echo "Created issue: $ISSUE_URL"
+
+          # Post overflow detail comments on the issue
+          COMMENT_COUNT=${{ steps.report.outputs.comment_count }}
+          for i in $(seq 0 $(( ${COMMENT_COUNT:-0} - 1 ))); do
+            if [ -f "report-comment-${i}.md" ]; then
+              gh issue comment "$ISSUE_URL" --body-file "report-comment-${i}.md"
+              echo "Posted detail comment $((i+1))/${COMMENT_COUNT}"
+            fi
+          done

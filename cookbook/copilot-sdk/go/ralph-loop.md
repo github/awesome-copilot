@@ -70,6 +70,7 @@ func ralphLoop(ctx context.Context, promptFile string, maxIterations int) error 
 
 		// Fresh session each iteration — context isolation is the point
 		session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+			OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 			Model: "gpt-5.1-codex-mini",
 		})
 		if err != nil {

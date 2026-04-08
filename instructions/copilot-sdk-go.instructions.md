@@ -72,6 +72,7 @@ Use `SessionConfig` for configuration:
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-5",
     Streaming: true,
     Tools: []copilot.Tool{...},
@@ -104,7 +105,7 @@ if err != nil {
 ### Resuming Sessions
 
 ```go
-session, err := client.ResumeSession("session-id")
+session, err := client.ResumeSession("session-id", &copilot.ResumeSessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 // Or with options:
 session, err := client.ResumeSessionWithOptions("session-id", &copilot.ResumeSessionConfig{ ... })
 ```
@@ -122,7 +123,7 @@ session, err := client.ResumeSessionWithOptions("session-id", &copilot.ResumeSes
 
 ### Event Subscription Pattern
 
-ALWAYS use channels or done signals for waiting on session events:
+ALWAYS use channels or done signals to wait for session events:
 
 ```go
 done := make(chan struct{})
@@ -190,6 +191,7 @@ Set `Streaming: true` in SessionConfig:
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-5",
     Streaming: true,
 })
@@ -243,6 +245,7 @@ Note: Final events (`AssistantMessage`, `AssistantReasoning`) are ALWAYS sent re
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-5",
     Tools: []copilot.Tool{
         {
@@ -300,6 +303,7 @@ When Copilot invokes a tool, the client automatically:
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-5",
     SystemMessage: &copilot.SystemMessageConfig{
         Mode: "append",
@@ -317,6 +321,7 @@ session, err := client.CreateSession(&copilot.SessionConfig{
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Model: "gpt-5",
     SystemMessage: &copilot.SystemMessageConfig{
         Mode:    "replace",
@@ -361,8 +366,14 @@ session.Send(copilot.MessageOptions{
 Sessions are independent and can run concurrently:
 
 ```go
-session1, _ := client.CreateSession(&copilot.SessionConfig{Model: "gpt-5"})
-session2, _ := client.CreateSession(&copilot.SessionConfig{Model: "claude-sonnet-4.5"})
+session1, _ := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-5",
+})
+session2, _ := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "claude-sonnet-4.5",
+})
 
 session1.Send(copilot.MessageOptions{Prompt: "Hello from session 1"})
 session2.Send(copilot.MessageOptions{Prompt: "Hello from session 2"})
@@ -370,10 +381,11 @@ session2.Send(copilot.MessageOptions{Prompt: "Hello from session 2"})
 
 ## Bring Your Own Key (BYOK)
 
-Use custom API providers via `ProviderConfig`:
+Use custom API providers by configuring `ProviderConfig`:
 
 ```go
 session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Provider: &copilot.ProviderConfig{
         Type:    "openai",
         BaseURL: "https://api.openai.com/v1",
@@ -396,7 +408,9 @@ state := client.GetState()
 ### Standard Exception Handling
 
 ```go
-session, err := client.CreateSession(&copilot.SessionConfig{})
+session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+})
 if err != nil {
     log.Fatalf("Failed to create session: %v", err)
 }
@@ -423,7 +437,7 @@ session.On(func(evt copilot.SessionEvent) {
 
 ## Connectivity Testing
 
-Use Ping to verify server connectivity:
+Use `Ping` to verify server connectivity:
 
 ```go
 resp, err := client.Ping("test message")
@@ -447,7 +461,7 @@ if err := client.Start(); err != nil {
 }
 defer client.Stop()
 
-session, err := client.CreateSession(nil)
+session, err := client.CreateSession(&copilot.SessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 if err != nil {
     log.Fatal(err)
 }
@@ -465,7 +479,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-session, err := client.CreateSession(nil)
+session, err := client.CreateSession(&copilot.SessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 if err != nil {
     client.Stop()
     log.Fatal(err)
@@ -504,7 +518,10 @@ if err := client.Start(); err != nil {
 }
 defer client.Stop()
 
-session, err := client.CreateSession(&copilot.SessionConfig{Model: "gpt-5"})
+session, err := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+	Model:               "gpt-5",
+})
 if err != nil {
     log.Fatal(err)
 }
@@ -527,7 +544,7 @@ session.Send(copilot.MessageOptions{Prompt: "What is 2+2?"})
 ### Multi-Turn Conversation
 
 ```go
-session, _ := client.CreateSession(nil)
+session, _ := client.CreateSession(&copilot.SessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 defer session.Destroy()
 
 sendAndWait := func(prompt string) error {
@@ -588,6 +605,7 @@ type UserInfo struct {
 }
 
 session, _ := client.CreateSession(&copilot.SessionConfig{
+	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     Tools: []copilot.Tool{
         {
             Name:        "get_user",

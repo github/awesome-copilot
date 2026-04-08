@@ -22,6 +22,10 @@
     "@astrojs/starlight": "^0.37.6",
     "astro": "^5.16.15",
     "choices.js": "^11.1.0",
-    "jszip": "^3.10.1"
+    "front-matter": "^4.0.2",
+    "gray-matter": "^4.0.3",
+    "jszip": "^3.10.1",
+    "marked": "^17.0.4",
+    "shiki": "^3.23.0"
   }
 }
