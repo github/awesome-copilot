@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-08
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -97,9 +97,20 @@ Hooks can trigger on several lifecycle events:
 | `preCompact` | Before the agent compacts its context window | Save a snapshot, log compaction event, run summary scripts |
 | `subagentStart` | A subagent is spawned by the main agent | Inject additional context into the subagent's prompt, log subagent launches |
 | `subagentStop` | A subagent completes before returning results | Audit subagent outputs, log subagent activity |
+| `notification` | Fires **asynchronously** when a notable event occurs (shell completion, permission prompt, elicitation dialog, agent completion) | Send external notifications, update dashboards, trigger external systems without blocking the agent |
+| `PermissionRequest` | A tool permission request is raised (e.g., when `preToolUse` returns `permissionDecision: "ask"`) | Programmatically approve or deny tool permission requests from a script |
 | `errorOccurred` | An error occurs during agent execution | Log errors for debugging, send notifications, track error patterns |
 
 > **Key insight**: The `preToolUse` hook is the most powerful — it can **approve or deny** individual tool executions. This enables fine-grained security policies like blocking specific shell commands or requiring approval for sensitive file operations.
+
+Your `preToolUse` hook script can control what happens next by writing JSON to stdout:
+
+| Output | Effect |
+|--------|--------|
+| Exit code 0 (no output) | Tool is allowed to proceed |
+| Exit code non-zero | Tool execution is **blocked** |
+| `{"permissionDecision": "allow"}` | Tool is approved and the **tool approval prompt is suppressed** — the user is not asked |
+| `{"permissionDecision": "ask"}` | Raises a `PermissionRequest` event so another hook can handle the decision |
 
 ### sessionStart additionalContext
 
@@ -124,6 +135,8 @@ When multiple IDE extensions (or a mix of extensions and a `hooks.json` file) ea
 ### Cross-Platform Event Name Compatibility
 
 Hook event names can be written in **camelCase** (e.g., `preToolUse`) or **PascalCase** (e.g., `PreToolUse`). Both are accepted, making hook configuration files compatible across GitHub Copilot CLI, VS Code, and Claude Code without modification. Hooks also support Claude Code's nested `matcher`/`hooks` structure alongside the standard flat format.
+
+When a hook uses PascalCase event names, the payload delivered to your script uses **VS Code-compatible snake_case field names** (e.g., `hook_event_name`, `session_id`) with ISO 8601 timestamps — so you can use the same hook script across VS Code and the CLI.
 
 ### Plugin Hooks Environment Variables
 
@@ -359,6 +372,28 @@ Send a Slack or Teams notification when an agent session completes:
   }
 }
 ```
+
+### Asynchronous Notifications with the `notification` Hook
+
+The `notification` hook fires **asynchronously** — it does not block the agent — making it ideal for sending external notifications, updating dashboards, or triggering CI systems when notable events occur (shell commands complete, permission prompts appear, elicitation dialogs open, agent finishes):
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "notification": [
+      {
+        "type": "command",
+        "bash": "./scripts/notify-external.sh",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+Because it's asynchronous, the `notification` hook won't slow down the agent even if the external call takes time. Use `sessionEnd` (synchronous) when you need to guarantee the notification completes before the session closes, or `notification` when fire-and-forget is acceptable.
 
 ### Injecting Context into Subagents
 

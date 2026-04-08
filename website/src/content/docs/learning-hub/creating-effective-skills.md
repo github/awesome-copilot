@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-04-08
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -360,6 +360,10 @@ A: Yes! Skills are folders, not single files. You can bundle reference documents
 **Q: How do I share skills with my team?**
 
 A: Store skill folders in your repository's `.github/skills/` directory. They're automatically available to all team members with Copilot access when working in that repository.
+
+**Q: Does the CLI include any built-in skills?**
+
+A: Yes. Starting with v1.0.17, GitHub Copilot CLI ships with a set of **built-in skills** that are available in every session without any configuration. The first built-in skill is a guide for customizing the Copilot coding agent's cloud environment (`copilot-setup-steps.yml`). You can see the built-in skills in action by asking Copilot about setting up your coding agent environment. These built-in skills complement (and do not replace) your own project-level or personal skills.
 
 **Q: Can agents chain multiple skills?**
 

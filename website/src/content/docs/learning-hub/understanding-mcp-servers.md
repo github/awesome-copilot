@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-08
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -113,6 +113,18 @@ The available RPCs are:
 | `mcp.config.remove` | Remove a server from the persistent configuration |
 
 These are especially useful for plugins and installer scripts that need to self-register or de-register their MCP server as part of install/uninstall flows, without requiring the user to manually edit config files.
+
+### Managing MCP Servers from the Terminal
+
+The `copilot mcp` command lets you manage MCP servers directly from the terminal, without opening an interactive session:
+
+```bash
+gh copilot mcp list          # list all configured MCP servers
+gh copilot mcp add <name>    # add a new MCP server to persistent configuration
+gh copilot mcp remove <name> # remove an MCP server from persistent configuration
+```
+
+This complements the in-session `/mcp` slash commands (`/mcp show`, `/mcp enable`, `/mcp disable`, `/mcp reload`, `/mcp auth`) for cases where you want to manage your MCP server configuration from scripts or CI workflows, or before starting a session.
 
 ### Common MCP Server Configurations
 
