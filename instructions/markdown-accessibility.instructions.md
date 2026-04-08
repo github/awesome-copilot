@@ -5,7 +5,7 @@ applyTo: '**/*.md'
 
 # Markdown Accessibility Review Guidelines
 
-When reviewing markdown files, check for the following accessibility issues based on GitHub's [5 tips for making your GitHub profile page accessible](https://github.blog/developer-skills/github/5-tips-for-making-your-github-profile-page-accessible/). Flag violations and suggest fixes with clear explanations of the accessibility impact.
+When reviewing markdown files, check for the following accessibility issues based on GitHub's [5 tips for making your GitHub profile page accessible](https://github.blog/developer-skills/github/5-tips-for-making-your-github-profile-page-accessible/). Flag violations and suggest fixes with clear explanations of the accessibility impact. Other guidelines may be referenced in the Smashing Magazine article [Improving The Accessibility Of Your Markdown](https://www.smashingmagazine.com/2021/09/improving-accessibility-of-markdown/).
 
 ## 1. Descriptive Links
 
@@ -60,7 +60,7 @@ Good: `Read my blog post "[Crafting an accessible resume](https://example.com)"`
 
 - Provide captions for videos and transcripts for recorded audio.
 - Do not auto-play audio and video.
-- It's recommended that animated images and other animations are be paused on page load.
+- It's recommended that animated images and other animations are paused on page load.
 
 ## Other
 
