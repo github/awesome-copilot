@@ -2846,6 +2846,18 @@
       "contributions": [
         "agents"
       ]
+    },
+    {
+      "login": "Dhruvpatel004",
+      "name": "Patel Dhruv ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/109230666?v=4",
+      "profile": "https://github.com/Dhruvpatel004",
+      "contributions": [
+        "code",
+        "infra",
+        "tool",
+        "doc"
+      ]
     }
   ]
 }
