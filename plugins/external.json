@@ -205,7 +205,7 @@
   {
     "name": "omg",
     "description": "Multi-agent orchestration \u2014 25 specialized AI agents for architecture, security, code review, debugging, testing, planning, and autonomous execution.",
-    "version": "0.4.15",
+    "version": "0.5.4",
     "author": {
       "name": "Matthias Falland",
       "url": "https://www.the-trusted-advisor.com"
