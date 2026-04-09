@@ -2447,7 +2447,7 @@ body:has(#main-content) {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
-  margin-left: 0.3em;
+  margin-left: 0.1em;
 }
 
 /* Category-specific card styles */
