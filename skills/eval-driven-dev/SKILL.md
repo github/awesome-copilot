@@ -1,7 +1,7 @@
 ---
 name: eval-driven-dev
 description: >
-  Set up eval-based QA for Python LLM applications: instrument the app with wrap(),
+  Set up eval-based QA for Python LLM applications: instrument the app,
   build golden datasets, write and run eval tests, and iterate on failures.
   ALWAYS USE THIS SKILL when the user asks to set up QA, add tests, add evals,
   evaluate, benchmark, fix wrong behaviors, improve quality, or do quality assurance for any Python project that calls an LLM model.
