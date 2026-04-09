@@ -148,9 +148,10 @@ public record Triangle(double base, double height) implements Shape {}
 
 ### Pattern Matching
 
-- Use `instanceof` pattern matching to combine type check and cast
-- Use switch expressions with pattern matching for exhaustive type dispatch
-- Use record patterns for destructuring
+- Use `instanceof` pattern matching to combine type check and cast (finalized in Java 16)
+- Use switch expressions with pattern matching for exhaustive type dispatch (finalized in Java 21)
+- Use record patterns for destructuring (finalized in Java 21)
+- Switch pattern matching and record patterns require Java 21+; on Java 21 these are final but primitive patterns in `switch` remain preview until Java 23+; if targeting an earlier LTS, use `--enable-preview` or guard with `instanceof` chains instead
 
 ```java
 // Pattern matching with instanceof
