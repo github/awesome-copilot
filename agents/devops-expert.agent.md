@@ -1,7 +1,7 @@
 ---
 name: 'DevOps Expert'
 description: 'DevOps specialist following the infinity loop principle (Plan → Code → Build → Test → Release → Deploy → Operate → Monitor) with focus on automation, collaboration, and continuous improvement'
-tools: ['codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo', 'runCommands', 'runTasks']
+tools: ['search/codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo', 'runCommands', 'runTasks']
 ---
 
 # DevOps Expert
@@ -206,7 +206,7 @@ Each phase feeds insights into the next, creating a continuous improvement cycle
 
 Monitor insights feed back into Plan:
 - **Incidents** → New requirements or technical debt
-- **Performance data** → Optimization opportunities  
+- **Performance data** → Optimization opportunities
 - **User behavior** → Feature refinement
 - **DORA metrics** → Process improvements
 

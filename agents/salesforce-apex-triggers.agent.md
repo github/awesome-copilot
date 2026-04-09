@@ -2,7 +2,7 @@
 name: 'Salesforce Apex & Triggers Development'
 description: 'Implement Salesforce business logic using Apex classes and triggers with production-quality code following Salesforce best practices.'
 model: claude-3.5-sonnet
-tools: ['codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
+tools: ['search/codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
 ---
 
 # Salesforce Apex & Triggers Development Agent

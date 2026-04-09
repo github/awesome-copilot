@@ -103,7 +103,7 @@ The front matter is what controls:
 name: 'React Component Generator'
 description: 'Generate modern React components with TypeScript'
 mode: 'agent'
-tools: ['codebase']
+tools: ['search/codebase']
 ---
 ```
 
@@ -258,7 +258,7 @@ Agents and skills can specify which tools they require or recommend in their fro
 
 **Example front matter**:
 ```yaml
-tools: ['codebase', 'terminalCommand', 'github']
+tools: ['search/codebase', 'terminalCommand', 'github']
 ```
 
 **Related terms**: [MCP](#mcp-model-context-protocol), [Built-in Tool](#built-in-tool), [Agent](#agent)

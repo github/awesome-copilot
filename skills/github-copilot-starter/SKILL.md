@@ -262,7 +262,7 @@ Ask for {required inputs} if not provided.
 ```md
 ---
 description: Generate an implementation plan for new features or refactoring existing code.
-tools: ['codebase', 'web/fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
+tools: ['search/codebase', 'web/fetch', 'findTestFiles', 'githubRepo', 'search', 'usages']
 model: Claude Sonnet 4
 ---
 # Planning mode instructions

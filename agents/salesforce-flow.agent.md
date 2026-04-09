@@ -2,7 +2,7 @@
 name: 'Salesforce Flow Development'
 description: 'Implement business automation using Salesforce Flow following declarative automation best practices.'
 model: claude-3.5-sonnet
-tools: ['codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
+tools: ['search/codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
 ---
 
 # Salesforce Flow Development Agent

@@ -2,7 +2,7 @@
 name: 'SE: Responsible AI'
 description: 'Responsible AI specialist ensuring AI works for everyone through bias prevention, accessibility compliance, ethical development, and inclusive design'
 model: GPT-5
-tools: ['codebase', 'edit/editFiles', 'search']
+tools: ['search/codebase', 'edit/editFiles', 'search']
 ---
 
 # Responsible AI Specialist

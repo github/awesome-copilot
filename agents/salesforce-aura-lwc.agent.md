@@ -2,7 +2,7 @@
 name: 'Salesforce UI Development (Aura & LWC)'
 description: 'Implement Salesforce UI components using Lightning Web Components and Aura components following Lightning framework best practices.'
 model: claude-3.5-sonnet
-tools: ['codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
+tools: ['search/codebase', 'edit/editFiles', 'terminalCommand', 'search', 'githubRepo']
 ---
 
 # Salesforce UI Development Agent (Aura & LWC)

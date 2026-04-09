@@ -175,7 +175,7 @@ When an agent declares an MCP server in its `tools` array, Copilot can invoke th
 ---
 name: 'Database Administrator'
 description: 'Expert DBA for PostgreSQL performance tuning and schema design'
-tools: ['codebase', 'terminal', 'postgres']
+tools: ['search/codebase', 'terminal', 'postgres']
 ---
 ```
 

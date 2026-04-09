@@ -63,7 +63,7 @@ Every agent file has two parts: YAML frontmatter and Markdown instructions.
 name: 'Security Reviewer'
 description: 'Expert security auditor that reviews code for OWASP vulnerabilities, authentication flaws, and supply chain risks'
 model: Claude Sonnet 4
-tools: ['codebase', 'terminal', 'github']
+tools: ['search/codebase', 'terminal', 'github']
 ---
 ```
 
@@ -94,7 +94,7 @@ After the frontmatter, write Markdown instructions that define the agent's behav
 name: 'API Design Reviewer'
 description: 'Reviews API designs for consistency, RESTful patterns, and team conventions'
 model: Claude Sonnet 4
-tools: ['codebase', 'github']
+tools: ['search/codebase', 'github']
 ---
 
 # API Design Reviewer
@@ -139,7 +139,7 @@ Create agents with deep knowledge of a specific technology:
 name: 'Terraform Expert'
 description: 'Infrastructure-as-code specialist for Terraform on Azure with security-first defaults'
 model: Claude Sonnet 4
-tools: ['codebase', 'terminal']
+tools: ['search/codebase', 'terminal']
 ---
 
 You are an expert in Terraform and Azure infrastructure.
@@ -162,7 +162,7 @@ Create agents that execute multi-step processes:
 name: 'Release Manager'
 description: 'Automates release preparation including changelog generation, version bumping, and tag creation'
 model: Claude Sonnet 4
-tools: ['codebase', 'terminal', 'github']
+tools: ['search/codebase', 'terminal', 'github']
 ---
 
 You are a release manager who automates the release process.
@@ -191,7 +191,7 @@ Create agents that enforce standards:
 name: 'Accessibility Auditor'
 description: 'Reviews UI components for WCAG 2.1 AA compliance and accessibility best practices'
 model: Claude Sonnet 4
-tools: ['codebase']
+tools: ['search/codebase']
 ---
 
 You are an accessibility expert who reviews UI components for WCAG compliance.
@@ -221,7 +221,7 @@ Agents become significantly more powerful when connected to external tools via M
 ---
 name: 'Database Administrator'
 description: 'Expert DBA for PostgreSQL performance tuning, query optimization, and schema design'
-tools: ['codebase', 'terminal', 'postgres-mcp']
+tools: ['search/codebase', 'terminal', 'postgres-mcp']
 ---
 ```
 
