@@ -326,11 +326,10 @@ class FindByStatus {
     @Test
     @DisplayName("returns matching orders when status exists")
     void shouldReturnOrders_whenStatusExists() {
-        // arrange
         when(repository.findByStatus(Status.PENDING)).thenReturn(List.of(order));
-        // act
+
         var result = service.findByStatus(Status.PENDING);
-        // assert
+
         assertThat(result).hasSize(1).containsExactly(order);
     }
 }
@@ -341,8 +340,7 @@ class FindByStatus {
 - Profile before optimizing; use JFR (Java Flight Recorder) and async-profiler
 - Choose the right garbage collector: G1GC (default), ZGC (low latency), Shenandoah (low latency)
 - Use `StringBuilder` for string concatenation in loops; single-expression concatenation is optimized by the compiler
-- Preallocate collections with expected capacity: `new ArrayList<>(expectedSize)`, `HashMap.newHashMap(expectedSize)` (Java 19+)
-- Use primitive-specialized collections from Eclipse Collections or Koloboke for hot paths with large datasets
+- Preallocate collections with expected capacity: `new ArrayList<>(expectedSize)`, `new HashMap<>((int) (expectedSize / 0.75f) + 1)` when sizing for the default load factor
 - Use connection pooling (HikariCP) for database connections
 - Use `HttpClient` (java.net.http, Java 11+) instead of legacy `HttpURLConnection`
 - Avoid boxing in hot loops; use `int` not `Integer` where possible
