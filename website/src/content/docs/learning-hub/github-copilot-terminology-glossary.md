@@ -115,7 +115,7 @@ tools: ['codebase']
 
 A VS Code custom-agent frontmatter property (`handoffs`) that defines suggested transitions from one agent to another, often with a pre-filled follow-up prompt. Handoffs are useful for guided workflows such as research -> implementation or planning -> review.
 
-**Important**: GitHub's custom agent configuration reference says `handoffs` are currently ignored for Copilot cloud agent on GitHub.com, so this concept is not portable across every Copilot surface.
+**Important**: GitHub's [custom agent configuration reference](../building-custom-agents/#agent-configuration-reference) says `handoffs` are currently ignored for Copilot cloud agent on GitHub.com, so this concept is not portable across every Copilot surface.
 
 **Learn more**: [Agents and Subagents](../agents-and-subagents/), [Building Custom Agents](../building-custom-agents/)
 
