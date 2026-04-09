@@ -1,6 +1,6 @@
 ---
 name: azure-container-apps
-description: 'Guide for building, deploying, scaling, and troubleshooting Azure Container Apps. Use when creating container apps, configuring ingress, setting up scaling rules, enabling Dapr sidecars, deploying container images, creating jobs, configuring custom domains, managing revisions, traffic splitting, or troubleshooting ACA workloads.'
+description: 'Guide for building, deploying, scaling, and troubleshooting Azure Container Apps. Use when creating container apps, configuring ingress, setting up KEDA scaling rules, enabling Dapr sidecars, deploying container images, creating jobs, configuring custom domains, managing revisions, blue-green or canary deployments, traffic splitting, deploying serverless containers or microservices, or troubleshooting ACA workloads.'
 ---
 
 # Azure Container Apps
