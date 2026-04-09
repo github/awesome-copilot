@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-02
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -456,6 +456,8 @@ The `/share html` command exports the current session — including conversation
 ```
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
+
+**Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
 The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
 

@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-02
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -141,6 +141,23 @@ Or from a local path:
 ```bash
 copilot plugin marketplace add /path/to/local-marketplace
 ```
+
+### Sharing Marketplace Registrations Across a Team
+
+To automatically register an additional marketplace for everyone working in a repository, add an `extraKnownMarketplaces` entry to your `.github/copilot-settings.json` (or `config.json`):
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins"
+    }
+  ]
+}
+```
+
+With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
 
 ## Installing Plugins
 

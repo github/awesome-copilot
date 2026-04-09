@@ -213,6 +213,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "ember",
+      "source": "ember",
+      "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
+      "version": "1.0.0"
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
@@ -243,8 +249,8 @@
     {
       "name": "flowstudio-power-automate",
       "source": "flowstudio-power-automate",
-      "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
-      "version": "1.0.0"
+      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+      "version": "2.0.0"
     },
     {
       "name": "frontend-web-dev",
@@ -255,8 +261,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular, high-performance multi-agent orchestration framework for complex project execution, feature implementation, and automated verification.",
-      "version": "1.5.0"
+      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.6.0"
     },
     {
       "name": "go-mcp-development",
@@ -476,6 +482,12 @@
       "source": "rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
       "version": "1.0.0"
+    },
+    {
+      "name": "salesforce-development",
+      "source": "salesforce-development",
+      "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
+      "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
