@@ -209,27 +209,39 @@ On macOS with Homebrew, the binary is installed as `jdtls` on `$PATH`.
 
 ## C# (.NET)
 
-**Server**: [OmniSharp](https://github.com/OmniSharp/omnisharp-roslyn) or [csharp-ls](https://github.com/razzmatazz/csharp-language-server)
+**Server**: [Roslyn Language Server](https://github.com/dotnet/roslyn) (via `dotnet dnx`)
 
-### Install (csharp-ls)
+Requires the **.NET SDK** installed and on `$PATH`. The `dotnet dnx` command fetches and runs the `roslyn-language-server` package automatically.
 
-| OS      | Command                                        |
-|---------|-------------------------------------------------|
-| Any     | `dotnet tool install --global csharp-ls`        |
+### Install
+
+| OS      | Command                                                              |
+|---------|----------------------------------------------------------------------|
+| Any     | .NET SDK required (`dotnet` on `$PATH`); no separate install needed  |
 
 ### Config snippet
 
 ```json
 {
   "csharp": {
-    "command": "csharp-ls",
-    "args": [],
+    "command": "dotnet",
+    "args": [
+      "dnx",
+      "roslyn-language-server",
+      "--yes",
+      "--prerelease",
+      "--",
+      "--stdio",
+      "--autoLoadProjects"
+    ],
     "fileExtensions": {
       ".cs": "csharp"
     }
   }
 }
 ```
+
+> **Note**: The `dotnet dnx` command downloads and runs the `roslyn-language-server` NuGet tool package. The `--yes` flag auto-accepts the download prompt, `--prerelease` allows prerelease versions, and `--autoLoadProjects` enables automatic project discovery.
 
 ---
 
