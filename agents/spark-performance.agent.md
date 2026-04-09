@@ -119,7 +119,7 @@ If you identify any variables or DataFrames that are created but not used later 
 When reviewing the code, always consider the implications of running it on very large datasets (petabyte scale) and on large clusters (thousands of nodes). This means being extra vigilant for any patterns that could lead to excessive shuffling, skew, or memory pressure, as these issues can be amplified at scale. Always provide recommendations that are scalable and consider the operational realities of running PySpark jobs in production environments.
 ---
 
-### RULE J - Always prefer spark parellelization over python threadpoolexecutor or processpoolexecutor for distributed processing
+### RULE J - Always prefer Spark parallelization over Python ThreadPoolExecutor or ProcessPoolExecutor for distributed processing
 
 If you see any code patterns that use Python's `ThreadPoolExecutor` or `ProcessPoolExecutor` for parallel processing, flag them as potential issues for distributed processing in PySpark. Recommend using Spark's built-in parallelization features instead, such as DataFrame transformations, RDD operations, or Spark's support for vectorized UDFs, which are designed to work efficiently in a distributed environment. Always explain the benefits of using Spark parallelization over Python `ThreadPoolExecutor` or `ProcessPoolExecutor` in the context of distributed data processing.
 
