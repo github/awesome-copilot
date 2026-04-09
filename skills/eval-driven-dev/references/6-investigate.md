@@ -29,7 +29,7 @@ Start by reading the analysis generated in Step 5. The analysis files are at `{P
 ### 2. Get detailed test output
 
 ```bash
-uv run pixie test -v    # shows score and reasoning per case
+pixie test -v    # shows score and reasoning per case
 ```
 
 Capture the full verbose output. For each failing case, note:
@@ -132,7 +132,7 @@ not an eval/prompt change.
 **Verification**: After fix, re-run:
 
 ```bash
-uv run pixie test -v      # verify
+pixie test -v      # verify
 ```
 ````
 
@@ -141,13 +141,13 @@ uv run pixie test -v      # verify
 Make the targeted change, update the dataset if needed, and re-run:
 
 ```bash
-uv run pixie test -v
+pixie test -v
 ```
 
 After fixes stabilize, run analysis again to see if the patterns have changed:
 
 ```bash
-uv run pixie analyze <new_test_id>
+pixie analyze <new_test_id>
 ```
 
 ---

@@ -1,7 +1,7 @@
 # Built-in Evaluators
 
 > Auto-generated from pixie source code docstrings.
-> Do not edit by hand — run `uv run python scripts/generate_skill_docs.py`.
+> Do not edit by hand — regenerate from the upstream [pixie-qa](https://github.com/yiouli/pixie-qa) source repository.
 
 Autoevals adapters — pre-made evaluators wrapping `autoevals` scorers.
 

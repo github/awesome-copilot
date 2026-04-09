@@ -7,13 +7,13 @@
 ## 5a. Run tests
 
 ```bash
-uv run pixie test
+pixie test
 ```
 
 For verbose output with per-case scores and evaluator reasoning:
 
 ```bash
-uv run pixie test -v
+pixie test -v
 ```
 
 `pixie test` automatically loads the `.env` file before running tests.
@@ -64,7 +64,7 @@ Once the dataset runs without errors and produces real scores, assess the result
 Once tests complete without setup errors and produce real scores, run analysis:
 
 ```bash
-uv run pixie analyze <test_id>
+pixie analyze <test_id>
 ```
 
 Where `<test_id>` is the test run identifier printed by `pixie test` (e.g., `20250615-120000`). This generates LLM-powered markdown analysis for each dataset, identifying patterns in successes and failures.

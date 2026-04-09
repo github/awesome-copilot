@@ -29,8 +29,8 @@ This skill is about doing the work, not describing it. Read code, edit files, ru
 
 ## Before you start
 
-**First, activate the virtual environment**. Identify the correct virtual environment for the project and activate it. After the virtual environment is active, the run the setup.sh included in the skill's resources.
-The script updates the `eval-driven-dev` skill and `pixie-qa` python package to latest version, initialize the pixie working directory if it's not already initialized, and start a web server in the background to show user updates. If the skill or package update fails, continue — do not let these failures block the rest of the workflow.
+**First, activate the virtual environment**. Identify the correct virtual environment for the project and activate it. After the virtual environment is active, then run the setup.sh included in the skill's resources.
+The script updates the `eval-driven-dev` skill and `pixie-qa` python package to the latest version, initializes the pixie working directory if it's not already initialized, and starts a web server in the background to show user updates. If the skill or package update fails, continue — do not let these failures block the rest of the workflow.
 
 ---
 

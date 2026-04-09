@@ -218,7 +218,7 @@ Use the `pixie trace` CLI command to run your `Runnable` and capture a trace fil
 # Create a JSON file with entry kwargs
 echo '{"user_message": "a realistic sample input"}' > pixie_qa/sample-input.json
 
-uv run pixie trace --runnable pixie_qa/scripts/run_app.py:AppRunnable \
+pixie trace --runnable pixie_qa/scripts/run_app.py:AppRunnable \
   --input pixie_qa/sample-input.json \
   --output pixie_qa/reference-trace.jsonl
 ```
@@ -241,7 +241,7 @@ The JSONL trace file will contain one line per `wrap()` event and one line per L
 Run `pixie format` on the trace file to see the data in dataset-entry format. This shows you both the data shapes and what a real app output looks like:
 
 ```bash
-uv run pixie format --input reference-trace.jsonl --output dataset-sample.json
+pixie format --input reference-trace.jsonl --output dataset-sample.json
 ```
 
 The output is a formatted dataset entry template — it contains:
