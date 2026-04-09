@@ -3,7 +3,11 @@
 Compact lookup for recognising action types returned by `get_live_flow`.
 Use this to **read and understand** existing flow definitions.
 
+<<<<<<< HEAD
 > For full copy-paste construction patterns, see the `flowstudio-power-automate-build` skill.
+=======
+> For full copy-paste construction patterns, see the `power-automate-build` skill.
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ---
 

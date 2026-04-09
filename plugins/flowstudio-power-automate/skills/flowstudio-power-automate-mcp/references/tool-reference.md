@@ -138,7 +138,11 @@ Response: **direct array** (no wrapper).
 ]
 ```
 
+<<<<<<< HEAD
 > **`id` format**: `<environmentId>.<flowId>` --- split on the first `.` to extract the flow UUID:
+=======
+> **`id` format**: `envId.flowId` --- split on the first `.` to extract the flow UUID:
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 > `flow_id = item["id"].split(".", 1)[1]`
 
 ### `get_store_flow`
@@ -146,7 +150,11 @@ Response: **direct array** (no wrapper).
 Response: single flow metadata from cache (selected fields).
 ```json
 {
+<<<<<<< HEAD
   "id": "<environmentId>.<flowId>",
+=======
+  "id": "envId.flowId",
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
   "displayName": "My Flow",
   "state": "Started",
   "triggerType": "Recurrence",
@@ -204,7 +212,11 @@ Response:
 ```json
 {
   "created": false,
+<<<<<<< HEAD
   "flowKey": "<environmentId>.<flowId>",
+=======
+  "flowKey": "envId.flowId",
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
   "updated": ["definition", "connectionReferences"],
   "displayName": "My Flow",
   "state": "Started",
@@ -353,6 +365,7 @@ Response keys: `flowKey`, `triggerName`, `triggerUrl`, `requiresAadAuth`, `authT
 
 > **Only works for `Request` (HTTP) triggers.** Returns an error for Recurrence
 > and other trigger types: `"only HTTP Request triggers can be invoked via this tool"`.
+<<<<<<< HEAD
 > `Button`-kind triggers return `ListCallbackUrlOperationBlocked`.
 >
 > `responseStatus` + `responseBody` contain the flow's Response action output.
@@ -365,11 +378,17 @@ Response keys: `flowKey`, `triggerName`, `triggerUrl`, `requiresAadAuth`, `authT
 > flows designed to accept raw input (e.g. Baker-pattern flows that parse the body
 > internally), will work fine. The flow receives the JSON as base64-encoded
 > `$content` with `$content-type: application/octet-stream`.
+=======
+>
+> `responseStatus` + `responseBody` contain the flow's Response action output.
+> AAD-authenticated triggers are handled automatically.
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ---
 
 ## Flow State Management
 
+<<<<<<< HEAD
 ### `set_live_flow_state`
 
 Start or stop a Power Automate flow via the live PA API. Does **not** require
@@ -416,6 +435,11 @@ Response (different shape from `set_live_flow_state`):
 > (without waiting for the next daily scan) AND want the full updated
 > governance record back in the same call — useful for workflows that
 > stop a flow and immediately tag or inspect it.
+=======
+### `set_store_flow_state`
+
+Start or stop a flow. Pass `state: "Started"` or `state: "Stopped"`.
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ---
 
@@ -476,8 +500,11 @@ Non-obvious behaviors discovered through real API usage. These are things
 - `error` key is **always present** in response --- `null` means success.
   Do NOT check `if "error" in result`; check `result.get("error") is not None`.
 - On create, `created` = new flow GUID (string). On update, `created` = `false`.
+<<<<<<< HEAD
 - **Cannot change flow state.** Only updates displayName, definition, and
   connectionReferences. Use `set_live_flow_state` to start/stop a flow.
+=======
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ### `trigger_live_flow`
 - **Only works for HTTP Request triggers.** Returns error for Recurrence, connector,

@@ -18,8 +18,14 @@
     "prd",
     "mobile"
   ],
+<<<<<<< HEAD
   "license": "MIT",
   "name": "gem-team",
   "repository": "https://github.com/github/awesome-copilot",
   "version": "1.6.0"
+=======
+  "agents": [
+    "./agents"
+  ]
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 }

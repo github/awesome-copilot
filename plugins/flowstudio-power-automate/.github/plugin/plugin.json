@@ -21,8 +21,12 @@
   "skills": [
     "./skills/flowstudio-power-automate-mcp",
     "./skills/flowstudio-power-automate-debug",
+<<<<<<< HEAD
     "./skills/flowstudio-power-automate-build",
     "./skills/flowstudio-power-automate-monitoring",
     "./skills/flowstudio-power-automate-governance"
+=======
+    "./skills/flowstudio-power-automate-build"
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
   ]
 }

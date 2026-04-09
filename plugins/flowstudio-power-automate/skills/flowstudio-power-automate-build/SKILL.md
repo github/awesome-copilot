@@ -2,13 +2,18 @@
 name: flowstudio-power-automate-build
 description: >-
   Build, scaffold, and deploy Power Automate cloud flows using the FlowStudio
+<<<<<<< HEAD
   MCP server. Your agent constructs flow definitions, wires connections, deploys,
   and tests — all via MCP without opening the portal.
   Load this skill when asked to: create a flow, build a new flow,
+=======
+  MCP server. Load this skill when asked to: create a flow, build a new flow,
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
   deploy a flow definition, scaffold a Power Automate workflow, construct a flow
   JSON, update an existing flow's actions, patch a flow definition, add actions
   to a flow, wire up connections, or generate a workflow definition from scratch.
   Requires a FlowStudio MCP subscription — see https://mcp.flowstudio.app
+<<<<<<< HEAD
 metadata:
   openclaw:
     requires:
@@ -16,6 +21,8 @@ metadata:
         - FLOWSTUDIO_MCP_TOKEN
     primaryEnv: FLOWSTUDIO_MCP_TOKEN
     homepage: https://mcp.flowstudio.app
+=======
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 ---
 
 # Build & Deploy Power Automate Flows with FlowStudio MCP
@@ -73,6 +80,7 @@ ENV = "<environment-id>"  # e.g. Default-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 Always look before you build to avoid duplicates:
 
 ```python
+<<<<<<< HEAD
 results = mcp("list_live_flows", environmentName=ENV)
 
 # list_live_flows returns { "flows": [...] }
@@ -82,6 +90,16 @@ matches = [f for f in results["flows"]
 if len(matches) > 0:
     # Flow exists — modify rather than create
     FLOW_ID = matches[0]["id"]   # plain UUID from list_live_flows
+=======
+results = mcp("list_store_flows",
+    environmentName=ENV, searchTerm="My New Flow")
+
+# list_store_flows returns a direct array (no wrapper object)
+if len(results) > 0:
+    # Flow exists — modify rather than create
+    # id format is "envId.flowId" — split to get the flow UUID
+    FLOW_ID = results[0]["id"].split(".", 1)[1]
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
     print(f"Existing flow: {FLOW_ID}")
     defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
 else:
@@ -192,7 +210,11 @@ for connector in connectors_needed:
 > connection_references = ref_flow["properties"]["connectionReferences"]
 > ```
 
+<<<<<<< HEAD
 See the `flowstudio-power-automate-mcp` skill's **connection-references.md** reference
+=======
+See the `power-automate-mcp` skill's **connection-references.md** reference
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 for the full connection reference structure.
 
 ---
@@ -288,8 +310,11 @@ check = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
 
 # Confirm state
 print("State:", check["properties"]["state"])  # Should be "Started"
+<<<<<<< HEAD
 # If state is "Stopped", use set_live_flow_state — NOT update_live_flow
 # mcp("set_live_flow_state", environmentName=ENV, flowName=FLOW_ID, state="Started")
+=======
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 # Confirm the action we added is there
 acts = check["properties"]["definition"]["actions"]
@@ -306,16 +331,23 @@ print("Actions:", list(acts.keys()))
 > flow will do and wait for explicit approval before calling `trigger_live_flow`
 > or `resubmit_live_flow_run`.
 
+<<<<<<< HEAD
 ### Updated flows (have prior runs) — ANY trigger type
 
 > **Use `resubmit_live_flow_run` first.** It works for EVERY trigger type —
 > Recurrence, SharePoint, connector webhooks, Button, and HTTP. It replays
 > the original trigger payload. Do NOT ask the user to manually trigger the
 > flow or wait for the next scheduled run.
+=======
+### Updated flows (have prior runs)
+
+The fastest path — resubmit the most recent run:
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ```python
 runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=1)
 if runs:
+<<<<<<< HEAD
     # Works for Recurrence, SharePoint, connector triggers — not just HTTP
     result = mcp("resubmit_live_flow_run",
         environmentName=ENV, flowName=FLOW_ID, runName=runs[0]["name"])
@@ -327,24 +359,48 @@ if runs:
 Only use `trigger_live_flow` when you need to send a **different** payload
 than the original run. For verifying a fix, `resubmit_live_flow_run` is
 better because it uses the exact data that caused the failure.
+=======
+    result = mcp("resubmit_live_flow_run",
+        environmentName=ENV, flowName=FLOW_ID, runName=runs[0]["name"])
+    print(result)
+```
+
+### Flows already using an HTTP trigger
+
+Fire directly with a test payload:
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 ```python
 schema = mcp("get_live_flow_http_schema",
     environmentName=ENV, flowName=FLOW_ID)
+<<<<<<< HEAD
 print("Expected body:", schema.get("requestSchema"))
+=======
+print("Expected body:", schema.get("triggerSchema"))
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 result = mcp("trigger_live_flow",
     environmentName=ENV, flowName=FLOW_ID,
     body={"name": "Test", "value": 1})
+<<<<<<< HEAD
 print(f"Status: {result['responseStatus']}")
+=======
+print(f"Status: {result['status']}")
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 ```
 
 ### Brand-new non-HTTP flows (Recurrence, connector triggers, etc.)
 
+<<<<<<< HEAD
 A brand-new Recurrence or connector-triggered flow has **no prior runs** to
 resubmit and no HTTP endpoint to call. This is the ONLY scenario where you
 need the temporary HTTP trigger approach below. **Deploy with a temporary
 HTTP trigger first, test the actions, then swap to the production trigger.**
+=======
+A brand-new Recurrence or connector-triggered flow has no runs to resubmit
+and no HTTP endpoint to call. **Deploy with a temporary HTTP trigger first,
+test the actions, then swap to the production trigger.**
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 
 #### 7a — Save the real trigger, deploy with a temporary HTTP trigger
 
@@ -403,7 +459,11 @@ if run["status"] == "Failed":
     root = err["failedActions"][-1]
     print(f"Root cause: {root['actionName']} → {root.get('code')}")
     # Debug and fix the definition before proceeding
+<<<<<<< HEAD
     # See flowstudio-power-automate-debug skill for full diagnosis workflow
+=======
+    # See power-automate-debug skill for full diagnosis workflow
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 ```
 
 #### 7c — Swap to the production trigger
@@ -447,7 +507,11 @@ else:
 | `union(old_data, new_data)` | Old values override new (first-wins) | Use `union(new_data, old_data)` |
 | `split()` on potentially-null string | `InvalidTemplate` crash | Wrap with `coalesce(field, '')` |
 | Checking `result["error"]` exists | Always present; true error is `!= null` | Use `result.get("error") is not None` |
+<<<<<<< HEAD
 | Flow deployed but state is "Stopped" | Flow won't run on schedule | Call `set_live_flow_state` with `state: "Started"` — do **not** use `update_live_flow` for state changes |
+=======
+| Flow deployed but state is "Stopped" | Flow won't run on schedule | Check connection auth; re-enable |
+>>>>>>> fcdf1a87ad66f2ab69e296e7fe6149be18fe85df
 | Teams "Chat with Flow bot" recipient as object | 400 `GraphUserDetailNotFound` | Use plain string with trailing semicolon (see below) |
 
 ### Teams `PostMessageToConversation` — Recipient Formats
