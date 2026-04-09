@@ -18,7 +18,8 @@
     "data-management"
   ],
   "agents": [
-    "./agents/"
+    "./agents/postgresql-dba.md",
+    "./agents/ms-sql-dba.md"
   ],
   "skills": [
     "./skills/sql-optimization/",

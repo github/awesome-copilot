@@ -15,7 +15,7 @@
     "architecture"
   ],
   "agents": [
-    "./agents/"
+    "./agents/context-architect.md"
   ],
   "skills": [
     "./skills/context-map/",

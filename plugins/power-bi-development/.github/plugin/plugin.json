@@ -18,7 +18,10 @@
     "business-intelligence"
   ],
   "agents": [
-    "./agents/"
+    "./agents/power-bi-data-modeling-expert.md",
+    "./agents/power-bi-dax-expert.md",
+    "./agents/power-bi-performance-expert.md",
+    "./agents/power-bi-visualization-expert.md"
   ],
   "skills": [
     "./skills/power-bi-dax-optimization/",

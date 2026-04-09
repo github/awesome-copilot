@@ -18,7 +18,13 @@
     "technical-spike"
   ],
   "agents": [
-    "./agents/"
+    "./agents/task-planner.md",
+    "./agents/task-researcher.md",
+    "./agents/planner.md",
+    "./agents/plan.md",
+    "./agents/prd.md",
+    "./agents/implementation-plan.md",
+    "./agents/research-technical-spike.md"
   ],
   "skills": [
     "./skills/breakdown-feature-implementation/",

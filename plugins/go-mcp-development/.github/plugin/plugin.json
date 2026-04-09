@@ -16,7 +16,7 @@
     "sdk"
   ],
   "agents": [
-    "./agents/"
+    "./agents/go-mcp-expert.md"
   ],
   "skills": [
     "./skills/go-mcp-server-generator/"

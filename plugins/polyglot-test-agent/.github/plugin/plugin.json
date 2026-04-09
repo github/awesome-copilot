@@ -20,7 +20,14 @@
     "go"
   ],
   "agents": [
-    "./agents/"
+    "./agents/polyglot-test-generator.md",
+    "./agents/polyglot-test-researcher.md",
+    "./agents/polyglot-test-planner.md",
+    "./agents/polyglot-test-implementer.md",
+    "./agents/polyglot-test-builder.md",
+    "./agents/polyglot-test-tester.md",
+    "./agents/polyglot-test-fixer.md",
+    "./agents/polyglot-test-linter.md"
   ],
   "skills": [
     "./skills/polyglot-test-agent/"

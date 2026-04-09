@@ -18,7 +18,7 @@
     "stored-procedures"
   ],
   "agents": [
-    "./agents/"
+    "./agents/oracle-to-postgres-migration-expert.md"
   ],
   "skills": [
     "./skills/creating-oracle-to-postgres-master-migration-plan/",

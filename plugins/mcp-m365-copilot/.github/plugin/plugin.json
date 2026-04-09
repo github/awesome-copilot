@@ -16,7 +16,7 @@
     "adaptive-cards"
   ],
   "agents": [
-    "./agents/"
+    "./agents/mcp-m365-agent-expert.md"
   ],
   "skills": [
     "./skills/mcp-create-declarative-agent/",

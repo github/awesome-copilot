@@ -18,7 +18,10 @@
     "nunit"
   ],
   "agents": [
-    "./agents/"
+    "./agents/tdd-red.md",
+    "./agents/tdd-green.md",
+    "./agents/tdd-refactor.md",
+    "./agents/playwright-tester.md"
   ],
   "skills": [
     "./skills/playwright-explore-website/",

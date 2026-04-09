@@ -14,7 +14,7 @@
     "azure"
   ],
   "agents": [
-    "./agents/"
+    "./agents/azure-principal-architect.md"
   ],
   "skills": [
     "./skills/azure-resource-health-diagnose/",

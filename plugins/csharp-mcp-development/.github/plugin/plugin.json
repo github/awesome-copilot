@@ -15,7 +15,7 @@
     "server-development"
   ],
   "agents": [
-    "./agents/"
+    "./agents/csharp-mcp-expert.md"
   ],
   "skills": [
     "./skills/csharp-mcp-server-generator/"

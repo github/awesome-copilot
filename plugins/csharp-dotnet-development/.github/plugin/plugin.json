@@ -14,7 +14,7 @@
     "testing"
   ],
   "agents": [
-    "./agents/"
+    "./agents/expert-dotnet-software-engineer.md"
   ],
   "skills": [
     "./skills/csharp-async/",

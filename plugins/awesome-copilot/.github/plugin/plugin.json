@@ -15,7 +15,7 @@
     "agents"
   ],
   "agents": [
-    "./agents/"
+    "./agents/meta-agentic-project-scaffold.md"
   ],
   "skills": [
     "./skills/suggest-awesome-github-copilot-skills/",

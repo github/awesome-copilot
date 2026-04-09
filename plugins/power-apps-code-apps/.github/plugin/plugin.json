@@ -17,7 +17,7 @@
     "connectors"
   ],
   "agents": [
-    "./agents/"
+    "./agents/power-platform-expert.md"
   ],
   "skills": [
     "./skills/power-apps-code-app-scaffold/"

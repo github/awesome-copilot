@@ -6,18 +6,28 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
-const MATERIALIZED_DIRS = ["agents", "commands", "skills"];
-const MATERIALIZED_FIELDS = ["agents", "commands", "skills"];
+const MATERIALIZED_SPECS = {
+  agents: {
+    path: "agents",
+    restore(dirPath) {
+      return collectFiles(dirPath).map((relativePath) => `./agents/${relativePath}`);
+    },
+  },
+  commands: {
+    path: "commands",
+    restore(dirPath) {
+      return collectFiles(dirPath).map((relativePath) => `./commands/${relativePath}`);
+    },
+  },
+  skills: {
+    path: "skills",
+    restore(dirPath) {
+      return collectSkillDirectories(dirPath).map((relativePath) => `./skills/${relativePath}/`);
+    },
+  },
+};
 
-function addTrailingSlashToFolderPath(entry) {
-  if (typeof entry !== "string" || !entry.startsWith("./") || entry.endsWith("/")) {
-    return entry;
-  }
-
-  return path.extname(entry) === "" ? `${entry}/` : entry;
-}
-
-export function normalizeManifestFolderPaths(pluginPath) {
+export function restoreManifestFromMaterializedFiles(pluginPath) {
   const pluginJsonPath = path.join(pluginPath, ".github/plugin", "plugin.json");
   if (!fs.existsSync(pluginJsonPath)) {
     return false;
@@ -31,14 +41,15 @@ export function normalizeManifestFolderPaths(pluginPath) {
   }
 
   let changed = false;
-  for (const field of MATERIALIZED_FIELDS) {
-    if (!Array.isArray(plugin[field])) {
+  for (const [field, spec] of Object.entries(MATERIALIZED_SPECS)) {
+    const materializedPath = path.join(pluginPath, spec.path);
+    if (!fs.existsSync(materializedPath) || !fs.statSync(materializedPath).isDirectory()) {
       continue;
     }
 
-    const normalized = plugin[field].map(addTrailingSlashToFolderPath);
-    if (normalized.some((entry, index) => entry !== plugin[field][index])) {
-      plugin[field] = normalized;
+    const restored = spec.restore(materializedPath);
+    if (!arraysEqual(plugin[field], restored)) {
+      plugin[field] = restored;
       changed = true;
     }
   }
@@ -51,8 +62,13 @@ export function normalizeManifestFolderPaths(pluginPath) {
 }
 
 function cleanPlugin(pluginPath) {
+  const manifestUpdated = restoreManifestFromMaterializedFiles(pluginPath);
+  if (manifestUpdated) {
+    console.log(`  Updated ${path.basename(pluginPath)}/.github/plugin/plugin.json`);
+  }
+
   let removed = 0;
-  for (const subdir of MATERIALIZED_DIRS) {
+  for (const { path: subdir } of Object.values(MATERIALIZED_SPECS)) {
     const target = path.join(pluginPath, subdir);
     if (fs.existsSync(target) && fs.statSync(target).isDirectory()) {
       const count = countFiles(target);
@@ -60,11 +76,6 @@ function cleanPlugin(pluginPath) {
       removed += count;
       console.log(`  Removed ${path.basename(pluginPath)}/${subdir}/ (${count} files)`);
     }
-  }
-
-  const manifestUpdated = normalizeManifestFolderPaths(pluginPath);
-  if (manifestUpdated) {
-    console.log(`  Updated ${path.basename(pluginPath)}/.github/plugin/plugin.json`);
   }
 
   return { removed, manifestUpdated };
@@ -80,6 +91,49 @@ function countFiles(dir) {
     }
   }
   return count;
+}
+
+function collectFiles(dir, rootDir = dir) {
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const entryPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(entryPath, rootDir));
+    } else {
+      files.push(toPosixPath(path.relative(rootDir, entryPath)));
+    }
+  }
+  return files.sort();
+}
+
+function collectSkillDirectories(dir, rootDir = dir) {
+  const skillDirs = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const entryPath = path.join(dir, entry.name);
+    if (fs.existsSync(path.join(entryPath, "SKILL.md"))) {
+      skillDirs.push(toPosixPath(path.relative(rootDir, entryPath)));
+      continue;
+    }
+
+    skillDirs.push(...collectSkillDirectories(entryPath, rootDir));
+  }
+  return skillDirs.sort();
+}
+
+function arraysEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function toPosixPath(filePath) {
+  return filePath.split(path.sep).join("/");
 }
 
 function main() {
