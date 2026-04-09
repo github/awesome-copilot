@@ -157,7 +157,7 @@ This repository already includes a few useful examples of delegation-related syn
 
 ## Important platform nuance: handoffs are not universal
 
-VS Code documentation describes both subagents and the `handoffs` frontmatter property. GitHub's custom agent configuration reference, however, notes that `handoffs` and `argument-hint` are currently ignored for Copilot cloud agent on GitHub.com.
+VS Code documentation describes both subagents and the `handoffs` frontmatter property. [GitHub's custom agent configuration reference](https://docs.github.com/en/copilot/customizing-copilot/github-copilot-agents/configuration-reference-for-github-copilot-agents), however, notes that `handoffs` and `argument-hint` are currently ignored for Copilot cloud agent on GitHub.com.
 
 That means you should think about delegation features in product-specific terms:
 
