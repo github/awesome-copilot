@@ -42,10 +42,10 @@ Comprehensive security rules for web application development. Every anti-pattern
 
 ```typescript
 // BAD
-const result = await db.query(`SELECT * FROM users WHERE id = ${userId}`);
+const unsafeResult = await db.query(`SELECT * FROM users WHERE id = ${userId}`);
 
 // GOOD — parameterized query
-const result = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+const safeResult = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
 ```
 
 ### I2: NoSQL Injection (MongoDB Operator Injection)
