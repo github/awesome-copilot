@@ -1,0 +1,28 @@
+{
+  "name": "fabric-data-agent",
+  "description": "Create, test, and tune Microsoft Fabric Data Agents from VS Code using natural language. Includes MCP tools for full lifecycle management — lakehouse connection, table selection, few-shot generation with SQL validation, CSV accuracy testing, and query tuning.",
+  "version": "1.0.0",
+  "keywords": [
+    "fabric",
+    "data-agent",
+    "mcp",
+    "microsoft",
+    "sql",
+    "accuracy-testing",
+    "few-shot",
+    "lakehouse"
+  ],
+  "author": {
+    "name": "Hari Gouthami Narravula"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents/fabric-data-agent-manager.agent.md"
+  ],
+  "skills": [
+    "./skills/fabric-data-agent-create/",
+    "./skills/fabric-data-agent-test/",
+    "./skills/fabric-data-agent-tune/"
+  ]
+}

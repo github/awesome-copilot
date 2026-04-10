@@ -219,6 +219,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "fabric-data-agent",
+      "source": "fabric-data-agent",
+      "description": "Create, test, and tune Microsoft Fabric Data Agents from VS Code using natural language. Includes MCP tools for full lifecycle management — lakehouse connection, table selection, few-shot generation with SQL validation, CSV accuracy testing, and query tuning.",
+      "version": "1.0.0"
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
