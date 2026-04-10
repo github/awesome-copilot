@@ -64,11 +64,15 @@ EOF
 done
 
 # --- Redirect stdout to file if requested ---
+OUTPUT_FILE_ABS=""
 if [[ -n "$OUTPUT_FILE" ]]; then
   output_dir="$(dirname "$OUTPUT_FILE")"
   if [[ "$output_dir" != "." ]]; then
     mkdir -p "$output_dir"
   fi
+  # Resolve to absolute path before exec replaces stdout, so downstream
+  # find/grep calls can explicitly exclude the output file from results.
+  OUTPUT_FILE_ABS="$(cd "$(dirname "$OUTPUT_FILE")" && pwd)/$(basename "$OUTPUT_FILE")"
   exec > "$OUTPUT_FILE"
   echo "Writing output to: $OUTPUT_FILE" >&2
 fi
@@ -83,14 +87,35 @@ EXCLUDE_DIRS=(
 
 build_find_command() {
   local depth="$1"
-  local -n out_ref=$2
+  local out_var="$2"
+  local dir quoted assignment
+  local -a cmd
 
-  out_ref=(find . -maxdepth "$depth" "(")
+  # Validate the output variable name to prevent code injection via eval.
+  if [[ ! "$out_var" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+    echo "Error: invalid output variable name: $out_var" >&2
+    exit 1
+  fi
+
+  cmd=(find . -maxdepth "$depth" "(")
   for dir in "${EXCLUDE_DIRS[@]}"; do
-    out_ref+=(-name "$dir" -o)
+    cmd+=(-name "$dir" -o)
   done
-  unset 'out_ref[${#out_ref[@]}-1]'
-  out_ref+=(")" -prune -o -type f -print)
+  unset 'cmd[${#cmd[@]}-1]'
+  cmd+=(" )" -prune -o -type f -print)
+
+  # Exclude the output file from results if one was requested.
+  if [[ -n "$OUTPUT_FILE_ABS" ]]; then
+    cmd+=(-not -path "$OUTPUT_FILE_ABS")
+  fi
+
+  assignment="$out_var=("
+  for quoted in "${cmd[@]}"; do
+    printf -v quoted '%q' "$quoted"
+    assignment+=" $quoted"
+  done
+  assignment+=" )"
+  eval "$assignment"
 }
 
 print_limited_file() {
@@ -150,10 +175,15 @@ for pattern in "${MANIFESTS[@]}"; do
     if [[ -f "$f" ]]; then
       echo ""
       echo "--- $f ---"
-      head -n "$MANIFEST_PREVIEW_LINES" "$f"
-      line_count=$(wc -l < "$f" | tr -d ' ')
-      if [[ "$line_count" -gt "$MANIFEST_PREVIEW_LINES" ]]; then
-        echo "[TRUNCATED] Showing first $MANIFEST_PREVIEW_LINES of $line_count lines."
+      # bun.lockb is a binary lockfile — printing it produces garbage characters.
+      if [[ "$f" == "bun.lockb" ]]; then
+        echo "[Binary lockfile — see package.json for dependency details.]"
+      else
+        head -n "$MANIFEST_PREVIEW_LINES" "$f"
+        line_count=$(wc -l < "$f" | tr -d ' ')
+        if [[ "$line_count" -gt "$MANIFEST_PREVIEW_LINES" ]]; then
+          echo "[TRUNCATED] Showing first $MANIFEST_PREVIEW_LINES of $line_count lines."
+        fi
       fi
       found_any_manifest=1
     fi
@@ -224,7 +254,7 @@ for f in "${ENV_TEMPLATES[@]}"; do
   fi
 done
 if [[ $found_any_env -eq 0 ]]; then
-  echo "No .env.example or .env.template found. Environment variables must be inferred from code."
+  echo "No .env.example or .env.template found. Identify required environment variables by searching the code and config for environment variable reads."
 fi
 
 echo ""

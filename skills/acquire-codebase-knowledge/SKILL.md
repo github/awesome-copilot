@@ -44,13 +44,17 @@ If the user supplies a focus area (for example: "architecture only" or "testing 
 
 ### Phase 1: Scan and Read Intent
 
-1. Run from the project root:
+1. Set `SKILL_ROOT` to the absolute path of the skill folder (the directory containing this `SKILL.md`), then run the bundled script from the **target project root**:
    ```bash
-  bash scripts/scan.sh --output docs/codebase/.codebase-scan.txt
-  ```
-  Windows fallback (if Bash is unavailable):
-  ```powershell
-  Get-ChildItem -Recurse -File | Select-Object -First 200 FullName | Out-File docs/codebase/.codebase-scan.txt
+   export SKILL_ROOT="/absolute/path/to/skills/acquire-codebase-knowledge"
+   bash "$SKILL_ROOT/scripts/scan.sh" --output docs/codebase/.codebase-scan.txt
+   ```
+   Keep your working directory as the target repository root so the scan covers that codebase, not the skill folder itself.
+
+   **Windows fallback (limited — use only if Bash is unavailable):** The following produces a file listing only and does **not** include manifest previews, git churn, TODO/FIXME counts, or environment variable templates. Downstream phases will have reduced context.
+   ```powershell
+   New-Item -ItemType Directory -Force -Path docs/codebase | Out-Null
+   Get-ChildItem -Recurse -File | Select-Object -First 200 FullName | Out-File docs/codebase/.codebase-scan.txt
    ```
 2. Search for `PRD`, `TRD`, `README`, `ROADMAP`, `SPEC`, `DESIGN` files and read them.
 3. Summarise the stated project intent before reading any source code.
