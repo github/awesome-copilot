@@ -72,19 +72,28 @@ const valid = user && await verifyPassword(user.passwordHash, password);
 - **OWASP**: A05
 
 ```typescript
-// BAD — shell interpolation
-import { execFileSync } from 'child_process';
-const output = execFileSync('sh', ['-c', `ls -la ${req.query.dir}`]);
+// BAD — shell interpolation, sync call blocks the event loop
+import { execFileSync } from 'node:child_process';
+const unsafeOutput = execFileSync('sh', ['-c', `ls -la ${req.query.dir}`]);
 
-// GOOD — arguments array, no shell, no option injection
+// GOOD — async execFile, arguments array, no shell, bounded time/output
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+const pExecFile = promisify(execFile);
+
 const dir = String(req.query.dir ?? '');
 if (!dir || dir.startsWith('-')) throw new Error('Invalid directory');
-const output = execFileSync('ls', ['-la', '--', dir]);
+const { stdout: safeOutput } = await pExecFile('ls', ['-la', '--', dir], {
+  timeout: 5_000,      // fail fast on hung processes
+  maxBuffer: 1 << 20,  // 1 MiB cap to prevent memory exhaustion
+});
 
-// BEST — allowlist validation
+// BEST — allowlist validation on top of the async, bounded call above
 const allowedDirs = ['/data', '/public'];
 if (!allowedDirs.includes(dir)) throw new Error('Invalid directory');
 ```
+
+Prefer async `execFile`/`spawn` over `execFileSync` in server handlers: the sync variant blocks Node's event loop and can amplify DoS impact. Always pass a `timeout` and `maxBuffer` to bound execution.
 
 ### I4: XSS via Unsanitized HTML Rendering
 
