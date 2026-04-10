@@ -443,6 +443,24 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="https://felickz.github.io/"><img src="https://avatars.githubusercontent.com/u/1760475?v=4" width="100px;" alt=""/><br /><sub><b>Chad Bentz</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarcelloCuoghi"><img src="https://avatars.githubusercontent.com/u/10816095?v=4" width="100px;" alt=""/><br /><sub><b>Marcello Cuoghi</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://josh-ops.com/"><img src="https://avatars.githubusercontent.com/u/19912012?v=4" width="100px;" alt=""/><br /><sub><b>Josh Johanning</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jennyf19"><img src="https://avatars.githubusercontent.com/u/19942418?v=4" width="100px;" alt=""/><br /><sub><b>jennyf19</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SaravananRajaraman"><img src="https://avatars.githubusercontent.com/u/5166323?v=4" width="100px;" alt=""/><br /><sub><b>Saravanan Rajaraman</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Dhruvpatel004"><img src="https://avatars.githubusercontent.com/u/109230666?v=4" width="100px;" alt=""/><br /><sub><b>Patel Dhruv </b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/reneenoble"><img src="https://avatars.githubusercontent.com/u/7269759?v=4" width="100px;" alt=""/><br /><sub><b>Renee Noble</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jjpinto"><img src="https://avatars.githubusercontent.com/u/16046674?v=4" width="100px;" alt=""/><br /><sub><b>jjpinto</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://moeyui1.github.io/"><img src="https://avatars.githubusercontent.com/u/11503525?v=4" width="100px;" alt=""/><br /><sub><b>moeyui1</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mohammadali2549"><img src="https://avatars.githubusercontent.com/u/67632698?v=4" width="100px;" alt=""/><br /><sub><b>mohammadali2549</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/proflead"><img src="https://avatars.githubusercontent.com/u/59716480?v=4" width="100px;" alt=""/><br /><sub><b>Vladislav Guzey</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/aparna198809"><img src="https://avatars.githubusercontent.com/u/99466930?v=4" width="100px;" alt=""/><br /><sub><b>aparna198809</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TeddMcAdams"><img src="https://avatars.githubusercontent.com/u/15876990?v=4" width="100px;" alt=""/><br /><sub><b>Ed McAdams</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/eanders-tdy"><img src="https://avatars.githubusercontent.com/u/271782413?v=4" width="100px;" alt=""/><br /><sub><b>Emil Andersson</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.mikaelkrief.com/"><img src="https://avatars.githubusercontent.com/u/2725302?v=4" width="100px;" alt=""/><br /><sub><b>Mikael</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Mrigank005"><img src="https://avatars.githubusercontent.com/u/179711954?v=4" width="100px;" alt=""/><br /><sub><b>Mrigank Singh</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.jimbobbennett.dev/"><img src="https://avatars.githubusercontent.com/u/1710385?v=4" width="100px;" alt=""/><br /><sub><b>Jim Bennett</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>

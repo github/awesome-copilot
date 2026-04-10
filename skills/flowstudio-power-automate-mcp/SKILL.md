@@ -1,13 +1,22 @@
 ---
 name: flowstudio-power-automate-mcp
 description: >-
-  Connect to and operate Power Automate cloud flows via a FlowStudio MCP server.
+  Give your AI agent the same visibility you have in the Power Automate portal — plus
+  a bit more. The Graph API only returns top-level run status. Flow Studio MCP exposes
+  action-level inputs, outputs, loop iterations, and nested child flow failures.
   Use when asked to: list flows, read a flow definition, check run history, inspect
   action outputs, resubmit a run, cancel a running flow, view connections, get a
   trigger URL, validate a definition, monitor flow health, or any task that requires
   talking to the Power Automate API through an MCP tool. Also use for Power Platform
   environment discovery and connection management. Requires a FlowStudio MCP
   subscription or compatible server — see https://mcp.flowstudio.app
+metadata:
+  openclaw:
+    requires:
+      env:
+        - FLOWSTUDIO_MCP_TOKEN
+    primaryEnv: FLOWSTUDIO_MCP_TOKEN
+    homepage: https://mcp.flowstudio.app
 ---
 
 # Power Automate via FlowStudio MCP
@@ -15,6 +24,10 @@ description: >-
 This skill lets AI agents read, monitor, and operate Microsoft Power Automate
 cloud flows programmatically through a **FlowStudio MCP server** — no browser,
 no UI, no manual steps.
+
+> **Real debugging examples**: [Expression error in child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/fix-expression-error.md) |
+> [Data entry, not a flow bug](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/data-not-flow.md) |
+> [Null value crashes child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/null-child-flow.md)
 
 > **Requires:** A [FlowStudio](https://mcp.flowstudio.app) MCP subscription (or
 > compatible Power Automate MCP server). You will need:
@@ -445,6 +458,6 @@ print(new_runs[0]["status"])   # Succeeded = done
 
 ## More Capabilities
 
-For **diagnosing failing flows** end-to-end → load the `power-automate-debug` skill.
+For **diagnosing failing flows** end-to-end → load the `flowstudio-power-automate-debug` skill.
 
-For **building and deploying new flows** → load the `power-automate-build` skill.
+For **building and deploying new flows** → load the `flowstudio-power-automate-build` skill.
