@@ -1,6 +1,6 @@
 ---
 name: react18-commander
-description: Master orchestrator for React 16/17 → 18.3.1 migration. Designed for class-component-heavy codebases. Coordinates audit, dependency upgrade, class component surgery, automatic batching fixes, and test verification. Uses memory to gate each phase and resume interrupted sessions. 18.3.1 is the target - it surface-exposes every deprecation that React 19 will remove, so the output is a codebase ready for the React 19 orchestra next.
+description: 'Master orchestrator for React 16/17 → 18.3.1 migration. Designed for class-component-heavy codebases. Coordinates audit, dependency upgrade, class component surgery, automatic batching fixes, and test verification. Uses memory to gate each phase and resume interrupted sessions. 18.3.1 is the target - it surface-exposes every deprecation that React 19 will remove, so the output is a codebase ready for the React 19 orchestra next.'
 tools: ['agent', 'vscode/memory', 'edit/editFiles', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'search', 'search/usages', 'read/problems']
 agents: ['react18-auditor', 'react18-dep-surgeon', 'react18-class-surgeon', 'react18-batching-fixer', 'react18-test-guardian']
 argument-hint: Just activate to start the React 18 migration.
