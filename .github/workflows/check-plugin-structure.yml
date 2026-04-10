@@ -21,12 +21,36 @@ jobs:
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
-            const { execSync } = require('child_process');
             const fs = require('fs');
             const path = require('path');
 
             const pluginsDir = 'plugins';
             const errors = [];
+
+            function findSymlinks(rootDir) {
+              const symlinks = [];
+              const dirsToScan = [rootDir];
+
+              while (dirsToScan.length > 0) {
+                const currentDir = dirsToScan.pop();
+                const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+
+                for (const entry of entries) {
+                  const entryPath = path.join(currentDir, entry.name);
+
+                  if (entry.isSymbolicLink()) {
+                    symlinks.push(entryPath);
+                    continue;
+                  }
+
+                  if (entry.isDirectory()) {
+                    dirsToScan.push(entryPath);
+                  }
+                }
+              }
+
+              return symlinks;
+            }
 
             if (!fs.existsSync(pluginsDir)) {
               console.log('No plugins directory found');
@@ -63,14 +87,10 @@ jobs:
                 }
               }
 
-              // Check for symlinks anywhere in the plugin directory
-              try {
-                const allFiles = execSync(`find "${pluginPath}" -type l`, { encoding: 'utf-8' }).trim();
-                if (allFiles) {
-                  errors.push(`${pluginPath} contains symlinks:\n${allFiles}`);
-                }
-              } catch (e) {
-                // find returns non-zero if no matches, ignore
+              // Check for symlinks anywhere in the plugin directory without invoking a shell
+              const symlinkPaths = findSymlinks(pluginPath);
+              if (symlinkPaths.length > 0) {
+                errors.push(`${pluginPath} contains symlinks:\n${symlinkPaths.join('\n')}`);
               }
             }
 
