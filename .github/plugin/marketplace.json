@@ -550,6 +550,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "whatidid",
+      "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
+      "keywords": [
+        "copilot",
+        "productivity",
+        "impact",
+        "report",
+        "estimation",
+        "roi",
+        "session-logs"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/What-I-Did-Copilot",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/What-I-Did-Copilot"
+      }
+    },
+    {
       "name": "winui3-development",
       "source": "winui3-development",
       "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
