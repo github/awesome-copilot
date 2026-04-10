@@ -281,20 +281,22 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5 });
 app.post('/api/auth/login', authLimiter, loginHandler);
 ```
 
-### AU6: Session Not Invalidated on Password Change
+### AU6: Missing Session Regeneration on Login (Session Fixation)
 
 - **Severity**: IMPORTANT
 - **Detection**: `(?:session|req\.session)\s*\.\s*(?:userId|user|authenticated)\s*=`
 - **OWASP**: A07
 
 ```typescript
-// GOOD — regenerate session
+// GOOD — regenerate session ID on successful login to prevent fixation
 req.session.regenerate((err) => {
   if (err) return next(err);
   req.session.userId = user.id;
   req.session.save(next);
 });
 ```
+
+Related: on password change or elevation, also invalidate all other active sessions for the user (e.g., by bumping a `tokenVersion` column and rejecting sessions with a stale version, or by iterating the session store and destroying entries keyed to that user).
 
 ### AU7: OAuth Without State Parameter
 
