@@ -9,6 +9,8 @@ metadata:
 
 # Enterprise Account Planning
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Strategic account planning and execution for enterprise deals. Turn complex sales cycles into systematic wins — or at least know when they're dying before you waste months.
 
 ## When to Use

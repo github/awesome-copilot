@@ -9,6 +9,8 @@ metadata:
 
 # Board and Investor Communication
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Structure board meetings, investor updates, and executive communication that builds trust and drives decisions — not slide decks that nobody reads.
 
 ## When to Use

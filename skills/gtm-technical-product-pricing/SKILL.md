@@ -9,6 +9,8 @@ metadata:
 
 # Technical Product Pricing
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 
 ## Initial Assessment
 

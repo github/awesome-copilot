@@ -9,6 +9,8 @@ metadata:
 
 # AI Product GTM
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Go-to-market strategy for AI products. These aren't generic AI principles — they're patterns from selling autonomous AI agents into enterprises where "autonomous" scared buyers and "teammate" converted them.
 
 ## When to Use

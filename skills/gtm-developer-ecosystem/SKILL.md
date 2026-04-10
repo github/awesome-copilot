@@ -9,6 +9,8 @@ metadata:
 
 # Developer Ecosystem
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Build and scale developer-led adoption through ecosystem programs, community, and partnerships. Focus on what actually drives adoption, not vanity metrics.
 
 ## When to Use

@@ -9,6 +9,8 @@ metadata:
 
 # 0-to-1 Launch
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Launch new products from idea to first customers. The goal isn't headlines — it's finding 10 customers who can't live without you.
 
 ## When to Use

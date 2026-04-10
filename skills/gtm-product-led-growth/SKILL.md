@@ -9,6 +9,8 @@ metadata:
 
 # Product-Led Growth
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Build self-serve acquisition and expansion motions. But first, figure out if PLG is even the right motion for your product.
 
 ## When to Use

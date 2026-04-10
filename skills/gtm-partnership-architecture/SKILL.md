@@ -9,6 +9,8 @@ metadata:
 
 # Partnership Architecture
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Build and scale partner ecosystems that drive revenue and platform adoption. These aren't theory — they're patterns from building partner programs that drove 8-figure ARR and observing partnerships with real economic commitment.
 
 ## When to Use

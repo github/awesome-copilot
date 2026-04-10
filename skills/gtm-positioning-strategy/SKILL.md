@@ -9,6 +9,8 @@ metadata:
 
 # Positioning Strategy
 
+> By [Smit Patel](https://linkedin.com/in/smitkpatel) · Full pack: [beingsmit/technical-product-gtm](https://github.com/beingsmit/technical-product-gtm)
+
 Find and own a defensible market position. Turn generic messaging into clear differentiation — or at least test whether your differentiation actually resonates before committing to it.
 
 ## When to Use
