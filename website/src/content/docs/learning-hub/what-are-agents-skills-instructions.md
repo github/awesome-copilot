@@ -20,11 +20,14 @@ Agents are configuration files (`*.agent.md`) that describe:
 
 When you assign an issue to Copilot or open the **Agents** panel in VS Code, these configurations let you swap in a specialized assistant. Each agent in this repo lives under `agents/` and includes metadata about the tools it depends on.
 
+In products that support delegation, a primary agent can also launch temporary subagents for focused work such as planning, research, or review. See [Agents and Subagents](../agents-and-subagents/) for the coordination model.
+
 ### When to reach for an agent
 
 - You have a recurring workflow that benefits from deep tooling integrations.
 - You want Copilot to proactively execute commands or fetch context via MCP.
 - You need persona-level guardrails that persist throughout a coding session.
+- You want a coordinator that can delegate narrower work to subagents.
 
 ## Skills
 

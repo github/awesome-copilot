@@ -66,6 +66,7 @@ export default defineConfig({
           label: "Fundamentals",
           items: [
             "learning-hub/what-are-agents-skills-instructions",
+            "learning-hub/agents-and-subagents",
             "learning-hub/understanding-copilot-context",
             "learning-hub/copilot-configuration-basics",
             "learning-hub/defining-custom-instructions",

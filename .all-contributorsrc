@@ -2846,6 +2846,141 @@
       "contributions": [
         "agents"
       ]
+    },
+    {
+      "login": "jennyf19",
+      "name": "jennyf19",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19942418?v=4",
+      "profile": "https://github.com/jennyf19",
+      "contributions": [
+        "agents",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "SaravananRajaraman",
+      "name": "Saravanan Rajaraman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5166323?v=4",
+      "profile": "https://github.com/SaravananRajaraman",
+      "contributions": [
+        "agents",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "Dhruvpatel004",
+      "name": "Patel Dhruv ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/109230666?v=4",
+      "profile": "https://github.com/Dhruvpatel004",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "reneenoble",
+      "name": "Renee Noble",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7269759?v=4",
+      "profile": "https://github.com/reneenoble",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "jjpinto",
+      "name": "jjpinto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16046674?v=4",
+      "profile": "https://github.com/jjpinto",
+      "contributions": [
+        "instructions"
+      ]
+    },
+    {
+      "login": "moeyui1",
+      "name": "moeyui1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11503525?v=4",
+      "profile": "https://moeyui1.github.io/",
+      "contributions": [
+        "instructions"
+      ]
+    },
+    {
+      "login": "mohammadali2549",
+      "name": "mohammadali2549",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67632698?v=4",
+      "profile": "https://github.com/mohammadali2549",
+      "contributions": [
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "proflead",
+      "name": "Vladislav Guzey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59716480?v=4",
+      "profile": "https://github.com/proflead",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "aparna198809",
+      "name": "aparna198809",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99466930?v=4",
+      "profile": "https://github.com/aparna198809",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "TeddMcAdams",
+      "name": "Ed McAdams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15876990?v=4",
+      "profile": "https://github.com/TeddMcAdams",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "eanders-tdy",
+      "name": "Emil Andersson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/271782413?v=4",
+      "profile": "https://github.com/eanders-tdy",
+      "contributions": [
+        "instructions"
+      ]
+    },
+    {
+      "login": "mikaelkrief",
+      "name": "Mikael",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2725302?v=4",
+      "profile": "http://www.mikaelkrief.com/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "Mrigank005",
+      "name": "Mrigank Singh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/179711954?v=4",
+      "profile": "https://github.com/Mrigank005",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "jimbobbennett",
+      "name": "Jim Bennett",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1710385?v=4",
+      "profile": "https://www.jimbobbennett.dev/",
+      "contributions": [
+        "ideas",
+        "plugins"
+      ]
     }
   ]
 }
