@@ -8,7 +8,8 @@ tableOfContents: false
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
 [What are Agents, Skills, and Instructions](what-are-agents-skills-instructions/)
-and work through the full track to master every customization primitive.
+and work through the full track to master every customization primitive. For delegation
+and orchestration patterns, continue with [Agents and Subagents](agents-and-subagents/).
 
 ## Reference
 
