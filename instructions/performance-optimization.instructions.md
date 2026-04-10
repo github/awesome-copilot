@@ -64,11 +64,13 @@ Layout shift sources: images without dimensions, dynamically injected content, w
 <!-- BAD -->
 <link rel="stylesheet" href="/styles/main.css" />
 
-<!-- GOOD — inline critical CSS, defer the rest, and provide a noscript fallback -->
-<style>/* critical above-fold CSS */</style>
-<link rel="stylesheet" href="/styles/main.css" media="print" onload="this.media='all'" />
-<noscript><link rel="stylesheet" href="/styles/main.css" /></noscript>
+<!-- GOOD — inline critical CSS (extracted at build time), preload the rest -->
+<style>/* critical above-fold CSS, inlined by a tool like Critters/Beasties */</style>
+<link rel="preload" href="/styles/main.css" as="style" />
+<link rel="stylesheet" href="/styles/main.css" />
 ```
+
+Prefer build-time critical CSS extraction (e.g., Critters, Beasties, Next.js `experimental.optimizeCss`) plus a normal `<link rel="stylesheet">`. Avoid the older `media="print" onload="this.media='all'"` trick: inline event handlers are blocked under a strict CSP (no `'unsafe-inline'` / no `script-src-attr 'unsafe-inline'`), which would prevent the stylesheet from ever activating and cause a styling regression. If non-critical CSS truly must be deferred, load it via an **external** script that swaps `media`, not an inline handler.
 
 ### L2: Render-Blocking Synchronous Script
 
