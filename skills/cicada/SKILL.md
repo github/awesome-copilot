@@ -1,6 +1,6 @@
 ---
 name: "cicada"
-description: "Multi-agent team orchestrator for GitHub Copilot CLI — launches coordinated Coder, Reviewer, Tester, and Researcher agents in Windows Terminal"
+description: "Multi-agent team orchestrator for GitHub Copilot CLI — launches coordinated PM, Engineer, Reviewer, and Tester agents in Windows Terminal"
 ---
 
 # Cicada — Multi-Agent Copilot CLI Orchestrator
@@ -9,11 +9,12 @@ Orchestrate a team of specialized GitHub Copilot CLI agents that collaborate thr
 
 ## What It Does
 
-Cicada launches multiple Copilot CLI instances in Windows Terminal, each with a defined role (Coder, Reviewer, Tester, Researcher). Agents communicate via an MCP server that provides:
+Cicada launches multiple Copilot CLI instances in Windows Terminal, each with a defined role (PM, Engineer, Reviewer, Tester). Agents communicate via an MCP server that provides:
 
 - **Team messaging** — agents send messages to each other
-- **Shared task board** — create, assign, and track tasks
+- **Shared task board** — create, assign, and track tasks with needs-rework cycles
 - **Role awareness** — each agent knows its role and teammates
+- **Autopilot mode** — agents re-prompt automatically when pending work arrives
 
 ## Installation
 
@@ -26,9 +27,10 @@ pwsh -File .\Install-Cicada.ps1
 ## Usage
 
 ```powershell
-cicada                    # launch default team
-cicada --roles coder,reviewer  # custom team
-cicada --doctor           # verify dependencies
+cicada                          # launch default 4-agent team
+cicada --team engineer,reviewer # custom team
+cicada --autopilot              # autopilot + auto-approve
+cicada --doctor                 # verify dependencies
 ```
 
 ## Requirements
