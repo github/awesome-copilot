@@ -468,8 +468,17 @@ python-dotenv>=1.0      # .env file support
 
 ### Gunicorn (production server)
 
+Use the Gunicorn target that matches your Flask app structure:
+
 ```bash
 # Never use flask run or app.run() in production
+
+# If app.py defines a module-level Flask instance:
+# app = Flask(__name__)
+gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
+
+# If app.py defines an application factory:
+# def create_app():
 gunicorn --bind 0.0.0.0:8000 --workers 4 "app:create_app()"
 ```
 
