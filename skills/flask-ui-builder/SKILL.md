@@ -28,7 +28,6 @@ Build complete, runnable Flask applications with polished frontends. The output 
 - "create a login page", "user registration form"
 - "REST API with frontend", "JSON API + HTML"
 - "turn this script into a web app", "add a UI to my Python code"
-- "form-based tool", "data entry interface"
 - "file upload page", "CSV viewer", "database browser"
 - Any request mentioning Flask, Jinja2, HTMX + Python, or SQLAlchemy with a web frontend
 
@@ -63,8 +62,6 @@ If the request is vague, make reasonable assumptions and state them upfront. Do 
 
 ## 3. Choose Architecture
 
-Pick the right pattern for the scope:
-
 | Scope | Pattern |
 |---|---|
 | Single utility / form | One `app.py` + one template |
@@ -84,8 +81,6 @@ Default stack (unless user specifies otherwise):
 
 ## 4. Project Layout
 
-For anything beyond a single script, use this layout:
-
 ```
 my_app/
 ├── app.py              # App factory or entry point
@@ -99,11 +94,9 @@ my_app/
 ├── templates/
 │   ├── base.html       # Base layout with nav
 │   ├── index.html
-│   ├── partials/       # HTMX partial templates
-│   └── ...
+│   └── partials/       # HTMX partial templates
 ├── static/
-│   ├── style.css       # Custom CSS (keep minimal)
-│   └── js/             # Custom JS (if any)
+│   └── style.css       # Custom CSS (keep minimal)
 ├── tests/
 │   ├── conftest.py
 │   └── test_routes.py
@@ -139,20 +132,25 @@ class ProductionConfig(Config):
 ### app.py skeleton
 
 ```python
+import os
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy  # only if DB needed
+from config import DevelopmentConfig, ProductionConfig
 
-app = Flask(__name__)
-app.secret_key = "change-me-in-production"
-# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
-# db = SQLAlchemy(app)
+def create_app():
+    app = Flask(__name__)
+    env = os.environ.get("FLASK_CONFIG", "development")
+    app.config.from_object(
+        ProductionConfig if env == "production" else DevelopmentConfig
+    )
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+    @app.route("/")
+    def index():
+        return render_template("index.html")
+
+    return app
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    create_app().run()
 ```
 
 ### Base template (base.html)
@@ -166,7 +164,6 @@ if __name__ == "__main__":
   <title>{% block title %}App{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  <!-- or link your static/style.css -->
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
   <nav class="bg-white shadow px-6 py-4 flex items-center gap-4">
@@ -191,10 +188,11 @@ if __name__ == "__main__":
 
 ## 6. UI Patterns (Copy-Paste Ready)
 
-### Form with validation
+### Form with CSRF protection
 
 ```html
 <form method="POST" class="space-y-4 max-w-md">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div>
     <label class="block text-sm font-medium mb-1">Name</label>
     <input name="name" type="text" required
@@ -205,34 +203,6 @@ if __name__ == "__main__":
     Submit
   </button>
 </form>
-```
-
-### Data table
-
-```html
-<table class="w-full text-sm border-collapse">
-  <thead>
-    <tr class="bg-gray-100">
-      <th class="text-left px-4 py-2 border-b">Name</th>
-      <th class="text-left px-4 py-2 border-b">Status</th>
-      <th class="px-4 py-2 border-b">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in items %}
-    <tr class="hover:bg-gray-50">
-      <td class="px-4 py-2 border-b">{{ item.name }}</td>
-      <td class="px-4 py-2 border-b">{{ item.status }}</td>
-      <td class="px-4 py-2 border-b text-center">
-        <a href="{{ url_for('edit', id=item.id) }}" class="text-blue-600 hover:underline">Edit</a>
-        <form method="POST" action="{{ url_for('delete', id=item.id) }}" class="inline">
-          <button class="text-red-600 hover:underline ml-2">Delete</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
 ```
 
 ### Flash message route pattern
@@ -270,99 +240,7 @@ db.session.delete(item)
 db.session.commit()
 ```
 
-### File upload pattern
-
-```python
-import os
-from werkzeug.utils import secure_filename
-
-UPLOAD_FOLDER = "uploads"
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf", "csv"}
-
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-@app.route("/upload", methods=["POST"])
-def upload():
-    file = request.files.get("file")
-    if not file or file.filename == "":
-        flash("No file selected.", "error")
-        return redirect(url_for("index"))
-    if not allowed_file(file.filename):
-        flash("File type not allowed.", "error")
-        return redirect(url_for("index"))
-    filename = secure_filename(file.filename)
-    file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-    flash(f"Uploaded {filename}!", "success")
-    return redirect(url_for("index"))
-```
-
-```html
-<form method="POST" action="/upload" enctype="multipart/form-data" class="space-y-4">
-  <input type="file" name="file" accept=".png,.jpg,.jpeg,.gif,.pdf,.csv"
-    class="block w-full text-sm border rounded p-2">
-  <button type="submit"
-    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-    Upload
-  </button>
-</form>
-```
-
-### Pagination pattern
-
-```python
-@app.route("/items")
-def list_items():
-    page = request.args.get("page", 1, type=int)
-    per_page = 20
-    pagination = Item.query.order_by(Item.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    return render_template("items.html", pagination=pagination)
-```
-
-```html
-<!-- Pagination controls -->
-<nav class="flex gap-2 mt-6">
-  {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}"
-      class="px-3 py-1 border rounded hover:bg-gray-100">← Prev</a>
-  {% endif %}
-  <span class="px-3 py-1 text-gray-500">
-    Page {{ pagination.page }} of {{ pagination.pages }}
-  </span>
-  {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}"
-      class="px-3 py-1 border rounded hover:bg-gray-100">Next →</a>
-  {% endif %}
-</nav>
-```
-
-### Search / filter pattern
-
-```python
-@app.route("/search")
-def search():
-    q = request.args.get("q", "").strip()
-    if q:
-        items = Item.query.filter(Item.name.ilike(f"%{q}%")).all()
-    else:
-        items = Item.query.all()
-    return render_template("index.html", items=items, query=q)
-```
-
-```html
-<!-- HTMX-powered live search -->
-<input type="search" name="q" placeholder="Search items..."
-  hx-get="/search" hx-target="#results" hx-trigger="keyup changed delay:300ms"
-  class="w-full border rounded px-3 py-2">
-<div id="results">
-  {% include "partials/item_list.html" %}
-</div>
-```
+> For more patterns (file upload, pagination, search/filter, data tables), see `references/patterns.md`.
 
 ---
 
@@ -382,7 +260,7 @@ app.config.update(
     SESSION_COOKIE_SECURE=True,  # Set True behind HTTPS
 )
 
-# Content Security Policy header
+# Security headers
 @app.after_request
 def set_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
@@ -394,69 +272,14 @@ def set_security_headers(response):
 - **Never** store secrets in code — use `os.environ.get("SECRET_KEY")`
 - **Always** use `secure_filename()` for file uploads
 - **Always** validate and sanitize user input server-side
+- **Always** include CSRF tokens in POST forms (`{{ csrf_token() }}`)
 - **Escape** all user content in Jinja2 (automatic with `{{ }}`, but watch `|safe`)
 
 ---
 
-## 8. Testing
-
-### Setup (conftest.py)
-
-```python
-import pytest
-from app import create_app, db
-
-@pytest.fixture
-def app():
-    app = create_app()
-    app.config["TESTING"] = True
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    with app.app_context():
-        db.create_all()
-        yield app
-        db.drop_all()
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
-```
-
-### Route tests (test_routes.py)
-
-```python
-def test_index_returns_200(client):
-    response = client.get("/")
-    assert response.status_code == 200
-
-def test_create_item(client):
-    response = client.post("/submit", data={"name": "Test Item"}, follow_redirects=True)
-    assert response.status_code == 200
-    assert b"Saved successfully" in response.data
-
-def test_create_item_validation(client):
-    response = client.post("/submit", data={"name": ""}, follow_redirects=True)
-    assert b"required" in response.data
-
-def test_api_returns_json(client):
-    response = client.get("/api/items")
-    assert response.content_type == "application/json"
-    assert response.status_code == 200
-```
-
-### Run tests
-
-```bash
-pip install pytest
-pytest tests/ -v
-```
-
----
-
-## 9. Deployment
+## 8. Deployment
 
 ### requirements.txt
-
-Always produce a `requirements.txt`:
 
 ```
 flask>=3.0
@@ -466,54 +289,20 @@ gunicorn>=22.0          # production WSGI server
 python-dotenv>=1.0      # .env file support
 ```
 
-### Gunicorn (production server)
-
-Use the Gunicorn target that matches your Flask app structure:
-
-```bash
-# Never use flask run or app.run() in production
-
-# If app.py defines a module-level Flask instance:
-# app = Flask(__name__)
-gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
-
-# If app.py defines an application factory:
-# def create_app():
-gunicorn --bind 0.0.0.0:8000 --workers 4 "app:create_app()"
-```
-
-### Dockerfile
-
-```dockerfile
-FROM python:3.12-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app:create_app()"]
-```
-
 ### .env file
 
 ```bash
 SECRET_KEY=your-random-secret-key-here
 DATABASE_URL=sqlite:///app.db
-FLASK_ENV=production
+FLASK_CONFIG=production
+FLASK_DEBUG=0
 ```
 
-```python
-# Load in app.py or config.py
-from dotenv import load_dotenv
-load_dotenv()
-```
+> For Gunicorn commands, Dockerfile, and full deployment details, see `references/patterns.md`.
 
 ---
 
-## 10. Output Rules
+## 9. Output Rules
 
 1. **Always output runnable code** — never pseudocode.
 2. **Provide every file** needed to run the app from scratch.
@@ -527,12 +316,12 @@ load_dotenv()
 
 ---
 
-## 11. Anti-Patterns to Avoid
+## 10. Anti-Patterns to Avoid
 
 - ❌ Using `os.system` or subprocess inside routes
 - ❌ Storing secrets in code (use `os.environ.get(...)`)
 - ❌ Running with `debug=True` in production
-- ❌ Blocking routes with long-running sync tasks (suggest background thread or note the limitation)
+- ❌ Blocking routes with long-running sync tasks
 - ❌ Deeply nested Jinja logic — move complexity to Python
 - ❌ Giant single-file apps past ~150 lines (use blueprints)
 - ❌ Using `|safe` filter without sanitizing input first
@@ -542,53 +331,51 @@ load_dotenv()
 
 ---
 
-## 12. Troubleshooting
+## 11. Troubleshooting
 
 | Problem | Likely Cause | Fix |
 |---|---|---|
-| `TemplateNotFound` | Wrong template path or missing `template_folder` in Blueprint | Check `templates/` directory structure and Blueprint config |
+| `TemplateNotFound` | Wrong template path or missing `template_folder` | Check `templates/` structure and Blueprint config |
 | `405 Method Not Allowed` | Route missing `methods=["POST"]` | Add the HTTP method to `@app.route(...)` |
-| CSRF token missing/invalid | Form lacks `{{ form.hidden_tag() }}` or `CSRFProtect` not initialized | Add CSRF token to form or init `CSRFProtect(app)` |
-| `sqlalchemy.exc.OperationalError` | Database not created | Call `db.create_all()` inside app context |
-| Static files not loading | Wrong `url_for` or path | Use `{{ url_for('static', filename='style.css') }}` |
-| Flash messages not showing | Missing `get_flashed_messages()` in template | Add flash rendering block to `base.html` |
-| HTMX requests return full page | Route returns full template instead of partial | Return only the HTML fragment for HTMX targets |
-| File upload fails silently | Missing `enctype="multipart/form-data"` on form | Add the enctype attribute |
-| Import errors with Blueprints | Circular imports between `app.py` and routes | Use app factory pattern with `create_app()` |
+| CSRF token missing/invalid | Form lacks `{{ csrf_token() }}` | Add CSRF token or init `CSRFProtect(app)` |
+| `OperationalError` | Database not created | Call `db.create_all()` inside app context |
+| Static files not loading | Wrong path | Use `{{ url_for('static', filename='style.css') }}` |
+| Flash messages not showing | Missing `get_flashed_messages()` | Add flash rendering block to `base.html` |
+| HTMX returns full page | Route returns full template | Return only the HTML fragment for HTMX targets |
+| File upload fails | Missing `enctype="multipart/form-data"` | Add the enctype attribute to the form |
+| Blueprint import errors | Circular imports | Use app factory pattern with `create_app()` |
 
 ---
 
-## 13. Copilot Prompting Tips
+## 12. Copilot Prompting Tips
 
-- Be specific about the app's purpose — "Flask CRUD app for managing books with SQLite" beats "make a web app"
-- Mention the UI style upfront — "use Tailwind CSS" or "plain Bootstrap" avoids regeneration
-- For HTMX, specify what should update dynamically — "delete button should remove the row without page reload"
-- Include the data model — "Item has name (string), status (enum: active/archived), created_at (datetime)"
-- If you want auth, say so early — "add login/register pages with session-based auth"
-- Paste the exact error message when asking `/fix` — Copilot fixes are dramatically better with real errors
-- Use `@workspace` scope in Copilot Chat so it reads your existing project structure
+- Be specific: "Flask CRUD app for managing books with SQLite" beats "make a web app"
+- Mention UI style upfront: "use Tailwind CSS" or "plain Bootstrap"
+- For HTMX, specify what updates dynamically: "delete button should remove the row without reload"
+- Include the data model: "Item has name (string), status (enum: active/archived), created_at (datetime)"
+- Paste the exact error message when asking `/fix`
+- Use `@workspace` scope in Copilot Chat so it reads your project structure
 
 ---
 
-## 14. Reference Files
-
-For advanced patterns, read:
+## 13. Reference Files
 
 | File | Contents |
 |---|---|
-| `references/auth.md` | Session-based login, password hashing, Flask-Login setup |
+| `references/auth.md` | Session-based login, password hashing, Flask-Login |
 | `references/htmx.md` | HTMX + Flask patterns — load, submit, delete, polling |
-| `references/api.md` | JSON API routes, CORS, fetch-based frontends, error handling |
+| `references/api.md` | JSON API routes, CORS, fetch-based frontends |
 | `references/blueprints.md` | Blueprint structure, app factory, model separation |
+| `references/patterns.md` | File upload, pagination, search, data tables, testing, deployment |
 
 ---
 
-## 15. Related Skills
+## 14. Related Skills
 
 | Skill | Relationship |
 |---|---|
-| **premium-frontend-ui** | Creative philosophy and premium aesthetics — defines the visual quality bar for any frontend |
-| **gsap-framer-scroll-animation** | Advanced scroll animations if the Flask app serves a marketing or portfolio landing page |
+| **premium-frontend-ui** | Creative philosophy and premium aesthetics for any frontend |
+| **gsap-framer-scroll-animation** | Advanced scroll animations for marketing or portfolio pages |
 
 ---
 
