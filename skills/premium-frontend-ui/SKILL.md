@@ -1,6 +1,8 @@
 ---
 name: premium-frontend-ui
 description: 'A comprehensive guide for GitHub Copilot to craft immersive, high-performance web experiences with advanced motion, typography, and architectural craftsmanship.'
+author: 'Utkarsh Patrikar'
+author_url: 'https://github.com/utkarsh232005'
 ---
 
 # Immersive Frontend UI Craftsmanship
@@ -108,3 +110,9 @@ Whenever you receive a prompt to "Build a premium landing page," "Create an Awww
 3. Integrate sweeping, staggered component entrances.
 4. Elevate the typography using fluid scales.
 5. Create an intentional, memorable aesthetic footprint.
+
+---
+
+## Author
+
+**Utkarsh Patrikar** - [GitHub](https://github.com/utkarsh232005)
