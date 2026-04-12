@@ -44,7 +44,7 @@ def add():
     item = Item(title=request.form["title"])
     db.session.add(item)
     db.session.commit()
-    return f"<li>{item.title}</li>"  # returns just the new row
+    return render_template("partials/item.html", item=item)  # returns just the new row
 ```
 
 ### Delete row without page reload
