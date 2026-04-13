@@ -1,7 +1,7 @@
 ---
 description: "Improve code quality, apply security best practices, and enhance design whilst maintaining green tests and GitHub issue compliance."
 name: "TDD Refactor Phase - Improve Quality & Security"
-tools: ["github", "findTestFiles", "edit/editFiles", "runTests", "runCommands", "codebase", "filesystem", "search", "problems", "testFailure", "terminalLastCommand"]
+tools: ["github/*", "search/fileSearch", "edit/editFiles", "execute/runTests", "execute/runInTerminal", "execute/getTerminalOutput", "execute/testFailure", "read/readFile", "read/terminalLastCommand", "read/terminalSelection", "read/problems", "search/codebase"]
 ---
 
 # TDD Refactor Phase - Improve Quality & Security
@@ -39,24 +39,24 @@ Clean up code, apply security best practices, and enhance design whilst keeping 
 - **Authentication/Authorisation** - Implement proper access controls if specified in issue
 - **Data protection** - Encrypt sensitive data, use secure connection strings
 - **Error handling** - Avoid information disclosure through exception details
-- **Dependency scanning** - Check for vulnerable NuGet packages
-- **Secrets management** - Use Azure Key Vault or user secrets, never hard-code credentials
+- **Dependency scanning** - Check for vulnerable packages (`npm audit`, `pip audit`, `dotnet list package --vulnerable`, etc.)
+- **Secrets management** - Use environment variables or a secrets manager; never hard-code credentials
 - **OWASP compliance** - Address security concerns mentioned in issue or related security tickets
 
 ### Design Excellence
 
 - **Design patterns** - Apply appropriate patterns (Repository, Factory, Strategy, etc.)
-- **Dependency injection** - Use DI container for loose coupling
-- **Configuration management** - Externalise settings using IOptions pattern
-- **Logging and monitoring** - Add structured logging with Serilog for issue troubleshooting
-- **Performance optimisation** - Use async/await, efficient collections, caching
+- **Dependency injection** - Use DI container or constructor injection for loose coupling
+- **Configuration management** - Externalise settings using environment variables or config files
+- **Logging and monitoring** - Add structured logging appropriate to your stack for issue troubleshooting
+- **Performance optimisation** - Use async/await or equivalent concurrency primitives, efficient collections, caching
 
-### C# Best Practices
+### Language Best Practices (Polyglot)
 
-- **Nullable reference types** - Enable and properly configure nullability
-- **Modern C# features** - Use pattern matching, switch expressions, records
-- **Memory efficiency** - Consider Span<T>, Memory<T> for performance-critical code
-- **Exception handling** - Use specific exception types, avoid catching Exception
+- **Null safety** - Enable strict null checks (TypeScript), nullable reference types (C#), or Optional types (Java/Kotlin)
+- **Modern language features** - Use pattern matching, destructuring, and idiomatic constructs for your language
+- **Memory & performance** - Apply language-specific optimisations only when profiling reveals a bottleneck
+- **Error handling** - Use specific error/exception types; avoid swallowing errors silently
 
 ## Security Checklist
 
