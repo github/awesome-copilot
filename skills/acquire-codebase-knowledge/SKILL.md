@@ -2,9 +2,16 @@
 name: acquire-codebase-knowledge
 description: 'Use this skill when the user explicitly asks to map, document, or onboard into an existing codebase. Trigger for prompts like "map this codebase", "document this architecture", "onboard me to this repo", or "create codebase docs". Do not trigger for routine feature implementation, bug fixes, or narrow code edits unless the user asks for repository-level discovery.'
 license: MIT
-compatibility: 'Cross-platform. Preferred: run scripts/scan.sh with Bash. On Windows without Bash, run equivalent PowerShell discovery commands and keep the same output contract. Requires git and standard shell tooling.'
+compatibility: 'Cross-platform. Requires Python 3.8+ and git. Run scripts/scan.py from the target project root.'
 metadata:
-  version: "1.2"
+  version: "1.3"
+  enhancements:
+    - Multi-language manifest detection (25+ languages supported)
+    - CI/CD pipeline detection (10+ platforms)
+    - Container & orchestration detection
+    - Code metrics by language
+    - Security & compliance config detection
+    - Performance testing markers
 argument-hint: 'Optional: specific area to focus on, e.g. "architecture only", "testing and concerns"'
 ---
 
@@ -44,18 +51,17 @@ If the user supplies a focus area (for example: "architecture only" or "testing 
 
 ### Phase 1: Scan and Read Intent
 
-1. Set `SKILL_ROOT` to the absolute path of the skill folder (the directory containing this `SKILL.md`), then run the bundled script from the **target project root**:
+1. Run the scan script from the target project root:
    ```bash
-   export SKILL_ROOT="/absolute/path/to/skills/acquire-codebase-knowledge"
-   bash "$SKILL_ROOT/scripts/scan.sh" --output docs/codebase/.codebase-scan.txt
+   python3 "$SKILL_ROOT/scripts/scan.py" --output docs/codebase/.codebase-scan.txt
    ```
-   Keep your working directory as the target repository root so the scan covers that codebase, not the skill folder itself.
+   Where `$SKILL_ROOT` is the absolute path to the skill folder. Works on Windows, macOS, and Linux.
 
-   **Windows fallback (limited — use only if Bash is unavailable):** The following produces a file listing only and does **not** include manifest previews, git churn, TODO/FIXME counts, or environment variable templates. Downstream phases will have reduced context.
-   ```powershell
-   New-Item -ItemType Directory -Force -Path docs/codebase | Out-Null
-   Get-ChildItem -Recurse -File | Select-Object -First 200 FullName | Out-File docs/codebase/.codebase-scan.txt
+   **Quick start:** If you have the path inline:
+   ```bash
+   python3 /absolute/path/to/skills/acquire-codebase-knowledge/scripts/scan.py --output docs/codebase/.codebase-scan.txt
    ```
+
 2. Search for `PRD`, `TRD`, `README`, `ROADMAP`, `SPEC`, `DESIGN` files and read them.
 3. Summarise the stated project intent before reading any source code.
 
@@ -132,11 +138,26 @@ Validation pass criteria:
 
 ---
 
+## Enhanced Scan Output Sections
+
+The `scan.py` script now produce the following sections in addition to the original output:
+
+- **CODE METRICS** — Total files, lines of code by language, largest files (complexity signals)
+- **CI/CD PIPELINES** — Detected GitHub Actions, GitLab CI, Jenkins, CircleCI, etc.
+- **CONTAINERS & ORCHESTRATION** — Docker, Docker Compose, Kubernetes, Vagrant configs
+- **SECURITY & COMPLIANCE** — Snyk, Dependabot, SECURITY.md, SBOM, security policies
+- **PERFORMANCE & TESTING** — Benchmark configs, profiling markers, load testing tools
+
+Use these sections during Phase 2 to inform investigation questions and identify tool-specific patterns.
+
+---
+
 ## Bundled Assets
 
 | Asset | When to load |
 |-------|-------------|
-| [`scripts/scan.sh`](scripts/scan.sh) | Phase 1 — run first, before reading any code |
+| [`scripts/scan.py`](scripts/scan.py) | Phase 1 — run first, before reading any code (Python 3.8+ required) |
+
 | [`references/inquiry-checkpoints.md`](references/inquiry-checkpoints.md) | Phase 2 — load for per-template investigation questions |
 | [`references/stack-detection.md`](references/stack-detection.md) | Phase 2 — only if stack is ambiguous |
 | [`assets/templates/STACK.md`](assets/templates/STACK.md) | Phase 3 step 1 |
