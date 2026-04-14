@@ -16,9 +16,9 @@
     "javadoc"
   ],
   "skills": [
-    "./skills/java-docs/",
-    "./skills/java-junit/",
-    "./skills/java-springboot/",
-    "./skills/create-spring-boot-java-project/"
+    "./skills/java-docs",
+    "./skills/java-junit",
+    "./skills/java-springboot",
+    "./skills/create-spring-boot-java-project"
   ]
 }
