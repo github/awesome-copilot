@@ -11,8 +11,9 @@ description: >-
   "parallax effect", "sticky section", "scroll progress bar", or "entrance animation".
   Also triggers for Copilot prompt patterns for GSAP or Framer Motion code generation.
   Pairs with the premium-frontend-ui skill for creative philosophy and design-level polish.
-author: 'Utkarsh Patrikar'
-author_url: 'https://github.com/utkarsh232005'
+metadata:
+  author: 'Utkarsh Patrikar'
+  author_url: 'https://github.com/utkarsh232005'
 ---
 
 # GSAP & Framer Motion — Scroll Animations Skill
