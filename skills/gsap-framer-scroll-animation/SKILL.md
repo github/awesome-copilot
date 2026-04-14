@@ -149,8 +149,3 @@ tl.from('.title', { opacity: 0, y: 60 }).from('.img', { scale: 0.85 });
 |---|---|
 | **premium-frontend-ui** | Creative philosophy, design principles, and aesthetic guidelines — defines *when* and *why* to animate |
 
----
-
-## Author
-
-**Utkarsh Patrikar** - [GitHub](https://github.com/utkarsh232005)
