@@ -82,7 +82,7 @@ Include the SDK's binary directory in your `.spec` file so PyInstaller bundles i
 ```python
 from PyInstaller.utils.hooks import collect_data_files
 
-datas += collect_data_files('copilot', include_py_files=False)
+data += collect_data_files('copilot', include_py_files=False)
 ```
 
 ## Tips
