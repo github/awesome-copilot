@@ -43,13 +43,12 @@ func main() {
 	}
 	defer client.Stop()
 
-	streaming := true
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-		Model:     "claude-opus-4.6",
-		Streaming: &streaming,
-		McpServers: map[string]interface{}{
-			"playwright": map[string]interface{}{
+		Model:               "claude-opus-4.6",
+		Streaming:           true,
+		MCPServers: map[string]copilot.MCPServerConfig{
+			"playwright": {
 				"type":    "local",
 				"command": "npx",
 				"args":    []string{"@playwright/mcp@latest"},
@@ -60,26 +59,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session.Destroy()
+	defer session.Disconnect()
 
 	// Set up streaming event handling
 	done := make(chan struct{}, 1)
 
 	session.On(func(event copilot.SessionEvent) {
-		switch event.Type {
-		case "assistant.message.delta":
-			if event.Data.DeltaContent != nil {
-				fmt.Print(*event.Data.DeltaContent)
-			}
-		case "session.idle":
+		switch d := event.Data.(type) {
+		case *copilot.AssistantMessageDeltaData:
+			fmt.Print(d.DeltaContent)
+		case *copilot.SessionIdleData:
 			select {
 			case done <- struct{}{}:
 			default:
 			}
-		case "session.error":
-			if event.Data.Message != nil {
-				fmt.Printf("\nError: %s\n", *event.Data.Message)
-			}
+		case *copilot.SessionErrorData:
+			fmt.Printf("\nError: %s\n", d.Message)
 			select {
 			case done <- struct{}{}:
 			default:
