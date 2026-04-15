@@ -1,5 +1,5 @@
 ---
-name: linkedin-post-writer
+name: "LinkedIn Post Writer"
 description: "Draft and format compelling LinkedIn posts with Unicode bold/italic styling, visual separators, and engagement-optimized structure. Transforms raw content, technical material, images, or ideas into copy-paste-ready LinkedIn posts."
 tools: ["codebase", "fetch"]
 ---
