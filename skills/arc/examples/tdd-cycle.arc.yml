@@ -1,15 +1,15 @@
-# Example: Quick fix arc
+# Example: TDD cycle arc
 #
 # Usage:
-#   /arc run quick-fix
+#   /arc run tdd-cycle
 #
-# The simplest arc — implement a change, run tests, review, and commit.
-# No parameters needed, no gates. Good for small changes and single-file
-# edits.
+# A simple test-driven development arc — implement a change, run tests,
+# review, and commit. No parameters needed, no gates. Good for small changes
+# and iterative development.
 
-name: quick-fix
+name: tdd-cycle
 description: >
-  Quick fix cycle for a single change. Implement → Test → Review → Commit.
+  TDD cycle for a single change. Implement → Test → Review → Commit.
 
 steps:
   - id: implement
