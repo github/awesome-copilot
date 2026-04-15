@@ -13,7 +13,7 @@ by GitHub Actions) and live in `.github/arcs/*.arc.yml`.
 .github/arcs/
 ├── feature-flow.arc.yml
 ├── bugfix-flow.arc.yml
-└── tdd-cycle.arc.yml
+└── quick-fix.arc.yml
 ```
 
 The `/arc` skill searches `.github/arcs/` for `*.arc.yml` files.
