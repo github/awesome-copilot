@@ -1,0 +1,253 @@
+#!/usr/bin/env bash
+# run_profile.sh — Wrapper around asprof for common profiling scenarios.
+#
+# Usage:
+#   ./run_profile.sh [options] <PID|app-name>
+#
+# Options:
+#   -e, --event   cpu|alloc|wall|lock    Single event (default: cpu)
+#   -d, --duration N                     Seconds to profile (default: 30)
+#   -f, --format  html|jfr|collapsed     Output format for single-event (default: html)
+#   -o, --output  FILE                   Output path (default: auto-named)
+#   -t, --threads                        Profile threads separately
+#       --all                            Capture all events to a JFR file
+#       --comprehensive                  Capture all events AND split into per-event
+#                                        flamegraphs in parallel (recommended for
+#                                        diagnosis when you don't know the cause)
+#       --asprof  PATH                   Path to asprof binary (auto-detected)
+#   -h, --help                           Show this help
+#
+# Examples:
+#   ./run_profile.sh 12345                        # 30s CPU flamegraph
+#   ./run_profile.sh --comprehensive 12345        # all events, split into flamegraphs
+#   ./run_profile.sh -e alloc -d 60 MyApp         # 60s allocation flamegraph
+#   ./run_profile.sh -e wall -f jfr 12345         # wall-clock JFR recording
+#   ./run_profile.sh --all -d 120 12345           # all events, single JFR file
+
+set -euo pipefail
+
+# ── Defaults ─────────────────────────────────────────────────────────────────
+EVENT="cpu"
+DURATION=30
+FORMAT="html"
+OUTPUT=""
+THREADS=false
+ALL_EVENTS=false
+COMPREHENSIVE=false
+ASPROF=""
+TARGET=""
+
+# ── Parse arguments ───────────────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -e|--event)       [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; EVENT="$2";    shift 2 ;;
+    -d|--duration)    [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; DURATION="$2"; shift 2 ;;
+    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2";   shift 2 ;;
+    -o|--output)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; OUTPUT="$2";   shift 2 ;;
+    -t|--threads)     THREADS=true;  shift ;;
+    --all)            ALL_EVENTS=true; FORMAT="jfr"; shift ;;
+    --comprehensive)  COMPREHENSIVE=true; ALL_EVENTS=true; FORMAT="jfr"; shift ;;
+    --asprof)         [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; ASPROF="$2";   shift 2 ;;
+    -h|--help)
+      sed -n '2,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
+      exit 0
+      ;;
+    -*)
+      echo "❌ Unknown option: $1" >&2
+      exit 1
+      ;;
+    *)
+      TARGET="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$TARGET" ]]; then
+  echo "❌ No target specified. Provide a PID or app name."
+  echo "   Usage: $0 [options] <PID|app-name>"
+  echo "   List Java processes: jps -l"
+  exit 1
+fi
+
+# ── Locate asprof ─────────────────────────────────────────────────────────────
+if [[ -z "$ASPROF" ]]; then
+  if command -v asprof &>/dev/null; then
+    ASPROF="$(command -v asprof)"
+  else
+    for candidate in \
+      "$HOME/async-profiler-4.3/bin/asprof" \
+      "$HOME/async-profiler/bin/asprof" \
+      "/opt/async-profiler/bin/asprof" \
+      "/usr/local/bin/asprof"
+    do
+      if [[ -x "$candidate" ]]; then
+        ASPROF="$candidate"
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ -z "$ASPROF" ]]; then
+  echo "❌ asprof not found. Install with: bash scripts/install.sh"
+  echo "   Or specify path: --asprof /path/to/asprof"
+  exit 1
+fi
+
+# ── Build output filename ─────────────────────────────────────────────────────
+TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+
+if [[ -z "$OUTPUT" ]]; then
+  if $ALL_EVENTS; then
+    OUTPUT="profile-all-${TIMESTAMP}.jfr"
+  else
+    EXT="$FORMAT"
+    OUTPUT="profile-${EVENT}-${TIMESTAMP}.${EXT}"
+  fi
+fi
+
+# ── Build asprof command ──────────────────────────────────────────────────────
+CMD=("$ASPROF" "-d" "$DURATION" "-f" "$OUTPUT")
+$ALL_EVENTS  && CMD+=("--all") || CMD+=("-e" "$EVENT")
+$THREADS     && CMD+=("-t")
+CMD+=("$TARGET")
+
+# ── Print plan ────────────────────────────────────────────────────────────────
+echo "🔍 async-profiler run"
+echo "   Binary  : $ASPROF"
+echo "   Target  : $TARGET"
+if $COMPREHENSIVE; then
+  echo "   Mode    : comprehensive (all events → JFR → split into flamegraphs)"
+elif $ALL_EVENTS; then
+  echo "   Events  : all (cpu + alloc + wall + lock)"
+else
+  echo "   Event   : $EVENT"
+fi
+echo "   Duration: ${DURATION}s"
+echo "   Output  : $OUTPUT"
+$THREADS && echo "   Threads : separate"
+echo ""
+echo "▶ ${CMD[*]}"
+echo "Press Ctrl+C to stop early (partial results will be saved)."
+echo ""
+
+# ── Execute ───────────────────────────────────────────────────────────────────
+"${CMD[@]}"
+
+echo ""
+echo "✅ Capture complete: $OUTPUT"
+echo ""
+
+# ── Comprehensive mode: split JFR into per-event flamegraphs in parallel ──────
+if $COMPREHENSIVE; then
+  if ! command -v jfrconv &>/dev/null; then
+    # jfrconv ships alongside asprof
+    JFRCONV="$(dirname "$ASPROF")/jfrconv"
+    if [[ ! -x "$JFRCONV" ]]; then
+      echo "⚠️  jfrconv not found — skipping flamegraph split."
+      echo "   You can convert manually: jfrconv $OUTPUT flamegraph.html"
+      COMPREHENSIVE=false
+    fi
+  else
+    JFRCONV="jfrconv"
+  fi
+fi
+
+if $COMPREHENSIVE; then
+  BASE="${OUTPUT%.jfr}"
+  CPU_HTML="${BASE}-cpu.html"
+  ALLOC_HTML="${BASE}-alloc.html"
+  WALL_HTML="${BASE}-wall.html"
+  LOCK_HTML="${BASE}-lock.html"
+
+  echo "Splitting into per-event flamegraphs in parallel..."
+
+  "$JFRCONV" --cpu   "$OUTPUT" "$CPU_HTML"   &  PID_CPU=$!
+  "$JFRCONV" --alloc "$OUTPUT" "$ALLOC_HTML" &  PID_ALLOC=$!
+  "$JFRCONV" --wall  "$OUTPUT" "$WALL_HTML"  &  PID_WALL=$!
+  "$JFRCONV" --lock  "$OUTPUT" "$LOCK_HTML"  &  PID_LOCK=$!
+
+  CONVERSION_FAILED=false
+  for pid in "$PID_CPU" "$PID_ALLOC" "$PID_WALL" "$PID_LOCK"; do
+    if ! wait "$pid"; then
+      CONVERSION_FAILED=true
+    fi
+  done
+
+  if $CONVERSION_FAILED; then
+    echo "Error: one or more jfrconv conversions failed." >&2
+    exit 1
+  fi
+
+  echo ""
+  echo "📊 Flamegraphs ready:"
+  echo "   CPU time     : $CPU_HTML"
+  echo "   Allocations  : $ALLOC_HTML"
+  echo "   Wall-clock   : $WALL_HTML"
+  echo "   Lock contention: $LOCK_HTML"
+  echo "   Combined JFR : $OUTPUT  (open in IntelliJ or JDK Mission Control)"
+  echo ""
+
+  # Open all flamegraphs at once if on macOS
+  if [[ "$(uname)" == "Darwin" ]]; then
+    echo "Opening all flamegraphs in browser..."
+    open "$CPU_HTML" "$ALLOC_HTML" "$WALL_HTML" "$LOCK_HTML"
+  else
+    echo "Open flamegraphs with:"
+    echo "   xdg-open $CPU_HTML"
+    echo "   xdg-open $ALLOC_HTML"
+    echo "   xdg-open $WALL_HTML"
+    echo "   xdg-open $LOCK_HTML"
+  fi
+
+  echo ""
+  echo "💡 Next step — analyze results:"
+  echo "   Ask your AI assistant: 'Analyze these profiles and tell me where"
+  echo "   to focus: $CPU_HTML, $ALLOC_HTML, $WALL_HTML, $LOCK_HTML'"
+  echo ""
+  echo "   Or for collapsed stack analysis:"
+  echo "   jfrconv $OUTPUT ${BASE}-cpu.collapsed"
+  echo "   python3 scripts/analyze_collapsed.py ${BASE}-cpu.collapsed"
+
+else
+  # Single-event post-run guidance
+  case "$FORMAT" in
+    html)
+      echo "Open in browser:"
+      if [[ "$(uname)" == "Darwin" ]]; then
+        open "$OUTPUT"
+      else
+        echo "   xdg-open $OUTPUT"
+      fi
+      echo ""
+      echo "What to look for:"
+      echo "  • Wide frames near the top = hot code (primary optimization targets)"
+      echo "  • Wide leaf frames = direct CPU/allocation consumers"
+      echo "  • LockSupport.park / Object.wait (wall profile) = blocked threads"
+      echo ""
+      echo "💡 Next step — ask your AI assistant to analyze:"
+      echo "   'I have a flamegraph at $OUTPUT — what's causing the bottleneck?'"
+      ;;
+    jfr)
+      echo "Open in IntelliJ IDEA: File → Open → select $OUTPUT"
+      echo "Open in JDK Mission Control: File → Open File → select $OUTPUT"
+      echo ""
+      echo "Or convert to flamegraph:"
+      echo "   jfrconv $OUTPUT flamegraph.html"
+      echo ""
+      echo "💡 Next step — ask your AI assistant to analyze:"
+      echo "   'I have a JFR recording at $OUTPUT — help me interpret it.'"
+      ;;
+    collapsed)
+      echo "Analyze with:"
+      echo "   python3 scripts/analyze_collapsed.py $OUTPUT"
+      echo ""
+      echo "Or convert to flamegraph:"
+      echo "   jfrconv $OUTPUT flamegraph.html"
+      echo ""
+      echo "💡 Next step — ask your AI assistant to analyze:"
+      echo "   'Run analyze_collapsed.py on $OUTPUT and tell me what's slow.'"
+      ;;
+  esac
+fi
