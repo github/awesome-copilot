@@ -2,7 +2,7 @@
 
 Full mapping tables for LinkedIn Unicode formatting. Load this file when generating posts to ensure correct character conversion.
 
-## Sans-Serif Bold (U+1D5D4 – U+1D607)
+## Sans-Serif Bold (Letters: U+1D5D4 – U+1D607; Digits: U+1D7EC – U+1D7F5)
 
 ```
 A → 𝗔  B → 𝗕  C → 𝗖  D → 𝗗  E → 𝗘  F → 𝗙  G → 𝗚  H → 𝗛  I → 𝗜  J → 𝗝

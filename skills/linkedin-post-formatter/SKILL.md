@@ -13,6 +13,8 @@ LinkedIn only supports plain text — no Markdown rendering, no rich formatting.
 
 ## Unicode Typography Reference
 
+When converting plain text into Unicode-styled LinkedIn text, first load and use `references/unicode-charmap.md` as the authoritative character mapping reference.
+
 Apply these character mappings to create visual emphasis in plain text:
 
 ### Bold (Mathematical Sans-Serif Bold)
@@ -162,7 +164,7 @@ Use these characters to create visual structure:
 1. Analyze the source content (text, HTML, image, or idea).
 2. Identify the best post structure pattern (Hook→Content→CTA, Listicle, Story→Lesson, Resource Share).
 3. Extract the core message and 3-5 key points.
-4. Apply Unicode bold/italic formatting to headers and emphasis words.
+4. Apply Unicode bold/italic formatting to headers and emphasis words using `references/unicode-charmap.md`.
 5. Add visual separators between sections.
 6. Write a compelling hook for the opening.
 7. Add a CTA and hashtags at the end.
