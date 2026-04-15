@@ -1,0 +1,29 @@
+# Example: Quick fix arc
+#
+# Usage:
+#   /arc run quick-fix
+#
+# The simplest arc — implement a change, run tests, review, and commit.
+# No parameters needed, no gates. Good for small changes and single-file
+# edits.
+
+name: quick-fix
+description: >
+  Quick fix cycle for a single change. Implement → Test → Review → Commit.
+
+steps:
+  - id: implement
+    description: Implement the change
+
+  - id: test
+    run: npm test
+    description: Run the test suite
+    on_failure: skip
+
+  - id: review
+    skill: doublecheck
+    description: Quick review for quality and correctness
+
+  - id: commit
+    skill: git-commit
+    description: Commit changes with a conventional commit message

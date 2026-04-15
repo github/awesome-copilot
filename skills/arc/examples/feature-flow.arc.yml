@@ -1,0 +1,78 @@
+# Example: End-to-end feature implementation arc
+#
+# Usage:
+#   /arc run feature-flow --issue_id 42
+#
+# This arc creates a feature branch, generates an implementation plan,
+# runs a full write-test-implement cycle, and creates a PR. It includes
+# a review gate after planning so you can verify the approach before building.
+
+name: feature-flow
+description: >
+  End-to-end feature implementation from issue to merged PR.
+  Creates a branch, plans, implements with tests, reviews, and opens a PR.
+
+params:
+  issue_id:
+    description: Issue or work item ID
+    type: string
+    required: true
+  branch_prefix:
+    description: Branch naming prefix
+    type: string
+    default: feature
+
+steps:
+  - id: create-branch
+    run: git checkout -b ${{ params.branch_prefix }}/${{ params.issue_id }}
+    description: Create a feature branch from main
+    outputs:
+      - branch_name
+
+  - id: plan
+    skill: create-implementation-plan
+    description: Generate implementation plan for the feature
+    outputs:
+      - plan_file
+      - step_count
+
+  - id: review-plan
+    gate: true
+    description: Review the implementation plan before proceeding
+
+  - id: write-tests
+    skill: breakdown-test
+    description: Write failing tests for the implementation plan
+    with:
+      plan_file: ${{ steps.plan.outputs.plan_file }}
+
+  - id: implement
+    description: Make failing tests pass with minimal code
+
+  - id: review
+    skill: doublecheck
+    description: Review changes for correctness and quality
+
+  - id: lint-and-test
+    run: npm run lint && npm test
+    description: Verify lint and tests pass
+    on_failure: skip
+
+  - id: commit
+    skill: git-commit
+    description: Commit changes with conventional commit message
+
+  - id: create-pr
+    run: gh pr create --fill --base main
+    description: Create a pull request
+    outputs:
+      - pr_url
+
+  - id: summary
+    description: Report what was accomplished
+    template: |
+      ## Feature Flow Complete
+      - Issue: ${{ params.issue_id }}
+      - Branch: ${{ steps.create-branch.outputs.branch_name }}
+      - Plan: ${{ steps.plan.outputs.plan_file }}
+      - PR: ${{ steps.create-pr.outputs.pr_url }}

@@ -1,0 +1,64 @@
+# Example: Test-first bug fix arc
+#
+# Usage:
+#   /arc run bugfix-flow --issue_id 5678
+#
+# This arc follows a TDD approach to fixing bugs: write a test that
+# reproduces the bug, fix it, verify with a review, and create a PR
+# linked to the work item.
+
+name: bugfix-flow
+description: >
+  Test-first bug fix with code review and PR creation.
+  Writes a reproducing test, fixes the bug, reviews the change,
+  commits, and creates a PR.
+
+params:
+  issue_id:
+    description: Issue or work item ID for the bug
+    type: string
+    required: true
+
+steps:
+  - id: create-branch
+    run: git checkout -b fix/${{ params.issue_id }}
+    description: Create a bugfix branch
+
+  - id: write-repro-test
+    skill: breakdown-test
+    description: Write a failing test that reproduces the bug
+    with:
+      issue_id: ${{ params.issue_id }}
+
+  - id: fix-bug
+    description: Fix the bug — make the reproducing test pass
+
+  - id: review
+    skill: doublecheck
+    description: Review the fix for correctness and regressions
+    on_failure: pause
+
+  - id: lint-and-test
+    run: npm run lint && npm test
+    description: Lint and test
+    on_failure: skip
+
+  - id: commit
+    skill: git-commit
+    description: Commit with conventional message linking the bug
+    with:
+      message_hint: "fix: resolve bug #${{ params.issue_id }}"
+
+  - id: create-pr
+    run: gh pr create --fill --base main
+    description: Create PR for the bug fix
+    outputs:
+      - pr_url
+
+  - id: summary
+    description: Bug fix report
+    template: |
+      ## Bug Fix Complete
+      - Bug: #${{ params.issue_id }}
+      - PR: ${{ steps.create-pr.outputs.pr_url }}
+      - Review: ${{ steps.review.status }}
