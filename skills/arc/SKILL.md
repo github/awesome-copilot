@@ -149,20 +149,24 @@ See `references/file-format.md` for the complete schema.
 ### Minimal Example
 
 ```yaml
-name: quick-fix
-description: Quick fix cycle — implement, test, commit.
+name: tdd-cycle
+description: TDD cycle for a single change.
 
 steps:
   - id: implement
-    description: Implement the fix
+    description: Implement the change
 
   - id: test
     run: npm test
     description: Run the test suite
 
+  - id: review
+    skill: doublecheck
+    description: Quick review for quality and correctness
+
   - id: commit
     skill: git-commit
-    description: Commit with conventional message
+    description: Commit changes with a conventional commit message
 ```
 
 ### Full Example with Parameters and Context
@@ -373,7 +377,7 @@ List available arcs without executing:
 Available arcs:
   feature-flow    End-to-end feature implementation from issue to PR
   bugfix-flow     Test-first bug fix with PR creation
-  quick-fix       Quick fix cycle — implement, test, commit
+  tdd-cycle       TDD cycle — implement, test, review, commit
 
 Source: .github/arcs/
 ```
