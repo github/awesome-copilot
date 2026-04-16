@@ -3,7 +3,7 @@
 > Multi-agent orchestration framework for spec-driven development and automated verification.
 
 [![Copilot Plugin](https://img.shields.io/badge/Plugin-Awesome%20Copilot-0078D4?style=flat-square&logo=microsoft)](https://awesome-copilot.github.com/plugins/#file=plugins%2Fgem-team)
-![Version](https://img.shields.io/badge/Version-1.6.0-6366f1?style=flat-square)
+![Version](https://img.shields.io/badge/Version-1.6.6-6366f1?style=flat-square)
 
 ---
 
@@ -15,6 +15,7 @@
 - 👁️ **Full Visibility** — Real-time status, clear approval gates
 - 🛡️ **Resilient** — Pre-mortem analysis, failure handling, auto-replanning
 - ♻️ **Pattern Reuse** — Codebase pattern discovery prevents reinventing wheels
+- 📏 **Established Patterns** — Uses library/framework conventions over custom implementations
 - 🪞 **Self-Correcting** — All agents self-critique at 0.85 confidence threshold
 - 📋 **Source Verified** — Every factual claim cites its source; no guesswork
 - ♿ **Accessibility-First** — WCAG compliance validated at spec and runtime layers
@@ -25,7 +26,7 @@
 - 🛠️ **Skills & Guidelines** — Built-in skill & guidelines (web-design-guidelines)
 - 📐 **Spec-Driven** — Multi-step refinement defines "what" before "how"
 - 🌊 **Wave-Based** — Parallel agents with integration gates per wave
-- 🗂️ **Multi-Plan** — Complex tasks: 3 planner variants → best DAG selected automatically
+- 🗂️ **Verified-Plan** — Complex tasks: Plan → Verificationn → Critic
 - 🩺 **Diagnose-then-Fix** — gem-debugger diagnoses → gem-implementer fixes → re-verifies
 - ⚠️ **Pre-Mortem** — Failure modes identified BEFORE execution
 - 💬 **Constructive Critique** — gem-critic challenges assumptions, finds edge cases
@@ -42,6 +43,23 @@ copilot plugin install gem-team@awesome-copilot
 ```
 
 > **[Install Gem Team Now →](https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252F.%252Fagents)**
+
+---
+
+## 🔄 Core Workflow
+
+**Phase Flow:** User Goal → Orchestrator → Discuss (medium|complex) → PRD → Research → Planning → Plan Review (medium|complex) → Execution → Review → Summary
+
+**Error Handling:** Diagnose-then-Fix loop (Debugger → Implementer → Re-verify)
+
+**Orchestrator** auto-detects phase and routes accordingly. Any feedback or steer message is handled to re-plan.
+
+| Condition | → Phase |
+|:----------|:--------|
+| No plan + simple | Research |
+| No plan + medium\|complex | Discuss → PRD → Research |
+| Plan + pending tasks | Execution |
+| Plan + feedback | Planning |
 
 ---
 
@@ -86,23 +104,6 @@ flowchart
     EXEC --> |"parallel ≤4"| agents
     EXEC --> |"post-wave (complex)"| critic
 ```
-
----
-
-## 🔄 Core Workflow
-
-**Phase Flow:** User Goal → Orchestrator → Discuss (medium|complex) → PRD → Research → Planning → Execution → Summary
-
-**Error Handling:** Diagnose-then-Fix loop (Debugger → Implementer → Re-verify)
-
-**Orchestrator** auto-detects phase and routes accordingly.
-
-| Condition | → Phase |
-|:----------|:--------|
-| No plan + simple | Research |
-| No plan + medium\|complex | Discuss → PRD → Research |
-| Plan + pending tasks | Execution |
-| Plan + feedback | Planning |
 
 ---
 
@@ -182,7 +183,7 @@ Agents consult only the sources relevant to their role. Trust levels apply:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. [CONTRIBUTING](./CONTRIBUTING.md) for detailed guidelines on commit message formatting, branching strategy, and code standards.
 
 ## 📄 License
 
@@ -191,24 +192,3 @@ This project is licensed under the MIT License.
 ## 💬 Support
 
 If you encounter any issues or have questions, please [open an issue](https://github.com/mubaidr/gem-team/issues) on GitHub.
-
----
-
-## 📋 Changelog
-
-### 1.6.0 (April 8, 2026)
-
-**New:**
-
-- Mobile agents — build, design, and test iOS/Android apps with gem-implementer-mobile, gem-designer-mobile, gem-mobile-tester
-
-**Improved:**
-
-- Concise agent descriptions — one-liners that quickly communicate what each agent does
-- Unified agent table — clean overview of all 15 agents with roles and outputs
-
-### 1.5.4
-
-**Bug Fixes:**
-
-- Fixed AGENTS.md pattern extraction logic for semantic search integration
