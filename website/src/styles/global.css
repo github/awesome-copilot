@@ -175,6 +175,10 @@ body:has(#main-content) {
   padding: 0 24px;
 }
 
+.main-frame {
+  padding-top: 0px;
+}
+
 #main-content a {
   color: var(--color-link);
   text-decoration: none;
@@ -200,7 +204,6 @@ body:has(#main-content) {
 
 /* Hero Section */
 .hero {
-  padding: 80px 0 40px;
   text-align: center;
   position: relative;
   background: transparent;
@@ -1876,10 +1879,6 @@ body:has(#main-content) {
 }
 
 @media (max-width: 768px) {
-  .hero {
-    padding: 60px 0 30px;
-  }
-
   .hero-particle {
     opacity: 0.2;
   }

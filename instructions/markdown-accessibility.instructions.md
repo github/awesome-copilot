@@ -38,6 +38,8 @@ Good: `Read my blog post "[Crafting an accessible resume](https://example.com)"`
 - Flag unnecessarily complex or jargon-heavy language that could be simplified.
 - Favor short sentences, common words, and active voice.
 - Flag long, dense paragraphs that could be broken into smaller sections or lists.
+- When describing UI navigation, write actions as sequential steps in plain language first (e.g., "open Settings, then select Preferences"). Use generic, stable labels rather than icon names or visual descriptions.
+- A parenthetical visual reference may follow as supplemental context (e.g., "(gear icon > Preferences)"), but never use visual breadcrumb notation or icon names as the sole way to describe a navigation path.
 - When suggesting plain language improvements, present them as recommendations for the author to review. Language decisions require understanding of audience, context, and tone.
 
 ## 5. Lists and Emoji Usage

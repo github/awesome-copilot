@@ -39,28 +39,22 @@ func main() {
     // Create session
     session, err := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-        Model: "gpt-5",
+        Model: "gpt-5.4",
     })
     if err != nil {
         log.Fatal(err)
     }
-    defer session.Destroy()
+    defer session.Disconnect()
 
     // Event handler
     session.On(func(event copilot.SessionEvent) {
-        switch event.Type {
-        case "assistant.message":
-            if event.Data.Content != nil {
-                fmt.Printf("\nCopilot: %s\n", *event.Data.Content)
-            }
-        case "tool.execution_start":
-            if event.Data.ToolName != nil {
-                fmt.Printf("  → Running: %s\n", *event.Data.ToolName)
-            }
-        case "tool.execution_complete":
-            if event.Data.ToolName != nil {
-                fmt.Printf("  ✓ Completed: %s\n", *event.Data.ToolName)
-            }
+        switch d := event.Data.(type) {
+        case *copilot.AssistantMessageData:
+            fmt.Printf("\nCopilot: %s\n", d.Content)
+        case *copilot.ToolExecutionStartData:
+            fmt.Printf("  → Running: %s\n", d.ToolName)
+        case *copilot.ToolExecutionCompleteData:
+            fmt.Printf("  ✓ Completed (success=%v)\n", d.Success)
         }
     })
 
