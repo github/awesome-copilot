@@ -72,20 +72,20 @@
     }
   },
   {
-  "name": "skills-for-copilot-studio",
-  "description": "Microsoft Copilot Studio plugins for AI coding agents",
-  "version": "1.0.3",
-  "author": {
-    "name": "Microsoft Copilot Studio CAT Team",
-    "url": "https://www.microsoft.com"
+    "name": "skills-for-copilot-studio",
+    "description": "Microsoft Copilot Studio plugins for AI coding agents",
+    "version": "1.0.3",
+    "author": {
+      "name": "Microsoft Copilot Studio CAT Team",
+      "url": "https://www.microsoft.com"
     },
-  "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
-  "keywords": ["copilot", "copilot-studio", "studio", "agent", "microsoft", "coding"],
-  "license": "MIT",
-  "repository": "https://github.com/microsoft/skills-for-copilot-studio",
-  "source": {
-    "source": "github",
-    "repo": "microsoft/skills-for-copilot-studio"
+    "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
+    "keywords": ["copilot", "copilot-studio", "studio", "agent", "microsoft", "coding"],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/skills-for-copilot-studio",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/skills-for-copilot-studio"
     }
   },
   {
@@ -154,6 +154,22 @@
     "source": {
       "source": "github",
       "repo": "microsoft/What-I-Did-Copilot"
+    }
+  },
+  {
+    "name": "copilot-brag-sheet",
+    "description": "Auto-track AI coding sessions into a work impact log (brag sheet). Say 'brag' to save accomplishments, 'review my work' to see your log. Zero dependencies, local-first.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Vidhart Bhatia"
+    },
+    "homepage": "https://github.com/vidhartbhatia/copilot-brag-sheet",
+    "keywords": ["brag-sheet", "work-tracker", "impact-log", "performance-review", "local-first"],
+    "license": "MIT",
+    "repository": "https://github.com/vidhartbhatia/copilot-brag-sheet",
+    "source": {
+      "source": "github",
+      "repo": "vidhartbhatia/copilot-brag-sheet"
     }
   }
 ]
