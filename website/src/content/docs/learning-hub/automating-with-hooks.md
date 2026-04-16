@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-16
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -331,6 +331,37 @@ Block dangerous commands before they execute:
 ```
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+
+### Modifying Tool Arguments with preToolUse
+
+Beyond approve/deny, `preToolUse` hooks can also **modify tool arguments** before they are passed to the tool, and inject **additional context** into the agent's reasoning. To do this, write JSON to stdout from your hook script:
+
+```bash
+#!/usr/bin/env bash
+# scripts/sanitize-bash-args.sh
+#
+# Reads the proposed bash command from stdin, strips dangerous flags,
+# and writes back the sanitized command as modifiedArgs.
+
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+
+# Strip the --no-sandbox flag if present
+SAFE_COMMAND=$(echo "$COMMAND" | sed 's/--no-sandbox//g')
+
+echo "{\"modifiedArgs\": {\"command\": \"$SAFE_COMMAND\"}, \"additionalContext\": \"Command was sanitized by security policy.\"}"
+```
+
+The output fields are:
+
+| Field | Description |
+|-------|-------------|
+| `modifiedArgs` (or `updatedInput`) | Replacement tool arguments. These are used instead of the originals. |
+| `additionalContext` | Text injected into the agent's context for this turn — useful for explaining why a change was made. |
+
+This enables sophisticated patterns like normalizing file paths, enforcing naming conventions, adding required flags, or surfacing policy context—without blocking the tool entirely.
+
+> **Note**: Both `modifiedArgs` and `updatedInput` are accepted field names for the replacement arguments (for cross-tool compatibility).
 
 ### Governance Audit
 
