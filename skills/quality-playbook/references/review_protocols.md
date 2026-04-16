@@ -91,7 +91,7 @@ For each shared concept:
 | Pass 3, REQ-X vs REQ-Y | [consistency issue] | [severity] | INCONSISTENT |
 
 - Total findings by pass and severity
-- Overall assessment: SHIP IT / FIX FIRST / NEEDS DISCUSSION
+- Overall assessment: SHIP / FIX BEFORE MERGE / BLOCK
 ```
 
 ### Execution requirements
@@ -389,7 +389,7 @@ After all tests complete, show a summary table and a recommendation:
 
 **Passed:** 7/8 | **Failed:** 1/8
 
-**Recommendation:** FIX FIRST — Rate limit handling needs investigation.
+**Recommendation:** FIX BEFORE MERGE — Rate limit handling needs investigation.
 ```
 
 Then save the detailed results to `quality/results/YYYY-MM-DD-integration.md`.
@@ -407,7 +407,7 @@ Save results to `quality/results/YYYY-MM-DD-integration.md`
 [Specific failures, unexpected behavior, performance observations]
 
 ### Recommendation
-[SHIP IT / FIX FIRST / NEEDS INVESTIGATION]
+[SHIP / FIX BEFORE MERGE / BLOCK]
 ```
 
 ### Tips for Writing Good Integration Checks

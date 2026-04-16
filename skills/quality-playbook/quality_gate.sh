@@ -74,14 +74,27 @@ info() { echo "  INFO: $1"; }
 # Helper: check if a JSON file contains a key at any nesting level
 json_has_key() {
     local file="$1" key="$2"
-    grep -q "\"${key}\"" "$file" 2>/dev/null
+    grep -q "\"${key}\"[[:space:]]*:" "$file" 2>/dev/null
 }
 
 # Helper: extract a string value for a key (first occurrence)
+# Returns empty string if key is absent.
+# Returns __NOT_STRING__ if key exists but value is not a quoted string.
 json_str_val() {
     local file="$1" key="$2"
-    grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$file" 2>/dev/null \
-        | head -1 | sed 's/.*: *"\([^"]*\)"/\1/'
+    # First try to match a quoted string value
+    local quoted_result
+    quoted_result=$(grep -o "\"${key}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$file" 2>/dev/null \
+        | head -1 | sed 's/.*: *"\([^"]*\)"/\1/')
+    if [ -n "$quoted_result" ]; then
+        echo "$quoted_result"
+        return 0
+    fi
+    # Check if key exists at all (with any value type)
+    if grep -q "\"${key}\"[[:space:]]*:" "$file" 2>/dev/null; then
+        echo "__NOT_STRING__"
+    fi
+    # Key absent — return empty (default)
 }
 
 # Helper: count occurrences of a key in JSON (matches key: value pairs only)
@@ -121,7 +134,12 @@ check_repo() {
         fi
     done
     # Functional test file — check all SKILL.md-documented naming patterns
-    if ls ${q}/test_functional.* ${q}/FunctionalSpec.* ${q}/FunctionalTest.* ${q}/functional.test.* &>/dev/null 2>&1; then
+    if find "${q}" -maxdepth 1 \( \
+           -name "test_functional.*" \
+           -o -name "FunctionalSpec.*" \
+           -o -name "FunctionalTest.*" \
+           -o -name "functional.test.*" \
+       \) -print -quit 2>/dev/null | grep -q .; then
         pass "functional test file exists"
     else
         fail "functional test file missing (test_functional.*, FunctionalSpec.*, FunctionalTest.*, functional.test.*)"
@@ -140,7 +158,7 @@ check_repo() {
     fi
 
     # Code reviews dir
-    if [ -d "${q}/code_reviews" ] && [ -n "$(ls ${q}/code_reviews/*.md 2>/dev/null)" ]; then
+    if [ -d "${q}/code_reviews" ] && find "${q}/code_reviews" -maxdepth 1 -name '*.md' -print -quit 2>/dev/null | grep -q .; then
         pass "code_reviews/ has .md files"
     else
         fail "code_reviews/ missing or empty"
@@ -149,8 +167,8 @@ check_repo() {
     # Spec audits
     if [ -d "${q}/spec_audits" ]; then
         local triage_count auditor_count
-        triage_count=$(ls ${q}/spec_audits/*triage* 2>/dev/null | wc -l | tr -d ' ')
-        auditor_count=$(ls ${q}/spec_audits/*auditor* 2>/dev/null | wc -l | tr -d ' ')
+        triage_count=$(find "${q}/spec_audits" -maxdepth 1 -name '*triage*' 2>/dev/null | wc -l | tr -d ' ')
+        auditor_count=$(find "${q}/spec_audits" -maxdepth 1 -name '*auditor*' 2>/dev/null | wc -l | tr -d ' ')
         [ "$triage_count" -gt 0 ] && pass "spec_audits/ has triage file" || fail "spec_audits/ missing triage file"
         [ "$auditor_count" -gt 0 ] && pass "spec_audits/ has ${auditor_count} auditor file(s)" || fail "spec_audits/ missing individual auditor files"
 
@@ -181,16 +199,16 @@ check_repo() {
     local bug_count=0
     if [ -f "${q}/BUGS.md" ]; then
         local correct_headings wrong_headings
-        correct_headings=$(grep -cE '^### BUG-[0-9]+' "${q}/BUGS.md" || true)
+        correct_headings=$(grep -cE '^### BUG-([HML]|[0-9])[0-9]*' "${q}/BUGS.md" || true)
         correct_headings=${correct_headings:-0}
-        wrong_headings=$(grep -E '^## BUG-[0-9]+' "${q}/BUGS.md" 2>/dev/null | grep -cvE '^### BUG-' || true)
+        wrong_headings=$(grep -E '^## BUG-' "${q}/BUGS.md" 2>/dev/null | grep -cvE '^### BUG-' || true)
         wrong_headings=${wrong_headings:-0}
         local deep_headings bold_headings bullet_headings
-        deep_headings=$(grep -cE '^#{4,} BUG-[0-9]+' "${q}/BUGS.md" || true)
+        deep_headings=$(grep -cE '^#{4,} BUG-([HML]|[0-9])' "${q}/BUGS.md" || true)
         deep_headings=${deep_headings:-0}
-        bold_headings=$(grep -cE '^\*\*BUG-[0-9]+' "${q}/BUGS.md" || true)
+        bold_headings=$(grep -cE '^\*\*BUG-([HML]|[0-9])' "${q}/BUGS.md" || true)
         bold_headings=${bold_headings:-0}
-        bullet_headings=$(grep -cE '^- BUG-[0-9]+' "${q}/BUGS.md" || true)
+        bullet_headings=$(grep -cE '^- BUG-([HML]|[0-9])' "${q}/BUGS.md" || true)
         bullet_headings=${bullet_headings:-0}
 
         bug_count=$correct_headings
@@ -257,7 +275,9 @@ check_repo() {
 
             # Summary must include all 5 required keys
             for skey in total verified confirmed_open red_failed green_failed; do
-                if json_has_key "$json_file" "$skey"; then
+                local scount
+                scount=$(json_key_count "$json_file" "$skey")
+                if [ "${scount:-0}" -gt 0 ]; then
                     pass "summary has '${skey}'"
                 else
                     fail "summary missing '${skey}' count"
@@ -310,8 +330,8 @@ check_repo() {
         local red_found=0 red_missing=0 green_found=0 green_missing=0 green_expected=0
         # Extract confirmed bug IDs from BUGS.md headings
         local bug_ids
-        bug_ids=$(grep -oE 'BUG-[0-9]+' "${q}/BUGS.md" 2>/dev/null \
-            | grep -E '^BUG-[0-9]+$' | sort -u -t'-' -k2,2n)
+        bug_ids=$(grep -oE 'BUG-([HML][0-9]+|[0-9]+)' "${q}/BUGS.md" 2>/dev/null \
+            | grep -E '^BUG-([HML][0-9]+|[0-9]+)$' | sort -u)
         local red_bad_tag=0 green_bad_tag=0
         for bid in $bug_ids; do
             # Red-phase log — required for every confirmed bug
@@ -328,7 +348,7 @@ check_repo() {
                 red_missing=$((red_missing + 1))
             fi
             # Green-phase log — required only if a fix patch exists
-            if ls ${q}/patches/${bid}-fix*.patch &>/dev/null; then
+            if [ -n "$(find "${q}/patches" -maxdepth 1 -name "${bid}-fix*.patch" 2>/dev/null | head -1)" ]; then
                 green_expected=$((green_expected + 1))
                 if [ -f "${q}/results/${bid}.green.log" ]; then
                     green_found=$((green_found + 1))
@@ -374,6 +394,56 @@ check_repo() {
         elif [ "$green_found" -gt 0 ]; then
             pass "All green-phase logs have valid status tags"
         fi
+
+        # Sidecar-to-log cross-validation (BUG-M18): verify tdd-results.json
+        # red_phase/green_phase values agree with corresponding log file first-line tags
+        local json_file="${q}/results/tdd-results.json"
+        if [ -f "$json_file" ]; then
+            local xv_mismatch=0 xv_checked=0
+            for bid in $bug_ids; do
+                # Extract red_phase value for this bug from the sidecar JSON
+                local sidecar_red sidecar_green
+                sidecar_red=$(grep -A5 "\"id\"[[:space:]]*:[[:space:]]*\"${bid}\"" "$json_file" 2>/dev/null \
+                    | grep -oE '"red_phase"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*: *"\(.*\)"/\1/' | head -1)
+                sidecar_green=$(grep -A10 "\"id\"[[:space:]]*:[[:space:]]*\"${bid}\"" "$json_file" 2>/dev/null \
+                    | grep -oE '"green_phase"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*: *"\(.*\)"/\1/' | head -1)
+
+                # Cross-validate red_phase against red log first-line tag
+                if [ -n "$sidecar_red" ] && [ -f "${q}/results/${bid}.red.log" ]; then
+                    local log_red_tag
+                    log_red_tag=$(head -1 "${q}/results/${bid}.red.log" 2>/dev/null | tr -d '[:space:]')
+                    xv_checked=$((xv_checked + 1))
+                    # "fail" in sidecar should correspond to RED tag in log
+                    if [ "$sidecar_red" = "fail" ] && [ "$log_red_tag" != "RED" ]; then
+                        xv_mismatch=$((xv_mismatch + 1))
+                        fail "${bid}: sidecar red_phase='${sidecar_red}' but log first-line is '${log_red_tag}' (expected RED)"
+                    elif [ "$sidecar_red" = "pass" ] && [ "$log_red_tag" != "GREEN" ]; then
+                        xv_mismatch=$((xv_mismatch + 1))
+                        fail "${bid}: sidecar red_phase='${sidecar_red}' but log first-line is '${log_red_tag}' (expected GREEN)"
+                    fi
+                fi
+
+                # Cross-validate green_phase against green log first-line tag
+                if [ -n "$sidecar_green" ] && [ -f "${q}/results/${bid}.green.log" ]; then
+                    local log_green_tag
+                    log_green_tag=$(head -1 "${q}/results/${bid}.green.log" 2>/dev/null | tr -d '[:space:]')
+                    xv_checked=$((xv_checked + 1))
+                    if [ "$sidecar_green" = "pass" ] && [ "$log_green_tag" != "GREEN" ]; then
+                        xv_mismatch=$((xv_mismatch + 1))
+                        fail "${bid}: sidecar green_phase='${sidecar_green}' but log first-line is '${log_green_tag}' (expected GREEN)"
+                    elif [ "$sidecar_green" = "fail" ] && [ "$log_green_tag" != "RED" ]; then
+                        xv_mismatch=$((xv_mismatch + 1))
+                        fail "${bid}: sidecar green_phase='${sidecar_green}' but log first-line is '${log_green_tag}' (expected RED)"
+                    fi
+                fi
+            done
+            if [ "$xv_checked" -gt 0 ] && [ "$xv_mismatch" -eq 0 ]; then
+                pass "Sidecar-to-log cross-validation passed (${xv_checked} checks)"
+            elif [ "$xv_checked" -eq 0 ]; then
+                info "Sidecar-to-log cross-validation: no matching pairs to check"
+            fi
+        fi
+
         # TDD_TRACEABILITY.md — mandatory when bugs have red-phase results (benchmark 28)
         if [ "$red_found" -gt 0 ]; then
             if [ -f "${q}/TDD_TRACEABILITY.md" ]; then
@@ -392,6 +462,18 @@ check_repo() {
     if [ -f "$ij" ]; then
         for key in schema_version skill_version date project recommendation groups summary uc_coverage; do
             json_has_key "$ij" "$key" && pass "has '${key}'" || fail "missing key '${key}'"
+        done
+
+        # BUG-L24 fix: validate integration summary sub-keys
+        # SKILL.md:1252-1255 defines 4 required sub-keys: total_groups, passed, failed, skipped
+        for iskey in total_groups passed failed skipped; do
+            local iscount
+            iscount=$(json_key_count "$ij" "$iskey")
+            if [ "${iscount:-0}" -gt 0 ]; then
+                pass "integration summary has '${iskey}'"
+            else
+                fail "integration summary missing required sub-key '${iskey}'"
+            fi
         done
 
         # schema_version value (must be "1.1" — same check as tdd-results.json)
@@ -427,12 +509,79 @@ check_repo() {
             SHIP|"FIX BEFORE MERGE"|BLOCK) pass "recommendation '${rec}' is canonical" ;;
             *) [ -n "$rec" ] && fail "recommendation '${rec}' is non-canonical (must be SHIP/FIX BEFORE MERGE/BLOCK)" || fail "recommendation missing" ;;
         esac
+
+        # BUG-L23 fix: validate groups[].result enum values
+        # SKILL.md:1273 defines valid values: "pass", "fail", "skipped", "error"
+        local bad_results
+        bad_results=$(grep -oE '"result"[[:space:]]*:[[:space:]]*"[^"]*"' "$ij" 2>/dev/null \
+            | sed 's/.*: *"\(.*\)"/\1/' \
+            | grep -cvE '^(pass|fail|skipped|error)$' || true)
+        bad_results=${bad_results:-0}
+        [ "$bad_results" -eq 0 ] && pass "all groups[].result values are canonical" || fail "${bad_results} non-canonical groups[].result value(s) (must be pass/fail/skipped/error)"
+
+        # BUG-L23 fix: validate uc_coverage value enum
+        # SKILL.md:1273 defines valid values: "covered_pass", "covered_fail", "not_mapped"
+        local bad_uc_vals
+        bad_uc_vals=$(grep -oE '"uc_coverage"[[:space:]]*:[[:space:]]*\{[^}]*\}' "$ij" 2>/dev/null \
+            | grep -oE '"[a-z_]+"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -v '"uc_coverage"' \
+            | grep -oE '"[^"]*"$' | tr -d '"' \
+            | grep -cvE '^(covered_pass|covered_fail|not_mapped)$' || true)
+        bad_uc_vals=${bad_uc_vals:-0}
+        [ "$bad_uc_vals" -eq 0 ] && pass "all uc_coverage values are canonical" || fail "${bad_uc_vals} non-canonical uc_coverage value(s) (must be covered_pass/covered_fail/not_mapped)"
     else
         if [ "$STRICTNESS" = "benchmark" ]; then
             warn "integration-results.json not present"
         else
             info "integration-results.json not present (optional in general mode)"
         fi
+    fi
+
+    # --- Recheck sidecar JSON — validation (SKILL.md artifact contract) ---
+    echo "[Recheck Sidecar JSON]"
+    local rj="${q}/results/recheck-results.json"
+    local rs="${q}/results/recheck-summary.md"
+    if [ -f "$rj" ]; then
+        pass "recheck-results.json exists"
+
+        # Required root keys (SKILL.md recheck template)
+        for key in schema_version skill_version date project bugs summary; do
+            json_has_key "$rj" "$key" && pass "recheck has '${key}'" || fail "recheck missing root key '${key}'"
+        done
+
+        # schema_version must be "1.0" (recheck uses different schema version)
+        local rsv
+        rsv=$(json_str_val "$rj" "schema_version")
+        [ "$rsv" = "1.0" ] && pass "recheck schema_version is '1.0'" || fail "recheck schema_version is '${rsv:-missing}', expected '1.0'"
+
+        # Date validation
+        local rdate
+        rdate=$(json_str_val "$rj" "date")
+        if [ -n "$rdate" ]; then
+            if echo "$rdate" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+                if [ "$rdate" = "YYYY-MM-DD" ] || [ "$rdate" = "0000-00-00" ]; then
+                    fail "recheck-results.json date is placeholder '${rdate}'"
+                else
+                    local today_rck
+                    today_rck=$(date +%Y-%m-%d)
+                    if [[ "$rdate" > "$today_rck" ]]; then
+                        fail "recheck-results.json date '${rdate}' is in the future"
+                    else
+                        pass "recheck-results.json date '${rdate}' is valid"
+                    fi
+                fi
+            else
+                fail "recheck-results.json date '${rdate}' is not ISO 8601 (YYYY-MM-DD)"
+            fi
+        fi
+
+        # recheck-summary.md companion
+        if [ -f "$rs" ]; then
+            pass "recheck-summary.md exists"
+        else
+            fail "recheck-summary.md missing (required companion to recheck-results.json)"
+        fi
+    else
+        info "recheck-results.json not present (only required when recheck mode was run)"
     fi
 
     # --- Use cases in REQUIREMENTS.md (benchmark 43, 48) ---
@@ -476,8 +625,8 @@ check_repo() {
     # --- Test file extension matches project language (benchmark 47) ---
     echo "[Test File Extension]"
     local func_test reg_test
-    func_test=$(ls ${q}/test_functional.* 2>/dev/null | head -1)
-    reg_test=$(ls ${q}/test_regression.* 2>/dev/null | head -1)
+    func_test=$(find "${q}" -maxdepth 1 -name 'test_functional.*' -print -quit 2>/dev/null)
+    reg_test=$(find "${q}" -maxdepth 1 -name 'test_regression.*' -print -quit 2>/dev/null)
     if [ -n "$func_test" ]; then
         local ext="${func_test##*.}"
         # Detect project language using find (portable, no globstar needed).
@@ -562,18 +711,38 @@ check_repo() {
     # --- Patches for confirmed bugs (benchmark 44) ---
     echo "[Patches]"
     if [ "$bug_count" -gt 0 ]; then
-        local reg_patch_count=0 fix_patch_count=0
-        if [ -d "${q}/patches" ]; then
-            reg_patch_count=$(ls ${q}/patches/BUG-*-regression*.patch 2>/dev/null | wc -l | tr -d ' ')
-            fix_patch_count=$(ls ${q}/patches/BUG-*-fix*.patch 2>/dev/null | wc -l | tr -d ' ')
+        # Regression test file — required when bugs exist (SKILL.md artifact contract)
+        local reg_test_file
+        reg_test_file=$(ls "${q}"/test_regression.* 2>/dev/null | head -1)
+        if [ -n "$reg_test_file" ]; then
+            pass "test_regression.* exists (${bug_count} confirmed bugs require it)"
+        else
+            if [ "$STRICTNESS" = "benchmark" ]; then
+                fail "test_regression.* missing — required when bugs exist (SKILL.md artifact contract)"
+            else
+                warn "test_regression.* missing — required when bugs exist (SKILL.md artifact contract)"
+            fi
         fi
 
-        if [ "$reg_patch_count" -ge "$bug_count" ]; then
+        local reg_patch_count=0 fix_patch_count=0 reg_patch_missing=0
+        # Per-bug iteration (matches TDD log check pattern at lines 316-345)
+        for bid in $bug_ids; do
+            if find "${q}/patches" -name "${bid}-regression*.patch" -print -quit 2>/dev/null | grep -q .; then
+                reg_patch_count=$((reg_patch_count + 1))
+            else
+                reg_patch_missing=$((reg_patch_missing + 1))
+            fi
+            if find "${q}/patches" -name "${bid}-fix*.patch" -print -quit 2>/dev/null | grep -q .; then
+                fix_patch_count=$((fix_patch_count + 1))
+            fi
+        done
+
+        if [ "$reg_patch_missing" -eq 0 ] && [ "$reg_patch_count" -gt 0 ]; then
             pass "${reg_patch_count} regression-test patch(es) for ${bug_count} bug(s)"
         elif [ "$reg_patch_count" -gt 0 ]; then
-            fail "Only ${reg_patch_count} regression-test patch(es) for ${bug_count} bug(s)"
+            fail "${reg_patch_missing} bug(s) missing regression-test patch"
         else
-            fail "No regression-test patches (quality/patches/BUG-NNN-regression-test.patch required for each bug)"
+            fail "No regression-test patches found (quality/patches/BUG-NNN-regression-test.patch required)"
         fi
 
         if [ "$fix_patch_count" -gt 0 ]; then
@@ -592,7 +761,7 @@ check_repo() {
     if [ "$bug_count" -gt 0 ]; then
         local writeup_count=0 writeup_diff_count=0
         if [ -d "${q}/writeups" ]; then
-            writeup_count=$(ls ${q}/writeups/BUG-*.md 2>/dev/null | wc -l | tr -d ' ')
+            writeup_count=$(find "${q}/writeups" -maxdepth 1 -name 'BUG-*.md' 2>/dev/null | wc -l | tr -d ' ')
             # Check each writeup for inline diff (section 6 requirement)
             # Note: the [ -f "$wf" ] guard handles the case where the glob doesn't match
             for wf in "${q}"/writeups/BUG-*.md; do
@@ -683,7 +852,7 @@ elif [ ${#REPO_DIRS[@]} -eq 1 ] && [ "${REPO_DIRS[0]}" = "." ]; then
     REPO_DIRS=("$(pwd)")
 else
     resolved=()
-    for name in ${REPO_DIRS[@]+"${REPO_DIRS[@]}"}; do
+    for name in "${REPO_DIRS[@]+"${REPO_DIRS[@]}"}"; do
         if [ -d "$name/quality" ]; then
             resolved+=("$name")
         elif [ -d "${SCRIPT_DIR}/${name}-${VERSION}" ]; then
@@ -694,7 +863,7 @@ else
             echo "WARNING: Cannot find repo '${name}'"
         fi
     done
-    REPO_DIRS=(${resolved[@]+"${resolved[@]}"})
+    REPO_DIRS=("${resolved[@]+"${resolved[@]}"}")
 fi
 
 if [ ${#REPO_DIRS[@]} -eq 0 ]; then

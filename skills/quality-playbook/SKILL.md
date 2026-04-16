@@ -3,7 +3,10 @@ name: quality-playbook
 description: "Run a complete quality engineering audit on any codebase. Derives behavioral requirements from the code, generates spec-traced functional tests, runs a three-pass code review with regression tests, executes a multi-model spec audit (Council of Three), and produces a consolidated bug report with TDD-verified patches. Finds the 35% of real defects that structural code review alone cannot catch. Works with any language. Trigger on 'quality playbook', 'spec audit', 'Council of Three', 'fitness-to-purpose', or 'coverage theater'."
 license: Complete terms in LICENSE.txt
 metadata:
-  version: 1.4.1
+  version: 1.4.2
+  # NOTE: 11 inline occurrences of "1.4.2" exist in this file (frontmatter, banner,
+  # version stamp template, sidecar JSON examples, run metadata, recheck template). When bumping
+  # the version, update ALL occurrences — search for the old version string globally.
   author: Andrew Stellman
   github: https://github.com/andrewstellman/quality-playbook
 ---
@@ -36,7 +39,7 @@ Every bug found traces back to a requirement, and every requirement traces back 
 
 **MANDATORY FIRST ACTION:** After reading and understanding the plan above, print the following message to the user, then explain the plan in your own words — what you'll do, what each phase produces, and why the exploration phase matters most. Emphasize that exploration starts with open-ended domain-driven investigation, followed by domain-knowledge risk analysis that reasons about what goes wrong in systems like this, then supplemented by selected structured patterns. Do not copy the plan verbatim; paraphrase it to demonstrate understanding.
 
-> Quality Playbook v1.4.1 — by Andrew Stellman
+> Quality Playbook v1.4.2 — by Andrew Stellman
 > https://github.com/andrewstellman/quality-playbook
 
 Generate a complete quality system tailored to a specific codebase. Unlike test stub generators that work mechanically from source code, this skill explores the project first — understanding its domain, architecture, specifications, and failure history — then produces a quality playbook grounded in what it finds.
@@ -116,6 +119,8 @@ The quality gate (`quality_gate.sh`) validates these artifacts. If the gate chec
 | Spec audit reports | `quality/spec_audits/*auditor*.md` + `*triage*` | Yes | Phase 4 |
 | Recheck results (JSON) | `quality/results/recheck-results.json` | When recheck runs | Recheck |
 | Recheck summary (MD) | `quality/results/recheck-summary.md` | When recheck runs | Recheck |
+| Seed checks | `quality/SEED_CHECKS.md` | If Phase 0b ran | Phase 0b |
+| Run metadata | `quality/results/run-YYYY-MM-DDTHH-MM-SS.json` | Yes | Phase 1 (created), Throughout (updated) |
 
 **Sidecar JSON lifecycle:** Write all bug writeups *before* finalizing `tdd-results.json` — the sidecar's `writeup_path` field must point to an existing file, not a placeholder. Similarly, run integration tests and collect results before writing `integration-results.json`.
 
@@ -126,15 +131,15 @@ The quality gate (`quality_gate.sh`) validates these artifacts. If the gate chec
 ```json
 {
   "schema_version": "1.1",
-  "skill_version": "1.4.1",
+  "skill_version": "1.4.2",
   "date": "2026-04-12",
   "project": "repo-name",
   "bugs": [
     {
       "id": "BUG-001",
-      "requirement": "UC-03: Description of the requirement violated",
-      "red_phase": "Regression test fails on unpatched code, confirming the bug",
-      "green_phase": "After applying fix patch, regression test passes",
+      "requirement": "REQ-003",
+      "red_phase": "fail",
+      "green_phase": "pass",
       "verdict": "TDD verified",
       "fix_patch_present": true,
       "writeup_path": "quality/writeups/BUG-001.md"
@@ -153,7 +158,7 @@ The quality gate (`quality_gate.sh`) validates these artifacts. If the gate chec
 ```json
 {
   "schema_version": "1.1",
-  "skill_version": "1.4.1",
+  "skill_version": "1.4.2",
   "date": "2026-04-12",
   "project": "repo-name",
   "recommendation": "SHIP",
@@ -164,6 +169,36 @@ The quality gate (`quality_gate.sh`) validates these artifacts. If the gate chec
 ```
 
 `recommendation` must be one of: `"SHIP"`, `"FIX BEFORE MERGE"`, `"BLOCK"`. `uc_coverage` maps UC identifiers from REQUIREMENTS.md to coverage status.
+
+### Run Metadata
+
+Every playbook run creates a timestamped metadata file at `quality/results/run-YYYY-MM-DDTHH-MM-SS.json`. This enables multi-model comparison and run history tracking.
+
+**Lifecycle:** Create this file at the start of Phase 1. Update `phases_completed`, `bug_count`, and `end_time` as each phase finishes. The final update happens after the terminal gate.
+
+```json
+{
+  "schema_version": "1.0",
+  "skill_version": "1.4.2",
+  "project": "repo-name",
+  "model": "claude-sonnet-4-6",
+  "model_provider": "anthropic",
+  "runner": "claude-code",
+  "start_time": "2026-04-16T10:30:00Z",
+  "end_time": "2026-04-16T11:45:00Z",
+  "duration_minutes": 75,
+  "phases_completed": ["Phase 0b", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5"],
+  "iterations_completed": ["gap", "unfiltered", "parity", "adversarial"],
+  "bug_count": 12,
+  "bug_severity": { "HIGH": 2, "MEDIUM": 5, "LOW": 5 },
+  "gate_result": "PASS",
+  "gate_fail_count": 0,
+  "gate_warn_count": 2,
+  "notes": ""
+}
+```
+
+**Required fields:** `schema_version`, `skill_version`, `project`, `model`, `start_time`. All other fields are populated as the run progresses. `model` should be the exact model string (e.g., `"claude-sonnet-4-6"`, `"gpt-4.1"`, `"claude-opus-4-6"`). `runner` identifies the tool used to execute the playbook (e.g., `"claude-code"`, `"copilot-cli"`, `"cursor"`, `"cowork"`). `duration_minutes` is computed from `end_time - start_time`. If the model or runner cannot be determined, use `"unknown"`.
 
 ## How to Use
 
@@ -268,7 +303,7 @@ The discipline of writing exploration findings to disk is what forces thorough a
 
 ## Phase 0: Prior Run Analysis (Automatic)
 
-**This phase runs only if `previous_runs/` exists and contains prior quality artifacts.** If there are no prior runs, skip to Phase 1.
+**This phase runs only if `previous_runs/` exists and contains prior quality artifacts.** If there are no prior runs, skip to Phase 1. If `previous_runs/` exists but is empty or contains no conformant quality artifacts (no subdirectories with `quality/BUGS.md`), skip Phase 0a and fall through to Phase 0b.
 
 When prior runs exist, the playbook enters **continuation mode**. This enables iterative bug discovery: each run inherits confirmed findings from prior runs, verifies them mechanically, and explores for additional bugs. The iteration converges when a run finds zero net-new bugs.
 
@@ -294,7 +329,9 @@ When prior runs exist, the playbook enters **continuation mode**. This enables i
 
 ### Phase 0b: Sibling-Run Seed Discovery (Automatic)
 
-**This step runs only if `previous_runs/` does not exist** (i.e., Phase 0a has nothing to work with) **and** the project directory is versioned (e.g., `httpx-1.3.23/` sits alongside `httpx-1.3.21/`). If `previous_runs/` exists, Phase 0a already handles seed injection — skip this step.
+**This step runs only if `previous_runs/` does not exist OR `previous_runs/` exists but contains no conformant quality artifacts** (i.e., Phase 0a has nothing to work with) **and** the project directory is versioned (e.g., `httpx-1.3.23/` sits alongside `httpx-1.3.21/`). If `previous_runs/` exists with conformant artifacts, Phase 0a already handles seed injection — skip this step.
+
+**If `previous_runs/` exists but is empty or contains only non-conformant subdirectories**, emit a warning: "Phase 0b: `previous_runs/` exists but contains no conformant artifacts — consulting sibling versioned directories for seeds." Then proceed with the sibling discovery below.
 
 When no `previous_runs/` directory exists but sibling versioned directories do, look for prior quality artifacts in those siblings:
 
@@ -311,6 +348,35 @@ When no `previous_runs/` directory exists but sibling versioned directories do, 
 
 > **Required references for this phase** — read these before proceeding:
 > - `references/exploration_patterns.md` — six bug-finding patterns to apply after open exploration
+
+**First action: create run metadata.** Before any exploration, create the run metadata file:
+
+```bash
+mkdir -p quality/results
+cat > "quality/results/run-$(date -u +%Y-%m-%dT%H-%M-%S).json" <<'METADATA'
+{
+  "schema_version": "1.0",
+  "skill_version": "1.4.2",
+  "project": "<repo-name>",
+  "model": "<model-string>",
+  "model_provider": "<provider>",
+  "runner": "<tool>",
+  "start_time": "<ISO-8601-UTC>",
+  "end_time": null,
+  "duration_minutes": null,
+  "phases_completed": [],
+  "iterations_completed": [],
+  "bug_count": 0,
+  "bug_severity": { "HIGH": 0, "MEDIUM": 0, "LOW": 0 },
+  "gate_result": null,
+  "gate_fail_count": null,
+  "gate_warn_count": null,
+  "notes": ""
+}
+METADATA
+```
+
+Fill in `project`, `model` (exact model string, e.g., `"claude-sonnet-4-6"`), `model_provider` (e.g., `"anthropic"`, `"openai"`), `runner` (e.g., `"claude-code"`, `"copilot-cli"`, `"cursor"`), and `start_time` (UTC ISO 8601). Update this file at the end of each phase — append the completed phase to `phases_completed` and update `bug_count`/`bug_severity` as bugs are confirmed. The final update after the terminal gate fills in `end_time`, `duration_minutes`, and `gate_result`.
 
 Spend the first phase understanding the project. The quality playbook must be grounded in this specific codebase — not generic advice.
 
@@ -896,12 +962,19 @@ Or say "keep going" to continue automatically.
 
 **Phase 2 entry gate (mandatory — HARD STOP).** Before generating any artifacts, read `quality/EXPLORATION.md` from disk and verify ALL of the following exact section titles exist (grep or search — do not rely on memory):
 
-1. `## Open Exploration Findings` — must exist verbatim
-2. `## Quality Risks` — must exist verbatim
-3. `## Pattern Applicability Matrix` — must exist verbatim
-4. At least 3 sections starting with `## Pattern Deep Dive — ` — must exist verbatim
-5. `## Candidate Bugs for Phase 2` — must exist verbatim
-6. `## Gate Self-Check` — must exist (proves the Phase 1 gate was run)
+1. `quality/EXPLORATION.md` must have at least 120 lines — a shorter file indicates incomplete exploration
+2. `## Open Exploration Findings` — must exist verbatim
+3. `## Quality Risks` — must exist verbatim
+4. `## Pattern Applicability Matrix` — must exist verbatim
+5. At least 3 sections starting with `## Pattern Deep Dive — ` — must exist verbatim
+6. `## Candidate Bugs for Phase 2` — must exist verbatim
+7. `## Gate Self-Check` — must exist (proves the Phase 1 gate was run)
+8. `quality/PROGRESS.md` exists and its Phase 1 line is marked `[x]` — proves Phase 1 was completed, not just started
+9. The `## Open Exploration Findings` section contains at least 8 concrete bug hypotheses — count lines with file:line citations
+10. At least 3 findings in `## Open Exploration Findings` trace behavior across 2+ functions — look for multi-location traces
+11. Between 3 and 4 patterns are marked `FULL` in `## Pattern Applicability Matrix` — count FULL entries
+12. At least 2 pattern deep-dive sections trace code paths across 2+ functions — look for multi-function traces
+13. `## Candidate Bugs for Phase 2` has ≥2 bugs from open exploration/risks AND ≥1 from a pattern deep dive — check source stage labels
 
 If the file does not exist, has fewer than 120 lines, or is **missing ANY of these exact section titles**, STOP and go back to Phase 1. Do not attempt to proceed with "equivalent" sections under different names — the exact titles above are required. Write EXPLORATION.md now, starting with domain-driven open exploration, then domain-knowledge risk analysis, then selecting 3–4 patterns from `references/exploration_patterns.md` for deep dives. Do not proceed with Phase 2 until EXPLORATION.md passes the Phase 1 completion gate. This check exists because single-pass execution can skip the Phase 1 gate — this is the backstop. In v1.3.43, two repos bypassed both gates and produced zero bugs.
 
@@ -912,14 +985,14 @@ Now write the Phase 2 artifacts. The requirements pipeline above produced REQUIR
 **Version stamp (mandatory on every generated file).** Every Markdown file the playbook generates must begin with the following attribution line immediately after the file's title heading:
 
 ```
-> Generated by [Quality Playbook](https://github.com/andrewstellman/quality-playbook) v1.4.1 — Andrew Stellman
+> Generated by [Quality Playbook](https://github.com/andrewstellman/quality-playbook) v1.4.2 — Andrew Stellman
 > Date: YYYY-MM-DD · Project: <project name>
 ```
 
 Every generated code file (test files, scripts) must begin with a comment header:
 
 ```
-# Generated by Quality Playbook v1.4.1 — https://github.com/andrewstellman/quality-playbook
+# Generated by Quality Playbook v1.4.2 — https://github.com/andrewstellman/quality-playbook
 # Author: Andrew Stellman · Date: YYYY-MM-DD · Project: <project name>
 ```
 
@@ -1053,7 +1126,7 @@ Do NOT demand "executed request-level evidence" or defer findings because "they 
 --- /dev/null
 +++ b/quality/test_regression_virtio.c
 @@ -0,0 +1,15 @@
-+// Generated by Quality Playbook v1.4.1
++// Generated by Quality Playbook v1.4.2
 +// Regression test for BUG-004: VIRTIO_F_RING_RESET missing from vring_transport_features()
 +#include <assert.h>
 +#include <string.h>
@@ -1545,7 +1618,7 @@ After the spec audit triage, check the cumulative BUG tracker in PROGRESS.md. An
 
 **Why this step exists:** Code review bugs get regression tests immediately because tests are written right after the review. Spec audit runs after the tests are written, so its confirmed bugs are orphaned — they appear in the triage report but never get tests. This step closes that gap.
 
-**Individual auditor artifacts (mandatory).** The spec audit must produce individual auditor report files at `quality/spec_audits/YYYY-MM-DD-auditor-N.md` (one per auditor), not just the triage synthesis. Each auditor report records what that auditor found independently before triage reconciliation. If only the triage file exists with no individual auditor artifacts, the audit is incomplete — the triage cannot be verified because there is no record of pre-reconciliation findings. This requirement exists because a single triage file conflates discovery with reconciliation, making it impossible to tell whether a finding was independently confirmed or synthesized from a single source.
+**Individual auditor artifacts (mandatory).** The spec audit must produce individual auditor report files at `quality/spec_audits/` with filenames containing `auditor` (canonical format: `YYYY-MM-DD-auditor-N.md`, e.g., `2026-04-12-auditor-1.md`; also accepted: `auditor_<model>_<date>.md`). The gate globs for `*auditor*` — any conformant name will match. One file per auditor, not just the triage synthesis. Each auditor report records what that auditor found independently before triage reconciliation. If only the triage file exists with no individual auditor artifacts, the audit is incomplete — the triage cannot be verified because there is no record of pre-reconciliation findings. This requirement exists because a single triage file conflates discovery with reconciliation, making it impossible to tell whether a finding was independently confirmed or synthesized from a single source.
 
 **Phase 4 completion gate.** Phase 4 is not complete until a triage file exists at `quality/spec_audits/YYYY-MM-DD-triage.md` **and** individual auditor reports exist. If only auditor reports exist with no triage synthesis, mark Phase 4 as "partial — triage pending" in PROGRESS.md and complete the triage before proceeding. If only the triage exists with no individual reports, mark Phase 4 as "partial — auditor artifacts missing" and regenerate them. The PROGRESS.md checkbox must not be set until both the triage file and auditor reports are confirmed present.
 
@@ -1577,6 +1650,14 @@ Or say "keep going" to continue automatically.
 > - `references/requirements_pipeline.md` — post-review reconciliation process
 > - `references/review_protocols.md` — regression test cleanup after reversals
 > - `references/spec_audit.md` — verification probe protocol for conflicts
+
+**Phase 5 entry gate (mandatory — HARD STOP).** Before proceeding, verify ALL of the following Phase 4 artifacts exist:
+
+1. `quality/spec_audits/` directory exists and contains at least one `*triage*` file (the triage synthesis)
+2. `quality/spec_audits/` contains at least one `*auditor*` file (individual auditor reports)
+3. `quality/PROGRESS.md` exists and its Phase 4 line is marked `[x]`
+
+If any of these are missing, STOP and go back to Phase 4. Do not proceed with reconciliation until the spec audit artifacts are confirmed present — reconciliation without triage data produces an incomplete closure report.
 
 Re-read `quality/PROGRESS.md` — specifically the cumulative BUG tracker. This is the authoritative list of all findings across both code review and spec audit.
 
@@ -1612,7 +1693,7 @@ If any check fails, stop and generate the missing logs now using the language-aw
 
 **BUGS.md is always required.** Every completed run must produce `quality/BUGS.md`, regardless of whether bugs were found. If code review and spec audit confirmed zero source-code bugs, create BUGS.md with a `## Summary` stating "No confirmed source-code bugs found" and listing how many candidates were evaluated and eliminated (e.g., "Code review evaluated N candidates; spec audit evaluated M candidates; all were reclassified as design choices, test-only issues, or false positives"). This provides a positive assertion of a clean outcome rather than ambiguous file absence. A completed run with no BUGS.md is non-conformant.
 
-**BUGS.md heading format.** Each confirmed bug must use the heading level `### BUG-NNN` (e.g., `### BUG-001`). This is the canonical heading format — not `## BUG-001`, not `**BUG-001**`, not a bullet point. The `### BUG-NNN` heading is what downstream tools grep for when counting bugs, and what the tdd-results.json `id` field must match. Inconsistent heading levels cause machine-readable counts to disagree with the document.
+**BUGS.md heading format.** Each confirmed bug must use the heading level `### BUG-NNN` (e.g., `### BUG-001` or `### BUG-H1`). Both numeric IDs (`BUG-001`) and severity-prefixed IDs (`BUG-H1`, `BUG-M3`, `BUG-L6`) are valid. This is the canonical heading format — not `## BUG-001`, not `**BUG-001**`, not a bullet point. The `### BUG-NNN` heading is what downstream tools grep for when counting bugs, and what the tdd-results.json `id` field must match. Inconsistent heading levels cause machine-readable counts to disagree with the document.
 
 Re-read `quality/PROGRESS.md`. Count the BUG tracker entries. Then:
 
@@ -1960,10 +2041,12 @@ For each bug, perform these checks in order:
 
 Write `quality/results/recheck-results.json` with this schema:
 
+Note: The recheck schema uses `"schema_version": "1.0"` (not `"1.1"`) because it has a different structure from the TDD sidecar — the `source_run` and per-bug `status`/`evidence` fields are unique to the recheck schema. The quality gate validates this value as `"1.0"`.
+
 ```json
 {
   "schema_version": "1.0",
-  "skill_version": "1.4.1",
+  "skill_version": "1.4.2",
   "date": "YYYY-MM-DD",
   "project": "<project name>",
   "source_run": {
