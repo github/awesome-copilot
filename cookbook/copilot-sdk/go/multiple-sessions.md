@@ -36,30 +36,30 @@ func main() {
     // Create multiple independent sessions
     session1, err := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-    	Model:               "gpt-5",
+    	Model:               "gpt-5.4",
     })
     if err != nil {
         log.Fatal(err)
     }
-    defer session1.Destroy()
+    defer session1.Disconnect()
 
     session2, err := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-    	Model:               "gpt-5",
+    	Model:               "gpt-5.4",
     })
     if err != nil {
         log.Fatal(err)
     }
-    defer session2.Destroy()
+    defer session2.Disconnect()
 
     session3, err := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-    	Model:               "claude-sonnet-4.5",
+    	Model:               "claude-sonnet-4.6",
     })
     if err != nil {
         log.Fatal(err)
     }
-    defer session3.Destroy()
+    defer session3.Disconnect()
 
     // Each session maintains its own conversation history
     session1.Send(ctx, copilot.MessageOptions{Prompt: "You are helping with a Python project"})
@@ -81,7 +81,7 @@ Use custom IDs for easier tracking:
 session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
     SessionID: "user-123-chat",
-    Model:     "gpt-5",
+    Model:     "gpt-5.4",
 })
 if err != nil {
     log.Fatal(err)
@@ -93,7 +93,7 @@ fmt.Println(session.SessionID) // "user-123-chat"
 ## Listing sessions
 
 ```go
-sessions, err := client.ListSessions(ctx)
+sessions, err := client.ListSessions(ctx, nil)
 if err != nil {
     log.Fatal(err)
 }

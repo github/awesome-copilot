@@ -75,13 +75,12 @@ func main() {
 	}
 	defer client.Stop()
 
-	streaming := true
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
 		Model:     "claude-opus-4.6",
-		Streaming: &streaming,
-		McpServers: map[string]interface{}{
-			"playwright": map[string]interface{}{
+		Streaming: true,
+		MCPServers: map[string]copilot.MCPServerConfig{
+			"playwright": {
 				"type":    "local",
 				"command": "npx",
 				"args":    []string{"@playwright/mcp@latest"},
@@ -92,26 +91,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session.Destroy()
+	defer session.Disconnect()
 
 	// Set up streaming event handling
 	done := make(chan struct{}, 1)
 
 	session.On(func(event copilot.SessionEvent) {
-		switch event.Type {
-		case "assistant.message.delta":
-			if event.Data.DeltaContent != nil {
-				fmt.Print(*event.Data.DeltaContent)
-			}
-		case "session.idle":
+		switch d := event.Data.(type) {
+		case *copilot.AssistantMessageDeltaData:
+			fmt.Print(d.DeltaContent)
+		case *copilot.SessionIdleData:
 			select {
 			case done <- struct{}{}:
 			default:
 			}
-		case "session.error":
-			if event.Data.Message != nil {
-				fmt.Printf("\nError: %s\n", *event.Data.Message)
-			}
+		case *copilot.SessionErrorData:
+			fmt.Printf("\nError: %s\n", d.Message)
 			select {
 			case done <- struct{}{}:
 			default:
@@ -202,7 +197,7 @@ func main() {
 ## How it works
 
 1. **Playwright MCP server**: Configures a local MCP server running `@playwright/mcp` to provide browser automation tools
-2. **Streaming output**: Uses `Streaming: &streaming` and `assistant.message.delta` events for real-time token-by-token output
+2. **Streaming output**: Uses `Streaming: true` and `AssistantMessageDeltaData` events for real-time token-by-token output
 3. **Accessibility snapshot**: Playwright's `browser_snapshot` tool captures the full accessibility tree of the page
 4. **Structured report**: The prompt engineers a consistent WCAG-aligned report format with emoji severity indicators
 5. **Test generation**: Optionally detects the project language and generates Playwright accessibility tests
@@ -216,8 +211,8 @@ The recipe configures a local MCP server that runs alongside the session:
 ```go
 session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-    McpServers: map[string]interface{}{
-        "playwright": map[string]interface{}{
+    MCPServers: map[string]copilot.MCPServerConfig{
+        "playwright": {
             "type":    "local",
             "command": "npx",
             "args":    []string{"@playwright/mcp@latest"},
@@ -235,12 +230,10 @@ Unlike `SendAndWait`, this recipe uses streaming for real-time output:
 
 ```go
 session.On(func(event copilot.SessionEvent) {
-    switch event.Type {
-    case "assistant.message.delta":
-        if event.Data.DeltaContent != nil {
-            fmt.Print(*event.Data.DeltaContent)
-        }
-    case "session.idle":
+    switch d := event.Data.(type) {
+    case *copilot.AssistantMessageDeltaData:
+        fmt.Print(d.DeltaContent)
+    case *copilot.SessionIdleData:
         done <- struct{}{}
     }
 })

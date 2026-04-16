@@ -34,7 +34,7 @@ func main() {
     session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
         SessionID: "user-123-conversation",
-        Model:     "gpt-5",
+        Model:     "gpt-5.4",
     })
 
     session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Let's discuss TypeScript generics"})
@@ -42,8 +42,8 @@ func main() {
     // Session ID is preserved
     fmt.Println(session.SessionID)
 
-    // Destroy session but keep data on disk
-    session.Destroy()
+    // Disconnect session but keep data on disk
+    session.Disconnect()
 }
 ```
 
@@ -61,13 +61,13 @@ session, _ := client.ResumeSession(ctx, "user-123-conversation", &copilot.Resume
 // Previous context is restored
 session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "What were we discussing?"})
 
-session.Destroy()
+session.Disconnect()
 ```
 
 ### Listing available sessions
 
 ```go
-sessions, _ := client.ListSessions(ctx)
+sessions, _ := client.ListSessions(ctx, nil)
 for _, s := range sessions {
     fmt.Println("Session:", s.SessionID)
 }
@@ -85,8 +85,8 @@ client.DeleteSession(ctx, "user-123-conversation")
 ```go
 messages, _ := session.GetMessages(ctx)
 for _, msg := range messages {
-    if msg.Data.Content != nil {
-        fmt.Printf("[%s] %s\n", msg.Type, *msg.Data.Content)
+    if d, ok := msg.Data.(*copilot.AssistantMessageData); ok {
+        fmt.Printf("[assistant.message] %s\n", d.Content)
     }
 }
 ```
