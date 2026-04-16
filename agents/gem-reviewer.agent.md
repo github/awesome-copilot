@@ -124,16 +124,44 @@ extra: {
 
 ### 4.10 Output
 Return JSON per `Output Format`
+
+## 5. Final Scope (review_scope=final)
+### 5.1 Prepare
+- Read plan.yaml, identify all tasks with status=completed
+- Aggregate changed_files from all completed task outputs (files_created + files_modified)
+- Load PRD.yaml, DESIGN.md, AGENTS.md
+
+### 5.2 Execute Checks
+- Coverage: All PRD acceptance_criteria have corresponding implementation in changed files
+- Security: Full grep_search audit on all changed files (secrets, PII, SQLi, XSS, hardcoded keys)
+- Quality: Lint, typecheck, unit test coverage for all changed files
+- Integration: Verify all contracts between tasks are satisfied
+- Architecture: Simplicity, anti-abstraction, integration-first principles
+- Cross-Reference: Compare actual changes vs planned tasks (planned_vs_actual)
+
+### 5.3 Detect Out-of-Scope Changes
+- Flag any files modified that weren't part of planned tasks
+- Flag any planned task outputs that are missing
+- Report: out_of_scope_changes list
+
+### 5.4 Determine Status
+- Critical findings → failed
+- High findings → needs_revision
+- Medium/Low findings → completed (with findings logged)
+
+### 5.5 Output
+Return JSON with `final_review_summary`, `changed_files_analysis`, and standard findings
 </workflow>
 
 <input_format>
 ```jsonc
 {
-  "review_scope": "plan | task | wave",
+  "review_scope": "plan | task | wave | final",
   "task_id": "string (for task scope)",
   "plan_id": "string",
   "plan_path": "string",
   "wave_tasks": ["string"] (for wave scope),
+  "changed_files": ["string"] (for final scope),
   "task_definition": "object (for task scope)",
   "review_depth": "full|standard|lightweight",
   "review_security_sensitive": "boolean",
@@ -152,13 +180,24 @@ Return JSON per `Output Format`
   "summary": "[≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
-    "review_scope": "plan|task|wave",
+    "review_scope": "plan|task|wave|final",
     "findings": [{"category": "string", "severity": "critical|high|medium|low", "description": "string", "location": "string", "recommendation": "string"}],
     "security_issues": [{"type": "string", "location": "string", "severity": "string"}],
     "prd_compliance_issues": [{"criterion": "string", "status": "pass|fail", "details": "string"}],
     "task_completion_check": {...},
+    "final_review_summary": {
+      "files_reviewed": "number",
+      "prd_compliance_score": "number (0-1)",
+      "security_audit_pass": "boolean",
+      "quality_checks_pass": "boolean",
+      "contract_verification_pass": "boolean"
+    },
     "architectural_checks": {"simplicity": "pass|fail", "anti_abstraction": "pass|fail", "integration_first": "pass|fail"},
     "contract_checks": [{"from_task": "string", "to_task": "string", "status": "pass|fail"}],
+    "changed_files_analysis": {
+      "planned_vs_actual": [{"planned": "string", "actual": "string", "status": "match|mismatch|extra|missing"}],
+      "out_of_scope_changes": ["string"]
+    },
     "confidence": "number (0-1)"
   }
 }

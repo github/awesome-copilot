@@ -9,7 +9,7 @@
 
 ## 🤔 Why Gem Team?
 
-- ⚡ **10x Faster** — Parallel execution with wave-based execution
+- ⚡ **4x Faster** — Parallel execution with wave-based execution
 - 🏆 **Higher Quality** — Specialized agents + TDD + verification gates + contract-first
 - 🔒 **Built-in Security** — OWASP scanning, secrets/PII detection on critical tasks
 - 👁️ **Full Visibility** — Real-time status, clear approval gates
@@ -27,6 +27,7 @@
 - 📐 **Spec-Driven** — Multi-step refinement defines "what" before "how"
 - 🌊 **Wave-Based** — Parallel agents with integration gates per wave
 - 🗂️ **Verified-Plan** — Complex tasks: Plan → Verificationn → Critic
+- 🔎 **Final Review** — Optional user-triggered comprehensive review of all changed files
 - 🩺 **Diagnose-then-Fix** — gem-debugger diagnoses → gem-implementer fixes → re-verifies
 - ⚠️ **Pre-Mortem** — Failure modes identified BEFORE execution
 - 💬 **Constructive Critique** — gem-critic challenges assumptions, finds edge cases
@@ -48,18 +49,20 @@ copilot plugin install gem-team@awesome-copilot
 
 ## 🔄 Core Workflow
 
-**Phase Flow:** User Goal → Orchestrator → Discuss (medium|complex) → PRD → Research → Planning → Plan Review (medium|complex) → Execution → Review → Summary
+**Phase Flow:** User Goal → Orchestrator → Discuss (medium|complex) → PRD → Research → Planning → Plan Review (medium|complex) → Execution → Summary → [Optional] Final Review
 
 **Error Handling:** Diagnose-then-Fix loop (Debugger → Implementer → Re-verify)
 
 **Orchestrator** auto-detects phase and routes accordingly. Any feedback or steer message is handled to re-plan.
 
-| Condition | → Phase |
-|:----------|:--------|
+| Condition | Phase |
+|:----------|:------|
 | No plan + simple | Research |
 | No plan + medium\|complex | Discuss → PRD → Research |
 | Plan + pending tasks | Execution |
 | Plan + feedback | Planning |
+| Plan + completed → Summary | User decision (feedback / final review / approve) |
+| User requests final review | Final Review (parallel gem-reviewer + gem-critic) |
 
 ---
 
@@ -80,6 +83,7 @@ flowchart
         PLANNING["📝 Planning"]
         EXEC["⚙️ Execution"]
         SUMMARY["📊 Summary"]
+        FINAL["🔎 Final Review"]
     end
 
     DIAG["🔬 Diagnose-then-Fix"]
@@ -97,6 +101,8 @@ flowchart
     EXEC --> |"Failure"| DIAG
     DIAG --> EXEC
     EXEC --> SUMMARY
+    SUMMARY --> |"Review files"| FINAL
+    FINAL --> |"Clean"| SUMMARY
 
     PLANNING -.-> |"critique"| critic
     PLANNING -.-> |"review"| reviewer
