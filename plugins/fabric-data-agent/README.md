@@ -14,30 +14,32 @@ This plugin provides an agent and three skills for managing Fabric Data Agents t
 ## Prerequisites
 
 - Azure CLI (`az login`) for Fabric API authentication
+- [uv](https://docs.astral.sh/uv/) — Python package runner (for the MCP server)
 - Fabric workspace access (Contributor role)
 
 ## Setup — Connect the MCP Server
 
-This plugin requires the **Fabric Data Agent MCP server** to provide the tools Copilot uses. Set it up in 3 steps:
+This plugin requires the **Fabric Data Agent MCP server** to provide the tools Copilot uses.
 
-### 1. Clone the repo
+Add this to your `.vscode/mcp.json`:
 
-```bash
-git clone https://github.com/harigouthami/fabric-copilot-plugins.git
-cd fabric-copilot-plugins/fabric-data-agent-mcp
+```json
+{
+  "servers": {
+    "fabric-data-agent": {
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/harigouthami/fabric-copilot-plugins.git#subdirectory=fabric-data-agent-mcp",
+        "fabric-data-agent-mcp"
+      ]
+    }
+  }
+}
 ```
 
-### 2. Run setup
+Then reload VS Code (`Ctrl+Shift+P` → **"Reload Window"**) — the 20 MCP tools will appear in Copilot Chat.
 
-```powershell
-.\setup.ps1
-```
-
-This installs `uv` (if needed), verifies your Azure CLI login, and configures `.vscode/mcp.json` automatically.
-
-### 3. Reload VS Code
-
-`Ctrl+Shift+P` → **"Reload Window"** — the MCP server tools will appear in Copilot Chat.
+> No cloning or manual installation needed. `uvx` automatically fetches, installs, and runs the MCP server.
 
 ## Example Usage
 
