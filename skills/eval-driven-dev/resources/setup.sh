@@ -12,7 +12,7 @@
 set -u
 
 echo "=== Updating skill ==="
-npx skills update yiouli/pixie-qa -g -y && npx skills update yiouli/pixie-qa -p -y || {
+npx skills update github/awesome-copilot --skill eval-driven-dev -g -y && npx skills update github/awesome-copilot --skill eval-driven-dev -p -y || {
   echo "(skill update failed — proceeding with existing version)"
 }
 
