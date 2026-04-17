@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-17
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -175,6 +175,8 @@ Or from an interactive session:
 /plugin install database-data-management@awesome-copilot
 ```
 
+> **Note**: Installing plugins directly from GitHub repository URLs, raw URLs, or local paths is deprecated. Use marketplace-based installation (`plugin@marketplace`) instead. The `--plugin-dir` flag remains supported for loading local plugins during development without installing them.
+
 ### From VS Code
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
@@ -190,9 +192,14 @@ copilot plugin list
 # Update a plugin to the latest version
 copilot plugin update my-plugin
 
+# Update the plugin catalog (refresh marketplace listings)
+copilot plugin marketplace update
+
 # Remove a plugin
 copilot plugin uninstall my-plugin
 ```
+
+The `copilot plugin marketplace update` command refreshes the plugin catalog from all registered marketplaces, ensuring you see the latest available plugins and versions when browsing or installing.
 
 ### Loading Plugins from a Local Directory
 

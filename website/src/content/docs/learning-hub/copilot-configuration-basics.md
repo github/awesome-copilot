@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-17
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -405,6 +405,14 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+You can also select **`auto`** as your model to let Copilot automatically pick the best available model for each session based on the task at hand:
+
+```
+/model auto
+```
+
+This is useful when you don't want to think about model selection and prefer Copilot to optimize for you.
+
 ### CLI Session Commands
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
@@ -457,6 +465,32 @@ The `/share html` command exports the current session — including conversation
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
 
+The `/ask` command lets you ask a quick question without affecting the main conversation history:
+
+```
+/ask What does the AuthMiddleware class do?
+```
+
+Use `/ask` for quick lookups and exploratory questions you don't want to leave in the permanent session history.
+
+The `/env` command shows all loaded environment details for the current session — including which instruction files, MCP servers, skills, agents, and plugins are active:
+
+```
+/env
+```
+
+This is especially useful for debugging configuration issues and verifying that your agents, skills, and MCP servers are loading correctly.
+
+The `/statusline` command (also available as `/footer`) lets you customize which items appear in the status bar at the bottom of the terminal UI:
+
+```
+/statusline                       # show current status line config
+/statusline directory branch      # show only directory and branch
+/statusline effort context-window # show effort level and context usage
+```
+
+Available items: `directory`, `branch`, `effort`, `context-window`, `quota`. Adjust to keep the status bar focused on what matters most to your workflow.
+
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
 The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
@@ -476,6 +510,59 @@ gh copilot --effort high "Refactor the authentication module"
 ```
 
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+
+### Remote Control
+
+The **remote control** feature lets you monitor and steer an active Copilot CLI session from another terminal or device. This is useful when you start a long-running agent task and want to check in on it or send additional instructions without interrupting the primary session.
+
+Start a session with remote control enabled:
+
+```bash
+copilot --remote
+```
+
+Or enable it from within an active session:
+
+```
+/remote
+```
+
+Connect to an existing session by ID:
+
+```bash
+copilot --connect <session-id>
+```
+
+You can also connect from the `--resume` session picker, which now lists remote-controllable sessions alongside regular sessions. The **Remote** tab in the CLI shows active Copilot coding agent tasks and supports sending steering instructions to them without requiring an open pull request.
+
+> **Note**: Remote control was previously called "steering." The `--remote` flag and `/remote` command replace the older `--steer` / `/steer` naming.
+
+### Attaching Files to Prompts
+
+You can attach supported document files directly to your prompts for the agent to read and reason about:
+
+```
+Summarize this document @/path/to/report.pdf
+```
+
+Attach files using the `@` mention syntax with a file path, or paste them into the prompt. Supported formats include PDFs, Word documents, and other common file types. This lets you give the agent rich external context — spec documents, runbooks, RFCs — without copying and pasting content manually.
+
+### Usage Limit Awareness
+
+Copilot CLI shows warnings as you approach your weekly usage limit:
+
+- **75% warning**: A notice appears when you've used three-quarters of your weekly quota
+- **90% warning**: A more prominent warning appears as you near the limit
+
+These warnings help you pace your usage and avoid unexpected interruptions mid-session. When a session is rate-limited, queued messages are automatically paused and retried once the limit resets rather than being dropped.
+
+### Debugging and Diagnostics
+
+Use the `--print-debug-info` flag to display version, terminal capabilities, and environment variables — useful for troubleshooting or reporting issues:
+
+```bash
+copilot --print-debug-info
+```
 
 ## Common Questions
 
