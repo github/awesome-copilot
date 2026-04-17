@@ -3,7 +3,7 @@ title: '05 · Automate Repetitive Tasks'
 description: 'Mirror the source chapter on skills that load automatically for repeated GitHub Copilot CLI workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-17
 ---
 
 ![Chapter 05: Skills System](/images/learning-hub/copilot-cli-for-beginners/05/chapter-header.png)
@@ -62,7 +62,9 @@ Learn what skills are, why they matter, and how they differ from agents and MCP.
    copilot
    > /skills list
    ```
-   This shows all skills Copilot can find in your project and personal folders.
+   This shows all skills Copilot can find, including any **built-in skills** that ship with the CLI itself, plus skills from your project and personal folders.
+
+   > 💡 **Built-in skills**: The Copilot CLI comes with skills pre-installed out of the box. For example, the `customizing-copilot-cloud-agents-environment` skill provides a guide for customizing the Copilot cloud agent's environment. You don't need to create or install anything to use these. Run `/skills list` to see what's available.
 
 2. **Look at a real skill file:** Check out our provided [code-checklist SKILL.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/skills/code-checklist/SKILL.md) to see the pattern. It's just YAML frontmatter plus markdown instructions.
 
@@ -550,6 +552,12 @@ copilot
 
 > /plugin install <plugin-name>
 # Install a plugin from the marketplace
+```
+
+To keep your local plugin catalog current, refresh it with:
+
+```bash
+copilot plugin marketplace update
 ```
 
 Plugins can bundle multiple capabilities together - a single plugin might include related skills, agents, and MCP server configurations that work together.
