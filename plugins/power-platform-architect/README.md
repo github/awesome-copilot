@@ -1,5 +1,5 @@
 # Power Platform Architect Plugin
-![banner](https://i.imgur.com/BovasUB.png)
+![banner](https://i.imgur.com/rIJLfiL.png)
 A plugin for GitHub Copilot that acts as a **Senior Solution Architect for the Microsoft Power Platform**. Give it business requirements, use case descriptions, or even raw meeting transcripts, and it produces a tailored technical architecture, complete with component recommendations and an optional Mermaid.js diagram.
 
 ## Installation
