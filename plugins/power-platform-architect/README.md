@@ -33,7 +33,6 @@ All you have to do: **give a problem statement**! You can even supply it with a 
 
 The skill covers the full Power Platform ecosystem: **Power Apps** (Canvas, Model-Driven, Code Apps), **Power Pages**, **Copilot Studio**, **Power Automate** (Cloud & Desktop Flows), **AI Builder**, **Dataverse**, **Power BI**, **Connectors**, and **Gateways**.
 
-
 ## Example Prompts
 - *"Review this transcript from our discovery session and tell me how to build it."*
 - *"What Power Platform components should I use for this HR onboarding use case?"*
