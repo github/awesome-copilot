@@ -7,6 +7,7 @@ A plugin for GitHub Copilot that acts as a **Senior Solution Architect for the M
 copilot plugin install power-platform-architect@awesome-copilot
 ```
 
+## Demo
 *Click the image below for a quick demo of this agent skill!*
 
 [![link](https://i.imgur.com/UnImFhl.png)](https://youtu.be/tn4jEpZ6jiw)
