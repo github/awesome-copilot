@@ -84,6 +84,30 @@
       "version": "0.1.0"
     },
     {
+      "name": "copilot-brag-sheet",
+      "description": "Auto-track every Copilot CLI session into a structured work impact log — files edited, PRs created, git actions — with on-demand markdown reports for performance reviews.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/copilot-brag-sheet",
+      "keywords": [
+        "copilot",
+        "work-tracking",
+        "productivity",
+        "brag-sheet",
+        "session-logging",
+        "impact"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/copilot-brag-sheet",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/copilot-brag-sheet"
+      }
+    },
+    {
       "name": "copilot-sdk",
       "source": "copilot-sdk",
       "description": "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.",
