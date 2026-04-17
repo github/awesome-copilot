@@ -165,7 +165,7 @@ without hiring a single new person.
 ```
 
 ## Source
-Created by [Tim Hanewich](https://timh.ai), Senior Solution Engineer at Microsoft.
+Created by [Tim Hanewich](https://timh.ai), Senior AI Solution Engineer at Microsoft.
 
 ## License
 MIT
