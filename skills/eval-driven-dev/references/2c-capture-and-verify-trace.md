@@ -87,7 +87,7 @@ Check that:
 Run `pixie format` to see the data in dataset-entry format:
 
 ```bash
-uv run pixie format <trace-file.jsonl>
+pixie format --input trace.jsonl --output dataset_entry.json
 ```
 
 The output shows:

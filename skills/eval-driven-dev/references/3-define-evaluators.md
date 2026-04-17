@@ -11,7 +11,7 @@
 For each eval criterion, choose an evaluator using this decision order:
 
 1. **Built-in evaluator** — if a standard evaluator fits the criterion (factual correctness → `Factuality`, exact match → `ExactMatch`, RAG faithfulness → `Faithfulness`). See `evaluators.md` for the full catalog.
-2. **Agent evaluator** (`create_agent_evaluator`) — **the default for all semantic, qualitative, and app-specific criteria**. Agent evaluators are graded by you (the coding agent) in Step 5d, where you review each entry's trace and output holistically. This is far more effective than automated scoring for criteria like "Did the extraction accurately capture the source content?", "Are there hallucinated values?", or "Did the app handle noisy input gracefully?"
+2. **Agent evaluator** (`create_agent_evaluator`) — **the default for all semantic, qualitative, and app-specific criteria**. Agent evaluators are graded by you (the coding agent) in Step 6, where you review each entry's trace and output holistically. This is far more effective than automated scoring for criteria like "Did the extraction accurately capture the source content?", "Are there hallucinated values?", or "Did the app handle noisy input gracefully?"
 3. **Manual custom evaluator** — ONLY for **mechanical, deterministic checks** where a programmatic function is definitively correct: field existence, regex pattern matching, JSON schema validation, numeric thresholds, type checking. **Never use manual custom evaluators for semantic quality** — if the check requires _judgment_ about whether content is correct, relevant, or complete, use an agent evaluator instead.
 
 **Distinguish structural from semantic criteria**: For each criterion, ask: "Can this be checked with a simple programmatic rule that always gives the right answer?" If yes → manual custom evaluator. If no → agent evaluator. Most app-specific quality criteria are semantic, not structural.
@@ -26,7 +26,7 @@ If any criterion requires a custom evaluator, implement it now. Place custom eva
 
 ### Agent evaluators (`create_agent_evaluator`) — the default
 
-Use agent evaluators for **all semantic, qualitative, and judgment-based criteria**. These are graded by you (the coding agent) in Step 5d, where you review each entry's trace and output with full context — far more effective than any automated approach for quality dimensions like accuracy, completeness, hallucination detection, or error handling.
+Use agent evaluators for **all semantic, qualitative, and judgment-based criteria**. These are graded by you (the coding agent) in Step 6, where you review each entry's trace and output with full context — far more effective than any automated approach for quality dimensions like accuracy, completeness, hallucination detection, or error handling.
 
 ```python
 from pixie import create_agent_evaluator
@@ -56,9 +56,9 @@ schema_compliance = create_agent_evaluator(
 
 Reference agent evaluators in the dataset via `filepath:callable_name` (e.g., `"pixie_qa/evaluators.py:extraction_accuracy"`).
 
-During `pixie test`, agent evaluators show as `⏳` in the console. They are graded in Step 5d.
+During `pixie test`, agent evaluators show as `⏳` in the console. They are graded in Step 6.
 
-**Writing effective criteria**: The `criteria` string is the grading rubric you'll follow in Step 5d. Make it specific and actionable:
+**Writing effective criteria**: The `criteria` string is the grading rubric you'll follow in Step 6. Make it specific and actionable:
 
 - **Bad**: "Check if the output is good" — too vague to grade consistently
 - **Bad**: "The response should be accurate" — doesn't say what to compare against

@@ -542,7 +542,7 @@ Create an evaluator whose grading is deferred to a coding agent.
 During `pixie test`, agent evaluators are not scored automatically.
 Instead, they raise `AgentEvaluationPending` and record a
 `PendingEvaluation` with the evaluation criteria. The coding agent
-(guided by Step 5d) reviews each entry's trace and output, then
+(guided by Step 6) reviews each entry's trace and output, then
 grades the pending evaluations.
 
 **When to use**: Quality dimensions that require holistic review of

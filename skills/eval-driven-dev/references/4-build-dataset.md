@@ -135,7 +135,7 @@ Then include the captured content in the entry's `eval_input`:
 For each set of `input_data`, run `pixie trace` to execute the app with real dependencies and capture all values:
 
 ```bash
-uv run pixie trace --runnable pixie_qa/run_app.py:AppRunnable --input '{"prompt": "...", "source": "..."}'
+pixie trace --runnable pixie_qa/run_app.py:AppRunnable --input  trace-input.json
 ```
 
 Then extract the `purpose="input"` values from the resulting trace and use them as `eval_input`.
@@ -213,10 +213,12 @@ Before writing the final dataset JSON, perform this self-audit:
 2. **Count distinct sources**: How many unique `eval_input` data sources are in the dataset? If more than 50% of entries share the same `eval_input` content (even with different prompts), the dataset lacks diversity. Prompt variations on the same input test the LLM's interpretation, not the app's data processing.
 
 3. **Difficulty distribution (mandatory threshold)**: For each entry, label it as "routine" (confident it will pass), "moderate" (likely passes but non-trivial), or "challenging" (genuinely uncertain or targeting a known failure mode).
+
    - **Maximum 60% "routine" entries.** If you have 5 entries, at most 3 can be routine.
    - **At least one "challenging" entry** that targets a failure mode from `00-project-analysis.md` where you are genuinely uncertain about the outcome. If every entry is a guaranteed pass, the dataset cannot distinguish a good app from a broken one.
 
 4. **Capability coverage (mandatory threshold)**: Count how many capabilities from `00-project-analysis.md` are exercised by at least one dataset entry.
+
    - **Must cover ≥50% of listed capabilities.** If the analysis lists 6 capabilities, the dataset must exercise at least 3.
    - If coverage is below threshold, add entries targeting the uncovered capabilities.
 

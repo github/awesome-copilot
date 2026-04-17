@@ -21,11 +21,11 @@ processing pipeline. Its behavior depends on the active mode:
 
 ## CLI Commands
 
-| Command                                                                                   | Description                                                                                                                                   |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pixie trace --runnable <filepath:ClassName> --input <kwargs.json> --output <file.jsonl>` | Run the Runnable once with kwargs from the JSON file and write a trace file. `--input` is a **file path** (not inline JSON).                  |
-| `pixie format <file.jsonl>`                                                               | Convert a trace file to a formatted dataset entry template. Shows `input_data`, `eval_input`, and `eval_output` (the real captured output). |
-| `pixie trace filter <file.jsonl> --purpose input`                                         | Print only wrap events matching the given purposes. Outputs one JSON line per matching event.                                                 |
+| Command                                                                                   | Description                                                                                                                                 |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pixie trace --runnable <filepath:ClassName> --input <kwargs.json> --output <file.jsonl>` | Run the Runnable once with kwargs from the JSON file and write a trace file. `--input` is a **file path** (not inline JSON).                |
+| `pixie format --input <trace.jsonl> --output <dataset_entry.json>`                        | Convert a trace file to a formatted dataset entry template. Shows `input_data`, `eval_input`, and `eval_output` (the real captured output). |
+| `pixie trace filter <file.jsonl> --purpose input`                                         | Print only wrap events matching the given purposes. Outputs one JSON line per matching event.                                               |
 
 ---
 
