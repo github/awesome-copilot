@@ -444,7 +444,7 @@
     {
       "name": "power-platform-architect",
       "source": "power-platform-architect",
-      "description": "A plugin for power platform architect.",
+      "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
       "version": "1.0.0"
     },
     {
