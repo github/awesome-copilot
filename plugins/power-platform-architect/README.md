@@ -14,9 +14,9 @@ copilot plugin install power-platform-architect@awesome-copilot
 
 ## What's Included
 ### Skills
-|Skill|Description|
-|-|-|
-|`power-platform-architect`|Generate a functional Power Platform architecture from business requirements|
+| Skill | Description |
+| --- | --- |
+| `power-platform-architect` | Generate a functional Power Platform architecture from business requirements |
 
 ## What It Does
 |Input you give|Output you get|
