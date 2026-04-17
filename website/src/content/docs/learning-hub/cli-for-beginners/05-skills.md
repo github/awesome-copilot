@@ -560,26 +560,9 @@ Pre-made skills are also available from community repositories:
 
 - **[Awesome Copilot](https://github.com/github/awesome-copilot)** - Official GitHub Copilot resources including skills documentation and examples
 
-### Installing a Community Skill with GitHub CLI
-
-The easiest way to install a skill from a GitHub repository is using the `gh skill install` command (requires [GitHub CLI v2.90.0+](https://github.blog/changelog/2026-04-16-manage-agent-skills-with-github-cli/)):
-
-```bash
-# Browse and interactively select a skill from awesome-copilot
-gh skill install github/awesome-copilot
-
-# Or install a specific skill directly
-gh skill install github/awesome-copilot code-checklist
-
-# Install for personal use across all projects (user scope)
-gh skill install github/awesome-copilot code-checklist --scope user
-```
-
-> ⚠️ **Review before installing**: Always read a skill's `SKILL.md` before installing it. Skills control what Copilot does, and a malicious skill could instruct it to run harmful commands or modify code in unexpected ways.
-
 ### Installing a Community Skill Manually
 
-If you prefer to install a skill manually, copy its folder into your skills directory:
+If you find a skill in a GitHub repository, copy its folder into your skills directory:
 
 ```bash
 # Clone the awesome-copilot repository
@@ -591,6 +574,8 @@ cp -r /tmp/awesome-copilot/skills/code-checklist .github/skills/
 # Or for personal use across all projects
 cp -r /tmp/awesome-copilot/skills/code-checklist ~/.copilot/skills/
 ```
+
+> ⚠️ **Review before installing**: Always read a skill's `SKILL.md` before copying it into your project. Skills control what Copilot does, and a malicious skill could instruct it to run harmful commands or modify code in unexpected ways.
 
 ---
 
