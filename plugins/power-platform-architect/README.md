@@ -19,9 +19,9 @@ copilot plugin install power-platform-architect@awesome-copilot
 | `power-platform-architect` | Generate a functional Power Platform architecture from business requirements |
 
 ## What It Does
-|Input you give|Output you get|
-|-|-|
-|Business requirements, use case descriptions, discovery-session transcripts|Component recommendations, a narrative architecture walkthrough, and an optional Mermaid.js architecture diagram|
+| Input you give | Output you get |
+| --- | --- |
+| Business requirements, use case descriptions, discovery-session transcripts | Component recommendations, a narrative architecture walkthrough, and an optional Mermaid.js architecture diagram |
 
 All you have to do: **give a problem statement**! You can even supply it with a meeting transcript in which a problem/need was described:
 
