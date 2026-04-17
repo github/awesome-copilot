@@ -1,0 +1,15 @@
+{
+  "name": "power-platform-architect",
+  "description": "A plugin for power platform architect.",
+  "version": "1.0.0",
+  "keywords": [
+    "power-platform",
+    "power-platform-architect",
+    "Power Platform"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT"
+}
