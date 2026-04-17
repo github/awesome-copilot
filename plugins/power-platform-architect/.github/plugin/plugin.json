@@ -5,12 +5,17 @@
   "keywords": [
     "power-platform",
     "power-platform-architect",
-    "Power Platform"
+    "power-platform",
+    "power-apps",
+    "dataverse",
+    "power-automate",
+    "power-pages",
+    "power-bi"
   ],
   "author": {
     "name": "Tim Hanewich"
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": ["./skills/power-platform-architect"]
+  "skills": ["./skills/power-platform-architect/"]
 }
