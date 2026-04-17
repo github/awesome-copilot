@@ -16,9 +16,9 @@
     "ktor"
   ],
   "agents": [
-    "./agents/kotlin-mcp-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/kotlin-mcp-server-generator/"
+    "./skills/kotlin-mcp-server-generator"
   ]
 }
