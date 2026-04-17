@@ -18,17 +18,6 @@ copilot plugin install power-platform-architect@awesome-copilot
 | --- | --- |
 | `power-platform-architect` | Generate a functional Power Platform architecture from business requirements |
 
-## What It Does
-| Input you give | Output you get |
-| --- | --- |
-| Business requirements, use case descriptions, discovery-session transcripts | Component recommendations, a narrative architecture walkthrough, and an optional Mermaid.js architecture diagram |
-
-All you have to do: **give a problem statement**! You can even supply it with a meeting transcript in which a problem/need was described:
-
-![example](https://i.imgur.com/IH1JsPZ.jpeg)
-
-The skill covers the full Power Platform ecosystem: **Power Apps** (Canvas, Model-Driven, Code Apps), **Power Pages**, **Copilot Studio**, **Power Automate** (Cloud & Desktop Flows), **AI Builder**, **Dataverse**, **Power BI**, **Connectors**, and **Gateways**.
-
 ## How It Works
 The skill guides the agent through a structured, multi-phase process (though the output is presented seamlessly to the user):
 
@@ -37,6 +26,13 @@ The skill guides the agent through a structured, multi-phase process (though the
 3. **Component Recommendation** — Selects only the Power Platform components that serve a real purpose in the solution and explains the role each one plays. It follows a built-in decision framework (e.g., external access → Power Pages, data storage → Dataverse, conversational interface → Copilot Studio).
 4. **Architecture Narrative** — Delivers a business-process-oriented architecture recommendation that tells the "story" of how data flows through the system, which components handle each step, and which user audiences interact at each point.
 5. **Architecture Diagram (Optional)** — On request, generates a Mermaid.js diagram visualizing the architecture, saves it to a `.md` file, and directs the user to [mermaid.ai/live/edit](https://mermaid.ai/live/edit) to render it.
+
+All you have to do: **give a problem statement**! You can even supply it with a meeting transcript in which a problem/need was described:
+
+![example](https://i.imgur.com/IH1JsPZ.jpeg)
+
+The skill covers the full Power Platform ecosystem: **Power Apps** (Canvas, Model-Driven, Code Apps), **Power Pages**, **Copilot Studio**, **Power Automate** (Cloud & Desktop Flows), **AI Builder**, **Dataverse**, **Power BI**, **Connectors**, and **Gateways**.
+
 
 ## Example Prompts
 - *"Review this transcript from our discovery session and tell me how to build it."*
