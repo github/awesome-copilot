@@ -8,8 +8,9 @@
     "Power Platform"
   ],
   "author": {
-    "name": "Awesome Copilot Community"
+    "name": "Tim Hanewich"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "skills": ["./skills/power-platform-architect"]
 }
