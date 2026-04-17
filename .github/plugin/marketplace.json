@@ -346,6 +346,29 @@
       }
     },
     {
+      "name": "modernize-java",
+      "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/modernize-java",
+      "keywords": [
+        "modernization",
+        "upgrade",
+        "migration",
+        "java"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/modernize-java",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/modernize-java",
+        "path": "plugins/modernize-java"
+      }
+    },
+    {
       "name": "napkin",
       "source": "napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",

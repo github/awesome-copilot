@@ -155,5 +155,23 @@
       "source": "github",
       "repo": "microsoft/What-I-Did-Copilot"
     }
+  },
+  {
+    "name": "modernize-java",
+    "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/modernize-java",
+    "keywords": ["modernization", "upgrade", "migration", "java"],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/modernize-java",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/modernize-java",
+      "path": "plugins/modernize-java"
+    }
   }
 ]
