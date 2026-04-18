@@ -1,0 +1,28 @@
+{
+  "name": "project-documenter",
+  "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "documentation",
+    "architecture-diagrams",
+    "drawio",
+    "word-document",
+    "docx",
+    "png-images",
+    "c4-model",
+    "project-summary",
+    "auto-discovery"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/drawio",
+    "./skills/md-to-docx"
+  ]
+}

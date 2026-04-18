@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Dependencies for the Markdown to Word converter skill",
+  "dependencies": {
+    "docx": "^9.6.1",
+    "marked": "^17.0.4"
+  }
+}

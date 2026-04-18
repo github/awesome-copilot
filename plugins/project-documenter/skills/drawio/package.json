@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Dependencies for the draw.io diagram export skill",
+  "dependencies": {
+    "puppeteer-core": "^24.39.1"
+  }
+}

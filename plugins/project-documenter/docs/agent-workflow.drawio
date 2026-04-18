@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" agent="project-documenter" version="24.0.0">
+  <diagram id="doc-agent-workflow" name="Document Agent Workflow">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Project Documenter — Agent Workflow" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=20;fontStyle=1;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="250" y="15" width="600" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- User -->
+        <mxCell id="user" value="User" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=1;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="200" width="60" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Step 1: Discover -->
+        <mxCell id="discover" value="Step 1: Discover&#xa;&#xa;Read README, AGENTS.md&#xa;Detect tech stack&#xa;Map codebase&#xa;Identify patterns" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;arcSize=10;shadow=1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="140" y="80" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Step 2: Diagrams -->
+        <mxCell id="diagrams" value="Step 2: Generate Diagrams&#xa;&#xa;C4 Context (.drawio)&#xa;Pipeline (.drawio)&#xa;Components (.drawio)&#xa;Export to PNG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;arcSize=10;shadow=1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="80" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Step 3: Write Markdown -->
+        <mxCell id="markdown" value="Step 3: Write Markdown&#xa;&#xa;10-section document&#xa;Embed PNG images&#xa;YAML front-matter&#xa;Tables &amp; code blocks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;arcSize=10;shadow=1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="80" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Step 4: Word Doc -->
+        <mxCell id="worddoc" value="Step 4: Word Document&#xa;&#xa;Title page + TOC&#xa;Embed PNG diagrams&#xa;Calibri styling&#xa;Formatted tables" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;arcSize=10;shadow=1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="770" y="80" width="160" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- Step 5: Verify -->
+        <mxCell id="verify" value="Step 5: Verify&#xa;&#xa;Accuracy check&#xa;No secrets&#xa;Report files" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;arcSize=10;shadow=1;fontSize=10;fontStyle=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="980" y="80" width="100" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- User arrow to Discover -->
+        <mxCell id="userArrow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#b85450;strokeWidth=2;" edge="1" parent="1" source="user" target="discover">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Forward arrows -->
+        <mxCell id="a1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="discover" target="diagrams">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="diagrams" target="markdown">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="markdown" target="worddoc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1" source="worddoc" target="verify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Skill boxes -->
+        <mxCell id="drawioSkill" value="drawio skill&#xa;drawio-to-png.mjs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999;strokeWidth=1;dashed=1;dashPattern=4 4;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="365" y="210" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="drawioArrow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#999;strokeWidth=1;dashed=1;" edge="1" parent="1" source="drawioSkill" target="diagrams">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="docxSkill" value="md-to-docx skill&#xa;md-to-docx.mjs" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999;strokeWidth=1;dashed=1;dashPattern=4 4;fontSize=9;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="785" y="210" width="130" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="docxArrow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#999;strokeWidth=1;dashed=1;" edge="1" parent="1" source="docxSkill" target="worddoc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Output files -->
+        <mxCell id="outputContainer" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666;dashed=1;dashPattern=6 4;" vertex="1" parent="1">
+          <mxGeometry x="180" y="300" width="740" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="outputLabel" value="Generated Output" style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontStyle=3;fontColor=#666;" vertex="1" parent="1">
+          <mxGeometry x="190" y="305" width="150" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="outMd" value="project-summary.md&#xa;(Markdown source)" style="shape=document;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=1;size=0.12;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="200" y="335" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="outDrawio" value="*.drawio&#xa;(Editable diagrams)" style="shape=document;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1;size=0.12;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="360" y="335" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="outPng" value="*.drawio.png&#xa;(Rendered images)" style="shape=document;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=1;size=0.12;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="520" y="335" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="outDocx" value="project-summary.docx&#xa;(Word + images)" style="shape=document;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1;size=0.12;fontSize=9;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="335" width="130" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="leg1" value="" style="rounded=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="200" y="440" width="16" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" value="Discovery" style="text;html=1;align=left;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="220" y="436" width="60" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="290" y="440" width="16" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" value="Generation" style="text;html=1;align=left;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="310" y="436" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="390" y="440" width="16" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" value="Word Export" style="text;html=1;align=left;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="410" y="436" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="" style="rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="490" y="440" width="16" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4t" value="Verification" style="text;html=1;align=left;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="510" y="436" width="70" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="" style="rounded=1;fillColor=#f5f5f5;strokeColor=#999;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="590" y="440" width="16" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5t" value="Bundled Skills" style="text;html=1;align=left;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="610" y="436" width="80" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
