@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-18
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -97,7 +97,11 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 
 **args**: Arguments passed to the command. Most MCP servers are distributed as npm packages and can be run with `npx -y`.
 
+**type**: The transport type (`stdio`, `http`, or `sse`). For remote HTTP-based MCP servers, the `type` field can be omitted — it defaults to `http`.
+
 **env**: Environment variables passed to the server process. Use these for connection strings, API keys, and configuration—never hardcode secrets in the JSON file.
+
+> **Tip**: Shell commands and MCP servers automatically receive `COPILOT_AGENT_SESSION_ID` as an environment variable. You can use this to correlate MCP server logs, tool calls, and shell command output back to the specific Copilot session that triggered them.
 
 ### Managing Persistent MCP Configuration via Server RPCs
 
@@ -220,7 +224,21 @@ This enables sophisticated patterns like MCP servers that orchestrate multi-step
 
 > **Note**: Sampling requires explicit user approval every time a server requests inference. This is a security boundary — MCP servers cannot silently consume your AI quota or exfiltrate context without your knowledge.
 
-## Finding MCP Servers
+## Finding and Installing MCP Servers
+
+### Installing from the Registry
+
+The easiest way to add an MCP server is directly from the CLI registry. GitHub Copilot CLI can guide you through the configuration interactively:
+
+```
+/mcp install
+```
+
+This opens a guided flow where you can browse available servers, select one, and Copilot walks you through any required configuration (such as connection strings or API keys). The server is registered persistently so it's available in all future sessions.
+
+This is the recommended approach for common servers — no manual JSON editing required.
+
+### Browsing Available Servers
 
 The MCP ecosystem is growing rapidly. Here are key resources:
 

@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-18
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -391,6 +391,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `sessionIdleTimeout` | Duration of inactivity before a session is automatically closed (disabled by default; configure via `--session-idle-timeout` flag) |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -404,6 +405,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+Select **`auto`** as your model to let Copilot automatically pick the best available model for each session. This is useful when you want Copilot to adapt its model choice based on the task at hand without manually switching.
 
 ### CLI Session Commands
 
@@ -448,6 +451,38 @@ The `/cd` command changes the working directory for the current session. Each se
 ```
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
+
+The `/statusline` command (with `/footer` as an alias) lets you customize which items appear in the status bar at the bottom of the terminal:
+
+```
+/statusline                    # show current status bar configuration
+/statusline directory branch   # show only directory and branch
+/statusline effort context quota  # show effort level, context window, and quota
+```
+
+Available items: `directory`, `branch`, `effort`, `context`, `quota`. This lets you tailor the status bar to show only the information you need.
+
+The `/env` command displays a summary of all currently loaded environment details — instructions, MCP servers, skills, agents, and plugins — making it easy to verify your configuration is loaded correctly, especially in CI pipelines:
+
+```
+/env
+```
+
+This is particularly useful when debugging why an agent, skill, or MCP server is not behaving as expected.
+
+The `/remote` command (or `--remote` flag) lets you remote-control your CLI sessions from another terminal or process:
+
+```
+/remote                  # show current session ID for remote control
+gh copilot --remote <session-id>  # attach to an existing remote session
+gh copilot --connect <session-id> # directly connect to a remote session by ID
+```
+
+You can also use short session ID prefixes (at least 7 hex characters) with `--resume` and `/resume` instead of the full session ID:
+
+```
+/resume abc1234          # resume a session using just the first 7 chars of its ID
+```
 
 The `/share html` command exports the current session — including conversation history and any research reports — as a **self-contained interactive HTML file**:
 

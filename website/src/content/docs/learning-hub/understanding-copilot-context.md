@@ -3,7 +3,7 @@ title: 'Understanding Copilot Context'
 description: 'Learn how GitHub Copilot uses context from your code, workspace, and conversation to generate relevant suggestions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-11-28
+lastUpdated: 2026-04-18
 estimatedReadingTime: '8 minutes'
 tags:
   - context
@@ -123,6 +123,14 @@ GitHub Copilot has a maximum token limit for how much context it can process at 
 4. **Direct dependencies**: Files imported by your current file
 
 Understanding this prioritization helps you optimize which files to keep open and when to use explicit references.
+
+### Attaching Document Files
+
+In GitHub Copilot CLI, you can attach supported document files directly to a prompt for the agent to read and reason about. This is useful for feeding in external context that isn't already in your codebase — for example, API specs, architecture documents, PDFs, or requirements files.
+
+Supported file types include common document formats (PDF, DOCX, etc.) as well as text-based files. When you attach a file, its contents are included in the agent's context for that turn, allowing it to reason about the document alongside your code.
+
+This capability is especially valuable when you want to implement a feature from a spec, review code against a design document, or ask questions about an external reference without manually copying and pasting content.
 
 ## Context Best Practices
 
