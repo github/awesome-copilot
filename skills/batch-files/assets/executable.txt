@@ -74,7 +74,7 @@ call :_makeTempDirMyTool
 :: Validate required input and start execution.
 :: -----------------------------------------------------------------------
 if "%_checkParOneMyTool%"=="--" (
-    echo ERROR: No input specified. Run "%_scriptNameMyTool% /?" for usage.
+    echo ERROR: No input specified. Run "%_scriptNameMyTool% /?" for usage. 1>&2
     goto _removeBatchVariablesMyTool
 )
 
@@ -93,7 +93,7 @@ goto _removeBatchVariablesMyTool
 
     REM Validate input file exists.
     if NOT EXIST "%_parOneMyTool%" (
-        echo ERROR: Input file not found: %_parOneMyTool%
+        echo ERROR: Input file not found: %_parOneMyTool% 1>&2
         goto :eof
     )
 
@@ -121,10 +121,10 @@ goto :eof
 
 :_showHelpMyTool
     echo:
-    for /f "skip=1 tokens=* delims=" %%a in ('findstr /n "^" "%~f0"') do (
+    for /f "skip=1 delims=" %%a in ('findstr /n "^" "%~f0"') do (
         set "_line=%%a"
         setlocal EnableDelayedExpansion
-        set "_lineNum=!_line:~0,2!"
+        for /f "delims=:" %%n in ("!_line!") do set "_lineNum=%%n"
         if !_lineNum! GTR %_helpLinesMyTool% (
             endlocal
             goto :eof
@@ -140,9 +140,11 @@ goto :eof
 goto :eof
 
 :_makeTempDirMyTool
-    set "_tmpDirMyTool=%TEMP%\%~n0"
+    set "_tmpDirMyTool=%TEMP%\%~n0_%RANDOM%%RANDOM%"
+    set "_tmpDirCreatedMyTool=0"
     if NOT EXIST "%_tmpDirMyTool%" (
         mkdir "%_tmpDirMyTool%" >nul 2>nul
+        set "_tmpDirCreatedMyTool=1"
     )
 goto :eof
 
@@ -163,6 +165,7 @@ goto :eof
     set _checkParThreeMyTool=
     REM Append new variables above this line.
 
-    if EXIST "%_tmpDirMyTool%" rmdir /S /Q "%_tmpDirMyTool%" >nul 2>nul
+    if "%_tmpDirCreatedMyTool%"=="1" if EXIST "%_tmpDirMyTool%" rmdir /S /Q "%_tmpDirMyTool%" >nul 2>nul
     set _tmpDirMyTool=
+    set _tmpDirCreatedMyTool=
     exit /b

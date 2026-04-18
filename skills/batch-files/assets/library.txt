@@ -73,24 +73,52 @@ goto :eof
     if not defined _argOneMyLib goto :eof
     setlocal EnableDelayedExpansion
     set "_valMyLib=!%_argOneMyLib%!"
-    for %%c in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
-        set "_valMyLib=!_valMyLib:%%c=%%c!"
-    )
-    REM Note: The for-loop substitution lowercases via cmd's case-insensitive
-    REM replacement when the loop variable %%c is already lowercase at
-    REM expansion time. For a full implementation, use an explicit mapping.
+    set "_valMyLib=!_valMyLib:A=a!"
+    set "_valMyLib=!_valMyLib:B=b!"
+    set "_valMyLib=!_valMyLib:C=c!"
+    set "_valMyLib=!_valMyLib:D=d!"
+    set "_valMyLib=!_valMyLib:E=e!"
+    set "_valMyLib=!_valMyLib:F=f!"
+    set "_valMyLib=!_valMyLib:G=g!"
+    set "_valMyLib=!_valMyLib:H=h!"
+    set "_valMyLib=!_valMyLib:I=i!"
+    set "_valMyLib=!_valMyLib:J=j!"
+    set "_valMyLib=!_valMyLib:K=k!"
+    set "_valMyLib=!_valMyLib:L=l!"
+    set "_valMyLib=!_valMyLib:M=m!"
+    set "_valMyLib=!_valMyLib:N=n!"
+    set "_valMyLib=!_valMyLib:O=o!"
+    set "_valMyLib=!_valMyLib:P=p!"
+    set "_valMyLib=!_valMyLib:Q=q!"
+    set "_valMyLib=!_valMyLib:R=r!"
+    set "_valMyLib=!_valMyLib:S=s!"
+    set "_valMyLib=!_valMyLib:T=t!"
+    set "_valMyLib=!_valMyLib:U=u!"
+    set "_valMyLib=!_valMyLib:V=v!"
+    set "_valMyLib=!_valMyLib:W=w!"
+    set "_valMyLib=!_valMyLib:X=x!"
+    set "_valMyLib=!_valMyLib:Y=y!"
+    set "_valMyLib=!_valMyLib:Z=z!"
     endlocal & set "%_argOneMyLib%=%_valMyLib%"
 goto :eof
 
 :_getTimestampMyLib
     REM Write a YYYY-MM-DD_HH-MM-SS timestamp into the named variable.
     REM   %_argOneMyLib% = name of the output variable.
+    REM NOTE: Uses %DATE% and %TIME% which are locale-dependent. The parsing
+    REM   below assumes US-style format (e.g., "Fri 04/18/2026" or "04/18/2026").
+    REM   Adjust the substring offsets for your locale, or use PowerShell for
+    REM   a locale-independent alternative:
+    REM     for /f %%a in ('powershell -nop -c "Get-Date -F yyyy-MM-dd_HH-mm-ss"') do set "var=%%a"
     if not defined _argOneMyLib goto :eof
     setlocal EnableDelayedExpansion
-    for /f "tokens=2 delims==" %%a in ('wmic os get localdatetime /value') do (
-        set "_dtMyLib=%%a"
-    )
-    set "_stampMyLib=%_dtMyLib:~0,4%-%_dtMyLib:~4,2%-%_dtMyLib:~6,2%_%_dtMyLib:~8,2%-%_dtMyLib:~10,2%-%_dtMyLib:~12,2%"
+    REM Parse date — strip leading day name if present (e.g., "Fri ").
+    set "_dtMyLib=%DATE%"
+    if "!_dtMyLib:~3,1!"==" " set "_dtMyLib=!_dtMyLib:~4!"
+    set "_stampMyLib=!_dtMyLib:~6,4!-!_dtMyLib:~0,2!-!_dtMyLib:~3,2!"
+    REM Parse time — replace leading space with 0 for single-digit hours.
+    set "_tmMyLib=%TIME: =0%"
+    set "_stampMyLib=!_stampMyLib!_!_tmMyLib:~0,2!-!_tmMyLib:~3,2!-!_tmMyLib:~6,2!"
     endlocal & set "%_argOneMyLib%=%_stampMyLib%"
 goto :eof
 
@@ -98,12 +126,13 @@ goto :eof
     REM Write a timestamped log line to stdout.
     REM   %_argOneMyLib% = level (INFO, WARN, ERROR)
     REM   %_argTwoMyLib% = message text
+    REM NOTE: Uses %DATE% and %TIME% (locale-dependent). See :_getTimestampMyLib.
     setlocal EnableDelayedExpansion
-    for /f "tokens=2 delims==" %%a in ('wmic os get localdatetime /value') do (
-        set "_dtMyLib=%%a"
-    )
-    set "_tsMyLib=%_dtMyLib:~0,4%-%_dtMyLib:~4,2%-%_dtMyLib:~6,2% %_dtMyLib:~8,2%:%_dtMyLib:~10,2%:%_dtMyLib:~12,2%"
-    echo [%_tsMyLib%] [%_argOneMyLib%] %_argTwoMyLib%
+    set "_dtMyLib=%DATE%"
+    if "!_dtMyLib:~3,1!"==" " set "_dtMyLib=!_dtMyLib:~4!"
+    set "_tmMyLib=%TIME: =0%"
+    set "_tsMyLib=!_dtMyLib:~6,4!-!_dtMyLib:~0,2!-!_dtMyLib:~3,2! !_tmMyLib:~0,2!:!_tmMyLib:~3,2!:!_tmMyLib:~6,2!"
+    echo [!_tsMyLib!] [%_argOneMyLib%] %_argTwoMyLib%
     endlocal
 goto :eof
 
@@ -127,10 +156,10 @@ goto :eof
 
 :_showHelpMyLib
     echo:
-    for /f "skip=1 tokens=* delims=" %%a in ('findstr /n "^" "%~f0"') do (
+    for /f "skip=1 delims=" %%a in ('findstr /n "^" "%~f0"') do (
         set "_line=%%a"
         setlocal EnableDelayedExpansion
-        set "_lineNum=!_line:~0,2!"
+        for /f "delims=:" %%n in ("!_line!") do set "_lineNum=%%n"
         if !_lineNum! GTR %_helpLinesMyLib% (
             endlocal
             goto :eof

@@ -1,12 +1,6 @@
 ---
 name: batch-files
-description: >
-  Expert-level Windows batch file (.bat/.cmd) skill for writing, debugging, and
-  maintaining CMD scripts. Use when asked to "create a batch file", "write a
-  .bat script", "automate a Windows task", "CMD scripting", "batch automation",
-  "scheduled task script", "Windows shell script", or when working with .bat/.cmd
-  files in the workspace. Covers cmd.exe syntax, environment variables, control
-  flow, string processing, error handling, and integration with system tools.
+description: 'Expert-level Windows batch file (.bat/.cmd) skill for writing, debugging, and maintaining CMD scripts. Use when asked to "create a batch file", "write a .bat script", "automate a Windows task", "CMD scripting", "batch automation", "scheduled task script", "Windows shell script", or when working with .bat/.cmd files in the workspace. Covers cmd.exe syntax, environment variables, control flow, string processing, error handling, and integration with system tools.'
 ---
 
 # Batch Files
@@ -551,10 +545,10 @@ The `references/` folder contains detailed documentation:
 
 ## Asset Templates
 
-The `assets/` folder contains starter batch file templates:
+The `assets/` folder contains starter batch file template data, but as text files:
 
 | Template | Purpose |
 |----------|---------|
-| `executable.bat` | Standalone CLI tool with argument parsing |
-| `library.bat` | Reusable function library with CALL-able labels |
-| `task.bat` | Scheduled task / automation script |
+| `executable.txt` | Standalone CLI tool with argument parsing |
+| `library.txt` | Reusable function library with CALL-able labels |
+| `task.txt` | Scheduled task / automation script |
