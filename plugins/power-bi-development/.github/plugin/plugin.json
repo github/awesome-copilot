@@ -6,5 +6,24 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "power-bi",
+    "dax",
+    "data-modeling",
+    "performance",
+    "visualization",
+    "security",
+    "devops",
+    "business-intelligence"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/power-bi-dax-optimization",
+    "./skills/power-bi-model-design-review",
+    "./skills/power-bi-performance-troubleshooting",
+    "./skills/power-bi-report-design-consultation"
+  ]
 }

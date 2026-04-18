@@ -1,44 +1,40 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/github/copilot-sdk/go"
+	copilot "github.com/github/copilot-sdk/go"
 )
 
 func main() {
-	client := copilot.NewClient()
+	ctx := context.Background()
+	client := copilot.NewClient(nil)
 
-	if err := client.Start(); err != nil {
+	if err := client.Start(ctx); err != nil {
 		log.Fatalf("Failed to start client: %v", err)
 	}
-	defer func() {
-		if err := client.Stop(); err != nil {
-			log.Printf("Error stopping client: %v", err)
-		}
-	}()
+	defer client.Stop()
 
-	session, err := client.CreateSession(copilot.SessionConfig{
-		Model: "gpt-5",
+	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+		Model:               "gpt-5.4",
 	})
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
 	}
-	defer session.Destroy()
+	defer session.Disconnect()
 
-	responseChan := make(chan string, 1)
-	session.On(func(event copilot.Event) {
-		if msg, ok := event.(copilot.AssistantMessageEvent); ok {
-			responseChan <- msg.Data.Content
-		}
-	})
-
-	if err := session.Send(copilot.MessageOptions{Prompt: "Hello!"}); err != nil {
+	result, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Hello!"})
+	if err != nil {
 		log.Printf("Failed to send message: %v", err)
 		return
 	}
 
-	response := <-responseChan
-	fmt.Println(response)
+	if result != nil {
+		if d, ok := result.Data.(*copilot.AssistantMessageData); ok {
+			fmt.Println(d.Content)
+		}
+	}
 }

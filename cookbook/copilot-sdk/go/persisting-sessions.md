@@ -19,51 +19,55 @@ You want users to be able to continue a conversation even after closing and reop
 package main
 
 import (
+    "context"
     "fmt"
-    "github.com/github/copilot-sdk/go"
+    copilot "github.com/github/copilot-sdk/go"
 )
 
 func main() {
-    client := copilot.NewClient()
-    client.Start()
+    ctx := context.Background()
+    client := copilot.NewClient(nil)
+    client.Start(ctx)
     defer client.Stop()
 
     // Create session with a memorable ID
-    session, _ := client.CreateSession(copilot.SessionConfig{
+    session, _ := client.CreateSession(ctx, &copilot.SessionConfig{
+    	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
         SessionID: "user-123-conversation",
-        Model:     "gpt-5",
+        Model:     "gpt-5.4",
     })
 
-    session.Send(copilot.MessageOptions{Prompt: "Let's discuss TypeScript generics"})
+    session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Let's discuss TypeScript generics"})
 
     // Session ID is preserved
     fmt.Println(session.SessionID)
 
-    // Destroy session but keep data on disk
-    session.Destroy()
+    // Disconnect session but keep data on disk
+    session.Disconnect()
 }
 ```
 
 ### Resuming a session
 
 ```go
-client := copilot.NewClient()
-client.Start()
+ctx := context.Background()
+client := copilot.NewClient(nil)
+client.Start(ctx)
 defer client.Stop()
 
 // Resume the previous session
-session, _ := client.ResumeSession("user-123-conversation")
+session, _ := client.ResumeSession(ctx, "user-123-conversation", &copilot.ResumeSessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
 
 // Previous context is restored
-session.Send(copilot.MessageOptions{Prompt: "What were we discussing?"})
+session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "What were we discussing?"})
 
-session.Destroy()
+session.Disconnect()
 ```
 
 ### Listing available sessions
 
 ```go
-sessions, _ := client.ListSessions()
+sessions, _ := client.ListSessions(ctx, nil)
 for _, s := range sessions {
     fmt.Println("Session:", s.SessionID)
 }
@@ -73,15 +77,17 @@ for _, s := range sessions {
 
 ```go
 // Remove session and all its data from disk
-client.DeleteSession("user-123-conversation")
+client.DeleteSession(ctx, "user-123-conversation")
 ```
 
 ### Getting session history
 
 ```go
-messages, _ := session.GetMessages()
+messages, _ := session.GetMessages(ctx)
 for _, msg := range messages {
-    fmt.Printf("[%s] %v\n", msg.Type, msg.Data)
+    if d, ok := msg.Data.(*copilot.AssistantMessageData); ok {
+        fmt.Printf("[assistant.message] %s\n", d.Content)
+    }
 }
 ```
 

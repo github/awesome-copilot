@@ -6,5 +6,18 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "security",
+    "accessibility",
+    "performance",
+    "code-quality",
+    "owasp",
+    "a11y",
+    "optimization",
+    "best-practices"
+  ],
+  "skills": [
+    "./skills/ai-prompt-engineering-safety-review"
+  ]
 }

@@ -1,1 +1,0 @@
-../../../prompts/azure-resource-health-diagnose.prompt.md

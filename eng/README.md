@@ -1,6 +1,30 @@
 # Contributor Reporting (Maintainers) 🚧
 
-This directory contains a lightweight helper to generate human-readable reports about missing contributors.
+This directory contains build scripts and utilities for maintaining the repository.
+
+## Build Scripts
+
+### `update-readme.mjs`
+Generates the main README.md and documentation files from the repository content (agents, prompts, instructions, skills, hooks, collections).
+
+### `generate-marketplace.mjs`
+Automatically generates `.github/plugin/marketplace.json` from all plugin directories in the `plugins/` folder. This file is used by the GitHub Copilot CLI to discover and install plugins from this repository.
+
+**How it works:**
+- Scans all directories in `plugins/`
+- Reads each plugin's `.github/plugin/plugin.json` for metadata
+- Generates a consolidated `marketplace.json` with all available plugins
+- Runs automatically as part of `npm run build`
+
+**To run manually:**
+```bash
+npm run plugin:generate-marketplace
+```
+
+### `generate-website-data.mjs`
+Generates JSON data files for the website from repository content.
+
+## Contributor Tools
 
 - `contributor-report.mjs` — generates a markdown report of merged PRs for missing contributors (includes shared helpers).
 - `add-missing-contributors.mjs` — on-demand maintainer script to automatically add missing contributors to `.all-contributorsrc` (infers contribution types from merged PR files, then runs the all-contributors CLI).

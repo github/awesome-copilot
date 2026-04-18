@@ -6,5 +6,18 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "python",
+    "mcp",
+    "model-context-protocol",
+    "fastmcp",
+    "server-development"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/python-mcp-server-generator"
+  ]
 }

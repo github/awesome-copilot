@@ -6,5 +6,18 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "team",
+    "enterprise",
+    "security",
+    "devops",
+    "ux",
+    "architecture",
+    "product",
+    "ai-ethics"
+  ],
+  "agents": [
+    "./agents"
+  ]
 }

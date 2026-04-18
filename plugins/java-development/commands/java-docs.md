@@ -1,1 +1,0 @@
-../../../prompts/java-docs.prompt.md

@@ -6,5 +6,19 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "copilot-sdk",
+    "sdk",
+    "csharp",
+    "go",
+    "nodejs",
+    "typescript",
+    "python",
+    "ai",
+    "github-copilot"
+  ],
+  "skills": [
+    "./skills/copilot-sdk"
+  ]
 }

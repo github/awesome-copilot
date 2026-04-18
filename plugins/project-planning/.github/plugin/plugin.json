@@ -6,5 +6,28 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "planning",
+    "project-management",
+    "epic",
+    "feature",
+    "implementation",
+    "task",
+    "architecture",
+    "technical-spike"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/breakdown-feature-implementation",
+    "./skills/breakdown-feature-prd",
+    "./skills/breakdown-epic-arch",
+    "./skills/breakdown-epic-pm",
+    "./skills/create-implementation-plan",
+    "./skills/update-implementation-plan",
+    "./skills/create-github-issues-feature-from-implementation-plan",
+    "./skills/create-technical-spike"
+  ]
 }

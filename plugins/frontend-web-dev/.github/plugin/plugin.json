@@ -6,5 +6,23 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "frontend",
+    "web",
+    "react",
+    "typescript",
+    "javascript",
+    "css",
+    "html",
+    "angular",
+    "vue"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/playwright-explore-website",
+    "./skills/playwright-generate-test"
+  ]
 }

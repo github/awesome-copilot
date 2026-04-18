@@ -6,5 +6,21 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "m365-copilot",
+    "declarative-agents",
+    "api-plugins",
+    "model-context-protocol",
+    "adaptive-cards"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/mcp-create-declarative-agent",
+    "./skills/mcp-create-adaptive-cards",
+    "./skills/mcp-deploy-manage-agents"
+  ]
 }

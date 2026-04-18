@@ -6,5 +6,18 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "devops",
+    "incident-response",
+    "oncall",
+    "azure"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/azure-resource-health-diagnose",
+    "./skills/multi-stage-dockerfile"
+  ]
 }

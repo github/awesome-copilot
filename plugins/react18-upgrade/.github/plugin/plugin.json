@@ -1,0 +1,31 @@
+{
+  "name": "react18-upgrade",
+  "description": "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian.",
+  "version": "1.0.0",
+  "keywords": [
+    "react18",
+    "react",
+    "migration",
+    "upgrade",
+    "class-components",
+    "lifecycle",
+    "batching"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/react-audit-grep-patterns",
+    "./skills/react18-batching-patterns",
+    "./skills/react18-dep-compatibility",
+    "./skills/react18-enzyme-to-rtl",
+    "./skills/react18-legacy-context",
+    "./skills/react18-lifecycle-patterns",
+    "./skills/react18-string-refs"
+  ]
+}

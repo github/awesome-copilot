@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "context-matic": {
+      "url": "https://chatbotapi.apimatic.io/mcp/plugins",
+      "headers": {
+        "X-Apimatic-Mcp-Client": "VsCode"
+      }
+    }
+  }
+}

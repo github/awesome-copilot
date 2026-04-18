@@ -1,10 +1,25 @@
 {
   "name": "awesome-copilot",
-  "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, collections, instructions, prompts, and skills.",
-  "version": "1.0.0",
+  "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
+  "version": "1.1.0",
   "author": {
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "github-copilot",
+    "discovery",
+    "meta",
+    "prompt-engineering",
+    "agents"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/suggest-awesome-github-copilot-skills",
+    "./skills/suggest-awesome-github-copilot-instructions",
+    "./skills/suggest-awesome-github-copilot-agents"
+  ]
 }

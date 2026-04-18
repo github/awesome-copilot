@@ -1,0 +1,49 @@
+# Default owner for everything
+* @aaronpowell
+
+# Adding Dan Wahlin as the owner for the CLI for Beginners content and images
+/website/src/content/docs/learning-hub/cli-for-beginners/ @DanWahlin
+/website/src/images/cli-for-beginners/ @DanWahlin
+
+# Agentic Workflows
+/workflows/ @brunoborges
+/.github/workflows/validate-agentic-workflows-pr.yml @brunoborges
+
+# Added via #codeowner from PR #930
+/plugins/automate-this/ @dvelton
+/skills/automate-this/ @dvelton
+
+# Added via #codeowner from PR #915
+/skills/cli-mastery/ @DUBSOpenHub
+
+# Added via #codeowner from PR #929
+/plugins/napkin/ @dvelton
+/skills/napkin/ @dvelton
+
+# Added via #codeowner from PR #888
+/skills/github-issues/ @labudis
+
+# Added via #codeowner from PR #884
+/skills/github-issues/ @labudis
+
+# Added via #codeowner from PR #889
+/skills/copilot-spaces/ @labudis
+
+# Added via #codeowner from PR #978
+/agents/doublecheck.agent.md @dvelton
+/plugins/doublecheck/ @dvelton
+/skills/doublecheck/ @dvelton
+
+# Added via #codeowner from PR #990
+/skills/issue-fields-migration/ @labudis
+
+# Added via #codeowner from PR #1009
+/skills/publish-to-pages/ @AndreaGriffiths11
+
+# Added via #codeowner from PR #1049
+/skills/codeql/ @VeVarunSharma
+/skills/dependabot/ @VeVarunSharma
+/skills/secret-scanning/ @VeVarunSharma
+
+# Added via #codeowner from PR #1118
+/agents/github-actions-node-upgrade.agent.md @joshjohanning

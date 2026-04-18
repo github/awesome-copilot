@@ -6,5 +6,19 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "go",
+    "golang",
+    "mcp",
+    "model-context-protocol",
+    "server-development",
+    "sdk"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/go-mcp-server-generator"
+  ]
 }

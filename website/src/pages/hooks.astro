@@ -1,0 +1,60 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import PageHeader from '../components/PageHeader.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import BackToTop from '../components/BackToTop.astro';
+import hooksData from '../../public/data/hooks.json';
+import { renderHooksHtml, sortHooks } from '../scripts/pages/hooks-render';
+
+const initialItems = sortHooks(hooksData.items, 'title');
+---
+
+<StarlightPage frontmatter={{ title: 'Hooks', description: 'Automated workflows triggered by Copilot coding agent events', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <div id="main-content">
+    <PageHeader title="Hooks" description="Automated workflows triggered by Copilot coding agent events" icon="hook" />
+
+    <div class="page-content">
+      <div class="container">
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search hooks</label>
+            <input type="text" id="search-input" placeholder="Search hooks..." autocomplete="off">
+          </div>
+
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-hook">Hook Event:</label>
+              <select id="filter-hook" multiple aria-label="Filter by hook event"></select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-tag">Tag:</label>
+              <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+            </div>
+            <div class="filter-group">
+              <label for="sort-select">Sort:</label>
+              <select id="sort-select" aria-label="Sort by">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently Updated</option>
+              </select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} hooks</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderHooksHtml(initialItems)}></div>
+        <ContributeCTA resourceType="hooks" />
+      </div>
+    </div>
+  </div>
+
+  <Modal />
+  <BackToTop />
+
+  <EmbeddedPageData filename="hooks.json" data={hooksData} />
+  <script>
+    import '../scripts/pages/hooks';
+  </script>
+</StarlightPage>

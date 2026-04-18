@@ -1,0 +1,167 @@
+name: Check Plugin Structure
+
+on:
+  pull_request:
+    branches: [staged]
+    paths:
+      - "plugins/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  check-materialized-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Check for materialized files in plugin directories
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const pluginsDir = 'plugins';
+            const errors = [];
+
+            function findSymlinks(rootDir) {
+              const symlinks = [];
+              const dirsToScan = [rootDir];
+
+              while (dirsToScan.length > 0) {
+                const currentDir = dirsToScan.pop();
+                let entries;
+
+                try {
+                  entries = fs.readdirSync(currentDir, { withFileTypes: true });
+                } catch (error) {
+                  throw new Error(`Failed to read directory "${currentDir}": ${error.message}`);
+                }
+
+                for (const entry of entries) {
+                  const entryPath = path.join(currentDir, entry.name);
+                  let stat;
+
+                  try {
+                    stat = fs.lstatSync(entryPath);
+                  } catch (error) {
+                    throw new Error(`Failed to inspect "${entryPath}": ${error.message}`);
+                  }
+
+                  if (stat.isSymbolicLink()) {
+                    symlinks.push(entryPath);
+                    continue;
+                  }
+
+                  if (stat.isDirectory()) {
+                    dirsToScan.push(entryPath);
+                  }
+                }
+              }
+
+              return symlinks;
+            }
+
+            if (!fs.existsSync(pluginsDir)) {
+              console.log('No plugins directory found');
+              return;
+            }
+
+            const pluginDirs = fs.readdirSync(pluginsDir, { withFileTypes: true })
+              .filter(d => d.isDirectory())
+              .map(d => d.name);
+
+            for (const plugin of pluginDirs) {
+              const pluginPath = path.join(pluginsDir, plugin);
+
+              // Check for materialized agent/command/skill files
+              for (const subdir of ['agents', 'commands', 'skills']) {
+                const subdirPath = path.join(pluginPath, subdir);
+                if (!fs.existsSync(subdirPath)) continue;
+
+                const stat = fs.lstatSync(subdirPath);
+                if (stat.isSymbolicLink()) {
+                  errors.push(`${pluginPath}/${subdir} is a symlink — symlinks should not exist in plugin directories`);
+                  continue;
+                }
+
+                if (stat.isDirectory()) {
+                  const files = fs.readdirSync(subdirPath);
+                  if (files.length > 0) {
+                    errors.push(
+                      `${pluginPath}/${subdir}/ contains ${files.length} file(s): ${files.join(', ')}. ` +
+                      `Plugin directories on staged should only contain .github/plugin/plugin.json and README.md. ` +
+                      `Agent, command, and skill files are materialized automatically during publish to main.`
+                    );
+                  }
+                }
+              }
+
+              // Check for symlinks anywhere in the plugin directory without invoking a shell
+              try {
+                const symlinkPaths = findSymlinks(pluginPath);
+                if (symlinkPaths.length > 0) {
+                  const formattedPaths = symlinkPaths.map(filePath => `\`${filePath}\``).join(', ');
+                  errors.push(`${pluginPath} contains symlinks: ${formattedPaths}`);
+                }
+              } catch (error) {
+                errors.push(`Failed to inspect ${pluginPath} for symlinks: ${error.message}`);
+              }
+            }
+
+            if (errors.length > 0) {
+              const prBranch = context.payload.pull_request.head.ref;
+              const prRepo = context.payload.pull_request.head.repo.full_name;
+              const isFork = context.payload.pull_request.head.repo.fork;
+
+              const body = [
+                '⚠️ **Materialized files or symlinks detected in plugin directories**',
+                '',
+                'Plugin directories on the `staged` branch should only contain:',
+                '- `.github/plugin/plugin.json` (metadata)',
+                '- `README.md`',
+                '',
+                'Agent, command, and skill files are copied in automatically when publishing to `main`.',
+                '',
+                '**Issues found:**',
+                ...errors.map(e => `- ${e}`),
+                '',
+                '---',
+                '',
+                '### How to fix',
+                '',
+                'It looks like your branch may be based on `main` (which contains materialized files). Here are two options:',
+                '',
+                '**Option 1: Rebase onto `staged`** (recommended if you have few commits)',
+                '```bash',
+                `git fetch origin staged`,
+                `git rebase --onto origin/staged origin/main ${prBranch}`,
+                `git push --force-with-lease`,
+                '```',
+                '',
+                '**Option 2: Remove the extra files manually**',
+                '```bash',
+                '# Remove materialized files from plugin directories',
+                'find plugins/ -mindepth 2 -maxdepth 2 -type d \\( -name agents -o -name commands -o -name skills \\) -exec rm -rf {} +',
+                '# Remove any symlinks',
+                'find plugins/ -type l -delete',
+                'git add -A && git commit -m "fix: remove materialized plugin files"',
+                'git push',
+                '```',
+              ].join('\n');
+
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'REQUEST_CHANGES',
+                body
+              });
+
+              core.setFailed('Plugin directories contain materialized files or symlinks that should not be on staged');
+            } else {
+              console.log('✅ All plugin directories are clean');
+            }

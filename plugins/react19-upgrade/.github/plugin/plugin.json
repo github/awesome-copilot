@@ -1,0 +1,26 @@
+{
+  "name": "react19-upgrade",
+  "description": "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more.",
+  "version": "1.0.0",
+  "keywords": [
+    "react19",
+    "react",
+    "migration",
+    "upgrade",
+    "hooks",
+    "modern-react"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/react19-concurrent-patterns",
+    "./skills/react19-source-patterns",
+    "./skills/react19-test-patterns"
+  ]
+}

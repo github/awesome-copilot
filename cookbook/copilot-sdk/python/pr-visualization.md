@@ -38,10 +38,18 @@ python pr_visualization.py --repo github/copilot-sdk
 ```python
 #!/usr/bin/env python3
 
+import asyncio
 import subprocess
 import sys
 import os
-from copilot import CopilotClient
+import re
+from copilot import (
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
+    SessionEvent,
+    PermissionHandler,
+)
 
 # ============================================================================
 # Git & GitHub Detection
@@ -69,7 +77,6 @@ def get_github_remote():
         remote_url = result.stdout.strip()
 
         # Handle SSH: git@github.com:owner/repo.git
-        import re
         ssh_match = re.search(r"git@github\.com:(.+/.+?)(?:\.git)?$", remote_url)
         if ssh_match:
             return ssh_match.group(1)
@@ -98,7 +105,7 @@ def prompt_for_repo():
 # Main Application
 # ============================================================================
 
-def main():
+async def main():
     print("🔍 PR Age Chart Generator\n")
 
     # Determine the repository
@@ -126,11 +133,11 @@ def main():
 
     owner, repo_name = repo.split("/", 1)
 
-    # Create Copilot client - no custom tools needed!
-    client = CopilotClient(log_level="error")
-    client.start()
+    # Create Copilot client
+    client = CopilotClient()
+    await client.start()
 
-    session = client.create_session(
+    session = await client.create_session(SessionConfig(
         model="gpt-5",
         system_message={
             "content": f"""
@@ -146,31 +153,35 @@ The current working directory is: {os.getcwd()}
 - Be concise in your responses
 </instructions>
 """
-        }
-    )
+        },
+        on_permission_request=PermissionHandler.approve_all))
+
+    done = asyncio.Event()
 
     # Set up event handling
-    def handle_event(event):
-        if event["type"] == "assistant.message":
-            print(f"\n🤖 {event['data']['content']}\n")
-        elif event["type"] == "tool.execution_start":
-            print(f"  ⚙️  {event['data']['toolName']}")
+    def handle_event(event: SessionEvent):
+        if event.type.value == "assistant.message":
+            print(f"\n🤖 {event.data.content}\n")
+        elif event.type.value == "tool.execution_start":
+            print(f"  ⚙️  {event.data.tool_name}")
+        elif event.type.value == "session.idle":
+            done.set()
 
     session.on(handle_event)
 
     # Initial prompt - let Copilot figure out the details
     print("\n📊 Starting analysis...\n")
 
-    session.send(prompt=f"""
+    await session.send(MessageOptions(prompt=f"""
       Fetch the open pull requests for {owner}/{repo_name} from the last week.
       Calculate the age of each PR in days.
       Then generate a bar chart image showing the distribution of PR ages
       (group them into sensible buckets like <1 day, 1-3 days, etc.).
       Save the chart as "pr-age-chart.png" in the current directory.
       Finally, summarize the PR health - average age, oldest PR, and how many might be considered stale.
-    """)
+    """))
 
-    session.wait_for_idle()
+    await done.wait()
 
     # Interactive loop
     print("\n💡 Ask follow-up questions or type \"exit\" to quit.\n")
@@ -189,14 +200,15 @@ The current working directory is: {os.getcwd()}
             break
 
         if user_input:
-            session.send(prompt=user_input)
-            session.wait_for_idle()
+            done.clear()
+            await session.send(MessageOptions(prompt=user_input))
+            await done.wait()
 
-    session.destroy()
-    client.stop()
+    await session.destroy()
+    await client.stop()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
 ```
 
 ## How it works

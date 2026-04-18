@@ -88,7 +88,40 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "external": {
+                  "type": "boolean",
+                  "description": "Whether this recipe links to an external repository",
+                  "default": false
+                },
+                "url": {
+                  "type": "string",
+                  "description": "URL to the external repository or project (required when external is true)",
+                  "format": "uri"
+                },
+                "author": {
+                  "type": "object",
+                  "description": "Author information for external recipes",
+                  "required": ["name"],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Author display name or GitHub username"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "Author profile URL",
+                      "format": "uri"
+                    }
+                  }
                 }
+              },
+              "if": {
+                "properties": { "external": { "const": true } },
+                "required": ["external"]
+              },
+              "then": {
+                "required": ["url"]
               }
             }
           }

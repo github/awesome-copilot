@@ -1,0 +1,83 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import pluginsData from '../../public/data/plugins.json';
+import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
+import { renderPluginsHtml } from '../scripts/pages/plugins-render';
+
+const initialItems = pluginsData.items;
+---
+
+<StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <div id="main-content">
+    <PageHeader title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" icon="plug" />
+
+    <div class="page-content">
+      <div class="container">
+        <div class="how-to-access">
+          <p><strong>Awesome Copilot is a default plugin marketplace</strong> — no setup required. Access it directly from your tools:</p>
+          <ul>
+            <li><strong>GitHub Copilot CLI</strong>: Type <code>/plugin marketplace browse awesome-copilot</code> in a Copilot session</li>
+            <li><strong>VS Code</strong>: Type <code>@agentPlugins</code> in the Extensions search view, or open the Command Palette and run <code>Chat: Plugins</code></li>
+          </ul>
+          <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+        </div>
+
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search plugins</label>
+            <input type="text" id="search-input" placeholder="Search plugins..." autocomplete="off">
+          </div>
+
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-tag">Tag:</label>
+              <select id="filter-tag" multiple aria-label="Filter by tag"></select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} plugins</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderPluginsHtml(initialItems)}></div>
+        <ContributeCTA resourceType="plugins" />
+      </div>
+    </div>
+  </div>
+
+  <Modal />
+  <BackToTop />
+  <EmbeddedPageData filename="plugins.json" data={pluginsData} />
+
+  <script>
+    import '../scripts/pages/plugins';
+  </script>
+
+  <style>
+    .how-to-access {
+      background: var(--sl-color-bg-nav);
+      border: 1px solid var(--sl-color-hairline);
+      border-radius: 0.5rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .how-to-access p { margin: 0 0 0.5rem; }
+    .how-to-access p:last-child { margin-bottom: 0; }
+    .how-to-access ul {
+      margin: 0.25rem 0 0.5rem 1.25rem;
+      padding: 0;
+    }
+    .how-to-access li { margin: 0.2rem 0; }
+    .how-to-access code {
+      background: var(--sl-color-bg-inline-code);
+      padding: 0.1em 0.35em;
+      border-radius: 0.2rem;
+      font-size: 0.85em;
+    }
+  </style>
+</StarlightPage>

@@ -1,0 +1,20 @@
+{
+  "name": "rug-agentic-workflow",
+  "description": "Three-agent workflow for orchestrated software delivery with an orchestrator plus implementation and QA subagents.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "agentic-workflow",
+    "orchestration",
+    "subagents",
+    "software-engineering",
+    "qa"
+  ],
+  "agents": [
+    "./agents"
+  ]
+}

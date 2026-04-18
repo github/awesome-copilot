@@ -1,0 +1,25 @@
+{
+  "name": "context-matic",
+  "description": "ContextMatic turns your AI agents from API-guessers into API-experts. By feeding agents exact, version-aware SDK methods and typed models for providers like PayPal, Spotify, and Twilio, ContextMatic replaces guesswork and outdated training data with high-fidelity ground truth. This eliminates hallucinations and broken code, ensuring surgical accuracy across 7+ languages so your agents build with precision instead of wasting tokens on trial and error.",
+  "version": "0.1.0",
+  "keywords": [
+    "api-context",
+    "api-integration",
+    "mcp",
+    "sdk",
+    "apimatic",
+    "third-party-apis",
+    "sdks"
+  ],
+  "author": {
+    "name": "APIMatic",
+    "email": "developer@apimatic.io"
+  },
+  "homepage": "https://www.apimatic.io",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/integrate-context-matic",
+    "./skills/onboard-context-matic"
+  ]
+}

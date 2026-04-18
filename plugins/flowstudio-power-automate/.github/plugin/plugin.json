@@ -1,0 +1,28 @@
+{
+  "name": "flowstudio-power-automate",
+  "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "power-automate",
+    "power-platform",
+    "flowstudio",
+    "mcp",
+    "model-context-protocol",
+    "cloud-flows",
+    "workflow-automation",
+    "monitoring",
+    "governance"
+  ],
+  "skills": [
+    "./skills/flowstudio-power-automate-mcp",
+    "./skills/flowstudio-power-automate-debug",
+    "./skills/flowstudio-power-automate-build",
+    "./skills/flowstudio-power-automate-monitoring",
+    "./skills/flowstudio-power-automate-governance"
+  ]
+}

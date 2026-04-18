@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": ".github/hooks/session-auto-commit/auto-commit.sh",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

@@ -1,1 +1,0 @@
-../../../prompts/csharp-async.prompt.md

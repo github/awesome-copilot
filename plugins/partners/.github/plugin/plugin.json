@@ -6,5 +6,20 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "devops",
+    "security",
+    "database",
+    "cloud",
+    "infrastructure",
+    "observability",
+    "feature-flags",
+    "cicd",
+    "migration",
+    "performance"
+  ],
+  "agents": [
+    "./agents"
+  ]
 }

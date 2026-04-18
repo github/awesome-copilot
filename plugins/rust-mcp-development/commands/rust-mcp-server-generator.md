@@ -1,1 +1,0 @@
-../../../prompts/rust-mcp-server-generator.prompt.md

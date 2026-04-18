@@ -6,5 +6,12 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "power-apps",
+    "pcf",
+    "component-framework",
+    "typescript",
+    "power-platform"
+  ]
 }

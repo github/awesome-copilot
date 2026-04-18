@@ -1,1 +1,0 @@
-../../../prompts/power-bi-model-design-review.prompt.md

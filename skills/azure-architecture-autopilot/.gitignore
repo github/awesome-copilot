@@ -1,0 +1,30 @@
+# Temporary files
+*.pyc
+__pycache__/
+*.egg-info/
+.DS_Store
+Thumbs.db
+
+# Test/eval outputs (not included in repository)
+evals/outputs/
+workspace/
+
+# Generated artifacts (not included in repository)
+output/
+*.png
+*.svg
+!assets/*.png
+!assets/*.svg
+
+# Sample diagrams (contain hardcoded example values — prevent model context contamination)
+sample_*.html
+
+# Environment configuration
+.env
+*.local
+
+# Package files (build artifacts)
+*.skill
+
+# Development-only folder (not included in public distribution)
+dev/

@@ -1,1 +1,0 @@
-../../../prompts/power-bi-performance-troubleshooting.prompt.md

@@ -1,0 +1,25 @@
+{
+  "name": "phoenix",
+  "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arize AI"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "phoenix",
+    "arize",
+    "llm",
+    "observability",
+    "tracing",
+    "evaluation",
+    "openinference",
+    "instrumentation"
+  ],
+  "skills": [
+    "./skills/phoenix-cli",
+    "./skills/phoenix-evals",
+    "./skills/phoenix-tracing"
+  ]
+}

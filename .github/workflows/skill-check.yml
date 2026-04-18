@@ -1,0 +1,160 @@
+name: Skill Validator — PR Gate
+
+on:
+  pull_request:
+    branches: [staged]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - "plugins/**/skills/**"
+      - "plugins/**/agents/**"
+
+permissions:
+  contents: read
+
+jobs:
+  skill-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      # ── Download & cache skill-validator ──────────────────────────
+      - name: Get cache key date
+        id: cache-date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore skill-validator from cache
+        id: cache-sv
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          restore-keys: |
+            skill-validator-linux-x64-
+
+      - name: Download skill-validator
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .skill-validator
+          curl -fsSL \
+            "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
+            -o .skill-validator/skill-validator-linux-x64.tar.gz
+          tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
+          rm .skill-validator/skill-validator-linux-x64.tar.gz
+          chmod +x .skill-validator/skill-validator
+
+      - name: Save skill-validator to cache
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+
+      # ── Detect changed skills & agents ────────────────────────────
+      - name: Detect changed skills and agents
+        id: detect
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Extract unique skill directories that were touched
+          SKILL_DIRS=$(echo "$CHANGED_FILES" | grep -oP '^skills/[^/]+' | sort -u || true)
+
+          # Extract agent files that were touched
+          AGENT_FILES=$(echo "$CHANGED_FILES" | grep -oP '^agents/[^/]+\.agent\.md$' | sort -u || true)
+
+          # Extract plugin skill directories
+          PLUGIN_SKILL_DIRS=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/skills/[^/]+' | sort -u || true)
+
+          # Extract plugin agent files
+          PLUGIN_AGENT_FILES=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/agents/[^/]+\.agent\.md$' | sort -u || true)
+
+          # Build CLI arguments for --skills
+          SKILL_ARGS=""
+          for dir in $SKILL_DIRS $PLUGIN_SKILL_DIRS; do
+            if [ -d "$dir" ]; then
+              SKILL_ARGS="$SKILL_ARGS $dir"
+            fi
+          done
+
+          # Build CLI arguments for --agents
+          AGENT_ARGS=""
+          for f in $AGENT_FILES $PLUGIN_AGENT_FILES; do
+            if [ -f "$f" ]; then
+              AGENT_ARGS="$AGENT_ARGS $f"
+            fi
+          done
+
+          SKILL_COUNT=$(echo "$SKILL_ARGS" | xargs -n1 2>/dev/null | wc -l || echo 0)
+          AGENT_COUNT=$(echo "$AGENT_ARGS" | xargs -n1 2>/dev/null | wc -l || echo 0)
+          TOTAL=$((SKILL_COUNT + AGENT_COUNT))
+
+          echo "skill_args=$SKILL_ARGS" >> "$GITHUB_OUTPUT"
+          echo "agent_args=$AGENT_ARGS" >> "$GITHUB_OUTPUT"
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+          echo "skill_count=$SKILL_COUNT" >> "$GITHUB_OUTPUT"
+          echo "agent_count=$AGENT_COUNT" >> "$GITHUB_OUTPUT"
+
+          echo "Found $SKILL_COUNT skill dir(s) and $AGENT_COUNT agent file(s) to check."
+
+      # ── Run skill-validator check ─────────────────────────────────
+      - name: Run skill-validator check
+        id: check
+        if: steps.detect.outputs.total != '0'
+        run: |
+          SKILL_ARGS="${{ steps.detect.outputs.skill_args }}"
+          AGENT_ARGS="${{ steps.detect.outputs.agent_args }}"
+
+          CMD=".skill-validator/skill-validator check --verbose"
+
+          if [ -n "$SKILL_ARGS" ]; then
+            CMD="$CMD --skills $SKILL_ARGS"
+          fi
+
+          if [ -n "$AGENT_ARGS" ]; then
+            CMD="$CMD --agents $AGENT_ARGS"
+          fi
+
+          echo "Running: $CMD"
+
+          # Capture output; don't fail the workflow (warn-only mode)
+          set +e
+          OUTPUT=$($CMD 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          # Save output to file (multi-line safe)
+          echo "$OUTPUT" > sv-output.txt
+
+          echo "$OUTPUT"
+
+      # ── Upload results for the commenting workflow ────────────────
+      - name: Save metadata
+        if: always()
+        run: |
+          mkdir -p sv-results
+          echo "${{ github.event.pull_request.number }}" > sv-results/pr-number.txt
+          echo "${{ steps.detect.outputs.total }}" > sv-results/total.txt
+          echo "${{ steps.detect.outputs.skill_count }}" > sv-results/skill-count.txt
+          echo "${{ steps.detect.outputs.agent_count }}" > sv-results/agent-count.txt
+          echo "${{ steps.check.outputs.exit_code }}" > sv-results/exit-code.txt
+          if [ -f sv-output.txt ]; then
+            cp sv-output.txt sv-results/sv-output.txt
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: skill-validator-results
+          path: sv-results/
+          retention-days: 1
+
+      - name: Post skip notice if no skills changed
+        if: steps.detect.outputs.total == '0'
+        run: echo "No skill or agent files changed in this PR — skipping validation."

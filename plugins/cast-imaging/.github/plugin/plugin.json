@@ -6,5 +6,16 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "cast-imaging",
+    "software-analysis",
+    "architecture",
+    "quality",
+    "impact-analysis",
+    "devops"
+  ],
+  "agents": [
+    "./agents"
+  ]
 }

@@ -6,5 +6,20 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "ruby",
+    "mcp",
+    "model-context-protocol",
+    "server-development",
+    "sdk",
+    "rails",
+    "gem"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/ruby-mcp-server-generator"
+  ]
 }

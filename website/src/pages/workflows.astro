@@ -1,0 +1,56 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import workflowsData from '../../public/data/workflows.json';
+import Modal from '../components/Modal.astro';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
+import { renderWorkflowsHtml, sortWorkflows } from '../scripts/pages/workflows-render';
+
+const initialItems = sortWorkflows(workflowsData.items, 'title');
+---
+
+<StarlightPage frontmatter={{ title: 'Agentic Workflows', description: 'AI-powered repository automations that run coding agents in GitHub Actions', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <div id="main-content">
+    <PageHeader title="Agentic Workflows" description="AI-powered repository automations that run coding agents in GitHub Actions" icon="workflow" />
+
+    <div class="page-content">
+      <div class="container">
+        <div class="listing-toolbar">
+          <div class="search-bar">
+            <label for="search-input" class="sr-only">Search workflows</label>
+            <input type="text" id="search-input" placeholder="Search workflows..." autocomplete="off">
+          </div>
+
+          <div class="filters-bar" id="filters-bar">
+            <div class="filter-group">
+              <label for="filter-trigger">Trigger:</label>
+              <select id="filter-trigger" multiple aria-label="Filter by trigger"></select>
+            </div>
+            <div class="filter-group">
+              <label for="sort-select">Sort:</label>
+              <select id="sort-select" aria-label="Sort by">
+                <option value="title">Name (A-Z)</option>
+                <option value="lastUpdated">Recently Updated</option>
+              </select>
+            </div>
+            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} workflows</div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderWorkflowsHtml(initialItems)}></div>
+        <ContributeCTA resourceType="workflows" />
+      </div>
+    </div>
+  </div>
+
+  <Modal />
+  <BackToTop />
+  <EmbeddedPageData filename="workflows.json" data={workflowsData} />
+
+  <script>
+    import '../scripts/pages/workflows';
+  </script>
+</StarlightPage>

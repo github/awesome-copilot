@@ -6,5 +6,17 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "dataverse",
+    "python",
+    "integration",
+    "sdk"
+  ],
+  "skills": [
+    "./skills/dataverse-python-quickstart",
+    "./skills/dataverse-python-advanced-patterns",
+    "./skills/dataverse-python-production-code",
+    "./skills/dataverse-python-usecase-builder"
+  ]
 }

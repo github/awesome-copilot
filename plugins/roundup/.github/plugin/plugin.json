@@ -1,0 +1,24 @@
+{
+  "name": "roundup",
+  "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "status-updates",
+    "briefings",
+    "management",
+    "productivity",
+    "communication",
+    "synthesis",
+    "roundup",
+    "copilot-cli"
+  ],
+  "skills": [
+    "./skills/roundup-setup",
+    "./skills/roundup"
+  ]
+}

@@ -1,0 +1,224 @@
+<mxfile host="Electron" modified="2026-03-25T00:00:00.000Z" version="26.0.0">
+  <diagram id="uml-class" name="UML Class Diagram">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1"
+                  tooltips="1" connect="1" arrows="1" fold="1"
+                  page="1" pageScale="1" pageWidth="1169" pageHeight="827"
+                  math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITLE -->
+        <mxCell id="2" value="UML Class Diagram"
+                style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=18;fontStyle=1;"
+                vertex="1" parent="1">
+          <mxGeometry x="334" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ====== INTERFACE: IOrderRepository ====== -->
+        <mxCell id="iface1" value="«interface»&#xa;IOrderRepository"
+                style="swimlane;fontStyle=3;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="260" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="iface1_div" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#666666;"
+                vertex="1" parent="iface1">
+          <mxGeometry y="40" width="260" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iface1_m1" value="+ findById(id: UUID): Order"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="iface1">
+          <mxGeometry y="50" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="iface1_m2" value="+ findByUserId(userId: UUID): Order[]"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="iface1">
+          <mxGeometry y="80" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="iface1_m3" value="+ save(order: Order): Order"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="iface1">
+          <mxGeometry y="110" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="iface1_m4" value="+ delete(id: UUID): void"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="iface1">
+          <mxGeometry y="140" width="260" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ====== CLASS: Order ====== -->
+        <mxCell id="cls_order" value="Order"
+                style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="80" y="370" width="280" height="290" as="geometry" />
+        </mxCell>
+        <!-- Attributes section divider -->
+        <mxCell id="cls_order_d1" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#6c8ebf;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="40" width="280" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_a1" value="- id: UUID"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="50" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_a2" value="- userId: UUID"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="75" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_a3" value="- items: OrderItem[]"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="100" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_a4" value="- status: OrderStatus"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="125" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_a5" value="- total: Decimal"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="150" width="280" height="25" as="geometry" />
+        </mxCell>
+        <!-- Methods divider -->
+        <mxCell id="cls_order_d2" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#6c8ebf;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="175" width="280" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_m1" value="+ addItem(item: OrderItem): void"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="185" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_m2" value="+ removeItem(itemId: UUID): void"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="210" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_m3" value="+ calculateTotal(): Decimal"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="235" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_order_m4" value="+ confirm(): void"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_order">
+          <mxGeometry y="260" width="280" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ====== CLASS: OrderItem ====== -->
+        <mxCell id="cls_item" value="OrderItem"
+                style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="480" y="370" width="280" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_d1" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#82b366;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="40" width="280" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_a1" value="- id: UUID"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="50" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_a2" value="- productName: string"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="75" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_a3" value="- quantity: int"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="100" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_a4" value="- unitPrice: Decimal"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="125" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_d2" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#82b366;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="150" width="280" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_m1" value="+ subtotal(): Decimal"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="160" width="280" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_item_m2" value="+ validate(): boolean"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="cls_item">
+          <mxGeometry y="185" width="280" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ====== ENUM: OrderStatus ====== -->
+        <mxCell id="enum1" value="«enumeration»&#xa;OrderStatus"
+                style="swimlane;fontStyle=3;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;"
+                vertex="1" parent="1">
+          <mxGeometry x="820" y="370" width="200" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_d1" value=""
+                style="swimlane;startSize=0;fillColor=none;strokeColor=#d6b656;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="40" width="200" height="1" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_v1" value="PENDING"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="50" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_v2" value="CONFIRMED"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="75" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_v3" value="SHIPPED"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="100" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_v4" value="DELIVERED"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="125" width="200" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="enum1_v5" value="CANCELLED"
+                style="text;html=1;align=left;verticalAlign=top;spacingLeft=5;whiteSpace=wrap;overflow=hidden;rotatable=0;"
+                vertex="1" parent="enum1">
+          <mxGeometry y="150" width="200" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- ====== RELATIONSHIPS ====== -->
+
+        <!-- Order REALIZES IOrderRepository (dashed + open triangle) -->
+        <mxCell id="rel_realize" value=""
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=block;endFill=0;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;"
+                edge="1" source="cls_order" target="iface1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Order COMPOSITION OrderItem (filled diamond on Order side) -->
+        <mxCell id="rel_compose" value="1        *"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERmandOne;endArrow=ERmany;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+                edge="1" source="cls_order" target="cls_item" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Order USES OrderStatus (dashed dependency) -->
+        <mxCell id="rel_dep" value="«use»"
+                style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;startArrow=none;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;"
+                edge="1" source="cls_order" target="enum1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -6,5 +6,20 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "php",
+    "mcp",
+    "model-context-protocol",
+    "server-development",
+    "sdk",
+    "attributes",
+    "composer"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/php-mcp-server-generator"
+  ]
 }

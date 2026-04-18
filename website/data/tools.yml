@@ -232,3 +232,125 @@ tools:
       - github
       - copilot-customizations
       - validation
+
+  - id: vscode-agent-manager
+    name: VS Code Agent Manager
+    description: >-
+      VS Code Agent Manager is the essential toolkit for supercharging your GitHub Copilot experience.
+      Effortlessly discover, install, and manage custom Copilot Agents directly within VS Code.
+    category: VS Code Extensions
+    featured: true
+    requirements:
+      - VS Code version 1.106.0 or higher
+      - Internet connection to fetch repository data
+    links:
+      github: https://github.com/luizbon/vscode-agent-manager
+      vscode: vscode:extension/luizbon.vscode-agent-manager
+      vscode-insiders: vscode-insiders:extension/luizbon.vscode-agent-manager
+      marketplace: https://marketplace.visualstudio.com/items?itemName=luizbon.vscode-agent-manager
+    features:
+      - "🔍 Auto-Discovery: Point the Agent Manager to any GitHub repository, and it will automatically index all available agents"
+      - "📦 One-Click Installation: Install agents in seconds. Choose to install them globally (User Profile) for access in all projects, or locally (Workspace) for project-specific needs."
+      - "🔄 Smart Updates & Version Control: Stay up to date. The extension tracks installed versions against the remote source, alerting you when updates are available. View changelogs and author details at a glance."
+      - "🛡️ Git-Powered Reliability: Built on top of Git, ensuring that you always get the exact version of the agent you expect, with verified author and commit data."
+    tags:
+      - vscode
+      - extension
+      - copilot
+      - agent
+      - manager
+
+  - id: groundhog-day
+    name: Groundhog Day
+    description: >-
+      Autonomous backup agent for GitHub Copilot CLI skills. Watches your
+      ~/.copilot/skills/ directory in real time, commits every change with
+      meaningful messages, and pushes to GitHub automatically. Starts on boot
+      via macOS LaunchAgent, restarts if it crashes, and requires zero
+      interaction after setup. One-line installer creates a backup repo,
+      seeds it with existing skills, and starts the watcher. Includes a daily
+      health check, sync locking, push retry, and empty-source protection.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - macOS or Linux
+      - GitHub CLI (gh) authenticated
+      - git
+      - fswatch (installed automatically via Homebrew on macOS)
+    links:
+      github: https://github.com/DUBSOpenHub/groundhog-day
+    features:
+      - "👀 Real-Time Watch: Detects every create, edit, rename, and delete in your skills directory using fswatch"
+      - "🔄 Auto Sync: Commits and pushes changes to GitHub with meaningful commit messages"
+      - "🏥 Daily Health Check: Automated 6 AM checkup validates watcher, repo state, remote sync, and log health"
+      - "⚡ One-Line Install: curl installer creates a backup repo, seeds existing skills, and starts the watcher"
+      - "🛡️ Built-In Safety: Sync locking, push retry, empty-source guard, and graceful shutdown"
+      - "🔁 Survives Reboots: macOS LaunchAgent keeps it alive across restarts"
+    configuration:
+      type: bash
+      content: |
+        # Install in one line
+        curl -fsSL https://raw.githubusercontent.com/DUBSOpenHub/groundhog-day/main/install.sh | bash
+
+        # Or install with Homebrew
+        brew install DUBSOpenHub/tap/groundhog-day
+
+        # Check status
+        groundhog status
+
+        # Run a manual health check
+        groundhog checkup
+    tags:
+      - cli
+      - backup
+      - skills
+      - automation
+      - macos
+      - launchagent
+
+  - id: copilot-swarm-orchestrator
+    name: Copilot Swarm Orchestrator
+    description: >-
+      Parallel AI workflow orchestrator for GitHub Copilot CLI. Coordinates multiple
+      specialized agents across wave-based execution with dependency-aware scheduling,
+      evidence-based verification, six quality gates, cost governance, and persistent
+      learning. Runs as a standalone CLI or as an MCP server exposing execution runs,
+      agent profiles, and quality gates via JSON-RPC over stdio.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 18 or higher
+      - Git 2.20+ (worktree support)
+      - GitHub Copilot CLI installed and authenticated
+    links:
+      github: https://github.com/moonrunnerkc/copilot-swarm-orchestrator
+      npm: https://www.npmjs.com/package/copilot-swarm-orchestrator
+    features:
+      - "🌊 Wave Execution: Parallel agent scheduling with dependency-aware wave splitting"
+      - "🔍 Evidence Verification: Every agent proves its work via transcript analysis before merge"
+      - "🚦 Six Quality Gates: Lint, type-check, test coverage, security, complexity, documentation"
+      - "💰 Cost Governance: Premium request estimation, tracking, and budget enforcement"
+      - "🔌 MCP Server: 4 tools and 5 resources over JSON-RPC stdio transport"
+      - "🧠 Persistent Learning: Cross-run knowledge base with pattern detection and retry calibration"
+    configuration:
+      type: bash
+      content: |
+        # Install globally from npm
+        npm install -g copilot-swarm-orchestrator
+
+        # Run a demo
+        swarm demo-fast
+
+        # Plan and execute a goal
+        swarm run --goal "Build a REST API with auth and tests"
+
+        # Start the MCP server
+        swarm mcp-server
+    tags:
+      - cli
+      - npm
+      - mcp
+      - orchestration
+      - verification
+      - quality-gates
+      - cost-governance

@@ -1,1 +1,0 @@
-../../../prompts/power-bi-dax-optimization.prompt.md

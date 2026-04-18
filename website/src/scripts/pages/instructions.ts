@@ -1,14 +1,33 @@
 /**
  * Instructions page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from '../choices';
-import { FuzzySearch, SearchItem } from '../search';
-import { fetchData, debounce, escapeHtml, getGitHubUrl, getInstallDropdownHtml, setupDropdownCloseHandlers, getActionButtonsHtml, setupActionHandlers, getLastUpdatedHtml } from '../utils';
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from '../choices';
+import { FuzzySearch, type SearchItem } from '../search';
+import {
+  fetchData,
+  debounce,
+  getQueryParam,
+  getQueryParamValues,
+  setupDropdownCloseHandlers,
+  setupActionHandlers,
+  updateQueryParams,
+} from '../utils';
 import { setupModal, openFileModal } from '../modal';
+import {
+  renderInstructionsHtml,
+  sortInstructions,
+  type InstructionSortOption,
+  type RenderableInstruction,
+} from './instructions-render';
 
-interface Instruction extends SearchItem {
+interface Instruction extends SearchItem, RenderableInstruction {
   path: string;
-  applyTo?: string;
+  applyTo?: string | string[];
   extensions?: string[];
   lastUpdated?: string | null;
 }
@@ -20,24 +39,16 @@ interface InstructionsData {
   };
 }
 
-type SortOption = 'title' | 'lastUpdated';
-
 const resourceType = 'instruction';
 let allItems: Instruction[] = [];
 let search = new FuzzySearch<Instruction>();
 let extensionSelect: Choices;
 let currentFilters = { extensions: [] as string[] };
-let currentSort: SortOption = 'title';
+let currentSort: InstructionSortOption = 'title';
+let resourceListHandlersReady = false;
 
 function sortItems(items: Instruction[]): Instruction[] {
-  return [...items].sort((a, b) => {
-    if (currentSort === 'lastUpdated') {
-      const dateA = a.lastUpdated ? new Date(a.lastUpdated).getTime() : 0;
-      const dateB = b.lastUpdated ? new Date(b.lastUpdated).getTime() : 0;
-      return dateB - dateA;
-    }
-    return a.title.localeCompare(b.title);
-  });
+  return sortInstructions(items, currentSort);
 }
 
 function applyFiltersAndRender(): void {
@@ -70,39 +81,36 @@ function renderItems(items: Instruction[], query = ''): void {
   const list = document.getElementById('resource-list');
   if (!list) return;
 
-  if (items.length === 0) {
-    list.innerHTML = '<div class="empty-state"><h3>No instructions found</h3><p>Try a different search term or adjust filters</p></div>';
-    return;
-  }
+  list.innerHTML = renderInstructionsHtml(items, {
+    query,
+    highlightTitle: (title, highlightQuery) => search.highlight(title, highlightQuery),
+  });
+}
 
-  list.innerHTML = items.map(item => `
-    <div class="resource-item" data-path="${escapeHtml(item.path)}">
-      <div class="resource-info">
-        <div class="resource-title">${query ? search.highlight(item.title, query) : escapeHtml(item.title)}</div>
-        <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-        <div class="resource-meta">
-          ${item.applyTo ? `<span class="resource-tag">applies to: ${escapeHtml(item.applyTo)}</span>` : ''}
-          ${item.extensions?.slice(0, 4).map(e => `<span class="resource-tag tag-extension">${escapeHtml(e)}</span>`).join('') || ''}
-          ${item.extensions && item.extensions.length > 4 ? `<span class="resource-tag">+${item.extensions.length - 4} more</span>` : ''}
-          ${getLastUpdatedHtml(item.lastUpdated)}
-        </div>
-      </div>
-      <div class="resource-actions">
-        ${getInstallDropdownHtml('instructions', item.path, true)}
-        ${getActionButtonsHtml(item.path, true)}
-        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary btn-small" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">
-          GitHub
-        </a>
-      </div>
-    </div>
-  `).join('');
+function setupResourceListHandlers(list: HTMLElement | null): void {
+  if (!list || resourceListHandlersReady) return;
 
-  // Add click handlers
-  list.querySelectorAll('.resource-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const path = (el as HTMLElement).dataset.path;
-      if (path) openFileModal(path, resourceType);
-    });
+  list.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('.resource-actions')) {
+      return;
+    }
+
+    const item = target.closest('.resource-item') as HTMLElement | null;
+    const path = item?.dataset.path;
+    if (path) {
+      openFileModal(path, resourceType);
+    }
+  });
+
+  resourceListHandlersReady = true;
+}
+
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? '',
+    extension: currentFilters.extensions,
+    sort: currentSort === 'title' ? '' : currentSort,
   });
 }
 
@@ -111,6 +119,8 @@ export async function initInstructionsPage(): Promise<void> {
   const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const clearFiltersBtn = document.getElementById('clear-filters');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+
+  setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<InstructionsData>('instructions.json');
   if (!data || !data.items) {
@@ -123,18 +133,42 @@ export async function initInstructionsPage(): Promise<void> {
 
   extensionSelect = createChoices('#filter-extension', { placeholderValue: 'All Extensions' });
   extensionSelect.setChoices(data.filters.extensions.map(e => ({ value: e, label: e })), 'value', 'label', true);
+
+  const initialQuery = getQueryParam('q');
+  const initialExtensions = getQueryParamValues('extension').filter(extension => data.filters.extensions.includes(extension));
+  const initialSort = getQueryParam('sort');
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialExtensions.length > 0) {
+    currentFilters.extensions = initialExtensions;
+    setChoicesValues(extensionSelect, initialExtensions);
+  }
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById('filter-extension')?.addEventListener('change', () => {
     currentFilters.extensions = getChoicesValues(extensionSelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   sortSelect?.addEventListener('change', () => {
-    currentSort = sortSelect.value as SortOption;
+    currentSort = sortSelect.value as InstructionSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
-  applyFiltersAndRender();
-  searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
+  const countEl = document.getElementById('results-count');
+  if (countEl) {
+    countEl.textContent = `${allItems.length} of ${allItems.length} instructions`;
+  }
+
+  searchInput?.addEventListener('input', debounce(() => {
+    applyFiltersAndRender();
+    syncUrlState(searchInput);
+  }, 200));
 
   clearFiltersBtn?.addEventListener('click', () => {
     currentFilters = { extensions: [] };
@@ -143,8 +177,10 @@ export async function initInstructionsPage(): Promise<void> {
     if (searchInput) searchInput.value = '';
     if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
+  applyFiltersAndRender();
   setupModal();
   setupDropdownCloseHandlers();
   setupActionHandlers();

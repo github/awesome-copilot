@@ -1,0 +1,24 @@
+{
+  "name": "ember",
+  "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
+  "version": "1.0.0",
+  "author": {
+    "name": "jennyf19"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "ai-partnership",
+    "coaching",
+    "onboarding",
+    "collaboration",
+    "storytelling",
+    "developer-experience"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/from-the-other-side-vega"
+  ]
+}

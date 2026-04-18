@@ -6,5 +6,23 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "swift",
+    "mcp",
+    "model-context-protocol",
+    "server-development",
+    "sdk",
+    "ios",
+    "macos",
+    "concurrency",
+    "actor",
+    "async-await"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/swift-mcp-server-generator"
+  ]
 }

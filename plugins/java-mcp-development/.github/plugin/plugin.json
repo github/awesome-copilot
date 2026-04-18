@@ -6,5 +6,21 @@
     "name": "Awesome Copilot Community"
   },
   "repository": "https://github.com/github/awesome-copilot",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "java",
+    "mcp",
+    "model-context-protocol",
+    "server-development",
+    "sdk",
+    "reactive-streams",
+    "spring-boot",
+    "reactor"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/java-mcp-server-generator"
+  ]
 }

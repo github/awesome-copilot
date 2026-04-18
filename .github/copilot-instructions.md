@@ -55,18 +55,17 @@ The following instructions are only to be applied when performing a code review.
 - [ ] Any bundled assets (scripts, templates, data files) are referenced in the SKILL.md instructions.
 - [ ] Bundled assets are reasonably sized (under 5MB per file).
 
-## Collection file guide
+## Plugin guide
 
-**Only apply to files that end in `.collection.yml`**
+**Only apply to directories in the `plugins/` directory**
 
-- [ ] The collection has a `name` field.
-- [ ] The collection has a `description` field.
+- [ ] The plugin directory contains a `.github/plugin/plugin.json` file.
+- [ ] The plugin directory contains a `README.md` file.
+- [ ] The plugin.json has a `name` field matching the directory name.
+- [ ] The plugin.json has a `description` field.
 - [ ] The `description` field is not empty.
-- [ ] The collection has a `tags` field.
-- [ ] The file name is lower case, with words separated by hyphens.
-- [ ] Each item in the collection has a `path` field.
-- [ ] Each item in the collection has a `kind` field.
-- [ ] The `kind` field value is one of: `prompt`, `instruction`, `agent`, or `skill`.
-- [ ] The collection does not include duplicate items.
-- [ ] The collection does not reference non-existent files.
-- [ ] Each item can have an optional `usage` field describing when to use the item.
+- [ ] The directory name is lower case, with words separated by hyphens.
+- [ ] If `tags` is present, it is an array of lowercase hyphenated strings.
+- [ ] If `items` is present, each item has `path` and `kind` fields.
+- [ ] The `kind` field value is one of: `prompt`, `agent`, `instruction`, `skill`, or `hook`.
+- [ ] The plugin does not reference non-existent files.
