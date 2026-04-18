@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "arize-ax",
+      "source": "arize-ax",
+      "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
+      "version": "1.0.0"
+    },
+    {
       "name": "automate-this",
       "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
@@ -70,6 +76,12 @@
       "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
       "version": "1.0.0"
+    },
+    {
+      "name": "context-matic",
+      "source": "context-matic",
+      "description": "ContextMatic turns your AI agents from API-guessers into API-experts. By feeding agents exact, version-aware SDK methods and typed models for providers like PayPal, Spotify, and Twilio, ContextMatic replaces guesswork and outdated training data with high-fidelity ground truth. This eliminates hallucinations and broken code, ensuring surgical accuracy across 7+ languages so your agents build with precision instead of wasting tokens on trial and error.",
+      "version": "0.1.0"
     },
     {
       "name": "copilot-sdk",
@@ -201,6 +213,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "ember",
+      "source": "ember",
+      "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
+      "version": "1.0.0"
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
@@ -231,8 +249,8 @@
     {
       "name": "flowstudio-power-automate",
       "source": "flowstudio-power-automate",
-      "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
-      "version": "1.0.0"
+      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+      "version": "2.0.0"
     },
     {
       "name": "frontend-web-dev",
@@ -243,8 +261,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular multi-agent team for complex project execution with Discuss Phase for requirements clarification, PRD creation, DAG-based planning, complexity-aware research, multi-plan selection for critical tasks, wave-based parallel execution, PRD compliance verification, and automated testing.",
-      "version": "1.3.4"
+      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.6.6"
     },
     {
       "name": "go-mcp-development",
@@ -307,7 +325,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.979-preview1",
+      "version": "1.0.1037-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -394,6 +412,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "phoenix",
+      "source": "phoenix",
+      "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",
+      "version": "1.0.0"
+    },
+    {
       "name": "php-mcp-development",
       "source": "php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
@@ -436,6 +460,18 @@
       "version": "1.0.0"
     },
     {
+      "name": "react18-upgrade",
+      "source": "react18-upgrade",
+      "description": "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "react19-upgrade",
+      "source": "react19-upgrade",
+      "description": "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more.",
+      "version": "1.0.0"
+    },
+    {
       "name": "roundup",
       "source": "roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
@@ -458,6 +494,12 @@
       "source": "rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
       "version": "1.0.0"
+    },
+    {
+      "name": "salesforce-development",
+      "source": "salesforce-development",
+      "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
+      "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
@@ -530,6 +572,31 @@
       "source": "typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
       "version": "1.0.0"
+    },
+    {
+      "name": "whatidid",
+      "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
+      "keywords": [
+        "copilot",
+        "productivity",
+        "impact",
+        "report",
+        "estimation",
+        "roi",
+        "session-logs"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/What-I-Did-Copilot",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/What-I-Did-Copilot"
+      }
     },
     {
       "name": "winui3-development",

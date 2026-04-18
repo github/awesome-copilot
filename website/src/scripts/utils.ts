@@ -8,6 +8,11 @@ const REPO_BASE_URL =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
 const REPO_GITHUB_URL = "https://github.com/github/awesome-copilot/blob/main";
 
+/**
+ * The GitHub repo identifier used for `gh skill install` commands
+ */
+export const REPO_IDENTIFIER = "github/awesome-copilot";
+
 // VS Code install URL configurations
 const VSCODE_INSTALL_CONFIG: Record<
   string,
@@ -233,6 +238,83 @@ export async function shareFile(filePath: string): Promise<boolean> {
     window.location.pathname
   }#file=${encodeURIComponent(filePath)}`;
   return copyToClipboard(deepLinkUrl);
+}
+
+type QueryParamValue = string | string[] | boolean | null | undefined;
+
+/**
+ * Read a single query parameter.
+ */
+export function getQueryParam(name: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(name)?.trim() ?? "";
+}
+
+/**
+ * Read repeated query parameter values.
+ */
+export function getQueryParamValues(name: string): string[] {
+  if (typeof window === "undefined") return [];
+  const values = new URLSearchParams(window.location.search)
+    .getAll(name)
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return Array.from(new Set(values));
+}
+
+/**
+ * Read a boolean-style query parameter.
+ */
+export function getQueryParamFlag(name: string): boolean {
+  const value = getQueryParam(name).toLowerCase();
+  return value === "1" || value === "true" || value === "yes";
+}
+
+/**
+ * Update query parameters while preserving the current hash.
+ */
+export function updateQueryParams(
+  updates: Record<string, QueryParamValue>
+): void {
+  if (typeof window === "undefined") return;
+
+  const url = new URL(window.location.href);
+
+  for (const [key, value] of Object.entries(updates)) {
+    url.searchParams.delete(key);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const normalized = item.trim();
+        if (normalized) {
+          url.searchParams.append(key, normalized);
+        }
+      }
+      continue;
+    }
+
+    if (typeof value === "boolean") {
+      if (value) {
+        url.searchParams.set(key, "1");
+      }
+      continue;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.trim();
+      if (normalized) {
+        url.searchParams.set(key, normalized);
+      }
+    }
+  }
+
+  const search = url.searchParams.toString();
+  const nextUrl = `${url.pathname}${search ? `?${search}` : ""}${url.hash}`;
+  const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
+  if (nextUrl !== currentUrl) {
+    history.replaceState(null, "", nextUrl);
+  }
 }
 
 /**

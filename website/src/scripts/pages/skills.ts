@@ -1,13 +1,24 @@
 /**
  * Skills page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from "../choices";
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from "../choices";
 import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
   debounce,
+  getQueryParam,
+  getQueryParamFlag,
+  getQueryParamValues,
   showToast,
   downloadZipBundle,
+  updateQueryParams,
+  copyToClipboard,
+  REPO_IDENTIFIER,
 } from "../utils";
 import { setupModal, openFileModal } from "../modal";
 import {
@@ -100,6 +111,17 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
 
   list.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
+
+    const copyInstallButton = target.closest(
+      ".copy-install-btn"
+    ) as HTMLButtonElement | null;
+    if (copyInstallButton) {
+      event.stopPropagation();
+      const skillId = copyInstallButton.dataset.skillId;
+      if (skillId) copyInstallCommand(skillId, copyInstallButton);
+      return;
+    }
+
     const downloadButton = target.closest(
       ".download-skill-btn"
     ) as HTMLButtonElement | null;
@@ -118,6 +140,35 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   });
 
   resourceListHandlersReady = true;
+}
+
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? "",
+    category: currentFilters.categories,
+    hasAssets: currentFilters.hasAssets,
+    sort: currentSort === "title" ? "" : currentSort,
+  });
+}
+
+async function copyInstallCommand(
+  skillId: string,
+  btn: HTMLButtonElement
+): Promise<void> {
+  const command = `gh skill install ${REPO_IDENTIFIER} ${skillId}`;
+  const originalContent = btn.innerHTML;
+  const success = await copyToClipboard(command);
+  showToast(
+    success ? "Install command copied!" : "Failed to copy",
+    success ? "success" : "error"
+  );
+  if (success) {
+    btn.innerHTML =
+      '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg> Copied!';
+    setTimeout(() => {
+      btn.innerHTML = originalContent;
+    }, 2000);
+  }
 }
 
 async function downloadSkill(
@@ -189,25 +240,52 @@ export async function initSkillsPage(): Promise<void> {
     "label",
     true
   );
+
+  const initialQuery = getQueryParam("q");
+  const initialCategories = getQueryParamValues("category").filter((category) =>
+    data.filters.categories.includes(category)
+  );
+  const initialSort = getQueryParam("sort");
+
+  if (searchInput) searchInput.value = initialQuery;
+  if (initialCategories.length > 0) {
+    currentFilters.categories = initialCategories;
+    setChoicesValues(categorySelect, initialCategories);
+  }
+  if (getQueryParamFlag("hasAssets")) {
+    currentFilters.hasAssets = true;
+    if (hasAssetsCheckbox) hasAssetsCheckbox.checked = true;
+  }
+  if (initialSort === "lastUpdated") {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById("filter-category")?.addEventListener("change", () => {
     currentFilters.categories = getChoicesValues(categorySelect);
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as SkillSortOption;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   applyFiltersAndRender();
   searchInput?.addEventListener(
     "input",
-    debounce(() => applyFiltersAndRender(), 200)
+    debounce(() => {
+      applyFiltersAndRender();
+      syncUrlState(searchInput);
+    }, 200)
   );
 
   hasAssetsCheckbox?.addEventListener("change", () => {
     currentFilters.hasAssets = hasAssetsCheckbox.checked;
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   clearFiltersBtn?.addEventListener("click", () => {
@@ -218,6 +296,7 @@ export async function initSkillsPage(): Promise<void> {
     if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "title";
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   setupModal();

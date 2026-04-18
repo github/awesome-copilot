@@ -2,7 +2,12 @@
  * Tools page functionality
  */
 import { FuzzySearch, type SearchableItem } from "../search";
-import { fetchData, debounce } from "../utils";
+import {
+  fetchData,
+  debounce,
+  getQueryParam,
+  updateQueryParams,
+} from "../utils";
 import { renderToolsHtml } from "./tools-render";
 
 export interface Tool extends SearchableItem {
@@ -84,6 +89,13 @@ function renderTools(tools: Tool[], query = ""): void {
   });
 }
 
+function syncUrlState(searchInput: HTMLInputElement | null): void {
+  updateQueryParams({
+    q: searchInput?.value ?? "",
+    category: currentFilters.categories,
+  });
+}
+
 function setupCopyConfigHandlers(): void {
   if (copyHandlersReady) return;
 
@@ -157,18 +169,33 @@ export async function initToolsPage(): Promise<void> {
         )
         .join("");
 
+    const initialCategory = getQueryParam("category");
+    if (initialCategory && data.filters.categories.includes(initialCategory)) {
+      currentFilters.categories = [initialCategory];
+      categoryFilter.value = initialCategory;
+    }
+
     categoryFilter.addEventListener("change", () => {
       currentFilters.categories = categoryFilter.value
         ? [categoryFilter.value]
         : [];
       applyFiltersAndRender();
+      syncUrlState(searchInput);
     });
   }
+
+  const initialQuery = getQueryParam("q");
+  if (searchInput) searchInput.value = initialQuery;
+
+  applyFiltersAndRender();
 
   // Search input handler
   searchInput?.addEventListener(
     "input",
-    debounce(() => applyFiltersAndRender(), 200)
+    debounce(() => {
+      applyFiltersAndRender();
+      syncUrlState(searchInput);
+    }, 200)
   );
 
   // Clear filters
@@ -177,6 +204,7 @@ export async function initToolsPage(): Promise<void> {
     if (categoryFilter) categoryFilter.value = "";
     if (searchInput) searchInput.value = "";
     applyFiltersAndRender();
+    syncUrlState(searchInput);
   });
 
   setupCopyConfigHandlers();
