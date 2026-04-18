@@ -1,0 +1,168 @@
+@echo off
+REM myTool
+::  A standalone command-line tool template with argument parsing.
+::
+::  usage: myTool [options] [1] [2]
+::   [1]  =  input file path or value
+::   [2]  =  output file path (optional)
+::
+::  options:
+::   /?        Show this help message
+::   -h        Show this help message
+::   --help    Show this help message
+::   -v        Show version information
+::   --verbose Enable verbose output
+::
+::  examples:
+::   > myTool "C:\data\input.txt"
+::   > myTool "C:\data\input.txt" "C:\data\output.txt"
+::   > myTool --verbose "C:\data\input.txt"
+::
+set "_helpLinesMyTool=19"
+
+:: ========================================================================
+:: TEMPLATE INSTRUCTIONS
+:: 1. Find/Replace "myTool" with your executable name (camelCase).
+:: 2. Find/Replace "MyTool" with your executable name (PascalCase).
+:: 3. Update the help block above (lines 2-19) for your tool.
+:: 4. Implement your logic in :_runMyTool.
+:: 5. Add any new variables to :_removeBatchVariablesMyTool.
+:: ========================================================================
+
+:: Config variables.
+set "_versionMyTool=1.0.0"
+set "_verboseMyTool=0"
+
+:: Define paths.
+set "_scriptDirMyTool=%~dp0"
+set "_scriptNameMyTool=%~n0"
+
+:: Parse arguments into variables.
+set "_parOneMyTool=%~1"
+set "_checkParOneMyTool=-%_parOneMyTool%-"
+set "_parTwoMyTool=%~2"
+set "_checkParTwoMyTool=-%_parTwoMyTool%-"
+set "_parThreeMyTool=%~3"
+set "_checkParThreeMyTool=-%_parThreeMyTool%-"
+
+:: -----------------------------------------------------------------------
+:: Handle help and version flags.
+:: -----------------------------------------------------------------------
+if "%_parOneMyTool%"=="/?" call :_showHelpMyTool & goto _removeBatchVariablesMyTool
+if /i "%_parOneMyTool%"=="-h" call :_showHelpMyTool & goto _removeBatchVariablesMyTool
+if /i "%_parOneMyTool%"=="--help" call :_showHelpMyTool & goto _removeBatchVariablesMyTool
+if /i "%_parOneMyTool%"=="-v" (
+    echo %_scriptNameMyTool% version %_versionMyTool%
+    goto _removeBatchVariablesMyTool
+)
+
+:: -----------------------------------------------------------------------
+:: Handle --verbose flag (shift arguments if present).
+:: -----------------------------------------------------------------------
+if /i "%_parOneMyTool%"=="--verbose" (
+    set "_verboseMyTool=1"
+    set "_parOneMyTool=%~2"
+    set "_checkParOneMyTool=-%~2-"
+    set "_parTwoMyTool=%~3"
+    set "_checkParTwoMyTool=-%~3-"
+)
+
+:: Create temp directory for intermediate files.
+call :_makeTempDirMyTool
+
+:: -----------------------------------------------------------------------
+:: Validate required input and start execution.
+:: -----------------------------------------------------------------------
+if "%_checkParOneMyTool%"=="--" (
+    echo ERROR: No input specified. Run "%_scriptNameMyTool% /?" for usage.
+    goto _removeBatchVariablesMyTool
+)
+
+call :_startMyTool
+goto _removeBatchVariablesMyTool
+
+:: ========================================================================
+:: MAIN LOGIC
+:: ========================================================================
+
+:_startMyTool
+    if "%_verboseMyTool%"=="1" (
+        echo [VERBOSE] Input:  %_parOneMyTool%
+        echo [VERBOSE] Output: %_parTwoMyTool%
+    )
+
+    REM Validate input file exists.
+    if NOT EXIST "%_parOneMyTool%" (
+        echo ERROR: Input file not found: %_parOneMyTool%
+        goto :eof
+    )
+
+    call :_runMyTool
+goto :eof
+
+:_runMyTool
+    REM ===================================================================
+    REM TODO: Replace this section with your tool's logic.
+    REM ===================================================================
+    echo Processing: %_parOneMyTool%
+
+    if NOT "%_checkParTwoMyTool%"=="--" (
+        echo Output to:  %_parTwoMyTool%
+        REM Example: copy input to output.
+        REM copy /Y "%_parOneMyTool%" "%_parTwoMyTool%" >nul
+    )
+
+    echo Done.
+goto :eof
+
+:: ========================================================================
+:: SUPPORT FUNCTIONS
+:: ========================================================================
+
+:_showHelpMyTool
+    echo:
+    for /f "skip=1 tokens=* delims=" %%a in ('findstr /n "^" "%~f0"') do (
+        set "_line=%%a"
+        setlocal EnableDelayedExpansion
+        set "_lineNum=!_line:~0,2!"
+        if !_lineNum! GTR %_helpLinesMyTool% (
+            endlocal
+            goto :eof
+        )
+        set "_text=!_line:*:=!"
+        if defined _text (
+            echo !_text:~4!
+        ) else (
+            echo:
+        )
+        endlocal
+    )
+goto :eof
+
+:_makeTempDirMyTool
+    set "_tmpDirMyTool=%TEMP%\%~n0"
+    if NOT EXIST "%_tmpDirMyTool%" (
+        mkdir "%_tmpDirMyTool%" >nul 2>nul
+    )
+goto :eof
+
+:: ========================================================================
+:: CLEANUP — Remove all batch variables.
+:: ========================================================================
+:_removeBatchVariablesMyTool
+    set _helpLinesMyTool=
+    set _versionMyTool=
+    set _verboseMyTool=
+    set _scriptDirMyTool=
+    set _scriptNameMyTool=
+    set _parOneMyTool=
+    set _checkParOneMyTool=
+    set _parTwoMyTool=
+    set _checkParTwoMyTool=
+    set _parThreeMyTool=
+    set _checkParThreeMyTool=
+    REM Append new variables above this line.
+
+    if EXIST "%_tmpDirMyTool%" rmdir /S /Q "%_tmpDirMyTool%" >nul 2>nul
+    set _tmpDirMyTool=
+    exit /b
