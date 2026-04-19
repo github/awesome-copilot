@@ -486,6 +486,8 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
+- [Agent Shadow Brain](https://github.com/theihtisham/agent-shadow-brain) - Self-evolving AI coding intelligence with infinite memory (TurboQuant), genetic algorithm self-evolution, predictive bug detection, PageRank knowledge graphs, and swarm intelligence.
+- [Omni Skills Forge](https://github.com/theihtisham/omni-skills-forge) - 50,000+ curated AI agent skills for GitHub Copilot, Cursor, Claude Code, Windsurf, Cline. Visual dashboard, one-click install, skill doctor, auto-update.
 
 ## ™️ Trademarks
 
