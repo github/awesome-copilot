@@ -16,6 +16,10 @@ import { parseDateRange } from "./lib/utils.mjs";
 
 const execFileP = promisify(execFile);
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
 // ── CLI args ──────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const query = args[0] || "last 7 days";
@@ -36,10 +40,15 @@ async function ghApi(args) {
     return JSON.parse(stdout);
   } catch (err) {
     if (err?.code === "ENOENT") throw new Error("`gh` CLI not found. Install GitHub CLI and authenticate (gh auth login).");
+    let errorMessage = err?.message || String(err);
     if (err?.stdout) {
-      try { return JSON.parse(err.stdout); } catch (e) { /* fall through */ }
+      try {
+        const parsed = JSON.parse(err.stdout);
+        if (parsed?.message) errorMessage = parsed.message;
+      } catch (e) { /* fall through */ }
     }
-    throw new Error(`gh api failed: ${err.message || err}`);
+    if (err?.stderr?.trim()) errorMessage = err.stderr.trim();
+    throw new Error(`gh api failed: ${errorMessage}`);
   }
 }
 
@@ -50,8 +59,19 @@ async function getGhUsername() {
 
 async function searchIssues(qstr) {
   const q = encodeURIComponent(qstr);
-  const res = await ghApi([`/search/issues?q=${q}&per_page=100`]);
-  return res.items || [];
+  const perPage = 100;
+  const maxResults = 1000;
+  const items = [];
+
+  for (let page = 1; items.length < maxResults; page++) {
+    const res = await ghApi([`/search/issues?q=${q}&per_page=${perPage}&page=${page}`]);
+    const pageItems = res.items || [];
+    if (pageItems.length === 0) break;
+    items.push(...pageItems);
+    if (pageItems.length < perPage) break;
+  }
+
+  return items.slice(0, maxResults);
 }
 
 async function getPrDetails(item) {
@@ -172,7 +192,7 @@ async function renderHtml(md, label = "PR Dashboard", prs = []) {
   let template = "";
   try { template = fs.readFileSync(templatePath, "utf8"); }
   catch (e) {
-    template = `<html><head><title>PR Dashboard — ${label}</title></head><body><pre>${JSON.stringify(md)}</pre></body></html>`;
+    template = `<html><head><title>PR Dashboard — ${escapeHtml(label)}</title></head><body><pre>${escapeHtml(JSON.stringify(md))}</pre></body></html>`;
   }
 
   function escapeHtml(s) {
@@ -197,9 +217,9 @@ async function renderHtml(md, label = "PR Dashboard", prs = []) {
         : `<div style="margin-top:6px;color:var(--muted);font-size:.9em">No description</div>`;
 
     return `<tr>
-  <td><a href="https://github.com/${escapeHtml(pr.repo)}" target="_blank">${escapeHtml(pr.repo)}</a></td>
+  <td><a href="https://github.com/${escapeHtml(pr.repo)}" target="_blank" rel="noopener noreferrer">${escapeHtml(pr.repo)}</a></td>
   <td>
-    <div class="title-line"><a href="${escapeHtml(pr.html_url)}" target="_blank">${escapeHtml(pr.title)}</a></div>
+    <div class="title-line"><a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(pr.title)}</a></div>
     ${previewHtml}
   </td>
   <td><span class="badge" style="background:${statusColor(pr.status)}">${escapeHtml(pr.status)}</span></td>

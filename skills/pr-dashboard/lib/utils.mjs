@@ -5,14 +5,6 @@ export function dateToYMD(d) {
   return `${y}-${m}-${day}`;
 }
 
-export function formatHumanDate(d) {
-  try {
-    return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch (e) {
-    return d;
-  }
-}
-
 export function parseDateRange(text) {
   const now = new Date();
   const todayStr = dateToYMD(now);
@@ -43,9 +35,18 @@ export function parseDateRange(text) {
   }
 
   if (lower.includes('last week')) {
-    const start = new Date();
+    const currentWeekStart = new Date();
+    const day = currentWeekStart.getDay();
+    const diff = (day + 6) % 7;
+    currentWeekStart.setDate(currentWeekStart.getDate() - diff);
+
+    const end = new Date(currentWeekStart);
+    end.setDate(end.getDate() - 1);
+
+    const start = new Date(end);
     start.setDate(start.getDate() - 6);
-    return { start: dateToYMD(start), end: todayStr, label: 'Last week' };
+
+    return { start: dateToYMD(start), end: dateToYMD(end), label: 'Last week' };
   }
 
   if (lower.includes('this month')) {
@@ -79,13 +80,13 @@ export function parseDateRange(text) {
     }
   }
 
-  // explicit YYYY-MM-DD - YYYY-MM-DD
-  if ((match = text.match(/(\d{4}-\d{2}-\d{2})\s*[-to]+\s*(\d{4}-\d{2}-\d{2})/))) {
+  // explicit YYYY-MM-DD - YYYY-MM-DD or YYYY-MM-DD to YYYY-MM-DD
+  if ((match = text.match(/(\d{4}-\d{2}-\d{2})(?:\s*-\s*|\s+to\s+)(\d{4}-\d{2}-\d{2})/))) {
     return { start: match[1], end: match[2], label: `${match[1]} → ${match[2]}` };
   }
 
-  // explicit like "Apr 1 - Apr 5"
-  if ((match = text.match(/([A-Za-z]{3,}\s+\d{1,2}(?:,\s*\d{4})?)\s*[-to]+\s*([A-Za-z]{3,}\s+\d{1,2}(?:,\s*\d{4})?)/))) {
+  // explicit like "Apr 1 - Apr 5" or "Apr 1 to Apr 5"
+  if ((match = text.match(/([A-Za-z]{3,}\s+\d{1,2}(?:,\s*\d{4})?)(?:\s*-\s*|\s+to\s+)([A-Za-z]{3,}\s+\d{1,2}(?:,\s*\d{4})?)/))) {
     const s = new Date(match[1]);
     const e = new Date(match[2]);
     if (!isNaN(s) && !isNaN(e)) {
@@ -117,22 +118,4 @@ export function parseDateRange(text) {
   const start = new Date();
   start.setDate(start.getDate() - 6);
   return { start: dateToYMD(start), end: todayStr, label: 'Last 7 days' };
-}
-
-export function buildMarkdown(prs, label) {
-  const total = prs.length;
-  const open = prs.filter(p => p.status === 'OPEN').length;
-  const merged = prs.filter(p => p.status === 'MERGED').length;
-  const closed = prs.filter(p => p.status === 'CLOSED').length;
-  const draft = prs.filter(p => p.status === 'DRAFT').length;
-
-  const lines = [];
-  lines.push(`## PR Dashboard — ${label}\n`);
-  lines.push(`**${total} total** · ✅ ${open} open · 🔀 ${merged} merged · ❌ ${closed} closed · 📝 ${draft}\n\n`);
-
-  for (const pr of prs) {
-    lines.push(`**[${pr.title}](${pr.html_url})** · \`${pr.repo}\` · ${pr.status} · ${pr.review} · CI: ${pr.ci} · ${pr.createdAt}\n\n`);
-    if (pr.summary) lines.push(`${pr.summary}\n\n`);
-  }
-  return lines.join('');
 }

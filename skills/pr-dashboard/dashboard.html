@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PR Dashboard — Last 2 Weeks (Sprint)</title>
+  <title>PR Dashboard</title>
   <style>
     :root {
       --bg:#ffffff; --bg2:#f6f8fa; --bg3:#eaeef2; --border:#d0d7de;
@@ -49,460 +49,41 @@
   </style>
 </head>
 <body>
-  <h1>🔀 PR Dashboard — Last 2 Weeks (Sprint)</h1>
-  <div class="meta">Generated 2026/4/5 16:42:32 · 14 pull requests</div>
+  <h1>🔀 PR Dashboard</h1>
+  <div class="meta">PR Dashboard</div>
 
   <div class="stats">
-    <div class="stat open"><div class="n">2</div><div class="l">Open</div></div>
-    <div class="stat merged"><div class="n">8</div><div class="l">Merged</div></div>
-    <div class="stat closed"><div class="n">2</div><div class="l">Closed</div></div>
-    <div class="stat draft"><div class="n">2</div><div class="l">Draft</div></div>
+    <div class="stat open"><div class="n">0</div><div class="l">Open</div></div>
+    <div class="stat merged"><div class="n">0</div><div class="l">Merged</div></div>
+    <div class="stat closed"><div class="n">0</div><div class="l">Closed</div></div>
+    <div class="stat draft"><div class="n">0</div><div class="l">Draft</div></div>
   </div>
 
   <div class="toolbar">
-    <input type="search" id="q" placeholder="Search title or repo…" oninput="filter()">
-    <select id="sf" onchange="filter()">
+    <input type="search" id="q" placeholder="Search title or repo…" aria-label="Search pull requests" oninput="filter()">
+    <select id="sf" aria-label="Filter by status" onchange="filter()">
       <option value="">All statuses</option>
       <option>OPEN</option><option>MERGED</option><option>CLOSED</option><option>DRAFT</option>
     </select>
-    <select id="rf" onchange="filter()">
+    <select id="rf" aria-label="Filter by review status" onchange="filter()">
       <option value="">All reviews</option>
       <option>APPROVED</option><option>CHANGES_REQUESTED</option><option>REVIEW_REQUIRED</option>
     </select>
-    <span class="visible-count" id="vc">14 PRs</span>
+    <span class="visible-count" id="vc">0 PRs</span>
     <button id="exportMdBtn" class="theme-toggle" onclick="downloadMarkdown()">📄 Export MD</button>
     <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
   </div>
 
   <table>
     <thead><tr><th>Repository</th><th>Title</th><th>Status</th><th>Review</th><th>CI</th><th>Created</th><th>Updated</th></tr></thead>
-    <tbody id="tb"><tr>
-          <td><a href="https://github.com/mamamia/mamamia-native-ios" target="_blank">mamamia/mamamia-native-ios</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-native-ios/pull/3" target="_blank">Nss2 1902 i os auto downloads broken on i os 26 3 1</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request introduces several improvements and fixes across the podcast download, playback, and metadata management features. The main themes are enhanced metadata handling (including episode duration and publication date), improved download concurrency and reliability, and better notification of background download events. It also includes several bug fixes and code quality improvements.
-
-**Metadata Enhancements:**
-
-* Added `publishedAt` and `duration` fields to episode metadata in `PodcastEpisode`, `PodcastFeed`, `PodcastMetadataCache`, and `Download` models, ensuring this information is preserved and passed through the download and playback pipeline. [[1]](diffhunk://#diff-a9ddd2057cd8e5f75a650f62bd255aa2aef7cac4ad496c0df80a130d71fc8b23R26-R27) [[2]](diffhunk://#diff-a9ddd2057cd8e5f75a650f62bd255aa2aef7cac4ad496c0df80a130d71fc8b23L120-R123) [[3]](diffhunk://#diff-759228d56b6f6e352491856f28d4458c8ef5165413a9bbcb3180ff77e5792cbcR20) [[4]](diffhunk://#diff-759228d56b6f6e352491856f28d4458c8ef5165413a9bbcb3180ff77e5792cbcR122-R130) [[5]](diffhunk://#diff-722915b53f575a21f870e9cb95bb8dc6863d6884def826ad9de094e8bd7009e7L21-R25) [[6]](diffhunk://#diff-d8a4d2a310cb1cc602f66bc5ef3c19c0f849e7573c217620f2fbe5fb3c2ae24aR49-R50) [[7]](diffhunk://#diff-d8a4d2a310cb1cc602f66bc5ef3c19c0f849e7573c217620f2fbe5fb3c2ae24aL68-R77) [[8]](diffhunk://#diff-a2e146fe5dccae3396d0117b57b3a31db597d91eacc388a37e24bde5e46f67fdL209-R243) [[9]](diffhunk://#diff-a2e146fe5dccae3396d0117b57b3a31db597d91eacc388a37e24bde5e46f67fdL330-R376)
-
-* Improved merging logic in `PodcastMetadataCache` to preserve existing episode details (such as IDs, published date, duration) when merging new feed data, preventing loss of metadata.
-
-**Download System Improvements:**
-
-* Download concurrency is now limited to two simultaneous downloads to balance speed and bandwidth, using Swift concurrency primitives for better resource management.
-
-* Download logic now handles missing source URLs gracefully, logging errors and failing safely instead of crashing. [[1]](diffhunk://#diff-a2e146fe5dccae3396d0117b57b3a31db597d91eacc388a37e24bde5e46f67fdL218-R257) [[2]](diffhunk://#diff-a2e146fe5dccae3396d0117b57b3a31db597d91eacc388a37e24bde5e46f67fdL233-R275)
-
-* The background download session is no longer discretionary, ensuring downloads start promptly.
-
-* When new podcast subscriptions are added, the system now triggers immediate downloads for the latest episodes and sets the initial last-checked date to the cleanup window.
-
-**Background Download Notifications:**
-
-* Introduced a new `backgroundDownloadsCompleted` internal notification, posted when background downloads finish, and handled in `PodcastPlayer` to update the PWA with the latest download list. [[1]](diffhunk://#diff-5f9e57e08901d08f25059a04639bb85ed3a1c31f0a81af0ea31990c60ca7fe04R116) [[2]](diffhunk://#diff-0cff69db46d38d4d055784700980b4b7dd417de9648da0d83c8599a5e25b745dR15-R30) [[3]](diffhunk://#diff-0cff69db46d38d4d055784700980b4b7dd417de9648da0d83c8599a5e25b745dR40-R41) [[4]](diffhunk://#diff-945803a8a2dfcbe03a48aab9959a3bc11f204a7bba2db0b9bb7ae51929efddf8R29-R37)
-
-**Bug Fixes and Code Quality:**
-
-* Fixed file deletion error logging in `JSONPersistedObject` and made file writes atomic for safer persistence. [[1]](diffhunk://#diff-34aef9a90a599602c613f250c99900b3c0fd69acece80c64286f08cbdc30d1e6R58-R64) [[2]](diffhunk://#diff-34aef9a90a599602c613f250c99900b3c0fd69acece80c64286f08cbdc30d1e6L78-R81)
-
-* Updated local development URL for the `.local` environment.
-
-* Improved optional handling for URLs in episode sources and throughout the download/playback pipeline, preventing crashes when URLs are missing. [[1]](diffhunk://#diff-a9ddd2057cd8e5f75a650f62bd255aa2aef7cac4ad496c0df80a130d71fc8b23L15-R15) [[2]](diffhunk://#diff-a9ddd2057cd8e5f75a650f62bd255aa2aef7cac4ad496c0df80a130d71fc8b23L75-R88) [[3]](diffhunk://#diff-722915b53f575a21f870e9cb95bb8dc6863d6884def826ad9de094e8bd7009e7L21-R25) [[4]](diffhunk://#diff-945803a8a2dfcbe03a48aab9959a3bc11f204a7bba2db0b9bb7ae51929efddf8L101-R122)
-
-**Other:**
-
-* Fixed missing return in `AppDelegate.application(_:didFinishLaunchingWithOptions:)`.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#848d97">DRAFT</span></td>
-          <td>—</td>
-          <td>—</td>
-          <td style="white-space:nowrap">Apr 3, 2026</td>
-          <td style="white-space:nowrap">Apr 3, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1286" target="_blank">Nss2 1902 i os auto downloads broken on i os 26 3 1</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request includes several improvements and bug fixes related to podcast downloads, playback, and client-side storage handling. The main focus is on ensuring that metadata (such as publish date and duration) is consistently passed through the download and playback pipeline, improving native audio integration, and fixing UI configuration for navigation elements.
-
-**Podcast download and metadata handling:**
-
-* Added `published_at` and `duration` fields to the episode object in `PodcastEpisode.svelte` and ensured these fields are serialized and passed through the download pipeline (`serializeEpisodeForDownload` and `LocalStorageStore`). This ensures that downloaded episodes retain important metadata for display and native integration. [[1]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL146-R148) [[2]](diffhunk://#diff-56c8d5d92e44e95557d7e68f5b65e1839f0b5c59f3744f18c6db701b99ce84cbR259-R260) [[3]](diffhunk://#diff-ddc05b8974bf1f8d9446ebecc79e7f2a9a9246a1d8cd5012acaec9b210309fc3R122-R123)
-* Updated the documentation for the native bridge to require `publishedAt` and `duration` in the downloads list, ensuring native apps have the necessary metadata.
-
-**IndexedDB client robustness:**
-
-* Improved the `IndexedDBClient` methods (`get`, `getAll`, `put`, `delete`, `clear`) to safely handle cases where the database is unavailable, preventing errors in non-browser environments or if initialization fails. [[1]](diffhunk://#diff-f7cd171c6c9dc089735c602645c022ad2c09ea787b47d8880a8bf988223dba15R27) [[2]](diffhunk://#diff-f7cd171c6c9dc089735c602645c022ad2c09ea787b47d8880a8bf988223dba15R40) [[3]](diffhunk://#diff-f7cd171c6c9dc089735c602645c022ad2c09ea787b47d8880a8bf988223dba15R53) [[4]](diffhunk://#diff-f7cd171c6c9dc089735c602645c022ad2c09ea787b47d8880a8bf988223dba15R66) [[5]](diffhunk://#diff-f7cd171c6c9dc089735c602645c022ad2c09ea787b47d8880a8bf988223dba15R79)
-
-**UI and playback improvements:**
-
-* Changed `PodcastPlayerStore` to always send a load command to the native audio player, ensuring proper handling for both streaming and downloaded episodes. Cleaned up redundant conditional logic. [[1]](diffhunk://#diff-4042a604240e32dedf11022bf660a5b15256b6134b7354ab3033042cc0ec7531L933-R934) [[2]](diffhunk://#diff-4042a604240e32dedf11022bf660a5b15256b6134b7354ab3033042cc0ec7531L948)
-* Fixed the audio URL resolution logic in the downloaded podcasts page to prefer local sources, improving reliability when playing downloaded content. [[1]](diffhunk://#diff-96fd1933961c3cdb9a987ae9ce986bf20e43104b170ad136fc2bd2717291095fL24-R24) [[2]](diffhunk://#diff-96fd1933961c3cdb9a987ae9ce986bf20e43104b170ad136fc2bd2717291095fL39-R39)
-
-**UI configuration fixes:**
-
-* Enabled the bottom navigation bar for specific podcast-related routes by updating the `regexConfigs` in the config store, improving navigation consistency in the app. [[1]](diffhunk://#diff-bf72c4c699b0379ff33c3e59596068c321143abcaef7ffe0d42a8154402be935L229-R229) [[2]](diffhunk://#diff-bf72c4c699b0379ff33c3e59596068c321143abcaef7ffe0d42a8154402be935L277-R277)
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#848d97">DRAFT</span></td>
-          <td><span class="badge" style="background:#d29922">REVIEW_REQUIRED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Apr 3, 2026</td>
-          <td style="white-space:nowrap">Apr 3, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/cms-svelte" target="_blank">mamamia/cms-svelte</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/cms-svelte/pull/269" target="_blank">Revert "Nss2 1919 create related podcast cms component"</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              Reverts mamamia/cms-svelte#267
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td>—</td>
-          <td>—</td>
-          <td style="white-space:nowrap">Apr 2, 2026</td>
-          <td style="white-space:nowrap">Apr 2, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1285" target="_blank">NSS2-1943 fix: enhance notification permission handling for better compatibility</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request improves the robustness of the `ProfileNotifications.svelte` component by adding checks to ensure the `Notification` API is available before accessing or using it. This prevents potential runtime errors in environments where the `Notification` API is not supported.
-
-Improvements to notification handling:
-
-* Added a check to ensure `Notification` is defined before reading its `permission` property during component mount, preventing errors in unsupported environments.
-* Added a guard to skip requesting notification permissions and update the state accordingly if the `Notification` API is not available.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#2ea043">OPEN</span></td>
-          <td><span class="badge" style="background:#d29922">REVIEW_REQUIRED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1284" target="_blank">NSS2-1930 feat: add isAutoDownload property to episode and download serialization</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request updates the episode serialization and local storage logic to consistently handle the `isAutoDownload` property for podcast episodes. This ensures that the auto-download status of an episode is preserved and accessible throughout the application&#39;s data flow.
-
-**Auto-download property handling:**
-
-* Added the `isAutoDownload` boolean property to the object returned by `serializeEpisodeForDownload`, ensuring the auto-download status is included when preparing an episode for download.
-* Modified the `LocalStorageStore` to persist the `isAutoDownload` property when storing downloads, maintaining consistency between the serialized episode and local storage.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1283" target="_blank">NSS2-1941 fix: missing key in playwright teardown</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request makes a minor update to the Playwright E2E GitHub Actions workflow. The change ensures that the `VITE_FIREBASE_API_KEY` is now sourced from GitHub Actions environment variables (`vars`) instead of secrets.
-
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#2ea043">OPEN</span></td>
-          <td><span class="badge" style="background:#d29922">REVIEW_REQUIRED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-          <td style="white-space:nowrap">Apr 1, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/cms-svelte" target="_blank">mamamia/cms-svelte</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/cms-svelte/pull/267" target="_blank">Nss2 1919 create related podcast cms component</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request introduces a new podcast episode lookup and embed feature for the Mamamia CMS rich text editor, along with some supporting UI and configuration updates. The main changes add a dedicated podcast lookup Slate/Plate plugin, toolbar button, and popover for searching and selecting podcast episodes, with full keyboard and accessibility support. There are also minor improvements to icon support and editor styling.
-
-**Major features and improvements:**
-
-**Podcast episode lookup and embed (core feature):**
-- Added a new Slate/Plate plugin `podcastLookup` (with `createPodcastLookupPlugin` and `PodcastLookupElement`) that allows users to insert, edit, and remove podcast episode embeds directly in the editor. The plugin serializes/deserializes to HTML, stores all relevant episode metadata, and provides a custom UI for selection and editing, including keyboard navigation and accessibility.
-- Implemented a popover component (`PodcastLookupPopover`) for searching, paginating, and selecting podcast episodes via a debounced search interface, with results caching and ARIA support.
-- Added a toolbar button (`PodcastLookupToolbarButton`) to insert a new podcast episode block in the editor.
-
-**Editor UI and icon updates:**
-- Added a `Podcast` icon to the `Icons` registry and made it available for use in the editor and toolbar. [[1]](diffhunk://#diff-accde04d6e1455307f84bc4afe3d4aa0a13d18c232b48b60d852ba6bc00bb38cR47) [[2]](diffhunk://#diff-accde04d6e1455307f84bc4afe3d4aa0a13d18c232b48b60d852ba6bc00bb38cR276)
-- Improved focus and background styling for `.embed-edit-button` elements to enhance accessibility and visual feedback.
-
-**Documentation and configuration:**
-- Added a `CLAUDE.md` file documenting dev commands, architecture, editor conventions, and project structure for future contributors and AI code assistants.
-- Introduced a `.claude/settings.local.json` config enabling sandboxed Claude Code execution with auto-allow for bash if sandboxed.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td>—</td>
-          <td>—</td>
-          <td style="white-space:nowrap">Mar 30, 2026</td>
-          <td style="white-space:nowrap">Apr 2, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1274" target="_blank">NSS2-1920 implement related podcast in mm frontend</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              Added the existing `RelatedPodcast` component to `ArticleStandardRenderer`
-
-Add custom claude skill for mm frontend 
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 30, 2026</td>
-          <td style="white-space:nowrap">Mar 31, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1272" target="_blank">Fix/debug stale cache</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request updates the caching strategy for both anonymous and personalized responses, particularly focusing on the homepage and API endpoints, and removes some redundant cache control logic from server-side load functions. The changes aim to ensure fresher content for users, especially on the homepage, by preventing caching where necessary. Additionally, some unused imports and logic related to content freshness checks are cleaned up.
-
-**Caching strategy updates:**
-
-* The middleware in `hooks.server.js` now sets strict no-cache headers (`no-store, no-cache, must-revalidate, proxy-revalidate`) for the homepage (`/` and `/api/page/home`), ensuring users always get the most up-to-date content. Other paths retain the previous CDN caching policy.
-* The API endpoint for fetching a page by slug (`api/page/[slug]/+server.js`) now always returns `Cache-Control: public, no-cache no-store`, further enforcing no caching for API responses. ([pages-mamamia-com-au/src/routes/api/page/[slug]/+server.jsL57-R57](diffhunk://#diff-ec12ed96722571bf83174283e8298561787097239a0f23fdbb958894dcb32905L57-R57))
-
-**Cleanup of redundant cache logic:**
-
-* The explicit cache-control header logic for anonymous and personalized users is removed from the homepage (`+page.server.js`) and podcasts episodes (`podcasts-episodes/+page.server.js`) page server load functions, centralizing cache control in the middleware. [[1]](diffhunk://#diff-a8a4988fb89da198b77152ce61c3be0c95be9a9d19cda8d4d07011d9aa5bc1fcL4-L19) [[2]](diffhunk://#diff-c034b30727c03d8853a1cf2511966490b0e3355e31383ae61f22bc045f6f94f6L8-L17)
-
-**Frontend code simplification:**
-
-* Unused imports (`SvelteDate`, `invalidateAll`) are removed from `+layout.svelte`, and the logic for checking homepage hero freshness and invalidating the cache on stale content is deleted, as this is now handled by the updated caching policy. [[1]](diffhunk://#diff-7b271d481f787745c74c85d5340ddce39d3319274de4e8a0458667c57764923eL3-R4) [[2]](diffhunk://#diff-7b271d481f787745c74c85d5340ddce39d3319274de4e8a0458667c57764923eL356-L371)
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 30, 2026</td>
-          <td style="white-space:nowrap">Mar 30, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1271" target="_blank">NSS2-1880 clean up regression accounts</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request implements a robust and automated teardown process for Playwright E2E test accounts, ensuring that test users are properly tracked and deleted both from the application database and Firebase Auth after test runs. It also improves the reliability of onboarding E2E tests by making category selection data-independent and cleans up the test codebase for maintainability.
-
-The most important changes are:
-
-**Automated E2E Test Account Tracking and Teardown**
-- Added a new helper (`track-test-user.ts`) to track created test user emails during onboarding specs, and updated all four onboarding specs to call `trackTestUser(email)` after generating a test email. This enables reliable cleanup of test accounts after E2E runs. [[1]](diffhunk://#diff-fd04eb9032df7990af01fc89e957929c5e566da7c1388ec23dec64c8f45f6befR1-R23) [[2]](diffhunk://#diff-30c871ed9e7a2a4c7e9270ee9108956cd0941411a7412cd29ff9e2c4d5100574R2-R9) [[3]](diffhunk://#diff-0c6ef8221f80f33cdaf1521a17745b5fa0642ca3fffff09572bd7888b7ac37d3R2-R9) [[4]](diffhunk://#diff-f2964f3b3bcc2b9b0823f7290c0ed158696305552111a46ba86b38cf19ffa9ebR2-R9) [[5]](diffhunk://#diff-d26aeb9d6a6244da960d83d9a44a11e576958facb195feedcad599bf1d26d9b7R2-R9)
-- Implemented a new `global-teardown.ts` script that reads the tracked test user emails, deletes each user via the app API, and then deletes the user from Firebase Auth using the correct endpoints. This script is now configured as `globalTeardown` in `playwright.config.js`. [[1]](diffhunk://#diff-97eabac337bfb8bc9384f77c6bb1dd6c71530d032509a166c3a0b4653b17087bR1-R76) [[2]](diffhunk://#diff-3d758114b6baf647a74887c6cdee6c3ac2e374209e09c1f51a5e31e8d55ff50eR7)
-- Ensured the Firebase API key is available in CI by adding `VITE_FIREBASE_API_KEY` to the Playwright E2E GitHub Actions workflow environment.
-
-**Onboarding E2E Test Robustness**
-- Replaced hardcoded category button clicks in onboarding specs with a single click on the &quot;Select all&quot; button, making the tests resilient to local/UAT data differences. [[1]](diffhunk://#diff-30c871ed9e7a2a4c7e9270ee9108956cd0941411a7412cd29ff9e2c4d5100574L57-R59) [[2]](diffhunk://#diff-0c6ef8221f80f33cdaf1521a17745b5fa0642ca3fffff09572bd7888b7ac37d3L57-R59) [[3]](diffhunk://#diff-f2964f3b3bcc2b9b0823f7290c0ed158696305552111a46ba86b38cf19ffa9ebL57-R59) [[4]](diffhunk://#diff-d26aeb9d6a6244da960d83d9a44a11e576958facb195feedcad599bf1d26d9b7L57-R59)
-- Updated selectors for subscription choices to be less brittle and more maintainable by targeting container classes and button styles instead of button text. [[1]](diffhunk://#diff-30c871ed9e7a2a4c7e9270ee9108956cd0941411a7412cd29ff9e2c4d5100574L77-R75) [[2]](diffhunk://#diff-0c6ef8221f80f33cdaf1521a17745b5fa0642ca3fffff09572bd7888b7ac37d3L83-R81) [[3]](diffhunk://#diff-f2964f3b3bcc2b9b0823f7290c0ed158696305552111a46ba86b38cf19ffa9ebL77-R75) [[4]](diffhunk://#diff-d26aeb9d6a6244da960d83d9a44a11e576958facb195feedcad599bf1d26d9b7L83-R81)
-
-**General Test Improvements**
-- Improved authentication flow tests by waiting for explicit UI transitions before proceeding, increasing reliability on both desktop and mobile. [[1]](diffhunk://#diff-e55c1ef434a8c710ca6f3e4d0a37946bcf54eac8ac5ca784465d804583010a0eR46-R50) [[2]](diffhunk://#diff-fee047b5f2e36c1060ccaa34d5feb045d30567c969a7ade294fa75bb7c529b73L48-R61)
-- Updated `.gitignore` to ensure the tracked test accounts file is not committed.
-
-**Documentation**
-- Added a detailed implementation plan in `docs/guides/e2e-teardown-plan.md` to document the changes, rationale, and steps for the new teardown and onboarding test approach.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 27, 2026</td>
-          <td style="white-space:nowrap">Mar 31, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1266" target="_blank">fix: enhance hero article timestamp handling and add updated_at field</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request updates how the homepage hero article&#39;s freshness is determined and improves the handling of article data fields. The main focus is on ensuring that the displayed hero article is up-to-date by considering both its published and updated timestamps, and on making the code more robust to missing or undefined values.
-
-**Homepage hero article freshness logic:**
-
-* The hero article&#39;s freshness check now uses a new `heroPublishedDate` value, which is set to the later of the article&#39;s `published_at` or `updated_at` timestamps. This ensures that if the article has been updated after its original publication, the updated time is used to determine if the hero is stale. (`+page.server.js`, `+layout.svelte`) [[1]](diffhunk://#diff-a8a4988fb89da198b77152ce61c3be0c95be9a9d19cda8d4d07011d9aa5bc1fcL58-R62) [[2]](diffhunk://#diff-7b271d481f787745c74c85d5340ddce39d3319274de4e8a0458667c57764923eL359-R360)
-
-**Data field handling and robustness:**
-
-* The `HomepageArticleHero` component&#39;s `@defaultFields` now includes `updated_at`, enabling the use of the article&#39;s update time in logic and UI. (`HomepageArticleHero.svelte`)
-* Improved null safety by adding optional chaining for `block?.data?.filters?.featured` in the `HomepageArticleHero` component, preventing runtime errors if intermediate properties are undefined. (`HomepageArticleHero.svelte`)
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 26, 2026</td>
-          <td style="white-space:nowrap">Mar 26, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1256" target="_blank">Fix/omny image sizes</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request updates how podcast images are handled across multiple card and episode components to improve image loading performance, responsiveness, and maintainability. The main changes include replacing the old `forceSmallOmnyImageSize` helper with new helpers for generating responsive `srcset` attributes, adding support for lazy-loading images where appropriate, and cleaning up image URL logic.
-
-**Image handling improvements:**
-
-* Replaced usage of `forceSmallOmnyImageSize` with the new `getOmnyImageSrcSet` helper to provide responsive `srcset` attributes for Omny images in all relevant components, ensuring images display crisply on different screen sizes and reducing bandwidth usage. (`PodcastEpisodeCard.svelte`, `PodcastEpisodeCardHorizontal.svelte`, `PodcastEpisodeCardVertical.svelte`, `PodcastShowCard.svelte`, `UpNextEpisodeCard.svelte`, `PodcastShowHeroDesktop.svelte`, `ShowCard.svelte`, `PodcastEpisode.svelte`, `image-helpers.js`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1R28-R35) [[2]](diffhunk://#diff-6108604428930df219e63f386b8a92e22c65aacff3b4727235d59160b93e489aL33-R33) [[3]](diffhunk://#diff-7934b225188c7dd01900433a49738074a826f53a3262157153ffa1f7e8e92fdbL34-R34) [[4]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225L31-R34) [[5]](diffhunk://#diff-79ae16a84df7d26f973d6578566081092fc8df0f589bd408b74772438b331429L28-R28) [[6]](diffhunk://#diff-0dff09e5f23a925f159ac1404055ef7c1758ff7b13cf86efa5510fadb088a759L30-R30) [[7]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48L23-R23) [[8]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL33-R37) [[9]](diffhunk://#diff-8b0c3c82bbf4593e5dc1662a21b3be5b7a7f39f6a98218b32499231451dbd4e7L163-R204)
-
-* Updated all image tags to use the new `srcset` and `sizes` attributes, and to use the original `srcImage` as the fallback source. (`PodcastEpisodeCard.svelte`, `PodcastEpisodeCardHorizontal.svelte`, `PodcastEpisodeCardVertical.svelte`, `PodcastShowCard.svelte`, `UpNextEpisodeCard.svelte`, `PodcastShowHeroDesktop.svelte`, `ShowCard.svelte`, `PodcastEpisode.svelte`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1L143-R153) [[2]](diffhunk://#diff-6108604428930df219e63f386b8a92e22c65aacff3b4727235d59160b93e489aL153-R155) [[3]](diffhunk://#diff-7934b225188c7dd01900433a49738074a826f53a3262157153ffa1f7e8e92fdbL178-R180) [[4]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225L237-R245) [[5]](diffhunk://#diff-79ae16a84df7d26f973d6578566081092fc8df0f589bd408b74772438b331429L182-R184) [[6]](diffhunk://#diff-0dff09e5f23a925f159ac1404055ef7c1758ff7b13cf86efa5510fadb088a759L115-R117) [[7]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48R85-R86) [[8]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL222-R235)
-
-**Performance and loading enhancements:**
-
-* Added support for deferring image loading (lazy loading) by introducing a Svelte context (`deferLoading`). This context is set in the episode list container and checked in all relevant card components to set the `loading=&quot;lazy&quot;` attribute on images, improving initial page load times for long lists. (`PodcastEpisodeCard.svelte`, `PodcastShowCard.svelte`, `PodcastEpisodeList.svelte`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1R134-R135) [[2]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225R207-R208) [[3]](diffhunk://#diff-c21cdcde9020f9dcdf2bc672a6626f240508e9b745eb12d2238df3fd72487df1R17-R28)
-
-**Helper and logic refactoring:**
-
-* Refactored `image-helpers.js`:
-  - Removed `forceSmallOmnyImageSize` and replaced it with `getOmnyImageSrcSet` and `getOmnySizedImageUrl` for better flexibility and clarity.
-  - Simplified and clarified `getPodcastImageUrl` logic, removing unnecessary normalization and improving documentation. [[1]](diffhunk://#diff-8b0c3c82bbf4593e5dc1662a21b3be5b7a7f39f6a98218b32499231451dbd4e7L163-R204) [[2]](diffhunk://#diff-8b0c3c82bbf4593e5dc1662a21b3be5b7a7f39f6a98218b32499231451dbd4e7L189-R222) [[3]](diffhunk://#diff-8b0c3c82bbf4593e5dc1662a21b3be5b7a7f39f6a98218b32499231451dbd4e7L226-L243)
-
-* Updated all usages of `getPodcastImageUrl` and related helpers to align with the new function signatures and behaviors. [[1]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48L64-R64) [[2]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeR78-R79)
-
-These changes collectively modernize and optimize image handling for podcast cards and episodes, resulting in faster page loads, better image quality on different devices, and more maintainable code.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#8957e5">MERGED</span></td>
-          <td><span class="badge" style="background:#2ea043">APPROVED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 23, 2026</td>
-          <td style="white-space:nowrap">Mar 23, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1255" target="_blank">Fix/podcast blurry images</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              No description provided.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#da3633">CLOSED</span></td>
-          <td>—</td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 23, 2026</td>
-          <td style="white-space:nowrap">Mar 23, 2026</td>
-        </tr>
-<tr>
-          <td><a href="https://github.com/mamamia/mamamia-com-au" target="_blank">mamamia/mamamia-com-au</a></td>
-          <td>
-          <div class="title-line">
-            <a href="https://github.com/mamamia/mamamia-com-au/pull/1254" target="_blank">feat(podcast): add lazy loading to podcast card images</a>
-          </div>
-          <details style="margin-top:6px">
-            <summary style="cursor:pointer;font-size:.95em;color:var(--link);">Show description</summary>
-            <div style="margin-top:6px;white-space:pre-wrap;font-size:.95em;color:var(--text);background:var(--bg2);padding:8px 12px;border-radius:6px;border:1px solid var(--border);">
-              This pull request updates how podcast images are handled across several components, improving image quality, performance, and maintainability. The main changes are the replacement of the old `forceSmallOmnyImageSize` helper with new utilities for generating responsive image `srcset`s and size variants, and the introduction of lazy loading for episode lists to optimize initial page loads.
-
-**Image handling improvements:**
-
-* Replaced all usage of `forceSmallOmnyImageSize` with the new `getOmnyImageSrcSet` and `getOmnySizedImageUrl` helpers, enabling responsive images with `srcset` and better control over image sizes in all podcast card and episode components. (`PodcastEpisodeCard.svelte`, `PodcastEpisodeCardHorizontal.svelte`, `PodcastEpisodeCardVertical.svelte`, `PodcastShowCard.svelte`, `PodcastEpisode.svelte`, `UpNextEpisodeCard.svelte`, `PodcastShowHeroDesktop.svelte`, `ShowCard.svelte`, `image-helpers.js`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1R28-R35) [[2]](diffhunk://#diff-6108604428930df219e63f386b8a92e22c65aacff3b4727235d59160b93e489aL33-R33) [[3]](diffhunk://#diff-7934b225188c7dd01900433a49738074a826f53a3262157153ffa1f7e8e92fdbL34-R34) [[4]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225L31-R34) [[5]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL33-R37) [[6]](diffhunk://#diff-79ae16a84df7d26f973d6578566081092fc8df0f589bd408b74772438b331429L28-R28) [[7]](diffhunk://#diff-0dff09e5f23a925f159ac1404055ef7c1758ff7b13cf86efa5510fadb088a759L30-R30) [[8]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48L23-R23) [[9]](diffhunk://#diff-8b0c3c82bbf4593e5dc1662a21b3be5b7a7f39f6a98218b32499231451dbd4e7L163-R204)
-
-* Updated all relevant image tags to use `srcset` and `sizes` attributes for responsive loading, improving image quality on different devices and reducing bandwidth usage. (`PodcastEpisodeCard.svelte`, `PodcastEpisodeCardHorizontal.svelte`, `PodcastEpisodeCardVertical.svelte`, `PodcastShowCard.svelte`, `PodcastEpisode.svelte`, `UpNextEpisodeCard.svelte`, `PodcastShowHeroDesktop.svelte`, `ShowCard.svelte`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1L143-R153) [[2]](diffhunk://#diff-6108604428930df219e63f386b8a92e22c65aacff3b4727235d59160b93e489aL153-R155) [[3]](diffhunk://#diff-7934b225188c7dd01900433a49738074a826f53a3262157153ffa1f7e8e92fdbL178-R180) [[4]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225L237-R245) [[5]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL222-R235) [[6]](diffhunk://#diff-79ae16a84df7d26f973d6578566081092fc8df0f589bd408b74772438b331429L182-R184) [[7]](diffhunk://#diff-0dff09e5f23a925f159ac1404055ef7c1758ff7b13cf86efa5510fadb088a759L115-R117) [[8]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48R85-R86)
-
-**Performance and lazy loading:**
-
-* Introduced a context-based mechanism to enable lazy loading of images in episode lists, deferring the loading of off-screen thumbnails for better initial page performance. (`PodcastEpisodeCard.svelte`, `PodcastShowCard.svelte`, `PodcastEpisodeCardHorizontal.svelte`, `PodcastEpisodeCardVertical.svelte`, `UpNextEpisodeCard.svelte`, `ShowCard.svelte`, `PodcastEpisodeList.svelte`) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1R134-R135) [[2]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225R207-R208) [[3]](diffhunk://#diff-c21cdcde9020f9dcdf2bc672a6626f240508e9b745eb12d2238df3fd72487df1R17-R28)
-
-**Helper function refactoring:**
-
-* Added new helpers `getOmnyImageSrcSet` and `getOmnySizedImageUrl` to `image-helpers.js`, replacing the old `forceSmallOmnyImageSize` and providing more flexible, maintainable image handling for Omny images. (`image-helpers.js`)
-
-**Minor related updates:**
-
-* Updated all relevant imports and usages in affected components to use the new helper functions and context for lazy loading. (All affected component files) [[1]](diffhunk://#diff-564b8b80edbe2a28af0d358f9844dbaec005aa078e853b96e3865030ce6701d1R28-R35) [[2]](diffhunk://#diff-6108604428930df219e63f386b8a92e22c65aacff3b4727235d59160b93e489aL33-R33) [[3]](diffhunk://#diff-7934b225188c7dd01900433a49738074a826f53a3262157153ffa1f7e8e92fdbL34-R34) [[4]](diffhunk://#diff-b87c2c92c72632c0aaa453927c955af601f770e47d8011a67acfdd1175fd7225L31-R34) [[5]](diffhunk://#diff-7c3ff860f71924f66b25f27489923de2eff2ff1ac47120964f61283b681acdbeL33-R37) [[6]](diffhunk://#diff-79ae16a84df7d26f973d6578566081092fc8df0f589bd408b74772438b331429L28-R28) [[7]](diffhunk://#diff-0dff09e5f23a925f159ac1404055ef7c1758ff7b13cf86efa5510fadb088a759L30-R30) [[8]](diffhunk://#diff-55c2cc6b44a1a78fdccb7b2bf6add2b5243272f253d1ea54ba0cc4686c7fdf48L23-R23)
-
-These changes collectively improve image rendering quality, responsiveness, and performance across the podcast UI.
-            </div>
-          </details>
-        </td>
-          <td><span class="badge" style="background:#da3633">CLOSED</span></td>
-          <td><span class="badge" style="background:#d29922">REVIEW_REQUIRED</span></td>
-          <td><span class="badge" style="background:#2ea043">SUCCESS</span></td>
-          <td style="white-space:nowrap">Mar 23, 2026</td>
-          <td style="white-space:nowrap">Mar 25, 2026</td>
-        </tr></tbody>
+    <tbody id="tb">
+      <tr>
+        <td colspan="7" style="text-align:center;color:var(--muted);">No pull request data loaded.</td>
+      </tr>
+    </tbody>
   </table>
 
-  <script>const __md = "## PR Dashboard — Last 2 Weeks (Sprint)\n\n**14 total** · ✅ 2 open · 🔀 8 merged · ❌ 2 closed · 📝 2 draft\n\n**[Nss2 1902 i os auto downloads broken on i os 26 3 1](https://github.com/mamamia/mamamia-native-ios/pull/3)** · `mamamia-native-ios` · DRAFT · — · CI: — · Apr 3, 2026\n\n**[Nss2 1902 i os auto downloads broken on i os 26 3 1](https://github.com/mamamia/mamamia-com-au/pull/1286)** · `mamamia-com-au` · DRAFT · REVIEW_REQUIRED · CI: SUCCESS · Apr 3, 2026\n\n**[Revert \"Nss2 1919 create related podcast cms component\"](https://github.com/mamamia/cms-svelte/pull/269)** · `cms-svelte` · MERGED · — · CI: — · Apr 2, 2026\n\n**[NSS2-1943 fix: enhance notification permission handling for better compatibility](https://github.com/mamamia/mamamia-com-au/pull/1285)** · `mamamia-com-au` · OPEN · REVIEW_REQUIRED · CI: SUCCESS · Apr 1, 2026\n\n**[NSS2-1930 feat: add isAutoDownload property to episode and download serialization](https://github.com/mamamia/mamamia-com-au/pull/1284)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Apr 1, 2026\n\n**[NSS2-1941 fix: missing key in playwright teardown](https://github.com/mamamia/mamamia-com-au/pull/1283)** · `mamamia-com-au` · OPEN · REVIEW_REQUIRED · CI: SUCCESS · Apr 1, 2026\n\n**[Nss2 1919 create related podcast cms component](https://github.com/mamamia/cms-svelte/pull/267)** · `cms-svelte` · MERGED · — · CI: — · Mar 30, 2026\n\n**[NSS2-1920 implement related podcast in mm frontend](https://github.com/mamamia/mamamia-com-au/pull/1274)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Mar 30, 2026\n\n**[Fix/debug stale cache](https://github.com/mamamia/mamamia-com-au/pull/1272)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Mar 30, 2026\n\n**[NSS2-1880 clean up regression accounts](https://github.com/mamamia/mamamia-com-au/pull/1271)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Mar 27, 2026\n\n**[fix: enhance hero article timestamp handling and add updated_at field](https://github.com/mamamia/mamamia-com-au/pull/1266)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Mar 26, 2026\n\n**[Fix/omny image sizes](https://github.com/mamamia/mamamia-com-au/pull/1256)** · `mamamia-com-au` · MERGED · APPROVED · CI: SUCCESS · Mar 23, 2026\n\n**[Fix/podcast blurry images](https://github.com/mamamia/mamamia-com-au/pull/1255)** · `mamamia-com-au` · CLOSED · — · CI: SUCCESS · Mar 23, 2026\n\n**[feat(podcast): add lazy loading to podcast card images](https://github.com/mamamia/mamamia-com-au/pull/1254)** · `mamamia-com-au` · CLOSED · REVIEW_REQUIRED · CI: SUCCESS · Mar 23, 2026\n\n";
+  <script>const __md = "";
     function filter(){
       const q=document.getElementById("q").value.toLowerCase();
       const sf=document.getElementById("sf").value;
@@ -528,7 +109,7 @@ These changes collectively improve image rendering quality, responsiveness, and 
       try{
         const md = __md || '';
         const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-        const filename = 'pr-dashboard-Last_2_Weeks_(Sprint).md';
+        const filename = 'pr-dashboard.md';
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
