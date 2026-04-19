@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-19
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -61,17 +61,13 @@ GitHub Copilot provides several **built-in tools** that are always available:
 
 ## Configuring MCP Servers
 
-MCP servers are configured per-workspace. GitHub Copilot CLI discovers server definitions from several locations (loaded in order):
+MCP servers are configured per-workspace. GitHub Copilot CLI reads server definitions from **`.mcp.json`** at the repository root. This is the single authoritative config source for the CLI.
 
-| File | Scope | Notes |
-|------|-------|-------|
-| `.mcp.json` | Repository root | Preferred for repo-shared configuration |
-| `.vscode/mcp.json` | VS Code workspace | VS Code–compatible workspace config |
-| `devcontainer.json` | Dev container | Available when running inside a container |
+> **Note**: GitHub Copilot CLI previously read MCP servers from `.vscode/mcp.json` and `devcontainer.json`, but support for those sources was removed in v1.0.22. If you have an existing `.vscode/mcp.json`, the CLI will display a migration hint pointing you to documentation with platform-specific instructions for migrating to `.mcp.json`.
 
 > **Security**: Workspace MCP servers are loaded **only after folder trust is confirmed**. If you haven't explicitly trusted a folder, servers defined in its config files won't start — protecting you from malicious MCP server configurations in untrusted repositories.
 
-Example `.mcp.json` or `.vscode/mcp.json`:
+Example `.mcp.json`:
 
 ```json
 {
@@ -220,13 +216,43 @@ This enables sophisticated patterns like MCP servers that orchestrate multi-step
 
 > **Note**: Sampling requires explicit user approval every time a server requests inference. This is a security boundary — MCP servers cannot silently consume your AI quota or exfiltrate context without your knowledge.
 
-## Finding MCP Servers
+## Finding and Installing MCP Servers
 
 The MCP ecosystem is growing rapidly. Here are key resources:
 
 - **[Official MCP Servers](https://github.com/modelcontextprotocol/servers)**: Reference implementations for common services (PostgreSQL, Slack, Google Drive, etc.)
 - **[MCP Specification](https://spec.modelcontextprotocol.io/)**: The protocol specification for building your own servers
 - **[Awesome MCP Servers](https://github.com/punkpeye/awesome-mcp-servers)**: Community-curated list of MCP servers
+
+### Installing from the MCP Registry
+
+You can install MCP servers directly from the registry using the `copilot mcp` command, with guided configuration that walks you through the setup without hand-editing JSON:
+
+```bash
+# Browse and install MCP servers from the registry (with guided setup)
+copilot mcp install
+
+# Or install a specific server by name
+copilot mcp install github
+```
+
+The CLI will prompt you for any required configuration values (such as API tokens or connection strings) during installation, so secrets never end up in your `.mcp.json`.
+
+> **Tip**: Use `copilot mcp list` to see which MCP servers are currently configured, and `copilot mcp remove <name>` to remove one. From within an interactive session, you can also run `/mcp show` to see which servers are active.
+
+### Remote MCP Servers
+
+For HTTP-based MCP servers (as opposed to locally-spawned stdio processes), the `type` field in `.mcp.json` can be omitted and the CLI will default to `http`:
+
+```json
+{
+  "servers": {
+    "my-remote-server": {
+      "url": "https://my-mcp-server.example.com"
+    }
+  }
+}
+```
 
 ### Building Your Own MCP Server
 
@@ -245,7 +271,7 @@ MCP server SDKs are available in [Python](https://github.com/modelcontextprotoco
 - **Principle of least privilege**: Only give MCP servers the minimum access they need. Use read-only database connections for analysis agents.
 - **Keep secrets out of config files**: Use `${input:variableName}` for API keys and connection strings, or load from environment variables.
 - **Document your servers**: Add comments or a README explaining which MCP servers your project uses and why.
-- **Version control carefully**: Commit `.mcp.json` or `.vscode/mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
+- **Version control carefully**: Commit `.mcp.json` for shared server configurations, but use `.gitignore` for any files containing credentials.
 - **Test server connectivity**: Verify MCP servers start correctly before relying on them in agent workflows.
 - **Use the MCP allowlist (experimental)**: In high-security environments, the `MCP_ALLOWLIST` feature flag lets you validate MCP servers against a configured registry, blocking unrecognized servers from loading. MCP servers that are blocked by the allowlist policy are **hidden from `/mcp show`** to avoid confusion — only permitted servers appear in that view. This is an experimental feature for enterprise environments requiring strict control over which MCP servers are permitted.
 
@@ -266,7 +292,7 @@ A: No, MCP servers typically run locally on your machine as child processes. The
 
 **Q: Can I use MCP servers without custom agents?**
 
-A: Yes. Once configured in `.vscode/mcp.json`, MCP tools are available in any Copilot Chat session. Custom agents simply make it easier to pre-select the right tools for a workflow.
+A: Yes. Once configured in `.mcp.json`, MCP tools are available in any Copilot session. Custom agents simply make it easier to pre-select the right tools for a workflow.
 
 **Q: Are MCP servers secure?**
 

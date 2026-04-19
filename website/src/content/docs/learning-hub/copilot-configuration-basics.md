@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-19
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -405,6 +405,20 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+Select **`auto`** as your model to let Copilot automatically pick the best available model for each session. This is useful when you want consistent results without manually switching models as new ones become available:
+
+```bash
+copilot --model auto
+```
+
+You can also set `auto` as your default model in `config.json`:
+
+```json
+{
+  "model": "auto"
+}
+```
+
 ### CLI Session Commands
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
@@ -415,6 +429,12 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 | `/clear [prompt]` | Abandons the current session entirely and starts a new one. Backgrounded sessions are not affected. MCP servers configured in your project are preserved in the new session. |
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
+
+The `/ask` command lets you ask a quick question **without affecting conversation history**. It's useful for looking something up mid-task when you don't want the query to influence the ongoing session context:
+
+```
+/ask What's the difference between --rebase and --merge in git pull?
+```
 
 The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
 
@@ -457,6 +477,22 @@ The `/share html` command exports the current session — including conversation
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
 
+The `/env` command shows a summary of the loaded environment — which instructions, skills, MCP servers, agents, and plugins are active in your current session:
+
+```
+/env
+```
+
+This is especially useful when debugging configuration issues or verifying that a newly installed plugin or skill is being discovered correctly.
+
+The `/statusline` command (also available as `/footer`) lets you customise which items appear in the status bar at the bottom of the terminal UI:
+
+```
+/statusline          # toggle or configure status bar items
+```
+
+Items you can show or hide include: directory, branch, effort level, context window usage, and quota.
+
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
 The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
@@ -476,6 +512,46 @@ gh copilot --effort high "Refactor the authentication module"
 ```
 
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+
+### Resuming and Connecting to Sessions
+
+Use `--resume` or `/resume` with a **short session ID prefix** (7 or more hex characters) instead of the full ID when returning to a previous session:
+
+```bash
+copilot --resume 4e51f5a  # short prefix works, full ID not required
+```
+
+The `--connect` flag lets you connect directly to an existing remote session by ID without going through the resume picker:
+
+```bash
+copilot --connect <session-id>
+```
+
+This is useful in CI environments or when sharing a session between terminals.
+
+### Attaching Documents to Prompts
+
+You can attach supported document files (PDF, Word, text, etc.) directly to your prompts for the agent to read and reason about:
+
+```
+Summarise the key points from this spec. [drag-and-drop or paste file path]
+```
+
+Documents are included in the agent's context for that turn, making it easy to work with design documents, requirements, or reference materials without copying their content manually.
+
+### Startup and Diagnostic Flags
+
+The `--print-debug-info` flag displays version information, terminal capabilities, and active environment variables at startup — useful for reporting bugs or verifying your setup:
+
+```bash
+copilot --print-debug-info
+```
+
+The `--session-idle-timeout` flag configures how long a session stays open when idle. It is disabled by default:
+
+```bash
+copilot --session-idle-timeout 30m
+```
 
 ## Common Questions
 
