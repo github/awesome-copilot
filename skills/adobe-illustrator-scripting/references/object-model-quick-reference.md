@@ -8,7 +8,7 @@ Application (app)
      ├─ Layer
      │   ├─ pathItems[]        → PathItem → PathPoint[]
      │   ├─ compoundPathItems[] → CompoundPathItem
-     │   ├─ textFrames[]       → TextFrameItem
+     │   ├─ textFrames[]       → TextFrame
      │   │   ├─ characters[]   → TextRange (single char)
      │   │   ├─ words[]        → TextRange (word)
      │   │   ├─ paragraphs[]   → TextRange (paragraph)

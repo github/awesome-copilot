@@ -7,6 +7,10 @@ description: 'Write, debug, and optimize Adobe Illustrator automation scripts us
 
 Expert guidance for automating Adobe Illustrator through ExtendScript (JavaScript/JSX). This skill covers the Illustrator scripting object model, all major API objects, code patterns, and best practices for writing production-quality `.jsx` scripts.
 
+## Bundled Assets
+
+- [`references/object-model-quick-reference.md`](references/object-model-quick-reference.md): Use this as a quick lookup for the Illustrator scripting object model, common document and page item types, and related DOM concepts while writing or debugging scripts.
+- `scripts/`: Contains example Illustrator automation scripts you can use as starting points or implementation patterns for common tasks such as document manipulation, exports, batch processing, and DOM usage. Review and adapt these examples when you need working JSX patterns or want to compare behavior while debugging.
 ## When to Use This Skill
 
 - Writing new Illustrator automation scripts (`.jsx` or `.js` files)
@@ -14,7 +18,7 @@ Expert guidance for automating Adobe Illustrator through ExtendScript (JavaScrip
 - Manipulating documents, layers, page items, paths, text, or colors programmatically
 - Batch-processing Illustrator files or generating artwork from data
 - Exporting documents to various formats (PDF, SVG, PNG, EPS, etc.)
-- Working with the Illustrator DOM (Application, Document, Layer, PathItem, TextFrameItem, etc.)
+- Working with the Illustrator DOM (Application, Document, Layer, PathItem, TextFrame, etc.)
 - Creating data-driven graphics using variables and datasets
 - Automating print workflows with scripted print options
 
@@ -654,7 +658,7 @@ The Illustrator JavaScript API contains the following objects, grouped by catego
 
 ### Text Objects
 
-`TextFrameItems`, `TextRange`, `TextRanges`, `TextPath`, `Characters`, `Words`, `Paragraphs`, `Lines`, `InsertionPoint`, `InsertionPoints`, `Story`, `Stories`, `CharacterAttributes`, `ParagraphAttributes`, `CharacterStyle`, `CharacterStyles`, `ParagraphStyle`, `ParagraphStyles`, `TextFont`, `TextFonts`, `TabStopInfo`
+`TextFrame`, `TextRange`, `TextRanges`, `TextPath`, `Characters`, `Words`, `Paragraphs`, `Lines`, `InsertionPoint`, `InsertionPoints`, `Story`, `Stories`, `CharacterAttributes`, `ParagraphAttributes`, `CharacterStyle`, `CharacterStyles`, `ParagraphStyle`, `ParagraphStyles`, `TextFont`, `TextFonts`, `TabStopInfo`
 
 ### Color Objects
 
