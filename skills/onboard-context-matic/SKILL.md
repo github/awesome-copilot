@@ -41,7 +41,7 @@ Use the following facts as your source, but say it conversationally — do not p
 
 > | Tool | What it does | When to use it | What you get back |
 > |---|---|---|---|
-> | `fetch_api` | Lists all APIs available on this server for a given language | "What APIs can I use?" / Starting a new project | A named list of available APIs with short descriptions |
+> | `fetch_api` | Returns an exact match for an API `key`/identifier and language, or lists all APIs for a given language. The `key` is the machine-readable identifier returned by `fetch_api` (for example, `paypal`), not the human-readable display name (for example, "PayPal Server SDK"). | "What APIs can I use?" / Starting a new project / "Do you have the PayPal SDK?" | A named list of available APIs with short descriptions (full catalog), or one exact API match when you provide its identifier/key and language |
 > | `ask` | Answers integration questions with version-accurate guidance and code samples | "How do I authenticate?", "Show me the quickstart", "What's the right way to do X?" | Step-by-step guidance and runnable code samples grounded in the actual SDK version |
 > | `model_search` | Looks up an SDK model/object definition and its typed properties | "What fields does an Order have?", "Is this property required?" | The model's name, description, and a full typed property list (required vs. optional, nested types) |
 > | `endpoint_search` | Looks up an endpoint method, its parameters, response type, and a runnable code sample | "Show me how to call createOrder", "What does getTrack return?" | Method signature, parameter types, response type, and a copy-paste-ready code sample |
@@ -76,7 +76,7 @@ Store the detected language — you will pass it to every subsequent tool call.
 Tell the user which language you detected and that you are fetching the available APIs — for
 example: *"I can see this is a TypeScript project. Let me fetch the APIs available for TypeScript."*
 
-Call **`fetch_api`** with `language` = the detected language.
+Call **`fetch_api`** with `language` = the detected language and `key` = "" so the tool returns the full list of available APIs.
 
 Display the results as a formatted list, showing each API's **name** and a one-sentence summary of
 its **description**. Do not truncate or skip any entry.
@@ -189,9 +189,9 @@ Before calling, say something like: *"Let me fetch the `[endpoint name]` endpoin
 
 Pick a **representative endpoint** for the chosen API and call **`endpoint_search`** with an explicit argument object:
 
-- `key`: the API key you are demonstrating (for example, `paypal` or `spotify`)
-- `query`: the endpoint / SDK method name you want to look up (for example, `createOrder` or `getTrack`)
-- `language`: the user's project language (for example, `"typescript"` or `"python"`)
+- `key` = the API key you are demonstrating (for example, `paypal` or `spotify`)
+- `query` = the endpoint / SDK method name you want to look up (for example, `createOrder` or `getTrack`)
+- `language` = the user's project language (for example, `"typescript"` or `"python"`)
 
 For example:
 

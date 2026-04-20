@@ -8,6 +8,11 @@ const REPO_BASE_URL =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
 const REPO_GITHUB_URL = "https://github.com/github/awesome-copilot/blob/main";
 
+/**
+ * The GitHub repo identifier used for `gh skill install` commands
+ */
+export const REPO_IDENTIFIER = "github/awesome-copilot";
+
 // VS Code install URL configurations
 const VSCODE_INSTALL_CONFIG: Record<
   string,

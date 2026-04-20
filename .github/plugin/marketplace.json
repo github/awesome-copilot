@@ -262,7 +262,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.6.0"
+      "version": "1.6.6"
     },
     {
       "name": "go-mcp-development",
@@ -439,6 +439,12 @@
       "name": "power-bi-development",
       "source": "power-bi-development",
       "description": "Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "power-platform-architect",
+      "source": "power-platform-architect",
+      "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
       "version": "1.0.0"
     },
     {
