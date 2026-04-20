@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-20
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -405,6 +405,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+**Auto model selection**: Select `auto` as your model to let Copilot automatically pick the best available model for each session based on task complexity and availability. This is useful when you want Copilot to optimise performance without having to manually switch models. Sub-agents launched in auto mode also inherit the session model automatically.
+
 ### CLI Session Commands
 
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
@@ -471,7 +473,36 @@ The `/env` command shows all loaded environment details — instructions, MCP se
 /env
 ```
 
-The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, and quota:
+**Slash command aliases**: Several commands now have convenient aliases for common workflows:
+
+| Alias | Maps to | Purpose |
+|-------|---------|---------|
+| `/continue` | `/resume` | Resume a backgrounded session |
+| `/bug` | Built-in bug reporter | Report a bug with context |
+| `/release-notes` | Built-in changelog | View recent release notes |
+| `/export` | Built-in exporter | Export session content |
+| `/reset` | `/clear` | Start a fresh session |
+| `/upgrade` | `/update` | Update the CLI to the latest version |
+
+**Slash command suggestions**: When you type an unrecognized or misspelled slash command, the command picker automatically suggests similar commands so you can correct typos without memorizing exact names.
+
+**Attaching files to prompts**: You can attach supported document files (PDFs, text files, images, etc.) to your prompts for the agent to read and reason about. This is useful for providing reference documentation, design specs, or any external context that isn't already in your codebase.
+
+**Usage limit warnings**: Copilot CLI shows warnings when you reach **50%** and **95%** of your weekly usage quota, giving you advance notice before hitting rate limits.
+
+**Session idle timeout**: By default, sessions do not time out due to inactivity. If you want sessions to end automatically after a period of inactivity, configure the timeout with the `--session-idle-timeout` flag:
+
+```bash
+copilot --session-idle-timeout 30m   # end session after 30 minutes of inactivity
+```
+
+**Debugging and diagnostics**: Use the `--print-debug-info` flag to display version information, terminal capabilities, and relevant environment variables — helpful when troubleshooting unexpected CLI behaviour:
+
+```bash
+copilot --print-debug-info
+```
+
+ (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, and quota:
 
 ```
 /statusline             # show the statusline configuration menu
@@ -506,6 +537,22 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+**Resuming and connecting to sessions**: The `--resume` flag (and its alias `--continue`) accepts short session ID prefixes (7 or more hex characters) in addition to full session IDs, making it faster to resume a session from the command line:
+
+```bash
+copilot --resume a1b2c3d    # resume session whose ID starts with a1b2c3d
+```
+
+When resuming a remote session, the `--remote` flag is inherited automatically — you don't need to re-specify it each time.
+
+The `--connect` flag lets you connect directly to an existing remote session by its full ID without going through the session picker:
+
+```bash
+copilot --connect <session-id>
+```
+
+**Keyboard shortcuts in the tasks dialog**: Use **j/k** for vim-style navigation through tasks and **x** to kill a running task from within the tasks dialog.
 
 ## Common Questions
 

@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-04-20
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -44,7 +44,7 @@ Subagents are useful because they are not just "the same agent in another tab." 
 - **Focused instructions**: the subagent can use a tighter role, such as planner, implementer, reviewer, or researcher.
 - **Parallelism**: multiple subagents can work at the same time when tasks do not conflict.
 - **Controlled synthesis**: the parent agent decides what gets brought back into the main conversation.
-- **Alternative model selection**: the subagent can use a different AI model to perform a task, so while our main agent might be using a generalist model, a subagent could be configured to use a more specialized one for code review or research.
+- **Alternative model selection**: the subagent can use a different AI model to perform a task, so while our main agent might be using a generalist model, a subagent could be configured to use a more specialized one for code review or research. When the session model is set to `auto`, sub-agents automatically inherit the session model — Copilot picks the best model for each subagent's task without requiring explicit configuration.
 
 That isolation is one of the main reasons subagents can outperform a single monolithic agent on larger tasks.
 

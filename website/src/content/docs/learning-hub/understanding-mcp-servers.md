@@ -117,6 +117,8 @@ This guided flow is the recommended way to add new MCP servers, especially for s
 
 **env**: Environment variables passed to the server process. Use these for connection strings, API keys, and configuration—never hardcode secrets in the JSON file.
 
+In addition to the `env` field, Copilot CLI automatically injects the **`COPILOT_AGENT_SESSION_ID`** environment variable into all shell commands and MCP server processes. This lets MCP servers identify the current Copilot session if they need to correlate activity or pass session context to external systems.
+
 **type** (remote servers): The transport type for remote MCP servers (`http` or `sse`). This field can now be omitted — the CLI defaults to `http` when no type is specified, simplifying remote server configuration.
 
 ### Managing Persistent MCP Configuration via Server RPCs
