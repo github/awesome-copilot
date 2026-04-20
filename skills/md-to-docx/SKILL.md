@@ -10,11 +10,11 @@ Convert Markdown (`.md`) files into professionally formatted Word (`.docx`) docu
 ## How to Convert
 
 ```bash
-# Install dependencies (one-time, from this skill folder)
-cd skills/md-to-docx && npm install
+# Install dependencies (one-time, from the scripts folder)
+cd skills/md-to-docx/scripts && npm install
 
 # Convert (run from workspace root)
-node skills/md-to-docx/md-to-docx.mjs <input.md> [output.docx]
+node skills/md-to-docx/scripts/md-to-docx.mjs <input.md> [output.docx]
 ```
 
 If `output.docx` is omitted, it defaults to `<input-basename>.docx` in the current directory.
@@ -24,8 +24,8 @@ If `output.docx` is omitted, it defaults to `<input-basename>.docx` in the curre
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | This instruction file |
-| `md-to-docx.mjs` | Node.js Markdown-to-Word converter |
-| `package.json` | Dependencies (`docx`, `marked`) |
+| `scripts/md-to-docx.mjs` | Node.js Markdown-to-Word converter |
+| `scripts/package.json` | Dependencies (`docx`, `marked`) |
 
 ## Prerequisites
 

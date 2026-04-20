@@ -448,6 +448,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "project-documenter",
+      "source": "project-documenter",
+      "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
+      "version": "1.0.0"
+    },
+    {
       "name": "project-planning",
       "source": "project-planning",
       "description": "Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams.",

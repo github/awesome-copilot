@@ -17,8 +17,6 @@ Point the **Project Documenter** agent at any repository and it produces:
 2. **Draw.io diagrams** — C4 Context, Pipeline, and Component relationship diagrams (`.drawio` + `.drawio.png`)
 3. **Word document** — professionally formatted `.docx` with title page, table of contents, and embedded PNG architecture images
 
-![Agent Workflow](docs/agent-workflow.drawio.png)
-
 ## What's Included
 
 ### Agent

@@ -23,17 +23,17 @@ This skill includes `drawio-to-png.mjs`, a Node.js export script with two render
 ### Usage
 
 ```bash
-# Install dependencies (one-time, from this skill folder)
-cd skills/drawio && npm install
+# Install dependencies (one-time, from the scripts folder)
+cd skills/drawio/scripts && npm install
 
 # Export a single diagram
-node skills/drawio/drawio-to-png.mjs <input.drawio> [output.png]
+node skills/drawio/scripts/drawio-to-png.mjs <input.drawio> [output.png]
 
 # Export all .drawio files in a directory
-node skills/drawio/drawio-to-png.mjs --dir <directory>
+node skills/drawio/scripts/drawio-to-png.mjs --dir <directory>
 
 # Force a specific renderer
-node skills/drawio/drawio-to-png.mjs --renderer=cli|viewer|auto <input.drawio>
+node skills/drawio/scripts/drawio-to-png.mjs --renderer=cli|viewer|auto <input.drawio>
 ```
 
 ### Skill Folder Contents
@@ -41,8 +41,8 @@ node skills/drawio/drawio-to-png.mjs --renderer=cli|viewer|auto <input.drawio>
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | This instruction file |
-| `drawio-to-png.mjs` | Node.js export script (CLI + browser fallback) |
-| `package.json` | Dependencies (`puppeteer-core`) |
+| `scripts/drawio-to-png.mjs` | Node.js export script (CLI + browser fallback) |
+| `scripts/package.json` | Dependencies (`puppeteer-core`) |
 
 ## Supported Export Formats
 
