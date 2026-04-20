@@ -18,7 +18,7 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "agents": [
-    "./agents/fabric-data-agent-manager.agent.md"
+    "./agents/fabric-data-agent-manager.md"
   ],
   "skills": [
     "./skills/fabric-data-agent-create/",
