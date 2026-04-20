@@ -1,145 +1,141 @@
 ---
 name: arduino-azure-iot-edge-integration
-description: 'Disenar e implementar integracion de Arduino con Azure IoT Hub e IoT Edge con aprovisionamiento seguro, telemetria resiliente, manejo de comandos y guardrails de produccion.'
+description: 'Design and implement Arduino integration with Azure IoT Hub and IoT Edge, including secure provisioning, resilient telemetry, command handling, and production guardrails.'
 ---
 
 # Arduino Azure IoT Edge Integration
 
-Usa esta habilidad cuando el usuario necesite conectar dispositivos tipo Arduino a Azure IoT, especialmente en escenarios con fuerte componente edge (gateways, redes intermitentes, buffer offline y actuacion local).
+Use this skill when the user needs to connect Arduino-class devices to Azure IoT, especially in edge-heavy scenarios (gateways, intermittent networks, offline buffering, and local actuation).
 
-## Cuando usarla
+## When to use it
 
-Usa esta habilidad para solicitudes como:
+Use this skill for requests such as:
 
-- "quiero conectar sensores Arduino a Azure"
-- "como mando telemetria por MQTT a IoT Hub"
-- "necesito gateway edge para dispositivos de campo"
-- "quiero comandos cloud-to-device y OTA de configuracion"
+- "I want to connect Arduino sensors to Azure"
+- "How do I send MQTT telemetry to IoT Hub?"
+- "I need an edge gateway for field devices"
+- "I want cloud-to-device commands and OTA configuration updates"
 
-## Revision obligatoria de documentacion
+## Mandatory documentation review
 
-Antes de recomendar topologia IoT Edge o comportamiento de runtime, revisa:
+Before recommending an IoT Edge topology or runtime behavior, review:
 
 - https://learn.microsoft.com/azure/iot-edge/
-- https://learn.microsoft.com/es-es/azure/iot-edge/
 
-Si no se puede consultar la documentacion, continua con supuestos explicitos y destacalos en una seccion dedicada.
+If documentation cannot be consulted, proceed with explicit assumptions and highlight them in a dedicated section.
 
-## Referencias oficiales de Arduino y buenas practicas (obligatorio)
+## Official Arduino references and best practices (required)
 
-Antes de proponer detalles de implementacion de firmware, cableado o comunicaciones, consulta primero fuentes oficiales de Arduino:
+Before proposing firmware, wiring, or communication implementation details, consult official Arduino sources first:
 
 - https://www.arduino.cc/en/Guide
 - https://docs.arduino.cc/
 - https://docs.arduino.cc/language-reference/
 - references/arduino-official-best-practices.md
 
-Cuando haya que elegir entre alternativas de implementacion, prioriza la guia oficial de Arduino frente a snippets de comunidad, salvo que exista una razon tecnica clara para desviarse.
+When choosing between implementation alternatives, prioritize official Arduino guidance over community snippets unless there is a clear technical reason to deviate.
 
-## Objetivos
+## Objectives
 
-- Producir una ruta de referencia segura de extremo a extremo desde el dispositivo Arduino hasta el insight en la nube.
-- Gestionar enlaces inestables (store-and-forward, reintentos, idempotencia).
-- Definir un backlog accionable de dispositivo y nube.
+- Produce a secure end-to-end reference path from the Arduino device to cloud insights.
+- Handle unstable links (store-and-forward, retries, idempotency).
+- Define an actionable device and cloud backlog.
 
-## Patrones de integracion
+## Integration patterns
 
-### Patron A: Arduino directo a IoT Hub
+### Pattern A: Arduino direct to IoT Hub
 
-Usar cuando la conectividad sea estable y la latencia a la nube sea aceptable.
+Use when connectivity is stable and cloud latency is acceptable.
 
-- Protocolo: MQTT sobre TLS.
-- Identidad: credenciales por dispositivo (SAS o X.509).
-- Payload de telemetria: JSON compacto con timestamp, id de dispositivo, metricas y flags de calidad opcionales.
+- Protocol: MQTT over TLS.
+- Identity: per-device credentials (SAS or X.509).
+- Telemetry payload: compact JSON with timestamp, device ID, metrics, and optional quality flags.
 
-### Patron B: Arduino a gateway local y despues IoT Edge
+### Pattern B: Arduino to local gateway, then IoT Edge
 
-Usar cuando los enlaces sean limitados, se requiera control local o el batching mejore coste/fiabilidad.
+Use when links are constrained, local control is required, or batching improves cost/reliability.
 
-- Arduino se comunica con gateway local (serial, BLE, MQTT local, RS-485, puente Modbus).
-- El gateway publica aguas arriba mediante runtime de IoT Edge y enruta datos a IoT Hub.
-- Los modulos locales pueden filtrar, agregar y disparar acciones incluso durante caidas de nube.
+- Arduino communicates with a local gateway (serial, BLE, local MQTT, RS-485, Modbus bridge).
+- The gateway publishes upstream through the IoT Edge runtime and routes data to IoT Hub.
+- Local modules can filter, aggregate, and trigger actions even during cloud outages.
 
-## Flujo de diseno
+## Design flow
 
-### 1) Contrato de dispositivo
+### 1) Device contract
 
 Define:
 
-- Catalogo de sensores y unidades.
-- Frecuencia de muestreo y throughput esperado.
-- Estrategia de versionado del esquema de mensajes.
-- Propiedades desired/reported del device twin para controlar comportamiento en runtime.
+- Sensor catalog and units.
+- Sampling frequency and expected throughput.
+- Message schema versioning strategy.
+- Desired/reported device twin properties to control runtime behavior.
 
-### 2) Baseline de seguridad
+### 2) Security baseline
 
-Requiere:
+Require:
 
-- Identidad unica por dispositivo.
-- Sin secretos hardcodeados en codigo fuente ni artefactos de firmware.
-- Estrategia de rotacion de credenciales.
-- Firmware firmado y proceso de actualizacion controlado cuando sea posible.
+- Unique identity per device.
+- No hardcoded secrets in source code or firmware artifacts.
+- Credential rotation strategy.
+- Signed firmware and a controlled update process when possible.
 
-### 3) Fiabilidad y comportamiento offline
+### 3) Reliability and offline behavior
 
-Planifica y documenta:
+Plan and document:
 
-- Backoff con jitter.
-- Estrategia de cola/buffer local con tamano acotado.
-- Supresion de duplicados o procesamiento idempotente aguas abajo.
-- Fallback a configuracion de ultimo estado valido.
+- Backoff with jitter.
+- Local queue/buffer strategy with bounded size.
+- Duplicate suppression or downstream idempotent processing.
+- Fallback to last-known-good configuration.
 
-### 4) Enrutado cloud y edge
+### 4) Cloud and edge routing
 
-Define rutas para:
+Define routes for:
 
-- Telemetria raw a almacenamiento cold.
-- Telemetria curada a analitica hot.
-- Alertas a canales de operaciones.
-- Comandos y configuracion de vuelta a edge/dispositivo.
+- Raw telemetry to cold storage.
+- Curated telemetry to hot analytics.
+- Alerts to operations channels.
+- Commands and configuration back to edge/device.
 
-### 5) Observabilidad
+### 5) Observability
 
-Especifica telemetria minima para operaciones:
+Specify minimum operations telemetry:
 
-- Heartbeat de dispositivo y version de firmware.
-- Transiciones de estado de conectividad.
-- Contadores de exito/error de envio de mensajes.
-- Salud de modulo gateway y razones de reinicio.
+- Device heartbeat and firmware version.
+- Connectivity state transitions.
+- Message send success/error counters.
+- Gateway module health and restart reasons.
 
-## Reutilizar otras habilidades
+## Reuse other skills
 
-Cuando aplique, combinar con:
+When relevant, combine with:
 
 - `azure-smart-city-iot-solution-builder` for city-wide architecture and phased rollout.
 - `azure-resource-visualizer` for relationship diagrams.
 - `appinsights-instrumentation` for app and service telemetry patterns.
-- `azure-smart-city-iot-solution-builder` para arquitectura a escala ciudad y despliegue por fases.
-- `azure-resource-visualizer` para diagramas de relacion entre recursos.
-- `appinsights-instrumentation` para patrones de telemetria en apps y servicios.
 
-Usa tambien `references/arduino-official-best-practices.md` como linea base de calidad para recomendaciones de firmware y hardware.
+Also use `references/arduino-official-best-practices.md` as a quality baseline for firmware and hardware recommendations.
 
-## Salida requerida
+## Required output
 
-Proporciona siempre:
+Always provide:
 
-1. Patron de conectividad elegido y su razonamiento.
-2. Contrato de mensaje (campos, unidades, payload de ejemplo).
-3. Checklist de seguridad para identidad/credenciales/actualizaciones.
-4. Plan de fiabilidad (reintento, buffering, dedupe).
-5. Backlog de implementacion (firmware, gateway, cloud).
+1. Chosen connectivity pattern and rationale.
+2. Message contract (fields, units, sample payload).
+3. Security checklist for identity/credentials/updates.
+4. Reliability plan (retry, buffering, dedupe).
+5. Implementation backlog (firmware, gateway, cloud).
 
-## Plantilla de salida
+## Output template
 
-1. Escenario y supuestos
-2. Arquitectura recomendada
-3. Contrato de dispositivo y gateway
-4. Controles de seguridad y fiabilidad
-5. Plan de despliegue y pruebas de validacion
+1. Scenario and assumptions
+2. Recommended architecture
+3. Device and gateway contract
+4. Security and reliability controls
+5. Deployment plan and validation tests
 
-## Directrices
+## Guidelines
 
-- No proponer despliegues en produccion con credenciales compartidas entre dispositivos.
-- No asumir conectividad siempre activa en despliegues de campo.
-- No omitir autorizacion y auditoria de comandos en escenarios con actuadores.
+- Do not propose production deployments with shared credentials across devices.
+- Do not assume always-on connectivity in field deployments.
+- Do not omit command authorization and auditing in actuator scenarios.

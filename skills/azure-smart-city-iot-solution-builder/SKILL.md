@@ -1,110 +1,109 @@
 ---
 name: azure-smart-city-iot-solution-builder
-description: 'Disenar y planificar soluciones Azure IoT y Smart City de extremo a extremo: requisitos, arquitectura, seguridad, operaciones, coste y plan de entrega por fases con artefactos concretos de implementacion.'
+description: 'Design and plan end-to-end Azure IoT and Smart City solutions: requirements, architecture, security, operations, cost, and a phased delivery plan with concrete implementation artifacts.'
 ---
 
 # Azure Smart City IoT Solution Builder
 
-Usa esta habilidad para reconstruir y estandarizar un flujo completo para construir soluciones Azure IoT y Smart City.
+Use this skill to rebuild and standardize a complete workflow for Azure IoT and Smart City solutions.
 
-## Cuando usarla
+## When to use it
 
-Usa esta habilidad cuando el usuario pida cosas como:
+Use this skill when the user asks for things like:
 
-- "quiero montar una solucion IoT en Azure"
-- "arquitectura Smart City para trafico, alumbrado o residuos"
-- "como conecto dispositivos, analitica y alertas"
-- "necesito roadmap y backlog para una plataforma urbana"
+- "I want to build an IoT solution on Azure"
+- "Smart City architecture for traffic, lighting, or waste"
+- "How do I connect devices, analytics, and alerts?"
+- "I need a roadmap and backlog for an urban platform"
 
-## Objetivos
+## Objectives
 
-- Convertir una idea de alto nivel en una arquitectura desplegable.
-- Reutilizar habilidades existentes enfocadas en Azure cuando sea posible.
-- Producir artefactos concretos que el equipo pueda implementar.
+- Convert a high-level idea into a deployable architecture.
+- Reuse existing Azure-focused skills whenever possible.
+- Produce concrete artifacts the team can implement.
 
-## Flujo de trabajo
+## Workflow
 
-### 0) Revision obligatoria de documentacion (antes de cualquier arquitectura)
+### 0) Mandatory documentation review (before any architecture)
 
-Antes de proponer arquitectura o decisiones tecnologicas que involucren computacion en el borde, el asistente debe revisar primero la documentacion de Azure IoT Edge:
+Before proposing architecture or technology decisions that involve edge computing, review Azure IoT Edge documentation first:
 
 - https://learn.microsoft.com/azure/iot-edge/
-- https://learn.microsoft.com/es-es/azure/iot-edge/
 
-Paginas minimas a revisar:
+Minimum pages to review:
 
-- Que es Azure IoT Edge
-- Arquitectura de runtime
-- Sistemas compatibles
-- Historial de versiones/notas de lanzamiento
-- Guias de inicio rapido de Linux/Windows relevantes para el escenario
+- What is Azure IoT Edge
+- Runtime architecture
+- Supported systems
+- Version history/release notes
+- Relevant Linux/Windows quickstarts for the scenario
 
-Si no se puede consultar la documentacion, indicalo explicitamente y continua con supuestos claramente marcados.
+If documentation cannot be consulted, state this explicitly and continue with clearly marked assumptions.
 
-### 1) Alcance y restricciones
+### 1) Scope and constraints
 
-Recoge y confirma:
+Collect and confirm:
 
-- Dominio de ciudad: movilidad, parking, calidad del aire, agua, energia, seguridad, residuos, etc.
-- Escala: numero de dispositivos, frecuencia de telemetria, retencion, regiones.
-- Objetivos de latencia y disponibilidad.
-- Restricciones regulatorias y de privacidad.
-- Sistemas existentes a integrar (SCADA, GIS, ERP, ticketing, APIs).
+- City domain: mobility, parking, air quality, water, energy, public safety, waste, etc.
+- Scale: number of devices, telemetry frequency, retention, regions.
+- Latency and availability objectives.
+- Regulatory and privacy constraints.
+- Existing systems to integrate (SCADA, GIS, ERP, ticketing, APIs).
 
-### 2) Mapa de capacidades
+### 2) Capability map
 
-Divide la plataforma en capas:
+Split the platform into layers:
 
-- Dispositivo y edge: incorporacion, identidad, firmware, OTA, procesamiento en el borde.
-- Ingestion y mensajeria: mando y control, enrutado de eventos, almacenamiento en buffer.
-- Datos y analitica: ruta caliente frente a ruta fria, paneles, analisis historico.
-- Operaciones: observabilidad, flujo de incidentes, SLO.
-- Gobierno: RBAC, secretos, politicas, aislamiento de red.
+- Device and edge: onboarding, identity, firmware, OTA, edge processing.
+- Ingestion and messaging: command and control, event routing, buffering.
+- Data and analytics: hot path vs cold path, dashboards, historical analysis.
+- Operations: observability, incident flow, SLOs.
+- Governance: RBAC, secrets, policies, network isolation.
 
-### 3) Seleccion de servicios de Azure (referencia)
+### 3) Azure service selection (reference)
 
-- Conectividad de dispositivos: Azure IoT Hub, Azure IoT Operations, IoT Edge.
-- Streaming de eventos: Event Hubs, Service Bus, Event Grid.
-- Almacenamiento: Blob Storage, Data Lake, Cosmos DB, SQL.
-- Analitica: Azure Data Explorer, Stream Analytics, Fabric/Synapse.
-- API y aplicaciones: API Management, App Service, Container Apps, Functions.
-- Monitorizacion: Azure Monitor, Application Insights, Log Analytics.
-- Seguridad: Key Vault, Defender for IoT, Private Endpoints, Managed Identity.
+- Device connectivity: Azure IoT Hub, Azure IoT Operations, IoT Edge.
+- Event streaming: Event Hubs, Service Bus, Event Grid.
+- Storage: Blob Storage, Data Lake, Cosmos DB, SQL.
+- Analytics: Azure Data Explorer, Stream Analytics, Fabric/Synapse.
+- APIs and applications: API Management, App Service, Container Apps, Functions.
+- Monitoring: Azure Monitor, Application Insights, Log Analytics.
+- Security: Key Vault, Defender for IoT, Private Endpoints, Managed Identity.
 
-### 4) Diseno no funcional
+### 4) Non-functional design
 
-Define y documenta:
+Define and document:
 
-- Modelo de fiabilidad (zonas/regiones, reintentos, dead-letter, replay).
-- Controles de seguridad (confianza cero, cifrado, rotacion de secretos, minimo privilegio).
-- Controles de coste (niveles de retencion, ajuste de tamano, autoescalado, planificacion de cargas).
-- Ciclo de vida de datos (bruto, curado, agregado, archivado).
+- Reliability model (zones/regions, retries, dead-letter handling, replay).
+- Security controls (zero trust, encryption, secret rotation, least privilege).
+- Cost controls (retention tiers, rightsizing, autoscaling, workload scheduling).
+- Data lifecycle (raw, curated, aggregated, archived).
 
-### 5) Plan de entrega
+### 5) Delivery plan
 
-Crea una ejecucion por fases:
+Create a phased execution:
 
-- Fase 1: Distrito piloto o caso de uso unico.
-- Fase 2: Integracion multi-dominio.
-- Fase 3: Despliegue a escala ciudad y optimizacion.
+- Phase 1: Pilot district or single use case.
+- Phase 2: Multi-domain integration.
+- Phase 3: City-scale rollout and optimization.
 
-Para cada fase incluye:
+For each phase, include:
 
-- Criterios de salida
-- Dependencias
-- Riesgos y mitigaciones
-- Conjunto de KPI
+- Exit criteria
+- Dependencies
+- Risks and mitigations
+- KPI set
 
-## Reutilizar otras habilidades primero
+## Reuse other skills first
 
-Hay dos fuentes de habilidades:
+There are two sources of skills:
 
-- Habilidades proporcionadas por runtime (externas a este repositorio): solo disponibles cuando el entorno host de Copilot las expone.
-- Habilidades locales del repositorio (este repositorio): disponibles como archivos locales bajo `skills/`.
+- Runtime-provided skills (external to this repository): only available when the Copilot host environment exposes them.
+- Local repository skills (this repository): available as local files under `skills/`.
 
-### Habilidades de Azure proporcionadas por runtime (opcionales)
+### Runtime-provided Azure skills (optional)
 
-Si estan disponibles en el entorno de ejecucion, deriva a estas habilidades especializadas para mas profundidad:
+If they are available in the execution environment, delegate to these specialized skills for deeper guidance:
 
 - `azure-kubernetes`
 - `azure-messaging`
@@ -115,43 +114,43 @@ Si estan disponibles en el entorno de ejecucion, deriva a estas habilidades espe
 - `azure-validate`
 - `azure-deploy`
 
-### Alternativas locales del repositorio (usar en este repo)
+### Local repository alternatives (use in this repo)
 
-Cuando las habilidades de runtime no esten disponibles, prioriza las habilidades locales existentes en este repositorio:
+When runtime skills are not available, prioritize existing local skills in this repository:
 
-- `azure-architecture-autopilot` para generacion y refinamiento de arquitectura.
-- `azure-resource-visualizer` para diagramas de relacion entre recursos.
-- `azure-role-selector` para orientacion de seleccion de roles.
-- `az-cost-optimize` y `azure-pricing` para analisis de costes y precios.
-- `azure-deployment-preflight` para comprobaciones previas al despliegue.
-- `appinsights-instrumentation` para patrones de instrumentacion de telemetria.
+- `azure-architecture-autopilot` for architecture generation and refinement.
+- `azure-resource-visualizer` for resource relationship diagrams.
+- `azure-role-selector` for role selection guidance.
+- `az-cost-optimize` and `azure-pricing` for cost and pricing analysis.
+- `azure-deployment-preflight` for pre-deployment checks.
+- `appinsights-instrumentation` for telemetry instrumentation patterns.
 
-Si no hay ninguna habilidad especializada disponible, continua con esta habilidad y deja los supuestos explicitos.
+If no specialized skill is available, continue with this skill and keep assumptions explicit.
 
-## Artefactos de salida requeridos
+## Required output artifacts
 
-Entrega siempre estas salidas:
+Always provide these outputs:
 
-1. Resumen de solucion Smart City (alcance, supuestos, restricciones).
-2. Arquitectura de referencia (componentes y flujo de datos).
-3. Checklist de seguridad y gobierno.
-4. Estrategia de coste y escalado.
-5. Backlog de implementacion por fases (epicas e hitos).
+1. Smart City solution summary (scope, assumptions, constraints).
+2. Reference architecture (components and data flow).
+3. Security and governance checklist.
+4. Cost and scaling strategy.
+5. Phased implementation backlog (epics and milestones).
 
-## Plantilla de salida
+## Output template
 
-Usa esta estructura en las respuestas:
+Use this response structure:
 
-1. Contexto y objetivos
-2. Arquitectura propuesta
-3. Decisiones tecnologicas y compromisos
-4. Seguridad, operaciones y controles de coste
-5. Plan de implementacion por fases
-6. Riesgos y preguntas abiertas
+1. Context and objectives
+2. Proposed architecture
+3. Technology decisions and trade-offs
+4. Security, operations, and cost controls
+5. Phased implementation plan
+6. Risks and open questions
 
-## Directrices
+## Guidelines
 
-- No saltes a despliegue sin validar antes los prerequisitos.
-- No recomiendes produccion en region unica para cargas criticas de ciudad.
-- No omitas la responsabilidad operativa (quien gestiona incidentes, SLA, ventanas de cambio).
-- Separa claramente los supuestos de los hechos confirmados.
+- Do not jump to deployment before validating prerequisites.
+- Do not recommend single-region production for critical city workloads.
+- Do not omit operational ownership (who handles incidents, SLAs, change windows).
+- Clearly separate assumptions from confirmed facts.

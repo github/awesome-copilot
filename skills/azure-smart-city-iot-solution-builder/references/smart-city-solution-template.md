@@ -1,73 +1,73 @@
-# Plantilla de Solucion IoT Smart City
+# Smart City IoT Solution Template
 
-Usa esta plantilla para estandarizar resultados en cada nuevo escenario de ciudad inteligente.
+Use this template to standardize outputs for each new smart city scenario.
 
-## 1. Resumen del caso de uso
+## 1. Use case summary
 
-- Dominio:
-- Interesados:
-- Enunciado del problema:
-- Metricas de exito:
+- Domain:
+- Stakeholders:
+- Problem statement:
+- Success metrics:
 
-## 2. Perfil de datos y dispositivos
+## 2. Device and data profile
 
-- Tipos y cantidad de dispositivos:
-- Esquema de telemetria:
-- Tasa de ingestion:
-- Requisitos de mando/control:
-- Politica de retencion:
+- Device types and count:
+- Telemetry schema:
+- Ingestion rate:
+- Command/control requirements:
+- Retention policy:
 
-## 3. Arquitectura de referencia
+## 3. Reference architecture
 
-- Capa de edge y campo:
-- Capa de ingestion:
-- Capa de procesamiento:
-- Capa de almacenamiento:
-- Capa de API e integracion:
-- Capa de monitorizacion y seguridad:
+- Edge and field layer:
+- Ingestion layer:
+- Processing layer:
+- Storage layer:
+- API and integration layer:
+- Monitoring and security layer:
 
-## 4. Checklist de NFR
+## 4. NFR checklist
 
-- Objetivo de disponibilidad:
-- Objetivo de latencia:
-- Controles de seguridad:
-- Restricciones de privacidad de datos:
-- Estrategia de DR:
-- Objetivo de coste:
+- Availability target:
+- Latency target:
+- Security controls:
+- Data privacy constraints:
+- DR strategy:
+- Cost target:
 
-## 5. Roadmap por fases
+## 5. Phased roadmap
 
-### Fase 1 - Piloto
+### Phase 1 - Pilot
 
-- Alcance:
-- Entregables:
-- Criterios de salida:
+- Scope:
+- Deliverables:
+- Exit criteria:
 
-### Fase 2 - Escalar
+### Phase 2 - Scale
 
-- Alcance:
-- Entregables:
-- Criterios de salida:
+- Scope:
+- Deliverables:
+- Exit criteria:
 
-### Fase 3 - Optimizar
+### Phase 3 - Optimize
 
-- Alcance:
-- Entregables:
-- Criterios de salida:
+- Scope:
+- Deliverables:
+- Exit criteria:
 
-## 6. Base inicial del backlog
+## 6. Initial backlog baseline
 
-- Epica: Incorporacion de dispositivos e identidad
-- Epica: Ingestion y enrutado de telemetria
-- Epica: Alertado en tiempo real y flujo de incidentes
-- Epica: Analitica historica e informes
-- Epica: Refuerzo de seguridad y cumplimiento
-- Epica: Gobierno y optimizacion de costes
+- Epic: Device onboarding and identity
+- Epic: Telemetry ingestion and routing
+- Epic: Real-time alerting and incident workflow
+- Epic: Historical analytics and reporting
+- Epic: Security and compliance hardening
+- Epic: Governance and cost optimization
 
-## 7. Riesgos
+## 7. Risks
 
-- Brechas de interoperabilidad entre proveedor/dispositivo
-- Fiabilidad de red en ubicaciones de campo
-- Calidad de datos y deriva de esquemas
-- Sobre-retencion que incrementa costes
-- Ambiguedad en la responsabilidad operativa
+- Vendor/device interoperability gaps
+- Network reliability in field locations
+- Data quality issues and schema drift
+- Over-retention that increases costs
+- Ambiguity in operational ownership
