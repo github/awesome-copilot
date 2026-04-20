@@ -442,6 +442,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "power-platform-architect",
+      "source": "power-platform-architect",
+      "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
+      "version": "1.0.0"
+    },
+    {
       "name": "power-platform-mcp-connector-development",
       "source": "power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
