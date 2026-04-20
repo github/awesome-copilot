@@ -57,26 +57,17 @@ Did [action] → [result/impact] → [evidence]
 
 **Do not output an entry unless it includes all three parts.** If evidence is missing, ask for it or mark as "(evidence needed)".
 
-### Examples
-
-| ❌ Vague | ✅ Impact-first |
-|---------|----------------|
-| "Fixed a bug in auth" | "Fixed token refresh race condition → eliminated 401s affecting 12% of API calls → PR #247" |
-| "Worked on dashboards" | "Built latency dashboard in Grafana → on-call detects P95 spikes in <2min → deployed to prod" |
-| "Did code review" | "Reviewed and unblocked 8 PRs across 3 repos → team shipped migration on schedule" |
-
-## Anti-Patterns
+### Anti-Patterns
 
 | ❌ Don't | ✅ Do instead |
 |---------|--------------|
-| "Fixed a bug" | "Fixed token refresh race condition → eliminated 401 errors affecting 12% of API calls → PR #247" |
-| Invent a metric: "saved 40% of eng time" | Ask the user: "Do you have a rough estimate, or should I keep this qualitative?" |
-| One entry per commit | Group related commits into a single logical entry with the highest-impact framing |
-| Use passive voice: "The pipeline was improved" | Use active voice: "Built CI matrix testing 3 OSes × 3 Node versions → caught Windows-only bug before release" |
-| List technologies: "Used Terraform, Helm, ArgoCD" | State the outcome: "Migrated 4 services to IaC → deployment time dropped from 45 min to 8 min" |
-| Write a wall of text for review prep | Organize by impact theme with 2–3 bullets each; use STAR format for narratives |
-| Silently drop entries with weak evidence | Mark `(evidence needed)` and present for the user to fill in |
-| Pad weak weeks with trivial entries | Honest gap > inflated list. Focus on fewer, stronger entries |
+| "Fixed a bug in auth" | "Fixed token refresh race condition → eliminated 401s affecting 12% of API calls → PR #247" |
+| "Worked on dashboards" | "Built latency dashboard in Grafana → on-call detects P95 spikes in <2min → deployed to prod" |
+| Invent a metric: "saved 40% of eng time" | Ask: "Do you have a rough estimate, or should I keep this qualitative?" |
+| One entry per commit | Group related commits into one entry with highest-impact framing |
+| Passive voice: "The pipeline was improved" | Active voice: "Built CI matrix → caught Windows-only bug before release" |
+| List technologies used | State the outcome: "Migrated 4 services to IaC → deploy time 45min → 8min" |
+| Silently drop weak entries | Mark `(evidence needed)` and present for user to fill in |
 
 ## Evidence Ladder
 
@@ -114,28 +105,9 @@ Follow this decision tree:
 
 2. **If git or gh CLI is available** → backfill from commits and PRs (see Backfill section below)
 
-3. **Otherwise** → run a guided interview:
-   - "What did you work on recently?"
-   - "Who benefited and how?"
-   - "What's the evidence? (PR number, metric, link)"
-   - Draft entries from answers
+3. **Otherwise** → guided interview: "What did you work on?", "Who benefited?", "What's the evidence?"
 
-In all cases, output formatted markdown the user can save.
-
-## Writing Entries
-
-Guide users through 3 questions:
-
-1. **What did you do?** — the specific change or deliverable
-2. **Why does it matter?** — who benefits, what problem it solves
-3. **What's the evidence?** — PR link, metrics, before/after comparison
-
-Output as markdown:
-
-```markdown
-### 🏗️ Infrastructure
-- **Built latency dashboard in Grafana** → on-call detects P95 spikes in <2min → deployed to prod
-```
+For each entry, walk through: **What** (the deliverable) → **Why** (who benefits) → **Evidence** (PR, metric, link). Output formatted markdown the user can paste into a review doc.
 
 ## Backfill Workflow
 
@@ -145,9 +117,7 @@ When the user asks "what did I do last week" or "backfill my history":
 
 ### Step 1: Scan available sources
 
-**Do not draft entries until ALL available sources are scanned.**
-
-Check what's available:
+Check what's available, then mine each source:
 ```bash
 git --version 2>/dev/null         # for commit mining
 gh --version 2>/dev/null          # for PR mining
@@ -239,15 +209,12 @@ For Microsoft employees using the Connect preset, frame entries around Core Prio
 
 ## Output Contract
 
-Every skill invocation must satisfy ALL of the following before finishing:
-
-1. **Every entry uses impact-first format**: action → result → evidence. No exceptions.
-2. **No fabricated data**. Every metric must come from the user or scanned sources. If unverified, mark `(evidence needed)`.
-3. **Entries are presented to the user before saving**. Never auto-save or finalize without confirmation.
-4. **Backfill scans complete before drafting**. If the user asked to backfill, all available sources must be scanned first.
-5. **Time range is explicit**. Every backfill or review output states the date range it covers.
-6. **Output is valid markdown** that can be pasted directly into a review doc or shared with a manager.
-7. **Every entry has a category** from the valid set.
+Before finishing, ensure:
+1. Every entry has action → result → evidence (mark `(evidence needed)` if missing)
+2. No fabricated metrics — only user-provided or source-verified data
+3. Entries shown to user before saving
+4. Time range explicitly stated
+5. Output is pasteable markdown with categories assigned
 
 ## Gotchas
 
