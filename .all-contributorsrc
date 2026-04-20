@@ -2981,6 +2981,15 @@
         "ideas",
         "plugins"
       ]
+    },
+    {
+      "login": "goldirana",
+      "name": "Rajesh Goldy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/43932117?v=4",
+      "profile": "https://github.com/goldirana",
+      "contributions": [
+        "plugin"
+      ]
     }
   ]
 }
