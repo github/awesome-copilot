@@ -27,6 +27,30 @@ Observed traits:
 
 This works well for a persistent shared mode where the world rotates on a timer.
 
+### Sky-island arena map usage
+
+Observed traits:
+
+- one game owns one copied map instance
+- teams are assigned to configured island spawn locations
+- chests are grouped by island, middle, or center role
+- countdowns control cage removal, game start, refill timing, and game end
+- visibility and chat are scoped to players in the same game instance
+
+This works well for SkyWars-style modes where every match needs isolated islands, loot, spectators, and cleanup.
+
+### Dungeon-node map usage
+
+Observed traits:
+
+- one game owns a lobby map plus temporary combat or event node maps
+- route choices are generated from stage metadata
+- players vote or confirm before advancing
+- each combat node owns its wave queue and active mob set
+- old node maps are unloaded only after players move to the new map or lobby
+
+This works well for PvE roguelike, dungeon, wave, or boss progression plugins.
+
 ## Guidance for map architecture
 
 - Per-instance minigame:
@@ -37,6 +61,12 @@ This works well for a persistent shared mode where the world rotates on a timer.
   - always teleport players out before unload
   - clean folders after unload
   - reapply gamerules after world creation
+- Sky-island match:
+  - group spawn and chest locations by team or island role
+  - reset cages, inventories, scoreboards, and spectators per match
+- Dungeon or route-node mode:
+  - treat every node as a temporary stage with explicit load, enter, clear, and unload steps
+  - keep mob ownership tied to the game, not just the world
 
 ## Class and hero system patterns
 

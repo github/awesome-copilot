@@ -108,11 +108,36 @@ Guidance:
 - Do not design only the combat mechanic.
 - Also design startup, shutdown, persistence, UI refreshes, and failure paths.
 
+## Pattern 6: Instance-heavy plugins need explicit isolation layers
+
+Additional local project patterns show that SkyWars-style and dungeon-style plugins need a clear boundary around each active game instance.
+
+Common isolated surfaces:
+
+- player-to-game session ownership
+- world or map instance ownership
+- temporary mob or entity ownership
+- game-specific chat recipients
+- visibility groups
+- per-game scoreboards and titles
+- resource refill or wave timers
+
+Guidance:
+
+- Treat `Game` as the owner of anything that should not leak into another arena.
+- Keep global managers responsible for lookup and lifecycle, not for every gameplay rule.
+- When adding a new listener, first decide whether it is global, lobby-only, or game-instance-only.
+- If the plugin can run multiple games at once, every event should resolve the owning game before mutating gameplay state.
+
 ## When to reuse which pattern
 
 - New minigame with rounds, teams, and map instances:
   - prefer `GameManager` + `Game` + `PlayerSession` + optional `MatchManager`
 - Persistent PvP lobby with class selection and map rotation:
   - prefer `GameService` + `PlayerSession` + `HeroService` + `MapManager`
+- SkyWars-style isolated arena:
+  - prefer `GameManager` + `Game` + `GameMap` + countdown tasks + per-game scoreboard and loot managers
+- PvE dungeon or wave progression:
+  - prefer `Game` + lobby map + `RoundManager` or stage manager + entity ownership map + explicit cleanup hooks
 - Plugin already large and messy:
   - use the domain package split pattern before adding more features

@@ -16,11 +16,12 @@ For grounded implementation patterns drawn from real Paper plugins, load these r
 - [`references/state-sessions-and-phases.md`](references/state-sessions-and-phases.md) for player session modeling, game phases, match state, and reconnect-safe logic
 - [`references/config-data-and-async.md`](references/config-data-and-async.md) for config managers, database-backed player data, async flushes, and UI refresh tasks
 - [`references/maps-heroes-and-feature-modules.md`](references/maps-heroes-and-feature-modules.md) for map rotation, hero or class systems, and modular feature growth
+- [`references/minigame-instance-flow.md`](references/minigame-instance-flow.md) for arena instances, countdowns, loot refreshes, wave systems, visibility isolation, and entity-to-game ownership
 
 ## Scope
 
 - In scope: Paper, Spigot, Bukkit plugin development
-- In scope: `plugin.yml`, commands, tab completion, listeners, schedulers, configs, permissions, Adventure text, player state, minigame flow
+- In scope: `plugin.yml`, commands, tab completion, listeners, schedulers, configs, permissions, Adventure text, player state, minigame flow, arena instances, map copies, loot, waves, and PvP/PvE game loops
 - In scope: Java-based server plugin architecture, debugging, refactoring, and feature implementation
 - Out of scope by default: Fabric mods, Forge mods, client mods, Bedrock add-ons
 
@@ -42,6 +43,8 @@ When this skill triggers:
 5. Make the smallest coherent change that keeps registration, config, and runtime behavior aligned.
 
 If the plugin is gameplay-heavy or stateful, read [`references/project-patterns.md`](references/project-patterns.md) and [`references/state-sessions-and-phases.md`](references/state-sessions-and-phases.md) before editing.
+
+If the task touches arena isolation, map instances, chest or resource refills, wave spawning, route voting, spectator visibility, or game-specific chat, also read [`references/minigame-instance-flow.md`](references/minigame-instance-flow.md).
 
 ## Project Discovery Checklist
 
@@ -90,6 +93,8 @@ For gameplay plugins, prefer explicit state objects over duplicated flags:
 
 When the feature affects NightMare-style or War-style gameplay, look for hidden state transitions first before patching symptoms.
 
+For multi-arena plugins, isolate per-game visibility, chat recipients, scoreboards, loot, and entity ownership. Do not let one arena observe or mutate another arena by accident.
+
 ### Favor config-driven values
 
 When the feature includes damage, cooldowns, rewards, durations, messages, map settings, or toggles:
@@ -133,6 +138,7 @@ For timers, rounds, countdowns, cooldowns, or periodic checks:
 - cancel tasks on plugin disable and when a match or arena ends
 - avoid multiple overlapping tasks for the same gameplay concern unless explicitly intended
 - prefer one authoritative game loop over many loosely coordinated repeating tasks
+- ensure countdown or refill tasks self-cancel when the game leaves the expected state
 
 ### Player and Match State
 
@@ -163,6 +169,10 @@ Pay extra attention when editing:
 - async database or file access
 - version-sensitive API calls
 - shutdown and cleanup in `onDisable`
+- cross-arena visibility, chat, and broadcast isolation
+- map copy, unload, and folder deletion logic
+- mob, NPC, projectile, or temporary entity ownership
+- chest or resource refill systems
 
 ## Output Expectations
 
@@ -186,6 +196,8 @@ Before finishing, verify as many of these as the task allows:
 - scheduler usage is safe
 - config keys referenced in code exist or have defaults
 - state cleanup paths exist for match end, player quit, and plugin disable
+- per-arena chat, visibility, scoreboards, and broadcasts are isolated
+- temporary worlds, mobs, tasks, and generated resources are cleaned up
 - there are no obvious null, cast, or lifecycle hazards
 
 ## Common Gotchas
@@ -198,6 +210,9 @@ Before finishing, verify as many of these as the task allows:
 - Hardcoding gameplay constants that should live in config
 - Assuming Paper-only APIs in a Spigot-targeted plugin
 - Treating reload as free even though stateful plugins often break under reload
+- Broadcasting, showing players, or applying scoreboard changes across unrelated game instances
+- Loading or mutating chest/container blocks before their chunks are available
+- Forgetting to unregister spawned mobs or temporary entities from the owning game
 
 ## Preferred Response Shape
 

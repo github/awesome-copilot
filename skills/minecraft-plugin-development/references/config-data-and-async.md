@@ -52,6 +52,8 @@ Guidance:
 - tracks dirty players
 - flushes asynchronously
 - rebuilds leaderboards from cached data
+- uses dirty sets for sidebar and rank UI so scoreboards are refreshed in batches
+- snapshots leaderboard data before presenting it to gameplay or UI code
 
 Guidance:
 
@@ -59,6 +61,8 @@ Guidance:
 - keep a cache for hot player stats
 - record dirty entries instead of writing on every event
 - flush on intervals and on shutdown
+- debounce or batch leaderboard rebuilds when kills, deaths, or ranks can change frequently
+- publish immutable snapshots or copies from async-maintained caches
 
 ## Async rules for Paper plugins
 
@@ -88,6 +92,8 @@ Observed `War` patterns:
 - async periodic leaderboard rebuild checks
 - async dirty-player flush task
 - throttled UI refresh strategy with dirty sets
+- main-thread scoreboard flush from UUID dirty sets
+- async cache preload followed by main-thread scoreboard, tab name, and leaderboard refresh
 
 Observed `NightMare` patterns:
 
@@ -100,6 +106,8 @@ Guidance:
 - use async tasks for data maintenance
 - use main-thread tasks for gameplay progression
 - if a task can be event-driven plus dirty-flagged, prefer that over brute-force refreshing everything every tick
+- copy mutable cached data before saving or sorting it asynchronously
+- avoid starting async work from inside an async repeating task unless you need distinct lifecycle control
 
 ## Config contribution guidance
 
