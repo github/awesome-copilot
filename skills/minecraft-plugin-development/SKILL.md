@@ -121,6 +121,27 @@ For new commands:
 - separate parsing, permission checks, and gameplay logic
 - send clear player-facing feedback for invalid usage
 
+Minimal registration shape:
+
+```yaml
+commands:
+  arena:
+    description: Join or leave an arena
+    usage: /arena <join|leave>
+```
+
+```java
+@Override
+public void onEnable() {
+    ArenaCommand command = new ArenaCommand(gameService);
+    PluginCommand arena = getCommand("arena");
+    if (arena != null) {
+        arena.setExecutor(command);
+        arena.setTabCompleter(command);
+    }
+}
+```
+
 ### Listeners
 
 For event listeners:
@@ -139,6 +160,20 @@ For timers, rounds, countdowns, cooldowns, or periodic checks:
 - avoid multiple overlapping tasks for the same gameplay concern unless explicitly intended
 - prefer one authoritative game loop over many loosely coordinated repeating tasks
 - ensure countdown or refill tasks self-cancel when the game leaves the expected state
+
+Main-thread handoff shape:
+
+```java
+Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+    PlayerData data = repository.load(playerId);
+    Bukkit.getScheduler().runTask(plugin, () -> {
+        Player player = Bukkit.getPlayer(playerId);
+        if (player != null && player.isOnline()) {
+            scoreboard.update(player, data);
+        }
+    });
+});
+```
 
 ### Player and Match State
 
