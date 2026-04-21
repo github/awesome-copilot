@@ -26,7 +26,7 @@ If any criterion requires a custom evaluator, implement it now. Place custom eva
 
 ### Agent evaluators (`create_agent_evaluator`) — the default
 
-Use agent evaluators for **all semantic, qualitative, and judgment-based criteria**. These are graded by you (the coding agent) in Step 6, where you review each entry's trace and output with full context — far more effective than any automated approach for quality dimensions like accuracy, completeness, hallucination detection, or error handling.
+Use agent evaluators for **all semantic, qualitative, and judgment-based criteria**. These are graded by you (the coding agent) in Step 5d, where you review each entry's trace and output with full context — far more effective than any automated approach for quality dimensions like accuracy, completeness, hallucination detection, or error handling.
 
 ```python
 from pixie import create_agent_evaluator
@@ -56,9 +56,9 @@ schema_compliance = create_agent_evaluator(
 
 Reference agent evaluators in the dataset via `filepath:callable_name` (e.g., `"pixie_qa/evaluators.py:extraction_accuracy"`).
 
-During `pixie test`, agent evaluators show as `⏳` in the console. They are graded in Step 6.
+During `pixie test`, agent evaluators show as `⏳` in the console. They are graded in Step 5d.
 
-**Writing effective criteria**: The `criteria` string is the grading rubric you'll follow in Step 6. Make it specific and actionable:
+**Writing effective criteria**: The `criteria` string is the grading rubric you'll follow in Step 5d. Make it specific and actionable:
 
 - **Bad**: "Check if the output is good" — too vague to grade consistently
 - **Bad**: "The response should be accurate" — doesn't say what to compare against

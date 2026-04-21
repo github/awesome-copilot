@@ -40,22 +40,22 @@ INSTALL_OK=false
 if [ -f uv.lock ]; then
   # uv add does universal resolution across all Python versions in
   # requires-python.  If the host project supports a Python version
-  # where pixie-qa is unavailable (e.g. 3.10), uv add fails.
+  # where pixie-qa is unavailable (e.g. <3.10), uv add fails.
   # Fall back to uv pip install which only targets the active interpreter.
-  if uv add "pixie-qa[all]>=0.8.1,<0.9.0" --upgrade 2>&1; then
+  if uv add "pixie-qa[all]>=0.8.4,<0.9.0" --upgrade 2>&1; then
     INSTALL_OK=true
   else
     echo "(uv add failed — falling back to uv pip install)"
-    if uv pip install "pixie-qa[all]>=0.8.1,<0.9.0" 2>&1; then
+    if uv pip install "pixie-qa[all]>=0.8.4,<0.9.0" 2>&1; then
       INSTALL_OK=true
     fi
   fi
 elif [ -f poetry.lock ]; then
-  if poetry add "pixie-qa[all]>=0.8.1,<0.9.0"; then
+  if poetry add "pixie-qa[all]>=0.8.4,<0.9.0"; then
     INSTALL_OK=true
   fi
 else
-  if pip install --upgrade "pixie-qa[all]>=0.8.1,<0.9.0"; then
+  if pip install --upgrade "pixie-qa[all]>=0.8.4,<0.9.0"; then
     INSTALL_OK=true
   fi
 fi

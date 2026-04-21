@@ -8,7 +8,7 @@
 
 After `pixie test`, the result directory looks like:
 
-```
+```text
 {PIXIE_ROOT}/results/<test_id>/
   meta.json
   dataset-{idx}/
@@ -25,6 +25,38 @@ Read `meta.json` to find the `<test_id>`. All the data you need for analysis is 
 
 ---
 
+## Hard completion gate
+
+You are the grader for Step 6. **Pending evaluations are not a handoff to the user, and the web UI is not a substitute for grading.** You may use the web UI to browse traces and outputs, but completion happens by writing files on disk.
+
+Step 6 is incomplete until all of the following are true:
+
+- Every `"status": "pending"` entry in every `evaluations.jsonl` has been replaced with a scored entry that contains both `score` and `reasoning`.
+- Every dataset directory contains `analysis.md` and `analysis-summary.md`.
+- The test run root contains `action-plan.md` and `action-plan-summary.md`.
+- The verifier script in this skill's `resources/` directory passes for the target results directory.
+
+**Forbidden shortcuts**:
+
+- Leaving any `"status": "pending"` entries in place
+- Telling the user to review pending evaluations in the web UI
+- Writing a single top-level substitute file such as `pixie_qa/06-analysis.md`
+- Writing phrases like "likely passes" or "probably fails" without scoring the evaluation and updating `evaluations.jsonl`
+
+If you do any of the above, Step 6 is not done.
+
+## Iteration rule
+
+If you are iterating across multiple fix/test cycles, every successful `pixie test` run creates a new `pixie_qa/results/<test_id>` directory and a new Step 6 obligation. The moment that directory exists, it becomes the analysis target for the current cycle.
+
+Before you edit application code, prompts, datasets, evaluators, or rerun `pixie test`, complete Step 6 for that exact results directory. Do not skip earlier cycles and analyze only the last run.
+
+**Additional forbidden shortcut**:
+
+- Do not create a newer `pixie_qa/results/<test_id>` and leave an older one from the same task without Step 6 artifacts.
+
+---
+
 ## Writing principles
 
 Every analysis **detailed** artifact you produce must follow these principles:
@@ -35,7 +67,7 @@ Every analysis **detailed** artifact you produce must follow these principles:
 - **No selling**: Do not advocate, promote, or use value-laden language ("excellent", "robust", "impressive", "well-designed"). State what the data shows and what actions it implies. Let the reader form quality judgments.
 - **Action-oriented**: Every analysis should contribute to the end goal of concrete improvements to the evaluation pipeline or application. Do not write observations that don't lead somewhere.
 
-Every analysis **summary** artifact must follow these principles:
+Every persisted analysis **summary** artifact must follow these principles:
 
 - **Concise**: The human reader should be able to understand the key findings and actions in under 2 minutes for any single artifact.
 - **Conclusions-first**: Lead with what the reader needs to know (results, findings, actions), not with methodology or background.
@@ -44,11 +76,10 @@ Every analysis **summary** artifact must follow these principles:
 
 ### Dual-variant pattern
 
-Every analysis artifact in this step has two files:
+Every persisted analysis artifact in this step has two files:
 
 | Artifact         | Detailed file (for agent)   | Summary file (for human)            |
 | ---------------- | --------------------------- | ----------------------------------- |
-| Entry analysis   | `entry-{idx}/analysis.md`   | `entry-{idx}/analysis-summary.md`   |
 | Dataset analysis | `dataset-{idx}/analysis.md` | `dataset-{idx}/analysis-summary.md` |
 | Action plan      | `action-plan.md`            | `action-plan-summary.md`            |
 
@@ -56,7 +87,7 @@ Every analysis artifact in this step has two files:
 
 ---
 
-## Phase 1: Entry-level analysis
+## Phase 1: Entry-level grading pass
 
 Process each dataset entry individually. For each `dataset-{idx}/entry-{idx}/`:
 
@@ -81,7 +112,7 @@ If `evaluations.jsonl` contains entries with `"status": "pending"`, you must gra
    - `0.5`–`0.9` — partially meets criteria (explain what's missing)
    - `0.0`–`0.4` — does not meet criteria
 4. Write a **reasoning** string (1–3 sentences citing specific evidence from the output or trace)
-5. Replace the pending entry in `evaluations.jsonl` with the scored result:
+5. Replace the pending entry in `evaluations.jsonl` with the scored result. **Do not append a second row and leave the pending row in place. Overwrite the pending row itself.**
 
 **Before** (pending):
 
@@ -110,53 +141,17 @@ If `evaluations.jsonl` contains entries with `"status": "pending"`, you must gra
 - Consider the trace — distinguish between app logic problems and LLM quality issues
 - Be calibrated — reserve 1.0 for outputs that genuinely satisfy criteria fully
 - Do not penalize LLM non-determinism — different phrasing of a correct answer is not a failure
+- Do not defer to the user — if the evidence is sufficient to write "likely passes", it is sufficient to assign a score and update `evaluations.jsonl`
 
-### 1c. Write entry-level analysis (two files per entry)
+### 1c. Do not persist entry-level analysis files
 
-Produce **two files** per entry. Write the detailed version first, then derive the summary from it.
+In this trimmed workflow, **do not write `entry-{idx}/analysis.md` or `entry-{idx}/analysis-summary.md`**. Phase 1 is only for reading evidence and converting every pending evaluation into a scored row in `evaluations.jsonl`.
 
-#### Detailed version: `dataset-{idx}/entry-{idx}/analysis.md`
+You may take temporary scratch notes while reasoning, but they are not deliverables. Persist only:
 
-This file is for **agent consumption** — it will be read by the coding agent to further verify conclusions, investigate issues, and take corrective actions. Focus on data points, evidence trails, and the reasoning chain that connects observations to conclusions.
-
-**Writing principles:**
-
-- **Present data first, then conclusions.** Start each section with the raw data (scores, output excerpts, trace excerpts), then state what you conclude from it. The reader should be able to verify your conclusion from the data you presented.
-- **Quote specific evidence.** When discussing output quality, quote the relevant part of `eval-output.jsonl` or `trace.jsonl`. When discussing evaluator behavior, cite the exact score and reasoning string.
-- **Trace issues to root causes.** If an evaluator score is low, trace backward: what did the output look like → what did the LLM produce → what input did the LLM receive → was the input correct? This chain helps the next agent decide where to intervene.
-- **Do not make ungrounded claims.** If you can't cite evidence for a statement, don't make it. "The evaluator may be too strict" requires evidence (e.g., "the output contains the correct information but phrased differently, scoring 0.5 instead of 1.0").
-- **Do not sell.** Avoid "excellent", "robust", "impressive". State what happened and what it means.
-
-**Content for each entry:**
-
-1. **What this entry tested** — one sentence from the description/input
-2. **Raw evaluation data** — table of all evaluator scores with reasoning strings
-3. **Output analysis** — key excerpts from `eval-output.jsonl` with observations about quality, correctness, completeness. Quote specific fields/values.
-4. **Trace analysis** — relevant excerpts from `trace.jsonl` (LLM calls, token counts, latency) that inform quality assessment
-5. **Test case quality assessment** — does this test case effectively exercise the intended capability? Evidence for/against: Is the expectation clear? Are inputs realistic? Would this catch a regression?
-6. **Evaluator quality assessment** — for each evaluator: is the score reasonable given the output data? Evidence: compare what the evaluator scored vs what the output actually contains. Would a different input produce a different score (discriminative power)?
-7. **Application issues** — problems surfaced, with evidence chain: output excerpt → what went wrong → root cause hypothesis → suggested investigation
-8. **Open questions** — anything that couldn't be conclusively determined from this data alone
-
-#### Summary version: `dataset-{idx}/entry-{idx}/analysis-summary.md`
-
-This file is for **human review** — a quick-scan view of what happened with this entry.
-
-**Template:**
-
-```markdown
-# Entry {idx}: <description one-liner>
-
-**Result**: PASS / FAIL
-
-| Evaluator | Score | Verdict                 |
-| --------- | ----- | ----------------------- |
-| ...       | ...   | OK / Issue: <one-liner> |
-
-**Key finding**: <1-2 sentences: what worked, what didn't, what action is needed>
-```
-
-Maximum ~15 lines per entry summary.
+- updated `evaluations.jsonl` in each entry directory
+- dataset-level analysis files in Phase 2
+- run-level action plan files in Phase 3
 
 ---
 
@@ -203,7 +198,7 @@ This file is for **agent consumption** — it provides the complete data aggrega
 
 - **Show all the data before interpreting it.** Start with the raw aggregation (pass/fail, per-evaluator stats, failure clusters) before any hypotheses. The data should stand on its own.
 - **For each hypothesis, present: data → reasoning → conclusion.** The reader should be able to follow your logic step by step and arrive at the same conclusion independently.
-- **Cross-reference entry analyses.** When citing evidence, reference the specific entry analysis file and the data points within it (e.g., "Entry 3 analysis shows FactualGrounding=0.5, caused by hallucinated author field — see `entry-3/analysis.md` §Output analysis").
+- **Cross-reference raw entry evidence directly.** When citing evidence, reference the specific entry index and the underlying files/data points (for example: `entry-3/evaluations.jsonl`, `entry-3/eval-output.jsonl`, or `entry-3/trace.jsonl`).
 - **Distinguish correlation from causation.** If two entries fail the same evaluator, that's a pattern. But the root cause might differ — verify by checking the actual output data, don't assume.
 - **Do not speculate without marking it.** If a conclusion is uncertain, say "Hypothesis (unvalidated): ..." and explain what additional data would confirm or refute it.
 
@@ -325,8 +320,22 @@ The action plan should have 3–5 items. Each must trace back to a validated hyp
 
 ## Process summary
 
-1. **Phase 1** (per entry): Read data → grade pending evaluations → write `entry-{idx}/analysis.md` + `entry-{idx}/analysis-summary.md`
+1. **Phase 1** (per entry): Read data → grade pending evaluations → update `evaluations.jsonl`
 2. **Phase 2** (per dataset): Aggregate → form 3 hypotheses → validate → write `dataset-{idx}/analysis.md` + `dataset-{idx}/analysis-summary.md`
 3. **Phase 3** (per test run): Synthesize → prioritize → write `action-plan.md` + `action-plan-summary.md`
 
 Process entries within a dataset concurrently (using subagents if available). Process phases sequentially — Phase 2 depends on Phase 1 outputs, Phase 3 depends on Phase 2 outputs.
+
+---
+
+## Final verification
+
+Before you end your turn, run the Step 6 verifier script that ships beside `setup.sh` in this skill's `resources/` directory against the exact test run directory you analyzed.
+
+Example shape:
+
+```bash
+python /path/to/eval-driven-dev/resources/verify_step6_completion.py pixie_qa/results/<test_id>
+```
+
+If the verifier reports any error, keep working. Step 6 is not complete until the verifier passes.
