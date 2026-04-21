@@ -61,7 +61,7 @@ Every score must be accompanied by a one-line rationale. When a score is an esti
 Priority = ((ROI * (10 / Cost)) + (Ease * (10 / Risk))) / 2
 ```
 
-- Theoretical range: **0.5 → 100**. Practical range on typical backlogs: ~1 → 100.
+- Theoretical range: **1 → 100**. Practical range on typical backlogs: ~1 → 100.
 - The scale minimum of `1` guarantees Cost and Risk are never zero (no divide-by-zero).
 - Higher Priority = do first.
 - Boundary checks:
