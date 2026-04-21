@@ -131,28 +131,6 @@ These references apply when the skill is used inside the GitHub Enterprise / GHQ
 - **Template integration:** Platform Health Check Guide findings template includes a Prioritized Impediments block.
 
 For other workflows, the ranked table is the deliverable — wire it into whatever downstream artifact (Jira epic, ADR, OKR backlog, incident review, etc.) the user needs.
----
-name: impediment-prioritization
-description: >-
-  Ranks GitHub Enterprise adoption impediments and their countermeasures using
-  a value-stream scoring model (ROI, Cost to Implement, Ease of Deployment,
-  Risk Factor) and a fixed prioritization formula. Use when someone asks to
-  prioritize, rank, sequence, or triage impediments, countermeasures,
-  remediation items, GHQR findings, or health check gaps; or mentions value
-  stream prioritization, A3 / lean countermeasure ranking, or building a
-  remediation backlog.
-license: MIT
-metadata:
-  author: ajenns
-  version: "1.0.0"
-  created: "2026-04-19"
-  updated: "2026-04-19"
-  framework: github-well-architected
-  domain: github-enterprise-adoption
----
-
-# Impediment Prioritization Skill
-
 ## When to Activate
 
 Activate when the user:
