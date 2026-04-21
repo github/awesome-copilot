@@ -19,8 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "@astrojs/sitemap": "^3.7.0",
-    "@astrojs/starlight": "^0.37.6",
-    "astro": "^5.16.15",
+    "@astrojs/starlight": "^0.38.3",
+    "astro": "^6.1.8",
     "choices.js": "^11.1.0",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
