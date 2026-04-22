@@ -91,7 +91,7 @@ For gameplay plugins, prefer explicit state objects over duplicated flags:
 - arena assignment
 - alive, eliminated, spectating, or queued state
 
-When the feature affects NightMare-style or War-style gameplay, look for hidden state transitions first before patching symptoms.
+When the feature affects match-heavy minigames or persistent-brawl gameplay, look for hidden state transitions first before patching symptoms.
 
 For multi-arena plugins, isolate per-game visibility, chat recipients, scoreboards, loot, and entity ownership. Do not let one arena observe or mutate another arena by accident.
 

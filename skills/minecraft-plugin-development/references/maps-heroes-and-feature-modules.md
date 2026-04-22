@@ -4,7 +4,7 @@ Use this reference when building map systems, rotating arenas, class systems, ki
 
 ## Map patterns from real plugins
 
-### NightMare-style map usage
+### Per-game map-instance usage
 
 Observed traits:
 
@@ -15,7 +15,7 @@ Observed traits:
 
 This works well for isolated match instances where each game owns its world and objectives.
 
-### War-style map rotation
+### Persistent battlefield map rotation
 
 Observed traits:
 
@@ -70,7 +70,7 @@ This works well for PvE roguelike, dungeon, wave, or boss progression plugins.
 
 ## Class and hero system patterns
 
-Observed `War` traits:
+Observed class-system traits:
 
 - `HeroRegistry`
 - `HeroService`
@@ -79,7 +79,7 @@ Observed `War` traits:
 - hero skill config and handler
 - selector GUI separated from assignment logic
 
-Observed `NightMare` parallels:
+Observed minigame power-selection parallels:
 
 - brands and special items function like modular player powers
 - selection limits and categories are explicit

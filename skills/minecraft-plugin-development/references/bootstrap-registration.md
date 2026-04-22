@@ -4,7 +4,7 @@ Use this reference when changing `onEnable`, `onDisable`, command setup, event w
 
 ## Bootstrap pattern from real plugins
 
-### NightMare-style bootstrap
+### Match-heavy minigame bootstrap
 
 Common traits:
 
@@ -19,7 +19,7 @@ Common traits:
 
 This pattern works well when startup must assemble many gameplay subsystems before the server can safely accept interactions.
 
-### War-style bootstrap
+### Persistent class-brawl bootstrap
 
 Common traits:
 
@@ -38,8 +38,8 @@ This pattern works well when player data and async services are first-class depe
 
 Observed practices:
 
-- `NightMare` declares all commands in `plugin.yml`, then sets executors and a tab completer in code.
-- `War` declares `leave` in `plugin.yml`, then checks for null before assigning the executor.
+- Match-heavy minigames often declare all commands in `plugin.yml`, then set executors and tab completers in code.
+- Persistent brawl modes may declare a small command surface such as `leave`, then null-check `getCommand` before assigning the executor.
 
 Recommended rules:
 
@@ -65,8 +65,8 @@ Recommended rules:
 
 Observed practices:
 
-- `NightMare` starts periodic tasks directly from startup for height checks and spectator sidebar refreshes
-- `War` starts background tasks via services such as `PlayerDataService` and `GameService`
+- Match-heavy minigames often start periodic gameplay tasks directly from startup for boundary checks and spectator UI refreshes
+- Persistent brawl modes often start background tasks via services such as player data and game services
 
 Recommended rules:
 
@@ -79,8 +79,8 @@ Recommended rules:
 
 Observed practices:
 
-- `NightMare` deletes games, unloads maps, flushes pending stats, closes DB resources, and clears sidebars
-- `War` shuts down game service, player data service, map manager, then disconnects database
+- Match-heavy minigames delete games, unload maps, flush pending stats, close DB resources, and clear sidebars
+- Persistent brawl modes shut down game service, player data service, map manager, then disconnect database
 
 Recommended rules:
 

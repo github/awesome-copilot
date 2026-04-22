@@ -1,20 +1,20 @@
 # Real Project Patterns
 
-This reference captures architecture patterns observed in two real Paper plugins:
+This reference captures architecture patterns observed in real Paper gameplay plugins:
 
-- `NightMare`: match-heavy, multi-phase gameplay plugin with maps, teams, brands, boss waves, scoreboards, and match-mode overlays
-- `War`: class-based brawl plugin with hero progression, map rotation, player data services, and async leaderboard refreshes
+- match-heavy, multi-phase minigames with maps, teams, power selections, boss waves, scoreboards, and match-mode overlays
+- class-based persistent brawl modes with hero progression, map rotation, player data services, and async leaderboard refreshes
 
 Use this file when the user asks for repo structure, feature placement, or how to organize a growing Minecraft plugin.
 
 ## Pattern 1: Central plugin bootstrap with explicit subsystems
 
-Both projects keep one main plugin class responsible for constructing and wiring core subsystems.
+Both styles keep one main plugin class responsible for constructing and wiring core subsystems.
 
 Observed examples:
 
-- `NightMare` wires database, config managers, game manager, match manager, GUI objects, sidebar services, listeners, commands, and repeating tasks from `onEnable`.
-- `War` wires config, progression, database, repository, player data service, scoreboard manager, map manager, hero registry, hero service, game service, and hero skill handler from `onEnable`.
+- A match-heavy minigame wires database, config managers, game manager, match manager, GUI objects, sidebar services, listeners, commands, and repeating tasks from `onEnable`.
+- A persistent class-brawl plugin wires config, progression, database, repository, player data service, scoreboard manager, map manager, hero registry, hero service, game service, and hero skill handler from `onEnable`.
 
 Guidance:
 
@@ -24,12 +24,12 @@ Guidance:
 
 ## Pattern 2: Stateful gameplay belongs in dedicated session or manager objects
 
-Both projects avoid storing all gameplay data directly on listeners.
+Both styles avoid storing all gameplay data directly on listeners.
 
 Observed examples:
 
-- `NightMare` uses `GameManager`, `MatchManager`, `Game`, `PlayerSession`, `GamePhase`, and `MatchSession` style objects.
-- `War` uses `GameService`, `PlayerSession`, `PlayerState`, `HeroService`, and `MapManager`.
+- Match-heavy minigames use `GameManager`, `MatchManager`, `Game`, `PlayerSession`, `GamePhase`, and `MatchSession` style objects.
+- Persistent class-brawl modes use `GameService`, `PlayerSession`, `PlayerState`, `HeroService`, and `MapManager`.
 
 Guidance:
 
@@ -39,9 +39,9 @@ Guidance:
 
 ## Pattern 3: Complex plugins grow by domain modules
 
-As plugin scope grows, both projects split features into domain-oriented packages.
+As plugin scope grows, both styles split features into domain-oriented packages.
 
-Observed `NightMare` domains:
+Observed match-heavy minigame domains:
 
 - `Command`
 - `Game`
@@ -52,7 +52,7 @@ Observed `NightMare` domains:
 - `tasks`
 - `Database`
 
-Observed `War` domains:
+Observed persistent class-brawl domains:
 
 - `bootstrap`
 - `command`
@@ -71,7 +71,7 @@ Guidance:
 
 ## Pattern 4: Two valid architecture styles emerge
 
-`NightMare` leans toward manager-centric gameplay orchestration.
+Match-heavy minigames lean toward manager-centric gameplay orchestration.
 
 - Good fit for:
   - rounds
@@ -79,7 +79,7 @@ Guidance:
   - map-specific game instances
   - match overlays on top of base game rules
 
-`War` leans toward service-centric runtime orchestration.
+Persistent class-brawl modes lean toward service-centric runtime orchestration.
 
 - Good fit for:
   - a persistent combat lobby
@@ -94,7 +94,7 @@ Guidance:
 
 ## Pattern 5: Real plugins need both gameplay and operational layers
 
-Both projects combine gameplay code with operational subsystems:
+Real gameplay plugins combine gameplay code with operational subsystems:
 
 - config loading
 - database connectivity
@@ -110,7 +110,7 @@ Guidance:
 
 ## Pattern 6: Instance-heavy plugins need explicit isolation layers
 
-Additional local project patterns show that SkyWars-style and dungeon-style plugins need a clear boundary around each active game instance.
+SkyWars-style and dungeon-style plugins need a clear boundary around each active game instance.
 
 Common isolated surfaces:
 

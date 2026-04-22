@@ -4,9 +4,9 @@ Use this reference when designing player state, match flow, cooldowns, respawn l
 
 ## Session modeling in real plugins
 
-### NightMare-style session
+### Rich minigame session
 
-`NightMare` keeps rich per-player runtime state in `PlayerSession`, including:
+Feature-heavy minigames often keep rich per-player runtime state in `PlayerSession`, including:
 
 - current team
 - kill and final kill counters
@@ -18,9 +18,9 @@ Use this reference when designing player state, match flow, cooldowns, respawn l
 
 This is a strong pattern for feature-heavy minigames where one player can carry many temporary gameplay modifiers.
 
-### War-style session
+### Lean persistent-brawl session
 
-`War` keeps a leaner `PlayerSession`, including:
+Persistent brawl modes often keep a leaner `PlayerSession`, including:
 
 - `PlayerState`
 - selected hero
@@ -60,7 +60,7 @@ Avoid placing these as scattered listener fields.
 
 ## Rule 3: gameplay phases deserve first-class objects
 
-Observed `NightMare` pattern:
+Observed match-heavy minigame pattern:
 
 - `GamePhase`
 - scheduled phase transitions
@@ -75,7 +75,7 @@ Guidance:
 
 ## Rule 4: match overlays should not be mixed blindly into normal rounds
 
-Observed `NightMare` pattern:
+Observed match overlay pattern:
 
 - `MatchManager`
 - `MatchSession`
@@ -104,8 +104,8 @@ Guidance:
 
 Observed patterns:
 
-- `NightMare` ticks cooldown maps during stage task updates
-- `War` stores cooldown expiry timestamps in session data
+- Some match-heavy minigames tick cooldown maps during stage task updates
+- Some persistent-brawl modes store cooldown expiry timestamps in session data
 
 Choose based on your mode:
 

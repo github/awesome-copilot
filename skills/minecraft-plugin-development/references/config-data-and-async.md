@@ -4,9 +4,9 @@ Use this reference when a task touches config loading, persistence, caches, scor
 
 ## Config patterns from real plugins
 
-### NightMare-style config layer
+### Multi-config minigame layer
 
-`NightMare` uses multiple config-oriented classes:
+Large minigames may use multiple config-oriented classes:
 
 - `PluginConfigManager`
 - `GameConfigurationManager`
@@ -23,9 +23,9 @@ Tradeoff:
 - easy to grow per-domain config
 - harder to keep defaults and reload semantics consistent unless carefully managed
 
-### War-style config layer
+### Defensive wrapper config layer
 
-`War` uses a more defensive wrapper around the main config and separate loaders for other domain files such as progression and heroes.
+Persistent brawl modes may use a defensive wrapper around the main config and separate loaders for other domain files such as progression and heroes.
 
 Observed strengths:
 
@@ -40,12 +40,12 @@ Guidance:
 
 ## Database and player data patterns
 
-### NightMare observations
+### Match-heavy minigame observations
 
 - uses a database manager plus stats and brand-related storage
 - flushes pending updates before disconnecting
 
-### War observations
+### Persistent-brawl observations
 
 - separates `DatabaseManager`, repository, and service
 - keeps in-memory cache keyed by `UUID`
@@ -66,7 +66,7 @@ Guidance:
 
 ## Async rules for Paper plugins
 
-Observed safe pattern in `War`:
+Observed safe persistent-brawl pattern:
 
 - preload cache asynchronously
 - when data is ready, switch to the main thread for Bukkit-side UI refreshes
@@ -87,7 +87,7 @@ Recommended rules:
 
 ## Background task patterns
 
-Observed `War` patterns:
+Observed persistent-brawl patterns:
 
 - async periodic leaderboard rebuild checks
 - async dirty-player flush task
@@ -95,7 +95,7 @@ Observed `War` patterns:
 - main-thread scoreboard flush from UUID dirty sets
 - async cache preload followed by main-thread scoreboard, tab name, and leaderboard refresh
 
-Observed `NightMare` patterns:
+Observed match-heavy minigame patterns:
 
 - main-thread periodic game-stage task
 - per-session cooldown ticking
