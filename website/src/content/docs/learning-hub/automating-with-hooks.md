@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-22
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -156,7 +156,9 @@ This makes it straightforward to write plugin hooks that are portable across mac
 
 ### Event Configuration
 
-Each hook entry supports these fields:
+There are two hook types: **command** hooks run a local shell script, and **http** hooks POST a JSON payload to a URL.
+
+#### Command hooks
 
 ```json
 {
@@ -171,7 +173,7 @@ Each hook entry supports these fields:
 }
 ```
 
-**type**: Always `"command"` for shell-based hooks.
+**type**: `"command"` for shell-based hooks.
 
 **bash**: The command or script to execute on Unix systems. Can be inline or reference a script file.
 
@@ -182,6 +184,26 @@ Each hook entry supports these fields:
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+#### HTTP hooks
+
+HTTP hooks POST the same JSON context payload (that command hooks receive via stdin) to a configured URL. This lets you integrate Copilot lifecycle events with external systems — webhooks, observability platforms, notification services — without a local process:
+
+```json
+{
+  "type": "http",
+  "url": "https://hooks.example.com/copilot/session-end",
+  "timeoutSec": 10
+}
+```
+
+**type**: `"http"` for HTTP-based hooks.
+
+**url**: The endpoint that receives a `POST` request with the event's JSON payload as the body.
+
+**timeoutSec**: Maximum time in seconds to wait for a response (default: 30).
+
+> **Note**: HTTP hooks are useful for CI/CD integrations, Slack/Teams notifications, audit logging to external services, and any scenario where running a local script is impractical. The receiving endpoint should respond with HTTP 2xx to indicate success; any other status code is treated as a hook failure.
 
 ### README.md
 
@@ -427,6 +449,34 @@ Send a Slack or Teams notification when an agent session completes:
   }
 }
 ```
+
+### Sending Events to an External Webhook (HTTP Hook)
+
+Use an HTTP hook to POST session events to an external system — an observability platform, a Slack app, a custom audit log service — without needing a local script at all:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "http",
+        "url": "https://hooks.example.com/copilot/session-end",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+Copilot POSTs the same JSON context payload to the URL that a command hook would receive on stdin. This is useful when you want to:
+
+- Notify a Slack/Teams webhook that a coding session finished
+- Send session metadata to a centralized audit log
+- Trigger a CI/CD pipeline step on agent completion
+- Integrate with observability tools like Datadog or Splunk
+
+> **Tip**: Combine an HTTP hook with a `sessionStart` HTTP hook to bracket a session with start/end events in your external system.
 
 ### Injecting Context into Subagents
 

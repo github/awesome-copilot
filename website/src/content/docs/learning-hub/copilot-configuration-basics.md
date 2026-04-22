@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-22
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -391,6 +391,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `continueOnAutoMode` | Automatically switch to the `auto` model when a rate limit is hit, instead of pausing |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -404,6 +405,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+Select **`auto`** to let Copilot automatically choose the best available model for each session. Auto mode adapts to rate limits and model availability at runtime, so you always get a capable model without manually switching. You can pair this with the `continueOnAutoMode` config setting to automatically fall back to `auto` when your preferred model hits a rate limit instead of pausing.
 
 ### CLI Session Commands
 
@@ -424,6 +427,20 @@ The `/session rename` command renames the current session. When called **without
 ```
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+You can also **name a session when you start it** using the `--name` flag:
+
+```bash
+copilot --name "auth-refactor"
+```
+
+Named sessions can be resumed by name instead of by session ID, which is easier to remember across days or projects:
+
+```bash
+copilot --resume=auth-refactor
+```
+
+This is particularly useful when you regularly return to long-running sessions — for example, a dedicated debugging session or a feature branch you're working on incrementally.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
