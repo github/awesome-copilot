@@ -29,7 +29,7 @@ Add this to your `.vscode/mcp.json`:
     "fabric-data-agent": {
       "command": "uvx",
       "args": [
-        "--from", "git+https://github.com/harigouthami/fabric-copilot-plugins.git#subdirectory=fabric-data-agent-mcp",
+        "--from", "git+https://github.com/harn_microsoft/fabric-copilot-plugins.git#subdirectory=fabric-data-agent-mcp",
         "fabric-data-agent-mcp"
       ]
     }

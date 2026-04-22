@@ -111,7 +111,7 @@ uvx --version 2>$null
 
 Run in terminal:
 ```powershell
-uvx --from "git+https://github.com/harigouthami/fabric-copilot-plugins.git#subdirectory=fabric-data-agent-mcp" fabric-data-agent-mcp --help 2>$null
+uvx --from "git+https://github.com/harn_microsoft/fabric-copilot-plugins.git#subdirectory=fabric-data-agent-mcp" fabric-data-agent-mcp --help 2>$null
 ```
 
 - **If it works**: Show `✅ MCP server package is accessible`
