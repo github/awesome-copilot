@@ -16,6 +16,7 @@ import {
   escapeHtml,
   getResourceIconSvg,
   sanitizeUrl,
+  REPO_IDENTIFIER,
 } from "./utils";
 import fm from "front-matter";
 
@@ -498,6 +499,7 @@ export function setupModal(): void {
 
   const closeBtn = document.getElementById("close-modal");
   const copyBtn = document.getElementById("copy-btn");
+  const installCommandBtn = document.getElementById("install-command-btn");
   const downloadBtn = document.getElementById("download-btn");
   const shareBtn = document.getElementById("share-btn");
   const renderBtn = document.getElementById("render-btn");
@@ -532,6 +534,30 @@ export function setupModal(): void {
         success ? "Copied to clipboard!" : "Failed to copy",
         success ? "success" : "error"
       );
+    }
+  });
+
+  installCommandBtn?.addEventListener("click", async () => {
+    if (currentFilePath && currentFileType === "skill") {
+      const skill = await getSkillItemByFilePath(currentFilePath);
+      if (!skill) {
+        showToast("Could not resolve skill ID.", "error");
+        return;
+      }
+      const command = `gh skill install ${REPO_IDENTIFIER} ${skill.id}`;
+      const originalContent = installCommandBtn.innerHTML;
+      const success = await copyToClipboard(command);
+      showToast(
+        success ? "Install command copied!" : "Failed to copy",
+        success ? "success" : "error"
+      );
+      if (success) {
+        installCommandBtn.innerHTML =
+          '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg><span aria-hidden="true">Copied!</span>';
+        setTimeout(() => {
+          installCommandBtn.innerHTML = originalContent;
+        }, 2000);
+      }
     }
   });
 
@@ -849,6 +875,7 @@ export async function openFileModal(
     "install-insiders"
   ) as HTMLAnchorElement | null;
   const copyBtn = document.getElementById("copy-btn");
+  const installCommandBtn = document.getElementById("install-command-btn");
   const downloadBtn = document.getElementById("download-btn");
   const closeBtn = document.getElementById("close-modal");
   if (!modal || !title) return;
@@ -885,6 +912,10 @@ export async function openFileModal(
   if (type === "plugin") {
     const modalContent = getModalContent();
     if (!modalContent) return;
+    if (installCommandBtn) {
+      installCommandBtn.style.display = "none";
+      installCommandBtn.classList.add("hidden");
+    }
     hideSkillFileSwitcher();
     await openPluginModal(
       filePath,
@@ -905,6 +936,11 @@ export async function openFileModal(
       "aria-label",
       type === "skill" ? "Download skill as ZIP" : "Download file"
     );
+  }
+  // Show copy install button only for skills
+  if (installCommandBtn) {
+    installCommandBtn.style.display = type === "skill" ? "inline-flex" : "none";
+    installCommandBtn.classList.toggle("hidden", type !== "skill");
   }
   renderPlainText("Loading...");
   hideSkillFileSwitcher();
