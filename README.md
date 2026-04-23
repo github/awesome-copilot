@@ -461,6 +461,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="http://www.mikaelkrief.com/"><img src="https://avatars.githubusercontent.com/u/2725302?v=4" width="100px;" alt=""/><br /><sub><b>Mikael</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Mrigank005"><img src="https://avatars.githubusercontent.com/u/179711954?v=4" width="100px;" alt=""/><br /><sub><b>Mrigank Singh</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.jimbobbennett.dev/"><img src="https://avatars.githubusercontent.com/u/1710385?v=4" width="100px;" alt=""/><br /><sub><b>Jim Bennett</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sjiyani"><img src="https://avatars.githubusercontent.com/u/89791048?v=4" width="100px;" alt=""/><br /><sub><b>Shubham Jiyani</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
