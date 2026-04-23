@@ -1,0 +1,70 @@
+# Awesome Copilot Governance Policy (YAML)
+# =========================================
+# Loaded by the PolicyEngine at startup. Defines rules that apply
+# to all agents operating in the awesome-copilot context.
+#
+# This file is enforceable via AGT's PolicyEvaluator when
+# agent-governance-toolkit is installed.
+
+kernel:
+  mode: strict           # strict | permissive | audit
+
+# Default limits for any agent session
+limits:
+  max_tokens_per_task: 8000
+  max_tool_calls_per_task: 25
+  max_session_duration_minutes: 60
+
+# Blocked patterns — actions matching these are denied
+blocked_patterns:
+  - "rm -rf /"
+  - "DROP TABLE"
+  - "DELETE FROM"
+  - "os.system("
+  - "eval("
+  - "exec("
+  - "pickle.load"
+  - "subprocess.run.*shell=True"
+
+# Ring-based permissions
+rings:
+  0:  # Kernel — requires attestation
+    requires_attestation: true
+    capabilities:
+      - infra_create
+      - infra_delete
+      - iam_modify
+      - secret_read
+  1:  # Trusted
+    capabilities:
+      - file_write_user
+      - tool_call
+      - code_execute
+      - network_egress_restricted
+  2:  # Standard
+    capabilities:
+      - file_read
+      - tool_call
+      - code_execute
+      - repo_read
+  3:  # Sandbox — read only
+    capabilities:
+      - file_read
+      - repo_read
+    rate_limit: 10/min
+    timeout_seconds: 5
+
+# Approval workflows
+approval:
+  destructive_actions:
+    - "delete_*"
+    - "write_production_*"
+    - "infra_*"
+  min_approvals: 1
+  timeout_minutes: 30
+
+# Observability requirements
+audit:
+  log_all_decisions: true
+  log_format: jsonl
+  retention_days: 90

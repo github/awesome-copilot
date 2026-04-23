@@ -1,0 +1,16 @@
+# MCP Server Allowlist for Awesome Copilot
+# ========================================
+#
+# Enforcement mode:
+#   warn  — unknown servers produce a warning (non-blocking)
+#   block — unknown servers produce a violation (blocks execution)
+enforcement: warn
+
+# Known MCP servers used by awesome-copilot agents and skills.
+known:
+  - github                # GitHub API access for PR/commit/issue data
+  - fetch                 # Web fetch for documentation references
+
+# Servers that are explicitly blocked.
+blocked:
+  - evil-server

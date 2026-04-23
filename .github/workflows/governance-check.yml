@@ -1,0 +1,93 @@
+name: Governance Check
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    name: Governance validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required governance files
+        run: |
+          STATUS="pass"
+          for file in AGENTS.md SECURITY.md mcp-allowlist.yaml governance/policy.yaml; do
+            if [ -f "$file" ]; then
+              echo "✅ $file"
+            else
+              echo "❌ $file missing"
+              STATUS="fail"
+            fi
+          done
+          for file in .github/copilot-instructions.md; do
+            if [ -f "$file" ]; then
+              echo "✅ $file"
+            else
+              echo "⚠️ $file missing (recommended)"
+            fi
+          done
+          if [ "$STATUS" = "fail" ]; then
+            echo "::warning::Required governance files are missing"
+          fi
+
+      - name: Validate MCP allowlist
+        run: |
+          python3 -c "
+          import yaml, sys
+          with open('mcp-allowlist.yaml') as f:
+              data = yaml.safe_load(f)
+          known = data.get('known', [])
+          blocked = data.get('blocked', [])
+          mode = data.get('enforcement', 'warn')
+          print(f'Enforcement: {mode}')
+          print(f'Known servers: {len(known)}')
+          print(f'Blocked servers: {len(blocked)}')
+          overlap = set(known) & set(blocked)
+          if overlap:
+              print(f'::error::Servers in both known and blocked: {overlap}')
+              sys.exit(1)
+          print('✅ MCP allowlist is valid')
+          "
+
+      - name: Validate governance policy
+        run: |
+          python3 -c "
+          import yaml
+          with open('governance/policy.yaml') as f:
+              data = yaml.safe_load(f)
+          mode = data.get('kernel', {}).get('mode', 'unset')
+          rings = data.get('rings', {})
+          blocked = data.get('blocked_patterns', [])
+          print(f'Policy mode: {mode}')
+          print(f'Rings defined: {len(rings)}')
+          print(f'Blocked patterns: {len(blocked)}')
+          print('✅ Governance policy is valid')
+          "
+
+      - name: Check for hardcoded secrets
+        run: |
+          PATTERNS='(AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{48}|ghp_[a-zA-Z0-9]{36}|-----BEGIN (RSA |EC )?PRIVATE KEY-----)'
+          if grep -rPn "$PATTERNS" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" --exclude-dir=.git --exclude-dir=__pycache__ --exclude-dir=.pytest_cache . 2>/dev/null; then
+            echo "::error::Potential hardcoded secrets detected"
+            exit 1
+          else
+            echo "✅ No hardcoded secrets detected"
+          fi
+
+      - name: AGT toolkit verify (optional)
+        continue-on-error: true
+        run: |
+          pip install "agent-governance-toolkit[full]>=3.0.0" --quiet 2>/dev/null || { echo "AGT not installable — skipping"; exit 0; }
+          agent-governance verify --json || echo "::warning::AGT governance verify reported issues"
+
+      - name: AGT integrity check (optional)
+        continue-on-error: true
+        run: |
+          which agent-governance >/dev/null 2>&1 || exit 0
+          agent-governance integrity --verify . || echo "::warning::Integrity check reported changes"
