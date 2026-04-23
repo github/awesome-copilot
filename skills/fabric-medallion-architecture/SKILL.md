@@ -1,10 +1,10 @@
 ---
-name: fabric-medallion-architecture
+
+## name: fabric-medallion-architecture
 description: 'Guidance for Microsoft Fabric medallion architecture (landing, bronze, silver, gold), including layer boundaries, Lakehouse vs Warehouse decisions, and naming conventions. Use when deciding where transformations belong, how to structure entities across layers, or how to model a Fabric data platform.'
 metadata:
   author: nielsvdc
   version: "1.0"
----
 
 # Medallion Architecture on Microsoft Fabric
 
@@ -12,12 +12,14 @@ A four-layer pattern for ingesting, refining, and serving data on Fabric. Each l
 
 ## The layers
 
-| Layer | Purpose | Storage | Mutability |
-|---|---|---|---|
-| **Landing** | Capture raw source bytes as-is | Lakehouse `Files/` (CSV, JSON, Parquet, Excel, XML, etc.) | Immutable, lifecycle-tiered |
-| **Bronze** | Source-faithful Delta tables | Lakehouse Delta | Append-only, schema-evolved |
-| **Silver** | Standardized, unified, deduplicated entities; business-modeled for consumption | Lakehouse Delta | MERGE / SCD as needed |
-| **Gold** | Business-ready tables and aggregates | Lakehouse Delta or Warehouse | Recomputed or merged |
+
+| Layer       | Purpose                                                                        | Storage                                                   | Mutability                  |
+| ----------- | ------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------- |
+| **Landing** | Capture raw source bytes as-is                                                 | Lakehouse `Files/` (CSV, JSON, Parquet, Excel, XML, etc.) | Immutable, lifecycle-tiered |
+| **Bronze**  | Source-faithful Delta tables                                                   | Lakehouse Delta                                           | Append-only, schema-evolved |
+| **Silver**  | Standardized, unified, deduplicated entities; business-modeled for consumption | Lakehouse Delta                                           | MERGE / SCD as needed       |
+| **Gold**    | Business-ready tables and aggregates                                           | Lakehouse Delta or Warehouse                              | Recomputed or merged        |
+
 
 ## Which layer does this transformation belong in?
 
@@ -36,19 +38,21 @@ These apply across all layers (or multiple layers) — bake them in before layer
 
 System-generated columns — the ones the framework adds, not the business — start with a leading underscore. This keeps them visually distinct and groups them at the end of column listings.
 
-| Column | Meaning |
-|---|---|
-| `_run_id` | Pipeline run that wrote this row |
-| `_run_timestamp` | When the write happened |
-| `_source_system` | Name or code of the system the row originated from — essential in silver/gold tables that consolidate multiple sources |
-| `_source_file` | Path or name of the source file, for file/API-based ingestion. Enables row-level traceability back to landing |
-| `_key_hash` | Hash of the business key columns — used for identity / joins |
-| `_attribute_hash` | Hash of the attribute columns — used both for SCD2 change detection *and* as the cheap equality check in upsert / MERGE logic (compare incoming `_attribute_hash` to target; skip the write when equal) |
-| `_is_current` | `1` for the current version of an SCD2 row, `0` for historical |
-| `_is_deleted` | `1` when the source indicates the record has been deleted; framework soft-deletes rather than hard-deletes so history and lineage are preserved |
-| `_quarantine_reason` | On quarantined rows: the rule code (or short description) of what failed. Makes triage possible without re-running the DQ engine. Empty / NULL on healthy rows. |
-| `_valid_from` | Start of validity window (SCD2) |
-| `_valid_to` | End of validity window (SCD2); far-future date for current rows |
+
+| Column               | Meaning                                                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_run_id`            | Pipeline run that wrote this row                                                                                                                                                                        |
+| `_run_timestamp`     | When the write happened                                                                                                                                                                                 |
+| `_source_system`     | Name or code of the system the row originated from — essential in silver/gold tables that consolidate multiple sources                                                                                  |
+| `_source_file`       | Path or name of the source file, for file/API-based ingestion. Enables row-level traceability back to landing                                                                                           |
+| `_key_hash`          | Hash of the business key columns — used for identity / joins                                                                                                                                            |
+| `_attribute_hash`    | Hash of the attribute columns — used both for SCD2 change detection *and* as the cheap equality check in upsert / MERGE logic (compare incoming `_attribute_hash` to target; skip the write when equal) |
+| `_is_current`        | `1` for the current version of an SCD2 row, `0` for historical                                                                                                                                          |
+| `_is_deleted`        | `1` when the source indicates the record has been deleted; framework soft-deletes rather than hard-deletes so history and lineage are preserved                                                         |
+| `_quarantine_reason` | On quarantined rows: the rule code (or short description) of what failed. Makes triage possible without re-running the DQ engine. Empty / NULL on healthy rows.                                         |
+| `_valid_from`        | Start of validity window (SCD2)                                                                                                                                                                         |
+| `_valid_to`          | End of validity window (SCD2); far-future date for current rows                                                                                                                                         |
+
 
 If you see a column starting with `_` in a business query, that's a signal it's framework plumbing, not business data.
 
@@ -56,13 +60,15 @@ If you see a column starting with `_` in a business query, that's a signal it's 
 
 Use suffixes to make column type obvious at a glance. These apply to silver and gold (bronze stays source-faithful and keeps source column names):
 
-| Suffix | Meaning |
-|---|---|
-| `_key` | Surrogate key of the table, or foreign key to another table |
-| `_id` | Natural / business identifier from the source |
+
+| Suffix  | Meaning                                                                                                                                                                                      |
+| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `_key`  | Surrogate key of the table, or foreign key to another table                                                                                                                                  |
+| `_id`   | Natural / business identifier from the source                                                                                                                                                |
 | `_code` | Short coded value (country code, status code, currency code). Can also serve as the business identifier when the source has no primary key and the code is the natural way to address a row. |
-| `_uuid` | UUID |
-| `_hash` | Hash value |
+| `_uuid` | UUID                                                                                                                                                                                         |
+| `_hash` | Hash value                                                                                                                                                                                   |
+
 
 In a fact table, joining to a dimension uses `_key` on both sides:
 
@@ -101,10 +107,12 @@ Files that fail contract validation do **not** go to bronze. Move them to a quar
 
 This is distinct from the row-level DQ described in the silver section:
 
-| Scope | Where it runs | What it checks | On failure |
-|---|---|---|---|
-| **Contract / file** | Landing → bronze gate | Format, schema, columns, non-empty | Whole file quarantined, bronze skipped |
-| **Row-level** | Silver standardized | Business rules per row | Row quarantined, reason recorded for triage |
+
+| Scope               | Where it runs         | What it checks                     | On failure                                  |
+| ------------------- | --------------------- | ---------------------------------- | ------------------------------------------- |
+| **Contract / file** | Landing → bronze gate | Format, schema, columns, non-empty | Whole file quarantined, bronze skipped      |
+| **Row-level**       | Silver standardized   | Business rules per row             | Row quarantined, reason recorded for triage |
+
 
 ## Bronze
 
@@ -135,17 +143,19 @@ silver.<domain>.<entity>      ← modelled (domain-shaped joins and enrichment)
 
 What happens in each stage:
 
-| Aspect | Standardized | Canonical | Modelled |
-|---|---|---|---|
-| **Schema** | `silver.<source>.<entity>` | `silver.conformed.<entity>` | `silver.<domain>.<entity>` |
-| **Scope / grain** | one table per (source, entity) | one single-source-of-truth table per entity | one table per (domain, entity) |
-| **Column renaming & type coercion** | ✅ source names → canonical names | ❌ inherited, already stable | ❌ adds derived columns only |
-| **Deduplication within a source** | ✅ | ❌ | ❌ |
-| **DQ rules / quarantine** | ✅ primary location | ✅ optional cross-source consistency checks | ❌ |
-| **Cross-source union, match, dedup** | ❌ | ✅ e.g., same customer from two CRMs → one row | ❌ |
-| **Surrogate key (`_key`) generation** | ❌ | ✅ identity is canonical only once sources are merged | ❌ inherits from canonical |
-| **SCD2 history (`_valid_from` / `_valid_to` / `_is_current`)** | ❌ | ✅ | ❌ |
-| **Cross-entity joins + derived / calculated columns** | ❌ | ❌ | ✅ e.g., `customer` + `segment` + `lifetime_value` |
+
+| Aspect                                                         | Standardized                     | Canonical                                            | Modelled                                          |
+| -------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------- | ------------------------------------------------- |
+| **Schema**                                                     | `silver.<source>.<entity>`       | `silver.conformed.<entity>`                          | `silver.<domain>.<entity>`                        |
+| **Scope / grain**                                              | one table per (source, entity)   | one single-source-of-truth table per entity          | one table per (domain, entity)                    |
+| **Column renaming & type coercion**                            | ✅ source names → canonical names | ❌ inherited, already stable                          | ❌ adds derived columns only                       |
+| **Deduplication within a source**                              | ✅                                | ❌                                                    | ❌                                                 |
+| **DQ rules / quarantine**                                      | ✅ primary location               | ✅ optional cross-source consistency checks           | ❌                                                 |
+| **Cross-source union, match, dedup**                           | ❌                                | ✅ e.g., same customer from two CRMs → one row        | ❌                                                 |
+| **Surrogate key (`_key`) generation**                          | ❌                                | ✅ identity is canonical only once sources are merged | ❌ inherits from canonical                         |
+| **SCD2 history (`_valid_from` / `_valid_to` / `_is_current`)** | ❌                                | ✅                                                    | ❌                                                 |
+| **Cross-entity joins + derived / calculated columns**          | ❌                                | ❌                                                    | ✅ e.g., `customer` + `segment` + `lifetime_value` |
+
 
 Key rule-of-thumb reading of this table: **standardization is per-source, identity is made canonical in the canonical stage, business modelling is domain-shaped in modelled.** If you catch yourself generating surrogate keys in standardized, you're locking in source-specific identity that won't survive merging a second source later.
 
@@ -153,12 +163,14 @@ Default: logical stages inside one notebook producing one table. Use views for s
 
 **Materialized Lake Views (MLVs) per stage:**
 
-| Silver stage | MLV fit | Why |
-|---|---|---|
-| Standardized | No | DQ, quarantine, SCD2, and `_run_id` logging are procedural; MLVs bypass them |
-| Canonical (SCD1) | Ok | Declarative union + dedup fits |
-| Canonical (SCD2) | No | MLVs recompute; SCD2 needs insert-new / close-old semantics |
-| Modelled | Yes | Multi-table joins with derived columns is the sweet spot |
+
+| Silver stage     | MLV fit | Why                                                                          |
+| ---------------- | ------- | ---------------------------------------------------------------------------- |
+| Standardized     | No      | DQ, quarantine, SCD2, and `_run_id` logging are procedural; MLVs bypass them |
+| Canonical (SCD1) | Ok      | Declarative union + dedup fits                                               |
+| Canonical (SCD2) | No      | MLVs recompute; SCD2 needs insert-new / close-old semantics                  |
+| Modelled         | Yes     | Multi-table joins with derived columns is the sweet spot                     |
+
 
 **MLVs and metadata-driven frameworks.** MLVs can coexist with a metadata framework if integrated deliberately — generate the `CREATE MATERIALIZED LAKE VIEW` statement from your attribute metadata (so the framework still owns the schema contract), and register the MLV as an entity in your metadata catalog (so it appears in lineage and monitoring alongside procedural tables). Fabric manages refresh; the framework manages definition and catalog. What stays procedural regardless: DQ with quarantine, SCD2 insert/close logic, anything stateful — those don't fit the declarative recompute model.
 
@@ -169,6 +181,7 @@ What to avoid either way: MLV and procedural tables for the *same entity in the 
 ### Should this be a gold table?
 
 A table earns gold status when:
+
 - It's consumed by more than one downstream (report, model, notebook)
 - Its shape is a stable contract — breaking changes need a migration
 - It answers a business question directly, not a technical one
@@ -178,12 +191,14 @@ If only one report uses it and the report could read silver instead, it doesn't 
 ### Lakehouse or Warehouse for gold?
 
 Pick **Lakehouse** when:
+
 - The consumer is a Direct Lake Power BI semantic model (default for new work)
 - The consumer is a Spark notebook (data science, downstream)
 - The dataset is large (> 1B rows)
 - Schema is still evolving
 
 Pick **Warehouse** when:
+
 - The consumer needs a true T-SQL endpoint (stored procs, views, transactional DML)
 - Import-mode Power BI with caching characteristics matters
 - Cross-database T-SQL queries are required
@@ -206,22 +221,25 @@ No `fact_` / `dim_` prefixes. Consumers — analysts, report builders, business 
 
 Examples:
 
-| Name | Kind | Pattern |
-|---|---|---|
-| `customer` | Dimension | singular noun |
-| `product` | Dimension | singular noun |
-| `sales_order_transactions` | Fact | `<subject>_<context>_transactions` |
-| `payment_transactions` | Fact | `<subject>_<context>_transactions` |
-| `inventory_movement_transactions` | Fact | `<subject>_<context>_transactions` |
-| `customer_billing_details` | Detail | `<subject>_<context>_details` |
-| `sales_customer_summary` | Aggregate | `<subject>_<grain>_summary` |
-| `revenue_region_by_product_category` | Aggregate | `<subject>_<grain>_by_<dimensions>` |
-| `sales_monthly_summary` | Time aggregate | `<subject>_<time_grain>_summary` |
-| `sales_monthly_summary_by_region` | Time aggregate | `<subject>_<time_grain>_summary_by_<dimensions>` |
+
+| Name                                 | Kind           | Pattern                                          |
+| ------------------------------------ | -------------- | ------------------------------------------------ |
+| `customer`                           | Dimension      | singular noun                                    |
+| `product`                            | Dimension      | singular noun                                    |
+| `sales_order_transactions`           | Fact           | `<subject>_<context>_transactions`               |
+| `payment_transactions`               | Fact           | `<subject>_<context>_transactions`               |
+| `inventory_movement_transactions`    | Fact           | `<subject>_<context>_transactions`               |
+| `customer_billing_details`           | Detail         | `<subject>_<context>_details`                    |
+| `sales_customer_summary`             | Aggregate      | `<subject>_<grain>_summary`                      |
+| `revenue_region_by_product_category` | Aggregate      | `<subject>_<grain>_by_<dimensions>`              |
+| `sales_monthly_summary`              | Time aggregate | `<subject>_<time_grain>_summary`                 |
+| `sales_monthly_summary_by_region`    | Time aggregate | `<subject>_<time_grain>_summary_by_<dimensions>` |
+
 
 Pick names that are **future-proof** — put grain, subject, and slicing in the name itself so siblings can be added without ambiguity or breakage.
 
 `sales_summary` looks fine when it's the only summary table. But as soon as you need a second grain (say, marketing asks for a daily version next year), you're stuck with two bad options:
+
 1. Add `sales_daily_summary` alongside the existing `sales_summary` — now nobody can tell what grain `sales_summary` represents without opening it, and the two tables look like unrelated siblings.
 2. Rename `sales_summary` to `sales_monthly_summary` — every dashboard, notebook, and measure referencing the old name breaks.
 
@@ -232,6 +250,7 @@ Pick names that are **future-proof** — put grain, subject, and slicing in the 
 In smaller setups, consumers (Power BI reports, notebooks, exports) read directly from gold in the central data-team workspace. In larger organizations this doesn't scale — different teams need different governance, RBAC gets complicated, and the central workspace becomes a contention point.
 
 The pattern:
+
 - The central data team owns and publishes gold.
 - Each consuming team gets its own workspace with its own lakehouse or warehouse.
 - That team workspace exposes the subset it needs via **OneLake shortcuts** (for lakehouses) or **views** (for warehouses) pointing to the central gold tables — no data movement.
@@ -255,7 +274,7 @@ The only legitimate exception: data science exploration may read from silver dur
 - **"Smart bronze"** that filters, renames, or coerces — destroys the audit trail.
 - **"Dumb silver"** that's just a copy of bronze with no business logic — wastes a layer.
 - **Gold tables built by joining silver to bronze** — gold composes from silver only.
-- **`fact_` / `dim_` prefixes in gold** — jargon leaks into consumer queries. Use naming patterns instead.
+- `**fact_` / `dim_` prefixes in gold** — jargon leaks into consumer queries. Use naming patterns instead.
 - **Per-environment branches in code** (`if env == "prd"`) — environment differences belong in connection config, not code paths.
 - **Skipping silver because "the source is already clean"** — silver isn't only for standardization; it's also where canonical identities, SCD, and DQ live.
 - **Splitting layers across stores before you need to** — adds operational cost without benefit until RBAC actually requires it.
@@ -267,3 +286,25 @@ The only legitimate exception: data science exploration may read from silver dur
 - Power BI semantic model design (DAX, RLS, calc groups) — lives downstream of gold.
 - Pure data science feature engineering — uses gold as input, doesn't extend the framework.
 - Streaming / real-time ingestion — different architecture; this skill assumes batch.
+
+## Maintenance and optimization
+
+### Delta optimization per layer (VORDER, ZORDER, and VACUUM)
+
+Use these defaults for **Lakehouse Delta tables**. `OPTIMIZEDWRITE` is enabled by default and applies to every Delta layer, so it is not listed here.
+
+
+| Layer       | VORDER             | ZORDER                               | Run VACUUM?                 | Why                                                                                                               |
+| ----------- | ------------------ | ------------------------------------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Landing** | N/A                | N/A                                  | No                          | Landing stores files in `Files/`, not Delta tables                                                                |
+| **Bronze**  | Disabled           | Disabled                             | Yes, conservative retention | Bronze is append-heavy and replay/audit focused; avoid layout-heavy optimization, but clean obsolete files safely |
+| **Silver**  | Disabled (default) | Selective (query-hot tables only)    | Yes                         | Silver has frequent MERGE/SCD activity; optimize only where predicates are stable and repeated                    |
+| **Gold**    | Enabled            | Enabled on high-value filter columns | Yes                         | Gold is read-heavy for BI/analytics; layout optimizations improve scan performance                                |
+
+
+Guardrails:
+
+- **VORDER**: enable primarily in gold. In silver, enable only for stable, query-hot tables with clear read gains.
+- **ZORDER**: use columns commonly used in filters and joins; do not ZORDER on high-cardinality/noisy columns without measured benefit.
+- **VACUUM**: always respect retention and recovery requirements. Keep longer retention in bronze; tighter retention is usually acceptable in gold after validation.
+
