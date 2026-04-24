@@ -137,7 +137,7 @@ Scan the codebase for these signals to determine which regulations apply:
 |-----------|-------------|-------------|
 | PIPEDA / Law 25 | Canada | `+1` + Canadian provinces, `CAD`, `.ca` TLD, SIN field |
 | Australia Privacy Act | Australia | `+61`, `AUD`, `.au` TLD, `tfn` field |
-| POPIA | South Africa | `+27`, `ZAR`, `.za` TLD, `sa_id_number` |
+| POPIA | South Africa | `+27`, `ZAR` (South African Rand), `.za` TLD, `sa_id_number` |
 | KVKK | Turkey | `+90`, `TRY`, `.tr` TLD |
 | PDPB | India (upcoming) | `+91`, `INR`, `aadhaar` field — note: not yet in force |
 | SOC 2 Type II | US (security standard, not law) | Mentioned in codebase, customer contracts |
@@ -167,7 +167,7 @@ When annual revenue/turnover is unknown, use these conservative estimates:
 | Company Profile | Estimated Annual Turnover | Realistic T1 Fine | Realistic T2 Fine |
 |----------------|--------------------------|-------------------|-------------------|
 | Startup (< 10 employees) | < €2M | €25K–€100K | €50K–€250K |
-| SME (10–50 employees) | €2M–€10M | €50K–€400K | €100K–€800K |
+| Small business (10–50 employees) | €2M–€10M | €50K–€400K | €100K–€800K |
 | Mid-size (50–500 employees) | €10M–€100M | €200K–€2M | €500K–€4M |
 | Large enterprise (500–5K employees) | €100M–€1B | €2M–€20M | €5M–€40M |
 | Multinational | > €1B | €10M (capped at 2%) | €20M (capped at 4%) |
