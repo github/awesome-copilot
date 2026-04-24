@@ -1,6 +1,6 @@
 ---
 name: minecraft-plugin-development
-description: 'Use this skill when building or modifying Minecraft server plugins for Paper, Spigot, or Bukkit, including plugin.yml setup, commands, listeners, schedulers, player state, team or arena systems, configuration files, Adventure text, and version-safe API usage. Trigger for requests like "build a Minecraft plugin", "add a Paper command", "fix a Bukkit listener", "create plugin.yml", "implement a minigame mechanic", or "debug server plugin behavior".'
+description: 'Use this skill when building or modifying Minecraft server plugins for Paper, Spigot, or Bukkit, including plugin.yml setup, commands, listeners, schedulers, player state, team or arena systems, persistent progression, economy or profile data, configuration files, Adventure text, and version-safe API usage. Trigger for requests like "build a Minecraft plugin", "add a Paper command", "fix a Bukkit listener", "create plugin.yml", "implement a minigame mechanic", "add a perk or quest system", or "debug server plugin behavior".'
 ---
 
 # Minecraft Plugin Development
@@ -17,11 +17,12 @@ For grounded implementation patterns drawn from real Paper plugins, load these r
 - [`references/config-data-and-async.md`](references/config-data-and-async.md) for config managers, database-backed player data, async flushes, and UI refresh tasks
 - [`references/maps-heroes-and-feature-modules.md`](references/maps-heroes-and-feature-modules.md) for map rotation, hero or class systems, and modular feature growth
 - [`references/minigame-instance-flow.md`](references/minigame-instance-flow.md) for arena instances, countdowns, loot refreshes, wave systems, visibility isolation, and entity-to-game ownership
+- [`references/persistent-progression-and-events.md`](references/persistent-progression-and-events.md) for long-running PvP servers with profiles, perks, buffs, quests, economy, custom domain events, and extension registries
 
 ## Scope
 
 - In scope: Paper, Spigot, Bukkit plugin development
-- In scope: `plugin.yml`, commands, tab completion, listeners, schedulers, configs, permissions, Adventure text, player state, minigame flow, arena instances, map copies, loot, waves, and PvP/PvE game loops
+- In scope: `plugin.yml`, commands, tab completion, listeners, schedulers, configs, permissions, Adventure text, player state, minigame flow, arena instances, map copies, loot, waves, persistent profiles, perks, buffs, quests, economy, and PvP/PvE game loops
 - In scope: Java-based server plugin architecture, debugging, refactoring, and feature implementation
 - Out of scope by default: Fabric mods, Forge mods, client mods, Bedrock add-ons
 
@@ -45,6 +46,8 @@ When this skill triggers:
 If the plugin is gameplay-heavy or stateful, read [`references/project-patterns.md`](references/project-patterns.md) and [`references/state-sessions-and-phases.md`](references/state-sessions-and-phases.md) before editing.
 
 If the task touches arena isolation, map instances, chest or resource refills, wave spawning, route voting, spectator visibility, or game-specific chat, also read [`references/minigame-instance-flow.md`](references/minigame-instance-flow.md).
+
+If the task touches persistent player progression, profile saves, economy rewards, perks, buffs, quests, custom combat events, or long-running shared PvP servers, also read [`references/persistent-progression-and-events.md`](references/persistent-progression-and-events.md).
 
 ## Project Discovery Checklist
 
@@ -202,6 +205,8 @@ Pay extra attention when editing:
 - scoreboard or boss bar updates
 - inventory mutation and kit distribution
 - async database or file access
+- economy, quest, perk, and profile mutation
+- custom event dispatch or extension registries
 - version-sensitive API calls
 - shutdown and cleanup in `onDisable`
 - cross-arena visibility, chat, and broadcast isolation
