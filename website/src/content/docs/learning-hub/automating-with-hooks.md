@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-24
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -171,7 +171,7 @@ Each hook entry supports these fields:
 }
 ```
 
-**type**: Always `"command"` for shell-based hooks.
+**type**: `"command"` for shell-based hooks, or `"http"` for HTTP hooks (see below).
 
 **bash**: The command or script to execute on Unix systems. Can be inline or reference a script file.
 
@@ -182,6 +182,42 @@ Each hook entry supports these fields:
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+### HTTP Hooks
+
+In addition to shell commands, hooks support an `"http"` type that POST a JSON payload to any URL. This lets you integrate Copilot lifecycle events directly with webhooks, internal services, and monitoring systems — without writing a shell script:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "http",
+        "url": "https://hooks.example.com/copilot/session-started",
+        "timeoutSec": 5
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "http",
+        "url": "https://hooks.example.com/copilot/agent-stopped",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The event context (the same JSON that would be passed as stdin to a shell hook) is sent as the POST body. The hook is considered successful when the server responds with a 2xx status code.
+
+HTTP hooks are ideal for:
+- Sending audit events to a central logging endpoint
+- Triggering CI/CD pipelines when the coding agent finishes
+- Posting session notifications to Slack or Teams via their incoming webhooks
+- Integrating with enterprise governance systems that expose webhook endpoints
+
+> **Tip**: For sending Slack/Teams notifications, prefer HTTP hooks over `curl` in a shell hook — they're simpler to configure and work on all platforms without requiring curl to be installed.
 
 ### README.md
 
@@ -331,6 +367,8 @@ Block dangerous commands before they execute:
 ```
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+
+> **Important (v1.0.36 behavior change)**: If your `preToolUse` hook uses the `matcher` field to filter by tool name, note that `matcher` is now applied correctly as a full-regex match against the tool name. Previously, `matcher` was silently ignored, so all tool calls triggered the hook. After upgrading to v1.0.36, a hook with `matcher: "^Bash$"` will only fire for the `Bash` tool — not for every tool. Review existing hooks with `matcher` to confirm they still fire for the tools you intend.
 
 ### Modifying Tool Arguments with preToolUse
 

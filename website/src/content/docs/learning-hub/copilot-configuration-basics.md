@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-24
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -372,7 +372,9 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 ### GitHub Copilot CLI
 
-Configuration file: `~/.copilot-cli/config.json`
+Configuration file: `~/.copilot/settings.json`
+
+> **Note**: In v1.0.35, user settings were moved to `~/.copilot/settings.json` (separate from internal state, which remains in `config.json`). If you were previously editing `~/.copilot-cli/config.json`, the new location is `~/.copilot/settings.json`.
 
 ```json
 {
@@ -391,6 +393,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `continueOnAutoMode` | Automatically switch to auto model on rate limit instead of pausing |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -400,6 +403,14 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 - `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+> **Note (v1.0.36)**: Custom agents, skills, and commands from `~/.claude/` are **no longer loaded** by Copilot CLI. If you previously stored personal agents or skills in `~/.claude/agents/` or `~/.claude/skills/`, move them to `~/.agents/` (personal agents directory) or the appropriate `~/.copilot/` location. Only Copilot-specific directories are loaded.
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `COPILOT_GH_HOST` | Override the GitHub hostname for authentication and API calls. Takes precedence over `GH_HOST`. Useful when working with GitHub Enterprise Server. |
 
 ### Model Picker
 
@@ -416,12 +427,34 @@ GitHub Copilot CLI has two commands for managing session state, with distinct be
 
 Both commands accept an optional prompt argument to seed the new session with an opening message, for example `/new Add error handling to the login flow`.
 
+### Naming and Managing Sessions
+
+You can name sessions at startup and resume them by name:
+
+```bash
+copilot --name "auth-refactor"          # start a session with a specific name
+copilot --resume "auth-refactor"         # resume a session by name
+copilot --resume                         # open the interactive session picker
+```
+
+The session picker shows branch names and idle/in-use status, and supports improved search with cursor support. Use `--continue` to resume the most recent session from the **current working directory** (preferred over the globally most-recently-used session since v1.0.35).
+
 The `/session rename` command renames the current session. When called **without a name argument**, it automatically generates a session name based on the conversation history:
 
 ```
 /session rename               # auto-generate a name from conversation history
 /session rename "My feature"  # set a specific name
 ```
+
+You can also delete sessions you no longer need:
+
+```
+/session delete              # delete the current session
+/session delete <id>         # delete a specific session by ID
+/session delete-all          # delete all sessions
+```
+
+In the session picker, press **x** to delete the highlighted session without leaving the picker.
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
 
@@ -506,6 +539,12 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+The `/keep-alive` command prevents your system from sleeping while Copilot CLI is active. This is useful for long-running agent tasks. As of v1.0.36, `/keep-alive` is available in all sessions — no experimental mode required:
+
+```
+/keep-alive     # prevent system sleep during the session
+```
 
 ## Common Questions
 

@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-24
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -349,8 +349,12 @@ copilot --remote
 Or open a remote control tab from inside an existing session:
 
 ```
-/remote
+/remote         # show current remote control status
+/remote on      # enable remote control (register this session with GitHub)
+/remote off     # disable remote control
 ```
+
+Running `/remote` without arguments shows whether remote control is currently active. Use `/remote on` to register the session for remote access, and `/remote off` to disconnect.
 
 The **Remote** tab in the CLI shows all active coding agent tasks from the repository. Select a task to connect and begin sending steering messages.
 
