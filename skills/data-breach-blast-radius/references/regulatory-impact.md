@@ -137,7 +137,7 @@ Scan the codebase for these signals to determine which regulations apply:
 |-----------|-------------|-------------|
 | PIPEDA / Law 25 | Canada | `+1` + Canadian provinces, `CAD`, `.ca` TLD, SIN field |
 | Australia Privacy Act | Australia | `+61`, `AUD`, `.au` TLD, `tfn` field |
-| POPIA | South Africa | `+27`, `ZAR` (South African Rand), `.za` TLD, `sa_id_number` |
+| POPIA | South Africa | `+27`, South African Rand, `.za` TLD, `sa_id_number` |
 | KVKK | Turkey | `+90`, `TRY`, `.tr` TLD |
 | PDPB | India (upcoming) | `+91`, `INR`, `aadhaar` field — note: not yet in force |
 | SOC 2 Type II | US (security standard, not law) | Mentioned in codebase, customer contracts |
