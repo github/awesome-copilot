@@ -36,7 +36,7 @@ from scripts.tools import wiki_store
 skill = ContextGraphSkill()
 
 # ===== INGEST WITH FULL RAG + WIKI =====
-# 1. Read ingestion.md and ontology.md first
+# 1. Read references/ingestion.md and references/ontology.md first
 # 2. Extract entities and relations (LLM reasoning step)
 entities = [
     {"name": "memory leak",   "type": "issue",  "supporting_text": "memory leaks cause crashes"},
@@ -100,8 +100,8 @@ pages = wiki_store.search_wiki("memory leak")
 
 When a user provides a new document:
 
-1. Read `ingestion.md` — entity/relation extraction rules.
-2. Read `ontology.md` — type normalization rules.
+1. Read `references/ingestion.md` — entity/relation extraction rules.
+2. Read `references/ontology.md` — type normalization rules.
 3. Extract entities and relations using your LLM reasoning.
 4. Call `skill.ingest_with_content(...)` — stores raw content + chunks + graph nodes + provenance.
 5. **Write a wiki summary page** using `wiki_store.write_page(category="summary", ...)`.
@@ -129,7 +129,7 @@ issues = wiki_store.lint_wiki()
 # Returns: {orphan_pages, missing_pages, broken_wikilinks, isolated_pages}
 ```
 
-Ask the LLM to review and fix: broken links, orphan pages, stale claims, missing cross-references. See `lint.md` for full lint workflow.
+Ask the LLM to review and fix: broken links, orphan pages, stale claims, missing cross-references. See `references/lint.md` for full lint workflow.
 
 ---
 
