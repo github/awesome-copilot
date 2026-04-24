@@ -3,7 +3,7 @@ title: '05 · Automate Repetitive Tasks'
 description: 'Mirror the source chapter on skills that load automatically for repeated GitHub Copilot CLI workflows.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-04-24
 ---
 
 ![Chapter 05: Skills System](/images/learning-hub/copilot-cli-for-beginners/05/chapter-header.png)
@@ -560,22 +560,22 @@ Pre-made skills are also available from community repositories:
 
 - **[Awesome Copilot](https://github.com/github/awesome-copilot)** - Official GitHub Copilot resources including skills documentation and examples
 
-### Installing a Community Skill Manually
+### Installing a Community Skill with GitHub CLI
 
-If you find a skill in a GitHub repository, copy its folder into your skills directory:
+The easiest way to install a skill from a GitHub repository is using the `gh skill install` command (requires [GitHub CLI v2.90.0+](https://github.blog/changelog/2026-04-16-manage-agent-skills-with-github-cli/)):
 
 ```bash
-# Clone the awesome-copilot repository
-git clone https://github.com/github/awesome-copilot.git /tmp/awesome-copilot
+# Browse and interactively select a skill from awesome-copilot
+gh skill install github/awesome-copilot
 
-# Copy a specific skill to your project
-cp -r /tmp/awesome-copilot/skills/code-checklist .github/skills/
+# Or install a specific skill directly
+gh skill install github/awesome-copilot code-checklist
 
-# Or for personal use across all projects
-cp -r /tmp/awesome-copilot/skills/code-checklist ~/.copilot/skills/
+# Install for personal use across all projects (user scope)
+gh skill install github/awesome-copilot code-checklist --scope user
 ```
 
-> ⚠️ **Review before installing**: Always read a skill's `SKILL.md` before copying it into your project. Skills control what Copilot does, and a malicious skill could instruct it to run harmful commands or modify code in unexpected ways.
+> ⚠️ **Review before installing**: Always read a skill's `SKILL.md` before installing it. Skills control what Copilot does, and a malicious skill could instruct it to run harmful commands or modify code in unexpected ways.
 
 ---
 
