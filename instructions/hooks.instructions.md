@@ -57,7 +57,7 @@ Each `.json` file maps events to an array of hook entries.
 | Field | Required | What it does |
 | ---- | ---- | ---- |
 | `type` | yes | `"command"` for scripts |
-| `matcher` | no | Host-level filter — hook only fires when the tool name matches this value (e.g. `"bash"`, `"powershell"`, `"edit"`, `"create"`) |
+| `matcher` | no | Host-level filter — hook only fires when the tool name matches this value (e.g. `"bash"`, `"powershell"`, `"edit"`, `"create"`). Locally verified working in Copilot CLI v1.0.36; not yet used in repo hook samples. |
 | `bash` | one or both | Command line invoked on Unix / Bash-capable hosts |
 | `powershell` | one or both | Command line invoked on Windows / PowerShell-capable hosts |
 | `cwd` | no | Working directory, relative to repo root |
@@ -116,7 +116,7 @@ Cross-platform example using Python through both entries:
 
 Every hook script follows the same basic contract: read JSON from stdin, do work, and respond through exit code, stdout, and stderr.
 
-**Important**: `toolArgs` is a **JSON string**, not a nested object. You must parse it a second time to access its fields.
+**Important**: the tool arguments field may appear as `toolArgs` (a JSON string requiring a second parse) or `tool_input` / `toolInput` (may be a pre-parsed object). The official reference uses `toolArgs`; some repo samples and newer host versions use `tool_input`. Handle both defensively.
 
 ### Reading stdin and responding — Bash and PowerShell
 
@@ -127,8 +127,13 @@ Every hook script follows the same basic contract: read JSON from stdin, do work
 set -euo pipefail
 payload="$(cat)"
 tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
-tool_args="$(printf '%s' "$payload" | jq -r '.toolArgs')"       # JSON string
-command="$(printf '%s' "$tool_args" | jq -r '.command // ""')"   # parse again
+# Handle both toolArgs (JSON string) and tool_input (object)
+tool_args="$(printf '%s' "$payload" | jq -r '.toolArgs // empty')"
+if [[ -n "$tool_args" ]]; then
+  command="$(printf '%s' "$tool_args" | jq -r '.command // ""')"   # parse again
+else
+  command="$(printf '%s' "$payload" | jq -r '.tool_input.command // .toolInput.command // ""')"
+fi
 ```
 
 **PowerShell**:
@@ -136,7 +141,14 @@ command="$(printf '%s' "$tool_args" | jq -r '.command // ""')"   # parse again
 ```powershell
 Set-StrictMode -Version Latest
 $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
-$toolArgs = $payload.toolArgs | ConvertFrom-Json                 # parse again
+# Handle both toolArgs (JSON string) and tool_input (object)
+if ($payload.toolArgs) {
+    $toolArgs = $payload.toolArgs | ConvertFrom-Json
+} elseif ($payload.tool_input) {
+    $toolArgs = $payload.tool_input
+} elseif ($payload.toolInput) {
+    $toolArgs = $payload.toolInput
+}
 $command = $toolArgs.command
 ```
 
@@ -388,10 +400,10 @@ The full hooks reference is authoritative. **Always check it for the latest payl
 
 | Event | stdout | Typical use |
 | ---- | ---- | ---- |
-| `sessionStart` | ignored | Setup, validation, logging |
+| `sessionStart` | **parsed** — `additionalContext` in stdout is injected into the session | Setup, validation, context injection, logging |
 | `sessionEnd` | ignored | Cleanup, summaries |
 | `userPromptSubmitted` | ignored | Auditing, prompt blocking |
-| `preToolUse` | **parsed** | Guardrails, deny/block |
+| `preToolUse` | **parsed** — `permissionDecision`, `modifiedArgs`/`updatedInput`, `additionalContext` | Guardrails, deny/block, argument modification |
 | `postToolUse` | ignored | Logging, formatting |
 | `postToolUseFailure` | — | Recovery after a failed tool run |
 | `agentStop` | — | Final validation |
@@ -400,7 +412,6 @@ The full hooks reference is authoritative. **Always check it for the latest payl
 | `errorOccurred` | ignored | Diagnostics, alerts |
 | `preCompact` | — | Pre-compaction work |
 | `permissionRequest` | — | Approval workflow |
-| `notification` | — | Notification handling |
 
 ### Payload schemas for common events
 
@@ -418,6 +429,16 @@ These are the payload shapes from the hooks reference. Always verify against the
 ```
 
 `source` is `"new"`, `"resume"`, or `"startup"`. `initialPrompt` is the user's first prompt if provided.
+
+**`sessionStart` stdout output** — the host parses stdout for:
+
+```json
+{
+  "additionalContext": "Current branch: main. Deploy target: staging."
+}
+```
+
+`additionalContext` is injected directly into the session conversation, letting hooks provide environment-specific context dynamically.
 
 **`sessionEnd`**
 
@@ -454,7 +475,16 @@ The field is `prompt` — the exact text the user submitted.
 }
 ```
 
-**Important**: `toolArgs` is a **JSON string**, not a nested object. You must parse it a second time.
+The tool arguments field may appear as `toolArgs` (a JSON string — parse it a second time), `tool_input`, or `toolInput` (may already be an object). Handle both defensively. See the parsing examples above.
+
+**`preToolUse` stdout output** — the host parses stdout for:
+
+| Field | What it does |
+| ---- | ---- |
+| `permissionDecision` | `"deny"` blocks the tool call. `"allow"` and `"ask"` also accepted; only `"deny"` is currently processed. |
+| `permissionDecisionReason` | Human-readable reason shown to the user |
+| `modifiedArgs` or `updatedInput` | Replacement tool arguments — used instead of the originals |
+| `additionalContext` | Text injected into the agent's context for this turn |
 
 **`postToolUse`**
 
