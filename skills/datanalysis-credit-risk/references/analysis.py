@@ -483,7 +483,7 @@ def _calc_single_psi(args):
         # Bin based on non-NaN data (10 bins)
         try:
             bins = pd.qcut(train_nonan, q=10, duplicates='drop', retbins=True)[1]
-        except:
+        except Exception:
             bins = pd.cut(train_nonan, bins=10, retbins=True)[1]
         
         # Calculate proportion of each bin (including NaN bin)
@@ -996,7 +996,7 @@ def export_cleaning_report(filepath: str, steps: list,
     
     try:
         wb = load_workbook(filepath)
-    except:
+    except Exception:
         wb = Workbook()
         wb.remove(wb.active)
     
