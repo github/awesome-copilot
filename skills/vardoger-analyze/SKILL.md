@@ -1,6 +1,6 @@
 ---
 name: vardoger-analyze
-description: "Use when the user asks to personalize the GitHub Copilot CLI assistant, adapt Copilot to their style, use vardoger, or analyze their Copilot CLI conversation history. Reads the local session directory at `~/.copilot/history-session-state/`, extracts recurring preferences and conventions, and writes a fenced personalization block into `~/.copilot/copilot-instructions.md`. Runs entirely on the user's machine via the local `vardoger` CLI (`pipx install vardoger`); no network calls and no uploads. Triggers: 'personalize my copilot', 'analyze my copilot history', 'tailor copilot to me', 'run vardoger', 'update my copilot instructions from history', 'make copilot learn my style'."
+description: "Use when the user asks to personalize the GitHub Copilot CLI assistant, adapt Copilot to their style, use vardoger, or analyze their Copilot CLI conversation history. Reads the local session directory at `~/.copilot/session-state/`, extracts recurring preferences and conventions, and writes a fenced personalization block into `~/.copilot/copilot-instructions.md`. Runs entirely on the user's machine via the local `vardoger` CLI (`pipx install vardoger`); no network calls and no uploads. Triggers: 'personalize my copilot', 'analyze my copilot history', 'tailor copilot to me', 'run vardoger', 'update my copilot instructions from history', 'make copilot learn my style'."
 license: Apache-2.0
 ---
 
@@ -16,7 +16,7 @@ Drive the local `vardoger` CLI to read the user's GitHub Copilot CLI conversatio
 
 `vardoger` reads and writes files **outside** the current workspace:
 
-- Reads Copilot CLI history from `~/.copilot/history-session-state/`.
+- Reads Copilot CLI history from `~/.copilot/session-state/`.
 - Writes a checkpoint state file to `~/.vardoger/state.json` (created on first run).
 - Writes the final personalization to `~/.copilot/copilot-instructions.md`.
 
