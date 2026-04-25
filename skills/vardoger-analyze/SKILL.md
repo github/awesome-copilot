@@ -22,6 +22,17 @@ Drive the local `vardoger` CLI to read the user's GitHub Copilot CLI conversatio
 
 When the host asks to approve a `vardoger` command, grant it write access beyond the workspace. Otherwise the first `vardoger prepare` call will fail with `PermissionError: ... ~/.vardoger/state.tmp` because the sandbox blocks writes outside the current working directory.
 
+## Workflow
+
+1. Verify the `vardoger` CLI is installed and fail fast with install guidance if not.
+2. Check staleness with `vardoger status --platform copilot --json` and stop early if the personalization is still fresh.
+3. Get batch metadata with `vardoger prepare --platform copilot` to learn the number of batches.
+4. For each batch, run `vardoger prepare --platform copilot --batch <N>` and write a concise bullet summary of the behavioral signals.
+5. Get the synthesis prompt with `vardoger prepare --platform copilot --synthesize`.
+6. Synthesize all batch summaries into a single personalization following the synthesis prompt.
+7. Write the result by piping the personalization into `vardoger write --platform copilot --scope global` (or `--scope project --project <path>`).
+8. Report back to the user what was written, where, and that the write is idempotent.
+
 ## Steps
 
 ### 1. Verify vardoger is installed
