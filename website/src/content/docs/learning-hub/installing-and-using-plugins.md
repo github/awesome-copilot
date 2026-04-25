@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-25
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -216,7 +216,7 @@ Plugins loaded this way appear in `/plugin list` under a separate **External Plu
 
 ## How Plugins Work at Runtime
 
-When you install a plugin, its components become available to Copilot CLI automatically:
+When you install a plugin, its components become available to Copilot CLI **immediately** — no restart required:
 
 - **Agents** appear in your agent selection (use with `/agent` or the agents dropdown)
 - **Skills** are loaded automatically when relevant to your current task

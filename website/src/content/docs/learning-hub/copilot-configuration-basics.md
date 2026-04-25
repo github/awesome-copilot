@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-25
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -372,7 +372,7 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 ### GitHub Copilot CLI
 
-Configuration file: `~/.copilot-cli/config.json`
+User settings file: `~/.copilot/settings.json`
 
 ```json
 {
@@ -380,6 +380,10 @@ Configuration file: `~/.copilot-cli/config.json`
   "suggestions": true
 }
 ```
+
+> **Note**: In v1.0.35, user settings were moved from `config.json` to `~/.copilot/settings.json`. The old config file is still supported for backward compatibility, but `settings.json` is the authoritative location for new settings.
+
+> **Note (v1.0.36+)**: Custom agents, skills, and commands from `~/.claude/` are **no longer loaded** by GitHub Copilot CLI. Move any personal agents or skills to `~/.agents/` (e.g. `~/.agents/skills/`) or to a repository's `.github/` directory.
 
 CLI settings use **camelCase** naming. Key settings added in recent releases:
 
@@ -391,6 +395,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `continueOnAutoMode` | Automatically switch to `auto` model on rate limit instead of pausing |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -404,6 +409,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+Select **`auto`** as your model to let Copilot automatically choose the best available model for each session. In auto mode, Copilot picks based on your current usage and rate limits, so you stay productive without manually switching models. You can also set `continueOnAutoMode: true` in your settings to automatically switch to `auto` when you hit a rate limit instead of pausing.
 
 ### CLI Session Commands
 
@@ -424,6 +431,15 @@ The `/session rename` command renames the current session. When called **without
 ```
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+You can also **name a session at startup** with `--name`, then resume it by name later:
+
+```bash
+copilot --name "auth-refactor"       # start a named session
+copilot --resume auth-refactor       # resume by name
+```
+
+Session deletion is available via `/session delete`, `/session delete <id>`, and `/session delete-all` for removing individual sessions or clearing all history.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 

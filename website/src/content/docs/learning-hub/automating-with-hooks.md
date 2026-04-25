@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-25
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -171,7 +171,7 @@ Each hook entry supports these fields:
 }
 ```
 
-**type**: Always `"command"` for shell-based hooks.
+**type**: `"command"` for shell-based hooks, or `"http"` for HTTP-based hooks (see below).
 
 **bash**: The command or script to execute on Unix systems. Can be inline or reference a script file.
 
@@ -182,6 +182,57 @@ Each hook entry supports these fields:
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+### HTTP Hooks
+
+In addition to running shell commands, hooks can **POST JSON payloads to a URL**. This is useful for integrating with webhook-driven systems — log aggregators, notification services, compliance endpoints, or custom automation platforms — without running a local script.
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "http",
+        "url": "https://hooks.example.com/copilot/session-start",
+        "headers": {
+          "Authorization": "Bearer ${env:HOOK_TOKEN}",
+          "Content-Type": "application/json"
+        },
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+The hook event payload (the same JSON that would be piped to a shell command's stdin) is sent as the POST body. HTTP hooks support the same `timeoutSec` field as command hooks — if the request does not complete within the timeout, it is cancelled and the agent continues.
+
+**When to use HTTP hooks vs command hooks**:
+- **HTTP hooks**: Best when the logic lives in a remote service, you want to avoid running arbitrary code locally, or when integrating with existing webhook endpoints.
+- **Command hooks**: Best for local scripts, file system operations, or when you need to modify tool arguments or inject context.
+
+### preToolUse Matcher
+
+The `preToolUse` event supports an optional **`matcher`** field that restricts the hook to specific tool names using a regex pattern. Only tool calls whose name **fully matches** the regex will trigger the hook:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "^bash$",
+        "type": "command",
+        "bash": "./scripts/security-check.sh",
+        "timeoutSec": 15
+      }
+    ]
+  }
+}
+```
+
+> **Important (v1.0.36+)**: The `matcher` field is now correctly enforced. In earlier versions, `matcher` was silently ignored and the hook ran for all tool calls. After upgrading, hooks with a `matcher` will only fire for tool names that fully match the regex — verify your hook configurations if you relied on the previous (broken) behaviour.
 
 ### README.md
 
