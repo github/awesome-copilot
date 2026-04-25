@@ -119,7 +119,7 @@ Bugs are tracked as GitHub Issues on the repo. Single source of truth for all te
 
 **For QA:** File bugs as GitHub Issues with labels (`bug`, `severity:blocker/major/minor`). Include: component, steps to reproduce, expected vs actual. When no blockers found: write `docs/qa/sprint-N-signoff.md` with test count, pass rate, explicit "no blockers" statement.
 
-**For Dev Team:** Check GitHub Issues before starting work. Fix blockers and majors before polish. Reference issue numbers in commits: `fix: #42 description`. Close issues when fix is merged.
+**For Dev Team:** Check GitHub Issues before starting work. Fix blockers and majors before polish. Use GitHub closing keywords in commits: `fix: description (Fixes #42)`. For reference-only, use `Refs #42`.
 
 **For DevOps:** File infrastructure issues with label `infra`.
 

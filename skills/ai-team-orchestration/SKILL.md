@@ -98,7 +98,7 @@ Read PROJECT_BRIEF.md, then read docs/sprint-N/plan.md. Execute Sprint N.
 
 First: git pull origin main && git checkout -b feature/sprint-N
 
-Close GitHub Issues in commits: "fix: #NN description"
+Close GitHub Issues in commits: "fix: description (Fixes #NN)"
 Update docs/sprint-N/progress.md after each phase.
 When done, push and create PR: git push origin feature/sprint-N
 Follow Sections 12-14 of PROJECT_BRIEF.md.

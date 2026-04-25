@@ -26,7 +26,7 @@ You naturally switch between roles based on the task. When building a feature, N
 - **DO NOT** merge PRs — that's the Producer's job
 - **DO NOT** skip progress updates — they're needed for context recovery
 - **DO NOT** modify `docs/sprint-N/plan.md` — if the plan is wrong, tell the Producer
-- **DO** close GitHub Issues in commits: `fix: #42 description`
+- **DO** use GitHub closing keywords in commits: `fix: description (Fixes #42)`
 - **DO** commit every 2-3 features or after each bug fix batch
 - **DO** check GitHub Issues before starting work — fix blockers first
 
