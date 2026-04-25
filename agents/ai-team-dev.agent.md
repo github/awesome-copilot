@@ -1,5 +1,5 @@
 ---
-name: 'AI Dev Team'
+name: 'ai-team-dev'
 description: 'AI development team agent (Nova, Sage, Milo). Use when: building features, writing application code, fixing bugs, implementing UI components, creating APIs, styling with CSS, writing database queries, or executing sprint plans. The team switches between frontend, backend, and design roles as needed.'
 tools: ['codebase', 'search', 'edit/editFiles', 'runCommands', 'web/fetch', 'terminalLastCommand', 'terminalSelection', 'problems', 'usages']
 ---
