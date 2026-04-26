@@ -141,15 +141,20 @@ fi
 ```powershell
 Set-StrictMode -Version Latest
 $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
-# Handle both toolArgs (JSON string) and tool_input (object)
+# Handle both toolArgs (JSON string or object) and tool_input/toolInput (object)
+$toolArgs = $null
 if ($payload.toolArgs) {
-    $toolArgs = $payload.toolArgs | ConvertFrom-Json
+    if ($payload.toolArgs -is [string]) {
+        $toolArgs = $payload.toolArgs | ConvertFrom-Json
+    } else {
+        $toolArgs = $payload.toolArgs
+    }
 } elseif ($payload.tool_input) {
     $toolArgs = $payload.tool_input
 } elseif ($payload.toolInput) {
     $toolArgs = $payload.toolInput
 }
-$command = $toolArgs.command
+$command = if ($toolArgs) { $toolArgs.command } else { $null }
 ```
 
 To deny in `preToolUse` (PowerShell):
@@ -225,7 +230,16 @@ tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
 
 # Only gate bash commands that are git commits
 if [[ "$tool_name" != "bash" ]]; then exit 0; fi
-command="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.command // ""')"
+tool_args_json="$(
+  printf '%s' "$payload" | jq -c '
+    if (.toolArgs? // empty) != empty then
+      (.toolArgs | fromjson)
+    else
+      (.tool_input // .toolInput // {})
+    end
+  '
+)"
+command="$(printf '%s' "$tool_args_json" | jq -r '.command // ""')"
 if ! printf '%s' "$command" | grep -q "git commit"; then exit 0; fi
 
 CWD="$(printf '%s' "$payload" | jq -r '.cwd')"
@@ -239,19 +253,21 @@ $(echo "$TSC_OUT" | head -30)"
 fi
 
 # 2. Lint
-HAS_LINT=$(jq -r '.scripts.lint // empty' "$CWD/package.json" 2>/dev/null)
-if [[ -n "$HAS_LINT" ]]; then
-  LINT_OUT=$(cd "$CWD" && npm run lint --silent 2>&1) || ERRORS="${ERRORS}
+if [[ -f "$CWD/package.json" ]]; then
+  HAS_LINT=$(jq -r '.scripts.lint // empty' "$CWD/package.json" 2>/dev/null)
+  if [[ -n "$HAS_LINT" ]]; then
+    LINT_OUT=$(cd "$CWD" && npm run lint --silent 2>&1) || ERRORS="${ERRORS}
 === Lint Errors ===
 $(echo "$LINT_OUT" | tail -30)"
-fi
+  fi
 
-# 3. Tests
-HAS_TEST=$(jq -r '.scripts.test // empty' "$CWD/package.json" 2>/dev/null)
-if [[ -n "$HAS_TEST" ]]; then
-  TEST_OUT=$(cd "$CWD" && CI=true npm test -- --watchAll=false 2>&1) || ERRORS="${ERRORS}
+  # 3. Tests
+  HAS_TEST=$(jq -r '.scripts.test // empty' "$CWD/package.json" 2>/dev/null)
+  if [[ -n "$HAS_TEST" ]]; then
+    TEST_OUT=$(cd "$CWD" && CI=true npm test -- --watchAll=false 2>&1) || ERRORS="${ERRORS}
 === Test Failures ===
 $(echo "$TEST_OUT" | tail -30)"
+  fi
 fi
 
 if [[ -n "$ERRORS" ]]; then
@@ -311,7 +327,16 @@ case "$tool_name" in
 esac
 [[ "$result_type" != "success" ]] && exit 0
 
-file_path="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.path // ""')"
+tool_input="$(
+  printf '%s' "$payload" | jq -c '
+    if (.toolArgs? // empty) != empty then
+      (.toolArgs | fromjson)
+    else
+      (.tool_input // .toolInput // {})
+    end
+  '
+)"
+file_path="$(printf '%s' "$tool_input" | jq -r '.path // ""')"
 [[ -z "$file_path" || ! -f "$file_path" ]] && exit 0
 
 # Run the project's formatter — adapt to your stack
@@ -370,14 +395,25 @@ tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
 
 [[ "$tool_name" != "bash" ]] && exit 0
 
-command="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.command // ""')"
+tool_args_json="$(
+  printf '%s' "$payload" | jq -c '
+    if (.toolArgs? // empty) != empty then
+      (.toolArgs | fromjson)
+    else
+      (.tool_input // .toolInput // {})
+    end
+  '
+)"
+command="$(printf '%s' "$tool_args_json" | jq -r '.command // ""')"
 
 if printf '%s' "$command" | grep -qE 'rm -rf /|git reset --hard|git clean -fd|git push.*--force'; then
   if [[ "$block_mode" == "deny" ]]; then
-    jq -cn --arg reason "Destructive command blocked: $command" \
+    # Truncate command in reason to avoid leaking secrets
+    short_cmd="$(printf '%.80s' "$command")"
+    jq -cn --arg reason "Destructive command blocked: ${short_cmd}..." \
       '{permissionDecision:"deny",permissionDecisionReason:$reason}'
   else
-    echo "Would block: $command" >&2
+    echo "Would block: ${short_cmd}..." >&2
   fi
 fi
 exit 0
