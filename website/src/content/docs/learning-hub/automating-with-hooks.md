@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-26
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -171,11 +171,13 @@ Each hook entry supports these fields:
 }
 ```
 
-**type**: Always `"command"` for shell-based hooks.
+**type**: The hook type. Use `"command"` for shell-based hooks or `"http"` for HTTP hooks (see [HTTP Hooks](#http-hooks) below).
 
 **bash**: The command or script to execute on Unix systems. Can be inline or reference a script file.
 
 **powershell**: The command or script to execute on Windows systems. Either `bash` or `powershell` (or both) must be provided.
+
+**matcher**: A regular expression that limits which tool names trigger a `preToolUse` or `postToolUse` hook. The pattern must **fully match** the tool name — it is anchored. For example, `"matcher": "bash"` only fires for the `bash` tool, not `github-bash` or similar names. If omitted, the hook fires for every tool call.
 
 **cwd**: Working directory for the command (relative to repository root).
 
@@ -331,6 +333,77 @@ Block dangerous commands before they execute:
 ```
 
 The `preToolUse` hook receives JSON input with details about the tool being called. Your script can inspect this input and exit with a non-zero code to **deny** the tool execution, or exit with zero to **approve** it.
+
+#### Targeting Specific Tools with matcher
+
+Use the `matcher` field to limit a `preToolUse` or `postToolUse` hook to specific tools rather than firing on every call:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "./scripts/check-bash-command.sh",
+        "matcher": "bash",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The `matcher` value is a regular expression that must **fully match** the tool name (anchored). `"matcher": "bash"` fires only for the `bash` tool; `"matcher": "edit|write"` fires for `edit` or `write`. Hooks without a `matcher` field continue to fire for all tool calls.
+
+> **Important**: The `matcher` field was fixed in v1.0.36 to enforce full-match semantics. If you have hooks with a `matcher`, verify they still fire as expected after upgrading — hooks that previously relied on partial matching now require the full tool name to be matched.
+
+### HTTP Hooks
+
+In addition to shell commands, hooks can **POST JSON payloads to an HTTP endpoint** using `type: "http"`. This is useful for sending structured data to external services — audit systems, Slack webhooks, monitoring platforms, or internal APIs — without writing a shell wrapper around `curl`.
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "http",
+        "url": "https://hooks.example.com/copilot-session",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The CLI sends a `POST` request with the same JSON context payload that shell hooks receive via stdin. Configuration fields for HTTP hooks:
+
+| Field | Description |
+|-------|-------------|
+| `type` | Must be `"http"` |
+| `url` | The endpoint to POST to |
+| `timeoutSec` | Maximum wait time in seconds (default: 30) |
+
+**Example — send session data to a monitoring API**:
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "type": "http",
+        "url": "${env:AUDIT_WEBHOOK_URL}",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}
+```
+
+HTTP hooks work well alongside command hooks — you can have both types registered for the same event. This replaces the previous pattern of writing a shell hook that `curl`s a URL, and removes the dependency on `curl` being installed.
 
 ### Modifying Tool Arguments with preToolUse
 

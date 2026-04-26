@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-26
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -372,7 +372,9 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 ### GitHub Copilot CLI
 
-Configuration file: `~/.copilot-cli/config.json`
+User settings file: `~/.copilot/settings.json`
+
+> **Note**: As of v1.0.35, user settings are stored in `~/.copilot/settings.json`, separate from internal CLI state in `config.json`. If you previously edited `config.json` for user preferences, move those settings to `settings.json`.
 
 ```json
 {
@@ -391,6 +393,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `continueOnAutoMode` | Automatically switch to auto model on rate limit instead of pausing |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -424,6 +427,26 @@ The `/session rename` command renames the current session. When called **without
 ```
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+The `/session delete` subcommands let you remove sessions from the session picker:
+
+```
+/session delete              # delete the current session
+/session delete <id>         # delete a specific session by ID
+/session delete-all          # delete all sessions
+```
+
+You can also press **x** in the session picker to delete the highlighted session without leaving the picker.
+
+**Naming and resuming sessions at startup**: Use `--name` to assign a name when starting a session, and `--resume=<name>` to resume a session by name:
+
+```bash
+copilot --name "auth-refactor"             # start a named session
+copilot --resume="auth-refactor"           # resume by name
+copilot --continue                         # resume the session from the current working directory
+```
+
+The `--continue` flag prefers sessions from the **current working directory** rather than the most recently touched session, making it reliable in multi-project workflows.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
