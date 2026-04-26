@@ -233,7 +233,9 @@ if [[ "$tool_name" != "bash" ]]; then exit 0; fi
 tool_args_json="$(
   printf '%s' "$payload" | jq -c '
     if (.toolArgs? // empty) != empty then
-      (.toolArgs | fromjson)
+      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
+      else .toolArgs
+      end
     else
       (.tool_input // .toolInput // {})
     end
@@ -330,7 +332,9 @@ esac
 tool_input="$(
   printf '%s' "$payload" | jq -c '
     if (.toolArgs? // empty) != empty then
-      (.toolArgs | fromjson)
+      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
+      else .toolArgs
+      end
     else
       (.tool_input // .toolInput // {})
     end
@@ -398,7 +402,9 @@ tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
 tool_args_json="$(
   printf '%s' "$payload" | jq -c '
     if (.toolArgs? // empty) != empty then
-      (.toolArgs | fromjson)
+      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
+      else .toolArgs
+      end
     else
       (.tool_input // .toolInput // {})
     end
@@ -407,9 +413,9 @@ tool_args_json="$(
 command="$(printf '%s' "$tool_args_json" | jq -r '.command // ""')"
 
 if printf '%s' "$command" | grep -qE 'rm -rf /|git reset --hard|git clean -fd|git push.*--force'; then
+  # Truncate command to avoid leaking secrets in deny reason or logs
+  short_cmd="$(printf '%.80s' "$command")"
   if [[ "$block_mode" == "deny" ]]; then
-    # Truncate command in reason to avoid leaking secrets
-    short_cmd="$(printf '%.80s' "$command")"
     jq -cn --arg reason "Destructive command blocked: ${short_cmd}..." \
       '{permissionDecision:"deny",permissionDecisionReason:$reason}'
   else

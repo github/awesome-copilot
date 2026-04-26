@@ -1,0 +1,4 @@
+[mcps]
+
+[mcps.servers]
+github-agentic-workflows = { args = ["aw", "mcp-server"], command = "gh", tools = ["*"], type = "stdio" }
