@@ -20,25 +20,6 @@
     "performance"
   ],
   "agents": [
-    "./agents/amplitude-experiment-implementation.md",
-    "./agents/apify-integration-expert.md",
-    "./agents/arm-migration.md",
-    "./agents/diffblue-cover.md",
-    "./agents/droid.md",
-    "./agents/dynatrace-expert.md",
-    "./agents/elasticsearch-observability.md",
-    "./agents/jfrog-sec.md",
-    "./agents/launchdarkly-flag-cleanup.md",
-    "./agents/lingodotdev-i18n.md",
-    "./agents/monday-bug-fixer.md",
-    "./agents/mongodb-performance-advisor.md",
-    "./agents/neo4j-docker-client-generator.md",
-    "./agents/neon-migration-specialist.md",
-    "./agents/neon-optimization-analyzer.md",
-    "./agents/octopus-deploy-release-notes-mcp.md",
-    "./agents/stackhawk-security-onboarding.md",
-    "./agents/terraform.md",
-    "./agents/pagerduty-incident-responder.md",
-    "./agents/comet-opik.md"
+    "./agents"
   ]
 }
