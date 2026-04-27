@@ -17,6 +17,31 @@
       "version": "1.0.0"
     },
     {
+      "name": "autoharness",
+      "description": "Agent harness framework that composes 10 irreducible AI coding assistant primitives into any repository workspace. Includes Auto-MergeInstall, Auto-Tune, install-harness, tune-harness, verify-harness, and workspace-discovery for structured agent setup and maintenance.",
+      "version": "1.3.4",
+      "author": {
+        "name": "softwaresalt",
+        "url": "https://github.com/softwaresalt"
+      },
+      "homepage": "https://github.com/softwaresalt/autoharness",
+      "keywords": [
+        "harness",
+        "agents",
+        "coding-assistant",
+        "copilot",
+        "workspace-discovery",
+        "automation"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/softwaresalt/autoharness",
+      "source": {
+        "source": "github",
+        "repo": "softwaresalt/autoharness",
+        "path": "."
+      }
+    },
+    {
       "name": "automate-this",
       "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
