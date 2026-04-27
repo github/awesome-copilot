@@ -29,13 +29,16 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
 ## Workflow
 
 ### 0. Mode Selection
-- clarify: Detect ambiguities, resolve with user
+- clarify: Detect ambiguities, resolve with user. Minimal research to inform clarifications.
 - research: Full deep-dive
 
 #### 0.1 Clarify Mode
+
+Understand intent, resolve ambiguity, confirm scope. Workflow:
+
 1. Check existing plan → Ask "Continue, modify, or fresh?"
 2. Set `user_intent`: continue_plan | modify_plan | new_task
-3. Detect gray areas → IF found → Generate 2-4 options each
+3. Detect gray areas in user request → IF found → Generate 2-4 options each
 4. Present via `vscode_askQuestions`, classify:
    - Architectural → `architectural_decisions`
    - Task-specific → `task_clarifications`
@@ -43,6 +46,8 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
 6. Return JSON per `Output Format`
 
 #### 0.2 Research Mode
+
+Analyze codebase, extract facts, map patterns/dependencies, identify gaps. Workflow:
 
 ### 1. Initialize
 Read AGENTS.md, parse inputs, identify focus_area
@@ -103,26 +108,26 @@ def calculate_confidence_from_results():
   # Base confidence from result quality
   files_analyzed_count = len(files_analyzed)
   patterns_found_count = len(patterns_found)
-  
+
   # Higher coverage = higher confidence
   coverage_score = min(coverage_percentage / 100, 1.0)
-  
+
   # More patterns found = more context
   pattern_score = min(patterns_found_count / 5, 1.0)  # 5+ patterns = max
-  
+
   # Quality indicators
   has_architecture = len(related_architecture) > 0
   has_dependencies = len(related_dependencies) > 0
   has_open_questions = len(open_questions) > 0
-  
+
   quality_score = 0.0
   if has_architecture: quality_score += 0.2
   if has_dependencies: quality_score += 0.2
   if has_open_questions: quality_score += 0.1
-  
+
   # Weighted average
   confidence = (coverage_score * 0.4) + (pattern_score * 0.3) + (quality_score * 0.3)
-  
+
   return round(confidence, 2)
 ```
 
