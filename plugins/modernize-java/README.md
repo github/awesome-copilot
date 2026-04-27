@@ -8,26 +8,13 @@
 - Validate your application against known CVEs after the upgrade
 - Output a detailed summary including file changes, updated dependencies, and upgrade results
 
-## How to Use
-
-### Prerequisites
-
-Install the [GitHub Copilot CLI](https://github.com/features/copilot/cli):
+## Installation
 
 ```bash
-npm install -g @github/copilot
+copilot plugin install modernize-java@awesome-copilot
 ```
 
-### Installation
-
-Once GitHub Copilot CLI is set up, install this plugin:
-
-```bash
-copilot plugin marketplace add microsoft/modernize-java
-copilot plugin install modernize-java@modernize-java
-```
-
-### Quick Start
+## Quick Start
 
 ```bash
 copilot --model claude-sonnet-4.6 --agent modernize-java:modernize-java
