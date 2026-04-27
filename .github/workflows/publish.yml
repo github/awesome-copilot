@@ -54,6 +54,14 @@ jobs:
           git commit -m "chore: publish from staged" --allow-empty
           git push origin HEAD:main --force
 
+      - name: Publish to marketplace
+        run: |
+          # Push the same materialized commit to the marketplace branch so that
+          # tool-facing install URLs can resolve from marketplace instead of main.
+          # This is the Phase 1 compatibility publish; both main and marketplace
+          # will contain identical content during the transition window.
+          git push origin HEAD:marketplace --force
+
       - name: Dispatch website deployment
         run: gh workflow run deploy-website.yml --ref main
         env:

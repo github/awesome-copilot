@@ -180,8 +180,16 @@ const vscodeInstallImage =
 const vscodeInsidersInstallImage =
   "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
 
-const repoBaseUrl =
+// URL for source-content links (human-authored files on the source branch).
+// Use this for docs, contributor-facing links, and anything that does NOT
+// require materialized plugin content.
+const repoSourceUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
+
+// URL for tool-facing published-artifact links (points at the materialized
+// marketplace branch so new consumers resolve from marketplace instead of main).
+const repoBaseUrl =
+  "https://raw.githubusercontent.com/github/awesome-copilot/marketplace";
 
 const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
@@ -217,6 +225,7 @@ export {
   MAX_PLUGIN_ITEMS,
   PLUGINS_DIR,
   repoBaseUrl,
+  repoSourceUrl,
   ROOT_FOLDER,
   SKILL_DESCRIPTION_MAX_LENGTH,
   SKILL_DESCRIPTION_MIN_LENGTH,
