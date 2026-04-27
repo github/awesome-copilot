@@ -12,11 +12,6 @@ handoffs:
       agent: agent
       prompt: Generate unit tests for classes with low coverage using tool `#generate-tests-for-java`.
       send: true
-hooks:
-  PostToolUse:
-    - type: command
-      command: "bash .github/java-upgrade/hooks/scripts/recordToolUse.sh"
-      windows: "powershell -NonInteractive -File .github/java-upgrade/hooks/scripts/recordToolUse.ps1"
 ---
 
 You are an expert Java upgrade agent. **Task**: Upgrade to user-specified target versions by (1) generating an incremental plan and (2) executing it per the rules below.
