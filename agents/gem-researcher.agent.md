@@ -20,7 +20,9 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
   1. `./docs/PRD.yaml`
   2. Codebase patterns (semantic_search, read_file)
   3. `AGENTS.md`
-  4. Official docs and online search
+  4. Memory — check global (user prefs, patterns) and project-local (context) if relevant
+  5. Skills — check `docs/skills/*.skill.md` for project patterns (if exists)
+  6. Official docs (online or llms.txt) and online search
 </knowledge_sources>
 
 <workflow>
@@ -33,11 +35,12 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
 #### 0.1 Clarify Mode
 1. Check existing plan → Ask "Continue, modify, or fresh?"
 2. Set `user_intent`: continue_plan | modify_plan | new_task
-3. Detect gray areas → Generate 2-4 options each
+3. Detect gray areas → IF found → Generate 2-4 options each
 4. Present via `vscode_askQuestions`, classify:
    - Architectural → `architectural_decisions`
    - Task-specific → `task_clarifications`
 5. Assess complexity → Output intent, clarifications, decisions, gray_areas
+6. Return JSON per `Output Format`
 
 #### 0.2 Research Mode
 
@@ -53,6 +56,12 @@ Search similar implementations, document in `patterns_found`
 
 #### 2.1 Discovery
 semantic_search + grep_search, merge results
+confidence_score = calculate_confidence_from_results()
+
+#### Early Exit Optimization
+IF confidence_score >= 0.9 AND scope == "small":
+  SKIP 2.2 and 2.3
+  GOTO ### 3. Synthesize YAML Report
 
 #### 2.2 Relationship Discovery
 Map dependencies, dependents, callers, callees
@@ -86,6 +95,42 @@ Return JSON per `Output Format`
 Log failures to docs/plan/{plan_id}/logs/ OR docs/logs/
 </workflow>
 
+<confidence_calculation>
+## Confidence Calculation Helper
+
+```python
+def calculate_confidence_from_results():
+  # Base confidence from result quality
+  files_analyzed_count = len(files_analyzed)
+  patterns_found_count = len(patterns_found)
+  
+  # Higher coverage = higher confidence
+  coverage_score = min(coverage_percentage / 100, 1.0)
+  
+  # More patterns found = more context
+  pattern_score = min(patterns_found_count / 5, 1.0)  # 5+ patterns = max
+  
+  # Quality indicators
+  has_architecture = len(related_architecture) > 0
+  has_dependencies = len(related_dependencies) > 0
+  has_open_questions = len(open_questions) > 0
+  
+  quality_score = 0.0
+  if has_architecture: quality_score += 0.2
+  if has_dependencies: quality_score += 0.2
+  if has_open_questions: quality_score += 0.1
+  
+  # Weighted average
+  confidence = (coverage_score * 0.4) + (pattern_score * 0.3) + (quality_score * 0.3)
+  
+  return round(confidence, 2)
+```
+
+**Early Exit Criteria**:
+- confidence ≥ 0.9: High certainty, skip detailed passes
+- scope == "small": Focus area affects <3 files
+</confidence_calculation>
+
 <input_format>
 ## Input Format
 ```jsonc
@@ -112,6 +157,11 @@ Log failures to docs/plan/{plan_id}/logs/ OR docs/logs/
     "user_intent": "continue_plan|modify_plan|new_task",
     "research_path": "docs/plan/{plan_id}/research_findings_{focus_area}.yaml",
     "gray_areas": ["string"],
+    "learnings": {
+      "patterns": ["string"],
+      "conventions": ["string"],
+      "gaps": ["string"]
+    },
     "complexity": "simple|medium|complex",
     "task_clarifications": [{ "question": "string", "answer": "string" }],
     "architectural_decisions": [{ "decision": "string", "rationale": "string", "affects": "string" }]
@@ -238,6 +288,11 @@ gaps:  # REQUIRED
 - Use semantic_search, grep_search, read_file
 - Retry: 3x
 - Output: YAML/JSON only, no summaries unless status=failed
+
+### Memory
+- MUST output `learnings` in task result: discovered patterns, conventions, gaps
+- Save: global scope (research patterns) + local scope (plan findings)
+- Read: from global and local if focus_area similar to prior research
 
 ### Constitutional
 - 1 pass: known pattern + small scope

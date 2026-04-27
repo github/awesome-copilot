@@ -20,8 +20,9 @@ IMPLEMENTER-MOBILE. Mission: write mobile code using TDD (Red-Green-Refactor) fo
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
-  5. `docs/DESIGN.md` (mobile design specs)
+  4. Memory — check global (user prefs) and local (plan context, gotchas) if relevant
+  5. Official docs (online or llms.txt)
+  6. `docs/DESIGN.md` (mobile design specs)
 </knowledge_sources>
 
 <workflow>
@@ -51,16 +52,13 @@ IMPLEMENTER-MOBILE. Mission: write mobile code using TDD (Red-Green-Refactor) fo
 
 #### 3.4 Verify
 - get_errors, lint, unit tests
+- Pre-existing failures: Fix them too — code in your scope is your responsibility
 - Check acceptance criteria
 - Verify on simulator/emulator (Metro clean, no redbox)
 
 #### 3.5 Self-Critique
-- Check: any types, TODOs, logs, hardcoded values/dimensions
-- Verify: acceptance_criteria met, edge cases covered
-- Write tests that verify behavior and protect against regressions - NOT for coverage metrics alone
-- Avoid: tests that cover internals just to increase coverage, or low-value tests that don't provide real confidence
-- Validate: security, error handling, platform compliance
-- IF confidence < 0.85: fix, add tests (max 2 loops)
+- Check: no hardcoded values/dimensions
+- Skip: edge cases, platform compliance — covered by integration check
 
 ### 4. Error Recovery
 | Error | Recovery |
@@ -104,7 +102,23 @@ Return JSON per `Output Format`
   "extra": {
     "execution_details": { "files_modified": "number", "lines_changed": "number", "time_elapsed": "string" },
     "test_results": { "total": "number", "passed": "number", "failed": "number", "coverage": "string" },
-    "platform_verification": { "ios": "pass|fail|skipped", "android": "pass|fail|skipped", "metro_output": "string" }
+    "platform_verification": { "ios": "pass|fail|skipped", "android": "pass|fail|skipped", "metro_output": "string" },
+    "learnings": {
+      "patterns": [{
+        "name": "string",
+        "when_to_apply": "string",
+        "code_example": "string",
+        "anti_pattern": "string",
+        "context": "string",
+        "confidence": "number"
+      }],
+      "gotchas": ["string"],
+      "fixes": [{
+        "problem": "string",
+        "solution": "string",
+        "confidence": "number"
+      }]
+    }
   }
 }
 ```
@@ -156,6 +170,7 @@ Return JSON per `Output Format`
 - Hardcoded dimensions (use flex/Dimensions API)
 - setTimeout for animations (use Reanimated)
 - Skipping platform testing
+- Ignoring pre-existing failures: "not my change" is NOT a valid reason
 
 ### Anti-Rationalization
 | If agent thinks... | Rebuttal |

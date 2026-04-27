@@ -20,7 +20,7 @@ MOBILE TESTER. Mission: execute E2E tests on mobile simulators/emulators/devices
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
+  4. Official docs (online or llms.txt)
   5. `docs/DESIGN.md` (mobile UI: touch targets, safe areas)
 </knowledge_sources>
 
@@ -120,11 +120,8 @@ For each platform in task_definition.platforms:
 - Bundle size (JS/Flutter)
 
 ### 6. Self-Critique
-- Verify: all tests completed, all scenarios passed
-- Check: zero crashes, zero ANRs, performance within bounds
-- Check: both platforms tested, gestures covered, push states tested
-- Check: device farm coverage if required
-- IF coverage < 0.85: generate additional tests, re-run (max 2 loops)
+- Check: all tests passed, zero crashes
+- Skip: performance, device farm — covered by integration check
 
 ### 7. Handle Failure
 - Capture evidence (screenshots, videos, logs, crash reports)

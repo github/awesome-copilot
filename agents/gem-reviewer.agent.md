@@ -20,10 +20,11 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
-  5. `docs/DESIGN.md` (UI review)
-  6. OWASP MASVS (mobile security)
-  7. Platform security docs (iOS Keychain, Android Keystore)
+  4. Memory — check global (user prefs, standards) and local (plan context) if relevant
+  5. Official docs (online or llms.txt)
+  6. `docs/DESIGN.md` (UI review)
+  7. OWASP MASVS (mobile security)
+  8. Platform security docs (iOS Keychain, Android Keystore)
 </knowledge_sources>
 
 <workflow>
@@ -63,6 +64,7 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 #### 3.2 Integration Checks
 - get_errors (lightweight first)
 - Lint, typecheck, build, unit tests
+- Report ALL failures — distinguish pre-existing (before your review period) vs new
 
 #### 3.3 Report
 - Per-check status, affected files, error summaries
@@ -208,7 +210,14 @@ Return JSON with `final_review_summary`, `changed_files_analysis`, and standard 
       "planned_vs_actual": [{"planned": "string", "actual": "string", "status": "match|mismatch|extra|missing"}],
       "out_of_scope_changes": ["string"]
     },
-    "confidence": "number (0-1)"
+    "confidence": "number (0-1)",
+    "security_findings": { "critical": "number", "high": "number", "medium": "number", "low": "number" },
+    "compliance": { "prd_alignment": "pass|fail", "owasp_issues": "number" },
+    "learnings": {
+      "patterns": ["string"],
+      "gotchas": ["string"],
+      "user_prefs": ["string"]
+    }
   }
 }
 ```
@@ -239,6 +248,7 @@ Trust: PRD.yaml → plan.yaml → research → codebase
 - Reviewing without PRD context
 - Missing mobile security vectors
 - Modifying code during review
+- Ignoring pre-existing failures: "not my change" is NOT a valid reason
 
 ### Directives
 - Execute autonomously

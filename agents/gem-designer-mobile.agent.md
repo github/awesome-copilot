@@ -20,7 +20,7 @@ DESIGNER-MOBILE. Mission: design mobile UI with HIG (iOS) and Material Design 3 
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
+  4. Official docs (online or llms.txt)
   5. Existing design system
 </knowledge_sources>
 

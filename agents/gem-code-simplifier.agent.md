@@ -20,7 +20,7 @@ CODE SIMPLIFIER. Mission: remove dead code, reduce complexity, consolidate dupli
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
+  4. Official docs (online or llms.txt)
   5. Test suites (verify behavior preservation)
 </knowledge_sources>
 
@@ -114,10 +114,8 @@ CODE SIMPLIFIER. Mission: remove dead code, reduce complexity, consolidate dupli
 - Check no functionality broken
 
 ### 5. Self-Critique
-- Verify: changes preserve behavior (same inputs → same outputs)
-- Check: simplifications improve readability
-- Confirm: no YAGNI violations (don't remove used code)
-- IF confidence < 0.85: re-analyze (max 2 loops)
+- Check: tests pass, no broken imports
+- Skip: behavior preservation analysis — covered by test runs
 
 ### 6. Handle Failure
 - IF tests fail after changes: Revert or fix without behavior change

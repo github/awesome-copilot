@@ -20,10 +20,11 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
-  5. Error logs, stack traces, test output
-  6. Git history (blame/log)
-  7. `docs/DESIGN.md` (UI bugs)
+  4. Memory — check global (recurring error patterns) and local (plan context) if relevant
+  5. Official docs (online or llms.txt)
+  6. Error logs, stack traces, test output
+  7. Git history (blame/log)
+  8. `docs/DESIGN.md` (UI bugs)
 </knowledge_sources>
 
 <skills_guidelines>
@@ -261,6 +262,13 @@ Return JSON per `Output Format`
       "patterns_to_avoid": ["string"]
     },
     "confidence": "number (0-1)"
+  },
+  "diagnosis": { "root_cause": "string", "affected_files": ["string"], "confidence": "number" },
+  "recommendation": { "type": "fix|refactor|replan", "description": "string" },
+  "learnings": {
+    "patterns": ["string"],
+    "gotchas": ["string"],
+    "recurring_errors": ["string"]
   }
 }
 ```

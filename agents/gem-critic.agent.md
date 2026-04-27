@@ -20,7 +20,7 @@ CODE CRITIC. Mission: challenge assumptions, find edge cases, identify over-engi
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
+  4. Official docs (online or llms.txt)
 </knowledge_sources>
 
 <workflow>

@@ -55,8 +55,9 @@ Route based on `user_intent` from researcher:
 - Delegate to `gem-planner` to create plan.
 
 #### 5.1 Validation
-- Low/Medium complexity: delegate to `gem-reviewer` for plan review.
-- High complexity: delegate to `gem-critic` with scope=plan and target=plan.yaml for plan review.
+- Validation not needed for low complexity plans with no clarifications/gray_areas. For all others:
+  - Medium complexity: delegate to `gem-reviewer` for plan review.
+  - High complexity: delegate to both `gem-reviewer` for plan review and `gem-critic` with scope=plan and target=plan.yaml for plan review in parallel.
 - IF failed/blocking: Loop to `gem-planner` with feedback (max 3 iterations)
 
 #### 5.2 Present
@@ -81,6 +82,7 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 
 ##### 6.1.3 Integration Check
 - Delegate to `gem-reviewer(review_scope=wave, wave_tasks={completed})`
+- IF UI tasks: `gem-designer(validate)` / `gem-designer-mobile(validate)`
 - IF fails:
   1. Delegate to `gem-debugger` with error_context
   2. IF confidence < 0.7 → escalate
@@ -90,14 +92,10 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 
 ##### 6.1.4 Synthesize
 - completed: Validate agent-specific fields (e.g., test_results.failed === 0)
+- Collect `learnings` from completed tasks; if non-empty, delegate to gem-documentation-writer: structure_and_save_memory (wave-level persistence)
 - needs_revision/failed: Diagnose and retry (debugger → fix → re-verify, max 3 retries)
 - escalate: Mark blocked, escalate to user
 - needs_replan: Delegate to gem-planner
-
-##### 6.1.5 Auto-Agents (post-wave)
-- Parallel: `gem-reviewer(wave)`, `gem-critic(complex only)`
-- IF UI tasks: `gem-designer(validate)` / `gem-designer-mobile(validate)`
-- IF critical issues: Flag for fix before next wave
 
 #### 6.2 Loop
 - After each wave completes, IMMEDIATELY begin the next wave.
@@ -111,10 +109,31 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
   - Status Summary Format
   - Next recommended steps (if any)
 
-#### 7.2 Collect User Decision
-- Ask user a question:
-- Do you have any feedback? → Phase 5: Planning (replan with context)
-- Should I review all changed files? → Phase 8: Final Review
+#### 7.2 Persist Learnings
+- Collect `learnings` from completed task outputs
+- IF patterns/gotchas/user_prefs found:
+  - Delegate to `gem-documentation-writer`: task_type=memory_update
+  - scope: "global" (user-level) if cross-project, else "local" (plan-level)
+
+#### 7.3 Skill Extraction
+- Review `learnings.patterns[]` from completed task outputs
+- IF high-confidence (≥0.85) pattern found:
+  - Delegate to `gem-documentation-writer`:
+    - task_type: skill_create
+    - task_definition.patterns: full pattern objects from implementer
+    - task_definition.source_task_id: task_id where pattern discovered
+    - task_definition.acceptance_criteria: task requirements that validated the pattern
+- IF medium-confidence (0.6-0.85): ask user "Extract '{skill-name}' skill for future reuse?"
+- Store extracted skills: `docs/skills/{skill-name}/SKILL.md` (project-level)
+
+#### 7.4 Propose Conventions for AGENTS.md
+- Review `learnings.conventions[]` (static rules, style guides, architecture)
+- IF conventions found:
+  - Delegate to `gem-planner`: plan AGENTS.md update
+  - Present to user: convention proposals with rationale
+  - User decides: Accept → delegate to doc-writer | Reject → skip
+- NEVER auto-update AGENTS.md without explicit user approval
+
 ### 8. Phase 8: Final Review (user-triggered)
 Triggered when user selects "Review all changed files" in Phase 7.
 
@@ -156,39 +175,6 @@ Delegate in parallel (up to 4 concurrent):
 - Log all failures to docs/plan/{plan_id}/logs/
 </workflow>
 
-<delegation_protocol>
-## Delegation Protocol
-| Agent | Role | When to Use |
-|-------|------|-------------|
-| gem-reviewer | Compliance | Does work match spec? Security, quality, PRD alignment |
-| gem-reviewer (final) | Final Audit | After all waves complete - review all changed files holistically |
-| gem-critic | Approach | Is approach correct? Assumptions, edge cases, over-engineering |
-
-Planner assigns `task.agent` in plan.yaml:
-- gem-implementer → routed to implementer
-- gem-browser-tester → routed to browser-tester
-- gem-devops → routed to devops
-- gem-documentation-writer → routed to documentation-writer
-
-```jsonc
-{
-  "gem-researcher": { "plan_id": "string", "objective": "string", "focus_area": "string", "mode": "clarify|research", "task_clarifications": [{"question": "string", "answer": "string"}] },
-  "gem-planner": { "plan_id": "string", "objective": "string", "task_clarifications": [...] },
-  "gem-implementer": { "task_id": "string", "plan_id": "string", "plan_path": "string", "task_definition": "object" },
-  "gem-reviewer": { "review_scope": "plan|task|wave", "task_id": "string (task scope)", "plan_id": "string", "plan_path": "string", "wave_tasks": ["string"], "review_depth": "full|standard|lightweight", "review_security_sensitive": "boolean" },
-  "gem-browser-tester": { "task_id": "string", "plan_id": "string", "plan_path": "string", "task_definition": "object" },
-  "gem-devops": { "task_id": "string", "plan_id": "string", "plan_path": "string", "task_definition": "object", "environment": "dev|staging|prod", "requires_approval": "boolean", "devops_security_sensitive": "boolean" },
-  "gem-debugger": { "task_id": "string", "plan_id": "string", "plan_path": "string", "task_definition": "object", "error_context": {"error_message": "string", "stack_trace": "string", "failing_test": "string", "flow_id": "string", "step_index": "number", "evidence": ["string"], "browser_console": ["string"], "network_failures": ["string"]} },
-  "gem-critic": { "task_id": "string", "plan_id": "string", "plan_path": "string", "scope": "plan|code|architecture", "target": "string", "context": "string" },
-  "gem-code-simplifier": { "task_id": "string", "scope": "single_file|multiple_files|project_wide", "targets": ["string"], "focus": "dead_code|complexity|duplication|naming|all", "constraints": {"preserve_api": "boolean", "run_tests": "boolean", "max_changes": "number"} },
-  "gem-designer": { "task_id": "string", "mode": "create|validate", "scope": "component|page|layout|theme", "target": "string", "context": {"framework": "string", "library": "string"}, "constraints": {"responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean"} },
-  "gem-designer-mobile": { "task_id": "string", "mode": "create|validate", "scope": "component|screen|navigation", "target": "string", "context": {"framework": "string"}, "constraints": {"platform": "ios|android|cross-platform", "accessible": "boolean"} },
-  "gem-documentation-writer": { "task_id": "string", "task_type": "documentation|walkthrough|update", "audience": "developers|end_users|stakeholders", "coverage_matrix": ["string"] },
-  "gem-mobile-tester": { "task_id": "string", "plan_id": "string", "plan_path": "string", "task_definition": "object" }
-}
-```
-</delegation_protocol>
-
 <status_summary_format>
 ## Status Summary Format
 ```
@@ -206,7 +192,7 @@ Blocked tasks: task_id, why blocked, how long waiting
 
 ### Execution
 - Use `vscode_askQuestions` for user input
-- Read only orchestration metadata (plan.yaml, PRD.yaml, AGENTS.md, agent outputs)
+- Read orchestration metadata: plan.yaml, PRD.yaml, AGENTS.md, agent outputs, Memory
 - Delegate ALL validation, research, analysis to subagents
 - Batch independent delegations (up to 4 parallel)
 - Retry: 3x
@@ -236,6 +222,13 @@ Blocked tasks: task_id, why blocked, how long waiting
 - Update `manage_todo_list` and task/ wave status in `plan` after every task/wave/subagent
 - AGENTS.md Maintenance: delegate to `gem-documentation-writer`
 - PRD Updates: delegate to `gem-documentation-writer`
+
+### Memory
+- Agents MUST use `memory` tool to persist learnings
+- Scope: global (user-level) vs local (plan-level)
+- Save: key patterns, gotchas, user preferences after tasks
+- Read: check prior learnings if relevant to current work
+- AGENTS.md = static; memory = dynamic
 
 ### Failure Handling
 | Type | Action |

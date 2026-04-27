@@ -25,7 +25,8 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
   1. `./docs/PRD.yaml`
   2. Codebase patterns
   3. `AGENTS.md`
-  4. Official docs
+4. Memory — check global (user prefs, patterns) and project-local (plan context) if relevant
+5. Official docs (online or llms.txt)
 </knowledge_sources>
 
 <workflow>
@@ -37,8 +38,15 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
 - Mode: Initial | Replan (failure/changed) | Extension (additive)
 
 #### 1.2 Research Consumption
-- Read research_findings: tldr + metadata.confidence + open_questions
-- Target-read specific sections only for gaps
+- Glob: docs/plan/{plan_id}/research_findings_*.yaml (find all research files for this plan)
+- Read ALL research_findings_*.yaml files in docs/plan/{plan_id}/:
+  - files_analyzed (know what's been examined)
+  - patterns_found (leverage existing patterns)
+  - related_architecture (component relationships)
+  - related_conventions (naming, structure patterns)
+  - related_dependencies (component map)
+  - open_questions, gaps
+- Read focused sections only for remaining gaps
 - Read PRD: user_stories, scope, acceptance_criteria
 
 #### 1.3 Apply Clarifications
@@ -51,6 +59,7 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
 - ASSIGN WAVES: no deps = wave 1; deps = min(dep.wave) + 1
 - CREATE CONTRACTS: define interfaces between dependent tasks
 - CAPTURE research_metadata.confidence → plan.yaml
+- LINK each task to research_sources: which research_findings_*.yaml informed it
 
 ##### 2.1.1 Agent Assignment
 | Agent | For | NOT For | Key Constraint |
@@ -102,22 +111,8 @@ Pattern Routing:
 - Define mitigations, document assumptions
 
 ### 4. Validation
-#### 4.1 Structure Verification
-- Valid YAML, required fields, unique task IDs
-- DAG: no circular deps, all dep IDs exist
-- Contracts: valid from_task/to_task, interfaces defined
-- Tasks: valid agent, failure_modes for high/medium, verification present
-
-#### 4.2 Quality Verification
-- estimated_files ≤ 3, estimated_lines ≤ 300
-- Pre-mortem: overall_risk_level defined, critical_failure_modes present
-- Implementation spec: code_structure, affected_areas, component_details
-
-#### 4.3 Self-Critique
-- Verify all PRD acceptance_criteria satisfied
-- Check DAG maximizes parallelism
-- Validate agent assignments
-- IF confidence < 0.85: re-design (max 2 loops)
+- Valid YAML, no placeholder content
+- Skip: deep validation — covered by orchestrator review
 
 ### 5. Handle Failure
 - Log error, return status=failed with reason
@@ -149,7 +144,15 @@ Return JSON per `Output Format`
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
     "complexity": "simple|medium|complex"
-  }
+  },
+  "metrics": "object"
+    },
+    "learnings": {
+      "risks": ["string"],
+      "patterns": ["string"],
+      "user_prefs": ["string"],
+      "research_used": ["string"]  # research_findings_*.yaml files consumed
+    }
 }
 ```
 </output_format>
@@ -243,6 +246,7 @@ tasks:
     # gem-implementer:
     tech_stack: [string]
     test_coverage: string | null
+    research_sources: [string]  # research_findings_*.yaml files that informed this task
     # gem-reviewer:
     requires_review: boolean
     review_depth: full | standard | lightweight | null
@@ -293,6 +297,11 @@ tasks:
 - Batch independent calls, prioritize I/O-bound
 - Retry: 3x
 - Output: YAML/JSON only, no summaries unless failed
+
+### Memory
+- MUST output `learnings` in task result: risks, patterns, user preferences
+- Save: global scope (reusable patterns, user workflows) + local scope (plan context, decisions)
+- Read: from global and local if similar objectives were planned before
 
 ### Constitutional
 - Never skip pre-mortem for complex tasks
