@@ -18,6 +18,7 @@ For grounded implementation patterns drawn from real Paper plugins, load these r
 - [`references/maps-heroes-and-feature-modules.md`](references/maps-heroes-and-feature-modules.md) for map rotation, hero or class systems, and modular feature growth
 - [`references/minigame-instance-flow.md`](references/minigame-instance-flow.md) for arena instances, countdowns, loot refreshes, wave systems, visibility isolation, and entity-to-game ownership
 - [`references/persistent-progression-and-events.md`](references/persistent-progression-and-events.md) for long-running PvP servers with profiles, perks, buffs, quests, economy, custom domain events, and extension registries
+- [`references/build-test-and-runtime-validation.md`](references/build-test-and-runtime-validation.md) for Maven or Gradle packaging, shaded dependencies, generated resources, soft dependencies, config validation commands, and first-round server test plans
 
 ## Scope
 
@@ -49,6 +50,8 @@ If the task touches arena isolation, map instances, chest or resource refills, w
 
 If the task touches persistent player progression, profile saves, economy rewards, perks, buffs, quests, custom combat events, or long-running shared PvP servers, also read [`references/persistent-progression-and-events.md`](references/persistent-progression-and-events.md).
 
+If the task touches build files, `plugin.yml` metadata, shaded dependencies, generated resource output, deployment to a test server, optional plugin integrations, or release validation, also read [`references/build-test-and-runtime-validation.md`](references/build-test-and-runtime-validation.md).
+
 ## Project Discovery Checklist
 
 Check these first when present:
@@ -59,6 +62,7 @@ Check these first when present:
 - command executors and tab completers
 - listener classes
 - config bootstrap code for `config.yml`, messages, kits, arenas, or custom YAML files
+- generated resource output such as `target/classes`, `build/resources`, or copied plugin jars
 - scheduler usage through Bukkit scheduler APIs
 - any player data, team state, arena state, or match state containers
 
@@ -253,6 +257,7 @@ Before finishing, verify as many of these as the task allows:
 - Broadcasting, showing players, or applying scoreboard changes across unrelated game instances
 - Loading or mutating chest/container blocks before their chunks are available
 - Forgetting to unregister spawned mobs or temporary entities from the owning game
+- Editing generated files under `target/classes` or `build/resources` instead of source files under `src/main/resources`
 
 ## Preferred Response Shape
 
