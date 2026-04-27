@@ -180,9 +180,9 @@ const vscodeInstallImage =
 const vscodeInsidersInstallImage =
   "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
 
-// URL for source-content links (human-authored files on the source branch).
-// Use this for docs, contributor-facing links, and anything that does NOT
-// require materialized plugin content.
+// URL for top-level source files and docs that stay on the default branch.
+// In Phase 1, we continue resolving these from 'main' (the default branch)
+// until Phase 2 when main fully becomes the human-authored source branch.
 const repoSourceUrl =
   "https://raw.githubusercontent.com/github/awesome-copilot/main";
 

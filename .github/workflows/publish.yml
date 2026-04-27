@@ -1,11 +1,11 @@
-name: Publish to main
+name: Publish to main and marketplace
 
 on:
   push:
     branches: [staged]
 
 concurrency:
-  group: publish-to-main
+  group: publish-branches
   cancel-in-progress: true
 
 permissions:
