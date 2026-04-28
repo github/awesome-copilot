@@ -629,9 +629,9 @@ function generateSkillsSection(skillsDir) {
 
     content += `| [${
       skill.name
-    }](${link})<br />\`\`gh skills install github/awesome-copilot ${
+    }](${link})<br />\`gh skills install github/awesome-copilot ${
       skill.folder
-    }\`\` | ${formatTableCell(skill.description)} | ${assetsList} |\n`;
+    }\` | ${formatTableCell(skill.description)} | ${assetsList} |\n`;
   }
 
   return `${TEMPLATES.skillsSection}\n${TEMPLATES.skillsUsage}\n\n${content}`;
