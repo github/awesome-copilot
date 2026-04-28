@@ -18,12 +18,6 @@
     "ai-ethics"
   ],
   "agents": [
-    "./agents/se-ux-ui-designer.md",
-    "./agents/se-technical-writer.md",
-    "./agents/se-gitops-ci-specialist.md",
-    "./agents/se-product-manager-advisor.md",
-    "./agents/se-responsible-ai-code.md",
-    "./agents/se-system-architecture-reviewer.md",
-    "./agents/se-security-reviewer.md"
+    "./agents"
   ]
 }
