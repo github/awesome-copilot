@@ -1,10 +1,10 @@
 ---
 name: azure-architecture-autopilot
 description: >
-  Disena infraestructura de Azure en lenguaje natural, o analiza recursos existentes de Azure
-  para autogenerar diagramas de arquitectura, refinarlos mediante conversacion y desplegar con Bicep.
+  Design Azure infrastructure using natural language, or analyze existing Azure resources
+  to auto-generate architecture diagrams, refine them through conversation, and deploy with Bicep.
 
-  Cuando usar esta habilidad:
+  When to use this skill:
   - "Create X on Azure", "Set up a RAG architecture" (new design)
   - "Analyze my current Azure infrastructure", "Draw a diagram for rg-xxx" (existing analysis)
   - "Foundry is slow", "I want to reduce costs", "Strengthen security" (natural language modification)
@@ -14,7 +14,7 @@ description: >
 
 # Azure Architecture Builder
 
-Un pipeline que disena infraestructura de Azure en lenguaje natural, o analiza recursos existentes para visualizar la arquitectura y continuar con modificacion y despliegue.
+A pipeline that designs Azure infrastructure using natural language, or analyzes existing resources to visualize architecture and proceed through modification and deployment.
 
 The diagram engine is **embedded within the skill** (`scripts/` folder).
 No `pip install` needed — it directly uses the bundled Python scripts

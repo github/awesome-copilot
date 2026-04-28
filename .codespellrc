@@ -50,10 +50,9 @@
 
 # Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
 
-# Spanish words used intentionally in skills/docs authored in Spanish
-# (avoid false positives like "fase -> phase", "comandos -> commandos", etc.)
+# FO - tasklist option /FO to format running task output
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,sesion,fase,fases,comandos,diagrama,diagramas,instruccion,accesible,posible,historial,analisis,funcional,controles,componentes,inicial,oficial,aceptable,requiere,supresion
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO
 
 # Skip certain files and directories
 

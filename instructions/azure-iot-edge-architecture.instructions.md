@@ -1,26 +1,26 @@
 ---
-description: 'Forzar la revision de documentacion de Azure IoT Edge antes de proponer arquitecturas edge IoT o guias de implementacion en Azure.'
-applyTo: '**/*.bicep, **/*.tf, **/*iot*.md, **/*smart-city*.md, **/*edge*.md'
+description: 'Require Azure IoT Edge documentation review before proposing edge IoT architectures or Azure implementation guidance.'
+applyTo: '**/*.bicep,**/*.tf,**/*iot*.md,**/*smart-city*.md,**/*edge*.md'
 ---
 
-## Instruccion de arquitectura Azure IoT Edge
+## Azure IoT Edge Architecture Instruction
 
-Cuando la tarea incluya Azure IoT, Smart City, procesamiento en el borde, diseno de gateways o escenarios edge sin conectividad, haz esto antes de dar recomendaciones de arquitectura:
+When the task includes Azure IoT, Smart City, edge processing, gateway design, or disconnected edge scenarios, do this before providing architecture recommendations:
 
-1. Revisa primero la documentacion de Azure IoT Edge:
+1. Review Azure IoT Edge documentation first:
    - https://learn.microsoft.com/azure/iot-edge/
    - https://learn.microsoft.com/es-es/azure/iot-edge/
-2. Confirma las restricciones clave de la documentacion:
-   - Arquitectura de runtime
-   - Sistemas compatibles
-   - Estado de version/lanzamiento
-   - Ruta de inicio rapido Linux/Windows relevante
-3. Indica explicitamente que revisaste la documentacion, o indica que no se pudo consultar.
-4. Si la documentacion no fue accesible, continua con supuestos claramente etiquetados.
+2. Confirm key constraints from the documentation:
+   - Runtime architecture
+   - Supported systems
+   - Version/release status
+   - Relevant Linux/Windows quickstart path
+3. Explicitly state that you reviewed the documentation, or state that it could not be consulted.
+4. If the documentation was not accessible, continue with clearly labeled assumptions.
 
-### Reglas de respuesta
+### Response Rules
 
-- Nunca saltes directamente a una lista de servicios sin validar antes la aplicabilidad de edge.
-- Explica siempre por que IoT Edge es necesario o no.
-- Incluye implicaciones operativas: estrategia de actualizacion, observabilidad y modelo de soporte.
-- Prioriza valores seguros por defecto: identidad administrada, minimo privilegio, gestion de secretos y aislamiento de red.
+- Never jump directly to a list of services without validating edge applicability first.
+- Always explain why IoT Edge is or is not required.
+- Include operational implications: update strategy, observability, and support model.
+- Prioritize secure defaults: managed identity, least privilege, secret management, and network isolation.
