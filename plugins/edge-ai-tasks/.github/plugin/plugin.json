@@ -15,7 +15,6 @@
     "implementation"
   ],
   "agents": [
-    "./agents/task-planner.md",
-    "./agents/task-researcher.md"
+    "./agents"
   ]
 }
