@@ -11,6 +11,34 @@
   },
   "plugins": [
     {
+      "name": "ai-ready",
+      "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, skills, CI workflows, issue templates, and more. GitHub-native: auto-discovers repo context, community health, and PR review patterns to generate customized assets that teach AI agents and human contributors how to work in the repo correctly.",
+      "version": "0.3.0-alpha",
+      "author": {
+        "name": "John Papa",
+        "url": "https://github.com/johnpapa"
+      },
+      "homepage": "https://github.com/johnpapa/ai-ready",
+      "keywords": [
+        "ai-ready",
+        "repo-setup",
+        "agents",
+        "copilot-instructions",
+        "skills",
+        "ci",
+        "templates",
+        "contributions",
+        "maintainer",
+        "github-native"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/johnpapa/ai-ready",
+      "source": {
+        "source": "github",
+        "repo": "johnpapa/ai-ready"
+      }
+    },
+    {
       "name": "ai-team-orchestration",
       "source": "ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",

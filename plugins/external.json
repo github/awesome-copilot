@@ -155,5 +155,22 @@
       "source": "github",
       "repo": "microsoft/What-I-Did-Copilot"
     }
+  },
+  {
+    "name": "ai-ready",
+    "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, skills, CI workflows, issue templates, and more. GitHub-native: auto-discovers repo context, community health, and PR review patterns to generate customized assets that teach AI agents and human contributors how to work in the repo correctly.",
+    "version": "0.3.0-alpha",
+    "author": {
+      "name": "John Papa",
+      "url": "https://github.com/johnpapa"
+    },
+    "homepage": "https://github.com/johnpapa/ai-ready",
+    "keywords": ["ai-ready", "repo-setup", "agents", "copilot-instructions", "skills", "ci", "templates", "contributions", "maintainer", "github-native"],
+    "license": "MIT",
+    "repository": "https://github.com/johnpapa/ai-ready",
+    "source": {
+      "source": "github",
+      "repo": "johnpapa/ai-ready"
+    }
   }
 ]
