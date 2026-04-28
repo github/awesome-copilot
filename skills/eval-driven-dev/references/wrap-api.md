@@ -1,7 +1,7 @@
 # Wrap API Reference
 
 > Auto-generated from pixie source code docstrings.
-> Do not edit by hand — regenerate from the upstream [pixie-qa](https://github.com/yiouli/pixie-qa) source repository.
+> Do not edit by hand — run `uv run python scripts/generate_skill_docs.py`.
 
 `pixie.wrap` — data-oriented observation API.
 
@@ -21,11 +21,11 @@ processing pipeline. Its behavior depends on the active mode:
 
 ## CLI Commands
 
-| Command                                                                                   | Description                                                                                                                                   |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pixie trace --runnable <filepath:ClassName> --input <kwargs.json> --output <file.jsonl>` | Run the Runnable once with kwargs from the JSON file and write a trace file. `--input` is a **file path** (not inline JSON).                  |
-| `pixie format <file.jsonl>`                                                               | Convert a trace file to a formatted dataset entry template. Shows `entry_kwargs`, `eval_input`, and `eval_output` (the real captured output). |
-| `pixie trace filter <file.jsonl> --purpose input`                                         | Print only wrap events matching the given purposes. Outputs one JSON line per matching event.                                                 |
+| Command                                                                                   | Description                                                                                                                                 |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pixie trace --runnable <filepath:ClassName> --input <kwargs.json> --output <file.jsonl>` | Run the Runnable once with kwargs from the JSON file and write a trace file. `--input` is a **file path** (not inline JSON).                |
+| `pixie format --input <trace.jsonl> --output <dataset_entry.json>`                        | Convert a trace file to a formatted dataset entry template. Shows `input_data`, `eval_input`, and `eval_output` (the real captured output). |
+| `pixie trace filter <file.jsonl> --purpose input`                                         | Print only wrap events matching the given purposes. Outputs one JSON line per matching event.                                               |
 
 ---
 
@@ -42,8 +42,8 @@ class pixie.Runnable(Protocol[T]):
     async def teardown(self) -> None: ...
 ```
 
-Protocol for structured runnables used by the dataset runner. `T` is a
-`pydantic.BaseModel` subclass whose fields match the `entry_kwargs` keys
+Protocol for structured runnables used by the evaluation harness. `T` is a
+`pydantic.BaseModel` subclass whose fields match the `input_data` keys
 in the dataset JSON.
 
 Lifecycle:
@@ -54,7 +54,7 @@ Lifecycle:
    Optional — has a default no-op implementation.
 3. `run(args)` — **async**, called **concurrently for each dataset entry**
    (up to 4 entries in parallel). `args` is a validated Pydantic model
-   built from `entry_kwargs`. Invoke the application's real entry point.
+   built from `input_data`. Invoke the application's real entry point.
 4. `teardown()` — **async**, called **once** after the last `run()` call.
    Release any resources acquired in `setup()`.
    Optional — has a default no-op implementation.
@@ -72,7 +72,7 @@ class AppRunnable(pixie.Runnable[AppArgs]):
     _sem: asyncio.Semaphore
 
     @classmethod
-    def create(cls) -> AppRunnable:
+    def create(cls) -> "AppRunnable":
         inst = cls()
         inst._sem = asyncio.Semaphore(1)  # serialise DB access
         return inst
@@ -96,8 +96,7 @@ reference project modules (e.g., `from app import service`).
 **Example**:
 
 ```python
-# pixie_qa/scripts/run_app.py
-from __future__ import annotations
+# pixie_qa/run_app.py
 from pydantic import BaseModel
 import pixie
 
@@ -106,7 +105,7 @@ class AppArgs(BaseModel):
 
 class AppRunnable(pixie.Runnable[AppArgs]):
     @classmethod
-    def create(cls) -> AppRunnable:
+    def create(cls) -> "AppRunnable":
         return cls()
 
     async def run(self, args: AppArgs) -> None:
@@ -128,7 +127,7 @@ class AppRunnable(pixie.Runnable[AppArgs]):
     _client: httpx.AsyncClient
 
     @classmethod
-    def create(cls) -> AppRunnable:
+    def create(cls) -> "AppRunnable":
         return cls()
 
     async def setup(self) -> None:

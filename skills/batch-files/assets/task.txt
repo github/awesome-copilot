@@ -1,0 +1,177 @@
+@echo off
+REM myTask
+::  An automation script for scheduled or manual task execution.
+::
+::  usage: myTask [options]
+::   [1]  =  task target or configuration value (optional)
+::
+::  options:
+::   /?       Show this help message
+::   -h       Show this help message
+::   --help   Show this help message
+::   --dry    Dry-run mode (preview actions without executing)
+::
+::  examples:
+::   > myTask
+::     - Run the default task.
+::   > myTask --dry
+::     - Preview what the task would do without making changes.
+::   > myTask "C:\data\reports"
+::     - Run the task against a specific target directory.
+::
+set "_helpLinesMyTask=20"
+
+:: ========================================================================
+:: TEMPLATE INSTRUCTIONS
+:: 1. Find/Replace "myTask" with your task name (camelCase).
+:: 2. Find/Replace "MyTask" with your task name (PascalCase).
+:: 3. Update the help block above (lines 2-20) for your task.
+:: 4. Implement your logic in :_runMyTask.
+:: 5. Add any new variables to :_removeBatchVariablesMyTask.
+:: ========================================================================
+
+:: Config variables.
+set "_dryRunMyTask=0"
+set "_logFileMyTask=%TEMP%\%~n0.log"
+
+:: Define paths.
+set "_scriptDirMyTask=%~dp0"
+set "_scriptNameMyTask=%~n0"
+
+:: Parse arguments into variables.
+set "_parOneMyTask=%~1"
+set "_checkParOneMyTask=-%_parOneMyTask%-"
+set "_parTwoMyTask=%~2"
+set "_checkParTwoMyTask=-%_parTwoMyTask%-"
+
+:: -----------------------------------------------------------------------
+:: Handle help flag.
+:: -----------------------------------------------------------------------
+if "%_parOneMyTask%"=="/?" call :_showHelpMyTask & goto _removeBatchVariablesMyTask
+if /i "%_parOneMyTask%"=="-h" call :_showHelpMyTask & goto _removeBatchVariablesMyTask
+if /i "%_parOneMyTask%"=="--help" call :_showHelpMyTask & goto _removeBatchVariablesMyTask
+
+:: -----------------------------------------------------------------------
+:: Handle --dry flag (shift arguments if present).
+:: -----------------------------------------------------------------------
+if /i "%_parOneMyTask%"=="--dry" (
+    set "_dryRunMyTask=1"
+    set "_parOneMyTask=%~2"
+    set "_checkParOneMyTask=-%~2-"
+)
+
+:: Store current directory to return to after task completes.
+set "_savedDirMyTask=%CD%"
+
+:: Create temp directory for intermediate files.
+call :_makeTempDirMyTask
+
+:: -----------------------------------------------------------------------
+:: Log start and begin execution.
+:: -----------------------------------------------------------------------
+call :_logMyTask "=========================================="
+call :_logMyTask "Task started: %_scriptNameMyTask%"
+call :_logMyTask "=========================================="
+
+call :_runMyTask
+
+call :_logMyTask "Task finished: %_scriptNameMyTask%"
+goto _removeBatchVariablesMyTask
+
+:: ========================================================================
+:: MAIN LOGIC
+:: ========================================================================
+
+:_runMyTask
+    REM ===================================================================
+    REM TODO: Replace this section with your task logic.
+    REM ===================================================================
+
+    if "%_dryRunMyTask%"=="1" (
+        call :_logMyTask "[DRY RUN] Would process target: %_parOneMyTask%"
+        goto :eof
+    )
+
+    REM Example: Process files in a target directory.
+    if NOT "%_checkParOneMyTask%"=="--" (
+        if NOT EXIST "%_parOneMyTask%" (
+            call :_logMyTask "ERROR: Target not found: %_parOneMyTask%"
+            goto :eof
+        )
+        call :_logMyTask "Processing target: %_parOneMyTask%"
+        REM Add task operations here.
+    ) else (
+        call :_logMyTask "Running default task (no target specified)."
+        REM Add default task operations here.
+    )
+
+    call :_logMyTask "Task operations complete."
+goto :eof
+
+:: ========================================================================
+:: SUPPORT FUNCTIONS
+:: ========================================================================
+
+:_logMyTask
+    REM Write a timestamped message to both console and log file.
+    setlocal EnableDelayedExpansion
+    for /f "tokens=2 delims==" %%a in ('wmic os get localdatetime /value') do (
+        set "_dtMyTask=%%a"
+    )
+    set "_tsMyTask=!_dtMyTask:~0,4!-!_dtMyTask:~4,2!-!_dtMyTask:~6,2! !_dtMyTask:~8,2!:!_dtMyTask:~10,2!:!_dtMyTask:~12,2!"
+    echo [!_tsMyTask!] %~1
+    echo [!_tsMyTask!] %~1 >>"%_logFileMyTask%"
+    endlocal
+goto :eof
+
+:_showHelpMyTask
+    echo:
+    for /f "skip=1 tokens=* delims=" %%a in ('findstr /n "^" "%~f0"') do (
+        set "_line=%%a"
+        setlocal EnableDelayedExpansion
+        set "_lineNum=!_line:~0,2!"
+        if !_lineNum! GTR %_helpLinesMyTask% (
+            endlocal
+            goto :eof
+        )
+        set "_text=!_line:*:=!"
+        if defined _text (
+            echo !_text:~4!
+        ) else (
+            echo:
+        )
+        endlocal
+    )
+goto :eof
+
+:_makeTempDirMyTask
+    set "_tmpDirMyTask=%TEMP%\%~n0"
+    if NOT EXIST "%_tmpDirMyTask%" (
+        mkdir "%_tmpDirMyTask%" >nul 2>nul
+    )
+goto :eof
+
+:: ========================================================================
+:: CLEANUP - Remove all batch variables and restore directory.
+:: ========================================================================
+:_removeBatchVariablesMyTask
+    set _helpLinesMyTask=
+    set _dryRunMyTask=
+    set _logFileMyTask=
+    set _scriptDirMyTask=
+    set _scriptNameMyTask=
+    set _parOneMyTask=
+    set _checkParOneMyTask=
+    set _parTwoMyTask=
+    set _checkParTwoMyTask=
+    REM Append new variables above this line.
+
+    if EXIST "%_tmpDirMyTask%" rmdir /S /Q "%_tmpDirMyTask%" >nul 2>nul
+    set _tmpDirMyTask=
+
+    REM Restore original directory.
+    if DEFINED _savedDirMyTask (
+        cd /D "%_savedDirMyTask%"
+        set _savedDirMyTask=
+    )
+    exit /b
