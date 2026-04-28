@@ -346,6 +346,12 @@
       }
     },
     {
+      "name": "modernize-java",
+      "source": "modernize-java",
+      "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+      "version": "1.0.0"
+    },
+    {
       "name": "napkin",
       "source": "napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
