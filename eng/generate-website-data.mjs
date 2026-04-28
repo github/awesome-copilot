@@ -493,6 +493,21 @@ function getSkillFiles(skillPath, relativePath) {
 }
 
 /**
+ * Get all agent markdown files from a folder
+ */
+function getAgentFiles(agentDir, pluginRootPath) {
+  if (!fs.existsSync(agentDir)) return [];
+
+  return fs
+    .readdirSync(agentDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => ({
+      kind: "agent",
+      path: `${pluginRootPath}/agents/${f}`,
+    }));
+}
+
+/**
  * Generate plugins metadata
  */
 function generatePluginsData(gitDates) {
@@ -517,9 +532,25 @@ function generatePluginsData(gitDates) {
       const relPath = `plugins/${dir.name}`;
       const dates = gitDates[relPath] || gitDates[`${relPath}/`] || {};
 
+      const agentItems = (data.agents || []).flatMap((agent) => {
+        const agentPath = agent.replace("./", "");
+        const fullPath = path.join(pluginDir, agentPath);
+
+        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+          return getAgentFiles(fullPath, relPath);
+        }
+
+        return [
+          {
+            kind: "agent",
+            path: `${relPath}/${agentPath}`,
+          },
+        ];
+      });
+
       // Build items list from spec fields (agents, commands, skills)
       const items = [
-        ...(data.agents || []).map((p) => ({ kind: "agent", path: p })),
+        ...agentItems,
         ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
         ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
       ];
@@ -535,9 +566,8 @@ function generatePluginsData(gitDates) {
         itemCount: items.length,
         items: items,
         lastUpdated: dates.lastModified || null,
-        searchText: `${data.name || dir.name} ${
-          data.description || ""
-        } ${tags.join(" ")}`.toLowerCase(),
+        searchText: `${data.name || dir.name} ${data.description || ""
+          } ${tags.join(" ")}`.toLowerCase(),
       });
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
@@ -704,9 +734,8 @@ function generateSearchIndex(
       description: instruction.description,
       path: instruction.path,
       lastUpdated: instruction.lastUpdated,
-      searchText: `${instruction.title} ${instruction.description} ${
-        instruction.applyTo || ""
-      }`.toLowerCase(),
+      searchText: `${instruction.title} ${instruction.description} ${instruction.applyTo || ""
+        }`.toLowerCase(),
     });
   }
 
@@ -732,9 +761,8 @@ function generateSearchIndex(
       description: workflow.description,
       path: workflow.path,
       lastUpdated: workflow.lastUpdated,
-      searchText: `${workflow.title} ${
-        workflow.description
-      } ${workflow.triggers.join(" ")}`.toLowerCase(),
+      searchText: `${workflow.title} ${workflow.description
+        } ${workflow.triggers.join(" ")}`.toLowerCase(),
     });
   }
 

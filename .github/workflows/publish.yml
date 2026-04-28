@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Fix line endings
-        run: bash scripts/fix-line-endings.sh
+        run: bash eng/fix-line-endings.sh
 
       - name: Publish to main
         run: |
