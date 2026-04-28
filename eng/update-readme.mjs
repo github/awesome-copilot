@@ -4,26 +4,26 @@ import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import {
-    AGENTS_DIR,
-    AKA_INSTALL_URLS,
-    DOCS_DIR,
-    HOOKS_DIR,
-    INSTRUCTIONS_DIR,
-    PLUGINS_DIR,
-    repoBaseUrl,
-    ROOT_FOLDER,
-    SKILLS_DIR,
-    TEMPLATES,
-    vscodeInsidersInstallImage,
-    vscodeInstallImage,
-    WORKFLOWS_DIR,
+  AGENTS_DIR,
+  AKA_INSTALL_URLS,
+  DOCS_DIR,
+  HOOKS_DIR,
+  INSTRUCTIONS_DIR,
+  PLUGINS_DIR,
+  repoBaseUrl,
+  ROOT_FOLDER,
+  SKILLS_DIR,
+  TEMPLATES,
+  vscodeInsidersInstallImage,
+  vscodeInstallImage,
+  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import {
-    extractMcpServerConfigs,
-    parseFrontmatter,
-    parseSkillMetadata,
-    parseHookMetadata,
-    parseWorkflowMetadata,
+  extractMcpServerConfigs,
+  parseFrontmatter,
+  parseHookMetadata,
+  parseSkillMetadata,
+  parseWorkflowMetadata,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -566,7 +566,8 @@ function generateWorkflowsSection(workflowsDir) {
   // Generate table rows for each workflow
   for (const workflow of workflowEntries) {
     const link = `../workflows/${workflow.file}`;
-    const triggers = workflow.triggers.length > 0 ? workflow.triggers.join(", ") : "N/A";
+    const triggers =
+      workflow.triggers.length > 0 ? workflow.triggers.join(", ") : "N/A";
 
     content += `| [${workflow.name}](${link}) | ${formatTableCell(
       workflow.description
@@ -626,9 +627,11 @@ function generateSkillsSection(skillsDir) {
         ? skill.assets.map((a) => `\`${a}\``).join("<br />")
         : "None";
 
-    content += `| [${skill.name}](${link}) | ${formatTableCell(
-      skill.description
-    )} | ${assetsList} |\n`;
+    content += `| [${
+      skill.name
+    }](${link})<br />\`gh skills install github/awesome-copilot ${
+      skill.folder
+    }\` | ${formatTableCell(skill.description)} | ${assetsList} |\n`;
   }
 
   return `${TEMPLATES.skillsSection}\n${TEMPLATES.skillsUsage}\n\n${content}`;
@@ -779,10 +782,11 @@ function generatePluginsSection(pluginsDir) {
   // Generate table rows for each plugin
   for (const entry of sortedEntries) {
     const { plugin, dir, name, isFeatured } = entry;
-    const description = formatTableCell(
-      plugin.description || "No description"
-    );
-    const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
+    const description = formatTableCell(plugin.description || "No description");
+    const itemCount =
+      (plugin.agents || []).length +
+      (plugin.commands || []).length +
+      (plugin.skills || []).length;
     const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
 
     const link = `../plugins/${dir}/README.md`;
@@ -826,7 +830,10 @@ function generateFeaturedPluginsSection(pluginsDir) {
             plugin.description || "No description"
           );
           const keywords = plugin.keywords ? plugin.keywords.join(", ") : "";
-          const itemCount = (plugin.agents || []).length + (plugin.commands || []).length + (plugin.skills || []).length;
+          const itemCount =
+            (plugin.agents || []).length +
+            (plugin.commands || []).length +
+            (plugin.skills || []).length;
 
           return {
             dir,
@@ -921,10 +928,7 @@ async function main() {
     const hooksHeader = TEMPLATES.hooksSection.replace(/^##\s/m, "# ");
     const workflowsHeader = TEMPLATES.workflowsSection.replace(/^##\s/m, "# ");
     const skillsHeader = TEMPLATES.skillsSection.replace(/^##\s/m, "# ");
-    const pluginsHeader = TEMPLATES.pluginsSection.replace(
-      /^##\s/m,
-      "# "
-    );
+    const pluginsHeader = TEMPLATES.pluginsSection.replace(/^##\s/m, "# ");
 
     const instructionsReadme = buildCategoryReadme(
       generateInstructionsSection,
@@ -990,12 +994,12 @@ async function main() {
     );
     writeFileIfChanged(path.join(DOCS_DIR, "README.agents.md"), agentsReadme);
     writeFileIfChanged(path.join(DOCS_DIR, "README.hooks.md"), hooksReadme);
-    writeFileIfChanged(path.join(DOCS_DIR, "README.workflows.md"), workflowsReadme);
-    writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
     writeFileIfChanged(
-      path.join(DOCS_DIR, "README.plugins.md"),
-      pluginsReadme
+      path.join(DOCS_DIR, "README.workflows.md"),
+      workflowsReadme
     );
+    writeFileIfChanged(path.join(DOCS_DIR, "README.skills.md"), skillsReadme);
+    writeFileIfChanged(path.join(DOCS_DIR, "README.plugins.md"), pluginsReadme);
 
     // Plugin READMEs are authoritative (already exist in each plugin folder)
 
@@ -1039,9 +1043,7 @@ async function main() {
         writeFileIfChanged(mainReadmePath, readmeContent);
         console.log("Main README.md updated with featured plugins");
       } else {
-        console.warn(
-          "README.md not found, skipping featured plugins update"
-        );
+        console.warn("README.md not found, skipping featured plugins update");
       }
     } else {
       console.log("No featured plugins found to add to README.md");

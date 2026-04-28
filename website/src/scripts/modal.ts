@@ -100,8 +100,8 @@ async function resolveResourceTitle(
     type === "skill"
       ? getCollectionRootPath(filePath, "skills")
       : type === "hook"
-        ? getCollectionRootPath(filePath, "hooks")
-        : filePath.substring(0, filePath.lastIndexOf("/"));
+      ? getCollectionRootPath(filePath, "hooks")
+      : filePath.substring(0, filePath.lastIndexOf("/"));
 
   if (collectionRootPath) {
     const parentItem = data.items.find((i) => i.path === collectionRootPath);
@@ -119,7 +119,10 @@ function isMarkdownFile(filePath: string): boolean {
   return /\.(md|markdown|mdx)$/i.test(filePath);
 }
 
-function getCollectionRootPath(filePath: string, collectionName: string): string | null {
+function getCollectionRootPath(
+  filePath: string,
+  collectionName: string
+): string | null {
   const segments = filePath.split("/");
   const collectionIndex = segments.indexOf(collectionName);
   if (collectionIndex === -1 || segments.length <= collectionIndex + 1) {
@@ -140,7 +143,9 @@ async function getSkillsData(): Promise<SkillsData | null> {
   return skillsCache;
 }
 
-async function getSkillItemByFilePath(filePath: string): Promise<SkillItem | null> {
+async function getSkillItemByFilePath(
+  filePath: string
+): Promise<SkillItem | null> {
   if (getResourceType(filePath) !== "skill") return null;
 
   const skillsData = await getSkillsData();
@@ -285,7 +290,10 @@ function getLanguageForFile(filePath: string): string {
   return "text";
 }
 
-async function renderHighlightedCode(content: string, filePath: string): Promise<void> {
+async function renderHighlightedCode(
+  content: string,
+  filePath: string
+): Promise<void> {
   try {
     const { codeToHtml } = await import("shiki");
     const container = ensureDivContent("modal-code-content");
@@ -306,7 +314,9 @@ async function renderHighlightedCode(content: string, filePath: string): Promise
 function updateViewButtons(): void {
   const renderBtn = document.getElementById("render-btn");
   const rawBtn = document.getElementById("raw-btn");
-  const markdownFile = currentFilePath ? isMarkdownFile(currentFilePath) : false;
+  const markdownFile = currentFilePath
+    ? isMarkdownFile(currentFilePath)
+    : false;
 
   if (!renderBtn || !rawBtn) return;
 
@@ -377,7 +387,9 @@ async function configureSkillFileSwitcher(filePath: string): Promise<void> {
       (file) =>
         `<button type="button" class="modal-file-menu-item${
           file.path === filePath ? " active" : ""
-        }" data-path="${escapeHtml(file.path)}" role="menuitemradio" aria-checked="${
+        }" data-path="${escapeHtml(
+          file.path
+        )}" role="menuitemradio" aria-checked="${
           file.path === filePath ? "true" : "false"
         }">${escapeHtml(file.name)}</button>`
     )
@@ -544,7 +556,7 @@ export function setupModal(): void {
         showToast("Could not resolve skill ID.", "error");
         return;
       }
-      const command = `gh skill install ${REPO_IDENTIFIER} ${skill.id}`;
+      const command = `gh skills install ${REPO_IDENTIFIER} ${skill.id}`;
       const originalContent = installCommandBtn.innerHTML;
       const success = await copyToClipboard(command);
       showToast(
@@ -623,7 +635,9 @@ export function setupModal(): void {
     setFileMenuOpen(Boolean(isOpen));
     if (isOpen) {
       fileMenu
-        ?.querySelector<HTMLElement>(".modal-file-menu-item.active, .modal-file-menu-item")
+        ?.querySelector<HTMLElement>(
+          ".modal-file-menu-item.active, .modal-file-menu-item"
+        )
         ?.focus();
     }
   };
