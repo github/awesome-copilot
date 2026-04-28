@@ -1,0 +1,27 @@
+{
+  "name": "ai-team-orchestration",
+  "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
+  "version": "1.0.0",
+  "keywords": [
+    "ai-team",
+    "multi-agent",
+    "sprint-planning",
+    "brainstorm",
+    "project-management",
+    "orchestration",
+    "developer-workflow"
+  ],
+  "author": {
+    "name": "Denis Evdokimov"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents/ai-team-producer.md",
+    "./agents/ai-team-dev.md",
+    "./agents/ai-team-qa.md"
+  ],
+  "skills": [
+    "./skills/ai-team-orchestration/"
+  ]
+}

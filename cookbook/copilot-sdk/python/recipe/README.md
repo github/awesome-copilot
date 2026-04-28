@@ -23,13 +23,15 @@ python <filename>.py
 
 ### Available Recipes
 
-| Recipe               | Command                          | Description                                |
-| -------------------- | -------------------------------- | ------------------------------------------ |
-| Error Handling       | `python error_handling.py`       | Demonstrates error handling patterns       |
-| Multiple Sessions    | `python multiple_sessions.py`    | Manages multiple independent conversations |
-| Managing Local Files | `python managing_local_files.py` | Organizes files using AI grouping          |
-| PR Visualization     | `python pr_visualization.py`     | Generates PR age charts                    |
-| Persisting Sessions  | `python persisting_sessions.py`  | Save and resume sessions across restarts   |
+| Recipe               | Command                              | Description                                        |
+| -------------------- | ------------------------------------ | -------------------------------------------------- |
+| Error Handling       | `python error_handling.py`           | Demonstrates error handling patterns               |
+| Error Recovery Hooks | `python error_recovery_hooks.py`     | Classifies tool failures and retries automatically |
+| Multiple Sessions    | `python multiple_sessions.py`        | Manages multiple independent conversations         |
+| Managing Local Files | `python managing_local_files.py`     | Organizes files using AI grouping                  |
+| PR Visualization     | `python pr_visualization.py`         | Generates PR age charts                            |
+| Persisting Sessions  | `python persisting_sessions.py`      | Save and resume sessions across restarts           |
+| PyInstaller Build    | `python pyinstaller_frozen_build.py` | Packages SDK apps into frozen executables          |
 
 ### Examples with Arguments
 
