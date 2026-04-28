@@ -18,13 +18,16 @@
     "nunit"
   ],
   "agents": [
-    "./agents"
+    "./agents/playwright-tester.md",
+    "./agents/tdd-green.md",
+    "./agents/tdd-red.md",
+    "./agents/tdd-refactor.md"
   ],
   "skills": [
-    "./skills/playwright-explore-website",
-    "./skills/playwright-generate-test",
-    "./skills/csharp-nunit",
-    "./skills/java-junit",
-    "./skills/ai-prompt-engineering-safety-review"
+    "./skills/ai-prompt-engineering-safety-review/",
+    "./skills/csharp-nunit/",
+    "./skills/java-junit/",
+    "./skills/playwright-explore-website/",
+    "./skills/playwright-generate-test/"
   ]
 }

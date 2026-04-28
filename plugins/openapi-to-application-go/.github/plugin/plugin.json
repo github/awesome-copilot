@@ -15,9 +15,9 @@
     "golang"
   ],
   "agents": [
-    "./agents"
+    "./agents/openapi-to-application.md"
   ],
   "skills": [
-    "./skills/openapi-to-application-code"
+    "./skills/openapi-to-application-code/"
   ]
 }
