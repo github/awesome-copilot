@@ -1,12 +1,6 @@
----
-name: "AI Team Orchestration"
-description: "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows."
-tags: ["ai-team", "multi-agent", "sprint-planning", "brainstorm", "project-management", "orchestration"]
----
-
 # AI Team Orchestration
 
-Bootstrap and run a multi-agent AI development team with named roles. Plan sprints, run brainstorms with distinct agent voices, and coordinate parallel dev/QA workflows.
+Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Plan sprints, run brainstorms with distinct agent voices, coordinate parallel dev/QA workflows, and survive context overflows with structured handoff templates.
 
 ## What's Included
 
