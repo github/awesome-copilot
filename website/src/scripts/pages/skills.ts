@@ -52,7 +52,7 @@ let currentFilters = {
   categories: [] as string[],
   hasAssets: false,
 };
-let currentSort: SkillSortOption = 'title';
+let currentSort: SkillSortOption = "title";
 let resourceListHandlersReady = false;
 
 function sortItems(items: Skill[]): Skill[] {
@@ -155,7 +155,7 @@ async function copyInstallCommand(
   skillId: string,
   btn: HTMLButtonElement
 ): Promise<void> {
-  const command = `gh skill install ${REPO_IDENTIFIER} ${skillId}`;
+  const command = `gh skills install ${REPO_IDENTIFIER} ${skillId}`;
   const originalContent = btn.innerHTML;
   const success = await copyToClipboard(command);
   showToast(
@@ -216,7 +216,9 @@ export async function initSkillsPage(): Promise<void> {
     "filter-has-assets"
   ) as HTMLInputElement;
   const clearFiltersBtn = document.getElementById("clear-filters");
-  const sortSelect = document.getElementById("sort-select") as HTMLSelectElement;
+  const sortSelect = document.getElementById(
+    "sort-select"
+  ) as HTMLSelectElement;
 
   setupResourceListHandlers(list as HTMLElement | null);
 
@@ -290,7 +292,7 @@ export async function initSkillsPage(): Promise<void> {
 
   clearFiltersBtn?.addEventListener("click", () => {
     currentFilters = { categories: [], hasAssets: false };
-    currentSort = 'title';
+    currentSort = "title";
     categorySelect.removeActiveItems();
     if (hasAssetsCheckbox) hasAssetsCheckbox.checked = false;
     if (searchInput) searchInput.value = "";
