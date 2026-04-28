@@ -97,7 +97,7 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 
 ##### 6.1.2 Delegate
 
-- Delegate to suiteable subagent (up to 4 concurrent) using `task.agent`
+- Delegate to suitable subagent (up to 4 concurrent) using `task.agent`
 - Mobile files (.dart, .swift, .kt, .tsx, .jsx): Route to gem-implementer-mobile
 
 ##### 6.1.3 Integration Check
