@@ -80,7 +80,7 @@
     {
       "name": "context-matic",
       "source": "context-matic",
-      "description": "ContextMatic turns your AI agents from API-guessers into API-experts. By feeding agents exact, version-aware SDK methods and typed models for providers like PayPal, Spotify, and Twilio, ContextMatic replaces guesswork and outdated training data with high-fidelity ground truth. This eliminates hallucinations and broken code, ensuring surgical accuracy across 7+ languages so your agents build with precision instead of wasting tokens on trial and error.",
+      "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
       "version": "0.1.0"
     },
     {
@@ -325,7 +325,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1037-preview1",
+      "version": "1.0.1047-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -344,6 +344,12 @@
         "repo": "dotnet/modernize-dotnet",
         "path": "plugins/modernize-dotnet"
       }
+    },
+    {
+      "name": "modernize-java",
+      "source": "modernize-java",
+      "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+      "version": "1.0.0"
     },
     {
       "name": "napkin",
