@@ -1235,7 +1235,7 @@ function renderLocalPluginModal(
 
       switch (itemType) {
         case "agent":
-          path = path.replace(".md", ".agent.md");
+         // path = path.replace(".md", ".agent.md");
           break;
         case "skill":
           path = `${path}/SKILL.md`;
