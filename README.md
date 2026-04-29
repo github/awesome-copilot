@@ -495,6 +495,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarioCodes"><img src="https://avatars.githubusercontent.com/u/17473450?v=4" width="100px;" alt=""/><br /><sub><b>Mario Codes</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.flemingtechnologies.cl/"><img src="https://avatars.githubusercontent.com/u/5702027?v=4" width="100px;" alt=""/><br /><sub><b>Gonzalo Fleming</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://vidhartbhatia.com/"><img src="https://avatars.githubusercontent.com/u/23387006?v=4" width="100px;" alt=""/><br /><sub><b>Vidhart Bhatia</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
