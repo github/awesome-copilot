@@ -430,14 +430,25 @@ function generateSkillsData(gitDates) {
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
+      const title = metadata.name
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      const searchText = [
+        title,
+        metadata.description,
+        folder,
+        metadata.name,
+        relativePath,
+        category,
+      ]
+        .join(" ")
+        .toLowerCase();
 
       skills.push({
         id: folder,
         name: metadata.name,
-        title: metadata.name
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" "),
+        title,
         description: metadata.description,
         assets: metadata.assets,
         hasAssets: metadata.assets.length > 0,
@@ -447,6 +458,7 @@ function generateSkillsData(gitDates) {
         skillFile: skillFilePath,
         files: files,
         lastUpdated: gitDates.get(skillFilePath) || null,
+        searchText,
       });
     }
   }
@@ -774,7 +786,7 @@ function generateSearchIndex(
       description: skill.description,
       path: skill.skillFile,
       lastUpdated: skill.lastUpdated,
-      searchText: `${skill.title} ${skill.description}`.toLowerCase(),
+      searchText: skill.searchText,
     });
   }
 

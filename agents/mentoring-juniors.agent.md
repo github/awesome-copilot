@@ -12,7 +12,7 @@ tools:
     "search",
     "terminalLastCommand",
     "terminalSelection",
-    "usages",
+    "usages"
   ]
 ---
 
