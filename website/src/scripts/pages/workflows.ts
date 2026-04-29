@@ -7,10 +7,8 @@ import {
   setChoicesValues,
   type Choices,
 } from "../choices";
-import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
-  debounce,
   getQueryParam,
   getQueryParamValues,
   setupActionHandlers,
@@ -24,7 +22,7 @@ import {
   type WorkflowSortOption,
 } from "./workflows-render";
 
-interface Workflow extends SearchItem, RenderableWorkflow {
+interface Workflow extends RenderableWorkflow {
   id: string;
   path: string;
   triggers: string[];
@@ -40,7 +38,6 @@ interface WorkflowsData {
 
 const resourceType = "workflow";
 let allItems: Workflow[] = [];
-let search = new FuzzySearch<Workflow>();
 let triggerSelect: Choices;
 let currentFilters = {
   triggers: [] as string[],
@@ -53,46 +50,30 @@ function sortItems(items: Workflow[]): Workflow[] {
 }
 
 function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const countEl = document.getElementById("results-count");
-  const query = searchInput?.value || "";
-
-  let results = query ? search.search(query) : [...allItems];
+  let results = [...allItems];
 
   if (currentFilters.triggers.length > 0) {
     results = results.filter((item) =>
-      item.triggers.some((t) => currentFilters.triggers.includes(t))
+      item.triggers.some((trigger) => currentFilters.triggers.includes(trigger))
     );
   }
 
   results = sortItems(results);
 
-  renderItems(results, query);
-  const activeFilters: string[] = [];
-  if (currentFilters.triggers.length > 0)
-    activeFilters.push(
-      `${currentFilters.triggers.length} trigger${
-        currentFilters.triggers.length > 1 ? "s" : ""
-      }`
-    );
-  let countText = `${results.length} of ${allItems.length} workflows`;
-  if (activeFilters.length > 0) {
-    countText += ` (filtered by ${activeFilters.join(", ")})`;
+  renderItems(results);
+  let countText = `${results.length} workflow${results.length === 1 ? "" : "s"}`;
+  if (currentFilters.triggers.length > 0) {
+    countText = `${results.length} of ${allItems.length} workflows (filtered by ${currentFilters.triggers.length} trigger${currentFilters.triggers.length > 1 ? "s" : ""})`;
   }
   if (countEl) countEl.textContent = countText;
 }
 
-function renderItems(items: Workflow[], query = ""): void {
+function renderItems(items: Workflow[]): void {
   const list = document.getElementById("resource-list");
   if (!list) return;
 
-  list.innerHTML = renderWorkflowsHtml(items, {
-    query,
-    highlightTitle: (title, highlightQuery) =>
-      search.highlight(title, highlightQuery),
-  });
+  list.innerHTML = renderWorkflowsHtml(items);
 }
 
 function setupResourceListHandlers(list: HTMLElement | null): void {
@@ -114,9 +95,9 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
-function syncUrlState(searchInput: HTMLInputElement | null): void {
+function syncUrlState(): void {
   updateQueryParams({
-    q: searchInput?.value ?? "",
+    q: "",
     trigger: currentFilters.triggers,
     sort: currentSort === "title" ? "" : currentSort,
   });
@@ -124,9 +105,6 @@ function syncUrlState(searchInput: HTMLInputElement | null): void {
 
 export async function initWorkflowsPage(): Promise<void> {
   const list = document.getElementById("resource-list");
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const clearFiltersBtn = document.getElementById("clear-filters");
   const sortSelect = document.getElementById(
     "sort-select"
@@ -143,26 +121,22 @@ export async function initWorkflowsPage(): Promise<void> {
   }
 
   allItems = data.items;
-  search.setItems(allItems);
 
-  // Setup trigger filter
   triggerSelect = createChoices("#filter-trigger", {
     placeholderValue: "All Triggers",
   });
   triggerSelect.setChoices(
-    data.filters.triggers.map((t) => ({ value: t, label: t })),
+    data.filters.triggers.map((trigger) => ({ value: trigger, label: trigger })),
     "value",
     "label",
     true
   );
 
-  const initialQuery = getQueryParam("q");
   const initialTriggers = getQueryParamValues("trigger").filter((trigger) =>
     data.filters.triggers.includes(trigger)
   );
   const initialSort = getQueryParam("sort");
 
-  if (searchInput) searchInput.value = initialQuery;
   if (initialTriggers.length > 0) {
     currentFilters.triggers = initialTriggers;
     setChoicesValues(triggerSelect, initialTriggers);
@@ -175,36 +149,22 @@ export async function initWorkflowsPage(): Promise<void> {
   document.getElementById("filter-trigger")?.addEventListener("change", () => {
     currentFilters.triggers = getChoicesValues(triggerSelect);
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as WorkflowSortOption;
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
-
-  const countEl = document.getElementById("results-count");
-  if (countEl) {
-    countEl.textContent = `${allItems.length} of ${allItems.length} workflows`;
-  }
-
-  searchInput?.addEventListener(
-    "input",
-    debounce(() => {
-      applyFiltersAndRender();
-      syncUrlState(searchInput);
-    }, 200)
-  );
 
   clearFiltersBtn?.addEventListener("click", () => {
     currentFilters = { triggers: [] };
     currentSort = "title";
     triggerSelect.removeActiveItems();
-    if (searchInput) searchInput.value = "";
     if (sortSelect) sortSelect.value = "title";
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
   applyFiltersAndRender();

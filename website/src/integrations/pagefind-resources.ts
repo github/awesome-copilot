@@ -64,6 +64,10 @@ export default function pagefindResources(): AstroIntegration {
           }
           const { index } = response;
 
+          if (!index) {
+            throw new Error("Pagefind index is undefined");
+          }
+
           // Index all built HTML pages (same as Starlight's default)
           const indexResult = await index.addDirectory({
             path: fileURLToPath(dir),
@@ -82,7 +86,9 @@ export default function pagefindResources(): AstroIntegration {
           try {
             records = JSON.parse(readFileSync(searchIndexPath, "utf-8"));
           } catch {
-            log.warn("Could not read search-index.json, skipping resource indexing.");
+            log.warn(
+              "Could not read search-index.json, skipping resource indexing."
+            );
             records = [];
           }
 
@@ -94,12 +100,15 @@ export default function pagefindResources(): AstroIntegration {
             const typePage = TYPE_PAGES[record.type];
             if (!typePage) continue;
 
-            const url = `${base}${typePage.slice(1)}#file=${encodeURIComponent(record.path)}`;
+            const url = `${base}${typePage.slice(1)}#file=${encodeURIComponent(
+              record.path
+            )}`;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({
               url,
-              content: record.searchText || `${record.title} ${record.description}`,
+              content:
+                record.searchText || `${record.title} ${record.description}`,
               language: "en",
               meta: {
                 title: `${record.title} — ${typeLabel}`,
@@ -110,7 +119,8 @@ export default function pagefindResources(): AstroIntegration {
             });
 
             if (addResult.errors.length > 0) {
-              for (const err of addResult.errors) log.warn(`Record ${record.id}: ${err}`);
+              for (const err of addResult.errors)
+                log.warn(`Record ${record.id}: ${err}`);
             } else {
               added++;
             }
@@ -129,7 +139,11 @@ export default function pagefindResources(): AstroIntegration {
 
           const elapsed = performance.now() - now;
           log.info(
-            `Search index built in ${elapsed < 750 ? `${Math.round(elapsed)}ms` : `${(elapsed / 1000).toFixed(2)}s`}.`
+            `Search index built in ${
+              elapsed < 750
+                ? `${Math.round(elapsed)}ms`
+                : `${(elapsed / 1000).toFixed(2)}s`
+            }.`
           );
         } catch (cause) {
           throw new Error("Failed to build Pagefind search index.", { cause });

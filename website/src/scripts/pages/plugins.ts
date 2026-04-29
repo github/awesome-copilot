@@ -7,16 +7,19 @@ import {
   setChoicesValues,
   type Choices,
 } from '../choices';
-import { FuzzySearch, type SearchItem } from '../search';
 import {
   fetchData,
-  debounce,
   getQueryParam,
   getQueryParamValues,
   updateQueryParams,
 } from '../utils';
 import { setupModal, openFileModal } from '../modal';
-import { renderPluginsHtml, type RenderablePlugin } from './plugins-render';
+import {
+  renderPluginsHtml,
+  sortPlugins,
+  type PluginSortOption,
+  type RenderablePlugin,
+} from './plugins-render';
 
 interface PluginAuthor {
   name: string;
@@ -29,7 +32,7 @@ interface PluginSource {
   path?: string;
 }
 
-interface Plugin extends SearchItem, RenderablePlugin {
+interface Plugin extends RenderablePlugin {
   id: string;
   name: string;
   path: string;
@@ -52,42 +55,44 @@ interface PluginsData {
 
 const resourceType = 'plugin';
 let allItems: Plugin[] = [];
-let search = new FuzzySearch<Plugin>();
 let tagSelect: Choices;
+let currentSort: PluginSortOption = 'title';
 let currentFilters = {
   tags: [] as string[],
 };
 let resourceListHandlersReady = false;
 
-function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
-  const countEl = document.getElementById('results-count');
-  const query = searchInput?.value || '';
+function sortItems(items: Plugin[]): Plugin[] {
+  return sortPlugins(items, currentSort);
+}
 
-  let results = query ? search.search(query) : [...allItems];
+function getCountText(resultsCount: number): string {
+  if (currentFilters.tags.length === 0) {
+    return `${resultsCount} plugin${resultsCount === 1 ? '' : 's'}`;
+  }
+
+  return `${resultsCount} of ${allItems.length} plugins (filtered by ${currentFilters.tags.length} tag${currentFilters.tags.length === 1 ? '' : 's'})`;
+}
+
+function applyFiltersAndRender(): void {
+  const countEl = document.getElementById('results-count');
+  let results = [...allItems];
 
   if (currentFilters.tags.length > 0) {
     results = results.filter(item => item.tags?.some(tag => currentFilters.tags.includes(tag)));
   }
 
-  renderItems(results, query);
-  const activeFilters: string[] = [];
-  if (currentFilters.tags.length > 0) activeFilters.push(`${currentFilters.tags.length} tag${currentFilters.tags.length > 1 ? 's' : ''}`);
-  let countText = `${results.length} of ${allItems.length} plugins`;
-  if (activeFilters.length > 0) {
-    countText += ` (filtered by ${activeFilters.join(', ')})`;
-  }
-  if (countEl) countEl.textContent = countText;
+  results = sortItems(results);
+
+  renderItems(results);
+  if (countEl) countEl.textContent = getCountText(results.length);
 }
 
-function renderItems(items: Plugin[], query = ''): void {
+function renderItems(items: Plugin[]): void {
   const list = document.getElementById('resource-list');
   if (!list) return;
 
-  list.innerHTML = renderPluginsHtml(items, {
-    query,
-    highlightTitle: (title, highlightQuery) => search.highlight(title, highlightQuery),
-  });
+  list.innerHTML = renderPluginsHtml(items);
 }
 
 function setupResourceListHandlers(list: HTMLElement | null): void {
@@ -109,17 +114,18 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
-function syncUrlState(searchInput: HTMLInputElement | null): void {
+function syncUrlState(): void {
   updateQueryParams({
-    q: searchInput?.value ?? '',
+    q: '',
     tag: currentFilters.tags,
+    sort: currentSort === 'title' ? '' : currentSort,
   });
 }
 
 export async function initPluginsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const clearFiltersBtn = document.getElementById('clear-filters');
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
   setupResourceListHandlers(list as HTMLElement | null);
 
@@ -131,21 +137,12 @@ export async function initPluginsPage(): Promise<void> {
 
   allItems = data.items;
 
-  // Map plugin items to search items
-  const searchItems = allItems.map(item => ({
-    ...item,
-    title: item.name,
-    searchText: `${item.name} ${item.description} ${item.tags?.join(' ') || ''}`.toLowerCase()
-  }));
-  search.setItems(searchItems);
-
   tagSelect = createChoices('#filter-tag', { placeholderValue: 'All Tags' });
   tagSelect.setChoices(data.filters.tags.map(t => ({ value: t, label: t })), 'value', 'label', true);
 
-  const initialQuery = getQueryParam('q');
   const initialTags = getQueryParamValues('tag').filter(tag => data.filters.tags.includes(tag));
+  const initialSort = getQueryParam('sort');
 
-  if (searchInput) searchInput.value = initialQuery;
   if (initialTags.length > 0) {
     currentFilters.tags = initialTags;
     setChoicesValues(tagSelect, initialTags);
@@ -154,28 +151,30 @@ export async function initPluginsPage(): Promise<void> {
   document.getElementById('filter-tag')?.addEventListener('change', () => {
     currentFilters.tags = getChoicesValues(tagSelect);
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
-  const countEl = document.getElementById('results-count');
-  if (countEl) {
-    countEl.textContent = `${allItems.length} of ${allItems.length} plugins`;
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
   }
-
-  searchInput?.addEventListener('input', debounce(() => {
+  sortSelect?.addEventListener('change', () => {
+    currentSort = sortSelect.value as PluginSortOption;
     applyFiltersAndRender();
-    syncUrlState(searchInput);
-  }, 200));
+    syncUrlState();
+  });
 
   clearFiltersBtn?.addEventListener('click', () => {
     currentFilters = { tags: [] };
+    currentSort = 'title';
     tagSelect.removeActiveItems();
-    if (searchInput) searchInput.value = '';
+    if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
   applyFiltersAndRender();
+  syncUrlState();
   setupModal();
 }
 
