@@ -26,6 +26,9 @@ ship a new version" or "time to release".
 
 ## Prerequisites
 
+Examples below include both Bash and PowerShell variants; Windows users should prefer 
+the PowerShell blocks.
+
 Before starting, verify the environment:
 
 ```bash
@@ -85,6 +88,25 @@ PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+'
 echo "Latest tag: $PREV_TAG"
 ```
 
+```PowerShell
+# Fetch all tags from remote to ensure local view is current
+git fetch --tags
+
+# Find the latest version tag, sorted semantically
+# --sort=-version:refname handles 1.10.0 > 1.9.0 correctly (unlike alphabetical)
+$prevTag = git tag --sort='-version:refname' | `
+  Select-String '^[vV]?\d+\.\d+\.\d+' | `
+  Select-Object -First 1 -ExpandProperty Line
+
+if ($prevTag) {
+  $prevSha = git rev-list -n 1 $prevTag
+} else {
+  $prevSha = git rev-list --max-parents=0 HEAD
+}
+
+Write-Output "Latest tag: $prevTag"
+```
+
 Then verify the tag exists on the remote (not just locally):
 
 ```bash
@@ -120,6 +142,14 @@ truth; commit messages provide supporting context about intent.
 git diff "$PREV_SHA"..HEAD -- "$PUBLIC_PATH" \
   ':(exclude)tests/' ':(exclude)test/' ':(exclude)spec/' \
   ':(exclude)__tests__/' ':(exclude)docs/' \
+  ':(exclude)*.lock' ':(exclude)*-lock.json' ':(exclude)*.sum'
+```
+
+```PowerShell
+# Focused diff on the public source path, excluding noise
+git diff "$($prevSha)..HEAD" -- $publicPath `
+  ':(exclude)tests/' ':(exclude)test/' ':(exclude)spec/' `
+  ':(exclude)__tests__/' ':(exclude)docs/' `
   ':(exclude)*.lock' ':(exclude)*-lock.json' ':(exclude)*.sum'
 ```
 
@@ -317,6 +347,31 @@ EOF
 )"
 ```
 
+```PowerShell
+$prBody = @"
+## Release vX.Y.Z
+
+This PR prepares the **vX.Y.Z** release.
+
+### What's included
+<paste changelog here>
+
+### Checklist
+- [ ] Changelog reviewed
+- [ ] Version bump verified
+- [ ] CI passing
+
+After merging, create the tag on the merge commit:
+\`\`\`
+git tag vX.Y.Z <merge-commit-sha>
+git push origin vX.Y.Z
+\`\`\`
+"@
+
+$prBody | Out-File -FilePath release_pr_body.md -Encoding utf8
+gh pr create --base main --head release/vX.Y.Z --title "Release vX.Y.Z" --body-file release_pr_body.md
+```
+
 Paste the changelog section into the PR body's "What's included" block.
 Print the PR URL to the user.
 
@@ -355,6 +410,15 @@ Tell the user:
 | Latest tag exists locally but not on remote | Warn user; ask if they want to push the tag first or continue anyway |
 | Diff is empty for `PUBLIC_PATH` but commits exist | Warn; all changes may be internal; ask if they still want to proceed |
 | `git push` fails (e.g. protected branch rules) | Report the error verbatim; suggest they check branch protection settings |
+
+---
+
+## Troubleshooting in PowerShell
+
+- If a command that works locally prints gh usage or treats a subcommand as separate token, ensure you're
+  invoking the gh.exe on PATH (Get-Command gh) and avoid passing unexpanded nested substitutions; use the PowerShell 
+  patterns above.
+- Recommend tests: gh --version; git fetch --tags; run the PowerShell snippet to set $prevTag and run git diff --name-only $prevSha..HEAD -- src/
 
 ---
 
