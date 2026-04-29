@@ -1,19 +1,31 @@
 ---
 name: ai-ready
-description: Make any repo AI-ready — analyzes your codebase and generates AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack. USE THIS SKILL when the user asks to "make this repo ai-ready", "set up AI config", or "prepare this repo for AI contributions".
+description: 'Make any repo AI-ready — analyzes your codebase and generates AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack. USE THIS SKILL when the user asks to "make this repo ai-ready", "set up AI config", or "prepare this repo for AI contributions".'
 ---
 
 # AI Ready
 
-The full ai-ready skill by [John Papa](https://github.com/johnpapa) analyzes any repo and generates the configuration files AI agents need to contribute correctly — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more.
+This skill helps the user install the latest [ai-ready](https://github.com/johnpapa/ai-ready) `SKILL.md` by [John Papa](https://github.com/johnpapa) into their personal skills directory.
 
-The skill is maintained at [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) and must be installed by the user before use.
+*Why?*: The full ai-ready skill is ~600 lines of detailed instructions that evolve frequently. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date.
 
 ## Steps
 
-1. Tell the user to install the skill by running this command in their terminal:
+1. Tell the user to download the latest `SKILL.md` to their personal skills directory by running one of these commands in their terminal. This will overwrite any existing local copy.
+
+   **bash / zsh**
    ```bash
-   mkdir -p ~/.copilot/skills/ai-ready && curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md -o ~/.copilot/skills/ai-ready/SKILL.md
+   mkdir -p ~/.copilot/skills/ai-ready
+   curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md \
+     -o ~/.copilot/skills/ai-ready/SKILL.md
    ```
+
+   **PowerShell**
+   ```powershell
+   New-Item -ItemType Directory -Force -Path "$HOME/.copilot/skills/ai-ready" | Out-Null
+   Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md" -OutFile "$HOME/.copilot/skills/ai-ready/SKILL.md"
+   ```
+
+   For reproducible behavior, the user can replace `main` in the URL with a specific tag or commit SHA.
 2. After the user confirms they've installed it, tell them to reload skills with `/skills reload` and then say `make this repo ai-ready`.
 3. Do **not** run the install command on the user's behalf. The user must run it themselves.
