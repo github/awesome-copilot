@@ -53,10 +53,10 @@ Before creating or modifying workflows:
 
 **Action Pinning**:
 
-- Pin to specific versions for stability
-- Use major version tags (`@v4`) for balance of security and maintenance
-- Consider full commit SHA for maximum security (requires more maintenance)
-- Never use `@main` or `@latest`
+- Pin every `uses:` reference to a full commit SHA for immutable, reviewable builds
+- Optionally include the upstream version in a comment for readability and maintenance tracking
+- Treat major-version tags such as `@v4` as insufficiently pinned on their own
+- Never use `@main`, `@latest`, or other mutable references
 
 **Secrets**:
 
