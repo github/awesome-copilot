@@ -14,7 +14,7 @@ Generates and opens a GitHub PR dashboard in the browser for a given date range 
 Find the CLI script bundled with this skill and run it:
 
 ```bash
-SKILL_SCRIPT=$(find ~/.copilot -name "pr-dashboard-cli.mjs" -path "*/pr-dashboard/*" 2>/dev/null | head -1)
+SKILL_SCRIPT=$(find ~/.copilot -name "pr-dashboard-cli.mjs" -path "*/pr-dashboard/scripts/*" 2>/dev/null | head -1)
 node "$SKILL_SCRIPT" "<query>" "<role>"
 ```
 

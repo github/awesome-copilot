@@ -188,7 +188,7 @@ function buildMarkdown(prs, label) {
 
 async function renderHtml(md, label = "PR Dashboard", prs = []) {
   const extDir = path.dirname(fileURLToPath(import.meta.url));
-  const templatePath = path.join(extDir, "dashboard.html");
+  const templatePath = path.join(extDir, "../assets/dashboard.html");
   let template = "";
   try { template = fs.readFileSync(templatePath, "utf8"); }
   catch (e) {
