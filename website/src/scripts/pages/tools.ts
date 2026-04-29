@@ -1,16 +1,18 @@
 /**
  * Tools page functionality
  */
-import { FuzzySearch, type SearchableItem } from "../search";
 import {
   fetchData,
-  debounce,
   getQueryParam,
   updateQueryParams,
 } from "../utils";
-import { renderToolsHtml } from "./tools-render";
+import {
+  renderToolsHtml,
+  sortTools,
+  type ToolSortOption,
+} from "./tools-render";
 
-export interface Tool extends SearchableItem {
+export interface Tool {
   id: string;
   name: string;
   title: string;
@@ -46,23 +48,28 @@ interface ToolsData {
 }
 
 let allItems: Tool[] = [];
-let search = new FuzzySearch<Tool>();
 let currentFilters = {
   categories: [] as string[],
-  query: "",
 };
+let currentSort: ToolSortOption = "featured";
 let copyHandlersReady = false;
 let initialized = false;
 
-function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
-  const countEl = document.getElementById("results-count");
-  const query = searchInput?.value || "";
-  currentFilters.query = query;
+function sortItems(items: Tool[]): Tool[] {
+  return sortTools(items, currentSort);
+}
 
-  let results = query ? search.search(query) : [...allItems];
+function getCountText(resultsCount: number): string {
+  if (currentFilters.categories.length === 0) {
+    return `${resultsCount} tool${resultsCount === 1 ? "" : "s"}`;
+  }
+
+  return `${resultsCount} of ${allItems.length} tools (filtered by ${currentFilters.categories.length} categor${currentFilters.categories.length === 1 ? "y" : "ies"})`;
+}
+
+function applyFiltersAndRender(): void {
+  const countEl = document.getElementById("results-count");
+  let results = [...allItems];
 
   if (currentFilters.categories.length > 0) {
     results = results.filter((item) =>
@@ -70,29 +77,23 @@ function applyFiltersAndRender(): void {
     );
   }
 
-  renderTools(results, query);
+  results = sortItems(results);
 
-  let countText = `${results.length} of ${allItems.length} tools`;
-  if (currentFilters.categories.length > 0) {
-    countText += ` (filtered by ${currentFilters.categories.length} categories)`;
-  }
-  if (countEl) countEl.textContent = countText;
+  renderTools(results);
+  if (countEl) countEl.textContent = getCountText(results.length);
 }
 
-function renderTools(tools: Tool[], query = ""): void {
+function renderTools(tools: Tool[]): void {
   const container = document.getElementById("tools-list");
   if (!container) return;
-  container.innerHTML = renderToolsHtml(tools, {
-    query,
-    highlightTitle: (title, highlightQuery) =>
-      search.highlight(title, highlightQuery),
-  });
+  container.innerHTML = renderToolsHtml(tools);
 }
 
-function syncUrlState(searchInput: HTMLInputElement | null): void {
+function syncUrlState(): void {
   updateQueryParams({
-    q: searchInput?.value ?? "",
+    q: "",
     category: currentFilters.categories,
+    sort: currentSort === "featured" ? "" : currentSort,
   });
 }
 
@@ -133,13 +134,11 @@ export async function initToolsPage(): Promise<void> {
   if (initialized) return;
   initialized = true;
 
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const categoryFilter = document.getElementById(
     "filter-category"
   ) as HTMLSelectElement;
   const clearFiltersBtn = document.getElementById("clear-filters");
+  const sortSelect = document.getElementById("sort-select") as HTMLSelectElement;
 
   const data = await fetchData<ToolsData>("tools.json");
   if (!data || !data.items) {
@@ -155,9 +154,6 @@ export async function initToolsPage(): Promise<void> {
     ...item,
     title: item.name, // FuzzySearch uses title
   }));
-
-  search = new FuzzySearch<Tool>();
-  search.setItems(allItems);
 
   // Populate category filter
   if (categoryFilter && data.filters.categories) {
@@ -180,31 +176,32 @@ export async function initToolsPage(): Promise<void> {
         ? [categoryFilter.value]
         : [];
       applyFiltersAndRender();
-      syncUrlState(searchInput);
+      syncUrlState();
     });
   }
 
-  const initialQuery = getQueryParam("q");
-  if (searchInput) searchInput.value = initialQuery;
+  const initialSort = getQueryParam("sort");
+  if (initialSort === "title") {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+  sortSelect?.addEventListener("change", () => {
+    currentSort = sortSelect.value as ToolSortOption;
+    applyFiltersAndRender();
+    syncUrlState();
+  });
 
   applyFiltersAndRender();
-
-  // Search input handler
-  searchInput?.addEventListener(
-    "input",
-    debounce(() => {
-      applyFiltersAndRender();
-      syncUrlState(searchInput);
-    }, 200)
-  );
+  syncUrlState();
 
   // Clear filters
   clearFiltersBtn?.addEventListener("click", () => {
-    currentFilters = { categories: [], query: "" };
+    currentFilters = { categories: [] };
+    currentSort = "featured";
     if (categoryFilter) categoryFilter.value = "";
-    if (searchInput) searchInput.value = "";
+    if (sortSelect) sortSelect.value = "featured";
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
   setupCopyConfigHandlers();
