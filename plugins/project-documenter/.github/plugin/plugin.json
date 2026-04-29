@@ -19,7 +19,7 @@
     "auto-discovery"
   ],
   "agents": [
-    "./agents/project-documenter.agent.md"
+    "./agents/project-documenter.md"
   ],
   "skills": [
     "./skills/drawio/",
