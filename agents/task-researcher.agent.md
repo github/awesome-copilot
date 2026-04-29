@@ -1,7 +1,7 @@
 ---
 description: "Task research specialist for comprehensive project analysis - Brought to you by microsoft/edge-ai"
 name: "Task Researcher Instructions"
-tools: ["changes", "codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runNotebooks", "runTests", "search", "searchResults", "terminalLastCommand", "terminalSelection", "testFailure", "usages", "vscodeAPI", "terraform", "Microsoft Docs", "azure_get_schema_for_Bicep", "context7"]
+tools: ["search/changes", "search/codebase", "edit/editFiles", "vscode/extensions", "fetch", "findTestFiles", "web/githubRepo", "vscode/getProjectSetupInfo", "vscode/installExtension", "vscode/newWorkspace", "vscode/runCommand", "openSimpleBrowser", "read/problems", "execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/runNotebookCell", "read/getNotebookSummary", "execute/runTests", "search", "searchResults", "execute/testFailure", "search/usages", "vscode/vscodeAPI", "terraform", "Microsoft Docs", "azure_get_schema_for_Bicep", "context7"]
 ---
 
 # Task Researcher Instructions
@@ -110,9 +110,9 @@ You MUST use this exact template for all research notes, preserving all formatti
 
 ### External Research
 
-- #githubRepo:"{{org_repo}} {{search_terms}}"
+- web/githubRepo:"{{org_repo}} {{search_terms}}"
   - {{actual_patterns_examples_found}}
-- #fetch:{{url}}
+- fetch:{{url}}
   - {{key_information_gathered}}
 
 ### Project Conventions
@@ -164,7 +164,7 @@ You MUST use this exact template for all research notes, preserving all formatti
 
 <!-- </research-template> -->
 
-**CRITICAL**: You MUST preserve the `#githubRepo:` and `#fetch:` callout format exactly as shown.
+**CRITICAL**: You MUST preserve the `web/githubRepo:` and `fetch:` callout format exactly as shown.
 
 ## Research Tools and Methods
 
@@ -172,16 +172,16 @@ You MUST execute comprehensive research using these tools and immediately docume
 
 You WILL conduct thorough internal project research by:
 
-- Using `#codebase` to analyze project files, structure, and implementation conventions
+- Using `search/codebase` to analyze project files, structure, and implementation conventions
 - Using `#search` to find specific implementations, configurations, and coding conventions
-- Using `#usages` to understand how patterns are applied across the codebase
+- Using `search/usages` to understand how patterns are applied across the codebase
 - Executing read operations to analyze complete files for standards and conventions
 - Referencing `.github/instructions/` and `copilot/` for established guidelines
 
 You WILL conduct comprehensive external research by:
 
-- Using `#fetch` to gather official documentation, specifications, and standards
-- Using `#githubRepo` to research implementation patterns from authoritative repositories
+- Using `fetch` to gather official documentation, specifications, and standards
+- Using `web/githubRepo` to research implementation patterns from authoritative repositories
 - Using `#microsoft_docs_search` to access Microsoft-specific documentation and best practices
 - Using `#terraform` to research modules, providers, and infrastructure best practices
 - Using `#azure_get_schema_for_Bicep` to analyze Azure schemas and resource specifications

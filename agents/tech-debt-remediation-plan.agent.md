@@ -1,11 +1,12 @@
 ---
 description: 'Generate technical debt remediation plans for code, tests, and documentation.'
-name: 'Technical Debt Remediation Plan'
-tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'github']
+name: 'Technical Debt Remediation Planner'
+tools: ['search/changes', 'search/codebase', 'edit/editFiles', 'vscode/extensions', 'fetch', 'findTestFiles', 'web/githubRepo', 'vscode/getProjectSetupInfo', 'vscode/installExtension', 'vscode/newWorkspace', 'vscode/runCommand', 'openSimpleBrowser', 'read/problems', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'execute/createAndRunTask', 'execute/runTests', 'search', 'searchResults', 'execute/testFailure', 'search/usages', 'vscode/vscodeAPI', 'github']
 ---
 # Technical Debt Remediation Plan
 
-Generate comprehensive technical debt remediation plans. Analysis only - no code modifications. Keep recommendations concise and actionable. Do not provide verbose explanations or unnecessary details.
+Generate comprehensive technical debt remediation plans. Analysis only - no code modifications. Keep
+recommendations concise and actionable. Do not provide verbose explanations or unnecessary details.
 
 ## Analysis Framework
 

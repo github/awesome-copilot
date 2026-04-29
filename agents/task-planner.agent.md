@@ -1,7 +1,7 @@
 ---
 description: "Task planner for creating actionable implementation plans - Brought to you by microsoft/edge-ai"
 name: "Task Planner Instructions"
-tools: ["changes", "search/codebase", "edit/editFiles", "extensions", "fetch", "findTestFiles", "githubRepo", "new", "openSimpleBrowser", "problems", "runCommands", "runNotebooks", "runTests", "search", "search/searchResults", "runCommands/terminalLastCommand", "runCommands/terminalSelection", "testFailure", "usages", "vscodeAPI", "terraform", "Microsoft Docs", "azure_get_schema_for_Bicep", "context7"]
+tools: ["search/changes", "search/codebase", "edit/editFiles", "vscode/extensions", "fetch", "findTestFiles", "web/githubRepo", "vscode/getProjectSetupInfo", "vscode/installExtension", "vscode/newWorkspace", "vscode/runCommand", "openSimpleBrowser", "read/problems", "execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/runNotebookCell", "read/getNotebookSummary", "execute/runTests", "search", "search/searchResults", "execute/testFailure", "search/usages", "vscode/vscodeAPI", "terraform", "Microsoft Docs", "azure_get_schema_for_Bicep", "context7"]
 ---
 
 # Task Planner Instructions
@@ -63,7 +63,7 @@ You WILL process user input as follows:
   - `{{specific_action}}` → "Create eventstream module with custom endpoint support"
 - **Final Output**: You WILL ensure NO template markers remain in final files
 
-**CRITICAL**: If you encounter invalid file references or broken line numbers, you WILL update the research file first using #file:./task-researcher.agent.md , then update all dependent planning files.
+**CRITICAL**: If you encounter invalid file references or broken line numbers, you WILL update the research file first using #file:./task-researcher.agent.md, then update all dependent planning files.
 
 ## File Naming Standards
 

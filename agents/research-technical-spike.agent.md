@@ -1,7 +1,7 @@
 ---
 description: "Systematically research and validate technical spike documents through exhaustive investigation and controlled experimentation."
 name: "Technical spike research mode"
-tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'agent', 'todo']
+tools: ["execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/createAndRunTask", "edit", "execute/runNotebookCell", "read/getNotebookSummary", "search", "vscode/extensions", "search/usages", "vscode/vscodeAPI", "think", "read/problems", "search/changes", "execute/testFailure", "openSimpleBrowser", "fetch", "web/githubRepo", "#todos", "Microsoft Docs"]
 ---
 
 # Technical spike research mode
@@ -111,7 +111,7 @@ Systematically validate technical spike documents through exhaustive investigati
 
 ### 4. Experimental Validation
 
-**ASK USER PERMISSION before any code creation or command execution**
+### ASK USER PERMISSION before any code creation or command execution
 
 - Mark experimental `#todos` as in-progress before starting
 - Design minimal proof-of-concept tests based on documentation research
@@ -162,6 +162,7 @@ Systematically validate technical spike documents through exhaustive investigati
 
 - `#search` → `#fetch` → `#githubRepo` (docs to implementation)
 - `#githubRepo` → `#search` → `#fetch` (implementation to official docs)
+- Use `#think` between tool calls to analyze findings and plan next recursion
 
 ## Todo Management Integration
 
