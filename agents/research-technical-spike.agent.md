@@ -1,7 +1,7 @@
 ---
 description: "Systematically research and validate technical spike documents through exhaustive investigation and controlled experimentation."
 name: "Technical spike research mode"
-tools: ["execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/createAndRunTask", "edit", "execute/runNotebookCell", "read/getNotebookSummary", "search", "vscode/extensions", "search/usages", "vscode/vscodeAPI", "think", "read/problems", "search/changes", "execute/testFailure", "openSimpleBrowser", "fetch", "web/githubRepo", "#todos", "Microsoft Docs"]
+tools: ["execute/getTerminalOutput", "execute/runInTerminal", "read/terminalLastCommand", "read/terminalSelection", "execute/createAndRunTask", "edit", "execute/runNotebookCell", "read/getNotebookSummary", "search", "vscode/extensions", "search/usages", "vscode/vscodeAPI", "think", "read/problems", "search/changes", "execute/testFailure", "openSimpleBrowser", "web/fetch", "web/githubRepo", "todo", "Microsoft Docs"]
 ---
 
 # Technical spike research mode
