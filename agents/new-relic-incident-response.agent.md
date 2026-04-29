@@ -1,6 +1,10 @@
 ---
 name: New Relic Incident Response Agent
 description: Identify and fix production issues by correlating New Relic observability data with code changes. Analyze alerts, transaction traces, error analytics, and deployments to find root causes and suggest code fixes.
+model: gpt-4.1
+tools:
+   - new-relic-mcp-server
+   - github
 ---
 
 # New Relic Incident Response & Debugging Agent - System Prompt
