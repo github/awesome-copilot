@@ -320,6 +320,10 @@ Confirm the push succeeded before moving on.
 
 ### Step 8 — Open a Pull Request
 
+**?? IMPORTANT:** Always use `--body-file` to pass PR body text, never `--body` with inline text.
+Inline escape sequences like `\n` are not interpreted as newlines by PowerShell and will appear
+as literal text in the PR. Using a file ensures proper markdown formatting.
+
 ```bash
 gh pr create \
   --base main \
@@ -348,6 +352,7 @@ EOF
 ```
 
 ```PowerShell
+# Create PR body using here-string (preserves actual newlines, not escape sequences)
 $prBody = @"
 ## Release vX.Y.Z
 
@@ -362,18 +367,19 @@ This PR prepares the **vX.Y.Z** release.
 - [ ] CI passing
 
 After merging, create the tag on the merge commit:
-\`\`\`
+``````
 git tag vX.Y.Z <merge-commit-sha>
 git push origin vX.Y.Z
-\`\`\`
+``````
 "@
 
-$prBody | Out-File -FilePath release_pr_body.md -Encoding utf8
+# Write to file and use --body-file (do NOT use inline --body with escape sequences)
+$prBody | Out-File -FilePath release_pr_body.md -Encoding utf8 -NoNewline
 gh pr create --base main --head release/vX.Y.Z --title "Release vX.Y.Z" --body-file release_pr_body.md
 ```
 
-Paste the changelog section into the PR body's "What's included" block.
-Print the PR URL to the user.
+Paste the changelog section into the PR body's "What's included" block (or leave placeholder for manual review).
+
 
 ---
 
