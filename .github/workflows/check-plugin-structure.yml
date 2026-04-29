@@ -153,13 +153,31 @@ jobs:
                 '```',
               ].join('\n');
 
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                event: 'REQUEST_CHANGES',
-                body
-              });
+              let reviewPosted = false;
+
+              if (!isFork) {
+                try {
+                  await github.rest.pulls.createReview({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    event: 'REQUEST_CHANGES',
+                    body
+                  });
+                  reviewPosted = true;
+                } catch (error) {
+                  core.warning(
+                    `Could not create PR review (continuing with failure report): ${error.message}`
+                  );
+                }
+              } else {
+                core.warning('PR is from a fork; skipping createReview to avoid permission errors.');
+              }
+
+              if (!reviewPosted) {
+                core.warning('Materialized plugin issues detected. Full details:');
+                core.warning(body);
+              }
 
               core.setFailed('Plugin directories contain materialized files or symlinks that should not be on staged');
             } else {

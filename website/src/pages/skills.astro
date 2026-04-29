@@ -18,34 +18,24 @@ const initialItems = sortSkills(skillsData.items, 'title');
     <div class="page-content">
       <div class="container">
         <div class="listing-toolbar">
-          <div class="search-bar">
-            <label for="search-input" class="sr-only">Search skills</label>
-            <input type="text" id="search-input" placeholder="Search skills..." autocomplete="off">
-          </div>
-
-          <div class="filters-bar" id="filters-bar">
-            <div class="filter-group">
-              <label for="filter-category">Category:</label>
-              <select id="filter-category" multiple aria-label="Filter by category"></select>
-            </div>
-            <div class="filter-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="filter-has-assets">
-                Has Bundled Assets
-              </label>
-            </div>
-            <div class="filter-group">
-              <label for="sort-select">Sort:</label>
-              <select id="sort-select" aria-label="Sort by">
-                <option value="title">Name (A-Z)</option>
-                <option value="lastUpdated">Recently Updated</option>
-              </select>
-            </div>
-            <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
+          <div class="listing-toolbar-row">
+            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} skills</div>
+            <details class="listing-controls">
+              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
+              <div class="listing-controls-panel">
+                <div class="filters-bar" id="filters-bar">
+                  <div class="filter-group">
+                    <label for="sort-select">Sort:</label>
+                    <select id="sort-select" aria-label="Sort by">
+                      <option value="title">Name (A-Z)</option>
+                      <option value="lastUpdated">Recently Updated</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
-
-        <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} of {initialItems.length} skills</div>
         <div class="resource-list" id="resource-list" role="list" set:html={renderSkillsHtml(initialItems)}></div>
         <ContributeCTA resourceType="skills" />
       </div>
@@ -57,6 +47,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
 
   <EmbeddedPageData filename="skills.json" data={skillsData} />
   <script>
+    import '../scripts/listing-flyouts';
     import '../scripts/pages/skills';
   </script>
 </StarlightPage>

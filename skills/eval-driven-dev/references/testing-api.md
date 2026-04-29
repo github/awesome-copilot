@@ -1,7 +1,7 @@
 # Testing API Reference
 
 > Auto-generated from pixie source code docstrings.
-> Do not edit by hand — regenerate from the upstream [pixie-qa](https://github.com/yiouli/pixie-qa) source repository.
+> Do not edit by hand — run `uv run python scripts/generate_skill_docs.py`.
 
 pixie.evals — evaluation harness for LLM applications.
 
@@ -16,11 +16,11 @@ The dataset is a JSON object with these top-level fields:
 ```json
 {
   "name": "customer-faq",
-  "runnable": "pixie_qa/scripts/run_app.py:AppRunnable",
+  "runnable": "pixie_qa/run_app.py:AppRunnable",
   "evaluators": ["Factuality"],
   "entries": [
     {
-      "entry_kwargs": { "question": "Hello" },
+      "input_data": { "question": "Hello" },
       "description": "Basic greeting",
       "eval_input": [{ "name": "input", "value": "Hello" }],
       "expectation": "A friendly greeting that offers to help",
@@ -36,8 +36,8 @@ All fields are top-level on each entry (flat structure — no nesting):
 
 ```
 entry:
-  ├── entry_kwargs    (required) — args for Runnable.run()
-  ├── eval_input      (required) — list of {"name": ..., "value": ...} objects
+  ├── input_data    (required) — args for Runnable.run()
+  ├── eval_input      (optional) — list of {"name": ..., "value": ...} objects (default: [])
   ├── description     (required) — human-readable label for the test case
   ├── expectation     (optional) — reference for comparison-based evaluators
   ├── eval_metadata   (optional) — extra per-entry data for custom evaluators
@@ -50,13 +50,14 @@ entry:
   subclass that drives the app during evaluation.
 - `evaluators` (dataset-level, optional): Default evaluator names — applied to
   every entry that does not declare its own `evaluators`.
-- `entries[].entry_kwargs` (required): Kwargs passed to `Runnable.run()` as a
+- `entries[].input_data` (required): Kwargs passed to `Runnable.run()` as a
   Pydantic model. Keys must match the fields of the Pydantic model used in
   `run(args: T)`.
 - `entries[].description` (required): Human-readable label for the test case.
-- `entries[].eval_input` (required): List of `{"name": ..., "value": ...}`
+- `entries[].eval_input` (optional, default `[]`): List of `{"name": ..., "value": ...}`
   objects. Used to populate the wrap input registry — `wrap(purpose="input")`
-  calls in the app return registry values keyed by `name`.
+  calls in the app return registry values keyed by `name`. The runner
+  automatically prepends `input_data` when building the `Evaluable`.
 - `entries[].expectation` (optional): Concise expectation description
   for comparison-based evaluators. Should describe what a correct output looks
   like, **not** copy the verbatim output. Use `pixie format` on the trace to
@@ -111,13 +112,13 @@ class Evaluable(TestCase):
 
 Data carrier for evaluators. Extends `TestCase` with actual output.
 
-- `eval_input` — `list[NamedData]` populated from the entry's `eval_input` field. **Must have at least one item** (`min_length=1`).
+- `eval_input` — `list[NamedData]` populated from the entry's `eval_input` field plus `input_data` (prepended by the runner). Always has at least one item.
 - `eval_output` — `list[NamedData]` containing ALL `wrap(purpose="output")` and `wrap(purpose="state")` values captured during the run. Each item has `.name` (str) and `.value` (JsonValue). Use `_get_output(evaluable, "name")` to look up by name.
 - `eval_metadata` — `dict[str, JsonValue] | None` from the entry's `eval_metadata` field
 - `expected_output` — expectation text from dataset (or `UNSET` if not provided)
 
 Attributes:
-eval_input: Named input data items (from dataset). Must be non-empty.
+eval_input: Named input data items (from dataset + input_data prepended by runner). Always non-empty.
 eval_output: Named output data items (from wrap calls during run).
 Each item has `.name` (str) and `.value` (JsonValue).
 Contains ALL `wrap(purpose="output")` and `wrap(purpose="state")` values.
@@ -149,7 +150,7 @@ def _get_output(evaluable: Evaluable, name: str) -> Any:
     return None
 ```
 
-**`eval_metadata`** is for passing extra per-entry data to evaluators that isn't an app input or output — e.g., expected tool names, boolean flags, thresholds. Defined as a top-level field on the entry, accessed as `evaluable.eval_metadata`.
+**`eval_metadata`** is for passing extra per-entry data to evaluators that isn't an input data or output — e.g., expected tool names, boolean flags, thresholds. Defined as a top-level field on the entry, accessed as `evaluable.eval_metadata`.
 
 **Complete custom evaluator example** (tool call check + dataset entry):
 
@@ -179,7 +180,7 @@ Corresponding dataset entry:
 
 ```json
 {
-  "entry_kwargs": { "user_message": "I want to end this call" },
+  "input_data": { "user_message": "I want to end this call" },
   "description": "User requests call end after failed verification",
   "eval_input": [{ "name": "user_input", "value": "I want to end this call" }],
   "expectation": "Agent should call endCall tool",

@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-04-28
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -156,13 +156,16 @@ This makes it straightforward to write plugin hooks that are portable across mac
 
 ### Event Configuration
 
-Each hook entry supports these fields:
+Hooks support two types: `"command"` for running local shell scripts, and `"http"` for sending JSON payloads to a URL.
+
+#### Shell command hooks (`type: "command"`)
 
 ```json
 {
   "type": "command",
   "bash": "./scripts/my-check.sh",
   "powershell": "./scripts/my-check.ps1",
+  "matcher": "^bash$",
   "cwd": ".",
   "timeoutSec": 10,
   "env": {
@@ -171,17 +174,41 @@ Each hook entry supports these fields:
 }
 ```
 
-**type**: Always `"command"` for shell-based hooks.
+**type**: `"command"` for shell-based hooks.
 
 **bash**: The command or script to execute on Unix systems. Can be inline or reference a script file.
 
 **powershell**: The command or script to execute on Windows systems. Either `bash` or `powershell` (or both) must be provided.
+
+**matcher** *(optional)*: A regular expression matched against the tool name. When present, the hook only fires for tools whose name fully matches the regex. For example, `"^bash$"` ensures the hook only runs for the `bash` tool, not for `edit` or other tools. This is particularly useful for `preToolUse` and `postToolUse` hooks where you want to target a specific tool.
+
+> **Important (v1.0.36+)**: Prior to v1.0.36, the `matcher` field was silently ignored — hooks with a `matcher` fired for all tool calls regardless of the regex. After upgrading to v1.0.36 or later, only tool calls whose name fully matches the `matcher` regex will trigger the hook. Review any existing `preToolUse`/`postToolUse` hooks that use `matcher` to ensure they still fire as expected.
 
 **cwd**: Working directory for the command (relative to repository root).
 
 **timeoutSec**: Maximum execution time in seconds (default: 30). The hook is killed if it exceeds this limit.
 
 **env**: Additional environment variables merged with the existing environment.
+
+#### HTTP hooks (`type: "http"`)
+
+Instead of running a local script, HTTP hooks POST a JSON payload to a configured URL. This is useful for integrating with webhooks, notification systems, or remote audit services — without needing a local script installed on every machine.
+
+```json
+{
+  "type": "http",
+  "url": "https://your-server.example.com/hooks/copilot",
+  "timeoutSec": 10
+}
+```
+
+The hook sends an HTTP POST request with the same JSON context that command hooks receive via stdin (tool name, tool input, session information, etc.). If the server responds with a non-2xx status, the hook is treated as failed.
+
+**url**: The URL to POST the JSON payload to.
+
+**timeoutSec**: Maximum time in seconds to wait for the HTTP response (default: 30).
+
+HTTP hooks are a lightweight way to fan out hook events to centralized logging or governance services without distributing scripts to every developer's machine.
 
 ### README.md
 
@@ -211,6 +238,8 @@ automatically before the agent commits changes.
 ### Auto-Approve Permissions in CI with PermissionRequest
 
 The `PermissionRequest` hook fires when the CLI shows a permission prompt to the user — for example, when the agent wants to run a shell command for the first time. Unlike `preToolUse` (which can block specific tool *calls*), `PermissionRequest` intercepts the permission approval UI itself, making it ideal for **headless and CI environments** where no one is available to click "Allow".
+
+> **Location-based persistence (v1.0.37+)**: Permission approvals are now persisted by directory by default — once you approve a permission for a given working directory, that approval carries over to future sessions started in the same directory. You no longer need to re-approve the same tools every time. Use `PermissionRequest` hooks to automate approvals in CI, and rely on the persisted approvals for interactive local sessions.
 
 When your hook script exits with code `0`, the permission request is **approved**. Exit with a non-zero code to **deny** it (the user will still see the prompt).
 
@@ -312,7 +341,7 @@ If the lint command exits with a non-zero status, the action is blocked.
 
 ### Security Gating with preToolUse
 
-Block dangerous commands before they execute:
+Block dangerous commands before they execute. Use the `matcher` field to target only the `bash` tool, so the hook doesn't fire for file edits or other tools:
 
 ```json
 {
@@ -321,6 +350,7 @@ Block dangerous commands before they execute:
     "preToolUse": [
       {
         "type": "command",
+        "matcher": "^bash$",
         "bash": "./scripts/security-check.sh",
         "cwd": ".",
         "timeoutSec": 15
@@ -427,6 +457,27 @@ Send a Slack or Teams notification when an agent session completes:
   }
 }
 ```
+
+### Notification on Session End via HTTP Hook
+
+Send session activity to a remote audit endpoint using an HTTP hook (no local script needed):
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "http",
+        "url": "https://audit.example.com/copilot-sessions",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+The CLI POSTs the session context as JSON to the specified URL. This is ideal for centralized logging or compliance services that should receive events from all developers without requiring each person to install a local script.
 
 ### Injecting Context into Subagents
 
