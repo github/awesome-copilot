@@ -130,34 +130,34 @@ Every module **must** include these files (even if empty):
 
 ```text
 terraform-<PROVIDER>-<NAME>/
-├── README.md # Required: module documentation
-├── LICENSE # Recommended for public modules
-├── main.tf # Required: primary resources
-├── variables.tf # Required: input variables
-├── outputs.tf # Required: output values
-├── providers.tf # Recommended: provider config
-├── terraform.tf # Recommended: version constraints
-├── backend.tf # Root modules: backend config
-├── locals.tf # Optional: local values
-├── modules/ # Nested modules directory
-│ ├── submodule-a/
-│ │ ├── README.md # Include if externally usable
-│ │ ├── main.tf
-│ │ ├── variables.tf
-│ │ └── outputs.tf
-│ └── submodule-b/
-│ │ ├── main.tf # No README = internal only
-│ │ ├── variables.tf
-│ │ └── outputs.tf
-└── examples/ # Usage examples directory
-│ ├── basic/
-│ │ ├── README.md
-│ │ └── main.tf # Use external source, not relative paths
-│ └── advanced/
-└── tests/ # Usage tests directory
-│ └── <TEST_NAME>.tftest.tf
-├── README.md
-└── main.tf
+├── README.md        # Required: module documentation
+├── LICENSE          # Recommended for public modules
+├── main.tf          # Required: primary resources
+├── variables.tf     # Required: input variables
+├── outputs.tf       # Required: output values
+├── providers.tf     # Recommended: provider config
+├── terraform.tf     # Recommended: version constraints
+├── backend.tf       # Root modules: backend config
+├── locals.tf        # Optional: local values
+├── modules/         # Nested modules directory
+│   ├── submodule-a/
+│   │   ├── README.md
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── submodule-b/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── examples/        # Usage examples directory
+│   ├── basic/
+│   │   ├── README.md
+│   │   └── main.tf  # Use external source, not relative paths
+│   └── advanced/
+│       ├── README.md
+│       └── main.tf
+└── tests/           # Usage tests directory
+    └── unit.tftest.tf
 ```
 
 #### D. Code Organization
