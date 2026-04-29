@@ -626,8 +626,46 @@ Do **not** introduce a new compiled runtime just to implement an ordinary hook.
 - Logging raw prompts, secrets, credentials, or large tool outputs
 - Monolithic hooks that mix unrelated responsibilities
 
-## Portability Note
+## Portability: CLI, VS Code, and Cloud Agent
 
-- GitHub Copilot: `.github/hooks/*.json`, event arrays, `matcher` for tool-name filtering, structured JSON deny on stdout for `preToolUse`, non-zero exit to block for other events
-- Claude Code: different settings location and event names; exit 2 = block, exit 1 = non-blocking error; matchers with regex and `if` conditions; 5 hook types (command, http, mcp_tool, prompt, agent); 29+ events including `FileChanged`, `CwdChanged`, `ConfigChange`
-- Shared best practice: keep hooks small, deterministic, explicit about I/O, and strict about side effects
+The same `.github/hooks/*.json` files work across all three GitHub Copilot hook hosts. Write one config and it runs everywhere — but be aware of these differences:
+
+### What is the same everywhere
+
+| Aspect | Behavior |
+| ---- | ---- |
+| Config location | `.github/hooks/*.json` in the repository |
+| Config schema | `version: 1`, event arrays, `type: "command"` |
+| Event names | Both camelCase (`preToolUse`) and PascalCase (`PreToolUse`) are accepted |
+| Config fields | `bash`, `powershell`, `cwd`, `env`, `timeoutSec` all work |
+| Script contract | stdin JSON, exit codes, stdout/stderr channels |
+
+### What may differ
+
+| Aspect | CLI | VS Code | Cloud Agent |
+| ---- | ---- | ---- | ---- |
+| Hook loading | From current working directory | From workspace root | From default branch only |
+| Shell environment | Your terminal's shell | VS Code's integrated terminal | Server-side Linux container |
+| Tool argument field | `toolArgs` (JSON string) or `tool_input` (object) — varies by version | May use `tool_input` or `toolInput` | May use `toolArgs` or `tool_input` |
+| `matcher` support | Yes (v1.0.35+) | Yes | Check current docs |
+| `additionalContext` in `sessionStart` stdout | Yes | Yes | Check current docs |
+
+### How to write portable hooks
+
+- Use both `bash` and `powershell` entries if the hook must work locally (CLI/VS Code on Windows) and on the cloud agent (Linux)
+- Parse tool arguments defensively — handle `toolArgs` (string), `tool_input` (object), and `toolInput` (object) as shown in the Script Contract section
+- Use camelCase event names in configs (the canonical form; PascalCase also accepted)
+- Do not depend on the host machine having specific tools — check dependencies early
+- Test locally by piping sample JSON payloads before relying on the hook in production
+
+## Portability: Claude Code
+
+Claude Code uses a different hook system:
+
+- Different settings locations (`~/.claude/settings.json`, `.claude/settings.json`)
+- Different event names and matcher syntax (regex, `if` conditions)
+- Exit 2 = block, exit 1 = non-blocking error (not the same as GitHub Copilot)
+- 5 hook types (command, http, mcp_tool, prompt, agent) vs command-only for GitHub Copilot
+- 29+ events including `FileChanged`, `CwdChanged`, `ConfigChange`
+
+The shared best practice is the same: keep hooks small, deterministic, explicit about I/O, and strict about side effects.
