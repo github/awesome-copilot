@@ -116,7 +116,7 @@ Cross-platform example using Python through both entries:
 
 Every hook script follows the same basic contract: read JSON from stdin, do work, and respond through exit code, stdout, and stderr.
 
-**Important**: the tool arguments field may appear as `toolArgs` (a JSON string requiring a second parse) or `tool_input` / `toolInput` (may be a pre-parsed object). The official reference uses `toolArgs`; some repo samples and newer host versions use `tool_input`. Handle both defensively.
+**Important**: `toolArgs` is a **JSON string**, not a nested object. You must parse it a second time to access its fields.
 
 ### Reading stdin and responding — Bash and PowerShell
 
@@ -127,13 +127,8 @@ Every hook script follows the same basic contract: read JSON from stdin, do work
 set -euo pipefail
 payload="$(cat)"
 tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
-# Handle both toolArgs (JSON string) and tool_input (object)
-tool_args="$(printf '%s' "$payload" | jq -r '.toolArgs // empty')"
-if [[ -n "$tool_args" ]]; then
-  command="$(printf '%s' "$tool_args" | jq -r '.command // ""')"   # parse again
-else
-  command="$(printf '%s' "$payload" | jq -r '.tool_input.command // .toolInput.command // ""')"
-fi
+tool_args="$(printf '%s' "$payload" | jq -r '.toolArgs')"
+command="$(printf '%s' "$tool_args" | jq -r '.command // ""')"
 ```
 
 **PowerShell**:
@@ -141,20 +136,8 @@ fi
 ```powershell
 Set-StrictMode -Version Latest
 $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json
-# Handle both toolArgs (JSON string or object) and tool_input/toolInput (object)
-$toolArgs = $null
-if ($payload.toolArgs) {
-    if ($payload.toolArgs -is [string]) {
-        $toolArgs = $payload.toolArgs | ConvertFrom-Json
-    } else {
-        $toolArgs = $payload.toolArgs
-    }
-} elseif ($payload.tool_input) {
-    $toolArgs = $payload.tool_input
-} elseif ($payload.toolInput) {
-    $toolArgs = $payload.toolInput
-}
-$command = if ($toolArgs) { $toolArgs.command } else { $null }
+$toolArgs = $payload.toolArgs | ConvertFrom-Json
+$command = $toolArgs.command
 ```
 
 To deny in `preToolUse` (PowerShell):
@@ -230,18 +213,7 @@ tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
 
 # Only gate bash commands that are git commits
 if [[ "$tool_name" != "bash" ]]; then exit 0; fi
-tool_args_json="$(
-  printf '%s' "$payload" | jq -c '
-    if (.toolArgs? // empty) != empty then
-      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
-      else .toolArgs
-      end
-    else
-      (.tool_input // .toolInput // {})
-    end
-  '
-)"
-command="$(printf '%s' "$tool_args_json" | jq -r '.command // ""')"
+command="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.command // ""')"
 if ! printf '%s' "$command" | grep -q "git commit"; then exit 0; fi
 
 CWD="$(printf '%s' "$payload" | jq -r '.cwd')"
@@ -329,18 +301,7 @@ case "$tool_name" in
 esac
 [[ "$result_type" != "success" ]] && exit 0
 
-tool_input="$(
-  printf '%s' "$payload" | jq -c '
-    if (.toolArgs? // empty) != empty then
-      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
-      else .toolArgs
-      end
-    else
-      (.tool_input // .toolInput // {})
-    end
-  '
-)"
-file_path="$(printf '%s' "$tool_input" | jq -r '.path // ""')"
+file_path="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.path // ""')"
 [[ -z "$file_path" || ! -f "$file_path" ]] && exit 0
 
 # Run the project's formatter — adapt to your stack
@@ -399,18 +360,7 @@ tool_name="$(printf '%s' "$payload" | jq -r '.toolName')"
 
 [[ "$tool_name" != "bash" ]] && exit 0
 
-tool_args_json="$(
-  printf '%s' "$payload" | jq -c '
-    if (.toolArgs? // empty) != empty then
-      if (.toolArgs | type) == "string" then (.toolArgs | fromjson)
-      else .toolArgs
-      end
-    else
-      (.tool_input // .toolInput // {})
-    end
-  '
-)"
-command="$(printf '%s' "$tool_args_json" | jq -r '.command // ""')"
+command="$(printf '%s' "$payload" | jq -r '.toolArgs' | jq -r '.command // ""')"
 
 if printf '%s' "$command" | grep -qE 'rm -rf /|git reset --hard|git clean -fd|git push.*--force'; then
   # Truncate command to avoid leaking secrets in deny reason or logs
@@ -517,7 +467,7 @@ The field is `prompt` — the exact text the user submitted.
 }
 ```
 
-The tool arguments field may appear as `toolArgs` (a JSON string — parse it a second time), `tool_input`, or `toolInput` (may already be an object). Handle both defensively. See the parsing examples above.
+`toolArgs` is a **JSON string** — parse it a second time to access its fields.
 
 **`preToolUse` stdout output** — the host parses stdout for:
 
@@ -626,46 +576,22 @@ Do **not** introduce a new compiled runtime just to implement an ordinary hook.
 - Logging raw prompts, secrets, credentials, or large tool outputs
 - Monolithic hooks that mix unrelated responsibilities
 
-## Portability: CLI, VS Code, and Cloud Agent
+## Portability
 
-The same `.github/hooks/*.json` files work across all three GitHub Copilot hook hosts. Write one config and it runs everywhere — but be aware of these differences:
+### GitHub Copilot: CLI, VS Code, and Cloud Agent
 
-### What is the same everywhere
+The same `.github/hooks/*.json` config, the same payload schema, and the same script contract work across CLI, VS Code, and the cloud agent. Event names accept both camelCase (`preToolUse`) and PascalCase (`PreToolUse`). The documented payload field for tool arguments is `toolArgs` (a JSON string).
 
-| Aspect | Behavior |
-| ---- | ---- |
-| Config location | `.github/hooks/*.json` in the repository |
-| Config schema | `version: 1`, event arrays, `type: "command"` |
-| Event names | Both camelCase (`preToolUse`) and PascalCase (`PreToolUse`) are accepted |
-| Config fields | `bash`, `powershell`, `cwd`, `env`, `timeoutSec` all work |
-| Script contract | stdin JSON, exit codes, stdout/stderr channels |
+One thing to know: the cloud agent only loads hooks from the repository's **default branch**. If your hooks.json is only on a feature branch, the cloud agent won't see it.
 
-### What may differ
-
-| Aspect | CLI | VS Code | Cloud Agent |
-| ---- | ---- | ---- | ---- |
-| Hook loading | From current working directory | From workspace root | From default branch only |
-| Shell environment | Your terminal's shell | VS Code's integrated terminal | Server-side Linux container |
-| Tool argument field | `toolArgs` (JSON string) or `tool_input` (object) — varies by version | May use `tool_input` or `toolInput` | May use `toolArgs` or `tool_input` |
-| `matcher` support | Yes (v1.0.35+) | Yes | Check current docs |
-| `additionalContext` in `sessionStart` stdout | Yes | Yes | Check current docs |
-
-### How to write portable hooks
-
-- Use both `bash` and `powershell` entries if the hook must work locally (CLI/VS Code on Windows) and on the cloud agent (Linux)
-- Parse tool arguments defensively — handle `toolArgs` (string), `tool_input` (object), and `toolInput` (object) as shown in the Script Contract section
-- Use camelCase event names in configs (the canonical form; PascalCase also accepted)
-- Do not depend on the host machine having specific tools — check dependencies early
-- Test locally by piping sample JSON payloads before relying on the hook in production
-
-## Portability: Claude Code
+### Claude Code
 
 Claude Code uses a different hook system:
 
-- Different settings locations (`~/.claude/settings.json`, `.claude/settings.json`)
+- Settings in `~/.claude/settings.json` and `.claude/settings.json`
 - Different event names and matcher syntax (regex, `if` conditions)
 - Exit 2 = block, exit 1 = non-blocking error (not the same as GitHub Copilot)
-- 5 hook types (command, http, mcp_tool, prompt, agent) vs command-only for GitHub Copilot
+- 5 hook types (command, http, mcp_tool, prompt, agent)
 - 29+ events including `FileChanged`, `CwdChanged`, `ConfigChange`
 
 The shared best practice is the same: keep hooks small, deterministic, explicit about I/O, and strict about side effects.
