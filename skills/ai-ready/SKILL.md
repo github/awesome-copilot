@@ -3,20 +3,17 @@ name: ai-ready
 description: Make any repo AI-ready — analyzes your codebase and generates AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack. USE THIS SKILL when the user asks to "make this repo ai-ready", "set up AI config", or "prepare this repo for AI contributions".
 ---
 
-# AI Ready — Install & Run
+# AI Ready
 
-This skill installs the full [ai-ready](https://github.com/johnpapa/ai-ready) skill by [John Papa](https://github.com/johnpapa) and runs it on the current repository.
+The full ai-ready skill by [John Papa](https://github.com/johnpapa) analyzes any repo and generates the configuration files AI agents need to contribute correctly — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more.
 
-*Why?*: The full ai-ready skill is ~600 lines of detailed instructions that evolve frequently. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date.
+The skill is maintained at [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) and must be installed by the user before use.
 
 ## Steps
 
-1. Download the skill to the user's personal skills directory:
+1. Tell the user to install the skill by running this command in their terminal:
    ```bash
-   mkdir -p ~/.copilot/skills/ai-ready
-   curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md \
-     -o ~/.copilot/skills/ai-ready/SKILL.md
+   mkdir -p ~/.copilot/skills/ai-ready && curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md -o ~/.copilot/skills/ai-ready/SKILL.md
    ```
-2. Tell the user: _"I've installed the ai-ready skill. Reloading skills now."_
-3. Reload skills so the newly installed skill is available: `/skills reload`
-4. Run the ai-ready skill on the current repository. It will analyze the codebase, score AI-readiness, and propose changes.
+2. After the user confirms they've installed it, tell them to reload skills with `/skills reload` and then say `make this repo ai-ready`.
+3. Do **not** run the install command on the user's behalf. The user must run it themselves.
