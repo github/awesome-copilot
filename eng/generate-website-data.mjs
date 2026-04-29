@@ -355,64 +355,18 @@ function generateInstructionsData(gitDates) {
 }
 
 /**
- * Categorize a skill based on its name and description
- */
-function categorizeSkill(name, description) {
-  const text = `${name} ${description}`.toLowerCase();
-
-  if (text.includes("azure") || text.includes("appinsights")) return "Azure";
-  if (
-    text.includes("github") ||
-    text.includes("gh-cli") ||
-    text.includes("git-commit") ||
-    text.includes("git ")
-  )
-    return "Git & GitHub";
-  if (text.includes("vscode") || text.includes("vs code")) return "VS Code";
-  if (
-    text.includes("test") ||
-    text.includes("qa") ||
-    text.includes("playwright")
-  )
-    return "Testing";
-  if (
-    text.includes("microsoft") ||
-    text.includes("m365") ||
-    text.includes("workiq")
-  )
-    return "Microsoft";
-  if (text.includes("cli") || text.includes("command")) return "CLI Tools";
-  if (
-    text.includes("diagram") ||
-    text.includes("plantuml") ||
-    text.includes("visual")
-  )
-    return "Diagrams";
-  if (
-    text.includes("nuget") ||
-    text.includes("dotnet") ||
-    text.includes(".net")
-  )
-    return ".NET";
-
-  return "Other";
-}
-
-/**
  * Generate skills metadata
  */
 function generateSkillsData(gitDates) {
   const skills = [];
 
   if (!fs.existsSync(SKILLS_DIR)) {
-    return { items: [], filters: { categories: [], hasAssets: ["Yes", "No"] } };
+    return { items: [], filters: { hasAssets: ["Yes", "No"] } };
   }
 
   const folders = fs
     .readdirSync(SKILLS_DIR)
     .filter((f) => fs.statSync(path.join(SKILLS_DIR, f)).isDirectory());
-
-  const allCategories = new Set();
 
   for (const folder of folders) {
     const skillPath = path.join(SKILLS_DIR, folder);
@@ -422,31 +376,39 @@ function generateSkillsData(gitDates) {
       const relativePath = path
         .relative(ROOT_FOLDER, skillPath)
         .replace(/\\/g, "/");
-      const category = categorizeSkill(metadata.name, metadata.description);
-      allCategories.add(category);
 
       // Get all files in the skill folder recursively
       const files = getSkillFiles(skillPath, relativePath);
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
+      const title = metadata.name
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      const searchText = [
+        title,
+        metadata.description,
+        folder,
+        metadata.name,
+        relativePath,
+      ]
+        .join(" ")
+        .toLowerCase();
 
       skills.push({
         id: folder,
         name: metadata.name,
-        title: metadata.name
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" "),
+        title,
         description: metadata.description,
         assets: metadata.assets,
         hasAssets: metadata.assets.length > 0,
         assetCount: metadata.assets.length,
-        category: category,
         path: relativePath,
         skillFile: skillFilePath,
         files: files,
         lastUpdated: gitDates.get(skillFilePath) || null,
+        searchText,
       });
     }
   }
@@ -456,7 +418,6 @@ function generateSkillsData(gitDates) {
   return {
     items: sortedSkills,
     filters: {
-      categories: Array.from(allCategories).sort(),
       hasAssets: ["Yes", "No"],
     },
   };
@@ -774,7 +735,7 @@ function generateSearchIndex(
       description: skill.description,
       path: skill.skillFile,
       lastUpdated: skill.lastUpdated,
-      searchText: `${skill.title} ${skill.description}`.toLowerCase(),
+      searchText: skill.searchText,
     });
   }
 
@@ -964,9 +925,7 @@ async function main() {
 
   const skillsData = generateSkillsData(gitDates);
   const skills = skillsData.items;
-  console.log(
-    `✓ Generated ${skills.length} skills (${skillsData.filters.categories.length} categories)`
-  );
+  console.log(`✓ Generated ${skills.length} skills`);
 
   const pluginsData = generatePluginsData(gitDates);
   const plugins = pluginsData.items;

@@ -27,6 +27,22 @@ export interface RenderableTool {
   tags: string[];
 }
 
+export type ToolSortOption = "featured" | "title";
+
+export function sortTools<T extends RenderableTool>(
+  tools: T[],
+  sort: ToolSortOption
+): T[] {
+  return [...tools].sort((a, b) => {
+    if (sort === "featured") {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+    }
+
+    return a.title.localeCompare(b.title);
+  });
+}
+
 function formatMultilineText(text: string): string {
   return escapeHtml(text).replace(/\r?\n/g, "<br>");
 }
@@ -61,19 +77,13 @@ function getToolActionLink(
 }
 
 export function renderToolsHtml(
-  tools: RenderableTool[],
-  options: {
-    query?: string;
-    highlightTitle?: (title: string, query: string) => string;
-  } = {}
+  tools: RenderableTool[]
 ): string {
-  const { query = "", highlightTitle } = options;
-
   if (tools.length === 0) {
     return `
       <div class="empty-state">
         <h3>No tools found</h3>
-        <p>Try a different search term or adjust filters</p>
+        <p>Try a different category or clear the current filters</p>
       </div>
     `;
   }
@@ -172,15 +182,10 @@ export function renderToolsHtml(
           ? `<div class="tool-actions">${actions.join("")}</div>`
           : "";
 
-      const titleHtml =
-        query && highlightTitle
-          ? highlightTitle(tool.name, query)
-          : escapeHtml(tool.name);
-
       return `
       <div class="tool-card">
         <div class="tool-header">
-          <h2>${titleHtml}</h2>
+          <h2>${escapeHtml(tool.name)}</h2>
           <div class="tool-badges">
             ${badges.join("")}
           </div>

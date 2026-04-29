@@ -354,3 +354,30 @@ tools:
       - verification
       - quality-gates
       - cost-governance
+
+  - id: copilot-cockpit
+    name: Copilot Cockpit
+    description: >-
+      A VS Code extension for structured GitHub Copilot workflows. Adds planning,
+      approvals, scheduling, research runs, and review checkpoints inside the editor.
+    category: VS Code Extensions
+    featured: false
+    requirements:
+      - VS Code version 1.80.0 or higher
+      - GitHub Copilot in VS Code
+      - Download the VSIX from GitHub Releases and install it in VS Code
+    links:
+      github: https://github.com/goodguy1963/Copilot-Cockpit
+      documentation: https://github.com/goodguy1963/Copilot-Cockpit#readme
+    features:
+      - "Todo cockpit: Plan work, manage approvals, and keep execution status visible"
+      - "Scheduler and jobs: Run scheduled tasks, multi-step jobs, and pause checkpoints"
+      - "MCP integration: Use built-in MCP tools for repo workflows inside VS Code"
+      - "Research runs: Capture and review research tasks without leaving the editor"
+    tags:
+      - vscode
+      - extension
+      - copilot
+      - planning
+      - scheduling
+      - mcp

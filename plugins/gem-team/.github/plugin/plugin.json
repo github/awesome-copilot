@@ -3,7 +3,9 @@
     "./agents"
   ],
   "author": {
-    "name": "Awesome Copilot Community"
+    "email": "mubaidr@gmail.com",
+    "name": "mubaidr",
+    "url": "https://github.com/mubaidr"
   },
   "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
   "keywords": [
@@ -18,8 +20,8 @@
     "prd",
     "mobile"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "name": "gem-team",
-  "repository": "https://github.com/github/awesome-copilot",
-  "version": "1.6.6"
+  "repository": "https://github.com/mubaidr/gem-team",
+  "version": "1.13.0"
 }
