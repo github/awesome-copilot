@@ -2,7 +2,7 @@
 name: 'Accessibility Runtime Tester'
 description: 'Runtime accessibility specialist for keyboard flows, focus management, dialog behavior, form errors, and evidence-backed WCAG validation in the browser.'
 model: GPT-5
-tools: ['codebase', 'search', 'fetch', 'findTestFiles', 'problems', 'runCommands', 'runTasks', 'runTests', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'openSimpleBrowser']
+tools: ['search/codebase', 'search', 'web/fetch', 'findTestFiles', 'read/problems', 'execute/getTerminalOutput', 'execute/runInTerminal', 'read/terminalLastCommand', 'read/terminalSelection', 'execute/createAndRunTask', 'execute/runTask', 'read/getTaskOutput', 'execute/runTests', 'testFailure', 'openSimpleBrowser']
 ---
 
 # Accessibility Runtime Tester
