@@ -41,6 +41,51 @@ tools:
       - search
       - install
 
+  - id: chatcrystal
+    name: ChatCrystal
+    description: >-
+      Local-first knowledge base for AI coding conversations. ChatCrystal imports
+      conversations from Claude Code, Cursor, Codex CLI, Trae, and GitHub Copilot,
+      distills them into searchable notes, and exposes recall, search, and writeback
+      tools through a stdio MCP server.
+    category: MCP Servers
+    featured: false
+    requirements:
+      - Node.js 20 or higher
+      - npm
+      - ChatCrystal installed globally with npm
+      - Optional Ollama or supported API provider for summarization and embeddings
+    links:
+      github: https://github.com/ZengLiangYi/ChatCrystal
+      npm: https://www.npmjs.com/package/chatcrystal
+      documentation: https://zengliangyi.github.io/ChatCrystal/
+    features:
+      - "Conversation import: Claude Code, Cursor, Codex CLI, Trae, and GitHub Copilot"
+      - "Semantic search: find prior fixes, decisions, code snippets, and notes"
+      - "MCP tools: search_knowledge, get_note, list_notes, and get_relations"
+      - "Memory loop: recall_for_task and write_task_memory for coding agents"
+      - "Local-first storage: data is stored under the user's ChatCrystal data directory"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "chatcrystal": {
+              "type": "stdio",
+              "command": "crystal",
+              "args": ["mcp"]
+            }
+          }
+        }
+    tags:
+      - mcp
+      - cli
+      - npm
+      - local-first
+      - memory
+      - knowledge-base
+      - semantic-search
+
   - id: vscode-extension
     name: Awesome GitHub Copilot Browser
     description: >-
