@@ -147,8 +147,8 @@ applyTo: ".copilot-tracking/changes/{{date}}-{{task_description}}-changes.md"
 ### External References
 
 - #file:../research/{{research_file_name}} - {{research_description}}
-- #githubRepo:"{{org_repo}} {{search_terms}}" - {{implementation_patterns_description}}
-- #fetch:{{documentation_url}} - {{documentation_description}}
+- web/githubRepo:"{{org_repo}} {{search_terms}}" - {{implementation_patterns_description}}
+- fetch:{{documentation_url}} - {{documentation_description}}
 
 ### Standards References
 
@@ -211,7 +211,7 @@ applyTo: ".copilot-tracking/changes/{{date}}-{{task_description}}-changes.md"
   - {{completion_criteria_2}}
 - **Research References**:
   - #file:../research/{{date}}-{{task_description}}-research.md (Lines {{research_line_start}}-{{research_line_end}}) - {{research_section_description}}
-  - #githubRepo:"{{org_repo}} {{search_terms}}" - {{implementation_patterns_description}}
+  - web/githubRepo:"{{org_repo}} {{search_terms}}" - {{implementation_patterns_description}}
 - **Dependencies**:
   - {{previous_task_requirement}}
   - {{external_dependency}}
@@ -241,7 +241,7 @@ applyTo: ".copilot-tracking/changes/{{date}}-{{task_description}}-changes.md"
   - {{completion_criteria}}
 - **Research References**:
   - #file:../research/{{date}}-{{task_description}}-research.md (Lines {{research_line_start}}-{{research_line_end}}) - {{research_section_description}}
-  - #githubRepo:"{{org_repo}} {{search_terms}}" - {{patterns_description}}
+  - web/githubRepo:"{{org_repo}} {{search_terms}}" - {{patterns_description}}
 - **Dependencies**:
   - Phase 1 completion
 
