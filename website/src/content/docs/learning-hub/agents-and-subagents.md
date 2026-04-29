@@ -18,7 +18,7 @@ prerequisites:
   - Basic understanding of GitHub Copilot agents
 ---
 
-We're [familiar with agents](./what-are-agents-skills-instructions.md), but there is another aspect to agentic workflows that we need to consider, and that is the role of subagents. An **agent** is the primary assistant you choose for a session or workflow while a **subagent** is a temporary worker that the main agent launches for a narrower task, usually to keep context clean, parallelize work, or apply a more specialized set of instructions.
+We're [familiar with agents](../what-are-agents-skills-instructions/), but there is another aspect to agentic workflows that we need to consider, and that is the role of subagents. An **agent** is the primary assistant you choose for a session or workflow while a **subagent** is a temporary worker that the main agent launches for a narrower task, usually to keep context clean, parallelize work, or apply a more specialized set of instructions.
 
 This distinction matters more as you move from simple chat prompts to orchestrated agentic workflows.
 
