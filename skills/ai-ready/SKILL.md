@@ -9,24 +9,14 @@ This skill installs the full [ai-ready](https://github.com/johnpapa/ai-ready) sk
 
 *Why?*: The full ai-ready skill is ~600 lines of detailed instructions that evolve frequently. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date.
 
-## Step 1 — Install the latest version
+## Steps
 
-Download the skill to the user's personal skills directory:
-
-```bash
-mkdir -p ~/.copilot/skills/ai-ready
-curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md \
-  -o ~/.copilot/skills/ai-ready/SKILL.md
-```
-
-Tell the user: _"I've installed the ai-ready skill. Reloading skills now."_
-
-## Step 2 — Reload and run
-
-Reload skills so the newly installed skill is available:
-
-```
-/skills reload
-```
-
-Then run the ai-ready skill on the current repository. It will analyze the codebase, score AI-readiness, and propose changes.
+1. Download the skill to the user's personal skills directory:
+   ```bash
+   mkdir -p ~/.copilot/skills/ai-ready
+   curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md \
+     -o ~/.copilot/skills/ai-ready/SKILL.md
+   ```
+2. Tell the user: _"I've installed the ai-ready skill. Reloading skills now."_
+3. Reload skills so the newly installed skill is available: `/skills reload`
+4. Run the ai-ready skill on the current repository. It will analyze the codebase, score AI-readiness, and propose changes.
