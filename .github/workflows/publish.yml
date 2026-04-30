@@ -1,11 +1,17 @@
-name: Publish to main
+name: Publish distribution branches
 
 on:
   push:
     branches: [staged]
 
+env:
+  SOURCE_BRANCH: staged
+  LEGACY_PUBLISHED_BRANCH: main
+  MARKETPLACE_BRANCH: marketplace
+  WEBSITE_DEPLOY_REF: main
+
 concurrency:
-  group: publish-to-main
+  group: publish-distribution-branches
   cancel-in-progress: true
 
 permissions:
@@ -16,10 +22,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout staged branch
+      - name: Checkout source branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: ${{ env.SOURCE_BRANCH }}
           fetch-depth: 0
 
       - name: Extract Node version from package.json
@@ -52,16 +58,16 @@ jobs:
       - name: Fix line endings
         run: bash eng/fix-line-endings.sh
 
-      - name: Publish to main
+      - name: Publish to distribution branches
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git add -f plugins/*/agents/ plugins/*/skills/
-          git commit -m "chore: publish from staged" --allow-empty
-          git push origin HEAD:main --force
+          git commit -m "chore: publish from ${SOURCE_BRANCH}" --allow-empty
+          git push origin --force --atomic HEAD:${LEGACY_PUBLISHED_BRANCH} HEAD:${MARKETPLACE_BRANCH}
 
       - name: Dispatch website deployment
-        run: gh workflow run deploy-website.yml --ref main
+        run: gh workflow run deploy-website.yml --ref "${WEBSITE_DEPLOY_REF}"
         env:
           GH_TOKEN: ${{ github.token }}
