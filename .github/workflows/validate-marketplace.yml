@@ -68,11 +68,21 @@ jobs:
           audit-report: 'true'
 
       # Gate A: supply-chain integrity (consumer-side).
+      # `apm audit --ci` exits non-zero on policy failures (lockfile drift,
+      # orphan packages, hidden Unicode in deployed content). On a
+      # marketplace-only manifest with no `dependencies:` block this is a
+      # short-circuit pass ("No dependencies declared -- lockfile not
+      # required"), but the gate is wired so the moment awesome-copilot
+      # adds a real dependency the policy fires automatically.
       - name: apm audit --ci
         run: apm audit --ci
 
+      # SARIF upload only runs when apm-action actually produced a report.
+      # For marketplace-only manifests there is no lockfile to scan, so
+      # apm-action emits "No apm.lock.yaml found -- nothing to scan" and
+      # writes no file. Guarding on hashFiles() avoids a spurious failure.
       - name: Upload APM audit SARIF
-        if: always()
+        if: always() && hashFiles('apm-audit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: apm-audit.sarif
