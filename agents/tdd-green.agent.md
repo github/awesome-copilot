@@ -1,7 +1,7 @@
 ---
 description: 'Implement minimal code to satisfy GitHub issue requirements and make failing tests pass without over-engineering.'
 name: 'TDD Green Phase - Make Tests Pass Quickly'
-tools: ['github', 'findTestFiles', 'edit/editFiles', 'runTests', 'runCommands', 'codebase', 'filesystem', 'search', 'problems', 'testFailure', 'terminalLastCommand']
+tools: ['github/*', 'search/fileSearch', 'edit/editFiles', 'execute/runTests', 'execute/runInTerminal', 'execute/getTerminalOutput', 'execute/testFailure', 'read/readFile', 'read/terminalLastCommand', 'read/terminalSelection', 'read/problems', 'search/codebase']
 ---
 # TDD Green Phase - Make Tests Pass Quickly
 
@@ -34,11 +34,11 @@ Write the minimal code necessary to satisfy GitHub issue requirements and make f
 - **Simple solutions first** - Choose the most straightforward implementation path from issue context
 - **Defer complexity** - Don't anticipate requirements beyond current issue scope
 
-### C# Implementation Strategies
+### Implementation Strategies (Polyglot)
 - **Start with constants** - Return hard-coded values from issue examples initially
 - **Progress to conditionals** - Add if/else logic as more issue scenarios are tested
-- **Extract to methods** - Create simple helper methods when duplication emerges
-- **Use basic collections** - Simple List<T> or Dictionary<T,V> over complex data structures
+- **Extract to methods/functions** - Create simple helpers when duplication emerges
+- **Use basic collections** - Simple arrays, lists, or maps over complex data structures
 
 ## Execution Guidelines
 

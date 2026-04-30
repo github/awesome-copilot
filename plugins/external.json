@@ -91,7 +91,7 @@
   {
     "name": "modernize-dotnet",
     "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-    "version": "1.0.979-preview1",
+    "version": "1.0.1063-preview1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -137,6 +137,23 @@
     "source": {
       "source": "github",
       "repo": "figma/mcp-server-guide"
+    }
+  },
+  {
+    "name": "whatidid",
+    "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
+    "keywords": ["copilot", "productivity", "impact", "report", "estimation", "roi", "session-logs"],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/What-I-Did-Copilot",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/What-I-Did-Copilot"
     }
   }
 ]

@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-01
+lastUpdated: 2026-04-29
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -391,6 +391,7 @@ CLI settings use **camelCase** naming. Key settings added in recent releases:
 | `statusLine` | Show status line in the terminal UI |
 | `include_gitignored` | Include gitignored files in `@` file search |
 | `extension_mode` | Control extensibility (agent tools and plugins) |
+| `continueOnAutoMode` | Automatically switch to the auto model on rate limit instead of pausing |
 
 > **Note**: Older snake_case names (e.g., `include_gitignored`, `auto_updates_channel`) are still accepted for backward compatibility, but camelCase is now the preferred format.
 
@@ -400,6 +401,8 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 - `.claude/settings.local.json` — local overrides (add to `.gitignore` for personal adjustments)
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
+
+> **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.agents/` for user-level agents, `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
 
@@ -424,6 +427,25 @@ The `/session rename` command renames the current session. When called **without
 ```
 
 Auto-generated names help you find sessions quickly when switching between multiple backgrounded sessions.
+
+You can also name a session at startup with the `--name` flag, and resume it by name later:
+
+```bash
+copilot --name "auth-refactor"          # start a session with a given name
+copilot --resume="auth-refactor"        # resume that session by name
+```
+
+The `/session delete` command removes sessions you no longer need:
+
+```
+/session delete              # delete the current session
+/session delete <id>         # delete a session by ID
+/session delete-all          # delete all sessions
+```
+
+You can also press **x** on a highlighted session in the session picker (`--resume`) to delete it directly from the list.
+
+In the session picker, press **`s`** to cycle the sort order: relevance, last used, created, or name. The picker also shows the branch name and idle/in-use status for each session.
 
 The `/rewind` command opens a timeline picker that lets you roll back the conversation to any earlier point in history, reverting both the conversation and any file changes made after that point. You can also trigger it by pressing **double-Esc**:
 
@@ -457,6 +479,36 @@ The `/share html` command exports the current session — including conversation
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
 
+**Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
+
+**Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
+
+The `/ask` command lets you ask a quick question without affecting your conversation history. The current session context is preserved, so you can use it for one-off lookups without derailing an ongoing task. Responses are rendered as full markdown, including tables and formatted links:
+
+```
+/ask What does the `retry` utility in src/utils do?
+```
+
+The `/env` command shows all loaded environment details — instructions, MCP servers, skills, agents, and plugins — in a single view. Use it to verify that the right resources are active for the current session:
+
+```
+/env
+```
+
+The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, and quota. The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit:
+
+```
+/statusline             # show the statusline configuration menu
+```
+
+The `/keep-alive` command prevents the system from sleeping while Copilot CLI is active. This is useful during long-running agent sessions on laptops or machines with aggressive sleep settings:
+
+```
+/keep-alive             # toggle keep-alive on or off
+```
+
+> **Note**: `/keep-alive` was previously an experimental feature. As of v1.0.36, it is available without enabling experimental mode.
+
 The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, where the agent runs all tools without asking for confirmation. It now supports `on`, `off`, and `show` subcommands:
 
 ```
@@ -474,6 +526,42 @@ gh copilot --effort high "Refactor the authentication module"
 ```
 
 Accepted values are `low`, `medium`, and `high`. You can also set a default via the `effortLevel` config setting.
+
+### CLI Startup Flags
+
+The `--mode` flag (along with its aliases `--autopilot` and `--plan`) lets you launch the CLI directly in a specific agent mode without waiting for the interactive session to start:
+
+```bash
+copilot --mode agent    # start in agent mode (autonomous tool use)
+copilot --autopilot     # alias for --mode autopilot (allow-all)
+copilot --plan          # start in plan mode (propose without executing)
+```
+
+This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+### Shell Completion
+
+The `copilot completion` subcommand generates a static shell completion script for subcommands, flags, and known option values. Once installed, pressing Tab auto-completes Copilot CLI commands in your terminal.
+
+```bash
+# Bash — add to ~/.bashrc
+eval "$(copilot completion bash)"
+
+# Zsh — add to ~/.zshrc
+eval "$(copilot completion zsh)"
+
+# Fish — add to ~/.config/fish/config.fish
+copilot completion fish | source
+```
+
+Or write the script to a file and source it from your shell profile:
+
+```bash
+copilot completion bash > ~/.copilot-completion.bash
+echo 'source ~/.copilot-completion.bash' >> ~/.bashrc
+```
+
+> **Tip**: Reload your shell (`source ~/.bashrc` or open a new terminal) after adding the completion script for changes to take effect.
 
 ## Common Questions
 

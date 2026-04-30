@@ -7,10 +7,8 @@ import {
   setChoicesValues,
   type Choices,
 } from "../choices";
-import { FuzzySearch, type SearchItem } from "../search";
 import {
   fetchData,
-  debounce,
   getQueryParam,
   getQueryParamValues,
   showToast,
@@ -25,23 +23,19 @@ import {
   type RenderableHook,
 } from "./hooks-render";
 
-interface Hook extends SearchItem, RenderableHook {}
+interface Hook extends RenderableHook {}
 
 interface HooksData {
   items: Hook[];
   filters: {
-    hooks: string[];
     tags: string[];
   };
 }
 
 const resourceType = "hook";
 let allItems: Hook[] = [];
-let search = new FuzzySearch<Hook>();
-let hookSelect: Choices;
 let tagSelect: Choices;
 let currentFilters = {
-  hooks: [] as string[],
   tags: [] as string[],
 };
 let currentSort: HookSortOption = "title";
@@ -52,57 +46,30 @@ function sortItems(items: Hook[]): Hook[] {
 }
 
 function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const countEl = document.getElementById("results-count");
-  const query = searchInput?.value || "";
+  let results = [...allItems];
 
-  let results = query ? search.search(query) : [...allItems];
-
-  if (currentFilters.hooks.length > 0) {
-    results = results.filter((item) =>
-      item.hooks.some((h) => currentFilters.hooks.includes(h))
-    );
-  }
   if (currentFilters.tags.length > 0) {
     results = results.filter((item) =>
-      item.tags.some((t) => currentFilters.tags.includes(t))
+      item.tags.some((tag) => currentFilters.tags.includes(tag))
     );
   }
 
   results = sortItems(results);
 
-  renderItems(results, query);
-  const activeFilters: string[] = [];
-  if (currentFilters.hooks.length > 0)
-    activeFilters.push(
-      `${currentFilters.hooks.length} hook event${
-        currentFilters.hooks.length > 1 ? "s" : ""
-      }`
-    );
-  if (currentFilters.tags.length > 0)
-    activeFilters.push(
-      `${currentFilters.tags.length} tag${
-        currentFilters.tags.length > 1 ? "s" : ""
-      }`
-    );
-  let countText = `${results.length} of ${allItems.length} hooks`;
-  if (activeFilters.length > 0) {
-    countText += ` (filtered by ${activeFilters.join(", ")})`;
+  renderItems(results);
+  let countText = `${results.length} hook${results.length === 1 ? "" : "s"}`;
+  if (currentFilters.tags.length > 0) {
+    countText = `${results.length} of ${allItems.length} hooks (filtered by ${currentFilters.tags.length} tag${currentFilters.tags.length > 1 ? "s" : ""})`;
   }
   if (countEl) countEl.textContent = countText;
 }
 
-function renderItems(items: Hook[], query = ""): void {
+function renderItems(items: Hook[]): void {
   const list = document.getElementById("resource-list");
   if (!list) return;
 
-  list.innerHTML = renderHooksHtml(items, {
-    query,
-    highlightTitle: (title, highlightQuery) =>
-      search.highlight(title, highlightQuery),
-  });
+  list.innerHTML = renderHooksHtml(items);
 }
 
 function setupResourceListHandlers(list: HTMLElement | null): void {
@@ -134,10 +101,10 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
-function syncUrlState(searchInput: HTMLInputElement | null): void {
+function syncUrlState(): void {
   updateQueryParams({
-    q: searchInput?.value ?? "",
-    hook: currentFilters.hooks,
+    q: "",
+    hook: [],
     tag: currentFilters.tags,
     sort: currentSort === "title" ? "" : currentSort,
   });
@@ -153,12 +120,11 @@ async function downloadHook(
     return;
   }
 
-  // Build file list: README.md + all assets
   const files = [
     { name: "README.md", path: hook.readmeFile },
-    ...hook.assets.map((a) => ({
-      name: a,
-      path: `${hook.path}/${a}`,
+    ...hook.assets.map((asset) => ({
+      name: asset,
+      path: `${hook.path}/${asset}`,
     })),
   ];
 
@@ -196,9 +162,6 @@ async function downloadHook(
 
 export async function initHooksPage(): Promise<void> {
   const list = document.getElementById("resource-list");
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const clearFiltersBtn = document.getElementById("clear-filters");
   const sortSelect = document.getElementById(
     "sort-select"
@@ -215,90 +178,53 @@ export async function initHooksPage(): Promise<void> {
   }
 
   allItems = data.items;
-  search.setItems(allItems);
 
-  // Setup hook event filter
-  hookSelect = createChoices("#filter-hook", {
-    placeholderValue: "All Events",
+  tagSelect = createChoices("#filter-tag", {
+    placeholderValue: "All Tags",
   });
-  hookSelect.setChoices(
-    data.filters.hooks.map((h) => ({ value: h, label: h })),
+  tagSelect.setChoices(
+    data.filters.tags.map((tag) => ({ value: tag, label: tag })),
     "value",
     "label",
     true
   );
 
-  const initialQuery = getQueryParam("q");
-  const initialHooks = getQueryParamValues("hook").filter((hook) =>
-    data.filters.hooks.includes(hook)
-  );
   const initialTags = getQueryParamValues("tag").filter((tag) =>
     data.filters.tags.includes(tag)
   );
   const initialSort = getQueryParam("sort");
 
-  if (searchInput) searchInput.value = initialQuery;
-  if (initialHooks.length > 0) {
-    currentFilters.hooks = initialHooks;
-    setChoicesValues(hookSelect, initialHooks);
-  }
-
-  document.getElementById("filter-hook")?.addEventListener("change", () => {
-    currentFilters.hooks = getChoicesValues(hookSelect);
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
-  // Setup tag filter
-  tagSelect = createChoices("#filter-tag", {
-    placeholderValue: "All Tags",
-  });
-  tagSelect.setChoices(
-    data.filters.tags.map((t) => ({ value: t, label: t })),
-    "value",
-    "label",
-    true
-  );
   if (initialTags.length > 0) {
     currentFilters.tags = initialTags;
     setChoicesValues(tagSelect, initialTags);
   }
-  document.getElementById("filter-tag")?.addEventListener("change", () => {
-    currentFilters.tags = getChoicesValues(tagSelect);
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
   if (initialSort === "lastUpdated") {
     currentSort = initialSort;
     if (sortSelect) sortSelect.value = initialSort;
   }
+
+  document.getElementById("filter-tag")?.addEventListener("change", () => {
+    currentFilters.tags = getChoicesValues(tagSelect);
+    applyFiltersAndRender();
+    syncUrlState();
+  });
+
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as HookSortOption;
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
+  });
+
+  clearFiltersBtn?.addEventListener("click", () => {
+    currentFilters = { tags: [] };
+    currentSort = "title";
+    tagSelect.removeActiveItems();
+    if (sortSelect) sortSelect.value = "title";
+    applyFiltersAndRender();
+    syncUrlState();
   });
 
   applyFiltersAndRender();
-  searchInput?.addEventListener(
-    "input",
-    debounce(() => {
-      applyFiltersAndRender();
-      syncUrlState(searchInput);
-    }, 200)
-  );
-
-  clearFiltersBtn?.addEventListener("click", () => {
-    currentFilters = { hooks: [], tags: [] };
-    currentSort = "title";
-    hookSelect.removeActiveItems();
-    tagSelect.removeActiveItems();
-    if (searchInput) searchInput.value = "";
-    if (sortSelect) sortSelect.value = "title";
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
   setupModal();
 }
 

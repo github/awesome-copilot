@@ -3,7 +3,7 @@ title: 'GitHub Copilot Terminology Glossary'
 description: 'A quick reference guide defining common GitHub Copilot and platform-specific terms.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2025-12-15
+lastUpdated: 2026-04-02
 estimatedReadingTime: '8 minutes'
 tags:
   - glossary
@@ -24,11 +24,21 @@ Use this page as a quick reference when reading articles in the Learning Hub or 
 
 ### Agent
 
-A specialized configuration file (`*.agent.md`) that defines a GitHub Copilot persona or assistant with specific expertise, tools, and behavior patterns. Agents integrate with MCP servers to provide enhanced capabilities for particular workflows (e.g., "Terraform Expert" or "Security Auditor").
+A specialized configuration file (`*.agent.md`) that defines a GitHub Copilot persona or assistant with specific expertise, tools, and behavior patterns. In products that support delegation, the agent is usually the primary coordinator or main session persona, while subagents handle narrower delegated tasks.
 
 **When to use**: For recurring workflows that benefit from deep tooling integrations and persistent conversational context.
 
 **Learn more**: [What are Agents, Skills, and Instructions](../what-are-agents-skills-instructions/)
+
+---
+
+### Subagent
+
+A temporary, task-focused agent launched by another agent or orchestrator. A subagent usually gets a narrower prompt, its own isolated context window, and returns a summary back to the main agent instead of staying in the primary conversation.
+
+**When to use**: For isolated research, parallel analysis, specialized review passes, or delegated implementation steps.
+
+**Learn more**: [Agents and Subagents](../agents-and-subagents/)
 
 ---
 
@@ -98,6 +108,16 @@ tools: ['codebase']
 ```
 
 **Used in**: Skills, agents, instructions, and Learning Hub articles.
+
+---
+
+### Handoff
+
+A VS Code custom-agent frontmatter property (`handoffs`) that defines suggested transitions from one agent to another, often with a pre-filled follow-up prompt. Handoffs are useful for guided workflows such as research -> implementation or planning -> review.
+
+**Important**: GitHub's [custom agent configuration reference](../building-custom-agents/#agent-configuration-reference) says `handoffs` are currently ignored for Copilot cloud agent on GitHub.com, so this concept is not portable across every Copilot surface.
+
+**Learn more**: [Agents and Subagents](../agents-and-subagents/), [Building Custom Agents](../building-custom-agents/)
 
 ---
 

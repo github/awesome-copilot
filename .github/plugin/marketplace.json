@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "ai-team-orchestration",
+      "source": "ai-team-orchestration",
+      "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arize-ax",
       "source": "arize-ax",
       "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
@@ -80,7 +86,7 @@
     {
       "name": "context-matic",
       "source": "context-matic",
-      "description": "General-purpose AI models are trained on public code and documentation, much of it outdated. They have no awareness of an actual API version, latest SDKs, or recommended workflows. ContextMatic gives GitHub Copilot deterministic, version-aware API context generated directly from API definitions and SDKs. Instead of guessing from public examples, the agent is grounded in current SDK versions, idiomatic code samples, and recommended integration workflows.",
+      "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
       "version": "0.1.0"
     },
     {
@@ -213,6 +219,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "ember",
+      "source": "ember",
+      "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
+      "version": "1.0.0"
+    },
+    {
       "name": "eyeball",
       "source": "eyeball",
       "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
@@ -249,8 +261,8 @@
     {
       "name": "flowstudio-power-automate",
       "source": "flowstudio-power-automate",
-      "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
-      "version": "1.0.0"
+      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+      "version": "2.0.0"
     },
     {
       "name": "frontend-web-dev",
@@ -261,8 +273,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "A modular, high-performance multi-agent orchestration framework for complex project execution, feature implementation, and automated verification.",
-      "version": "1.5.0"
+      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.13.0"
     },
     {
       "name": "go-mcp-development",
@@ -325,7 +337,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.979-preview1",
+      "version": "1.0.1063-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -344,6 +356,12 @@
         "repo": "dotnet/modernize-dotnet",
         "path": "plugins/modernize-dotnet"
       }
+    },
+    {
+      "name": "modernize-java",
+      "source": "modernize-java",
+      "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+      "version": "1.0.0"
     },
     {
       "name": "napkin",
@@ -442,6 +460,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "power-platform-architect",
+      "source": "power-platform-architect",
+      "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
+      "version": "1.0.0"
+    },
+    {
       "name": "power-platform-mcp-connector-development",
       "source": "power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
@@ -457,6 +481,18 @@
       "name": "python-mcp-development",
       "source": "python-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "react18-upgrade",
+      "source": "react18-upgrade",
+      "description": "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "react19-upgrade",
+      "source": "react19-upgrade",
+      "description": "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more.",
       "version": "1.0.0"
     },
     {
@@ -482,6 +518,12 @@
       "source": "rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
       "version": "1.0.0"
+    },
+    {
+      "name": "salesforce-development",
+      "source": "salesforce-development",
+      "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
+      "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
@@ -554,6 +596,31 @@
       "source": "typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
       "version": "1.0.0"
+    },
+    {
+      "name": "whatidid",
+      "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
+      "keywords": [
+        "copilot",
+        "productivity",
+        "impact",
+        "report",
+        "estimation",
+        "roi",
+        "session-logs"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/What-I-Did-Copilot",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/What-I-Did-Copilot"
+      }
     },
     {
       "name": "winui3-development",

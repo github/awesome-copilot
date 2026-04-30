@@ -46,7 +46,13 @@
 
 # queston - intentional misspelling example in skills/arize-dataset/SKILL.md demonstrating typo detection in field names
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston
+# nin - MongoDB $nin operator in security instructions NoSQL injection detection regex
+
+# Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
+
+# FO - tasklist option /FO to format running task output
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO
 
 # Skip certain files and directories
 

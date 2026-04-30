@@ -1,7 +1,7 @@
 <h1 align="center">Azure Architecture Autopilot</h1>
 
 <p align="center">
-  <strong>Design → Diagram → Bicep → Deploy — all from natural language</strong>
+  <strong>Design → Diagram → Bicep → Deployment - all from natural language</strong>
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
 
 <p align="center">
   <b>Azure Architecture Autopilot</b> designs Azure infrastructure from natural language,<br>
-  generates interactive diagrams, produces modular Bicep templates, and deploys — all through conversation.<br>
+  generates interactive diagrams, produces modular Bicep templates, and deploys - all through conversation.<br>
   It also scans existing resources, visualizes them as architecture diagrams, and refines them on the fly.
 </p>
 

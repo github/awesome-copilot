@@ -4,26 +4,20 @@ Coding agents hallucinate APIs. APIMatic Context gives them curated, versioned A
 
 When a developer asks their agent to "integrate the payments API," it normally guesses, pulling from outdated training data or generic patterns that don't match the actual SDK. ContextMatic solves this by giving the agent authoritative, version-aware, SDK-native context at the exact moment it's needed.
 
-## Installation
-
-```bash
-copilot plugin install context-matic@awesome-copilot
-```
-
 ## What It Includes
 
 ### MCP Server
 
-| Server | Description |
-|--------|-------------|
+| Server          | Description                                                                        |
+| --------------- | ---------------------------------------------------------------------------------- |
 | `context-matic` | Hosted MCP server for version-aware third-party API integration and SDK discovery. |
 
 ### Skills
 
-| Skill | Description |
-|-------|-------------|
+| Skill                      | Description                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `/integrate-context-matic` | Focused workflow for integrating supported third-party APIs using authoritative SDK and endpoint information. |
-| `/onboard-context-matic` | Guided walkthrough of the ContextMatic MCP server, supported APIs, and tool usage. |
+| `/onboard-context-matic`   | Guided walkthrough of the ContextMatic MCP server, supported APIs, and tool usage.                            |
 
 ## What ContextMatic Does
 
@@ -33,21 +27,22 @@ ContextMatic gives GitHub Copilot version-aware API and SDK guidance grounded in
 - Authentication and quickstart guidance
 - Endpoint lookup with parameter and response details
 - Model lookup with typed property definitions
+
 ## Supported APIs
 
 The plugin gives the agent SDK-native context for the following APIs, available in TypeScript, C#, Python, Java, PHP, and Ruby:
 
-| API | Description |
-|-----|-------------|
-| **Adyen API** | Payment processing: retrieve payment methods, create orders, manage stored payment tokens |
-| **Google Maps APIs** | Location services: geocoding, directions, distance matrix, elevation, roads, and places |
-| **PayPal Server SDK** | Payment flows: orders, payments, vault, transaction search, and subscriptions |
-| **PayQuicker API** | Payment and financial services: program agreements, bank accounts, spendback quotes |
-| **Slack API** | Workspace automation: OAuth bots, messaging, conversation management |
-| **Spotify Web API** | Music and podcasts: library management, playback control, discovery |
-| **Tesla Fleet Management API** | Vehicle and fleet operations: charging history, vehicle commands, energy management |
-| **Tesser API Portal** | Digital payments: payment intents, onchain payments, app management |
-| **Twilio API** | Communications: SMS, voice, video, and verification services |
+| API                            | Description                                                                               |
+| ------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Adyen API**                  | Payment processing: retrieve payment methods, create orders, manage stored payment tokens |
+| **Google Maps APIs**           | Location services: geocoding, directions, distance matrix, elevation, roads, and places   |
+| **PayPal Server SDK**          | Payment flows: orders, payments, vault, transaction search, and subscriptions             |
+| **PayQuicker API**             | Payment and financial services: program agreements, bank accounts, spendback quotes       |
+| **Slack API**                  | Workspace automation: OAuth bots, messaging, conversation management                      |
+| **Spotify Web API**            | Music and podcasts: library management, playback control, discovery                       |
+| **Tesla Fleet Management API** | Vehicle and fleet operations: charging history, vehicle commands, energy management       |
+| **Tesser API Portal**          | Digital payments: payment intents, onchain payments, app management                       |
+| **Twilio API**                 | Communications: SMS, voice, video, and verification services                              |
 
 This list is growing. [Suggest a new API](#contributing) to request support for one not listed here.
 
@@ -57,15 +52,15 @@ This list is growing. [Suggest a new API](#contributing) to request support for 
 
 Once installed, the plugin exposes seven tools to the agent. Each tool is mapped to a specific stage of the integration workflow:
 
-| Tool | Developer task it enables |
-|------|--------------------------|
-| `fetch_api` | Lists all available APIs with their name, key, and description. The agent calls this first to discover which APIs are available for your project's language. |
-| `ask` | Chat with API Copilot for step-by-step integration guidance and general API questions: authentication setup, client initialization, feature behavior, framework-specific patterns (e.g. "How do I initialize the Twilio client in Laravel?"), and idiomatic SDK code samples. |
-| `endpoint_search` | Returns an SDK endpoint method's description, input parameters, and response shape by method name. |
-| `model_search` | Returns an SDK model's full definition and its typed properties by name. Call this before writing code that constructs request bodies or reads response objects. |
-| `update_activity` | Records concrete integration milestones such as SDK setup, auth configuration, the first successful API call, and resolved errors. The agent calls this after a milestone has actually been reached in code or infrastructure. |
-| `add_guidelines` | Adds language-specific guideline files such as security, testing, or workflow guidance that the agent can follow during implementation. |
-| `add_skills` | Adds reusable project skills such as `{language}-conventions` so future API integration work can follow the project's language-specific conventions. |
+| Tool              | Developer task it enables                                                                                                                                                                                                                                                                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fetch_api`       | Provides an exact API match or lists all available APIs for the provided `language`, including each API's name, key, and description. Pass your project's language and an API `key` for an exact-match lookup (returns only that API). The full API catalog for that `language` is returned if no exact match is found. The agent calls this first to discover which APIs are available. |
+| `ask`             | Chat with API Copilot for step-by-step integration guidance and general API questions: authentication setup, client initialization, feature behavior, framework-specific patterns (e.g. "How do I initialize the Twilio client in Laravel?"), and idiomatic SDK code samples.                                                                             |
+| `endpoint_search` | Returns an SDK endpoint method's description, input parameters, and response shape by method name.                                                                                                                                                                                                                                                        |
+| `model_search`    | Returns an SDK model's full definition and its typed properties by name. Call this before writing code that constructs request bodies or reads response objects.                                                                                                                                                                     |
+| `update_activity` | Records concrete integration milestones such as SDK setup, auth configuration, the first successful API call, and resolved errors. The agent calls this after a milestone has actually been reached in code or infrastructure.                                                                                                       |
+| `add_guidelines`  | Adds language-specific guideline files such as security, testing, or workflow guidance that the agent can follow during implementation.                                                                                                                                                                                              |
+| `add_skills`      | Adds reusable project skills such as `{language}-conventions` so future API integration work can follow the project's language-specific conventions.                                                                                                                                                                                 |
 
 For step-by-step guidance on using these tools together, invoke the `/integrate-context-matic` skill in your agent. It tells the agent when and how to call each tool throughout your integration workflow.
 
@@ -77,19 +72,18 @@ The seven tools are designed to chain together in a natural integration workflow
 
 **Your prompt:** _"/integrate-context-matic Add Twilio SMS notifications to my Next.js app. Send a text when an order ships."_
 
-| Step | Tool called | What it returns |
-|------|-------------|----------------|
-| 1 | `add_guidelines` (`language=typescript`) | Adds project guideline files the agent can follow for security, testing, and implementation workflow before starting the API integration. |
-| 2 | `add_skills` (`language=typescript`) | Adds reusable language-specific skills such as conventions guidance so the project setup matches future integration work. |
-| 3 | `fetch_api` (`language=typescript`) | Discovers Twilio is available; returns its `key` |
-| 4 | `ask` (`key=twilio`, query=_"How do I initialize the Twilio TypeScript client?"_) | Returns exact SDK setup code with auth configuration |
-| 5 | `update_activity` (`milestone=auth_configured`) | After the returned SDK/auth configuration has been added to the app, records that credentials are wired into the app and the integration is ready for the first live call |
-| 6 | `endpoint_search` (`query=createMessage`) | Returns the method signature, required parameters, and auth requirements for the SMS send endpoint |
-| 7 | `model_search` (`query=CreateMessageRequest`) | Returns the full typed request model with every available field |
-| 8 | `ask` (`query="How do I handle delivery status callbacks in Next.js?"`) | Returns webhook handling code aligned to the Twilio SDK |
+| Step | Tool called                                                                       | What it returns                                                                                                                                                           |
+| ---- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `add_guidelines` (`language=typescript`)                                          | Adds project guideline files the agent can follow for security, testing, and implementation workflow before starting the API integration.                                 |
+| 2    | `add_skills` (`language=typescript`)                                              | Adds reusable language-specific skills such as conventions guidance so the project setup matches future integration work.                                                 |
+| 3    | `fetch_api` (`language=typescript`, `key="twilio"`)                               | Exact match found — returns Twilio's entry with its name, key, and description                                                                                            |
+| 4    | `ask` (`key=twilio`, query=_"How do I initialize the Twilio TypeScript client?"_) | Returns exact SDK setup code with auth configuration                                                                                                                      |
+| 5    | `update_activity` (`milestone=auth_configured`)                                   | After the returned SDK/auth configuration has been added to the app, records that credentials are wired into the app and the integration is ready for the first live call |
+| 6    | `endpoint_search` (`query=createMessage`)                                         | Returns the method signature, required parameters, and auth requirements for the SMS send endpoint                                                                        |
+| 7    | `model_search` (`query=CreateMessageRequest`)                                     | Returns the full typed request model with every available field                                                                                                           |
+| 8    | `ask` (`query="How do I handle delivery status callbacks in Next.js?"`)           | Returns webhook handling code aligned to the Twilio SDK                                                                                                                   |
 
 Each step completes in a single tool call. The agent handles the orchestration. You describe the goal, and it picks the right tool at the right time.
-
 
 ## MCP Server
 
@@ -115,7 +109,7 @@ The plugin registers the MCP server through its plugin-root `.mcp.json` file so 
 **What was built:** A full Node.js/Express storefront with product management, shareable checkout links per product, PayPal Smart Payment Buttons, server-side order creation and capture, and a payment history dashboard.
 
 **The prompt:**
-  
+
 ```
 /integrate-context-matic Build me a "PayPal Instant Storefront" app.
 The app has a setup page where I enter my PayPal client-id and secret once, then
@@ -137,19 +131,19 @@ Transaction Search or Vault. Make it deployable with npm install and npm start.
 
 **How the tools were used:**
 
-| Step | Tool | Query | What it returned |
-|------|------|-------|-----------------|
-| 1 | `fetch_api` | `language=typescript` | Available APIs; identified PayPal Server SDK with key `paypal` |
-| 2 | `ask` | SDK setup & environment switching | Client initialization code, `.env` structure, sandbox vs. live config via `Client.fromEnvironment` |
-| 3 | `ask` | Order creation flow | End-to-end create → approve → capture flow with full TypeScript server-side code |
-| 4 | `endpoint_search` | `ordersCreate` | `CreateOrder` method signature, `OrderRequest` body structure, response type `Order`, error codes |
-| 5 | `endpoint_search` | `capture` | `CaptureOrder` contract — required `id` param, optional body, capture ID location in response |
-| 6 | `model_search` | `OrderRequest` | Full request model properties; flagged `payer` and `application_context` as deprecated |
-| 7 | `model_search` | `Money` | Currency code and value fields for structuring amounts |
-| 8 | `ask` | Smart Payment Buttons | Frontend button integration — `createOrder` / `onApprove` wiring to backend endpoints |
-| 9 | `endpoint_search` | `getOrder` | `GetOrder` method signature and response shape for the confirmation page |
-| 10 | `model_search` | `PurchaseUnitRequest` | Full model with `amount`, `items`, `shipping`, and all optional fields |
-| 11 | `model_search` | `Order` | Full response model — `status`, `purchaseUnits`, `links` (including the `approve` redirect URL) |
+| Step | Tool              | Query                             | What it returned                                                                                   |
+| ---- | ----------------- | --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 1    | `fetch_api`       | `language=typescript`             | Available APIs; identified PayPal Server SDK with key `paypal`                                     |
+| 2    | `ask`             | SDK setup & environment switching | Client initialization code, `.env` structure, sandbox vs. live config via `Client.fromEnvironment` |
+| 3    | `ask`             | Order creation flow               | End-to-end create → approve → capture flow with full TypeScript server-side code                   |
+| 4    | `endpoint_search` | `ordersCreate`                    | `CreateOrder` method signature, `OrderRequest` body structure, response type `Order`, error codes  |
+| 5    | `endpoint_search` | `capture`                         | `CaptureOrder` contract — required `id` param, optional body, capture ID location in response      |
+| 6    | `model_search`    | `OrderRequest`                    | Full request model properties; flagged `payer` and `application_context` as deprecated             |
+| 7    | `model_search`    | `Money`                           | Currency code and value fields for structuring amounts                                             |
+| 8    | `ask`             | Smart Payment Buttons             | Frontend button integration — `createOrder` / `onApprove` wiring to backend endpoints              |
+| 9    | `endpoint_search` | `getOrder`                        | `GetOrder` method signature and response shape for the confirmation page                           |
+| 10   | `model_search`    | `PurchaseUnitRequest`             | Full model with `amount`, `items`, `shipping`, and all optional fields                             |
+| 11   | `model_search`    | `Order`                           | Full response model — `status`, `purchaseUnits`, `links` (including the `approve` redirect URL)    |
 
 **App outcome:**
 
@@ -190,22 +184,22 @@ logos anywhere.
 
 **How the tools were used:**
 
-| Step | Tool | Query | What it returned |
-|------|------|-------|-----------------|
-| 1 | `fetch_api` | `language=python` | Available APIs; identified Spotify Web API SDK with key `spotify` |
-| 2 | `ask` | SDK setup, OAuth 2.0 authorization code flow for user login | Full `pip install spotify-api-sdk` setup, `SpotifywebapiClient` initialization with `AuthorizationCodeAuthCredentials`, `.env` structure, `get_authorization_url()` → `fetch_token(code)` → `clone_with(o_auth_token=token)` flow, token refresh pattern |
-| 3 | `ask` | How to fetch a user's top artists and top tracks | End-to-end code using `users_controller.get_users_top_artists()` and `users_controller.get_users_top_tracks()` with `time_range`, `limit`, `offset` params; reading `PagingArtistObject.items` and `PagingTrackObject.items` |
-| 4 | `endpoint_search` | `get_users_top_artists` | Method signature — params `time_range`, `limit`, `offset`; response type `PagingArtistObject`; required scope `OAuthScopeEnum.USER_TOP_READ` |
-| 5 | `endpoint_search` | `get_users_top_tracks` | Method signature — same params as top artists; response type `PagingTrackObject` with `List[TrackObject]` items |
-| 6 | `endpoint_search` | `get_audio_features` | Single-track method via `tracks_controller.get_audio_features(id)`; response type `AudioFeaturesObject` |
-| 7 | `endpoint_search` | `get_several_audio_features` | Batch method via `tracks_controller.get_several_audio_features(ids)` — takes comma-separated track IDs string; response type `ManyAudioFeatures` |
-| 8 | `endpoint_search` | `get_current_users_profile` | `users_controller.get_current_users_profile()` — no params; response `PrivateUserObject`; required scopes `USER_READ_EMAIL`, `USER_READ_PRIVATE` |
-| 9 | `model_search` | `AudioFeaturesObject` | All 14 properties — `danceability`, `energy`, `valence`, `acousticness`, `instrumentalness`, `liveness`, `speechiness`, `tempo`, `loudness`, `key`, `mode`, `time_signature`, `duration_ms`, `uri` (all 0.0–1.0 floats used for radar chart & personality logic) |
-| 10 | `model_search` | `ArtistObject` | Properties `name`, `id`, `popularity` (0–100 int, used to find most obscure artist), `genres` (`List[str]`, used for top-5 genre aggregation), `images`, `external_urls` |
-| 11 | `model_search` | `TrackObject` | Properties `id` (needed for audio features batch call), `name`, `popularity`, `artists` (`List[ArtistObject]`), `album`, `duration_ms`, `uri` |
-| 12 | `model_search` | `PagingTrackObject` | Paging wrapper — `items` (`List[TrackObject]`), `total`, `next`, `offset`, `limit` |
-| 13 | `model_search` | `ManyAudioFeatures` | Batch response wrapper — `audio_features` (`List[AudioFeaturesObject]`) for iterating and averaging |
-| 14 | `model_search` | `PrivateUserObject` | User profile — `display_name`, `images` (`List[ImageObject]`), `id`, `email`, `country` (used to personalize the DNA card header) |
+| Step | Tool              | Query                                                       | What it returned                                                                                                                                                                                                                                                 |
+| ---- | ----------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `fetch_api`       | `language=python`                                           | Available APIs; identified Spotify Web API SDK with key `spotify`                                                                                                                                                                                                |
+| 2    | `ask`             | SDK setup, OAuth 2.0 authorization code flow for user login | Full `pip install spotify-api-sdk` setup, `SpotifywebapiClient` initialization with `AuthorizationCodeAuthCredentials`, `.env` structure, `get_authorization_url()` → `fetch_token(code)` → `clone_with(o_auth_token=token)` flow, token refresh pattern         |
+| 3    | `ask`             | How to fetch a user's top artists and top tracks            | End-to-end code using `users_controller.get_users_top_artists()` and `users_controller.get_users_top_tracks()` with `time_range`, `limit`, `offset` params; reading `PagingArtistObject.items` and `PagingTrackObject.items`                                     |
+| 4    | `endpoint_search` | `get_users_top_artists`                                     | Method signature — params `time_range`, `limit`, `offset`; response type `PagingArtistObject`; required scope `OAuthScopeEnum.USER_TOP_READ`                                                                                                                     |
+| 5    | `endpoint_search` | `get_users_top_tracks`                                      | Method signature — same params as top artists; response type `PagingTrackObject` with `List[TrackObject]` items                                                                                                                                                  |
+| 6    | `endpoint_search` | `get_audio_features`                                        | Single-track method via `tracks_controller.get_audio_features(id)`; response type `AudioFeaturesObject`                                                                                                                                                          |
+| 7    | `endpoint_search` | `get_several_audio_features`                                | Batch method via `tracks_controller.get_several_audio_features(ids)` — takes comma-separated track IDs string; response type `ManyAudioFeatures`                                                                                                                 |
+| 8    | `endpoint_search` | `get_current_users_profile`                                 | `users_controller.get_current_users_profile()` — no params; response `PrivateUserObject`; required scopes `USER_READ_EMAIL`, `USER_READ_PRIVATE`                                                                                                                 |
+| 9    | `model_search`    | `AudioFeaturesObject`                                       | All 14 properties — `danceability`, `energy`, `valence`, `acousticness`, `instrumentalness`, `liveness`, `speechiness`, `tempo`, `loudness`, `key`, `mode`, `time_signature`, `duration_ms`, `uri` (all 0.0–1.0 floats used for radar chart & personality logic) |
+| 10   | `model_search`    | `ArtistObject`                                              | Properties `name`, `id`, `popularity` (0–100 int, used to find most obscure artist), `genres` (`List[str]`, used for top-5 genre aggregation), `images`, `external_urls`                                                                                         |
+| 11   | `model_search`    | `TrackObject`                                               | Properties `id` (needed for audio features batch call), `name`, `popularity`, `artists` (`List[ArtistObject]`), `album`, `duration_ms`, `uri`                                                                                                                    |
+| 12   | `model_search`    | `PagingTrackObject`                                         | Paging wrapper — `items` (`List[TrackObject]`), `total`, `next`, `offset`, `limit`                                                                                                                                                                               |
+| 13   | `model_search`    | `ManyAudioFeatures`                                         | Batch response wrapper — `audio_features` (`List[AudioFeaturesObject]`) for iterating and averaging                                                                                                                                                              |
+| 14   | `model_search`    | `PrivateUserObject`                                         | User profile — `display_name`, `images` (`List[ImageObject]`), `id`, `email`, `country` (used to personalize the DNA card header)                                                                                                                                |
 
 **App outcome:**
 
@@ -237,7 +231,6 @@ logos anywhere.
 
 ![google-maps-sample-app](https://github.com/user-attachments/assets/eafab114-ccf8-42f9-84c3-bc9706706118)
 
-
 **What was built:** A PHP web app where users drop a pin (or use their location) on a Google Map, draw a travel-radius circle, and click "Spin" to randomly pick a restaurant within that radius. The app shows Google Places photos, a Street View storefront preview, and one-click directions — with a wheel animation and a "Spin Again" button for gamified suspense. Custom branding; credentials via `.env` file.
 
 **The prompt:**
@@ -254,24 +247,24 @@ animation and suspense make it feel like a game.
 
 **How the tools were used:**
 
-| Step | Tool | Query | What it returned |
-|------|------|-------|-----------------|
-| 1 | `fetch_api` | `language=php` | Available APIs; identified Google Maps Platform SDK with key `googlemaps` (also: `paypal`, `spotify`, `maxio`, `verizon`) |
-| 2 | `ask` | SDK setup, API key auth configuration | `composer require sdksio/google-maps-platform-sdk:1.0.3`, `GoogleMapsPlatformClientBuilder::init()` with `CustomQueryAuthenticationCredentialsBuilder::init('key')`, `.env` structure, `Environment::PRODUCTION` |
-| 3 | `ask` | How to search for nearby restaurants within a radius | Full code using `$client->getPlacesApi()->nearbySearch($location, $radius, 'restaurant', ...)`, response handling via `isSuccess()` / `getResult()`, iterating `Place[]` results |
-| 4 | `endpoint_search` | `nearbySearch` | Method signature — params `location` (`"lat,lng"`), `radius` (meters), `keyword`, `maxprice`, `minprice`, `opennow`, `pagetoken`, `rankby`, `type`, `language`; response type `PlacesNearbySearchResponse` |
-| 5 | `endpoint_search` | `placeDetails` | Method signature — params `placeId`, `fields[]` (Basic/Contact/Atmosphere categories), `sessiontoken`, `language`, `region`; response type `PlacesDetailsResponse` |
-| 6 | `endpoint_search` | `placePhoto` | Method signature — param `photoReference` (string), `maxheight`, `maxwidth` (1-1600px); response type `mixed` (raw image bytes) |
-| 7 | `endpoint_search` | `streetView` | Method signature — params `size` (`"{w}x{h}"`, max 640px), `fov`, `heading`, `location`, `pitch`, `radius`, `source`; response type `mixed` (image bytes) |
-| 8 | `endpoint_search` | `directions` | Method signature — params `destination`, `origin`, `mode`, `avoid`, `units`, `waypoints`, `language`, `region`; response type `DirectionsResponse` |
-| 9 | `model_search` | `PlacesNearbySearchResponse` | Properties: `results` (`Place[]`), `status` (`PlacesSearchStatus`), `nextPageToken`, `errorMessage`, `htmlAttributions` |
-| 10 | `model_search` | `PlacesDetailsResponse` | Properties: `result` (`Place`), `status` (`PlacesDetailsStatus`), `htmlAttributions`, `infoMessages` |
-| 11 | `model_search` | `Place` | Full model — `name`, `placeId`, `formattedAddress`, `geometry` (`Geometry`), `rating`, `userRatingsTotal`, `priceLevel`, `photos` (`PlacePhoto[]`), `openingHours`, `types`, `vicinity`, `website`, `businessStatus`, `reviews` (`PlaceReview[]`) |
-| 12 | `model_search` | `PlacePhoto` | Properties: `photoReference` (string, used for `placePhoto` call), `height`, `width`, `htmlAttributions` |
-| 13 | `model_search` | `Geometry` | Properties: `location` (`LatLngLiteral`), `viewport` (`Bounds`) |
-| 14 | `model_search` | `LatLngLiteral` | Properties: `lat` (float), `lng` (float) — used to extract coordinates for Street View and directions |
-| 15 | `model_search` | `DirectionsResponse` | Properties: `routes` (`DirectionsRoute[]`), `status` (`DirectionsStatus`), `geocodedWaypoints`, `availableTravelModes`, `errorMessage` |
-| 16 | `ask` | How to use Street View Static API for a given lat/lng | `$client->getStreetViewApi()->streetView($size, null, null, $location)`, returns raw image bytes; `streetViewMetadata()` for availability check |
+| Step | Tool              | Query                                                 | What it returned                                                                                                                                                                                                                                  |
+| ---- | ----------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `fetch_api`       | `language=php`                                        | Available APIs; identified Google Maps Platform SDK with key `googlemaps` (also: `paypal`, `spotify`, `maxio`, `verizon`)                                                                                                                         |
+| 2    | `ask`             | SDK setup, API key auth configuration                 | `composer require sdksio/google-maps-platform-sdk:1.0.3`, `GoogleMapsPlatformClientBuilder::init()` with `CustomQueryAuthenticationCredentialsBuilder::init('key')`, `.env` structure, `Environment::PRODUCTION`                                  |
+| 3    | `ask`             | How to search for nearby restaurants within a radius  | Full code using `$client->getPlacesApi()->nearbySearch($location, $radius, 'restaurant', ...)`, response handling via `isSuccess()` / `getResult()`, iterating `Place[]` results                                                                  |
+| 4    | `endpoint_search` | `nearbySearch`                                        | Method signature — params `location` (`"lat,lng"`), `radius` (meters), `keyword`, `maxprice`, `minprice`, `opennow`, `pagetoken`, `rankby`, `type`, `language`; response type `PlacesNearbySearchResponse`                                        |
+| 5    | `endpoint_search` | `placeDetails`                                        | Method signature — params `placeId`, `fields[]` (Basic/Contact/Atmosphere categories), `sessiontoken`, `language`, `region`; response type `PlacesDetailsResponse`                                                                                |
+| 6    | `endpoint_search` | `placePhoto`                                          | Method signature — param `photoReference` (string), `maxheight`, `maxwidth` (1-1600px); response type `mixed` (raw image bytes)                                                                                                                   |
+| 7    | `endpoint_search` | `streetView`                                          | Method signature — params `size` (`"{w}x{h}"`, max 640px), `fov`, `heading`, `location`, `pitch`, `radius`, `source`; response type `mixed` (image bytes)                                                                                         |
+| 8    | `endpoint_search` | `directions`                                          | Method signature — params `destination`, `origin`, `mode`, `avoid`, `units`, `waypoints`, `language`, `region`; response type `DirectionsResponse`                                                                                                |
+| 9    | `model_search`    | `PlacesNearbySearchResponse`                          | Properties: `results` (`Place[]`), `status` (`PlacesSearchStatus`), `nextPageToken`, `errorMessage`, `htmlAttributions`                                                                                                                           |
+| 10   | `model_search`    | `PlacesDetailsResponse`                               | Properties: `result` (`Place`), `status` (`PlacesDetailsStatus`), `htmlAttributions`, `infoMessages`                                                                                                                                              |
+| 11   | `model_search`    | `Place`                                               | Full model — `name`, `placeId`, `formattedAddress`, `geometry` (`Geometry`), `rating`, `userRatingsTotal`, `priceLevel`, `photos` (`PlacePhoto[]`), `openingHours`, `types`, `vicinity`, `website`, `businessStatus`, `reviews` (`PlaceReview[]`) |
+| 12   | `model_search`    | `PlacePhoto`                                          | Properties: `photoReference` (string, used for `placePhoto` call), `height`, `width`, `htmlAttributions`                                                                                                                                          |
+| 13   | `model_search`    | `Geometry`                                            | Properties: `location` (`LatLngLiteral`), `viewport` (`Bounds`)                                                                                                                                                                                   |
+| 14   | `model_search`    | `LatLngLiteral`                                       | Properties: `lat` (float), `lng` (float) — used to extract coordinates for Street View and directions                                                                                                                                             |
+| 15   | `model_search`    | `DirectionsResponse`                                  | Properties: `routes` (`DirectionsRoute[]`), `status` (`DirectionsStatus`), `geocodedWaypoints`, `availableTravelModes`, `errorMessage`                                                                                                            |
+| 16   | `ask`             | How to use Street View Static API for a given lat/lng | `$client->getStreetViewApi()->streetView($size, null, null, $location)`, returns raw image bytes; `streetViewMetadata()` for availability check                                                                                                   |
 
 **App outcome:**
 
@@ -303,6 +296,7 @@ The best way to experience ContextMatic is to paste these prompts directly into 
 <summary><strong>Quickstart: your first API call</strong></summary>
 
 ![Spotify](https://img.shields.io/badge/-Spotify-1DB954?logo=spotify&logoColor=white&labelColor=1DB954) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=3178C6)
+
 ```
 /integrate-context-matic Set up the Spotify TypeScript SDK and fetch my top 5 tracks.
 Show me the complete client initialization and the API call.
@@ -311,6 +305,7 @@ Show me the complete client initialization and the API call.
 ---
 
 ![Twilio](https://img.shields.io/badge/-Twilio-F22F46?logo=twilio&logoColor=white&labelColor=F22F46) ![PHP](https://img.shields.io/badge/-PHP-777BB4?logo=php&logoColor=white&labelColor=777BB4)
+
 ```
 /integrate-context-matic How do I authenticate with the Twilio API and send an SMS?
 Give me the full PHP setup including the SDK client and the send call.
@@ -319,6 +314,7 @@ Give me the full PHP setup including the SDK client and the send call.
 ---
 
 ![Slack](https://img.shields.io/badge/-Slack-4A154B?logo=slack&logoColor=white&labelColor=4A154B) ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white&labelColor=3776AB)
+
 ```
 /integrate-context-matic Walk me through initializing the Slack API client
 in a Python script and posting a message to a channel.
@@ -330,6 +326,7 @@ in a Python script and posting a message to a channel.
 <summary><strong>Framework-specific integration</strong></summary>
 
 ![Google Maps](https://img.shields.io/badge/-Google%20Maps-4285F4?logo=googlemaps&logoColor=white&labelColor=4285F4) ![Next.js](https://img.shields.io/badge/-Next.js-000000?logo=nextdotjs&logoColor=white&labelColor=000000) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=3178C6)
+
 ```
 /integrate-context-matic I'm building a Next.js app. Integrate the Google Maps
 Places API to search for nearby restaurants and display them on a page.
@@ -339,6 +336,7 @@ Use the TypeScript SDK.
 ---
 
 ![Twilio](https://img.shields.io/badge/-Twilio-F22F46?logo=twilio&logoColor=white&labelColor=F22F46) ![Laravel](https://img.shields.io/badge/-Laravel-FF2D20?logo=laravel&logoColor=white&labelColor=FF2D20) ![PHP](https://img.shields.io/badge/-PHP-777BB4?logo=php&logoColor=white&labelColor=777BB4)
+
 ```
 /integrate-context-matic I'm using Laravel. Show me how to send a Twilio SMS
 when a user registers. Include the PHP SDK setup, client initialization, and the
@@ -348,6 +346,7 @@ controller code.
 ---
 
 ![Twilio](https://img.shields.io/badge/-Twilio-F22F46?logo=twilio&logoColor=white&labelColor=F22F46) ![ASP.NET Core](https://img.shields.io/badge/-ASP.NET%20Core-512BD4?logo=dotnet&logoColor=white&labelColor=512BD4) ![C#](https://img.shields.io/badge/-C%23-239120?logo=csharp&logoColor=white&labelColor=239120)
+
 ```
 /integrate-context-matic I have an ASP.NET Core app. Add Twilio webhook handling
 so I can receive delivery status callbacks when an SMS is sent.
@@ -361,6 +360,7 @@ so I can receive delivery status callbacks when an SMS is sent.
 These prompts are designed to exercise the full plugin workflow; from API discovery through endpoint lookup to production-ready code.
 
 ![Twilio](https://img.shields.io/badge/-Twilio-F22F46?logo=twilio&logoColor=white&labelColor=F22F46) ![Next.js](https://img.shields.io/badge/-Next.js-000000?logo=nextdotjs&logoColor=white&labelColor=000000) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=3178C6)
+
 ```
 /integrate-context-matic I want to add real-time order shipping notifications
 to my Next.js store. Use Twilio to send an SMS when the order status changes to
@@ -371,6 +371,7 @@ parameters, and the TypeScript code.
 ---
 
 ![Slack](https://img.shields.io/badge/-Slack-4A154B?logo=slack&logoColor=white&labelColor=4A154B) ![Spotify](https://img.shields.io/badge/-Spotify-1DB954?logo=spotify&logoColor=white&labelColor=1DB954) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=3178C6)
+
 ```
 /integrate-context-matic I need to post a Slack message every time a Spotify
 track changes in my playlist monitoring app. Walk me through integrating both APIs
@@ -381,6 +382,7 @@ and the exact API calls.
 ---
 
 ![Google Maps](https://img.shields.io/badge/-Google%20Maps-4285F4?logo=googlemaps&logoColor=white&labelColor=4285F4) ![ASP.NET Core](https://img.shields.io/badge/-ASP.NET%20Core-512BD4?logo=dotnet&logoColor=white&labelColor=512BD4) ![C#](https://img.shields.io/badge/-C%23-239120?logo=csharp&logoColor=white&labelColor=239120)
+
 ```
 /integrate-context-matic In my ASP.NET Core app, I want to geocode user
 addresses using Google Maps and cache the results. Look up the geocode endpoint
@@ -393,6 +395,7 @@ and response model, then generate the C# code including error handling.
 <summary><strong>Debugging and error handling</strong></summary>
 
 ![Spotify](https://img.shields.io/badge/-Spotify-1DB954?logo=spotify&logoColor=white&labelColor=1DB954) ![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white&labelColor=3178C6)
+
 ```
 /integrate-context-matic My Spotify API call is returning 401. What OAuth flow
 should I be using and how does the TypeScript SDK handle token refresh automatically?
@@ -401,6 +404,7 @@ should I be using and how does the TypeScript SDK handle token refresh automatic
 ---
 
 ![Slack](https://img.shields.io/badge/-Slack-4A154B?logo=slack&logoColor=white&labelColor=4A154B) ![Python](https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white&labelColor=3776AB)
+
 ```
 /integrate-context-matic My Slack message posts are failing intermittently
 with rate limit errors. How does the Python SDK expose rate limit information and
@@ -426,6 +430,7 @@ what's the recommended retry pattern?
 APIMatic takes your OpenAPI specification through the same SDK generation pipeline it uses to produce idiomatic, type-safe SDKs in 10+ languages. The resulting MCP server exposes the SDK documentation and integration patterns as structured tool responses that AI assistants can consume natively.
 
 This means the context the AI receives is:
+
 - Derived from actual generated SDK code, not raw documentation
 - Inclusive of idiomatic patterns, typed models, and error handling
 - Aligned to the current version of your API spec

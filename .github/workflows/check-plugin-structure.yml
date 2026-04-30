@@ -21,12 +21,49 @@ jobs:
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
-            const { execSync } = require('child_process');
             const fs = require('fs');
             const path = require('path');
 
             const pluginsDir = 'plugins';
             const errors = [];
+
+            function findSymlinks(rootDir) {
+              const symlinks = [];
+              const dirsToScan = [rootDir];
+
+              while (dirsToScan.length > 0) {
+                const currentDir = dirsToScan.pop();
+                let entries;
+
+                try {
+                  entries = fs.readdirSync(currentDir, { withFileTypes: true });
+                } catch (error) {
+                  throw new Error(`Failed to read directory "${currentDir}": ${error.message}`);
+                }
+
+                for (const entry of entries) {
+                  const entryPath = path.join(currentDir, entry.name);
+                  let stat;
+
+                  try {
+                    stat = fs.lstatSync(entryPath);
+                  } catch (error) {
+                    throw new Error(`Failed to inspect "${entryPath}": ${error.message}`);
+                  }
+
+                  if (stat.isSymbolicLink()) {
+                    symlinks.push(entryPath);
+                    continue;
+                  }
+
+                  if (stat.isDirectory()) {
+                    dirsToScan.push(entryPath);
+                  }
+                }
+              }
+
+              return symlinks;
+            }
 
             if (!fs.existsSync(pluginsDir)) {
               console.log('No plugins directory found');
@@ -63,14 +100,15 @@ jobs:
                 }
               }
 
-              // Check for symlinks anywhere in the plugin directory
+              // Check for symlinks anywhere in the plugin directory without invoking a shell
               try {
-                const allFiles = execSync(`find "${pluginPath}" -type l`, { encoding: 'utf-8' }).trim();
-                if (allFiles) {
-                  errors.push(`${pluginPath} contains symlinks:\n${allFiles}`);
+                const symlinkPaths = findSymlinks(pluginPath);
+                if (symlinkPaths.length > 0) {
+                  const formattedPaths = symlinkPaths.map(filePath => `\`${filePath}\``).join(', ');
+                  errors.push(`${pluginPath} contains symlinks: ${formattedPaths}`);
                 }
-              } catch (e) {
-                // find returns non-zero if no matches, ignore
+              } catch (error) {
+                errors.push(`Failed to inspect ${pluginPath} for symlinks: ${error.message}`);
               }
             }
 
@@ -115,13 +153,31 @@ jobs:
                 '```',
               ].join('\n');
 
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                event: 'REQUEST_CHANGES',
-                body
-              });
+              let reviewPosted = false;
+
+              if (!isFork) {
+                try {
+                  await github.rest.pulls.createReview({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    event: 'REQUEST_CHANGES',
+                    body
+                  });
+                  reviewPosted = true;
+                } catch (error) {
+                  core.warning(
+                    `Could not create PR review (continuing with failure report): ${error.message}`
+                  );
+                }
+              } else {
+                core.warning('PR is from a fork; skipping createReview to avoid permission errors.');
+              }
+
+              if (!reviewPosted) {
+                core.warning('Materialized plugin issues detected. Full details:');
+                core.warning(body);
+              }
 
               core.setFailed('Plugin directories contain materialized files or symlinks that should not be on staged');
             } else {

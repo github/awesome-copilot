@@ -19,8 +19,8 @@ func main() {
 	// Create session with a memorable ID
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-		SessionID: "user-123-conversation",
-		Model:     "gpt-5",
+		SessionID:           "user-123-conversation",
+		Model:               "gpt-5.4",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -32,9 +32,9 @@ func main() {
 	}
 	fmt.Printf("Session created: %s\n", session.SessionID)
 
-	// Destroy session but keep data on disk
-	session.Destroy()
-	fmt.Println("Session destroyed (state persisted)")
+	// Disconnect session but keep data on disk
+	session.Disconnect()
+	fmt.Println("Session disconnected (state persisted)")
 
 	// Resume the previous session
 	resumed, err := client.ResumeSession(ctx, "user-123-conversation", &copilot.ResumeSessionConfig{OnPermissionRequest: copilot.PermissionHandler.ApproveAll})
@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// List sessions
-	sessions, err := client.ListSessions(ctx)
+	sessions, err := client.ListSessions(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,5 +65,5 @@ func main() {
 	}
 	fmt.Println("Session deleted")
 
-	resumed.Destroy()
+	resumed.Disconnect()
 }

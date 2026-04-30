@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-25
+lastUpdated: 2026-04-28
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -333,6 +333,47 @@ This repository provides a curated collection of agents, skills, and hooks desig
 4. The hooks will run automatically during coding agent sessions
 
 > **Example workflow**: Combine a `test-specialist` agent with a `database-migrations` skill and a linting hook. Assign an issue to the coding agent using the test-specialist agent — it will automatically pick up the migrations skill when relevant, and the hook ensures all code is formatted before completion.
+
+## Remote Control
+
+You can connect to and steer a running coding agent session from a local Copilot CLI terminal using **remote control**. This lets you observe the agent's progress, send follow-up prompts, and redirect its work in real time — without waiting for it to open a PR first.
+
+### Starting a Remote-Controlled Session
+
+Launch a session that registers with GitHub for remote access:
+
+```bash
+copilot --remote
+```
+
+Or open a remote control tab from inside an existing session, and check or toggle its state:
+
+```
+/remote             # show current remote control status
+/remote on          # enable remote control and register with GitHub
+/remote off         # disable remote control for this session
+```
+
+The **Remote** tab in the CLI shows all active coding agent tasks from the repository. Select a task to connect and begin sending steering messages.
+
+### Resuming from the Session Picker
+
+Remote sessions also appear in the `--resume` picker, so you can reconnect to a coding agent session you were previously controlling without needing to know the session ID:
+
+```bash
+copilot --resume
+```
+
+### Why Use Remote Control?
+
+| Scenario | Benefit |
+|----------|---------|
+| Long-running tasks | Monitor progress without waiting for the final PR |
+| Mid-course corrections | Redirect the agent if it heads in the wrong direction |
+| Interactive refinement | Provide clarification and feedback as the agent works |
+| No PR required | You can steer tasks that haven't yet opened a pull request |
+
+> **Note**: Remote control replaces the earlier "steering" feature. If you see references to steering in older documentation, remote control is the updated equivalent.
 
 ## Hooks and the Coding Agent
 

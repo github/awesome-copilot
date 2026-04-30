@@ -8,7 +8,8 @@ tableOfContents: false
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
 [What are Agents, Skills, and Instructions](what-are-agents-skills-instructions/)
-and work through the full track to master every customization primitive.
+and work through the full track to master every customization primitive. For delegation
+and orchestration patterns, continue with [Agents and Subagents](agents-and-subagents/).
 
 ## Reference
 
@@ -24,6 +25,5 @@ and examples you can use right away.
 
 ## Copilot CLI for Beginners
 
-Looking for a guided path into GitHub Copilot from the terminal? Start with
-[Copilot CLI for Beginners](cli-for-beginners/) for a course overview,
-then work through chapters 00 through 07 at your own pace.
+Looking for a guided path into GitHub Copilot from the terminal? Explore Copilot CLI for Beginners! You can work through a 
+[text based experience](cli-for-beginners/) for a text-based experience, or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).

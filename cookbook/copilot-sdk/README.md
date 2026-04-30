@@ -44,6 +44,16 @@ This cookbook collects small, focused recipes showing how to accomplish common t
 - [Persisting Sessions](go/persisting-sessions.md): Save and resume sessions across restarts.
 - [Accessibility Report](go/accessibility-report.md): Generate WCAG accessibility reports using the Playwright MCP server.
 
+### Java
+
+- [Ralph Loop](java/ralph-loop.md): Build autonomous AI coding loops with fresh context per iteration, planning/building modes, and backpressure.
+- [Error Handling](java/error-handling.md): Handle errors gracefully including connection failures, timeouts, and cleanup.
+- [Multiple Sessions](java/multiple-sessions.md): Manage multiple independent conversations simultaneously.
+- [Managing Local Files](java/managing-local-files.md): Organize files by metadata using AI-powered grouping strategies.
+- [PR Visualization](java/pr-visualization.md): Generate interactive PR age charts using GitHub MCP Server.
+- [Persisting Sessions](java/persisting-sessions.md): Save and resume sessions across restarts.
+- [Accessibility Report](java/accessibility-report.md): Generate WCAG accessibility reports using the Playwright MCP server.
+
 ## How to Use
 
 - Browse your language section above and open the recipe links
@@ -84,6 +94,13 @@ cd go/cookbook/recipe
 go run <filename>.go
 ```
 
+### Java
+
+```bash
+cd java/recipe
+jbang <FileName>.java
+```
+
 ## Contributing
 
 - Propose or add a new recipe by creating a markdown file in your language's `cookbook/` folder and a runnable example in `recipe/`
@@ -91,4 +108,4 @@ go run <filename>.go
 
 ## Status
 
-Cookbook structure is complete with 7 recipes across all 4 supported languages. Each recipe includes both markdown documentation and runnable examples.
+Cookbook structure is complete with 7 recipes across all 5 supported languages. Each recipe includes both markdown documentation and runnable examples.

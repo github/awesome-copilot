@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-30
+lastUpdated: 2026-04-27
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -142,6 +142,23 @@ Or from a local path:
 copilot plugin marketplace add /path/to/local-marketplace
 ```
 
+### Sharing Marketplace Registrations Across a Team
+
+To automatically register an additional marketplace for everyone working in a repository, add an `extraKnownMarketplaces` entry to your `.github/copilot-settings.json` (or `config.json`):
+
+```json
+{
+  "extraKnownMarketplaces": [
+    {
+      "name": "my-org-plugins",
+      "source": "my-org/internal-plugins"
+    }
+  ]
+}
+```
+
+With this in place, team members automatically get the `my-org-plugins` marketplace available without running a separate `marketplace add` command. This replaces the older `marketplaces` setting, which was removed in v1.0.16.
+
 ## Installing Plugins
 
 ### From Copilot CLI
@@ -158,6 +175,8 @@ Or from an interactive session:
 /plugin install database-data-management@awesome-copilot
 ```
 
+> **Deprecation notice**: Installing plugins directly from a GitHub repository URL, raw URL, or local file path (e.g., `copilot plugin install github/awesome-copilot`) is deprecated and will be removed in a future release. Use marketplace-based installation instead.
+
 ### From VS Code
 
 Browse to the plugin via `@agentPlugins` in the Extensions search view or via **Chat: Plugins** in the Command Palette, then click **Install**.
@@ -172,6 +191,9 @@ copilot plugin list
 
 # Update a plugin to the latest version
 copilot plugin update my-plugin
+
+# Refresh all marketplace catalogs (fetch the latest list of available plugins)
+copilot plugin marketplace update
 
 # Remove a plugin
 copilot plugin uninstall my-plugin
@@ -201,7 +223,7 @@ When you install a plugin, its components become available to Copilot CLI automa
 - **Hooks** run at the configured lifecycle events during agent sessions
 - **MCP servers** extend the tools available to agents
 
-You don't need to do any additional configuration after installing — the plugin's components integrate seamlessly into your workflow.
+You don't need to do any additional configuration after installing — the plugin's components integrate seamlessly into your workflow. Plugins take effect immediately after installation without requiring a Copilot CLI restart.
 
 ## Plugins from This Repository
 

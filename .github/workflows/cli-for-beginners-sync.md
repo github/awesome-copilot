@@ -93,6 +93,7 @@ For each local file that needs updating:
    - Preserve upstream wording, headings, section order, assignments, and overall chapter flow as closely as practical
    - Do not summarize, reinterpret, or "website-optimize" the course into a different learning experience
    - Only adapt what the website requires: Astro frontmatter, route-safe internal links, GitHub repo links, local asset paths, and minor HTML/CSS hooks needed for presentation
+    - Convert repo-root relative links that are invalid on the published website (for example `../.github/agents/`, `./.github/...`, or `.github/...`) into absolute links to `https://github.com/github/copilot-cli-for-beginners` (use `/tree/main/...` for directories and `/blob/main/...` for files)
 
 3. If upstream adds, removes, or renames major sections or chapters:
    - Create, delete, or rename the corresponding markdown files in `website/src/content/docs/learning-hub/cli-for-beginners/`

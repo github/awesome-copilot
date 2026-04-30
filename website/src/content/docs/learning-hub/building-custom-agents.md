@@ -11,6 +11,7 @@ tags:
   - fundamentals
 relatedArticles:
   - ./what-are-agents-skills-instructions.md
+  - ./agents-and-subagents.md
   - ./creating-effective-skills.md
   - ./understanding-mcp-servers.md
 prerequisites:

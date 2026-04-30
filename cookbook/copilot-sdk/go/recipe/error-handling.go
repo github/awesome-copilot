@@ -19,12 +19,12 @@ func main() {
 
 	session, err := client.CreateSession(ctx, &copilot.SessionConfig{
 		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-		Model: "gpt-5",
+		Model:               "gpt-5.4",
 	})
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
 	}
-	defer session.Destroy()
+	defer session.Disconnect()
 
 	result, err := session.SendAndWait(ctx, copilot.MessageOptions{Prompt: "Hello!"})
 	if err != nil {
@@ -32,7 +32,9 @@ func main() {
 		return
 	}
 
-	if result != nil && result.Data.Content != nil {
-		fmt.Println(*result.Data.Content)
+	if result != nil {
+		if d, ok := result.Data.(*copilot.AssistantMessageData); ok {
+			fmt.Println(d.Content)
+		}
 	}
 }

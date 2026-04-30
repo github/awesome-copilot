@@ -22,12 +22,12 @@
       "dependsOn": "npm install"
     },
     {
-      "label": "validate-collections",
+      "label": "validate-plugins",
       "type": "shell",
-      "command": "npm run collection:validate",
+      "command": "npm run plugin:validate",
       "problemMatcher": [],
       "group": "build",
-      "detail": "Validates all collection manifest files.",
+      "detail": "Validates all plugin manifest files.",
       "dependsOn": "npm install"
     },
     {

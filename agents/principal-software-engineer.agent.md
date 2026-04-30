@@ -1,7 +1,7 @@
 ---
 description: 'Provide principal-level software engineering guidance with focus on engineering excellence, technical leadership, and pragmatic implementation.'
 name: 'Principal software engineer'
-tools: ['agent', 'browser', 'edit', 'execute', 'github/*', 'read', 'search', 'todo', 'vscode', 'web/fetch']
+tools: ['agent', 'edit', 'execute', 'github/*', 'read', 'search', 'todo', 'vscode', 'web/fetch']
 ---
 # Principal software engineer mode instructions
 

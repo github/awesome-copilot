@@ -44,41 +44,99 @@ jobs:
             const totalChecked = skillCount + agentCount;
 
             const marker = '<!-- skill-validator-results -->';
-            const output = fs.readFileSync('sv-output.txt', 'utf8').trim();
+            const rawOutput = fs.existsSync('sv-output.txt')
+              ? fs.readFileSync('sv-output.txt', 'utf8')
+              : '';
+            const output = rawOutput.replace(/\x1b\[[0-9;]*m/g, '').trim();
 
-            // Count errors, warnings, advisories from output
-            const errorCount = (output.match(/\bError\b/gi) || []).length;
-            const warningCount = (output.match(/\bWarning\b/gi) || []).length;
-            const advisoryCount = (output.match(/\bAdvisory\b/gi) || []).length;
+            const errorCount = (output.match(/❌/g) || []).length;
+            const warningCount = (output.match(/⚠/g) || []).length;
+            const advisoryCount = (output.match(/ℹ/g) || []).length;
 
-            let statusLine;
-            if (errorCount > 0) {
-              statusLine = `**${totalChecked} resource(s) checked** | ⛔ ${errorCount} error(s) | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
-            } else if (warningCount > 0) {
-              statusLine = `**${totalChecked} resource(s) checked** | ⚠️ ${warningCount} warning(s) | ℹ️ ${advisoryCount} advisory(ies)`;
-            } else {
-              statusLine = `**${totalChecked} resource(s) checked** | ✅ All checks passed`;
+            let verdict = '✅ All checks passed';
+            if (exitCode !== '0' || errorCount > 0) {
+              verdict = '⛔ Findings need attention';
+            } else if (warningCount > 0 || advisoryCount > 0) {
+              verdict = '⚠️ Warnings or advisories found';
             }
+
+            const highlightedLines = output
+              .split('\n')
+              .map(line => line.trim())
+              .filter(Boolean)
+              .filter(line => !line.startsWith('###'))
+              .filter(line => /^[❌⚠ℹ]/.test(line));
+
+            const summaryLines = highlightedLines.length > 0
+              ? highlightedLines.slice(0, 10)
+              : output
+                  .split('\n')
+                  .map(line => line.trim())
+                  .filter(Boolean)
+                  .filter(line => !line.startsWith('###'))
+                  .slice(0, 10);
+
+            const scopeTable = [
+              '| Scope | Checked |',
+              '|---|---:|',
+              `| Skills | ${skillCount} |`,
+              `| Agents | ${agentCount} |`,
+              `| Total | ${totalChecked} |`,
+            ];
+
+            const severityTable = [
+              '| Severity | Count |',
+              '|---|---:|',
+              `| ❌ Errors | ${errorCount} |`,
+              `| ⚠️ Warnings | ${warningCount} |`,
+              `| ℹ️ Advisories | ${advisoryCount} |`,
+            ];
+
+            const findingsTable = summaryLines.length === 0
+              ? ['_No findings were emitted by the validator._']
+              : [
+                  '| Level | Finding |',
+                  '|---|---|',
+                  ...summaryLines.map(line => {
+                    const level = line.startsWith('❌')
+                      ? '❌'
+                      : line.startsWith('⚠')
+                        ? '⚠️'
+                        : line.startsWith('ℹ')
+                          ? 'ℹ️'
+                          : (exitCode !== '0' ? '⛔' : 'ℹ️');
+                    const text = line.replace(/^[❌⚠ℹ️\s]+/, '').replace(/\|/g, '\\|');
+                    return `| ${level} | ${text} |`;
+                  }),
+                ];
 
             const body = [
               marker,
               '## 🔍 Skill Validator Results',
               '',
-              statusLine,
+              `**${verdict}**`,
+              '',
+              ...scopeTable,
+              '',
+              ...severityTable,
+              '',
+              '### Summary',
+              '',
+              ...findingsTable,
               '',
               '<details>',
-              '<summary>Full output</summary>',
+              '<summary>Full validator output</summary>',
               '',
-              '```',
-              output,
+              '```text',
+              output || 'No validator output captured.',
               '```',
               '',
               '</details>',
               '',
               exitCode !== '0'
-                ? '> **Note:** Errors were found. These are currently reported as warnings and do not block merge. Please review and address when possible.'
+                ? '> **Note:** The validator returned a non-zero exit code. Please review the findings above before merge.'
                 : '',
-            ].join('\n');
+            ].filter(Boolean).join('\n');
 
             // Find existing comment with our marker
             const { data: comments } = await github.rest.issues.listComments({

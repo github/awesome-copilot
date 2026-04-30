@@ -11,26 +11,31 @@
     "./agents/gem-debugger.md",
     "./agents/gem-critic.md",
     "./agents/gem-code-simplifier.md",
-    "./agents/gem-designer.md"
+    "./agents/gem-designer.md",
+    "./agents/gem-implementer-mobile.md",
+    "./agents/gem-designer-mobile.md",
+    "./agents/gem-mobile-tester.md"
   ],
   "author": {
-    "name": "Awesome Copilot Community"
+    "email": "mubaidr@gmail.com",
+    "name": "mubaidr",
+    "url": "https://github.com/mubaidr"
   },
-  "description": "A modular, high-performance multi-agent orchestration framework for complex project execution, feature implementation, and automated verification.",
+  "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
   "keywords": [
     "multi-agent",
     "orchestration",
     "tdd",
+    "testing",
+    "e2e",
     "devops",
     "security-audit",
-    "dag-planning",
-    "compliance",
+    "code-review",
     "prd",
-    "debugging",
-    "refactoring"
+    "mobile"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "name": "gem-team",
-  "repository": "https://github.com/github/awesome-copilot",
-  "version": "1.5.0"
+  "repository": "https://github.com/mubaidr/gem-team",
+  "version": "1.13.0"
 }

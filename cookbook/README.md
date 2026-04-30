@@ -10,7 +10,7 @@ The cookbook is organized by tool or product, with recipes collected by language
 
 Ready-to-use recipes for building with the GitHub Copilot SDK across multiple languages.
 
-- **[Copilot SDK Cookbook](copilot-sdk/)** - Recipes for .NET, Go, Node.js, and Python
+- **[Copilot SDK Cookbook](copilot-sdk/)** - Recipes for .NET, Go, Java, Node.js, and Python
   - Error handling, session management, file operations, and more
   - Runnable examples for each language
   - Best practices and complete implementation guides

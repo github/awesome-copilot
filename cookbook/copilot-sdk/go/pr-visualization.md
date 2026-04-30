@@ -139,7 +139,7 @@ func main() {
     cwd, _ := os.Getwd()
     session, err := client.CreateSession(ctx, &copilot.SessionConfig{
     	OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
-        Model: "gpt-5",
+        Model: "gpt-5.4",
         SystemMessage: &copilot.SystemMessageConfig{
             Content: fmt.Sprintf(`
 <context>
@@ -159,19 +159,15 @@ The current working directory is: %s
     if err != nil {
         log.Fatal(err)
     }
-    defer session.Destroy()
+    defer session.Disconnect()
 
     // Set up event handling
     session.On(func(event copilot.SessionEvent) {
-        switch event.Type {
-        case "assistant.message":
-            if event.Data.Content != nil {
-                fmt.Printf("\n🤖 %s\n\n", *event.Data.Content)
-            }
-        case "tool.execution_start":
-            if event.Data.ToolName != nil {
-                fmt.Printf("  ⚙️  %s\n", *event.Data.ToolName)
-            }
+        switch d := event.Data.(type) {
+        case *copilot.AssistantMessageData:
+            fmt.Printf("\n🤖 %s\n\n", d.Content)
+        case *copilot.ToolExecutionStartData:
+            fmt.Printf("  ⚙️  %s\n", d.ToolName)
         }
     })
 

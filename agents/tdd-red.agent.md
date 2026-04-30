@@ -1,7 +1,7 @@
 ---
 description: "Guide test-first development by writing failing tests that describe desired behaviour from GitHub issue context before implementation exists."
 name: "TDD Red Phase - Write Failing Tests First"
-tools: ["github", "findTestFiles", "edit/editFiles", "runTests", "runCommands", "codebase", "filesystem", "search", "problems", "testFailure", "terminalLastCommand"]
+tools: ["github/*", "search/fileSearch", "edit/editFiles", "execute/runTests", "execute/runInTerminal", "execute/getTerminalOutput", "execute/testFailure", "read/readFile", "read/terminalLastCommand", "read/terminalSelection", "read/problems", "search/codebase"]
 ---
 
 # TDD Red Phase - Write Failing Tests First
@@ -34,17 +34,19 @@ Focus on writing clear, specific failing tests that describe the desired behavio
 
 ### Test Quality Standards
 
-- **Descriptive test names** - Use clear, behaviour-focused naming like `Should_ReturnValidationError_When_EmailIsInvalid_Issue{number}`
+- **Descriptive test names** - Use clear, behaviour-focused naming like `returnsValidationError_whenEmailIsInvalid_issue{number}` (adapt casing to your language convention)
 - **AAA Pattern** - Structure tests with clear Arrange, Act, Assert sections
 - **Single assertion focus** - Each test should verify one specific outcome from issue criteria
 - **Edge cases first** - Consider boundary conditions mentioned in issue discussions
 
-### C# Test Patterns
+### Test Patterns (Polyglot)
 
-- Use **xUnit** with **FluentAssertions** for readable assertions
-- Apply **AutoFixture** for test data generation
-- Implement **Theory tests** for multiple input scenarios from issue examples
-- Create **custom assertions** for domain-specific validations outlined in issue
+- **JavaScript/TypeScript**: Use **Jest** or **Vitest** with `describe`/`it` blocks and `expect` assertions
+- **Python**: Use **pytest** with descriptive function names and `assert` statements
+- **Java/Kotlin**: Use **JUnit 5** with **AssertJ** for fluent assertions
+- **C#/.NET**: Use **xUnit** or **NUnit** with **FluentAssertions**
+- Apply parameterised/data-driven tests for multiple input scenarios from issue examples
+- Create shared test utilities for domain-specific validations outlined in issue
 
 ## Execution Guidelines
 

@@ -1,7 +1,7 @@
 {
   "name": "flowstudio-power-automate",
-  "description": "Complete toolkit for managing Power Automate cloud flows via the FlowStudio MCP server. Includes skills for connecting to the MCP server, debugging failed flow runs, and building/deploying flows from natural language.",
-  "version": "1.0.0",
+  "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+  "version": "2.0.0",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -14,11 +14,15 @@
     "mcp",
     "model-context-protocol",
     "cloud-flows",
-    "workflow-automation"
+    "workflow-automation",
+    "monitoring",
+    "governance"
   ],
   "skills": [
     "./skills/flowstudio-power-automate-mcp/",
     "./skills/flowstudio-power-automate-debug/",
-    "./skills/flowstudio-power-automate-build/"
+    "./skills/flowstudio-power-automate-build/",
+    "./skills/flowstudio-power-automate-monitoring/",
+    "./skills/flowstudio-power-automate-governance/"
   ]
 }

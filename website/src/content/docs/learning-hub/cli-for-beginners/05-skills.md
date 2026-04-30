@@ -64,7 +64,7 @@ Learn what skills are, why they matter, and how they differ from agents and MCP.
    ```
    This shows all skills Copilot can find in your project and personal folders.
 
-2. **Look at a real skill file:** Check out our provided [code-checklist SKILL.md](https://github.com/github/copilot-cli-for-beginners/blob/main/github/skills/code-checklist/SKILL.md) to see the pattern. It's just YAML frontmatter plus markdown instructions.
+2. **Look at a real skill file:** Check out our provided [code-checklist SKILL.md](https://github.com/github/copilot-cli-for-beginners/blob/main/.github/skills/code-checklist/SKILL.md) to see the pattern. It's just YAML frontmatter plus markdown instructions.
 
 3. **Understand the core concept:** Skills are task-specific instructions that Copilot loads *automatically* when your prompt matches the skill's description. You don't need to activate them, just ask naturally.
 
@@ -91,7 +91,7 @@ copilot
 
 > 💡 **Key Insight**: Skills are **automatically triggered** based on your prompt matching the skill's description. Just ask naturally and Copilot applies relevant skills behind the scenes. You can also invoke skills directly as well which you'll learn about next.
 
-> 🧰 **Ready-to-use templates**: Check out the [.github/skills](../.github/skills/) folder for simple copy-paste skills you can try out.
+> 🧰 **Ready-to-use templates**: Check out the [.github/skills](https://github.com/github/copilot-cli-for-beginners/tree/main/.github/skills/) folder for simple copy-paste skills you can try out.
 
 ### Direct Slash Command Invocation
 
@@ -591,7 +591,7 @@ Apply what you've learned by building and testing your own skills.
 
 ### Build More Skills
 
-Here are two more skills showing different patterns. Follow the same `mkdir` + `cat` workflow from "Creating Your First Skill" above or copy and paste the skills into the proper location. More examples are available in [.github/skills](../.github/skills).
+Here are two more skills showing different patterns. Follow the same `mkdir` + `cat` workflow from "Creating Your First Skill" above or copy and paste the skills into the proper location. More examples are available in [.github/skills](https://github.com/github/copilot-cli-for-beginners/tree/main/.github/skills).
 
 ### pytest Test Generation Skill
 

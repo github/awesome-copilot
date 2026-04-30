@@ -1,6 +1,6 @@
 {
   "name": "context-matic",
-  "description": "General-purpose AI models are trained on public code and documentation, much of it outdated. They have no awareness of an actual API version, latest SDKs, or recommended workflows. ContextMatic gives GitHub Copilot deterministic, version-aware API context generated directly from API definitions and SDKs. Instead of guessing from public examples, the agent is grounded in current SDK versions, idiomatic code samples, and recommended integration workflows.",
+  "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
   "version": "0.1.0",
   "keywords": [
     "api-context",
