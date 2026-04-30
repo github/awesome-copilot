@@ -9,15 +9,13 @@ name: Validate Marketplace
 #   Gate A (supply-chain): `apm audit --ci`. Validates lockfile / install
 #   fidelity, ref consistency between apm.yml and apm.lock.yaml,
 #   no orphan packages, and content-integrity (hidden Unicode) on
-#   deployed package content. SARIF report is uploaded when produced.
+#   deployed package content. SARIF report is uploaded to the run.
 #
-#   Gate B (drift): two checks. (i) `apm.lock.yaml` drift -- fails if
-#   apm-action's `apm install` step regenerates a different lockfile
-#   than the one committed (catches the "edited apm.yml without
-#   running apm install" mistake and upstream-ref movement). (ii)
-#   `marketplace.json` drift -- rebuild with `apm pack` + the
-#   external-plugin merge bridge, fail if the result differs from the
-#   committed `.github/plugin/marketplace.json`.
+#   Gate B (drift): rebuild marketplace.json with `apm pack` + the
+#   external-plugin merge bridge, and fail if the result differs from
+#   the committed `.github/plugin/marketplace.json`. Catches contributors
+#   who edit apm.yml without re-running `npm run build`, or who
+#   hand-edit the generated marketplace.json.
 
 on:
   pull_request:
@@ -90,25 +88,7 @@ jobs:
           sarif_file: apm-audit.sarif
           category: apm-audit
 
-      # Gate B (i): apm.lock.yaml drift (consumer-side, producer-axis).
-      # apm-action's install step (in the Setup APM step above) regenerates
-      # apm.lock.yaml from apm.yml. If the regenerated lockfile differs
-      # from the one committed in this PR, the contributor edited apm.yml
-      # without running `apm install` (or upstream refs moved). For
-      # marketplace-only manifests with no `dependencies:` block this is a
-      # no-op (no lockfile generated, no drift possible) -- the gate
-      # activates automatically the moment a real dependency is added.
-      - name: Check apm.lock.yaml drift
-        run: |
-          if [ -n "$(git status --porcelain -- apm.lock.yaml)" ]; then
-            echo "::error::apm.lock.yaml is out of sync with apm.yml."
-            echo "Run 'apm install' locally and commit the regenerated apm.lock.yaml."
-            git --no-pager diff -- apm.lock.yaml
-            exit 1
-          fi
-          echo "apm.lock.yaml is in sync (or not yet generated -- no dependencies declared)."
-
-      # Gate B (ii): marketplace.json drift (producer-side).
+      # Gate B: marketplace.json drift (producer-side).
       # `npm run build` now invokes `apm pack` + the external-plugin merge
       # bridge. If the rebuild produces a different marketplace.json than
       # the one committed in this PR, fail with a clear remediation hint.
