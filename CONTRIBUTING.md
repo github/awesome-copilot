@@ -58,6 +58,20 @@ To maintain a safe, responsible, and high-signal collection, we will **not accep
 
 ## How to Contribute
 
+### Prerequisites
+
+This repository uses [APM (Agent Package Manager)](https://github.com/microsoft/apm) to author the marketplace manifest. Install the `apm` CLI before running `npm run build` (it is invoked from the build chain to generate `.github/plugin/marketplace.json`):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/microsoft/apm/main/install.sh | sh
+```
+
+Then install Node dependencies as usual:
+
+```bash
+npm install
+```
+
 ### Adding Instructions
 
 Instructions help customize GitHub Copilot's behavior for specific technologies, coding practices, or domains.
@@ -144,7 +158,8 @@ Plugins group related agents, commands, and skills around specific themes or wor
 1. **Create your plugin**: Run `npm run plugin:create` to scaffold a new plugin
 2. **Follow the naming convention**: Use descriptive, lowercase folder names with hyphens (e.g., `python-web-development`)
 3. **Define your content**: List agents, commands, and skills in `plugin.json` using the Claude Code spec fields
-4. **Test your plugin**: Run `npm run plugin:validate` to verify your plugin structure
+4. **Register in `apm.yml`**: Append a `packages:` entry under `marketplace:` (alphabetical) with `source: ./plugins/<name>`, `version`, and `description` matching your plugin.json. This is what `apm pack` reads to assemble the marketplace.
+5. **Test your plugin**: Run `npm run plugin:validate` to verify your plugin structure
 
 #### Creating a plugin
 

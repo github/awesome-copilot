@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "npm run build",
-    "build": "node ./eng/update-readme.mjs && node ./eng/generate-marketplace.mjs",
+    "build": "node ./eng/update-readme.mjs && npm run plugin:generate-marketplace",
     "contributors:add": "all-contributors add",
     "contributors:report": "node ./eng/contributor-report.mjs",
     "contributors:generate": "all-contributors generate",
@@ -16,7 +16,8 @@
     "skill:validate": "node ./eng/validate-skills.mjs",
     "skill:create": "node ./eng/create-skill.mjs",
     "plugin:clean": "node ./eng/clean-materialized-plugins.mjs",
-    "plugin:generate-marketplace": "node ./eng/generate-marketplace.mjs",
+    "plugin:generate-marketplace": "apm pack --marketplace-output .github/plugin/marketplace.json && node ./eng/merge-external-plugins.mjs",
+    "plugin:generate-marketplace:legacy": "node ./eng/generate-marketplace.mjs",
     "website:data": "node ./eng/generate-website-data.mjs",
     "website:dev": "npm run website:data && npm run --prefix website dev",
     "website:build": "npm run build && npm run website:data && npm run --prefix website build",

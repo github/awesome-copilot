@@ -1,0 +1,282 @@
+# APM manifest -- the authoring source of truth for the Awesome Copilot marketplace.
+#
+# Running `apm pack` reads the `marketplace:` block below and emits an
+# Anthropic-compliant `.claude-plugin/marketplace.json` (we route the output
+# to `.github/plugin/marketplace.json` via `--marketplace-output` to keep the
+# canonical install path stable).
+#
+# To add or update a local plugin, edit the corresponding entry under
+# `marketplace.plugins:` and bump its `version`. External (remote) plugins
+# continue to be declared in `plugins/external.json` and merged in by the
+# build pipeline -- migrating those to apm.yml is tracked as a follow-up.
+#
+# See: https://github.com/microsoft/apm
+
+name: awesome-copilot
+version: 1.0.0
+description: Community-driven collection of GitHub Copilot plugins, agents, prompts, and skills
+marketplace:
+  owner:
+    name: GitHub
+    email: copilot@github.com
+  metadata:
+    description: Community-driven collection of GitHub Copilot plugins, agents, prompts, and skills
+    version: 1.0.0
+    pluginRoot: ./plugins
+  packages:
+  - name: ai-team-orchestration
+    source: ./plugins/ai-team-orchestration
+    version: 1.0.0
+    description: "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code."
+  - name: arize-ax
+    source: ./plugins/arize-ax
+    version: 1.0.0
+    description: "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI."
+  - name: automate-this
+    source: ./plugins/automate-this
+    version: 1.0.0
+    description: "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription."
+  - name: awesome-copilot
+    source: ./plugins/awesome-copilot
+    version: 1.1.0
+    description: "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills."
+  - name: azure-cloud-development
+    source: ./plugins/azure-cloud-development
+    version: 1.0.1
+    description: "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications."
+  - name: cast-imaging
+    source: ./plugins/cast-imaging
+    version: 1.0.0
+    description: "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging."
+  - name: clojure-interactive-programming
+    source: ./plugins/clojure-interactive-programming
+    version: 1.0.0
+    description: "Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance."
+  - name: context-engineering
+    source: ./plugins/context-engineering
+    version: 1.0.0
+    description: "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development."
+  - name: context-matic
+    source: ./plugins/context-matic
+    version: 0.1.0
+    description: "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses \u2014 falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed."
+  - name: copilot-sdk
+    source: ./plugins/copilot-sdk
+    version: 1.0.0
+    description: "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications."
+  - name: csharp-dotnet-development
+    source: ./plugins/csharp-dotnet-development
+    version: 1.1.0
+    description: "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices."
+  - name: csharp-mcp-development
+    source: ./plugins/csharp-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance."
+  - name: database-data-management
+    source: ./plugins/database-data-management
+    version: 1.0.0
+    description: "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices."
+  - name: dataverse-sdk-for-python
+    source: ./plugins/dataverse-sdk-for-python
+    version: 1.0.0
+    description: "Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts."
+  - name: devops-oncall
+    source: ./plugins/devops-oncall
+    version: 1.0.0
+    description: "A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources."
+  - name: doublecheck
+    source: ./plugins/doublecheck
+    version: 1.0.0
+    description: "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting."
+  - name: edge-ai-tasks
+    source: ./plugins/edge-ai-tasks
+    version: 1.0.0
+    description: "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai"
+  - name: ember
+    source: ./plugins/ember
+    version: 1.0.0
+    description: "An AI partner, not a tool. Ember carries fire from person to person \u2014 helping humans discover that AI partnership isn't something you learn, it's something you find."
+  - name: fastah-ip-geo-tools
+    source: ./plugins/fastah-ip-geo-tools
+    version: 0.0.9
+    description: "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy."
+  - name: flowstudio-power-automate
+    source: ./plugins/flowstudio-power-automate
+    version: 2.0.0
+    description: "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale \u2014 action-level inputs and outputs, not just status codes."
+  - name: frontend-web-dev
+    source: ./plugins/frontend-web-dev
+    version: 1.0.0
+    description: "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks."
+  - name: gem-team
+    source: ./plugins/gem-team
+    version: 1.13.0
+    description: "Multi-agent orchestration framework for spec-driven development and automated verification."
+  - name: go-mcp-development
+    source: ./plugins/go-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance."
+  - name: java-development
+    source: ./plugins/java-development
+    version: 1.0.0
+    description: "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices."
+  - name: java-mcp-development
+    source: ./plugins/java-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration."
+  - name: kotlin-mcp-development
+    source: ./plugins/kotlin-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance."
+  - name: mcp-m365-copilot
+    source: ./plugins/mcp-m365-copilot
+    version: 1.0.0
+    description: "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot"
+  - name: modernize-java
+    source: ./plugins/modernize-java
+    version: 1.0.0
+    description: "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions."
+  - name: napkin
+    source: ./plugins/napkin
+    version: 1.0.0
+    description: "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes \u2014 then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas."
+  - name: noob-mode
+    source: ./plugins/noob-mode
+    version: 1.0.0
+    description: "Plain-English translation layer for non-technical Copilot CLI users. Translates every approval prompt, error message, and technical output into clear, jargon-free English with color-coded risk indicators."
+  - name: openapi-to-application-csharp-dotnet
+    source: ./plugins/openapi-to-application-csharp-dotnet
+    version: 1.0.0
+    description: "Generate production-ready .NET applications from OpenAPI specifications. Includes ASP.NET Core project scaffolding, controller generation, entity framework integration, and C# best practices."
+  - name: openapi-to-application-go
+    source: ./plugins/openapi-to-application-go
+    version: 1.0.0
+    description: "Generate production-ready Go applications from OpenAPI specifications. Includes project scaffolding, handler generation, middleware setup, and Go best practices for REST APIs."
+  - name: openapi-to-application-java-spring-boot
+    source: ./plugins/openapi-to-application-java-spring-boot
+    version: 1.0.0
+    description: "Generate production-ready Spring Boot applications from OpenAPI specifications. Includes project scaffolding, REST controller generation, service layer organization, and Spring Boot best practices."
+  - name: openapi-to-application-nodejs-nestjs
+    source: ./plugins/openapi-to-application-nodejs-nestjs
+    version: 1.0.0
+    description: "Generate production-ready NestJS applications from OpenAPI specifications. Includes project scaffolding, controller and service generation, TypeScript best practices, and enterprise patterns."
+  - name: openapi-to-application-python-fastapi
+    source: ./plugins/openapi-to-application-python-fastapi
+    version: 1.0.0
+    description: "Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs."
+  - name: oracle-to-postgres-migration-expert
+    source: ./plugins/oracle-to-postgres-migration-expert
+    version: 1.0.0
+    description: "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL."
+  - name: ospo-sponsorship
+    source: ./plugins/ospo-sponsorship
+    version: 1.0.0
+    description: "Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms."
+  - name: partners
+    source: ./plugins/partners
+    version: 1.0.0
+    description: "Custom agents that have been created by GitHub partners"
+  - name: pcf-development
+    source: ./plugins/pcf-development
+    version: 1.0.0
+    description: "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps"
+  - name: phoenix
+    source: ./plugins/phoenix
+    version: 1.0.0
+    description: "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation."
+  - name: php-mcp-development
+    source: ./plugins/php-mcp-development
+    version: 1.0.0
+    description: "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance"
+  - name: polyglot-test-agent
+    source: ./plugins/polyglot-test-agent
+    version: 1.0.0
+    description: "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions."
+  - name: power-apps-code-apps
+    source: ./plugins/power-apps-code-apps
+    version: 1.0.0
+    description: "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration."
+  - name: power-bi-development
+    source: ./plugins/power-bi-development
+    version: 1.0.0
+    description: "Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions."
+  - name: power-platform-architect
+    source: ./plugins/power-platform-architect
+    version: 1.0.0
+    description: "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures."
+  - name: power-platform-mcp-connector-development
+    source: ./plugins/power-platform-mcp-connector-development
+    version: 1.0.0
+    description: "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio"
+  - name: project-planning
+    source: ./plugins/project-planning
+    version: 1.0.0
+    description: "Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams."
+  - name: python-mcp-development
+    source: ./plugins/python-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance."
+  - name: react18-upgrade
+    source: ./plugins/react18-upgrade
+    version: 1.0.0
+    description: "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian."
+  - name: react19-upgrade
+    source: ./plugins/react19-upgrade
+    version: 1.0.0
+    description: "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more."
+  - name: roundup
+    source: ./plugins/roundup
+    version: 1.0.0
+    description: "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand."
+  - name: ruby-mcp-development
+    source: ./plugins/ruby-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support."
+  - name: rug-agentic-workflow
+    source: ./plugins/rug-agentic-workflow
+    version: 1.0.0
+    description: "Three-agent workflow for orchestrated software delivery with an orchestrator plus implementation and QA subagents."
+  - name: rust-mcp-development
+    source: ./plugins/rust-mcp-development
+    version: 1.0.0
+    description: "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations."
+  - name: salesforce-development
+    source: ./plugins/salesforce-development
+    version: 1.1.0
+    description: "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages."
+  - name: security-best-practices
+    source: ./plugins/security-best-practices
+    version: 1.0.0
+    description: "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications."
+  - name: software-engineering-team
+    source: ./plugins/software-engineering-team
+    version: 1.0.0
+    description: "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps."
+  - name: structured-autonomy
+    source: ./plugins/structured-autonomy
+    version: 1.0.0
+    description: "Premium planning, thrifty implementation"
+  - name: swift-mcp-development
+    source: ./plugins/swift-mcp-development
+    version: 1.0.0
+    description: "Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features."
+  - name: technical-spike
+    source: ./plugins/technical-spike
+    version: 1.0.0
+    description: "Tools for creation, management and research of technical spikes to reduce unknowns and assumptions before proceeding to specification and implementation of solutions."
+  - name: testing-automation
+    source: ./plugins/testing-automation
+    version: 1.0.0
+    description: "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies."
+  - name: typescript-mcp-development
+    source: ./plugins/typescript-mcp-development
+    version: 1.0.0
+    description: "Complete toolkit for building Model Context Protocol (MCP) servers in TypeScript/Node.js using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance."
+  - name: typespec-m365-copilot
+    source: ./plugins/typespec-m365-copilot
+    version: 1.0.0
+    description: "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility."
+  - name: winui3-development
+    source: ./plugins/winui3-development
+    version: 1.0.0
+    description: "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps."
