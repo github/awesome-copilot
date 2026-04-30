@@ -8,7 +8,14 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/Dataverse-skills",
-    "keywords": ["dataverse", "power-platform", "microsoft", "mcp", "python", "sdk"],
+    "keywords": [
+      "dataverse",
+      "power-platform",
+      "microsoft",
+      "mcp",
+      "python",
+      "sdk"
+    ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/Dataverse-skills",
     "source": {
@@ -26,7 +33,14 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/azure-skills",
-    "keywords": ["azure", "cloud", "infrastructure", "deployment", "microsoft", "devops"],
+    "keywords": [
+      "azure",
+      "cloud",
+      "infrastructure",
+      "deployment",
+      "microsoft",
+      "devops"
+    ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/github-copilot-for-azure",
     "source": {
@@ -44,7 +58,16 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/skills",
-    "keywords": ["dotnet", "csharp", "coding", "skills", "csharp-script", "single-file", "nuget-publishing", "pinvoke"],
+    "keywords": [
+      "dotnet",
+      "csharp",
+      "coding",
+      "skills",
+      "csharp-script",
+      "single-file",
+      "nuget-publishing",
+      "pinvoke"
+    ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/skills",
     "source": {
@@ -62,7 +85,18 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/skills",
-    "keywords": ["dotnet", "diagnostics", "performance", "debugging", "tracing", "symbolicate", "android-tombstone", "dump-collection", "microbenchmarking", "clr-activation"],
+    "keywords": [
+      "dotnet",
+      "diagnostics",
+      "performance",
+      "debugging",
+      "tracing",
+      "symbolicate",
+      "android-tombstone",
+      "dump-collection",
+      "microbenchmarking",
+      "clr-activation"
+    ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/skills",
     "source": {
@@ -72,20 +106,27 @@
     }
   },
   {
-  "name": "skills-for-copilot-studio",
-  "description": "Microsoft Copilot Studio plugins for AI coding agents",
-  "version": "1.0.3",
-  "author": {
-    "name": "Microsoft Copilot Studio CAT Team",
-    "url": "https://www.microsoft.com"
+    "name": "skills-for-copilot-studio",
+    "description": "Microsoft Copilot Studio plugins for AI coding agents",
+    "version": "1.0.3",
+    "author": {
+      "name": "Microsoft Copilot Studio CAT Team",
+      "url": "https://www.microsoft.com"
     },
-  "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
-  "keywords": ["copilot", "copilot-studio", "studio", "agent", "microsoft", "coding"],
-  "license": "MIT",
-  "repository": "https://github.com/microsoft/skills-for-copilot-studio",
-  "source": {
-    "source": "github",
-    "repo": "microsoft/skills-for-copilot-studio"
+    "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
+    "keywords": [
+      "copilot",
+      "copilot-studio",
+      "studio",
+      "agent",
+      "microsoft",
+      "coding"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/skills-for-copilot-studio",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/skills-for-copilot-studio"
     }
   },
   {
@@ -97,7 +138,12 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
+    "keywords": [
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet"
+    ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
@@ -115,7 +161,18 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://learn.microsoft.com",
-    "keywords": ["microsoft", "azure", "dotnet", "windows", "api", "documentation", "rag", "dynamics", "powerbi", "code-samples"],
+    "keywords": [
+      "microsoft",
+      "azure",
+      "dotnet",
+      "windows",
+      "api",
+      "documentation",
+      "rag",
+      "dynamics",
+      "powerbi",
+      "code-samples"
+    ],
     "license": "MIT",
     "repository": "https://github.com/MicrosoftDocs/mcp",
     "source": {
@@ -132,7 +189,13 @@
       "url": "https://www.figma.com"
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
-    "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
+    "keywords": [
+      "figma",
+      "design",
+      "mcp",
+      "ui",
+      "code-connect"
+    ],
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
@@ -148,12 +211,46 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
-    "keywords": ["copilot", "productivity", "impact", "report", "estimation", "roi", "session-logs"],
+    "keywords": [
+      "copilot",
+      "productivity",
+      "impact",
+      "report",
+      "estimation",
+      "roi",
+      "session-logs"
+    ],
     "license": "MIT",
     "repository": "https://github.com/microsoft/What-I-Did-Copilot",
     "source": {
       "source": "github",
       "repo": "microsoft/What-I-Did-Copilot"
+    }
+  },
+  {
+    "name": "fabric-ux-devkit",
+    "description": "Fabric UX developer agent, skills, and MCP server for consumer-repo parity analysis, component catalog lookup, and spec-to-code implementation of Microsoft Fabric web components.",
+    "version": "0.1.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux?path=/fabric-ux-devkit",
+    "keywords": [
+      "fabric",
+      "fabric-ux",
+      "web-components",
+      "parity",
+      "figma-to-code",
+      "mcp",
+      "microsoft"
+    ],
+    "license": "MIT",
+    "repository": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux",
+    "source": {
+      "source": "url",
+      "url": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux",
+      "path": "fabric-ux-devkit"
     }
   }
 ]

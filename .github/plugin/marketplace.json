@@ -225,6 +225,32 @@
       "version": "1.0.0"
     },
     {
+      "name": "fabric-ux-devkit",
+      "description": "Fabric UX developer agent, skills, and MCP server for consumer-repo parity analysis, component catalog lookup, and spec-to-code implementation of Microsoft Fabric web components.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux?path=/fabric-ux-devkit",
+      "keywords": [
+        "fabric",
+        "fabric-ux",
+        "web-components",
+        "parity",
+        "figma-to-code",
+        "mcp",
+        "microsoft"
+      ],
+      "license": "MIT",
+      "repository": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux",
+      "source": {
+        "source": "url",
+        "url": "https://dev.azure.com/powerbi/Trident/_git/fabric-ux",
+        "path": "fabric-ux-devkit"
+      }
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
