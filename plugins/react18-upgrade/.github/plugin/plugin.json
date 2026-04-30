@@ -16,21 +16,16 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-   "agents": [
-    "./agents/react18-auditor.md",
-    "./agents/react18-commander.md",
-    "./agents/react18-dep-surgeon.md",
-    "./agents/react18-class-surgeon.md",
-    "./agents/react18-batching-fixer.md",
-    "./agents/react18-test-guardian.md"
+  "agents": [
+    "./agents"
   ],
   "skills": [
-    "./skills/react-audit-grep-patterns/",
-    "./skills/react18-batching-patterns/",
-    "./skills/react18-dep-compatibility/",
-    "./skills/react18-enzyme-to-rtl/",
-    "./skills/react18-legacy-context/",
-    "./skills/react18-lifecycle-patterns/",
-    "./skills/react18-string-refs/"
+    "./skills/react-audit-grep-patterns",
+    "./skills/react18-batching-patterns",
+    "./skills/react18-dep-compatibility",
+    "./skills/react18-enzyme-to-rtl",
+    "./skills/react18-legacy-context",
+    "./skills/react18-lifecycle-patterns",
+    "./skills/react18-string-refs"
   ]
 }
