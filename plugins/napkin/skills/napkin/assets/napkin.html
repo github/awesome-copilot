@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Napkin — Whiteboard for Copilot</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f5f5f5;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────── */
+#toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 4px;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.toolbar-group + .toolbar-group {
+  border-left: 1px solid #e0e0e0;
+  margin-left: 4px;
+  padding-left: 10px;
+}
+
+.tool-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 4px 2px 2px;
+}
+
+.tool-btn:hover {
+  background: #eee;
+}
+
+.tool-btn.active {
+  background: #e3f2fd;
+  border-color: #1e88e5;
+}
+
+.tool-btn .icon {
+  font-size: 20px;
+  line-height: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-btn .label {
+  font-size: 9px;
+  color: #666;
+  margin-top: 2px;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.tool-btn.active .label {
+  color: #1e88e5;
+}
+
+/* Color picker */
+.color-picker {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.color-swatch.active {
+  border-color: #333;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+}
+
+/* Stroke width buttons */
+.stroke-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stroke-btn:hover {
+  background: #eee;
+}
+
+.stroke-btn.active {
+  background: #e3f2fd;
+  border-color: #1e88e5;
+}
+
+.stroke-btn .stroke-line {
+  background: #333;
+  border-radius: 4px;
+  width: 20px;
+}
+
+.stroke-btn .label {
+  font-size: 8px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Share button */
+.share-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  margin-left: auto;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(13,148,136,0.3);
+  font-family: inherit;
+}
+
+.share-btn:hover {
+  background: #0f766e;
+  transform: translateY(-1px);
+}
+
+.share-btn:active {
+  transform: translateY(0);
+}
+
+.share-btn .icon {
+  font-size: 18px;
+}
+
+/* Help button */
+.help-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background: #fff;
+  color: #888;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.help-btn:hover {
+  border-color: #999;
+  color: #555;
+}
+
+/* ── Canvas area ───────────────────────────────────────────────── */
+#canvas-container {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #f0f0f0;
+  cursor: crosshair;
+}
+
+#canvas-container.panning {
+  cursor: grab;
+}
+
+#canvas-container.panning:active {
+  cursor: grabbing;
+}
+
+#drawing-canvas {
+  position: absolute;
+  background: #fff;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+
+/* ── Sticky notes ──────────────────────────────────────────────── */
+.sticky-note {
+  position: absolute;
+  min-width: 140px;
+  min-height: 100px;
+  border-radius: 4px;
+  box-shadow: 2px 3px 12px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  z-index: 500;
+  font-family: inherit;
+}
+
+.sticky-note .note-header {
+  height: 24px;
+  border-radius: 4px 4px 0 0;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 4px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.sticky-note .note-delete {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: rgba(0,0,0,0.15);
+  color: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-family: inherit;
+}
+
+.sticky-note:hover .note-delete {
+  opacity: 1;
+}
+
+.sticky-note .note-delete:hover {
+  background: rgba(0,0,0,0.3);
+  color: rgba(0,0,0,0.8);
+}
+
+.sticky-note .note-body {
+  flex: 1;
+  padding: 8px 12px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  outline: none;
+  cursor: text;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  border-radius: 0 0 4px 4px;
+  min-height: 76px;
+}
+
+.sticky-note .note-resize {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.sticky-note:hover .note-resize {
+  opacity: 0.4;
+}
+
+.sticky-note .note-resize::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(0,0,0,0.3);
+  border-bottom: 2px solid rgba(0,0,0,0.3);
+}
+
+/* Sticky note colors */
+.sticky-yellow { background: #fff9c4; }
+.sticky-yellow .note-header { background: #fff176; }
+.sticky-pink { background: #fce4ec; }
+.sticky-pink .note-header { background: #f48fb1; }
+.sticky-blue { background: #e3f2fd; }
+.sticky-blue .note-header { background: #90caf9; }
+.sticky-green { background: #e8f5e9; }
+.sticky-green .note-header { background: #a5d6a7; }
+
+/* Sticky note color picker in toolbar */
+.note-color-picker {
+  display: none;
+  position: absolute;
+  top: 60px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  gap: 6px;
+  z-index: 1001;
+}
+
+.note-color-picker.show {
+  display: flex;
+}
+
+.note-color-opt {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+}
+
+.note-color-opt:hover {
+  border-color: #999;
+}
+
+/* ── Text labels on canvas ─────────────────────────────────────── */
+.canvas-text-label {
+  position: absolute;
+  font-size: 16px;
+  color: #333;
+  outline: none;
+  cursor: text;
+  padding: 2px 4px;
+  min-width: 20px;
+  min-height: 20px;
+  white-space: pre-wrap;
+  z-index: 400;
+  border: 1px dashed transparent;
+  border-radius: 3px;
+  font-family: inherit;
+  background: transparent;
+}
+
+.canvas-text-label:focus {
+  border-color: #90caf9;
+  background: rgba(255,255,255,0.85);
+}
+
+/* ── Overlays ──────────────────────────────────────────────────── */
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.overlay-backdrop.hidden {
+  display: none;
+}
+
+.overlay-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px 44px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  text-align: center;
+}
+
+.overlay-card h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.overlay-card .subtitle {
+  font-size: 15px;
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.overlay-card .steps {
+  text-align: left;
+  margin: 0 auto 28px;
+  max-width: 380px;
+}
+
+.overlay-card .steps .step {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.overlay-card .steps .step-num {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  background: #0d9488;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.overlay-card .cta-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: inherit;
+}
+
+.overlay-card .cta-btn:hover {
+  background: #0f766e;
+}
+
+/* Share confirmation */
+.overlay-card .confirm-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.overlay-card .confirm-detail {
+  text-align: left;
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 16px 0 24px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #555;
+}
+
+.overlay-card .confirm-detail .clipboard-hint {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* ── Keyboard shortcuts panel ──────────────────────────────────── */
+.shortcuts-panel {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  z-index: 1001;
+  font-size: 12px;
+  display: none;
+  min-width: 220px;
+}
+
+.shortcuts-panel.show {
+  display: block;
+}
+
+.shortcuts-panel h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.shortcuts-panel .shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  color: #555;
+}
+
+.shortcuts-panel .shortcut-row kbd {
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #444;
+}
+
+.shortcuts-panel .close-shortcuts {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #999;
+}
+
+/* ── Zoom indicator ────────────────────────────────────────────── */
+.zoom-indicator {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-size: 12px;
+  color: #555;
+  z-index: 1001;
+}
+
+.zoom-indicator button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-family: inherit;
+}
+
+.zoom-indicator button:hover {
+  background: #f5f5f5;
+}
+
+/* ── Toast notification ────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+</style>
+</head>
+<body>
+
+<!-- ── Toolbar ──────────────────────────────────────────────────── -->
+<div id="toolbar">
+  <!-- Drawing tools -->
+  <div class="toolbar-group">
+    <button class="tool-btn active" data-tool="select" title="Select / Move (V)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 2-4 7z"/></svg>
+      </span>
+      <span class="label">Select</span>
+    </button>
+    <button class="tool-btn" data-tool="pen" title="Pen (P)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </span>
+      <span class="label">Pen</span>
+    </button>
+    <button class="tool-btn" data-tool="line" title="Line (L)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+      </span>
+      <span class="label">Line</span>
+    </button>
+    <button class="tool-btn" data-tool="arrow" title="Arrow (A)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="10 5 19 5 19 14"/></svg>
+      </span>
+      <span class="label">Arrow</span>
+    </button>
+    <button class="tool-btn" data-tool="rect" title="Rectangle (R)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+      </span>
+      <span class="label">Rect</span>
+    </button>
+    <button class="tool-btn" data-tool="ellipse" title="Circle (C)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="10" ry="8"/></svg>
+      </span>
+      <span class="label">Circle</span>
+    </button>
+    <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l9-9 8 8-4 5z"/><path d="M6 11l8 8"/></svg>
+      </span>
+      <span class="label">Eraser</span>
+    </button>
+  </div>
+
+  <!-- Text & Notes -->
+  <div class="toolbar-group">
+    <button class="tool-btn" data-tool="text" title="Text (T)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/></svg>
+      </span>
+      <span class="label">Text</span>
+    </button>
+    <button class="tool-btn" data-tool="note" id="note-tool-btn" title="Sticky Note (N)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M14 3v8h8"/></svg>
+      </span>
+      <span class="label">Note</span>
+    </button>
+    <div class="note-color-picker" id="note-color-picker">
+      <div class="note-color-opt" data-note-color="yellow" style="background:#fff9c4;" title="Yellow"></div>
+      <div class="note-color-opt" data-note-color="pink" style="background:#fce4ec;" title="Pink"></div>
+      <div class="note-color-opt" data-note-color="blue" style="background:#e3f2fd;" title="Blue"></div>
+      <div class="note-color-opt" data-note-color="green" style="background:#e8f5e9;" title="Green"></div>
+    </div>
+  </div>
+
+  <!-- Color & stroke -->
+  <div class="toolbar-group">
+    <div class="color-picker">
+      <div class="color-swatch active" data-color="#222222" style="background:#222222;" title="Black"></div>
+      <div class="color-swatch" data-color="#e53935" style="background:#e53935;" title="Red"></div>
+      <div class="color-swatch" data-color="#1e88e5" style="background:#1e88e5;" title="Blue"></div>
+      <div class="color-swatch" data-color="#43a047" style="background:#43a047;" title="Green"></div>
+      <div class="color-swatch" data-color="#fb8c00" style="background:#fb8c00;" title="Orange"></div>
+      <div class="color-swatch" data-color="#8e24aa" style="background:#8e24aa;" title="Purple"></div>
+    </div>
+  </div>
+
+  <div class="toolbar-group">
+    <button class="stroke-btn active" data-stroke="2" title="Thin">
+      <div class="stroke-line" style="height:2px;"></div>
+      <span class="label">Thin</span>
+    </button>
+    <button class="stroke-btn" data-stroke="4" title="Medium">
+      <div class="stroke-line" style="height:4px;"></div>
+      <span class="label">Med</span>
+    </button>
+    <button class="stroke-btn" data-stroke="7" title="Thick">
+      <div class="stroke-line" style="height:7px;"></div>
+      <span class="label">Thick</span>
+    </button>
+  </div>
+
+  <!-- Undo / Redo -->
+  <div class="toolbar-group">
+    <button class="tool-btn" id="undo-btn" title="Undo (Ctrl/Cmd+Z)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 105.64-10.36L1 10"/></svg>
+      </span>
+      <span class="label">Undo</span>
+    </button>
+    <button class="tool-btn" id="redo-btn" title="Redo (Ctrl/Cmd+Shift+Z)">
+      <span class="icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-5.64-10.36L23 10"/></svg>
+      </span>
+      <span class="label">Redo</span>
+    </button>
+  </div>
+
+  <!-- Share button -->
+  <button class="share-btn" id="share-btn">
+    <span class="icon">&#9993;</span>
+    Share with Copilot
+  </button>
+
+  <!-- Help -->
+  <button class="help-btn" id="help-btn" title="Help">?</button>
+</div>
+
+<!-- ── Canvas ──────────────────────────────────────────────────── -->
+<div id="canvas-container">
+  <canvas id="drawing-canvas"></canvas>
+</div>
+
+<!-- ── Onboarding overlay ──────────────────────────────────────── -->
+<div class="overlay-backdrop" id="onboarding-overlay">
+  <div class="overlay-card">
+    <h1>Welcome to Napkin!</h1>
+    <p class="subtitle">Your whiteboard for brainstorming with Copilot.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>Draw, sketch, or add sticky notes &mdash; whatever helps you think</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>When you're ready, click <strong>"Share with Copilot"</strong> (the green button)</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>Go back to your terminal and say <strong>"check the napkin"</strong></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>Copilot will look at your whiteboard and respond</div>
+      </div>
+    </div>
+    <p style="font-size:14px;color:#888;margin-bottom:20px;">That's it. Let's go!</p>
+    <button class="cta-btn" id="onboarding-dismiss">Got it &mdash; start drawing</button>
+  </div>
+</div>
+
+<!-- ── Share confirmation overlay ──────────────────────────────── -->
+<div class="overlay-backdrop hidden" id="share-overlay">
+  <div class="overlay-card">
+    <div class="confirm-icon">&#10004;&#65039;</div>
+    <h1>Shared with Copilot!</h1>
+    <div class="confirm-detail">
+      &#128190; A screenshot was saved (check your Downloads or Desktop).<br>
+      &#128203; The text content was copied to your clipboard.<br><br>
+      Go back to Copilot CLI and say:<br>
+      <span class="clipboard-hint">"check the napkin"</span>
+    </div>
+    <button class="cta-btn" id="share-overlay-close">Got it</button>
+  </div>
+</div>
+
+<!-- ── Keyboard shortcuts panel ────────────────────────────────── -->
+<div class="shortcuts-panel" id="shortcuts-panel">
+  <button class="close-shortcuts" id="close-shortcuts">&times;</button>
+  <h3>Keyboard Shortcuts</h3>
+  <div class="shortcut-row"><span>Select / Move</span><kbd>V</kbd></div>
+  <div class="shortcut-row"><span>Pen</span><kbd>P</kbd></div>
+  <div class="shortcut-row"><span>Rectangle</span><kbd>R</kbd></div>
+  <div class="shortcut-row"><span>Circle</span><kbd>C</kbd></div>
+  <div class="shortcut-row"><span>Arrow</span><kbd>A</kbd></div>
+  <div class="shortcut-row"><span>Line</span><kbd>L</kbd></div>
+  <div class="shortcut-row"><span>Text</span><kbd>T</kbd></div>
+  <div class="shortcut-row"><span>Sticky Note</span><kbd>N</kbd></div>
+  <div class="shortcut-row"><span>Eraser</span><kbd>E</kbd></div>
+  <div class="shortcut-row"><span>Undo</span><kbd>Ctrl/Cmd+Z</kbd></div>
+  <div class="shortcut-row"><span>Redo</span><kbd>Ctrl/Cmd+Shift+Z</kbd></div>
+  <div class="shortcut-row"><span>Pan canvas</span><kbd>Space+Drag</kbd></div>
+</div>
+
+<!-- ── Zoom indicator ──────────────────────────────────────────── -->
+<div class="zoom-indicator">
+  <button id="zoom-out-btn" title="Zoom out">&minus;</button>
+  <span id="zoom-level">100%</span>
+  <button id="zoom-in-btn" title="Zoom in">+</button>
+  <button id="fit-btn" title="Fit to content" style="font-size:11px;width:auto;padding:0 8px;">Fit</button>
+</div>
+
+<!-- ── Toast ───────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  NAPKIN — Self-contained whiteboard for Copilot collaboration
+// ═══════════════════════════════════════════════════════════════════
+
+(function () {
+  'use strict';
+
+  // ── DOM references ───────────────────────────────────────────────
+  const container    = document.getElementById('canvas-container');
+  const canvas       = document.getElementById('drawing-canvas');
+  const ctx          = canvas.getContext('2d');
+  const toolbar      = document.getElementById('toolbar');
+  const toastEl      = document.getElementById('toast');
+  const onboarding   = document.getElementById('onboarding-overlay');
+  const shareOverlay = document.getElementById('share-overlay');
+  const noteColorPicker = document.getElementById('note-color-picker');
+
+  // ── State ────────────────────────────────────────────────────────
+  const CANVAS_W = 3840;
+  const CANVAS_H = 2160;
+
+  let currentTool   = 'select';
+  let currentColor   = '#222222';
+  let currentStroke  = 2;
+  let noteColor      = 'yellow';
+
+  // View transform
+  let viewX = 0, viewY = 0, viewScale = 1;
+
+  // Drawing state
+  let isDrawing = false;
+  let isPanning = false;
+  let spaceHeld = false;
+  let eraserDidErase = false;
+  let panStartX = 0, panStartY = 0;
+  let panViewStartX = 0, panViewStartY = 0;
+
+  // Objects
+  let drawingObjects = [];  // { type, points?, x?, y?, ... }
+  let stickyNotes    = [];  // { id, text, x, y, w, h, color }
+  let textLabels     = [];  // { id, text, x, y, fontSize }
+
+  // Current in-progress drawing
+  let currentPath = null;
+
+  // Undo/redo stacks
+  let undoStack = [];
+  let redoStack = [];
+
+  // Unique ID counter
+  let idCounter = Date.now();
+  function uid() { return 'n' + (idCounter++); }
+
+  // ── Utility ──────────────────────────────────────────────────────
+  function screenToCanvas(sx, sy) {
+    const rect = container.getBoundingClientRect();
+    return {
+      x: (sx - rect.left - viewX) / viewScale,
+      y: (sy - rect.top - viewY) / viewScale
+    };
+  }
+
+  function showToast(msg, duration) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), duration || 2500);
+  }
+
+  // ── Onboarding ───────────────────────────────────────────────────
+  function initOnboarding() {
+    if (localStorage.getItem('napkin_onboarded')) {
+      onboarding.classList.add('hidden');
+    }
+    document.getElementById('onboarding-dismiss').addEventListener('click', () => {
+      onboarding.classList.add('hidden');
+      localStorage.setItem('napkin_onboarded', '1');
+    });
+    document.getElementById('help-btn').addEventListener('click', () => {
+      onboarding.classList.remove('hidden');
+    });
+  }
+
+  // ── Canvas setup ─────────────────────────────────────────────────
+  function initCanvas() {
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+    centerView();
+    render();
+  }
+
+  function centerView() {
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    viewScale = Math.min(cw / CANVAS_W, ch / CANVAS_H, 1) * 0.9;
+    viewX = (cw - CANVAS_W * viewScale) / 2;
+    viewY = (ch - CANVAS_H * viewScale) / 2;
+    updateCanvasTransform();
+  }
+
+  function updateCanvasTransform() {
+    canvas.style.left = viewX + 'px';
+    canvas.style.top = viewY + 'px';
+    canvas.style.width = (CANVAS_W * viewScale) + 'px';
+    canvas.style.height = (CANVAS_H * viewScale) + 'px';
+    document.getElementById('zoom-level').textContent = Math.round(viewScale * 100) + '%';
+
+    // Reposition sticky notes and text labels
+    repositionOverlays();
+  }
+
+  function repositionOverlays() {
+    document.querySelectorAll('.sticky-note').forEach(el => {
+      const note = stickyNotes.find(n => n.id === el.dataset.noteId);
+      if (!note) return;
+      el.style.left = (viewX + note.x * viewScale) + 'px';
+      el.style.top  = (viewY + note.y * viewScale) + 'px';
+      el.style.width  = (note.w * viewScale) + 'px';
+      el.style.height = (note.h * viewScale) + 'px';
+      el.style.fontSize = (14 * viewScale) + 'px';
+    });
+    document.querySelectorAll('.canvas-text-label').forEach(el => {
+      const lbl = textLabels.find(l => l.id === el.dataset.labelId);
+      if (!lbl) return;
+      el.style.left = (viewX + lbl.x * viewScale) + 'px';
+      el.style.top  = (viewY + lbl.y * viewScale) + 'px';
+      el.style.fontSize = (lbl.fontSize * viewScale) + 'px';
+    });
+  }
+
+  // ── Render canvas objects ────────────────────────────────────────
+  function render() {
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // Draw grid (very subtle)
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < CANVAS_W; x += 40) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CANVAS_H); ctx.stroke();
+    }
+    for (let y = 0; y < CANVAS_H; y += 40) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CANVAS_W, y); ctx.stroke();
+    }
+
+    // Draw all objects
+    drawingObjects.forEach(obj => drawObject(ctx, obj));
+
+    // Draw current in-progress path
+    if (currentPath) {
+      drawObject(ctx, currentPath);
+    }
+  }
+
+  function drawObject(c, obj) {
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+
+    switch (obj.type) {
+      case 'pen': {
+        if (obj.points.length < 2) return;
+        c.strokeStyle = obj.color;
+        c.lineWidth = obj.stroke;
+        c.beginPath();
+        c.moveTo(obj.points[0].x, obj.points[0].y);
+        for (let i = 1; i < obj.points.length; i++) {
+          c.lineTo(obj.points[i].x, obj.points[i].y);
+        }
+        c.stroke();
+        break;
+      }
+      case 'line': {
+        c.strokeStyle = obj.color;
+        c.lineWidth = obj.stroke;
+        c.beginPath();
+        c.moveTo(obj.x1, obj.y1);
+        c.lineTo(obj.x2, obj.y2);
+        c.stroke();
+        break;
+      }
+      case 'arrow': {
+        c.strokeStyle = obj.color;
+        c.lineWidth = obj.stroke;
+        c.fillStyle = obj.color;
+        c.beginPath();
+        c.moveTo(obj.x1, obj.y1);
+        c.lineTo(obj.x2, obj.y2);
+        c.stroke();
+        // Arrowhead
+        const angle = Math.atan2(obj.y2 - obj.y1, obj.x2 - obj.x1);
+        const headLen = 12 + obj.stroke * 2;
+        c.beginPath();
+        c.moveTo(obj.x2, obj.y2);
+        c.lineTo(obj.x2 - headLen * Math.cos(angle - 0.4), obj.y2 - headLen * Math.sin(angle - 0.4));
+        c.lineTo(obj.x2 - headLen * Math.cos(angle + 0.4), obj.y2 - headLen * Math.sin(angle + 0.4));
+        c.closePath();
+        c.fill();
+        break;
+      }
+      case 'rect': {
+        c.strokeStyle = obj.color;
+        c.lineWidth = obj.stroke;
+        c.beginPath();
+        c.rect(obj.x, obj.y, obj.w, obj.h);
+        c.stroke();
+        break;
+      }
+      case 'ellipse': {
+        c.strokeStyle = obj.color;
+        c.lineWidth = obj.stroke;
+        c.beginPath();
+        const cx = obj.x + obj.w / 2;
+        const cy = obj.y + obj.h / 2;
+        c.ellipse(cx, cy, Math.abs(obj.w / 2), Math.abs(obj.h / 2), 0, 0, Math.PI * 2);
+        c.stroke();
+        break;
+      }
+    }
+  }
+
+  // ── Shape recognition ────────────────────────────────────────────
+  function recognizeShape(points) {
+    if (points.length < 10) return null;
+
+    const first = points[0];
+    const last  = points[points.length - 1];
+    const dist  = Math.hypot(last.x - first.x, last.y - first.y);
+
+    // Bounding box
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    points.forEach(p => {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    });
+    const bw = maxX - minX;
+    const bh = maxY - minY;
+    const diagonal = Math.hypot(bw, bh);
+
+    // Check if path closes (endpoints near each other relative to size)
+    if (dist > diagonal * 0.25) return null;
+
+    // Compute total path length
+    let pathLen = 0;
+    for (let i = 1; i < points.length; i++) {
+      pathLen += Math.hypot(points[i].x - points[i - 1].x, points[i].y - points[i - 1].y);
+    }
+
+    // Skip tiny shapes
+    if (bw < 20 || bh < 20) return null;
+
+    // Check rectangularity by analyzing corner angles
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    // Measure how well points fit an ellipse vs a rectangle
+    let ellipseError = 0;
+    let rectError = 0;
+    const rx = bw / 2;
+    const ry = bh / 2;
+
+    points.forEach(p => {
+      // Ellipse error: distance from ellipse boundary
+      const dx = (p.x - cx) / rx;
+      const dy = (p.y - cy) / ry;
+      const r = Math.sqrt(dx * dx + dy * dy);
+      ellipseError += Math.abs(r - 1);
+
+      // Rectangle error: distance from nearest rectangle edge
+      const distToLeft   = Math.abs(p.x - minX);
+      const distToRight  = Math.abs(p.x - maxX);
+      const distToTop    = Math.abs(p.y - minY);
+      const distToBottom = Math.abs(p.y - maxY);
+      rectError += Math.min(distToLeft, distToRight, distToTop, distToBottom);
+    });
+
+    ellipseError /= points.length;
+    rectError /= points.length;
+
+    // Normalize errors
+    const normEllipse = ellipseError;
+    const normRect = rectError / Math.max(bw, bh) * 4;
+
+    if (normEllipse < 0.35 && normEllipse < normRect) {
+      return { type: 'ellipse', x: minX, y: minY, w: bw, h: bh };
+    }
+
+    if (normRect < 0.25) {
+      return { type: 'rect', x: minX, y: minY, w: bw, h: bh };
+    }
+
+    return null;
+  }
+
+  // ── roundRect fallback for older browsers ──────────────────────
+  function safeRoundRect(ctx, x, y, w, h, radii) {
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, w, h, radii);
+      return;
+    }
+    const r = Array.isArray(radii) ? radii : [radii, radii, radii, radii];
+    const [tl, tr, br, bl] = r.length === 4 ? r : r.length === 2 ? [r[0], r[1], r[0], r[1]] : [r[0], r[0], r[0], r[0]];
+    ctx.moveTo(x + tl, y);
+    ctx.lineTo(x + w - tr, y);
+    ctx.arcTo(x + w, y, x + w, y + tr, tr);
+    ctx.lineTo(x + w, y + h - br);
+    ctx.arcTo(x + w, y + h, x + w - br, y + h, br);
+    ctx.lineTo(x + bl, y + h);
+    ctx.arcTo(x, y + h, x, y + h - bl, bl);
+    ctx.lineTo(x, y + tl);
+    ctx.arcTo(x, y, x + tl, y, tl);
+    ctx.closePath();
+  }
+
+  // ── Eraser ───────────────────────────────────────────────────────
+  function eraseAt(cx, cy, radius) {
+    const r2 = radius * radius;
+    const before = drawingObjects.length;
+
+    drawingObjects = drawingObjects.filter(obj => {
+      switch (obj.type) {
+        case 'pen':
+          return !obj.points.some(p => (p.x - cx) ** 2 + (p.y - cy) ** 2 < r2);
+        case 'line':
+        case 'arrow':
+          return distToSegment(cx, cy, obj.x1, obj.y1, obj.x2, obj.y2) > radius;
+        case 'rect':
+          return !(cx > obj.x - radius && cx < obj.x + obj.w + radius &&
+                   cy > obj.y - radius && cy < obj.y + obj.h + radius);
+        case 'ellipse': {
+          const ecx = obj.x + obj.w / 2;
+          const ecy = obj.y + obj.h / 2;
+          const dx = (cx - ecx) / (Math.abs(obj.w) / 2 + radius);
+          const dy = (cy - ecy) / (Math.abs(obj.h) / 2 + radius);
+          return (dx * dx + dy * dy) > 1.0;
+        }
+        default: return true;
+      }
+    });
+
+    if (drawingObjects.length !== before) {
+      eraserDidErase = true;
+      render();
+      return true;
+    }
+    return false;
+  }
+
+  function distToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+  }
+
+  // ── Undo / Redo ──────────────────────────────────────────────────
+  function saveState() {
+    undoStack.push({
+      objects: JSON.parse(JSON.stringify(drawingObjects)),
+      notes:   JSON.parse(JSON.stringify(stickyNotes)),
+      labels:  JSON.parse(JSON.stringify(textLabels))
+    });
+    if (undoStack.length > 60) undoStack.shift();
+    redoStack = [];
+    scheduleAutoSave();
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    redoStack.push({
+      objects: JSON.parse(JSON.stringify(drawingObjects)),
+      notes:   JSON.parse(JSON.stringify(stickyNotes)),
+      labels:  JSON.parse(JSON.stringify(textLabels))
+    });
+    const state = undoStack.pop();
+    drawingObjects = state.objects;
+    stickyNotes = state.notes;
+    textLabels = state.labels;
+    rebuildOverlays();
+    render();
+    scheduleAutoSave();
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    undoStack.push({
+      objects: JSON.parse(JSON.stringify(drawingObjects)),
+      notes:   JSON.parse(JSON.stringify(stickyNotes)),
+      labels:  JSON.parse(JSON.stringify(textLabels))
+    });
+    const state = redoStack.pop();
+    drawingObjects = state.objects;
+    stickyNotes = state.notes;
+    textLabels = state.labels;
+    rebuildOverlays();
+    render();
+    scheduleAutoSave();
+  }
+
+  document.getElementById('undo-btn').addEventListener('click', undo);
+  document.getElementById('redo-btn').addEventListener('click', redo);
+
+  // ── Tool selection ───────────────────────────────────────────────
+  function setTool(tool) {
+    currentTool = tool;
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tool === tool);
+    });
+    container.style.cursor = tool === 'select' ? 'default' :
+                             tool === 'eraser' ? 'cell' : 'crosshair';
+    noteColorPicker.classList.remove('show');
+  }
+
+  toolbar.addEventListener('click', e => {
+    const btn = e.target.closest('.tool-btn[data-tool]');
+    if (!btn) return;
+    const tool = btn.dataset.tool;
+
+    if (tool === 'note') {
+      noteColorPicker.classList.toggle('show');
+      const rect = btn.getBoundingClientRect();
+      noteColorPicker.style.left = rect.left + 'px';
+    } else {
+      setTool(tool);
+    }
+  });
+
+  // Note color picker
+  noteColorPicker.addEventListener('click', e => {
+    const opt = e.target.closest('.note-color-opt');
+    if (!opt) return;
+    noteColor = opt.dataset.noteColor;
+    noteColorPicker.classList.remove('show');
+    setTool('note');
+  });
+
+  // Color swatches
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('active'));
+      s.classList.add('active');
+      currentColor = s.dataset.color;
+    });
+  });
+
+  // Stroke buttons
+  document.querySelectorAll('.stroke-btn').forEach(s => {
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.stroke-btn').forEach(el => el.classList.remove('active'));
+      s.classList.add('active');
+      currentStroke = parseInt(s.dataset.stroke, 10);
+    });
+  });
+
+  // ── Mouse / pointer events on canvas ─────────────────────────────
+  let drawStartX, drawStartY;
+
+  container.addEventListener('pointerdown', e => {
+    if (e.target.closest('#toolbar') || e.target.closest('.sticky-note') ||
+        e.target.closest('.canvas-text-label') || e.target.closest('.overlay-backdrop') ||
+        e.target.closest('.shortcuts-panel') || e.target.closest('.zoom-indicator')) return;
+
+    const pt = screenToCanvas(e.clientX, e.clientY);
+
+    // Pan with space or middle button
+    if (spaceHeld || e.button === 1) {
+      isPanning = true;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      panViewStartX = viewX;
+      panViewStartY = viewY;
+      container.classList.add('panning');
+      e.preventDefault();
+      return;
+    }
+
+    if (e.button !== 0) return;
+
+    switch (currentTool) {
+      case 'pen':
+      case 'eraser': {
+        isDrawing = true;
+        if (currentTool === 'pen') {
+          currentPath = { type: 'pen', points: [pt], color: currentColor, stroke: currentStroke };
+        } else {
+          eraserDidErase = false;
+          const redoStackBeforeEraser = redoStack.slice();
+          saveState();
+          eraseAt(pt.x, pt.y, 16);
+          if (!eraserDidErase) {
+            redoStack = redoStackBeforeEraser;
+          }
+        }
+        break;
+      }
+      case 'line':
+      case 'arrow':
+      case 'rect':
+      case 'ellipse': {
+        isDrawing = true;
+        drawStartX = pt.x;
+        drawStartY = pt.y;
+        if (currentTool === 'line' || currentTool === 'arrow') {
+          currentPath = { type: currentTool, x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y, color: currentColor, stroke: currentStroke };
+        } else {
+          currentPath = { type: currentTool, x: pt.x, y: pt.y, w: 0, h: 0, color: currentColor, stroke: currentStroke };
+        }
+        break;
+      }
+      case 'text': {
+        createTextLabel(pt.x, pt.y);
+        break;
+      }
+      case 'note': {
+        createStickyNote(pt.x, pt.y);
+        setTool('select');
+        break;
+      }
+      case 'select': {
+        // In select mode, clicking empty canvas does nothing special
+        break;
+      }
+    }
+  });
+
+  container.addEventListener('pointermove', e => {
+    if (isPanning) {
+      viewX = panViewStartX + (e.clientX - panStartX);
+      viewY = panViewStartY + (e.clientY - panStartY);
+      updateCanvasTransform();
+      return;
+    }
+
+    if (!isDrawing) return;
+    const pt = screenToCanvas(e.clientX, e.clientY);
+
+    switch (currentTool) {
+      case 'pen': {
+        if (currentPath) {
+          currentPath.points.push(pt);
+          render();
+        }
+        break;
+      }
+      case 'eraser': {
+        eraseAt(pt.x, pt.y, 16);
+        break;
+      }
+      case 'line':
+      case 'arrow': {
+        if (currentPath) {
+          currentPath.x2 = pt.x;
+          currentPath.y2 = pt.y;
+          render();
+        }
+        break;
+      }
+      case 'rect':
+      case 'ellipse': {
+        if (currentPath) {
+          currentPath.x = Math.min(drawStartX, pt.x);
+          currentPath.y = Math.min(drawStartY, pt.y);
+          currentPath.w = Math.abs(pt.x - drawStartX);
+          currentPath.h = Math.abs(pt.y - drawStartY);
+          render();
+        }
+        break;
+      }
+    }
+  });
+
+  function finishDrawing() {
+    if (isPanning) {
+      isPanning = false;
+      container.classList.remove('panning');
+      return;
+    }
+
+    if (!isDrawing) return;
+    isDrawing = false;
+
+    if (currentTool === 'eraser') {
+      if (!eraserDidErase) {
+        // Nothing was erased — pop the pre-erase state we saved on pointerdown
+        undoStack.pop();
+      }
+      return;
+    }
+
+    if (!currentPath) return;
+
+    // Shape recognition for pen tool
+    if (currentPath.type === 'pen') {
+      const recognized = recognizeShape(currentPath.points);
+      if (recognized) {
+        currentPath = {
+          ...recognized,
+          color: currentPath.color,
+          stroke: currentPath.stroke
+        };
+      }
+    }
+
+    // Don't save degenerate shapes
+    if (currentPath.type === 'pen' && currentPath.points.length < 2) {
+      currentPath = null;
+      return;
+    }
+    if ((currentPath.type === 'rect' || currentPath.type === 'ellipse') &&
+        (Math.abs(currentPath.w) < 3 && Math.abs(currentPath.h) < 3)) {
+      currentPath = null;
+      render();
+      return;
+    }
+    if ((currentPath.type === 'line' || currentPath.type === 'arrow') &&
+        Math.hypot(currentPath.x2 - currentPath.x1, currentPath.y2 - currentPath.y1) < 3) {
+      currentPath = null;
+      render();
+      return;
+    }
+
+    saveState();
+    drawingObjects.push(currentPath);
+    currentPath = null;
+    render();
+    scheduleAutoSave();
+  }
+
+  container.addEventListener('pointerup', finishDrawing);
+  container.addEventListener('pointerleave', finishDrawing);
+
+  // ── Zoom ─────────────────────────────────────────────────────────
+  container.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.92 : 1.08;
+    zoomAt(e.clientX, e.clientY, delta);
+  }, { passive: false });
+
+  function zoomAt(sx, sy, factor) {
+    const rect = container.getBoundingClientRect();
+    const mx = sx - rect.left;
+    const my = sy - rect.top;
+
+    const newScale = Math.min(Math.max(viewScale * factor, 0.1), 5);
+    const scaleRatio = newScale / viewScale;
+
+    viewX = mx - (mx - viewX) * scaleRatio;
+    viewY = my - (my - viewY) * scaleRatio;
+    viewScale = newScale;
+    updateCanvasTransform();
+  }
+
+  document.getElementById('zoom-in-btn').addEventListener('click', () => {
+    const rect = container.getBoundingClientRect();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 1.2);
+  });
+  document.getElementById('zoom-out-btn').addEventListener('click', () => {
+    const rect = container.getBoundingClientRect();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, 0.8);
+  });
+  document.getElementById('fit-btn').addEventListener('click', fitToContent);
+
+  function fitToContent() {
+    // Find bounding box of all content
+    let minX = CANVAS_W, minY = CANVAS_H, maxX = 0, maxY = 0;
+    let hasContent = false;
+
+    drawingObjects.forEach(obj => {
+      hasContent = true;
+      switch (obj.type) {
+        case 'pen':
+          obj.points.forEach(p => {
+            minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+          });
+          break;
+        case 'line': case 'arrow':
+          minX = Math.min(minX, obj.x1, obj.x2); minY = Math.min(minY, obj.y1, obj.y2);
+          maxX = Math.max(maxX, obj.x1, obj.x2); maxY = Math.max(maxY, obj.y1, obj.y2);
+          break;
+        case 'rect': case 'ellipse':
+          minX = Math.min(minX, obj.x); minY = Math.min(minY, obj.y);
+          maxX = Math.max(maxX, obj.x + obj.w); maxY = Math.max(maxY, obj.y + obj.h);
+          break;
+      }
+    });
+    stickyNotes.forEach(n => {
+      hasContent = true;
+      minX = Math.min(minX, n.x); minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h);
+    });
+    textLabels.forEach(l => {
+      hasContent = true;
+      minX = Math.min(minX, l.x); minY = Math.min(minY, l.y);
+      maxX = Math.max(maxX, l.x + 200); maxY = Math.max(maxY, l.y + 30);
+    });
+
+    if (!hasContent) {
+      centerView();
+      return;
+    }
+
+    const pad = 80;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+    viewScale = Math.min(cw / (maxX - minX), ch / (maxY - minY), 2);
+    viewX = (cw - (maxX - minX) * viewScale) / 2 - minX * viewScale;
+    viewY = (ch - (maxY - minY) * viewScale) / 2 - minY * viewScale;
+    updateCanvasTransform();
+  }
+
+  // ── Keyboard ─────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    // Don't capture when typing in inputs
+    if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') e.target.blur();
+      return;
+    }
+
+    if (e.key === ' ') {
+      e.preventDefault();
+      spaceHeld = true;
+      container.classList.add('panning');
+    }
+
+    // Ctrl/Cmd shortcuts
+    if (e.metaKey || e.ctrlKey) {
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      if (e.key === 'z' && e.shiftKey)  { e.preventDefault(); redo(); }
+      if (e.key === 'Z')               { e.preventDefault(); redo(); }
+      return;
+    }
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      // No specific selection handling in v1 beyond sticky notes
+      return;
+    }
+
+    const keyMap = { v: 'select', p: 'pen', r: 'rect', c: 'ellipse', a: 'arrow', l: 'line', t: 'text', n: 'note', e: 'eraser' };
+    if (keyMap[e.key]) {
+      if (e.key === 'n') {
+        noteColorPicker.classList.toggle('show');
+        const btn = document.getElementById('note-tool-btn');
+        const rect = btn.getBoundingClientRect();
+        noteColorPicker.style.left = rect.left + 'px';
+      } else {
+        setTool(keyMap[e.key]);
+      }
+    }
+  });
+
+  document.addEventListener('keyup', e => {
+    if (e.key === ' ') {
+      spaceHeld = false;
+      if (!isPanning) container.classList.remove('panning');
+    }
+  });
+
+  // Shortcuts panel
+  document.getElementById('close-shortcuts').addEventListener('click', () => {
+    document.getElementById('shortcuts-panel').classList.remove('show');
+  });
+
+  // Show shortcuts with ? key when not typing
+  document.addEventListener('keydown', e => {
+    if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
+    if (e.key === '?') {
+      document.getElementById('shortcuts-panel').classList.toggle('show');
+    }
+  });
+
+  // ── Sticky notes ─────────────────────────────────────────────────
+  function createStickyNote(x, y) {
+    const note = {
+      id: uid(),
+      text: '',
+      x: x,
+      y: y,
+      w: 200,
+      h: 160,
+      color: noteColor
+    };
+    saveState();
+    stickyNotes.push(note);
+    renderStickyNote(note, true);
+    scheduleAutoSave();
+  }
+
+  function renderStickyNote(note, focusAfter) {
+    const el = document.createElement('div');
+    el.className = 'sticky-note sticky-' + note.color;
+    el.dataset.noteId = note.id;
+    el.style.left = (viewX + note.x * viewScale) + 'px';
+    el.style.top  = (viewY + note.y * viewScale) + 'px';
+    el.style.width  = (note.w * viewScale) + 'px';
+    el.style.height = (note.h * viewScale) + 'px';
+    el.style.fontSize = (14 * viewScale) + 'px';
+
+    const header = document.createElement('div');
+    header.className = 'note-header';
+
+    const del = document.createElement('button');
+    del.className = 'note-delete';
+    del.textContent = '\u00d7';
+    del.addEventListener('click', () => {
+      saveState();
+      stickyNotes = stickyNotes.filter(n => n.id !== note.id);
+      el.remove();
+      scheduleAutoSave();
+    });
+    header.appendChild(del);
+
+    const body = document.createElement('div');
+    body.className = 'note-body';
+    body.contentEditable = 'true';
+    body.textContent = note.text;
+    body.addEventListener('input', () => {
+      note.text = body.textContent;
+      scheduleAutoSave();
+    });
+    body.addEventListener('blur', () => {
+      note.text = body.textContent;
+      scheduleAutoSave();
+    });
+
+    const resize = document.createElement('div');
+    resize.className = 'note-resize';
+
+    el.appendChild(header);
+    el.appendChild(body);
+    el.appendChild(resize);
+    container.appendChild(el);
+
+    // Drag header to move
+    let dragOffX, dragOffY, isDragging = false;
+    header.addEventListener('pointerdown', e => {
+      isDragging = true;
+      const rect = el.getBoundingClientRect();
+      dragOffX = e.clientX - rect.left;
+      dragOffY = e.clientY - rect.top;
+      e.preventDefault();
+      header.setPointerCapture(e.pointerId);
+    });
+    header.addEventListener('pointermove', e => {
+      if (!isDragging) return;
+      const cRect = container.getBoundingClientRect();
+      const newLeft = e.clientX - cRect.left - dragOffX;
+      const newTop  = e.clientY - cRect.top - dragOffY;
+      note.x = (newLeft - viewX) / viewScale;
+      note.y = (newTop - viewY) / viewScale;
+      el.style.left = newLeft + 'px';
+      el.style.top  = newTop + 'px';
+    });
+    header.addEventListener('pointerup', () => {
+      if (isDragging) scheduleAutoSave();
+      isDragging = false;
+    });
+
+    // Resize handle
+    let isResizing = false, resizeStartW, resizeStartH, resizeStartMx, resizeStartMy;
+    resize.addEventListener('pointerdown', e => {
+      isResizing = true;
+      resizeStartW = note.w;
+      resizeStartH = note.h;
+      resizeStartMx = e.clientX;
+      resizeStartMy = e.clientY;
+      e.preventDefault();
+      e.stopPropagation();
+      resize.setPointerCapture(e.pointerId);
+    });
+    resize.addEventListener('pointermove', e => {
+      if (!isResizing) return;
+      const dw = (e.clientX - resizeStartMx) / viewScale;
+      const dh = (e.clientY - resizeStartMy) / viewScale;
+      note.w = Math.max(120, resizeStartW + dw);
+      note.h = Math.max(80, resizeStartH + dh);
+      el.style.width  = (note.w * viewScale) + 'px';
+      el.style.height = (note.h * viewScale) + 'px';
+    });
+    resize.addEventListener('pointerup', () => {
+      if (isResizing) scheduleAutoSave();
+      isResizing = false;
+    });
+
+    if (focusAfter) {
+      setTimeout(() => body.focus(), 50);
+    }
+  }
+
+  // ── Text labels ──────────────────────────────────────────────────
+  function createTextLabel(x, y) {
+    const lbl = {
+      id: uid(),
+      text: '',
+      x: x,
+      y: y,
+      fontSize: 16
+    };
+    saveState();
+    textLabels.push(lbl);
+    renderTextLabel(lbl, true);
+    setTool('select');
+    scheduleAutoSave();
+  }
+
+  function renderTextLabel(lbl, focusAfter) {
+    const el = document.createElement('div');
+    el.className = 'canvas-text-label';
+    el.dataset.labelId = lbl.id;
+    el.contentEditable = 'true';
+    el.style.left = (viewX + lbl.x * viewScale) + 'px';
+    el.style.top  = (viewY + lbl.y * viewScale) + 'px';
+    el.style.fontSize = (lbl.fontSize * viewScale) + 'px';
+    el.textContent = lbl.text;
+
+    el.addEventListener('input', () => {
+      lbl.text = el.textContent;
+      scheduleAutoSave();
+    });
+    el.addEventListener('blur', () => {
+      lbl.text = el.textContent;
+      if (!lbl.text.trim()) {
+        textLabels = textLabels.filter(l => l.id !== lbl.id);
+        el.remove();
+      }
+      scheduleAutoSave();
+    });
+
+    container.appendChild(el);
+    if (focusAfter) {
+      setTimeout(() => el.focus(), 50);
+    }
+  }
+
+  // ── Rebuild overlays from data (for undo/redo) ───────────────────
+  function rebuildOverlays() {
+    document.querySelectorAll('.sticky-note').forEach(el => el.remove());
+    document.querySelectorAll('.canvas-text-label').forEach(el => el.remove());
+    stickyNotes.forEach(n => renderStickyNote(n, false));
+    textLabels.forEach(l => renderTextLabel(l, false));
+  }
+
+  // ── Auto-save to localStorage ────────────────────────────────────
+  let autoSaveTimer = null;
+
+  function scheduleAutoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(autoSave, 2000);
+  }
+
+  function autoSave() {
+    try {
+      const state = {
+        objects: drawingObjects,
+        notes:   stickyNotes,
+        labels:  textLabels
+      };
+      localStorage.setItem('napkin_state', JSON.stringify(state));
+    } catch (e) {
+      // localStorage might be full; silently ignore
+    }
+  }
+
+  // Periodic save every 10 seconds
+  setInterval(autoSave, 10000);
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem('napkin_state');
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (state.objects) drawingObjects = state.objects;
+      if (state.notes)   stickyNotes = state.notes;
+      if (state.labels)  textLabels = state.labels;
+      rebuildOverlays();
+      render();
+    } catch (e) {
+      // corrupted state, ignore
+    }
+  }
+
+  // ── Share with Copilot ───────────────────────────────────────────
+  document.getElementById('share-btn').addEventListener('click', async () => {
+    try {
+      // Create an offscreen canvas for export
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = CANVAS_W;
+      exportCanvas.height = CANVAS_H;
+      const ectx = exportCanvas.getContext('2d');
+
+      // White background
+      ectx.fillStyle = '#fff';
+      ectx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+      // Draw all drawing objects
+      drawingObjects.forEach(obj => drawObject(ectx, obj));
+
+      // Draw sticky notes onto export canvas
+      stickyNotes.forEach(note => {
+        const colors = {
+          yellow: { bg: '#fff9c4', header: '#fff176' },
+          pink:   { bg: '#fce4ec', header: '#f48fb1' },
+          blue:   { bg: '#e3f2fd', header: '#90caf9' },
+          green:  { bg: '#e8f5e9', header: '#a5d6a7' }
+        };
+        const c = colors[note.color] || colors.yellow;
+
+        // Shadow
+        ectx.shadowColor = 'rgba(0,0,0,0.12)';
+        ectx.shadowBlur = 12;
+        ectx.shadowOffsetX = 2;
+        ectx.shadowOffsetY = 3;
+
+        // Body
+        ectx.fillStyle = c.bg;
+        ectx.beginPath();
+        safeRoundRect(ectx, note.x, note.y, note.w, note.h, 4);
+        ectx.fill();
+
+        // Reset shadow
+        ectx.shadowColor = 'transparent';
+        ectx.shadowBlur = 0;
+        ectx.shadowOffsetX = 0;
+        ectx.shadowOffsetY = 0;
+
+        // Header
+        ectx.fillStyle = c.header;
+        ectx.beginPath();
+        safeRoundRect(ectx, note.x, note.y, note.w, 24, [4, 4, 0, 0]);
+        ectx.fill();
+
+        // Text
+        if (note.text) {
+          ectx.fillStyle = '#333';
+          ectx.font = '14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          const lines = wrapText(ectx, note.text, note.w - 24);
+          lines.forEach((line, i) => {
+            ectx.fillText(line, note.x + 12, note.y + 44 + i * 20);
+          });
+        }
+      });
+
+      // Draw text labels
+      textLabels.forEach(lbl => {
+        if (!lbl.text) return;
+        ectx.fillStyle = '#333';
+        ectx.font = lbl.fontSize + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ectx.fillText(lbl.text, lbl.x, lbl.y + lbl.fontSize);
+      });
+
+      // Export PNG
+      const dataUrl = exportCanvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'napkin-snapshot.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Build JSON
+      const json = {
+        version: 1,
+        timestamp: new Date().toISOString(),
+        notes: stickyNotes.map(n => ({
+          id: n.id, text: n.text, x: n.x, y: n.y, color: n.color, width: n.w, height: n.h
+        })),
+        textLabels: textLabels.map(l => ({
+          id: l.id, text: l.text, x: l.x, y: l.y, fontSize: l.fontSize
+        })),
+        canvasSize: { width: CANVAS_W, height: CANVAS_H }
+      };
+
+      // Copy JSON to clipboard
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(json, null, 2));
+      } catch (clipErr) {
+        // Fallback for file:// protocol or older browsers
+        const ta = document.createElement('textarea');
+        ta.value = JSON.stringify(json, null, 2);
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      // Show confirmation
+      shareOverlay.classList.remove('hidden');
+
+    } catch (err) {
+      showToast('Export failed: ' + err.message, 4000);
+    }
+  });
+
+  document.getElementById('share-overlay-close').addEventListener('click', () => {
+    shareOverlay.classList.add('hidden');
+  });
+
+  function wrapText(c, text, maxWidth) {
+    const words = text.split(/\s+/);
+    const lines = [];
+    let currentLine = '';
+    words.forEach(word => {
+      const test = currentLine ? currentLine + ' ' + word : word;
+      if (c.measureText(test).width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = test;
+      }
+    });
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  }
+
+  // ── Touch support for pinch zoom ─────────────────────────────────
+  let lastPinchDist = 0;
+  let lastPinchCX = 0, lastPinchCY = 0;
+
+  container.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist = Math.hypot(dx, dy);
+      lastPinchCX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      lastPinchCY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchmove', e => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+      if (lastPinchDist > 0) {
+        const factor = dist / lastPinchDist;
+        zoomAt(cx, cy, factor);
+        viewX += cx - lastPinchCX;
+        viewY += cy - lastPinchCY;
+        updateCanvasTransform();
+      }
+
+      lastPinchDist = dist;
+      lastPinchCX = cx;
+      lastPinchCY = cy;
+    }
+  }, { passive: false });
+
+  container.addEventListener('touchend', () => {
+    lastPinchDist = 0;
+  }, { passive: true });
+
+  // ── Close overlays on escape ─────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      onboarding.classList.add('hidden');
+      shareOverlay.classList.add('hidden');
+      noteColorPicker.classList.remove('show');
+      document.getElementById('shortcuts-panel').classList.remove('show');
+    }
+  });
+
+  // Close note color picker on outside click
+  document.addEventListener('pointerdown', e => {
+    if (!e.target.closest('#note-color-picker') && !e.target.closest('#note-tool-btn')) {
+      noteColorPicker.classList.remove('show');
+    }
+  });
+
+  // ── Window resize ────────────────────────────────────────────────
+  window.addEventListener('resize', () => {
+    updateCanvasTransform();
+  });
+
+  // ── Init ─────────────────────────────────────────────────────────
+  initOnboarding();
+  initCanvas();
+  loadState();
+
+})();
+</script>
+</body>
+</html>
