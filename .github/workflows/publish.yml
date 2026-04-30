@@ -58,8 +58,7 @@ jobs:
           git add -A
           git add -f plugins/*/agents/ plugins/*/skills/
           git commit -m "chore: publish from ${SOURCE_BRANCH}" --allow-empty
-          git push origin HEAD:${LEGACY_PUBLISHED_BRANCH} --force
-          git push origin HEAD:${MARKETPLACE_BRANCH} --force
+          git push origin --force --atomic HEAD:${LEGACY_PUBLISHED_BRANCH} HEAD:${MARKETPLACE_BRANCH}
 
       - name: Dispatch website deployment
         run: gh workflow run deploy-website.yml --ref "${WEBSITE_DEPLOY_REF}"
