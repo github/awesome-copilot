@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-29
+lastUpdated: 2026-04-30
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -495,6 +495,28 @@ The `/env` command shows all loaded environment details — instructions, MCP se
 /env
 ```
 
+The `/context` command shows a visualization of the current conversation's context window usage — how many tokens are consumed and how much headroom remains:
+
+```
+/context
+```
+
+The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session:
+
+```
+/usage
+```
+
+The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
+
+```
+/compact
+```
+
+> **Note**: Skills remain loaded and effective after `/compact`. You do not need to re-invoke them after compacting.
+
+> **ACP sessions (v1.0.39+)**: The `/compact`, `/context`, `/usage`, and `/env` commands are now available in ACP (Agent Coordination Protocol) sessions, allowing remote ACP clients to surface session details and manage context from within their own automated workflows.
+
 The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, and quota. The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit:
 
 ```
@@ -518,6 +540,8 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 ```
 
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
+
+> **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
