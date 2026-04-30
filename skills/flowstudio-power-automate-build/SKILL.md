@@ -382,9 +382,10 @@ than the original run. For verifying a fix, `resubmit_live_flow_run` is
 better because it uses the exact data that caused the failure.
 
 ```python
-schema = mcp("get_live_flow_http_schema",
-    environmentName=ENV, flowName=FLOW_ID)
-print("Expected body:", schema.get("requestSchema"))
+# Read the request schema directly from the flow definition
+defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
+manual = next(iter(defn["properties"]["definition"]["triggers"].values()))
+print("Expected body:", manual.get("inputs", {}).get("schema"))
 
 result = mcp("trigger_live_flow",
     environmentName=ENV, flowName=FLOW_ID,

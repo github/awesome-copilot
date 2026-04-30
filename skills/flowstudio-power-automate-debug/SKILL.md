@@ -389,11 +389,17 @@ For flows with a `Request` (HTTP) trigger, use `trigger_live_flow` when you
 need to send a **different** payload than the original run:
 
 ```python
-# First inspect what the trigger expects
-schema = mcp("get_live_flow_http_schema",
-    environmentName=ENV, flowName=FLOW_ID)
-print("Expected body schema:", schema.get("requestSchema"))
-print("Response schemas:", schema.get("responseSchemas"))
+# First inspect what the trigger expects — read directly from the flow definition
+defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
+triggers = defn["properties"]["definition"]["triggers"]
+manual = next(iter(triggers.values()))   # usually the only trigger on HTTP flows
+request_schema = manual.get("inputs", {}).get("schema")
+print("Expected body schema:", request_schema)
+
+# Response schemas live on Response action(s) in the actions block
+for name, act in defn["properties"]["definition"]["actions"].items():
+    if act.get("type") == "Response":
+        print(f"Response {name}:", act.get("inputs", {}).get("schema"))
 
 # Trigger with a test payload
 result = mcp("trigger_live_flow",

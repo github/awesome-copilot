@@ -179,8 +179,8 @@ Find flows owned by deleted or disabled Azure AD accounts.
 6. For each orphaned flow:
    - Reassign governance: update_store_flow(environmentName, flowName,
        ownerTeam="NewTeam", supportEmail="new-owner@contoso.com")
-   - Or decommission: set_store_flow_state(environmentName, flowName,
-       state="Stopped")
+   - Or decommission: set_live_flow_state(environmentName, flowName,
+       state="Stopped")  # cache resyncs on next daily scan
 ```
 
 > `update_store_flow` updates governance metadata in the cache only. To
@@ -221,7 +221,7 @@ candidates. Aligns with the CoE Starter Kit's archive scoring.
      update_store_flow(environmentName, flowName, tags="<existing> #archive-review")
    Score 0-2: Active, no action
 5. For user-confirmed archives:
-   set_store_flow_state(environmentName, flowName, state="Stopped")
+   set_live_flow_state(environmentName, flowName, state="Stopped")
    Read existing tags, append #archived
    update_store_flow(environmentName, flowName, tags="<existing> #archived")
 ```
@@ -365,7 +365,7 @@ Flow Studio governance contacts and notification recipients.
      update_store_flow(environmentName, flowName,
        ownerTeam="NewTeam", supportEmail="new-owner@contoso.com")
    - If decommissioning:
-     set_store_flow_state(environmentName, flowName, state="Stopped")
+     set_live_flow_state(environmentName, flowName, state="Stopped")
      Read existing tags, append #decommissioned
      update_store_flow(environmentName, flowName, tags="<existing> #decommissioned")
 6. Report: flows reassigned, flows stopped, apps needing manual reassignment
