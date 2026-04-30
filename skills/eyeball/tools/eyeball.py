@@ -402,7 +402,7 @@ def _stitch_vertical(images, gap=4):
 
 
 def _img_to_bytes(img):
-    """Convert PIL Image to PNG bytes."""
+    """Convert PIL Image to a PNG BytesIO buffer (file-like object)."""
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     buf.seek(0)
