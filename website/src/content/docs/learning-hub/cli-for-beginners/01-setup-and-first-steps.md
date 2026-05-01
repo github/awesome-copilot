@@ -3,7 +3,7 @@ title: '01 · First Steps'
 description: 'Experience your first GitHub Copilot CLI demos and learn the three main interaction modes.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-05-01
 ---
 
 ![Chapter 01: First Steps](/images/learning-hub/copilot-cli-for-beginners/01/chapter-header.png)
@@ -365,16 +365,21 @@ copilot --allow-all -p "Review @myfile.py for issues"
 
 ## Essential Slash Commands
 
-These commands work in interactive mode. **Start with just these six** - they cover 90% of daily use:
+These commands are great to learn initially as you're getting started with Copilot CLI:
 
 | Command | What It Does | When to Use |
 |---------|--------------|-------------|
-| `/help` | Show all available commands | When you forget a command |
+| `/ask` | Ask a quick question without it affecting your conversation history | When you want a quick answer without derailing your current task |
 | `/clear` | Clear conversation and start fresh | When switching topics |
+| `/help` | Show all available commands | When you forget a command |
+| `/model` | Show or switch AI model | When you want to change the AI model |
 | `/plan` | Plan your work out before coding | For more complex features |
 | `/research` | Deep research using GitHub and web sources | When you need to investigate a topic before coding |
-| `/model` | Show or switch AI model | When you want to change the AI model |
 | `/exit` | End the session | When you're done |
+
+> 💡 **`/ask` vs regular chat**: Normally every message you send becomes part of the ongoing conversation and affects future responses. `/ask` is an "off the record" shortcut — perfect for quick one-off questions like `/ask What does YAML mean?` without polluting your session context.
+
+> 💡 **Tab-completion**: When typing a slash command, press **Tab** to auto-complete the command name or cycle through available subcommands and arguments. This is especially handy when you can't remember the exact name of a command.
 
 That's it for getting started! As you become comfortable, you can explore additional commands.
 
@@ -424,19 +429,23 @@ That's it for getting started! As you become comfortable, you can explore additi
 | `/list-dirs` | Show all allowed directories |
 | `/cwd`, `/cd [directory]` | View or change working directory |
 
-> ⚠️ **Use with caution**: `/allow-all` skips confirmation prompts. Great for trusted projects, but be careful with untrusted code.
+> ⚠️ **Use with caution**: `/allow-all` and `/yolo` skip confirmation prompts. Great for trusted projects, but be careful with untrusted code.
 
 ### Session
 
 | Command | What It Does |
 |---------|--------------|
-| `/resume` | Switch to a different session (optionally specify session ID) |
-| `/rename` | Rename the current session |
-| `/context` | Show context window token usage and visualization |
-| `/usage` | Display session usage metrics and statistics |
-| `/session` | Show session info and workspace summary |
+| `/clear` | Abandons the current session (no history saved) and starts a fresh conversation |
 | `/compact` | Summarize conversation to reduce context usage |
-| `/share` | Export session as markdown file or GitHub gist |
+| `/context` | Show context window token usage and visualization |
+| `/keep-alive` | Prevent your system from sleeping while Copilot CLI is active — handy for long-running tasks on a laptop |
+| `/new` | Ends the current session (saving it to history for search/resume) and starts a fresh conversation. |
+| `/resume` | Switch to a different session (optionally specify session ID or name) |
+| `/rename` | Rename the current session (omit the name to auto-generate one) |
+| `/rewind` | Open a timeline picker to roll back to any earlier point in the conversation |
+| `/usage` | Display session usage metrics and statistics |
+| `/session` | Show session info and workspace summary; use `/session delete`, `/session delete <id>`, or `/session delete-all` to remove sessions |
+| `/share` | Export session as a markdown file, GitHub gist, or self-contained HTML file |
 
 ### Help and Feedback
 
@@ -609,6 +618,7 @@ The examples used `/plan` for a search feature and `-p` for batch reviews. Now t
 | Typing `exit` instead of `/exit` | Copilot CLI treats "exit" as a prompt, not a command | Slash commands always start with `/` |
 | Using `-p` for multi-turn conversations | Each `-p` call is isolated with no memory of previous calls | Use interactive mode (`copilot`) for conversations that build on context |
 | Forgetting quotes around prompts with `$` or `!` | Shell interprets special characters before Copilot CLI sees them | Wrap prompts in quotes: `copilot -p "What does $HOME mean?"` |
+| Pressing Esc once to cancel a running task | A single Esc no longer cancels in-flight work (to prevent accidents) | Press **Esc twice** to cancel while Copilot CLI is processing |
 
 ### Troubleshooting
 

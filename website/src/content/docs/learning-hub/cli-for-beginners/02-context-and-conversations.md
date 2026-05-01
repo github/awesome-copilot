@@ -3,7 +3,7 @@ title: '02 · Context and Conversations'
 description: 'Learn how to give Copilot CLI richer context and build stronger multi-turn conversations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-05-01
 ---
 
 ![Chapter 02: Context and Conversations](/images/learning-hub/copilot-cli-for-beginners/02/chapter-header.png)
@@ -312,12 +312,15 @@ copilot --continue
 copilot --resume
 
 # Or resume a specific session by ID
-copilot --resume abc123
+copilot --resume=abc123
+
+# Or resume by the name you gave the session
+copilot --resume="my book app review"
 ```
 
 > 💡 **How do I find a session ID?** You don't need to memorize them. Running `copilot --resume` without an ID shows an interactive list of your previous sessions, their names, IDs, and when they were last active. Just pick the one you want.
 >
-> **What about multiple terminals?** Each terminal window is its own session with its own context. If you have Copilot CLI open in three terminals, that's three separate sessions. Running `--resume` from any terminal lets you browse all of them. The `--continue` flag grabs whichever session was closed most recently, no matter which terminal it was in.
+> **What about multiple terminals?** Each terminal window is its own session with its own context. If you have Copilot CLI open in three terminals, that's three separate sessions. Running `--resume` from any terminal lets you browse all of them. The `--continue` flag grabs the session from the current working directory first; if none exists there, it picks the most recently active session.
 >
 > **Can I switch sessions without restarting?** Yes. Use the `/resume` slash command from inside an active session:
 > ```
@@ -327,13 +330,33 @@ copilot --resume abc123
 
 ### Organize Your Sessions
 
-Give sessions meaningful names so you can find them later:
+Give sessions meaningful names so you can find them later. You can name a session when you start it, or rename it at any time while inside the session:
 
 ```bash
+# Name a session right when you start it
+copilot --name book-app-review
+
+# Or rename the current session from inside
 copilot
 
 > /rename book-app-review
 # Session renamed for easier identification
+```
+
+Once a session is named, you can resume it directly by name without browsing through a list:
+
+```bash
+copilot --resume=book-app-review
+```
+
+To clean up sessions you no longer need, use `/session delete` from inside a session:
+
+```bash
+copilot
+
+> /session delete            # Deletes the current session
+> /session delete abc123     # Deletes a specific session by ID
+> /session delete-all        # Deletes all sessions (use with care!)
 ```
 
 ### Check and Manage Context
@@ -363,10 +386,9 @@ Context usage: 45,000 / 128,000 tokens (35%)
 Imagine this workflow across multiple days:
 
 ```bash
-# Monday: Start book app review
-copilot
+# Monday: Start book app review with a name right from the beginning
+copilot --name book-app-review
 
-> /rename book-app-review
 > @samples/book-app-project/books.py
 > Review and number all code quality issues
 
@@ -384,8 +406,8 @@ Quality Issues Found:
 ```
 
 ```bash
-# Wednesday: Resume exactly where you left off
-copilot --continue
+# Wednesday: Resume exactly where you left off, by name
+copilot --resume=book-app-review
 
 > What issues remain unfixed from our book app review?
 
@@ -410,7 +432,7 @@ No re-explaining. No re-reading files. Just continue working.
 
 ---
 
-**🎉 You now know the essentials!** The `@` syntax, session management (`--continue`/`--resume`/`/rename`), and context commands (`/context`/`/clear`) are enough to be highly productive. Everything below is optional. Return to it when you're ready.
+**🎉 You now know the essentials!** The `@` syntax, session management (`--name`/`--continue`/`--resume`/`/rename`), and context commands (`/context`/`/clear`) are enough to be highly productive. Everything below is optional. Return to it when you're ready.
 
 ---
 
@@ -853,7 +875,7 @@ copilot --add-dir /path/to/directory
 
 1. **`@` syntax** gives Copilot CLI context about files, directories, and images
 2. **Multi-turn conversations** build on each other as context accumulates
-3. **Sessions auto-save**: use `--continue` or `--resume` to pick up where you left off
+3. **Sessions auto-save**: name them at startup with `--name`, resume by name with `--resume=<name>`, or use `--continue` to pick up the most recent session
 4. **Context windows** have limits: manage them with `/context`, `/clear`, and `/compact`
 5. **Permission flags** (`--add-dir`, `--allow-all`) control multi-directory access. Use them wisely!
 6. **Image references** (`@screenshot.png`) help debug UI issues visually
