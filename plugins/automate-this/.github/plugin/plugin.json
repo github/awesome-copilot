@@ -18,6 +18,6 @@
     "copilot-cli"
   ],
   "skills": [
-    "./skills/automate-this/"
+    "./skills/automate-this"
   ]
 }

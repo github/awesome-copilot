@@ -15,11 +15,11 @@
     "architecture"
   ],
   "agents": [
-    "./agents/context-architect.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/context-map/",
-    "./skills/what-context-needed/",
-    "./skills/refactor-plan/"
+    "./skills/context-map",
+    "./skills/what-context-needed",
+    "./skills/refactor-plan"
   ]
 }
