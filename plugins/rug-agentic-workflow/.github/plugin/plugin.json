@@ -15,8 +15,6 @@
     "qa"
   ],
   "agents": [
-    "./agents/rug-orchestrator.md",
-    "./agents/swe-subagent.md",
-    "./agents/qa-subagent.md"
+    "./agents"
   ]
 }

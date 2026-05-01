@@ -18,9 +18,9 @@
     "reactor"
   ],
   "agents": [
-    "./agents/java-mcp-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/java-mcp-server-generator/"
+    "./skills/java-mcp-server-generator"
   ]
 }

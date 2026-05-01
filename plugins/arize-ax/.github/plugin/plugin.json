@@ -19,14 +19,14 @@
     "prompt-optimization"
   ],
   "skills": [
-    "./skills/arize-ai-provider-integration/",
-    "./skills/arize-annotation/",
-    "./skills/arize-dataset/",
-    "./skills/arize-evaluator/",
-    "./skills/arize-experiment/",
-    "./skills/arize-instrumentation/",
-    "./skills/arize-link/",
-    "./skills/arize-prompt-optimization/",
-    "./skills/arize-trace/"
+    "./skills/arize-ai-provider-integration",
+    "./skills/arize-annotation",
+    "./skills/arize-dataset",
+    "./skills/arize-evaluator",
+    "./skills/arize-experiment",
+    "./skills/arize-instrumentation",
+    "./skills/arize-link",
+    "./skills/arize-prompt-optimization",
+    "./skills/arize-trace"
   ]
 }
