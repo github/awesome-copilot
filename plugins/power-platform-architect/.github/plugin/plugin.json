@@ -16,5 +16,7 @@
   },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
-  "skills": ["./skills/power-platform-architect/"]
+  "skills": [
+    "./skills/power-platform-architect"
+  ]
 }
