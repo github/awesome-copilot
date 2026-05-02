@@ -37,7 +37,7 @@ def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
             if not line or line.startswith("#"):
                 continue
             # Last token is the count; everything before is the stack
-            parts = line.rsplit(" ", 1)
+            parts = line.rsplit(None, 1)
             if len(parts) != 2:
                 continue
             try:
@@ -107,7 +107,7 @@ def top_packages(stacks, n=20, grep_re=None, exclude_re=None):
             # e.g. "com/example/Service.process" → "com/example"
             # e.g. "[vmlinux]" → "[kernel]"
             if frame.startswith("["):
-                pkg = frame  # kernel / JVM internal frame
+                pkg = "[kernel]" if frame == "[vmlinux]" else frame
             elif "/" in frame:
                 pkg = frame.rsplit("/", 1)[0].replace("/", ".")
             elif "." in frame:

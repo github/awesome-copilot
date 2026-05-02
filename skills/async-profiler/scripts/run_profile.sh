@@ -30,6 +30,7 @@ set -euo pipefail
 EVENT="cpu"
 DURATION=30
 FORMAT="html"
+FORMAT_SET=false
 OUTPUT=""
 THREADS=false
 ALL_EVENTS=false
@@ -50,7 +51,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -e|--event)       [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; EVENT="$2";    shift 2 ;;
     -d|--duration)    [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; DURATION="$2"; shift 2 ;;
-    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2";   shift 2 ;;
+    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2"; FORMAT_SET=true; shift 2 ;;
     -o|--output)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; OUTPUT="$2";   shift 2 ;;
     -t|--threads)     THREADS=true;  shift ;;
     --all)            ALL_EVENTS=true; FORMAT="jfr"; shift ;;
@@ -119,6 +120,11 @@ OUTPUT_FORMAT="$(detect_format_from_output "$OUTPUT")"
 if [[ -z "$OUTPUT_FORMAT" ]]; then
   echo "❌ Unsupported output extension in '$OUTPUT'." >&2
   echo "   Use one of: .html, .jfr, .collapsed, .txt" >&2
+  exit 1
+fi
+if $FORMAT_SET && [[ "$FORMAT" != "$OUTPUT_FORMAT" ]]; then
+  echo "❌ --format '$FORMAT' conflicts with output extension '.$OUTPUT_FORMAT'." >&2
+  echo "   Use matching values or omit --format when --output already sets the format." >&2
   exit 1
 fi
 if $ALL_EVENTS && [[ "$OUTPUT_FORMAT" != "jfr" ]]; then

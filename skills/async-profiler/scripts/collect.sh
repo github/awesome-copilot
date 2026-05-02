@@ -81,6 +81,10 @@ locate_asprof() {
     local asprof=""
     if [[ -n "$ASPROF_ARG" ]]; then
         asprof="$ASPROF_ARG"
+        if [[ ! -f "$asprof" || ! -x "$asprof" ]]; then
+            echo "❌ --asprof must point to an executable asprof binary: $asprof" >&2
+            exit 1
+        fi
     elif command -v asprof &>/dev/null; then
         asprof="$(command -v asprof)"
     else
