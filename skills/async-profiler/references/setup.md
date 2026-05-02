@@ -187,7 +187,8 @@ section below.
 ## Using async-profiler as a Java agent
 
 If you can't attach dynamically (e.g., the JVM was started with
-`-XX:-UseDynamicCodeDeoptimization`), use the Java agent mode:
+`-XX:+DisableAttachMechanism`, or the container blocks ptrace / seccomp), use
+the Java agent mode:
 
 ```bash
 java -agentpath:/path/to/libasyncProfiler.so=start,event=cpu,file=profile.html \
