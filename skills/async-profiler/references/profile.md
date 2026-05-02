@@ -1,8 +1,3 @@
----
-name: async-profiler-profile
-description: 'Run async-profiler against a live JVM process to capture CPU, memory allocation, wall-clock, or lock contention profiles and generate flamegraphs or JFR recordings. Use this skill whenever a Java developer wants to start a profiling session, capture a flamegraph, find CPU hotspots, identify memory allocation pressure, measure thread blocking or lock contention, or asks: "how do I profile my running Java app", "capture a flamegraph", "find what''s using CPU", "profile heap allocations", "measure lock contention", "generate a JFR recording", "profile for N seconds", "what''s slow in my app". Assumes async-profiler is already installed (see async-profiler-setup skill if not).'
----
-
 # async-profiler — Running Profiles
 
 ## Agent-driven background profiling
@@ -73,8 +68,8 @@ wait $PROF_PID
 ### After collecting
 
 Once `stop` or `timed` completes, offer to analyze the results immediately.
-Read `analyze/SKILL.md` before interpreting the flamegraphs. Each `.html` file
-can be opened directly in a browser; pass `.collapsed` files to
+Read `references/analyze.md` before interpreting the flamegraphs. Each `.html`
+file can be opened directly in a browser; pass `.collapsed` files to
 `scripts/analyze_collapsed.py` for a ranked self-time table.
 
 ---
@@ -90,7 +85,7 @@ is to use the built-in integration:
 3. To choose which events to capture (CPU, allocation, wall-clock):
    *Settings → Build, Execution, Deployment → Java Profiler*
 
-Results open directly in IntelliJ's viewer — see `analyze/SKILL.md` for how to
+Results open directly in IntelliJ's viewer — see `references/analyze.md` for how to
 navigate the flame graph, call tree, and timeline tabs.
 
 Use the terminal approach below when you need to profile a process that wasn't
@@ -132,7 +127,7 @@ path bug, session state, and the JFR split automatically:
 bash scripts/collect.sh start <PID>
 # ... reproduce the problem ...
 bash scripts/collect.sh stop <PID>
-# → outputs cpu.html, alloc.html, wall.html, lock.html
+# → outputs profile-cpu.html, profile-alloc.html, profile-wall.html, profile-lock.html
 ```
 
 ---
@@ -408,7 +403,7 @@ immediately** — don't wait for the user to ask. Say something like:
 > "The profile is saved at `profile-all-20250409-143201-cpu.html`. Want me to
 > analyze it and identify the bottlenecks?"
 
-Then read `analyze/SKILL.md` and interpret the output. If it's a JFR file,
+Then read `references/analyze.md` and interpret the output. If it's a JFR file,
 offer to run `jfrconv` to extract flamegraphs first. If it's collapsed stacks,
 offer to run `scripts/analyze_collapsed.py`. The user has already done the hard
 part (reproducing the problem) — close the loop for them.

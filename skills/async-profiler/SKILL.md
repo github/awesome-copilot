@@ -119,18 +119,20 @@ Always offer to run these scripts on the user's behalf when relevant.
 
 ## How to use this skill
 
-This skill has three sub-guides. Read the one that matches what the user needs:
+This skill keeps detailed guidance in `references/` so the root `SKILL.md`
+stays focused and loads quickly. Read only the guide that matches the user's
+current need:
 
 | Situation | Read |
 |---|---|
-| User needs to install or configure async-profiler, or is hitting setup errors | `setup/SKILL.md` |
-| User wants to run a profiling session (capture flamegraph, JFR, etc.) | `profile/SKILL.md` |
-| User has profiling output and wants to understand or interpret it | `analyze/SKILL.md` |
+| User needs to install or configure async-profiler, or is hitting setup errors | `references/setup.md` |
+| User wants to run a profiling session (capture flamegraph, JFR, etc.) | `references/profile.md` |
+| User has profiling output and wants to understand or interpret it | `references/analyze.md` |
 
 **When the conversation spans multiple phases** (e.g., the user just ran a
-profile and now wants to understand the output), read whichever sub-guide is
+profile and now wants to understand the output), read whichever guide is
 most relevant to the current question. If the user needs both setup *and*
-profiling guidance in one message, read `setup/SKILL.md` first and summarize
-the setup steps before moving to `profile/SKILL.md`.
+profiling guidance in one message, read `references/setup.md` first and
+summarize the setup steps before moving to `references/profile.md`.
 
-Read the relevant sub-guide now before responding.
+Read the relevant reference now before responding.

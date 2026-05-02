@@ -1,9 +1,3 @@
----
-name: async-profiler-analyze
-description: 'Interpret and analyze async-profiler output: flamegraph HTML/SVG files, JFR recordings, and collapsed stack traces. Use this skill whenever a Java developer shares profiler output or wants help understanding profiling results. Trigger for: "what does this flamegraph mean", "how do I read this JFR", "what''s causing my CPU hotspot", "interpret my profiling results", "analyze this flamegraph", "what should I look for in my profile", "the wide frame in my flamegraph is X, what does that mean", "I see a lot of GC in my profile", "my profile shows 80% in X, is that bad", or whenever someone pastes or describes profiling output. Also trigger proactively when the async-profiler-profile skill just produced output and the user seems to want to understand it.'
-compatibility: Requires Python 3.7+ for the analyze_collapsed.py script.
----
-
 # async-profiler Output Analysis
 
 The three main output formats — flamegraph HTML, JFR recordings, and collapsed

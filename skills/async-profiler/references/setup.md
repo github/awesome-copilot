@@ -1,8 +1,3 @@
----
-name: async-profiler-setup
-description: 'Install, configure, and verify async-profiler for Java on macOS or Linux. Use this skill whenever a Java developer wants to profile their JVM and needs to get async-profiler installed first. Trigger for: "install async-profiler", "how do I set up async-profiler", "get started with Java profiling", "async-profiler not found", "profiler setup", "download asprof", or any question about system requirements, permissions, or JVM flags for profiling. Also trigger when someone says "I want to profile my Java app" and hasn''t mentioned having async-profiler installed yet.'
----
-
 # async-profiler Setup
 
 async-profiler (v4.3+) is a low-overhead sampling profiler for Java. It avoids the
@@ -14,8 +9,8 @@ can profile CPU, memory allocation, wall-clock time, and lock contention.
 **If you're using IntelliJ IDEA Ultimate**, async-profiler is already bundled —
 no installation needed for profiling apps you run from the IDE. You can profile
 any run configuration right now by clicking the flame icon (▶🔥) next to the run
-button, or via *Run → Profile*. Jump straight to the **async-profiler-profile**
-skill if that's your use case.
+button, or via *Run → Profile*. Jump straight to `references/profile.md` if
+that's your use case.
 
 You do still need a standalone install if you want to:
 - Profile a process not launched from IntelliJ (remote server, Docker, SSH)
@@ -194,6 +189,6 @@ for capturing startup performance.
 
 ## What's next
 
-Once installed, use the **async-profiler-profile** skill to run a profiling
-session and choose the right event type for your problem (CPU, memory, wall-clock,
-or lock contention).
+Once installed, move to `references/profile.md` to run a profiling session and
+choose the right event type for your problem (CPU, memory, wall-clock, or lock
+contention).

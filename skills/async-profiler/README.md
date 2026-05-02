@@ -61,12 +61,11 @@ cp -r async-profiler ~/.config/opencode/skills/async-profiler
 
 ```
 async-profiler/
-├── SKILL.md          # Entry point — routes to sub-guides
-├── scripts/          # Bundled scripts
-├── setup/
-│   └── SKILL.md      # Installation and configuration
-├── profile/
-│   └── SKILL.md      # Running profiling sessions
-└── analyze/
-    └── SKILL.md      # Interpreting profiling output
+├── SKILL.md          # Entry point — routes to focused reference guides
+├── README.md         # Human-readable overview and installation help
+├── references/
+│   ├── setup.md      # Installation and configuration
+│   ├── profile.md    # Running profiling sessions
+│   └── analyze.md    # Interpreting profiling output
+└── scripts/          # Bundled scripts
 ```
