@@ -318,7 +318,6 @@ split_jfr() {
         open "$cpu_html" "$alloc_html" "$wall_html" "$lock_html"
     fi
 
-    local base_dir; base_dir="$(dirname "$jfr_path")"
     local script_dir; script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     echo ""
     echo "💡 Next step: analyze results."
