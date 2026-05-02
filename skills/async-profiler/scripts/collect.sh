@@ -82,6 +82,15 @@ if [[ -z "$TARGET" && "$SUBCMD" != "help" ]]; then
 fi
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+default_installed_asprof() {
+    local script_dir install_script
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    install_script="${script_dir}/install.sh"
+    if [[ -f "$install_script" ]]; then
+        bash "$install_script" --path-only 2>/dev/null || true
+    fi
+}
+
 locate_asprof() {
     local asprof=""
     if [[ -n "$ASPROF_ARG" ]]; then
@@ -93,8 +102,10 @@ locate_asprof() {
     elif command -v asprof &>/dev/null; then
         asprof="$(command -v asprof)"
     else
+        local installed_asprof=""
+        installed_asprof="$(default_installed_asprof)"
         for candidate in \
-            "$HOME/async-profiler-4.3/bin/asprof" \
+            "$installed_asprof" \
             "$HOME/async-profiler/bin/asprof" \
             "/opt/async-profiler/bin/asprof" \
             "/usr/local/bin/asprof"

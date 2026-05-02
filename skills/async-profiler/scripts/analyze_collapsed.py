@@ -7,7 +7,7 @@ Collapsed stack format: each line is a semicolon-separated call stack
   com/example/App.main;com/example/Service.process;java/util/HashMap.get 42
 
 Usage:
-  python analyze_collapsed.py <profile.collapsed> [options]
+  python3 analyze_collapsed.py <profile.collapsed> [options]
 
 Options:
   --top N           Show top N frames (default: 20)

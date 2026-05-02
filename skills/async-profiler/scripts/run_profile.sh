@@ -46,6 +46,15 @@ detect_format_from_output() {
   esac
 }
 
+default_installed_asprof() {
+  local script_dir install_script
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  install_script="${script_dir}/install.sh"
+  if [[ -f "$install_script" ]]; then
+    bash "$install_script" --path-only 2>/dev/null || true
+  fi
+}
+
 # ── Parse arguments ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -89,8 +98,9 @@ if [[ -z "$ASPROF" ]]; then
   if command -v asprof &>/dev/null; then
     ASPROF="$(command -v asprof)"
   else
+    INSTALLED_ASPROF="$(default_installed_asprof)"
     for candidate in \
-      "$HOME/async-profiler-4.3/bin/asprof" \
+      "$INSTALLED_ASPROF" \
       "$HOME/async-profiler/bin/asprof" \
       "/opt/async-profiler/bin/asprof" \
       "/usr/local/bin/asprof"
@@ -179,10 +189,29 @@ echo "Press Ctrl+C to stop early (partial results will be saved)."
 echo ""
 
 # ── Execute ───────────────────────────────────────────────────────────────────
+CAPTURE_INTERRUPTED=false
+set +e
 "${CMD[@]}"
+ASPROF_STATUS=$?
+set -e
+
+if [[ "$ASPROF_STATUS" -eq 130 ]]; then
+  CAPTURE_INTERRUPTED=true
+  if [[ ! -f "$OUTPUT" ]]; then
+    echo "❌ Profiling was interrupted before async-profiler wrote output: $OUTPUT" >&2
+    exit 130
+  fi
+elif [[ "$ASPROF_STATUS" -ne 0 ]]; then
+  echo "❌ async-profiler failed with exit code $ASPROF_STATUS." >&2
+  exit "$ASPROF_STATUS"
+fi
 
 echo ""
-echo "✅ Capture complete: $OUTPUT"
+if $CAPTURE_INTERRUPTED; then
+  echo "⚠️  Capture interrupted; using partial results: $OUTPUT"
+else
+  echo "✅ Capture complete: $OUTPUT"
+fi
 echo ""
 
 # ── Comprehensive mode: split JFR into per-event flamegraphs in parallel ──────

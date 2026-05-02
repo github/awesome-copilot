@@ -99,6 +99,13 @@ sudo sysctl kernel.perf_event_paranoid=0
 sudo sysctl kernel.kptr_restrict=0
 ```
 
+These settings reduce host hardening, especially `kernel.kptr_restrict=0`,
+which exposes real kernel pointers. Prefer this only on dev/staging systems or
+for a short-lived profiling window, then restore your previous values
+afterward. If you need a safer post-profiling baseline, many environments use
+higher settings such as `kernel.perf_event_paranoid=2` and
+`kernel.kptr_restrict=1` or stricter.
+
 To make these permanent across reboots, add to `/etc/sysctl.d/99-perf.conf`:
 ```
 kernel.perf_event_paranoid=0
