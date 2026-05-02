@@ -128,19 +128,89 @@ newest_by_mtime() {
     echo "$newest"
 }
 
-# Session state file — stores output path and asprof path between start/stop.
-session_file() {
-    local safe uid state_dir
-    safe="${TARGET//[^a-zA-Z0-9_-]/_}"
+stat_uid() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        stat -f '%u' "$1"
+    else
+        stat -c '%u' "$1"
+    fi
+}
+
+stat_mode() {
+    if [[ "$(uname)" == "Darwin" ]]; then
+        stat -f '%Lp' "$1"
+    else
+        stat -c '%a' "$1"
+    fi
+}
+
+ensure_private_state_dir() {
+    local uid base_dir state_dir owner mode
     uid="$(id -u)"
 
     if [[ -n "${XDG_RUNTIME_DIR:-}" && -d "${XDG_RUNTIME_DIR}" && -w "${XDG_RUNTIME_DIR}" ]]; then
-        state_dir="${XDG_RUNTIME_DIR}"
+        base_dir="${XDG_RUNTIME_DIR}"
     else
-        state_dir="/tmp"
+        base_dir="/tmp"
     fi
 
-    echo "${state_dir}/asprof-session-${uid}-${safe}"
+    state_dir="${base_dir}/asprof-session-${uid}"
+    if [[ -L "$state_dir" ]]; then
+        echo "❌ Session state directory is a symlink — refusing to use it: $state_dir" >&2
+        exit 1
+    fi
+    if [[ -e "$state_dir" ]]; then
+        if [[ ! -d "$state_dir" ]]; then
+            echo "❌ Session state path exists but is not a directory: $state_dir" >&2
+            exit 1
+        fi
+        owner="$(stat_uid "$state_dir")"
+        if [[ "$owner" != "$uid" ]]; then
+            echo "❌ Session state directory is not owned by the current user: $state_dir" >&2
+            exit 1
+        fi
+        chmod 700 "$state_dir"
+    else
+        mkdir -m 700 -p "$state_dir"
+    fi
+
+    mode="$(stat_mode "$state_dir")"
+    if [[ "$mode" != "700" ]]; then
+        echo "❌ Session state directory must have mode 700: $state_dir (found $mode)" >&2
+        exit 1
+    fi
+
+    echo "$state_dir"
+}
+
+validate_session_file() {
+    local sess="$1" uid owner mode
+    uid="$(id -u)"
+
+    if [[ -L "$sess" ]]; then
+        echo "❌ Session file path is a symlink — refusing to use it: $sess" >&2
+        exit 1
+    fi
+
+    owner="$(stat_uid "$sess")"
+    if [[ "$owner" != "$uid" ]]; then
+        echo "❌ Session file is not owned by the current user: $sess" >&2
+        exit 1
+    fi
+
+    mode="$(stat_mode "$sess")"
+    if [[ "$mode" != "600" ]]; then
+        echo "❌ Session file must have mode 600: $sess (found $mode)" >&2
+        exit 1
+    fi
+}
+
+# Session state file — stores output path and asprof path between start/stop.
+session_file() {
+    local safe state_dir
+    safe="${TARGET//[^a-zA-Z0-9_-]/_}"
+    state_dir="$(ensure_private_state_dir)"
+    echo "${state_dir}/${safe}"
 }
 
 split_jfr() {
@@ -236,6 +306,7 @@ cmd_start() {
         rm -f "$sentinel"; exit 1
     fi
     (umask 077; printf '%s\n%s\n%s\n' "$jfr_path" "$asprof" "$sentinel" > "$sess")
+    chmod 600 "$sess"
 
     echo "✅ Profiling started. Session state: $sess"
     echo ""
@@ -256,6 +327,7 @@ cmd_stop() {
         echo "   Run first: bash scripts/collect.sh start $TARGET" >&2
         exit 1
     fi
+    validate_session_file "$sess"
 
     local jfr_path; jfr_path="$(sed -n '1p' "$sess")"
     local asprof;   asprof="$(sed -n '2p' "$sess")"
