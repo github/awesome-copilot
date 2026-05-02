@@ -7,7 +7,7 @@
 # Options:
 #   -e, --event   cpu|alloc|wall|lock    Single event (default: cpu)
 #   -d, --duration N                     Seconds to profile (default: 30)
-#   -f, --format  html|jfr|collapsed     Output format for single-event (default: html)
+#   -f, --format  html|jfr|collapsed|txt Output format for single-event (default: html)
 #   -o, --output  FILE                   Output path (default: auto-named)
 #   -t, --threads                        Profile threads separately
 #       --all                            Capture all events to a JFR file

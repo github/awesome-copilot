@@ -42,7 +42,7 @@ set -euo pipefail
 
 # ── Parse subcommand ──────────────────────────────────────────────────────────
 if [[ $# -eq 0 ]]; then
-    sed -n '2,35p' "$0" | grep '^#' | sed 's/^# \?//'
+    sed -n '2,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
     exit 0
 fi
 
@@ -377,7 +377,7 @@ case "$SUBCMD" in
     stop)            cmd_stop  ;;
     timed)           cmd_timed ;;
     help|-h|--help)
-        sed -n '2,35p' "$0" | grep '^#' | sed 's/^# \?//'
+        sed -n '2,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
         exit 0
         ;;
     *)

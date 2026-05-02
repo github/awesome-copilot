@@ -25,6 +25,7 @@ import sys
 import re
 from collections import defaultdict
 from pathlib import Path
+from typing import Optional, Pattern
 
 
 def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
@@ -48,7 +49,7 @@ def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
     return stacks
 
 
-def compile_pattern(name: str, pattern: str | None):
+def compile_pattern(name: str, pattern: Optional[str]) -> Optional[Pattern[str]]:
     if not pattern:
         return None
     try:
