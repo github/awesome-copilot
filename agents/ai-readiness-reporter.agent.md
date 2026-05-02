@@ -173,6 +173,10 @@ Hard rules — do **not** deviate:
 - Do not add tabs, toggles, theme switches, dark/light variants, or extra navigation. The report is a single, unified view.
 - Do not add external CSS, fonts, JS frameworks, or analytics. The file must open with `file://` and have zero network dependencies.
 - Preserve the embedded `<script type="application/json" id="raw-data">…</script>` block so the report is self-describing.
+- **Escape every substituted value** before inserting it into the template:
+  - HTML-escape `&`, `<`, `>`, `"`, and `'` in all `{{placeholder}}` substitutions destined for HTML body content or attribute values (e.g. `{{repoName}}`, `{{pillarCurrent}}`, `{{pillarRecommendation}}`, `{{policySummary}}`, `{{rawJsonPretty}}`).
+  - For `{{rawJsonCompact}}` (which lives inside the `<script type="application/json">` block), replace any `</script` substring with `<\/script` to prevent the script tag from being closed early. Do NOT HTML-escape inside this block — the JSON must remain valid.
+  - Never substitute raw user-controlled strings (filenames, commit messages, recommendations) without escaping. A repo with `<img onerror=…>` in a filename must NOT produce executable HTML in the report.
 
 Placeholders the template uses (all required unless marked optional):
 
@@ -182,7 +186,7 @@ Placeholders the template uses (all required unless marked optional):
 | `{{date}}` | ISO date the report was generated |
 | `{{level}}` / `{{levelName}}` | AgentRC maturity level number + name |
 | `{{overallPct}}` / `{{grade}}` | overall score as integer percent + letter grade |
-| `{{passRatePct}}` / `{{thresholdPct}}` | pass rate vs policy threshold (use `—` if N/A) |
+| `{{passRate}}` / `{{threshold}}` | pass rate vs policy threshold, fully-formatted (e.g. `85%` or `—` if N/A). The literal `%` is part of the substituted value, not the template. |
 | `{{policyName}}` / `{{policySummary}}` | only if a policy is active; otherwise omit the policy section |
 | `{{rawJsonCompact}}` / `{{rawJsonPretty}}` | embed the AgentRC JSON envelope |
 

@@ -4,7 +4,7 @@ description: 'Generate tailored AI agent instruction files via AgentRC instructi
 argument-hint: "[--output .github/copilot-instructions.md|AGENTS.md] [--strategy flat|nested] [--areas | --area <name>] [--apply-to <glob>] [--claude-md] [--dry-run]"
 ---
 
-# /generate-instructions — write AI agent instructions
+# /acreadiness-generate-instructions — write AI agent instructions
 
 Use this skill whenever the user wants to **create**, **regenerate**, or **refresh** their custom instructions for AI coding agents (Copilot, Claude, etc.). This is the *Generate* step in AgentRC's **Measure → Generate → Maintain** loop and the single highest-leverage action for the **AI Tooling** pillar.
 

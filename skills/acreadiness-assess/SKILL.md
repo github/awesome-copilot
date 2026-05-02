@@ -1,10 +1,10 @@
 ---
 name: acreadiness-assess
 description: 'Run the AgentRC readiness assessment on the current repository and produce a static HTML dashboard at reports/index.html. Wraps `npx github:microsoft/agentrc readiness` and hands off rendering to the @ai-readiness-reporter custom agent. Supports policies (--policy) for org-specific scoring. Use when asked to assess, audit, or score the AI readiness of a repo.'
-argument-hint: "[--policy <path-or-pkg>] [--per-area] — e.g. /assess, /assess --policy ./policies/strict.json"
+argument-hint: "[--policy <path-or-pkg>] [--per-area] — e.g. /acreadiness-assess, /acreadiness-assess --policy ./policies/strict.json"
 ---
 
-# /assess — AI-readiness assessment
+# /acreadiness-assess — AI-readiness assessment
 
 Use this skill whenever the user asks for an **AI-readiness assessment**, a **readiness check**, an **audit**, or wants to **see how AI-ready** their repository is.
 
@@ -18,7 +18,7 @@ This skill is the *Measure* step in AgentRC's **Measure → Generate → Maintai
    - If the user provided `--policy <source>`, capture it.
    - Otherwise check `agentrc.config.json` for a `policies` array.
    - If neither, run with no policy (built-in defaults).
-   - For a primer on policies, suggest the `policy` skill.
+   - For a primer on policies, suggest the `acreadiness-policy` skill.
 
 3. **Run the readiness scan** in the repo root with structured output:
    ```bash
@@ -37,7 +37,7 @@ This skill is the *Measure* step in AgentRC's **Measure → Generate → Maintai
    - Produces a **Prioritised Remediation Plan** (🔴 Fix First / 🟡 Fix Next / 🔵 Plan).
    - Embeds the raw AgentRC JSON for reuse.
 
-5. **Tell the user where the report lives** (`reports/index.html`) and how to open it. Summarise in chat: maturity level, overall score, top three lowest pillars, and the single highest-leverage next action (almost always: run the `generate-instructions` skill).
+5. **Tell the user where the report lives** (`reports/index.html`) and how to open it. Summarise in chat: maturity level, overall score, top three lowest pillars, and the single highest-leverage next action (almost always: run the `acreadiness-generate-instructions` skill).
 
 ## Notes
 
