@@ -83,6 +83,7 @@ esac
 
 # macOS ships as a single universal binary (covers both x64 and arm64)
 if [[ "$PLATFORM" == "macos" ]]; then
+  ARCH_LABEL="universal"
   ARCHIVE="async-profiler-${VERSION}-macos.zip"
   EXTRACTED_DIR="async-profiler-${VERSION}-macos"
   EXPECTED_SHA256="$MACOS_SHA256"

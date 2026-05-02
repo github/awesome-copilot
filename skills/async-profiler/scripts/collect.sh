@@ -325,6 +325,29 @@ cmd_stop() {
     if [[ -n "$ASPROF_ARG" ]]; then
         asprof="$(locate_asprof)"
     fi
+    if [[ -z "$jfr_path" ]]; then
+        echo "❌ Session state is missing the JFR output path: $sess" >&2
+        echo "   Re-run: bash scripts/collect.sh start $TARGET" >&2
+        exit 1
+    fi
+    local jfr_dir; jfr_dir="$(dirname "$jfr_path")"
+    if [[ ! -d "$jfr_dir" ]]; then
+        echo "❌ Session state points to a missing JFR directory: $jfr_dir" >&2
+        echo "   Session state: $sess" >&2
+        echo "   Re-run: bash scripts/collect.sh start $TARGET" >&2
+        exit 1
+    fi
+    if [[ -z "$asprof" || ! -x "$asprof" ]]; then
+        echo "❌ Session state contains an invalid asprof path: ${asprof:-<empty>}" >&2
+        echo "   Session state: $sess" >&2
+        echo "   Re-run: bash scripts/collect.sh start $TARGET" >&2
+        exit 1
+    fi
+    if [[ -z "$sentinel" ]]; then
+        echo "❌ Session state is missing the sentinel path: $sess" >&2
+        echo "   Re-run: bash scripts/collect.sh start $TARGET" >&2
+        exit 1
+    fi
 
     echo "⏹  Stopping profiler on target: $TARGET"
     # Note: on macOS, -f is silently ignored by asprof stop — handled below.
