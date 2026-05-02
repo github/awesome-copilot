@@ -56,6 +56,30 @@ append_format_extension() {
   printf '%s.%s\n' "${output_path%.}" "$format"
 }
 
+validate_event() {
+  case "$1" in
+    cpu|alloc|wall|lock) ;;
+    *)
+      echo "❌ Unsupported --event: $1" >&2
+      echo "   Allowed values: cpu, alloc, wall, lock" >&2
+      echo "   Run '$0 --help' for usage." >&2
+      exit 1
+      ;;
+  esac
+}
+
+validate_format() {
+  case "$1" in
+    html|svg|jfr|collapsed|txt) ;;
+    *)
+      echo "❌ Unsupported --format: $1" >&2
+      echo "   Allowed values: html, svg, jfr, collapsed, txt" >&2
+      echo "   Run '$0 --help' for usage." >&2
+      exit 1
+      ;;
+  esac
+}
+
 # ── Parse arguments ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -102,6 +126,11 @@ if $ALL_EVENTS; then
   fi
   FORMAT="jfr"
 fi
+
+if ! $ALL_EVENTS; then
+  validate_event "$EVENT"
+fi
+validate_format "$FORMAT"
 
 # ── Locate asprof ─────────────────────────────────────────────────────────────
 ASPROF="$(locate_asprof_binary "$ASPROF")" || {

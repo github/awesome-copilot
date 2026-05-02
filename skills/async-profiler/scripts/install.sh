@@ -166,6 +166,13 @@ else
   tar xf "$ARCHIVE"
 fi
 
+if [[ ! -d "$EXTRACTED_DIR" ]]; then
+  echo "❌ Extracted archive did not contain the expected directory." >&2
+  echo "   Archive : $ARCHIVE" >&2
+  echo "   Expected directory: $EXTRACTED_DIR/" >&2
+  exit 1
+fi
+
 # Move into place
 mkdir -p "$INSTALL_PARENT"
 mv "$EXTRACTED_DIR" "$INSTALL_DIR"

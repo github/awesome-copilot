@@ -122,7 +122,7 @@ def top_packages(stacks, n=20, grep_re=None, exclude_re=None):
 
 def print_table(rows, total, header_left, header_right="Samples", csv_mode=False):
     if csv_mode:
-        writer = csv.writer(sys.stdout)
+        writer = csv.writer(sys.stdout, lineterminator="\n")
         writer.writerow([header_left, header_right, "Pct"])
         for name, count in rows:
             pct = 100.0 * count / total if total else 0
