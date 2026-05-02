@@ -78,6 +78,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "cms-development",
+      "source": "cms-development",
+      "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
+      "version": "1.0.0"
+    },
+    {
       "name": "context-engineering",
       "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
