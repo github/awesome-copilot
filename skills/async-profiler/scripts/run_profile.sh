@@ -336,7 +336,7 @@ if $COMPREHENSIVE; then
   echo ""
   echo "   Or for collapsed stack analysis:"
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  echo "   jfrconv \"$OUTPUT\" \"${BASE}-cpu.collapsed\""
+  echo "   jfrconv --cpu \"$OUTPUT\" \"${BASE}-cpu.collapsed\""
   echo "   python3 \"${SCRIPT_DIR}/analyze_collapsed.py\" \"${BASE}-cpu.collapsed\""
 
 else
