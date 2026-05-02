@@ -358,7 +358,10 @@ cmd_start() {
         exit 1
     fi
 
-    "$asprof" start --all "$TARGET"
+    if ! "$asprof" start --all "$TARGET"; then
+        rm -f "$sentinel"
+        exit 1
+    fi
 
     # Save session state (jfr_path, asprof binary, sentinel path)
     if [[ -L "$sess" ]]; then

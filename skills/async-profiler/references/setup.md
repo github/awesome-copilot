@@ -167,8 +167,10 @@ section below.
 ## Troubleshooting common issues
 
 **"Could not attach to <PID>"**
-- The JVM may need `-XX:+PerfDataSaveToFile` or you may lack permissions. Run as
-  the same user that owns the JVM process, or use `sudo`.
+- Run as the same user that owns the JVM process and check whether the JVM was
+  started with `-XX:+DisableAttachMechanism`. In containers, ptrace / seccomp
+  restrictions can also block dynamic attach; if attach is disabled entirely,
+  use the Java agent mode described below instead.
 
 **"Failed to open perf_events"**
 - Run the sysctl commands in Step 2, or use `-e itimer` to force the itimer engine.
