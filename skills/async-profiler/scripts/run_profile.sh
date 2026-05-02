@@ -94,6 +94,8 @@ default_installed_asprof() {
       return 0
     fi
   fi
+
+  return 0
 }
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
