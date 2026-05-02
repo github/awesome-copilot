@@ -2,18 +2,8 @@
  * Skills page functionality
  */
 import {
-  createChoices,
-  getChoicesValues,
-  setChoicesValues,
-  type Choices,
-} from "../choices";
-import { FuzzySearch, type SearchItem } from "../search";
-import {
   fetchData,
-  debounce,
   getQueryParam,
-  getQueryParamFlag,
-  getQueryParamValues,
   showToast,
   downloadZipBundle,
   updateQueryParams,
@@ -33,77 +23,34 @@ interface SkillFile {
   path: string;
 }
 
-interface Skill extends SearchItem, Omit<RenderableSkill, "files"> {
+interface Skill extends Omit<RenderableSkill, "files"> {
   files: SkillFile[];
 }
 
 interface SkillsData {
   items: Skill[];
-  filters: {
-    categories: string[];
-  };
 }
 
 const resourceType = "skill";
 let allItems: Skill[] = [];
-let search = new FuzzySearch<Skill>();
-let categorySelect: Choices;
-let currentFilters = {
-  categories: [] as string[],
-  hasAssets: false,
-};
-let currentSort: SkillSortOption = 'title';
+let currentSort: SkillSortOption = "title";
 let resourceListHandlersReady = false;
 
-function sortItems(items: Skill[]): Skill[] {
-  return sortSkills(items, currentSort);
-}
-
 function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
   const countEl = document.getElementById("results-count");
-  const query = searchInput?.value || "";
+  const results = sortSkills(allItems, currentSort);
 
-  let results = query ? search.search(query) : [...allItems];
-
-  if (currentFilters.categories.length > 0) {
-    results = results.filter((item) =>
-      currentFilters.categories.includes(item.category)
-    );
+  renderItems(results);
+  if (countEl) {
+    countEl.textContent = `${results.length} skill${results.length === 1 ? "" : "s"}`;
   }
-  if (currentFilters.hasAssets) {
-    results = results.filter((item) => item.hasAssets);
-  }
-
-  results = sortItems(results);
-
-  renderItems(results, query);
-  const activeFilters: string[] = [];
-  if (currentFilters.categories.length > 0)
-    activeFilters.push(
-      `${currentFilters.categories.length} categor${
-        currentFilters.categories.length > 1 ? "ies" : "y"
-      }`
-    );
-  if (currentFilters.hasAssets) activeFilters.push("has assets");
-  let countText = `${results.length} of ${allItems.length} skills`;
-  if (activeFilters.length > 0) {
-    countText += ` (filtered by ${activeFilters.join(", ")})`;
-  }
-  if (countEl) countEl.textContent = countText;
 }
 
-function renderItems(items: Skill[], query = ""): void {
+function renderItems(items: Skill[]): void {
   const list = document.getElementById("resource-list");
   if (!list) return;
 
-  list.innerHTML = renderSkillsHtml(items, {
-    query,
-    highlightTitle: (title, highlightQuery) =>
-      search.highlight(title, highlightQuery),
-  });
+  list.innerHTML = renderSkillsHtml(items);
 }
 
 function setupResourceListHandlers(list: HTMLElement | null): void {
@@ -142,11 +89,11 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
-function syncUrlState(searchInput: HTMLInputElement | null): void {
+function syncUrlState(): void {
   updateQueryParams({
-    q: searchInput?.value ?? "",
-    category: currentFilters.categories,
-    hasAssets: currentFilters.hasAssets,
+    q: "",
+    category: [],
+    hasAssets: false,
     sort: currentSort === "title" ? "" : currentSort,
   });
 }
@@ -155,7 +102,7 @@ async function copyInstallCommand(
   skillId: string,
   btn: HTMLButtonElement
 ): Promise<void> {
-  const command = `gh skill install ${REPO_IDENTIFIER} ${skillId}`;
+  const command = `gh skills install ${REPO_IDENTIFIER} ${skillId}`;
   const originalContent = btn.innerHTML;
   const success = await copyToClipboard(command);
   showToast(
@@ -209,14 +156,9 @@ async function downloadSkill(
 
 export async function initSkillsPage(): Promise<void> {
   const list = document.getElementById("resource-list");
-  const searchInput = document.getElementById(
-    "search-input"
-  ) as HTMLInputElement;
-  const hasAssetsCheckbox = document.getElementById(
-    "filter-has-assets"
-  ) as HTMLInputElement;
-  const clearFiltersBtn = document.getElementById("clear-filters");
-  const sortSelect = document.getElementById("sort-select") as HTMLSelectElement;
+  const sortSelect = document.getElementById(
+    "sort-select"
+  ) as HTMLSelectElement;
 
   setupResourceListHandlers(list as HTMLElement | null);
 
@@ -229,76 +171,20 @@ export async function initSkillsPage(): Promise<void> {
   }
 
   allItems = data.items;
-  search.setItems(allItems);
 
-  categorySelect = createChoices("#filter-category", {
-    placeholderValue: "All Categories",
-  });
-  categorySelect.setChoices(
-    data.filters.categories.map((c) => ({ value: c, label: c })),
-    "value",
-    "label",
-    true
-  );
-
-  const initialQuery = getQueryParam("q");
-  const initialCategories = getQueryParamValues("category").filter((category) =>
-    data.filters.categories.includes(category)
-  );
   const initialSort = getQueryParam("sort");
-
-  if (searchInput) searchInput.value = initialQuery;
-  if (initialCategories.length > 0) {
-    currentFilters.categories = initialCategories;
-    setChoicesValues(categorySelect, initialCategories);
-  }
-  if (getQueryParamFlag("hasAssets")) {
-    currentFilters.hasAssets = true;
-    if (hasAssetsCheckbox) hasAssetsCheckbox.checked = true;
-  }
   if (initialSort === "lastUpdated") {
     currentSort = initialSort;
     if (sortSelect) sortSelect.value = initialSort;
   }
 
-  document.getElementById("filter-category")?.addEventListener("change", () => {
-    currentFilters.categories = getChoicesValues(categorySelect);
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
   sortSelect?.addEventListener("change", () => {
     currentSort = sortSelect.value as SkillSortOption;
     applyFiltersAndRender();
-    syncUrlState(searchInput);
+    syncUrlState();
   });
 
   applyFiltersAndRender();
-  searchInput?.addEventListener(
-    "input",
-    debounce(() => {
-      applyFiltersAndRender();
-      syncUrlState(searchInput);
-    }, 200)
-  );
-
-  hasAssetsCheckbox?.addEventListener("change", () => {
-    currentFilters.hasAssets = hasAssetsCheckbox.checked;
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
-  clearFiltersBtn?.addEventListener("click", () => {
-    currentFilters = { categories: [], hasAssets: false };
-    currentSort = 'title';
-    categorySelect.removeActiveItems();
-    if (hasAssetsCheckbox) hasAssetsCheckbox.checked = false;
-    if (searchInput) searchInput.value = "";
-    if (sortSelect) sortSelect.value = "title";
-    applyFiltersAndRender();
-    syncUrlState(searchInput);
-  });
-
   setupModal();
 }
 

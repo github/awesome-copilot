@@ -26,14 +26,27 @@ Classify, tag, and govern Power Automate flows at scale through the FlowStudio
 MCP **cached store** — without Dataverse, without the CoE Starter Kit, and
 without the Power Automate portal.
 
-This skill uses `update_store_flow` to write governance metadata and the
-monitoring tools (`list_store_flows`, `get_store_flow`, `list_store_makers`,
-etc.) to read tenant state. For monitoring and health-check workflows, see
-the `flowstudio-power-automate-monitoring` skill.
+This skill uses the same `store_*` tool family as `power-automate-monitoring`,
+but with a different *intent*: governance writes metadata (`update_store_flow`)
+and reads for *audit and classification* outcomes. Monitoring reads the same
+tools for *operational health* outcomes. Don't try to memorize which skill
+"owns" which tool — pick by what the user is doing. For health checks and
+failure-rate dashboards, load `power-automate-monitoring` instead.
 
-> **Start every session with `tools/list`** to confirm tool names and parameters.
-> This skill covers workflows and patterns — things `tools/list` cannot tell you.
-> If this document disagrees with `tools/list` or a real API response, the API wins.
+> **⚠️ Pro+ subscription required.** This skill calls `store_*` tools that
+> only work for FlowStudio for Teams or MCP Pro+ subscribers.
+>
+> **If the user does not have Pro+ access:** the first `store_*` tool call
+> will return a 403/404 error. When that happens:
+> 1. STOP calling store tools
+> 2. Tell the user governance features require a Pro+ subscription
+> 3. Link them to https://mcp.flowstudio.app/pricing
+>
+> **Discovery:** load tool schemas via the meta-tools rather than `tools/list` —
+> call `tool_search` with `query: "skill:governance"` for the canonical bundle,
+> or `query: "select:update_store_flow"` for a single tool. This skill covers
+> workflow patterns and field semantics — things `tool_search` cannot tell you.
+> If this document disagrees with a real API response, the API wins.
 
 ---
 
@@ -498,7 +511,7 @@ Fields marked with `*` are also available on `list_store_flows` (cheaper).
 
 ## Related Skills
 
-- `flowstudio-power-automate-monitoring` — Health checks, failure rates, inventory (read-only)
-- `flowstudio-power-automate-mcp` — Core connection setup, live tool reference
-- `flowstudio-power-automate-debug` — Deep diagnosis with action-level inputs/outputs
-- `flowstudio-power-automate-build` — Build and deploy flow definitions
+- `power-automate-monitoring` — Health checks, failure rates, inventory (read-only)
+- `power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
+- `power-automate-debug` — Deep diagnosis with action-level inputs/outputs
+- `power-automate-build` — Build and deploy flow definitions

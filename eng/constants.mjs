@@ -103,7 +103,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 
 **Usage:**
 - Browse the skills table below to find relevant capabilities
-- Install a skill using the GitHub CLI: \`gh skill install github/awesome-copilot <skill-name>\` (requires [GitHub CLI v2.90.0+](https://github.blog/changelog/2026-04-16-manage-agent-skills-with-github-cli/))
+- Install a skill using the GitHub CLI: \`gh skills install github/awesome-copilot <skill-name>\` (requires [GitHub CLI v2.90.0+](https://github.blog/changelog/2026-04-16-manage-agent-skills-with-github-cli/))
 - Or copy the skill folder manually to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically`,
 

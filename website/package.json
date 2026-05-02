@@ -18,14 +18,14 @@
   "author": "GitHub",
   "license": "MIT",
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.0",
-    "@astrojs/starlight": "^0.37.6",
-    "astro": "^5.16.15",
-    "choices.js": "^11.1.0",
+    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/starlight": "^0.38.4",
+    "astro": "^6.1.9",
+    "choices.js": "^11.2.2",
     "front-matter": "^4.0.2",
     "gray-matter": "^4.0.3",
     "jszip": "^3.10.1",
-    "marked": "^17.0.4",
-    "shiki": "^3.23.0"
+    "marked": "^18.0.2",
+    "shiki": "^4.0.2"
   }
 }
