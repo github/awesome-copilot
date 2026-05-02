@@ -268,20 +268,6 @@ function formatTableCell(text) {
   return s.trim();
 }
 
-function compareNormalizedStrings(a, b) {
-  const left = String(a).toLowerCase();
-  const right = String(b).toLowerCase();
-
-  if (left < right) return -1;
-  if (left > right) return 1;
-
-  const originalLeft = String(a);
-  const originalRight = String(b);
-  if (originalLeft < originalRight) return -1;
-  if (originalLeft > originalRight) return 1;
-  return 0;
-}
-
 function makeBadges(link, type) {
   const aka = AKA_INSTALL_URLS[type] || AKA_INSTALL_URLS.instructions;
 
@@ -317,9 +303,7 @@ function generateInstructionsSection(instructionsDir) {
   });
 
   // Sort by title alphabetically
-  instructionEntries.sort((a, b) =>
-    compareNormalizedStrings(a.title, b.title)
-  );
+  instructionEntries.sort((a, b) => a.title.localeCompare(b.title));
 
   console.log(`Found ${instructionEntries.length} instruction files`);
 
@@ -508,7 +492,7 @@ function generateHooksSection(hooksDir) {
       };
     })
     .filter((entry) => entry !== null)
-    .sort((a, b) => compareNormalizedStrings(a.name, b.name));
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   console.log(`Found ${hookEntries.length} hook(s)`);
 
@@ -567,7 +551,7 @@ function generateWorkflowsSection(workflowsDir) {
       };
     })
     .filter((entry) => entry !== null)
-    .sort((a, b) => compareNormalizedStrings(a.name, b.name));
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   console.log(`Found ${workflowEntries.length} workflow(s)`);
 
@@ -623,7 +607,7 @@ function generateSkillsSection(skillsDir) {
       };
     })
     .filter((entry) => entry !== null)
-    .sort((a, b) => compareNormalizedStrings(a.name, b.name));
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   console.log(`Found ${skillEntries.length} skill(s)`);
 
@@ -689,7 +673,7 @@ function generateUnifiedModeSection(cfg) {
     return { file, filePath, title: extractTitle(filePath) };
   });
 
-  entries.sort((a, b) => compareNormalizedStrings(a.title, b.title));
+  entries.sort((a, b) => a.title.localeCompare(b.title));
   console.log(
     `Unified mode generator: ${entries.length} files for extension ${extension}`
   );
@@ -776,8 +760,8 @@ function generatePluginsSection(pluginsDir) {
   const regularPlugins = pluginEntries.filter((entry) => !entry.isFeatured);
 
   // Sort each group alphabetically by name
-  featuredPlugins.sort((a, b) => compareNormalizedStrings(a.name, b.name));
-  regularPlugins.sort((a, b) => compareNormalizedStrings(a.name, b.name));
+  featuredPlugins.sort((a, b) => a.name.localeCompare(b.name));
+  regularPlugins.sort((a, b) => a.name.localeCompare(b.name));
 
   // Combine: featured first, then regular
   const sortedEntries = [...featuredPlugins, ...regularPlugins];
@@ -868,7 +852,7 @@ function generateFeaturedPluginsSection(pluginsDir) {
     .filter((entry) => entry !== null);
 
   // Sort by name alphabetically
-  featuredPlugins.sort((a, b) => compareNormalizedStrings(a.name, b.name));
+  featuredPlugins.sort((a, b) => a.name.localeCompare(b.name));
 
   console.log(`Found ${featuredPlugins.length} featured plugin(s)`);
 
