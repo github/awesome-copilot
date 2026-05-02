@@ -32,7 +32,7 @@ def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
     """Parse a collapsed stack file into (frames, count) tuples."""
     stacks = []
     with open(path, "r", encoding="utf-8", errors="replace") as f:
-        for lineno, line in enumerate(f, 1):
+        for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue

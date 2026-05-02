@@ -66,6 +66,11 @@ while [[ $# -gt 0 ]]; do
       exit 1
       ;;
     *)
+      if [[ -n "$TARGET" ]]; then
+        echo "❌ Multiple targets provided: '$TARGET' and '$1'." >&2
+        echo "   Provide exactly one PID or app name." >&2
+        exit 1
+      fi
       TARGET="$1"
       shift
       ;;
@@ -104,6 +109,11 @@ if [[ -z "$ASPROF" ]]; then
   exit 1
 fi
 
+if [[ ! -f "$ASPROF" || ! -x "$ASPROF" ]]; then
+  echo "❌ --asprof must point to an executable asprof binary: $ASPROF" >&2
+  exit 1
+fi
+
 # ── Build output filename ─────────────────────────────────────────────────────
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 
@@ -122,6 +132,15 @@ if [[ -z "$OUTPUT_FORMAT" ]]; then
   echo "   Use one of: .html, .svg, .jfr, .collapsed, .txt" >&2
   exit 1
 fi
+
+OUTPUT_DIR="$(dirname "$OUTPUT")"
+if [[ "$OUTPUT_DIR" != "." ]] && [[ ! -d "$OUTPUT_DIR" ]]; then
+  mkdir -p "$OUTPUT_DIR" || {
+    echo "❌ Failed to create output directory: $OUTPUT_DIR" >&2
+    exit 1
+  }
+fi
+
 if $FORMAT_SET && [[ "$FORMAT" != "$OUTPUT_FORMAT" ]]; then
   echo "❌ --format '$FORMAT' conflicts with output extension '.$OUTPUT_FORMAT'." >&2
   echo "   Use matching values or omit --format when --output already sets the format." >&2

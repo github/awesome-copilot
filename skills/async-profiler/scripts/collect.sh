@@ -66,6 +66,11 @@ while [[ $# -gt 0 ]]; do
             exit 1
             ;;
         *)
+            if [[ -n "$TARGET" ]]; then
+                echo "❌ Multiple targets provided: '$TARGET' and '$1'." >&2
+                echo "   Provide exactly one PID or app name." >&2
+                exit 1
+            fi
             TARGET="$1"; shift ;;
     esac
 done
