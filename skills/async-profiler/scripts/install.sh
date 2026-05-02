@@ -37,6 +37,10 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       INSTALL_PARENT="$1"
+      case "$INSTALL_PARENT" in
+        "~") INSTALL_PARENT="$HOME" ;;
+        "~/"*) INSTALL_PARENT="${HOME}/${INSTALL_PARENT#~/}" ;;
+      esac
       INSTALL_PARENT_SET=true
       shift
       ;;

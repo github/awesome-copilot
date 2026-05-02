@@ -131,9 +131,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "$TARGET" ]]; then
-  echo "❌ No target specified. Provide a PID or app name."
-  echo "   Usage: $0 [options] <PID|app-name>"
-  echo "   List Java processes: jps -l"
+  echo "❌ No target specified. Provide a PID or app name." >&2
+  echo "   Usage: $0 [options] <PID|app-name>" >&2
+  echo "   List Java processes: jps -l" >&2
   exit 1
 fi
 
