@@ -31,6 +31,7 @@ EVENT="cpu"
 DURATION=30
 FORMAT="html"
 FORMAT_SET=false
+REQUESTED_FORMAT=""
 OUTPUT=""
 THREADS=false
 ALL_EVENTS=false
@@ -103,7 +104,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -e|--event)       [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; EVENT="$2";    shift 2 ;;
     -d|--duration)    [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; DURATION="$2"; shift 2 ;;
-    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2"; FORMAT_SET=true; shift 2 ;;
+    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2"; REQUESTED_FORMAT="$2"; FORMAT_SET=true; shift 2 ;;
     -o|--output)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; OUTPUT="$2";   shift 2 ;;
     -t|--threads)     THREADS=true;  shift ;;
     --all)            ALL_EVENTS=true; FORMAT="jfr"; shift ;;
@@ -134,6 +135,15 @@ if [[ -z "$TARGET" ]]; then
   echo "   Usage: $0 [options] <PID|app-name>"
   echo "   List Java processes: jps -l"
   exit 1
+fi
+
+if $ALL_EVENTS; then
+  if $FORMAT_SET && [[ "$REQUESTED_FORMAT" != "jfr" ]]; then
+    echo "❌ --all/--comprehensive only support --format jfr." >&2
+    echo "   Received: --format $REQUESTED_FORMAT" >&2
+    exit 1
+  fi
+  FORMAT="jfr"
 fi
 
 # ── Locate asprof ─────────────────────────────────────────────────────────────
