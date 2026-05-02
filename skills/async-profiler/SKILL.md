@@ -117,6 +117,8 @@ This skill includes four ready-to-run scripts in `scripts/`:
 
 Always offer to run these scripts on the user's behalf when relevant.
 
+`scripts/_asprof_lib.sh` is an internal shared helper sourced by the profiling wrappers so async-profiler discovery and versioned-install lookup stay consistent across `run_profile.sh` and `collect.sh`.
+
 ## How to use this skill
 
 This skill keeps detailed guidance in `references/` so the root `SKILL.md`

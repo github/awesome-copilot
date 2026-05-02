@@ -7,8 +7,8 @@
 # Options:
 #   -e, --event   cpu|alloc|wall|lock    Single event (default: cpu)
 #   -d, --duration N                     Seconds to profile (default: 30)
-#   -f, --format  html|svg|jfr|collapsed|txt Output format for single-event (default: html)
-#   -o, --output  FILE                   Output path (default: auto-named)
+#   -F, --format  html|svg|jfr|collapsed|txt Output format for single-event (default: html)
+#   -o, --output  FILE                   Output path (default: auto-named; appends format extension when needed)
 #   -t, --threads                        Profile threads separately
 #       --all                            Capture all events to a JFR file
 #       --comprehensive                  Capture all events AND split into per-event
@@ -21,10 +21,13 @@
 #   bash scripts/run_profile.sh 12345                        # 30s CPU flamegraph
 #   bash scripts/run_profile.sh --comprehensive 12345        # all events, split into flamegraphs
 #   bash scripts/run_profile.sh -e alloc -d 60 MyApp         # 60s allocation flamegraph
-#   bash scripts/run_profile.sh -e wall -f jfr 12345         # wall-clock JFR recording
+#   bash scripts/run_profile.sh -e wall -F jfr 12345         # wall-clock JFR recording
 #   bash scripts/run_profile.sh --all -d 120 12345           # all events, single JFR file
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/_asprof_lib.sh"
 
 # ── Defaults ─────────────────────────────────────────────────────────────────
 EVENT="cpu"
@@ -47,56 +50,10 @@ detect_format_from_output() {
   esac
 }
 
-stat_mtime() {
-  if [[ "$(uname)" == "Darwin" ]]; then
-    stat -f '%m' "$1" 2>/dev/null || echo 0
-  else
-    stat -c '%Y' "$1" 2>/dev/null || echo 0
-  fi
-}
-
-newest_by_mtime() {
-  local newest="" newest_mtime=0 candidate mtime
-  for candidate in "$@"; do
-    [[ -n "$candidate" ]] || continue
-    mtime="$(stat_mtime "$candidate")"
-    if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
-      newest="$candidate"
-      newest_mtime="$mtime"
-    fi
-  done
-  echo "$newest"
-}
-
-default_installed_asprof() {
-  local script_dir install_script candidate newest_versioned=""
-  local -a versioned_candidates=()
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  install_script="${script_dir}/install.sh"
-  if [[ -f "$install_script" ]]; then
-    for candidate in \
-      "$(bash "$install_script" --path-only 2>/dev/null || true)" \
-      "$(bash "$install_script" /opt --path-only 2>/dev/null || true)"
-    do
-      if [[ -x "$candidate" ]]; then
-        echo "$candidate"
-        return 0
-      fi
-    done
-  fi
-
-  shopt -s nullglob
-  versioned_candidates=("$HOME"/async-profiler-*/bin/asprof /opt/async-profiler-*/bin/asprof)
-  shopt -u nullglob
-  if [[ ${#versioned_candidates[@]} -gt 0 ]]; then
-    newest_versioned="$(newest_by_mtime "${versioned_candidates[@]}")"
-    if [[ -x "$newest_versioned" ]]; then
-      echo "$newest_versioned"
-      return 0
-    fi
-  fi
-
-  return 0
+append_format_extension() {
+  local output_path="$1"
+  local format="$2"
+  printf '%s.%s\n' "${output_path%.}" "$format"
 }
 
 # ── Parse arguments ───────────────────────────────────────────────────────────
@@ -104,7 +61,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -e|--event)       [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; EVENT="$2";    shift 2 ;;
     -d|--duration)    [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; DURATION="$2"; shift 2 ;;
-    -f|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2"; REQUESTED_FORMAT="$2"; FORMAT_SET=true; shift 2 ;;
+    -F|--format)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; FORMAT="$2"; REQUESTED_FORMAT="$2"; FORMAT_SET=true; shift 2 ;;
     -o|--output)      [[ $# -ge 2 ]] || { echo "❌ Missing value for $1" >&2; exit 1; }; OUTPUT="$2";   shift 2 ;;
     -t|--threads)     THREADS=true;  shift ;;
     --all)            ALL_EVENTS=true; FORMAT="jfr"; shift ;;
@@ -147,30 +104,10 @@ if $ALL_EVENTS; then
 fi
 
 # ── Locate asprof ─────────────────────────────────────────────────────────────
-if [[ -z "$ASPROF" ]]; then
-  if command -v asprof &>/dev/null; then
-    ASPROF="$(command -v asprof)"
-  else
-    INSTALLED_ASPROF="$(default_installed_asprof)"
-    for candidate in \
-      "$INSTALLED_ASPROF" \
-      "$HOME/async-profiler/bin/asprof" \
-      "/opt/async-profiler/bin/asprof" \
-      "/usr/local/bin/asprof"
-    do
-      if [[ -x "$candidate" ]]; then
-        ASPROF="$candidate"
-        break
-      fi
-    done
-  fi
-fi
-
-if [[ -z "$ASPROF" ]]; then
-  echo "❌ asprof not found. Install with: bash scripts/install.sh"
-  echo "   Or specify path: --asprof /path/to/asprof"
+ASPROF="$(locate_asprof_binary "$ASPROF")" || {
+  echo "   Or specify path: --asprof /path/to/asprof" >&2
   exit 1
-fi
+}
 
 if [[ ! -f "$ASPROF" || ! -x "$ASPROF" ]]; then
   echo "❌ --asprof must point to an executable asprof binary: $ASPROF" >&2
@@ -191,9 +128,8 @@ fi
 
 OUTPUT_FORMAT="$(detect_format_from_output "$OUTPUT")"
 if [[ -z "$OUTPUT_FORMAT" ]]; then
-  echo "❌ Unsupported output extension in '$OUTPUT'." >&2
-  echo "   Use one of: .html, .svg, .jfr, .collapsed, .txt" >&2
-  exit 1
+  OUTPUT="$(append_format_extension "$OUTPUT" "$FORMAT")"
+  OUTPUT_FORMAT="$FORMAT"
 fi
 
 OUTPUT_DIR="$(dirname "$OUTPUT")"
@@ -335,7 +271,6 @@ if $COMPREHENSIVE; then
   echo "   to focus: $CPU_HTML, $ALLOC_HTML, $WALL_HTML, $LOCK_HTML'"
   echo ""
   echo "   Or for collapsed stack analysis:"
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   echo "   jfrconv --cpu \"$OUTPUT\" \"${BASE}-cpu.collapsed\""
   echo "   python3 \"${SCRIPT_DIR}/analyze_collapsed.py\" \"${BASE}-cpu.collapsed\""
 
@@ -369,7 +304,6 @@ else
       echo "   'I have a JFR recording at $OUTPUT — help me interpret it.'"
       ;;
     collapsed)
-      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
       echo "Analyze with:"
       echo "   python3 \"${SCRIPT_DIR}/analyze_collapsed.py\" \"$OUTPUT\""
       echo ""
