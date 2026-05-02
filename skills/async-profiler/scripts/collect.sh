@@ -336,7 +336,9 @@ cmd_stop() {
     local jfr_path; jfr_path="$(sed -n '1p' "$sess")"
     local asprof;   asprof="$(sed -n '2p' "$sess")"
     local sentinel; sentinel="$(sed -n '3p' "$sess")"
-    [[ -n "$ASPROF_ARG" ]] && asprof="$ASPROF_ARG"
+    if [[ -n "$ASPROF_ARG" ]]; then
+        asprof="$(locate_asprof)"
+    fi
 
     echo "⏹  Stopping profiler on target: $TARGET"
     # Note: on macOS, -f is silently ignored by asprof stop — handled below.

@@ -2,9 +2,9 @@
 # install.sh — Download and install async-profiler for the current platform.
 #
 # Usage:
-#   ./install.sh                  # installs to ~/async-profiler-4.3
-#   ./install.sh /opt/profilers   # installs to /opt/profilers/async-profiler-4.3
-#   ./install.sh --path-only      # just prints the install path (for scripting)
+#   bash scripts/install.sh                  # installs to ~/async-profiler-4.3
+#   bash scripts/install.sh /opt/profilers   # installs to /opt/profilers/async-profiler-4.3
+#   bash scripts/install.sh --path-only      # just prints the install path (for scripting)
 #
 # After install, the script prints the path to the asprof binary.
 
@@ -13,6 +13,9 @@ set -euo pipefail
 VERSION="4.3"
 BASE_URL="https://github.com/async-profiler/async-profiler/releases/download/v${VERSION}"
 INSTALL_PARENT="${1:-$HOME}"
+MACOS_SHA256="8df875b8e40bd2d46bce0f07d3f78892f79791ea0b905c416817a7ae8b7bbcf7"
+LINUX_X64_SHA256="69a16462c34c06ff55618f41653cffad1f8946822d30842512a3e0e774841c06"
+LINUX_ARM64_SHA256="4f95e98ad12b8461386628d714e6a622f9d0b21bb7420004de0a9a3f7ea88131"
 
 # --path-only: don't install, just print where asprof would end up
 if [[ "${1:-}" == "--path-only" ]]; then
@@ -50,9 +53,15 @@ esac
 if [[ "$PLATFORM" == "macos" ]]; then
   ARCHIVE="async-profiler-${VERSION}-macos.zip"
   EXTRACTED_DIR="async-profiler-${VERSION}-macos"
+  EXPECTED_SHA256="$MACOS_SHA256"
 else
   ARCHIVE="async-profiler-${VERSION}-linux-${ARCH_LABEL}.tar.gz"
   EXTRACTED_DIR="async-profiler-${VERSION}-linux-${ARCH_LABEL}"
+  if [[ "$ARCH_LABEL" == "x64" ]]; then
+    EXPECTED_SHA256="$LINUX_X64_SHA256"
+  else
+    EXPECTED_SHA256="$LINUX_ARM64_SHA256"
+  fi
 fi
 
 INSTALL_DIR="${INSTALL_PARENT}/async-profiler-${VERSION}"
@@ -84,6 +93,17 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 cd "$TMP_DIR"
 
+sha256_file() {
+  if command -v shasum &>/dev/null; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  elif command -v sha256sum &>/dev/null; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    echo "❌ Need shasum or sha256sum to verify the downloaded archive." >&2
+    exit 1
+  fi
+}
+
 if command -v curl &>/dev/null; then
   curl -fsSL -o "$ARCHIVE" "$DOWNLOAD_URL"
 elif command -v wget &>/dev/null; then
@@ -92,6 +112,15 @@ else
   echo "❌ Neither curl nor wget found. Install one and retry."
   exit 1
 fi
+
+ACTUAL_SHA256="$(sha256_file "$ARCHIVE")"
+if [[ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]]; then
+  echo "❌ Downloaded archive checksum mismatch for $ARCHIVE" >&2
+  echo "   Expected: $EXPECTED_SHA256" >&2
+  echo "   Actual  : $ACTUAL_SHA256" >&2
+  exit 1
+fi
+echo "   SHA-256 verified: $ACTUAL_SHA256"
 
 # ── Extract ──────────────────────────────────────────────────────────────────
 echo "   Extracting..."

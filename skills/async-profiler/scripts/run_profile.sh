@@ -2,12 +2,12 @@
 # run_profile.sh — Wrapper around asprof for common profiling scenarios.
 #
 # Usage:
-#   ./run_profile.sh [options] <PID|app-name>
+#   bash scripts/run_profile.sh [options] <PID|app-name>
 #
 # Options:
 #   -e, --event   cpu|alloc|wall|lock    Single event (default: cpu)
 #   -d, --duration N                     Seconds to profile (default: 30)
-#   -f, --format  html|jfr|collapsed|txt Output format for single-event (default: html)
+#   -f, --format  html|svg|jfr|collapsed|txt Output format for single-event (default: html)
 #   -o, --output  FILE                   Output path (default: auto-named)
 #   -t, --threads                        Profile threads separately
 #       --all                            Capture all events to a JFR file
@@ -18,11 +18,11 @@
 #   -h, --help                           Show this help
 #
 # Examples:
-#   ./run_profile.sh 12345                        # 30s CPU flamegraph
-#   ./run_profile.sh --comprehensive 12345        # all events, split into flamegraphs
-#   ./run_profile.sh -e alloc -d 60 MyApp         # 60s allocation flamegraph
-#   ./run_profile.sh -e wall -f jfr 12345         # wall-clock JFR recording
-#   ./run_profile.sh --all -d 120 12345           # all events, single JFR file
+#   bash scripts/run_profile.sh 12345                        # 30s CPU flamegraph
+#   bash scripts/run_profile.sh --comprehensive 12345        # all events, split into flamegraphs
+#   bash scripts/run_profile.sh -e alloc -d 60 MyApp         # 60s allocation flamegraph
+#   bash scripts/run_profile.sh -e wall -f jfr 12345         # wall-clock JFR recording
+#   bash scripts/run_profile.sh --all -d 120 12345           # all events, single JFR file
 
 set -euo pipefail
 
@@ -41,7 +41,7 @@ TARGET=""
 detect_format_from_output() {
   local output_path="$1"
   case "${output_path##*.}" in
-    html|jfr|collapsed|txt) echo "${output_path##*.}" ;;
+    html|svg|jfr|collapsed|txt) echo "${output_path##*.}" ;;
     *) echo "" ;;
   esac
 }
@@ -119,7 +119,7 @@ fi
 OUTPUT_FORMAT="$(detect_format_from_output "$OUTPUT")"
 if [[ -z "$OUTPUT_FORMAT" ]]; then
   echo "❌ Unsupported output extension in '$OUTPUT'." >&2
-  echo "   Use one of: .html, .jfr, .collapsed, .txt" >&2
+  echo "   Use one of: .html, .svg, .jfr, .collapsed, .txt" >&2
   exit 1
 fi
 if $FORMAT_SET && [[ "$FORMAT" != "$OUTPUT_FORMAT" ]]; then
@@ -240,7 +240,7 @@ if $COMPREHENSIVE; then
 else
   # Single-event post-run guidance
   case "$FORMAT" in
-    html)
+    html|svg)
       echo "Open in browser:"
       if [[ "$(uname)" == "Darwin" ]]; then
         open "$OUTPUT"

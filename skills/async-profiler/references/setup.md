@@ -94,14 +94,14 @@ On Linux, async-profiler prefers the **perf_events** engine, which gives the mos
 accurate profiles and includes kernel frames. It requires:
 
 ```bash
-# Allow non-root perf_events (set once, persists until reboot)
-sudo sysctl kernel.perf_event_paranoid=1
+# Allow non-root perf_events with kernel stack traces for processes you own
+sudo sysctl kernel.perf_event_paranoid=0
 sudo sysctl kernel.kptr_restrict=0
 ```
 
 To make these permanent across reboots, add to `/etc/sysctl.d/99-perf.conf`:
 ```
-kernel.perf_event_paranoid=1
+kernel.perf_event_paranoid=0
 kernel.kptr_restrict=0
 ```
 
