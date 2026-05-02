@@ -321,8 +321,8 @@ split_jfr() {
     echo ""
     echo "💡 Next step: analyze results."
     echo "   For collapsed stack analysis (CPU):"
-    echo "   jfrconv --cpu $jfr_path ${base}-cpu.collapsed"
-    echo "   python3 ${script_dir}/analyze_collapsed.py ${base}-cpu.collapsed"
+    echo "   jfrconv --cpu \"$jfr_path\" \"${base}-cpu.collapsed\""
+    echo "   python3 \"${script_dir}/analyze_collapsed.py\" \"${base}-cpu.collapsed\""
 }
 
 # ── start ─────────────────────────────────────────────────────────────────────
@@ -459,7 +459,7 @@ cmd_stop() {
     local jfrconv; jfrconv="$(locate_jfrconv "$asprof")"
     if [[ -z "$jfrconv" ]]; then
         echo "⚠️  jfrconv not found — skipping flamegraph split."
-        echo "   Convert manually: jfrconv --cpu $jfr_path cpu.html"
+        echo "   Convert manually: jfrconv --cpu \"$jfr_path\" cpu.html"
         echo "   Or open in IntelliJ IDEA or JDK Mission Control."
         return
     fi

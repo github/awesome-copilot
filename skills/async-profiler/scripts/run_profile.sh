@@ -311,10 +311,10 @@ if $COMPREHENSIVE; then
     open "$CPU_HTML" "$ALLOC_HTML" "$WALL_HTML" "$LOCK_HTML"
   else
     echo "Open flamegraphs with:"
-    echo "   xdg-open $CPU_HTML"
-    echo "   xdg-open $ALLOC_HTML"
-    echo "   xdg-open $WALL_HTML"
-    echo "   xdg-open $LOCK_HTML"
+    echo "   xdg-open \"$CPU_HTML\""
+    echo "   xdg-open \"$ALLOC_HTML\""
+    echo "   xdg-open \"$WALL_HTML\""
+    echo "   xdg-open \"$LOCK_HTML\""
   fi
 
   echo ""
@@ -323,8 +323,9 @@ if $COMPREHENSIVE; then
   echo "   to focus: $CPU_HTML, $ALLOC_HTML, $WALL_HTML, $LOCK_HTML'"
   echo ""
   echo "   Or for collapsed stack analysis:"
-  echo "   jfrconv $OUTPUT ${BASE}-cpu.collapsed"
-  echo "   python3 scripts/analyze_collapsed.py ${BASE}-cpu.collapsed"
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  echo "   jfrconv \"$OUTPUT\" \"${BASE}-cpu.collapsed\""
+  echo "   python3 \"${SCRIPT_DIR}/analyze_collapsed.py\" \"${BASE}-cpu.collapsed\""
 
 else
   # Single-event post-run guidance
@@ -334,7 +335,7 @@ else
       if [[ "$(uname)" == "Darwin" ]]; then
         open "$OUTPUT"
       else
-        echo "   xdg-open $OUTPUT"
+        echo "   xdg-open \"$OUTPUT\""
       fi
       echo ""
       echo "What to look for:"
@@ -350,7 +351,7 @@ else
       echo "Open in JDK Mission Control: File → Open File → select $OUTPUT"
       echo ""
       echo "Or convert to flamegraph:"
-      echo "   jfrconv $OUTPUT flamegraph.html"
+      echo "   jfrconv \"$OUTPUT\" flamegraph.html"
       echo ""
       echo "💡 Next step — ask your AI assistant to analyze:"
       echo "   'I have a JFR recording at $OUTPUT — help me interpret it.'"
@@ -358,10 +359,10 @@ else
     collapsed)
       SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
       echo "Analyze with:"
-      echo "   python3 ${SCRIPT_DIR}/analyze_collapsed.py $OUTPUT"
+      echo "   python3 \"${SCRIPT_DIR}/analyze_collapsed.py\" \"$OUTPUT\""
       echo ""
       echo "Or render an SVG flamegraph (if FlameGraph is installed):"
-      echo "   flamegraph.pl $OUTPUT > flamegraph.svg"
+      echo "   flamegraph.pl \"$OUTPUT\" > flamegraph.svg"
       echo ""
       echo "💡 Next step — ask your AI assistant to analyze:"
       echo "   'Run analyze_collapsed.py on $OUTPUT and tell me what's slow.'"
@@ -371,7 +372,7 @@ else
       echo "   $OUTPUT"
       echo ""
       echo "Review with:"
-      echo "   cat $OUTPUT"
+      echo "   cat \"$OUTPUT\""
       ;;
   esac
 fi
