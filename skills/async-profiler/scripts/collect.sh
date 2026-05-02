@@ -83,11 +83,31 @@ fi
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 default_installed_asprof() {
-    local script_dir install_script
+    local script_dir install_script candidate newest_versioned=""
+    local -a versioned_candidates=()
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     install_script="${script_dir}/install.sh"
     if [[ -f "$install_script" ]]; then
-        bash "$install_script" --path-only 2>/dev/null || true
+        for candidate in \
+            "$(bash "$install_script" --path-only 2>/dev/null || true)" \
+            "$(bash "$install_script" /opt --path-only 2>/dev/null || true)"
+        do
+            if [[ -x "$candidate" ]]; then
+                echo "$candidate"
+                return 0
+            fi
+        done
+    fi
+
+    shopt -s nullglob
+    versioned_candidates=("$HOME"/async-profiler-*/bin/asprof /opt/async-profiler-*/bin/asprof)
+    shopt -u nullglob
+    if [[ ${#versioned_candidates[@]} -gt 0 ]]; then
+        newest_versioned="$(newest_by_mtime "${versioned_candidates[@]}")"
+        if [[ -x "$newest_versioned" ]]; then
+            echo "$newest_versioned"
+            return 0
+        fi
     fi
 }
 
@@ -309,6 +329,13 @@ cmd_start() {
     echo "  Output dir: $outdir/"
     echo "  Events    : cpu + alloc + wall + lock (combined JFR)"
     echo ""
+
+    if [[ -e "$sess" ]]; then
+        echo "❌ An active session already exists for target '$TARGET'." >&2
+        echo "   Session state: $sess" >&2
+        echo "   Stop it first: bash scripts/collect.sh stop $TARGET" >&2
+        exit 1
+    fi
 
     # macOS: asprof stop ignores -f and writes to /var/folders instead.
     # Create a sentinel so we can find the JFR after stop via find -newer.

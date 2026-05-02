@@ -4,7 +4,8 @@
 # Usage:
 #   bash scripts/install.sh                  # installs to ~/async-profiler-4.3
 #   bash scripts/install.sh /opt/profilers   # installs to /opt/profilers/async-profiler-4.3
-#   bash scripts/install.sh --path-only      # just prints the install path (for scripting)
+#   bash scripts/install.sh --path-only      # prints the default install path
+#   bash scripts/install.sh /opt --path-only # prints /opt/async-profiler-4.3/bin/asprof
 #
 # After install, the script prints the path to the asprof binary.
 
@@ -12,14 +13,41 @@ set -euo pipefail
 
 VERSION="4.3"
 BASE_URL="https://github.com/async-profiler/async-profiler/releases/download/v${VERSION}"
-INSTALL_PARENT="${1:-$HOME}"
+INSTALL_PARENT="$HOME"
+INSTALL_PARENT_SET=false
+PATH_ONLY=false
 MACOS_SHA256="8df875b8e40bd2d46bce0f07d3f78892f79791ea0b905c416817a7ae8b7bbcf7"
 LINUX_X64_SHA256="69a16462c34c06ff55618f41653cffad1f8946822d30842512a3e0e774841c06"
 LINUX_ARM64_SHA256="4f95e98ad12b8461386628d714e6a622f9d0b21bb7420004de0a9a3f7ea88131"
 
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --path-only)
+      PATH_ONLY=true
+      shift
+      ;;
+    -*)
+      echo "❌ Unknown option: $1" >&2
+      exit 1
+      ;;
+    *)
+      if $INSTALL_PARENT_SET; then
+        echo "❌ Unexpected extra argument: $1" >&2
+        echo "   Usage: bash scripts/install.sh [install-parent] [--path-only]" >&2
+        exit 1
+      fi
+      INSTALL_PARENT="$1"
+      INSTALL_PARENT_SET=true
+      shift
+      ;;
+  esac
+done
+
+INSTALL_DIR="${INSTALL_PARENT}/async-profiler-${VERSION}"
+
 # --path-only: don't install, just print where asprof would end up
-if [[ "${1:-}" == "--path-only" ]]; then
-  echo "$HOME/async-profiler-${VERSION}/bin/asprof"
+if $PATH_ONLY; then
+  echo "${INSTALL_DIR}/bin/asprof"
   exit 0
 fi
 
@@ -64,7 +92,6 @@ else
   fi
 fi
 
-INSTALL_DIR="${INSTALL_PARENT}/async-profiler-${VERSION}"
 DOWNLOAD_URL="${BASE_URL}/${ARCHIVE}"
 
 # ── Already installed? ───────────────────────────────────────────────────────

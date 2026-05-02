@@ -46,12 +46,53 @@ detect_format_from_output() {
   esac
 }
 
+stat_mtime() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    stat -f '%m' "$1" 2>/dev/null || echo 0
+  else
+    stat -c '%Y' "$1" 2>/dev/null || echo 0
+  fi
+}
+
+newest_by_mtime() {
+  local newest="" newest_mtime=0 candidate mtime
+  for candidate in "$@"; do
+    [[ -n "$candidate" ]] || continue
+    mtime="$(stat_mtime "$candidate")"
+    if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
+      newest="$candidate"
+      newest_mtime="$mtime"
+    fi
+  done
+  echo "$newest"
+}
+
 default_installed_asprof() {
-  local script_dir install_script
+  local script_dir install_script candidate newest_versioned=""
+  local -a versioned_candidates=()
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   install_script="${script_dir}/install.sh"
   if [[ -f "$install_script" ]]; then
-    bash "$install_script" --path-only 2>/dev/null || true
+    for candidate in \
+      "$(bash "$install_script" --path-only 2>/dev/null || true)" \
+      "$(bash "$install_script" /opt --path-only 2>/dev/null || true)"
+    do
+      if [[ -x "$candidate" ]]; then
+        echo "$candidate"
+        return 0
+      fi
+    done
+  fi
+
+  shopt -s nullglob
+  versioned_candidates=("$HOME"/async-profiler-*/bin/asprof /opt/async-profiler-*/bin/asprof)
+  shopt -u nullglob
+  if [[ ${#versioned_candidates[@]} -gt 0 ]]; then
+    newest_versioned="$(newest_by_mtime "${versioned_candidates[@]}")"
+    if [[ -x "$newest_versioned" ]]; then
+      echo "$newest_versioned"
+      return 0
+    fi
   fi
 }
 
