@@ -28,10 +28,10 @@ from pathlib import Path
 from typing import Optional, Pattern
 
 
-def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
+def parse_collapsed(path: Path) -> list[tuple[list[str], int]]:
     """Parse a collapsed stack file into (frames, count) tuples."""
     stacks = []
-    with open(path, "r", encoding="utf-8", errors="replace") as f:
+    with path.open("r", encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
@@ -183,15 +183,22 @@ def main():
     grep_re = compile_pattern("grep", args.grep)
     exclude_re = compile_pattern("exclude", args.exclude)
 
-    path = args.file
-    if not Path(path).exists():
+    path = Path(args.file)
+    if not path.exists():
         print(f"❌ File not found: {path}", file=sys.stderr)
+        sys.exit(1)
+    if not path.is_file():
+        print(f"❌ Expected a regular file: {path}", file=sys.stderr)
         sys.exit(1)
 
     print("\n📊 async-profiler collapsed stack analysis")
     print(f"   File: {path}\n")
 
-    stacks = parse_collapsed(path)
+    try:
+        stacks = parse_collapsed(path)
+    except OSError as exc:
+        print(f"❌ Failed to read {path}: {exc}", file=sys.stderr)
+        sys.exit(1)
     if not stacks:
         print("❌ No stack data found. Is this a valid .collapsed file?")
         sys.exit(1)

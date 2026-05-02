@@ -417,17 +417,26 @@ cmd_stop() {
         local -a search_roots=()
         local -a jfr_matches=()
         local jfr_candidate
-        shopt -s nullglob
-        search_roots=(/var/folders/*/*/T)
-        shopt -u nullglob
-        if [[ ${#search_roots[@]} -eq 0 ]]; then
+        if [[ "$TARGET" =~ ^[0-9]+$ ]]; then
             search_roots=(/var/folders)
             search_maxdepth=8
-            search_hint="find /var/folders -maxdepth 8 -name '*.jfr' -newer '$sentinel' 2>/dev/null"
+            search_hint="find /var/folders -maxdepth 8 -path '*/T/*_${TARGET}/*.jfr' -newer '$sentinel' 2>/dev/null"
+            while IFS= read -r -d '' jfr_candidate; do
+                jfr_matches+=("$jfr_candidate")
+            done < <(find "${search_roots[@]}" -maxdepth "$search_maxdepth" -path "*/T/*_${TARGET}/*.jfr" -newer "$sentinel" -print0 2>/dev/null)
+        else
+            shopt -s nullglob
+            search_roots=(/var/folders/*/*/T)
+            shopt -u nullglob
+            if [[ ${#search_roots[@]} -eq 0 ]]; then
+                search_roots=(/var/folders)
+                search_maxdepth=8
+                search_hint="find /var/folders -maxdepth 8 -name '*.jfr' -newer '$sentinel' 2>/dev/null"
+            fi
+            while IFS= read -r -d '' jfr_candidate; do
+                jfr_matches+=("$jfr_candidate")
+            done < <(find "${search_roots[@]}" -maxdepth "$search_maxdepth" -name "*.jfr" -newer "$sentinel" -print0 2>/dev/null)
         fi
-        while IFS= read -r -d '' jfr_candidate; do
-            jfr_matches+=("$jfr_candidate")
-        done < <(find "${search_roots[@]}" -maxdepth "$search_maxdepth" -name "*.jfr" -newer "$sentinel" -print0 2>/dev/null)
 
         if [[ ${#jfr_matches[@]} -gt 0 ]]; then
             found_jfr="$(newest_by_mtime "${jfr_matches[@]}")"
