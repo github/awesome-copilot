@@ -20,6 +20,7 @@ Options:
 
 from __future__ import annotations
 
+import csv
 import sys
 import re
 from collections import defaultdict
@@ -47,30 +48,43 @@ def parse_collapsed(path: str) -> list[tuple[list[str], int]]:
     return stacks
 
 
-def top_leaf_frames(stacks, n=20, grep=None, exclude=None):
+def compile_pattern(name: str, pattern: str | None):
+    if not pattern:
+        return None
+    try:
+        return re.compile(pattern, re.IGNORECASE)
+    except re.error as exc:
+        print(f"❌ Invalid regex for --{name}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def matches_filters(frames, grep_re=None, exclude_re=None):
+    stack_str = ";".join(frames)
+    if grep_re and not grep_re.search(stack_str):
+        return False
+    if exclude_re and exclude_re.search(stack_str):
+        return False
+    return True
+
+
+def top_leaf_frames(stacks, n=20, grep_re=None, exclude_re=None):
     """Count samples where each frame is the leaf (top of stack = actual work)."""
     counts = defaultdict(int)
     for frames, count in stacks:
         if not frames:
             continue
-        stack_str = ";".join(frames)
-        if grep and not re.search(grep, stack_str, re.IGNORECASE):
-            continue
-        if exclude and re.search(exclude, stack_str, re.IGNORECASE):
+        if not matches_filters(frames, grep_re, exclude_re):
             continue
         leaf = frames[-1]
         counts[leaf] += count
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)[:n]
 
 
-def top_inclusive_frames(stacks, n=20, grep=None, exclude=None):
+def top_inclusive_frames(stacks, n=20, grep_re=None, exclude_re=None):
     """Count samples where each frame appears anywhere in the stack (inclusive time)."""
     counts = defaultdict(int)
     for frames, count in stacks:
-        stack_str = ";".join(frames)
-        if grep and not re.search(grep, stack_str, re.IGNORECASE):
-            continue
-        if exclude and re.search(exclude, stack_str, re.IGNORECASE):
+        if not matches_filters(frames, grep_re, exclude_re):
             continue
         seen = set()
         for frame in frames:
@@ -80,14 +94,11 @@ def top_inclusive_frames(stacks, n=20, grep=None, exclude=None):
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)[:n]
 
 
-def top_packages(stacks, n=20, grep=None, exclude=None):
+def top_packages(stacks, n=20, grep_re=None, exclude_re=None):
     """Group inclusive time by top-level Java package."""
     counts = defaultdict(int)
     for frames, count in stacks:
-        stack_str = ";".join(frames)
-        if grep and not re.search(grep, stack_str, re.IGNORECASE):
-            continue
-        if exclude and re.search(exclude, stack_str, re.IGNORECASE):
+        if not matches_filters(frames, grep_re, exclude_re):
             continue
         seen_pkgs = set()
         for frame in frames:
@@ -110,10 +121,11 @@ def top_packages(stacks, n=20, grep=None, exclude=None):
 
 def print_table(rows, total, header_left, header_right="Samples", csv_mode=False):
     if csv_mode:
-        print(f"{header_left},{header_right},Pct")
+        writer = csv.writer(sys.stdout)
+        writer.writerow([header_left, header_right, "Pct"])
         for name, count in rows:
             pct = 100.0 * count / total if total else 0
-            print(f"{name},{count},{pct:.1f}")
+            writer.writerow([name, count, f"{pct:.1f}"])
         return
 
     if not rows:
@@ -167,6 +179,8 @@ def main():
     )
     parser.add_argument("--csv", action="store_true", help="Output as CSV")
     args = parser.parse_args()
+    grep_re = compile_pattern("grep", args.grep)
+    exclude_re = compile_pattern("exclude", args.exclude)
 
     path = args.file
     if not Path(path).exists():
@@ -194,11 +208,7 @@ def main():
         surviving = sum(
             c
             for frames, c in stacks
-            if (not args.grep or re.search(args.grep, ";".join(frames), re.IGNORECASE))
-            and (
-                not args.exclude
-                or not re.search(args.exclude, ";".join(frames), re.IGNORECASE)
-            )
+            if matches_filters(frames, grep_re, exclude_re)
         )
         matching_pct = 0.0 if total_samples == 0 else 100 * surviving / total_samples
         print(f"  Filters applied:{filters}")
@@ -211,17 +221,17 @@ def main():
     print(f"  Unique stacks : {total_stacks:,}\n")
 
     if args.packages:
-        rows = top_packages(stacks, args.top, args.grep, args.exclude)
+        rows = top_packages(stacks, args.top, grep_re, exclude_re)
         print(f"  Top {args.top} packages by inclusive time:\n")
         print_table(rows, total_samples, "Package", csv_mode=args.csv)
     elif args.self_time:
-        rows = top_leaf_frames(stacks, args.top, args.grep, args.exclude)
+        rows = top_leaf_frames(stacks, args.top, grep_re, exclude_re)
         print(f"  Top {args.top} methods by self-time (leaf frames):\n")
         print_table(rows, total_samples, "Method (leaf / self-time)", csv_mode=args.csv)
     else:
         # Default: show both self-time and inclusive for context
-        leaf_rows = top_leaf_frames(stacks, args.top, args.grep, args.exclude)
-        incl_rows = top_inclusive_frames(stacks, args.top, args.grep, args.exclude)
+        leaf_rows = top_leaf_frames(stacks, args.top, grep_re, exclude_re)
+        incl_rows = top_inclusive_frames(stacks, args.top, grep_re, exclude_re)
 
         print(f"  Top {args.top} by self-time (leaf frames — actual CPU consumers):\n")
         print_table(leaf_rows, total_samples, "Method (self-time)", csv_mode=args.csv)

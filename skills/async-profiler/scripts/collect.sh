@@ -114,6 +114,20 @@ locate_jfrconv() {
     fi
 }
 
+newest_by_mtime() {
+    local newest=""
+    local newest_mtime=0
+    local candidate mtime
+    for candidate in "$@"; do
+        mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+        if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
+            newest="$candidate"
+            newest_mtime="$mtime"
+        fi
+    done
+    echo "$newest"
+}
+
 # Session state file — stores output path and asprof path between start/stop.
 session_file() {
     local safe uid state_dir
@@ -261,15 +275,25 @@ cmd_stop() {
         echo ""
         echo "⚠️  macOS: -f is ignored by asprof stop — locating JFR in /var/folders..."
         local found_jfr=""
+        local search_maxdepth=2
+        local search_hint="find /var/folders/*/*/T -maxdepth 2 -name '*.jfr' -newer '$sentinel' 2>/dev/null"
+        local -a search_roots=()
         local -a jfr_matches=()
         local jfr_candidate
+        shopt -s nullglob
+        search_roots=(/var/folders/*/*/T)
+        shopt -u nullglob
+        if [[ ${#search_roots[@]} -eq 0 ]]; then
+            search_roots=(/var/folders)
+            search_maxdepth=8
+            search_hint="find /var/folders -maxdepth 8 -name '*.jfr' -newer '$sentinel' 2>/dev/null"
+        fi
         while IFS= read -r -d '' jfr_candidate; do
             jfr_matches+=("$jfr_candidate")
-        done < <(find /var/folders -maxdepth 8 -name "*.jfr" -newer "$sentinel" -print0 2>/dev/null)
+        done < <(find "${search_roots[@]}" -maxdepth "$search_maxdepth" -name "*.jfr" -newer "$sentinel" -print0 2>/dev/null)
 
-        # Sort by mtime (newest first) to avoid picking up an unrelated recording.
         if [[ ${#jfr_matches[@]} -gt 0 ]]; then
-            found_jfr=$(ls -1t "${jfr_matches[@]}" 2>/dev/null | head -1)
+            found_jfr="$(newest_by_mtime "${jfr_matches[@]}")"
         fi
         if [[ -n "$found_jfr" ]]; then
             cp "$found_jfr" "$jfr_path"
@@ -278,7 +302,7 @@ cmd_stop() {
             echo "   Copied to: $jfr_path"
         else
             echo "❌ Could not find JFR in /var/folders. Try:"
-            echo "   find /var/folders -maxdepth 8 -name '*.jfr' -newer '$sentinel' 2>/dev/null"
+            echo "   $search_hint"
             echo "   (The JFR may still be there — copy it manually to $jfr_path)"
             echo "   Sentinel preserved at: $sentinel for retry"
             echo "   Session state preserved at: $sess"

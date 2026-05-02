@@ -37,6 +37,14 @@ COMPREHENSIVE=false
 ASPROF=""
 TARGET=""
 
+detect_format_from_output() {
+  local output_path="$1"
+  case "${output_path##*.}" in
+    html|jfr|collapsed|txt) echo "${output_path##*.}" ;;
+    *) echo "" ;;
+  esac
+}
+
 # ── Parse arguments ───────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -106,6 +114,19 @@ if [[ -z "$OUTPUT" ]]; then
     OUTPUT="profile-${EVENT}-${TIMESTAMP}.${EXT}"
   fi
 fi
+
+OUTPUT_FORMAT="$(detect_format_from_output "$OUTPUT")"
+if [[ -z "$OUTPUT_FORMAT" ]]; then
+  echo "❌ Unsupported output extension in '$OUTPUT'." >&2
+  echo "   Use one of: .html, .jfr, .collapsed, .txt" >&2
+  exit 1
+fi
+if $ALL_EVENTS && [[ "$OUTPUT_FORMAT" != "jfr" ]]; then
+  echo "❌ --all/--comprehensive require a .jfr output file." >&2
+  echo "   Received: $OUTPUT" >&2
+  exit 1
+fi
+FORMAT="$OUTPUT_FORMAT"
 
 # ── Build asprof command ──────────────────────────────────────────────────────
 CMD=("$ASPROF" "-d" "$DURATION" "-f" "$OUTPUT")
@@ -248,6 +269,13 @@ else
       echo ""
       echo "💡 Next step — ask your AI assistant to analyze:"
       echo "   'Run analyze_collapsed.py on $OUTPUT and tell me what's slow.'"
+      ;;
+    txt)
+      echo "Plain-text summary saved at:"
+      echo "   $OUTPUT"
+      echo ""
+      echo "Review with:"
+      echo "   cat $OUTPUT"
       ;;
   esac
 fi
