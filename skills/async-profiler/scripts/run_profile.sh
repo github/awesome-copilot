@@ -356,11 +356,12 @@ else
       echo "   'I have a JFR recording at $OUTPUT — help me interpret it.'"
       ;;
     collapsed)
+      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
       echo "Analyze with:"
-      echo "   python3 scripts/analyze_collapsed.py $OUTPUT"
+      echo "   python3 ${SCRIPT_DIR}/analyze_collapsed.py $OUTPUT"
       echo ""
-      echo "Or convert to flamegraph:"
-      echo "   jfrconv $OUTPUT flamegraph.html"
+      echo "Or render an SVG flamegraph (if FlameGraph is installed):"
+      echo "   flamegraph.pl $OUTPUT > flamegraph.svg"
       echo ""
       echo "💡 Next step — ask your AI assistant to analyze:"
       echo "   'Run analyze_collapsed.py on $OUTPUT and tell me what's slow.'"

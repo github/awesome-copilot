@@ -48,6 +48,13 @@ fi
 
 SUBCMD="$1"; shift
 
+case "$SUBCMD" in
+    help|-h|--help)
+        sed -n '2,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
+        exit 0
+        ;;
+esac
+
 # ── Parse options ─────────────────────────────────────────────────────────────
 DURATION=30
 TARGET=""
@@ -310,11 +317,12 @@ split_jfr() {
     fi
 
     local base_dir; base_dir="$(dirname "$jfr_path")"
+    local script_dir; script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     echo ""
     echo "💡 Next step: analyze results."
     echo "   For collapsed stack analysis (CPU):"
     echo "   jfrconv --cpu $jfr_path ${base}-cpu.collapsed"
-    echo "   python3 scripts/analyze_collapsed.py ${base}-cpu.collapsed"
+    echo "   python3 ${script_dir}/analyze_collapsed.py ${base}-cpu.collapsed"
 }
 
 # ── start ─────────────────────────────────────────────────────────────────────

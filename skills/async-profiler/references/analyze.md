@@ -275,11 +275,11 @@ grep -i "serial\|jackson\|json" profile.collapsed | awk '{sum+=$NF} END{print su
 ### Convert collapsed → flamegraph
 
 ```bash
-# Using async-profiler's jfrconv
-jfrconv collapsed.txt flamegraph.html
-
-# Or using the original FlameGraph perl script (if installed)
+# Using the original FlameGraph perl script (if installed)
 flamegraph.pl profile.collapsed > flamegraph.svg
+
+# Or regenerate HTML directly from the original JFR recording
+jfrconv --cpu recording.jfr cpu.html
 ```
 
 ---
