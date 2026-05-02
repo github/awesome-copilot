@@ -94,16 +94,17 @@ production JVM, etc.).
 
 ---
 
-## Always start with `--all`
+## Usually start with `--all`
 
 **`asprof start --all` records CPU, allocation, wall-clock, and lock contention
-simultaneously in a single JFR file.** There is no meaningful overhead penalty
-for capturing all events together compared to capturing just one. You then split
-the JFR into separate flamegraphs with `jfrconv` after the fact.
+simultaneously in a single JFR file.** That is usually the best default when
+you can afford one richer capture and want optionality during analysis. You can
+then split the JFR into separate flamegraphs with `jfrconv` after the fact.
 
-**Never run separate captures for each event type.** Each capture requires
-reproducing the workload, which is disruptive and often impossible for realistic
-or intermittent problems. Capture once, analyze everything.
+`--all` does trade a broader signal set for more output to store and post-process.
+Start there for intermittent or one-shot reproductions; switch to single-event
+captures when you already know the signal you need or must minimize overhead,
+output size, or post-processing time.
 
 ```bash
 # Direct asprof — capture all events, produce a single JFR

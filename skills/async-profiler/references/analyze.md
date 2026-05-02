@@ -196,7 +196,7 @@ jfr print --events jdk.ExecutionSample recording.jfr   # raw CPU samples
 ```bash
 jfrconv recording.jfr flamegraph.html         # full flamegraph
 jfrconv --alloc recording.jfr alloc.html      # allocation-only flamegraph
-jfrconv recording.jfr collapsed.txt           # collapsed stacks for scripting
+jfrconv --cpu recording.jfr cpu.collapsed     # collapsed stacks for scripting
 ```
 
 ### What to examine in JMC / IntelliJ

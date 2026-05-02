@@ -159,7 +159,11 @@ newest_by_mtime() {
     local newest_mtime=0
     local candidate mtime
     for candidate in "$@"; do
-        mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+        if [[ "$(uname)" == "Darwin" ]]; then
+            mtime="$(stat -f '%m' "$candidate" 2>/dev/null || echo 0)"
+        else
+            mtime="$(stat -c '%Y' "$candidate" 2>/dev/null || echo 0)"
+        fi
         if [[ -z "$newest" || "$mtime" -gt "$newest_mtime" ]]; then
             newest="$candidate"
             newest_mtime="$mtime"

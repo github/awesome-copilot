@@ -25,8 +25,9 @@ continue below.
 
 ## Step 1 — Download
 
-The latest stable release is **v4.3** (January 2025). The skill includes an
-install script that handles everything automatically.
+The bundled installer currently pins **async-profiler v4.3** by default. If
+that changes, treat `scripts/install.sh` as the source of truth for the exact
+version and install path.
 
 ### Option A — use the bundled install script (recommended)
 
@@ -35,8 +36,8 @@ downloads the right binary, removes the macOS Gatekeeper quarantine flag, and
 verifies the install:
 
 ```bash
-bash scripts/install.sh               # installs to ~/async-profiler-4.3/
-bash scripts/install.sh /opt          # installs to /opt/async-profiler-4.3/
+bash scripts/install.sh               # installs to ~/async-profiler-<version>/
+bash scripts/install.sh /opt          # installs to /opt/async-profiler-<version>/
 ```
 
 It prints the exact binary path and a one-liner to add it to your PATH.
