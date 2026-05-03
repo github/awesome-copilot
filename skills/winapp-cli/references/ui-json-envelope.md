@@ -59,6 +59,29 @@ Pre-0.3.1 emitted bare `null` when nothing was focused.
 
 ## `ui search --json` / `ui wait-for --json`
 
-The internal `id`, `parentSelector`, and `windowHandle` fields are scrubbed
-from results, both at the top level and inside any nested
-`invokableAncestor`. Don't depend on them.
+Both commands return matching elements using the same element shape as
+`ui inspect` (so `selector`, `name`, `controlType`, `children`, etc.).
+Each match may also include an `invokableAncestor` field — itself an
+element-shaped object — pointing to the nearest invokable parent
+(useful when a search hits a non-invokable element like a label inside
+a button).
+
+```json
+[
+  {
+    "selector": "btn-save-c3d4",
+    "name": "Save",
+    "controlType": "Button",
+    "children": [ ... ],
+    "invokableAncestor": {
+      "selector": "btn-save-c3d4",
+      "name": "Save",
+      "controlType": "Button"
+    }
+  }
+]
+```
+
+The internal `id`, `parentSelector`, and `windowHandle` fields are
+**scrubbed** from results — both at the top level and inside any nested
+`invokableAncestor`. Don't depend on them; use `selector` as the handle.

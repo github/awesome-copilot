@@ -32,7 +32,7 @@ description: 'Windows App Development CLI (winapp) for building, packaging, sign
 | `tool` | Run Windows SDK build tools with paths configured. |
 | `store` | Run Microsoft Store Developer CLI for store submission/validation/publishing. |
 | `create-external-catalog` | Generate `CodeIntegrityExternal.cat` for TrustedLaunch sparse packages. |
-| `ui list-windows` / `inspect` / `click` / `search` / `wait-for` / `get-focused` | UI automation via Microsoft UI Automation. All support `--json`. **Envelope changed in v0.3.1** — see [`references/ui-json-envelope.md`](./references/ui-json-envelope.md). (v0.3.0+) |
+| `ui list-windows` / `inspect` / `click` / `search` / `wait-for` / `get-focused` | UI automation via Microsoft UI Automation. All support `--json`. **JSON envelopes for `inspect`, `get-focused`, `search`, and `wait-for` changed in v0.3.1** — see [`references/ui-json-envelope.md`](./references/ui-json-envelope.md) (other `ui` subcommands keep their pre-0.3.1 output). (v0.3.0+) |
 | `node create-addon` / `add-electron-debug-identity` / `clear-electron-debug-identity` | Electron/Node helpers. All commands also exposed as typed JS/TS functions from `@microsoft/winappcli` (v0.2.1+). |
 
 CI tip: pass `--no-prompt` to skip interactive prompts.
@@ -47,20 +47,20 @@ Standard init → package flow:
    winapp init        # add --no-prompt in CI
    ```
 
-2. **Generate a dev signing certificate** — required for sideloading. `init` no longer creates one (v0.2.0+).
+2. **Generate a dev signing certificate** — required for sideloading. `init` no longer creates one for non-`.csproj` projects (v0.2.0+). Pin the output path so later steps can reference it.
 
    ```bash
-   winapp cert generate
+   winapp cert generate --publisher "CN=My Company" --output ./mycert.pfx --install
    ```
 
 3. **Build your app** with the framework's own toolchain (`dotnet build`, `npm run build`, `cargo build`, etc.).
-4. **Package as MSIX**, signing with the dev cert (or supply your own with `--cert <pfx> --cert-password`).
+4. **Package as MSIX**, signing with the cert from step 2.
 
    ```bash
-   winapp pack ./build-output --generate-cert --output MyApp.msix
+   winapp pack ./build-output --cert ./mycert.pfx --cert-password password --output MyApp.msix
    ```
 
-5. **(Optional) Sign with a production cert** before distribution.
+5. **(Optional) Re-sign with a production cert** before distribution.
 
    ```bash
    winapp sign MyApp.msix --cert ./prod.pfx --cert-password $env:CERT_PWD
@@ -107,7 +107,8 @@ Standard init → package flow:
 | Certificate not trusted | `winapp cert install <pfx>` to add to local machine store |
 | Identity-gated API fails | Re-run `create-debug-identity` after manifest changes |
 | SDK not found | `winapp restore` or `winapp update` |
-| `register`/`unregister` errors | v0.3.1 maps `0x800704EC`→Developer Mode and `0x80073CFB`→package conflict (with actionable hint) |
+| `run` / `create-debug-identity` registration error `0x800704EC` | Developer Mode is off — enable it in **Settings → Privacy & security → For developers** (or `Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock' -Name AllowDevelopmentWithoutDevLicense -Value 1`), then retry |
+| `run` / `create-debug-identity` registration error `0x80073CFB` | Package already registered with a conflicting identity — run `winapp unregister` (or `winapp unregister --force` if registered from a different project tree), then retry |
 
 ## References
 
