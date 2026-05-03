@@ -37,27 +37,60 @@ description: 'Windows App Development CLI (winapp) for building, packaging, sign
 
 CI tip: pass `--no-prompt` to skip interactive prompts.
 
-## Quick start
+## Workflow
 
-```bash
-# .NET / generic: init, generate dev cert, build, package
-winapp init
-winapp cert generate
-winapp pack ./build-output --generate-cert --output MyApp.msix
+Standard init → package flow:
 
-# Debug a built exe with package identity (no MSIX)
-winapp create-debug-identity ./bin/MyApp.exe
-./bin/MyApp.exe
+1. **Initialize the project** in your app folder. Sets up SDK refs, manifest, and `winapp.yaml` (`.csproj` projects skip the YAML and configure NuGet directly).
 
-# Run as packaged app for F5 debugging, with app args after `--`
-winapp run ./bin/Debug/net10.0-windows10.0.26100.0/win-x64 \
-  --manifest ./appxmanifest.xml -- --my-flag value
+   ```bash
+   winapp init        # add --no-prompt in CI
+   ```
 
-# Electron
-npx winapp init
-npx winapp node add-electron-debug-identity
-npx winapp pack ./out --output MyElectronApp.msix
-```
+2. **Generate a dev signing certificate** — required for sideloading. `init` no longer creates one (v0.2.0+).
+
+   ```bash
+   winapp cert generate
+   ```
+
+3. **Build your app** with the framework's own toolchain (`dotnet build`, `npm run build`, `cargo build`, etc.).
+4. **Package as MSIX**, signing with the dev cert (or supply your own with `--cert <pfx> --cert-password`).
+
+   ```bash
+   winapp pack ./build-output --generate-cert --output MyApp.msix
+   ```
+
+5. **(Optional) Sign with a production cert** before distribution.
+
+   ```bash
+   winapp sign MyApp.msix --cert ./prod.pfx --cert-password $env:CERT_PWD
+   ```
+
+6. **(Optional) Submit to the Microsoft Store** with `winapp store …` (wraps the Store Developer CLI).
+
+### Alternate flows
+
+- **Debug identity-gated APIs without packaging** (notifications, Windows AI, shell):
+
+  ```bash
+  winapp create-debug-identity ./bin/MyApp.exe
+  ./bin/MyApp.exe
+  ```
+
+- **Run as packaged app for IDE F5** (loose layout; app args after `--`):
+
+  ```bash
+  winapp run ./bin/Debug/net10.0-windows10.0.26100.0/win-x64 \
+    --manifest ./appxmanifest.xml -- --my-flag value
+  ```
+
+- **Electron**:
+
+  ```bash
+  npx winapp init
+  npx winapp node add-electron-debug-identity
+  npx winapp pack ./out --output MyElectronApp.msix
+  ```
 
 ## Gotchas
 
