@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-30
+lastUpdated: 2026-05-03
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -374,6 +374,8 @@ Settings: File → Settings → Tools → GitHub Copilot
 
 Configuration file: `~/.copilot-cli/config.json`
 
+> **Tip**: You can override the location of this directory by setting the `COPILOT_HOME` environment variable (e.g., `COPILOT_HOME=/custom/path copilot`). The `--config-dir` flag that previously served the same purpose is **deprecated** as of v1.0.40 and will be removed in a future release. Update any scripts or CI pipelines to use `COPILOT_HOME` instead.
+
 ```json
 {
   "editor": "vim",
@@ -463,6 +465,14 @@ The `/undo` command reverts the last turn—including any file changes the agent
 
 Use `/undo` when the agent's last response went in an unwanted direction and you want to try a different approach from that point.
 
+The `/chronicle` command shows a timeline of all files that were **created or modified** during the current session. It gives you a compact, ordered view of every change the agent has made — useful for reviewing the scope of work before committing or sharing:
+
+```
+/chronicle
+```
+
+> **Note**: Session history, file tracking, and `/chronicle` are available to all users as of v1.0.40. Previously they required opting in to experimental features.
+
 The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
 
 ```
@@ -542,6 +552,14 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
 
 > **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
+
+When the CLI is in autopilot mode, it limits the number of automatic continuation messages to **5 by default**. You can raise or lower this with `--max-autopilot-continues`:
+
+```bash
+copilot --autopilot --max-autopilot-continues 10 "Refactor the auth service"
+```
+
+Setting `--max-autopilot-continues 0` removes the limit entirely, though this may consume many requests for large tasks. The limit prevents runaway automation while still allowing the agent to complete multi-step work.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 

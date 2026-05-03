@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-28
+lastUpdated: 2026-05-03
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -595,6 +595,10 @@ A: The hook is terminated and the agent continues. Set `timeoutSec` appropriatel
 **Q: Can I have multiple hooks for the same event?**
 
 A: Yes. Hooks for the same event run in the order they appear in the array. If any hook fails (non-zero exit), subsequent hooks for that event may be skipped.
+
+**Q: Do hooks run when the CLI is used in prompt mode (`-p`)?**
+
+A: Not by default. In prompt mode (invoked with `-p` or `--prompt`), repository hooks and workspace MCP servers are **disabled** for security-by-default behavior — prompt mode is often used in automated scripts and CI pipelines where running arbitrary repository scripts could be a security risk. To opt in to hooks in prompt mode, set the environment variable `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=1` before running the CLI. Similarly, `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=1` enables workspace MCP servers in prompt mode.
 
 **Q: Do hooks work with the Copilot coding agent?**
 

@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-05-03
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -179,6 +179,7 @@ These are especially useful for plugins and installer scripts that need to self-
 Some MCP servers require authentication to connect to protected resources. GitHub Copilot CLI supports several authentication approaches:
 
 - **OAuth**: MCP servers can use the OAuth flow to authenticate with external services. The CLI handles the browser redirect and token storage automatically. This also works when running in ACP (Agent Coordination Protocol) mode.
+- **`client_credentials` OAuth grant type** *(v1.0.40+)*: For fully headless, server-to-server authentication with no user interaction required at all. When an MCP server supports the `client_credentials` grant type, the CLI authenticates using client credentials without any browser redirect or device code. This is ideal for CI pipelines and automation scripts where even a device code prompt would be impractical.
 - **Device code flow (RFC 8628)**: When the CLI runs in a **headless or CI environment** where a browser redirect is not possible, it automatically falls back to the device code flow. You'll see a URL and a code to enter on another device to complete authentication.
 - **`/mcp auth`**: If a token expires or you need to switch accounts, run `/mcp auth` inside a session. This opens the re-authentication UI for any OAuth-enabled MCP server and supports account switching. You can re-authenticate without restarting the session.
 - **Microsoft Entra ID (Azure AD)**: MCP servers that authenticate via Microsoft Entra ID are fully supported. Once you complete the initial login, the CLI caches the authentication and **will not show the consent screen on subsequent connections** — you authenticate once per session rather than every time the server reconnects.
@@ -279,6 +280,10 @@ GitHub organizations can enforce a policy that restricts which third-party MCP s
 If you see a warning that an MCP server is blocked, contact your organization administrator to find out which servers are on the allowlist, or switch to an approved alternative.
 
 ## Common Questions
+
+**Q: Does Copilot CLI disable any MCP servers automatically?**
+
+A: Yes. If it detects an **Azure DevOps** repository (rather than a GitHub repository), the CLI automatically disables the GitHub MCP server, since it would have no useful targets to connect to. Other MCP servers continue to work normally.
 
 **Q: Do MCP servers run in the cloud?**
 
