@@ -1,6 +1,6 @@
 ---
 name: winapp-cli
-description: 'Windows App Development CLI (winapp) for building, packaging, deploying, debugging, and UI-automating Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml (including from SVG assets), manage development certificates (generate, install, inspect via `cert info`, export public keys), add package identity for debugging, run apps as packaged via loose-layout registration (`winapp run`), unregister sideloaded dev packages, sign packages, publish to the Microsoft Store, create external catalogs (CodeIntegrityExternal.cat for TrustedLaunch sparse packages), automate Windows UI interactions (list windows, inspect elements, click) via Microsoft UI Automation, or access Windows SDK build tools. Supports .NET (csproj), C++, Electron, Rust, Tauri, Flutter, and cross-platform frameworks targeting Windows.'
+description: 'Windows App Development CLI (winapp) for building, packaging, signing, debugging, and UI-automating Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, manage AppxManifest.xml or development certificates, run an app as packaged for debugging, automate Windows UI via Microsoft UI Automation, publish to the Microsoft Store, or access Windows SDK build tools. Covers commands like init, pack, run, unregister, manifest, cert, sign, store, ui, and tool. Supports .NET (csproj), C++, Electron, Rust, Tauri, Flutter, and other Windows frameworks.'
 ---
 
 # Windows App Development CLI
@@ -76,42 +76,7 @@ Common subcommands:
 - `winapp ui search` / `winapp ui wait-for` — locate or wait for elements
 - `winapp ui get-focused` — get the currently focused element
 
-All `ui` subcommands support `--json` for machine-readable output.
-
-#### `ui --json` envelope (v0.3.1+) — breaking change
-
-The v0.3.1 release reshaped the JSON envelopes. Generate parsers against these shapes (not the pre-0.3.1 flat shapes):
-
-- **`ui inspect --json`** — elements are nested under windows; the top-level shape is:
-
-  ```json
-  {
-    "depth": 0,
-    "interactive": false,
-    "hideDisabled": false,
-    "hideOffscreen": false,
-    "windows": [
-      {
-        "hwnd": "0x...",
-        "title": "...",
-        "className": "...",
-        "elementCount": 0,
-        "elements": [
-          { "selector": "...", "name": "...", "controlType": "...", "children": [ ... ] }
-        ]
-      }
-    ]
-  }
-  ```
-
-  Pre-0.3.1 the shape was a flat `{ "elements": [...] }` list. Per-element `id`, `depth`, `parentSelector`, and `windowHandle` fields have been removed — `selector` is the public handle for an element.
-
-- **`ui inspect --ancestors --json`** — ancestors are now nested as a parent → child chain keyed by `Depth=i` (previously emitted as sibling roots).
-- **`ui get-focused --json`** — emits an envelope, not a bare value:
-  - No focus: `{ "hasFocus": false }`
-  - With focus: `{ "hasFocus": true, "element": { ... } }`
-  - Pre-0.3.1 emitted bare `null` when nothing was focused.
-- **`ui search --json` / `ui wait-for --json`** — the internal `id`, `parentSelector`, and `windowHandle` fields are scrubbed from results, both at the top level and inside any nested `invokableAncestor`. Don't rely on them.
+All `ui` subcommands support `--json` for machine-readable output. The envelope shape changed in v0.3.1 — see [`references/ui-json-envelope.md`](./references/ui-json-envelope.md) before writing parsers.
 
 ### 7. Manifest Management (`winapp manifest`)
 
@@ -258,8 +223,14 @@ winapp update --setup-sdks preview
 - `winapp init` no longer auto-generates a certificate (v0.2.0+); run `winapp cert generate` explicitly
 - .NET (csproj) projects skip `winapp.yaml`; SDK packages are configured in the project file directly
 - winapp CLI uses the NuGet global cache for packages (not `%userprofile%/.winapp/packages`)
-- `winapp ui --json` envelopes were reshaped in v0.3.1 (see [`ui --json` envelope](#ui---json-envelope-v031--breaking-change)) — pre-0.3.1 parsers will break
 - winapp CLI is in public preview and subject to change
+
+## Gotchas
+
+- **`winapp ui --json` envelope reshaped in v0.3.1** — `ui inspect`, `ui get-focused`, `ui search`, and `ui wait-for` use new shapes; per-element `id`/`parentSelector`/`windowHandle` are gone (use `selector`). Full schemas: [`references/ui-json-envelope.md`](./references/ui-json-envelope.md).
+- **`winapp init` no longer auto-generates a certificate** (v0.2.0+) — run `winapp cert generate` explicitly when you need a dev cert.
+- **`.NET (csproj)` projects skip `winapp.yaml`** — SDK packages are configured in the project file directly.
+- **Re-run `create-debug-identity` after manifest changes** — package identity is bound to the manifest at registration time.
 
 ## Windows APIs Enabled by Package Identity
 
