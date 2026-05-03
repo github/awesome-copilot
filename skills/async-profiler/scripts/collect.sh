@@ -56,6 +56,14 @@ case "$SUBCMD" in
         sed -n '2,/^[^#]/p' "$0" | grep '^#' | sed 's/^# \?//'
         exit 0
         ;;
+    start|stop|timed)
+        ;;
+    *)
+        echo "❌ Unknown subcommand: '$SUBCMD'" >&2
+        echo "   Supported subcommands: start, stop, timed" >&2
+        echo "   Run '$0 --help' for usage." >&2
+        exit 1
+        ;;
 esac
 
 # ── Parse options ─────────────────────────────────────────────────────────────
@@ -85,7 +93,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z "$TARGET" && "$SUBCMD" != "help" ]]; then
+if [[ -z "$TARGET" ]]; then
     echo "❌ No target specified. Provide a PID or app name." >&2
     echo "   List Java processes: jps -l" >&2
     exit 1
