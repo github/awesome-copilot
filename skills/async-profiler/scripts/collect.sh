@@ -355,12 +355,12 @@ cmd_stop() {
     # Session file is removed only after the JFR is confirmed written (see end of block).
 
     # ── macOS JFR path workaround ────────────────────────────────────────────
-    # On macOS, asprof stop ignores -f and writes the JFR to:
-    #   /var/folders/<hash>/T/<timestamp>_<pid>/<timestamp>.jfr
-    # Use the sentinel (created at 'start') to find the file via find -newer.
-    if [[ "$(uname)" == "Darwin" ]] && [[ -n "$sentinel" ]] && [[ -f "$sentinel" ]]; then
+    # On macOS, some async-profiler versions ignore -f on stop and write the
+    # JFR under /var/folders instead. Only fall back to that search if the
+    # requested output path is still missing or empty after stop returns.
+    if [[ ! -s "$jfr_path" ]] && [[ "$(uname)" == "Darwin" ]] && [[ -n "$sentinel" ]] && [[ -f "$sentinel" ]]; then
         echo ""
-        echo "⚠️  macOS: -f is ignored by asprof stop — locating JFR in /var/folders..."
+        echo "⚠️  macOS: expected JFR output is missing — locating JFR in /var/folders..."
         local found_jfr=""
         local search_maxdepth=2
         local search_hint="find /var/folders/*/*/T -maxdepth 2 -name '*.jfr' -newer '$sentinel' 2>/dev/null"

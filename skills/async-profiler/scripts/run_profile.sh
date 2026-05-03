@@ -56,6 +56,18 @@ append_format_extension() {
   printf '%s.%s\n' "${output_path%.}" "$format"
 }
 
+format_shell_command() {
+  local formatted="" quoted_arg raw_arg
+  for raw_arg in "$@"; do
+    printf -v quoted_arg '%q' "$raw_arg"
+    if [[ -n "$formatted" ]]; then
+      formatted+=" "
+    fi
+    formatted+="$quoted_arg"
+  done
+  printf '%s\n' "$formatted"
+}
+
 validate_event() {
   case "$1" in
     cpu|alloc|wall|lock) ;;
@@ -202,7 +214,7 @@ echo "   Duration: ${DURATION}s"
 echo "   Output  : $OUTPUT"
 $THREADS && echo "   Threads : separate"
 echo ""
-echo "▶ ${CMD[*]}"
+echo "▶ $(format_shell_command "${CMD[@]}")"
 echo "Press Ctrl+C to stop early (partial results will be saved)."
 echo ""
 
