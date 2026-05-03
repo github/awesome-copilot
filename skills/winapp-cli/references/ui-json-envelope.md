@@ -62,9 +62,9 @@ Pre-0.3.1 emitted bare `null` when nothing was focused.
 Both commands return matching elements using the same element shape as
 `ui inspect` (so `selector`, `name`, `controlType`, `children`, etc.).
 Each match may also include an `invokableAncestor` field — itself an
-element-shaped object — pointing to the nearest invokable parent
-(useful when a search hits a non-invokable element like a label inside
-a button).
+element-shaped object — pointing to the nearest parent that supports
+`InvokePattern` (useful when a search hits a non-invokable element
+like a label inside a button).
 
 ```json
 [
