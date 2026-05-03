@@ -1,6 +1,6 @@
 ---
 name: winapp-cli
-description: 'Windows App Development CLI (winapp) for building, packaging, and deploying Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml, manage development certificates, add package identity for debugging, sign packages, publish to the Microsoft Store, create external catalogs, or access Windows SDK build tools. Supports .NET (csproj), C++, Electron, Rust, Tauri, and cross-platform frameworks targeting Windows.'
+description: 'Windows App Development CLI (winapp) for building, packaging, deploying, debugging, and UI-automating Windows applications. Use when asked to initialize Windows app projects, create MSIX packages, generate AppxManifest.xml (including from SVG assets), manage development certificates (generate, install, inspect via `cert info`, export public keys), add package identity for debugging, run apps as packaged via loose-layout registration (`winapp run`), unregister sideloaded dev packages, sign packages, publish to the Microsoft Store, create external catalogs (CodeIntegrityExternal.cat for TrustedLaunch sparse packages), automate Windows UI interactions (list windows, inspect elements, click) via Microsoft UI Automation, or access Windows SDK build tools. Supports .NET (csproj), C++, Electron, Rust, Tauri, Flutter, and cross-platform frameworks targeting Windows.'
 ---
 
 # Windows App Development CLI
@@ -12,18 +12,22 @@ The Windows App Development CLI (`winapp`) is a command-line interface for manag
 Use this skill when you need to:
 
 - Initialize a Windows app project with SDK setup, manifests, and certificates
-- Create MSIX packages from application directories
-- Generate or manage AppxManifest.xml files
-- Create and install development certificates for signing
+- Create MSIX packages from application directories (with automatic WinRT component discovery)
+- Generate or manage AppxManifest.xml files (including asset generation from SVG sources)
+- Create, install, and inspect development certificates for signing (including `cert info` and `.cer` public-key export)
 - Add package identity for debugging Windows APIs
+- Run an app as a packaged application via loose-layout registration with `winapp run` (great for IDE F5 / debug workflows)
+- Unregister sideloaded dev packages installed by `run` or `create-debug-identity`
+- Automate UI interactions on Windows apps (list windows, inspect element trees, click, search, wait-for) via Microsoft UI Automation with `winapp ui`
 - Sign MSIX packages or executables
 - Access Windows SDK build tools from any framework
-- Build Windows apps using cross-platform frameworks (Electron, Rust, Tauri, Qt)
+- Build Windows apps using cross-platform frameworks (Electron, Rust, Tauri, Flutter, Qt)
 - Set up CI/CD pipelines for Windows app deployment
 - Access Windows APIs that require package identity (notifications, Windows AI, shell integration)
 - Publish apps to the Microsoft Store via `winapp store`
-- Create external catalogs for asset management
+- Generate external catalogs (`CodeIntegrityExternal.cat`) for TrustedLaunch sparse packages
 - Set up .NET (csproj) projects with Windows App SDK via NuGet
+- Import typed JS/TS functions from `@microsoft/winappcli` in Node.js/Electron projects (programmatic npm API)
 
 ## Prerequisites
 
@@ -42,35 +46,73 @@ Initialize a directory with required assets (manifest, certificates, libraries) 
 
 ### 2. MSIX Packaging (`winapp pack`)
 
-Create MSIX packages from prepared directories with optional signing, certificate generation, and self-contained deployment bundling.
+Create MSIX packages from prepared directories with optional signing, certificate generation, and self-contained deployment bundling. Automatically discovers and registers third-party WinRT components from `.winmd` files during packaging (v0.2.1+), preserves existing PRI resources, and validates executable architecture.
 
 ### 3. Package Identity for Debugging (`winapp create-debug-identity`)
 
-Add temporary package identity to executables for debugging Windows APIs that require identity (notifications, Windows AI, shell integration) without full packaging.
+Add temporary (sparse) package identity to executables for debugging Windows APIs that require identity (notifications, Windows AI, shell integration) without full packaging.
 
-### 4. Manifest Management (`winapp manifest`)
+### 4. Run as Packaged App (`winapp run`) — v0.3.0+
 
-Generate AppxManifest.xml files and update image assets from source images, automatically creating all required sizes and aspect ratios. Supports manifest placeholders for dynamic content and qualified names in AppxManifest for flexible app identity definitions.
+Pack a folder using a loose layout and launch the application as a packaged app, making it easy to debug from any IDE (e.g., VS Code F5) without producing a full MSIX. Supports `--` passthrough for application arguments (v0.3.1+):
 
-### 5. Certificate Management (`winapp cert`)
+```bash
+winapp run .\bin\Debug\net10.0-windows10.0.26100.0\win-x64 --manifest .\appxmanifest.xml -- --my-flag value
+```
 
-Generate development certificates and install them to the local machine store for signing packages.
+### 5. Unregister Dev Packages (`winapp unregister`)
 
-### 6. Package Signing (`winapp sign`)
+Remove sideloaded development packages registered by `winapp run` or `winapp create-debug-identity`. Uses segment-aware path containment and a two-pass classify-then-remove loop (v0.3.1+) to avoid sibling-directory misclassification and accidental removal of unrelated packages.
+
+### 6. UI Automation (`winapp ui`) — v0.3.0+
+
+A command group for programmatic interaction with Windows applications via Microsoft UI Automation (UIA). Useful for end-to-end testing, scripting, and AI-agent driven UI workflows.
+
+Common subcommands:
+
+- `winapp ui list-windows` — enumerate top-level windows
+- `winapp ui inspect` — inspect the UI element tree (supports `--interactive` to collapse non-interactive ancestors and surface them via `ancestorPath`, plus `--ancestors` for ancestor chains)
+- `winapp ui click` — click an element by selector
+- `winapp ui search` / `winapp ui wait-for` — locate or wait for elements
+- `winapp ui get-focused` — get the currently focused element
+
+All `ui` subcommands support `--json` for machine-readable output. **Note:** the v0.3.1 release reshaped the `ui --json` envelope (see Limitations).
+
+### 7. Manifest Management (`winapp manifest`)
+
+Generate `AppxManifest.xml` files and update image assets from source images, automatically creating all required sizes and aspect ratios. Supports manifest placeholders for dynamic content and qualified names in `AppxManifest.xml` for flexible app identity definitions. The `manifest update-assets` command accepts SVG sources (v0.2.1+), converting them to bitmaps for all required asset sizes.
+
+### 8. Certificate Management (`winapp cert`)
+
+Generate development certificates and install them to the local machine store for signing packages. Additional capabilities (v0.2.1+):
+
+- `winapp cert info <pfx> --password <pwd>` — display subject, issuer, and validity for a PFX certificate
+- `--export-cer` flag on `cert generate` — export the public key as a `.cer` file
+- `--json` output on `cert generate` and `cert info` — for scripting and tool integration
+
+### 9. Package Signing (`winapp sign`)
 
 Sign MSIX packages and executables with PFX certificates, with optional timestamp server support.
 
-### 7. SDK Build Tools Access (`winapp tool`)
+### 10. SDK Build Tools Access (`winapp tool`)
 
 Run Windows SDK build tools with properly configured paths from any framework or build system.
 
-### 8. Microsoft Store Integration (`winapp store`)
+### 11. Microsoft Store Integration (`winapp store`)
 
 Run Microsoft Store Developer CLI commands directly from winapp, enabling store submission, package validation, and publishing workflows without leaving the CLI.
 
-### 9. External Catalog Creation (`winapp create-external-catalog`)
+### 12. External Catalog Creation (`winapp create-external-catalog`)
 
-Create external catalogs to streamline asset management for developers, separating catalog data from the main package.
+Generate `CodeIntegrityExternal.cat` for TrustedLaunch sparse packages, separating catalog data from the main package.
+
+### 13. Programmatic npm API (Node.js/Electron) — v0.2.1+
+
+All `winapp` commands are exposed as typed JS/TS functions from the `@microsoft/winappcli` npm package, with auto-generated exports kept in sync with the CLI:
+
+```ts
+import { init, packageApp, certGenerate } from '@microsoft/winappcli';
+```
 
 ## Usage Examples
 
