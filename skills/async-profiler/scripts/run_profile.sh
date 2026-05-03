@@ -68,6 +68,14 @@ format_shell_command() {
   printf '%s\n' "$formatted"
 }
 
+try_open_outputs() {
+  local label="$1"
+  shift
+  if ! open "$@"; then
+    echo "⚠️  Could not open ${label} automatically."
+  fi
+}
+
 validate_event() {
   case "$1" in
     cpu|alloc|wall|lock) ;;
@@ -294,12 +302,12 @@ if $COMPREHENSIVE; then
   echo "   Combined JFR : $OUTPUT  (open in IntelliJ or JDK Mission Control)"
   echo ""
 
-  # Open all flamegraphs at once if on macOS
+  echo "Open flamegraphs with:"
   if [[ "$(uname)" == "Darwin" ]]; then
-    echo "Opening all flamegraphs in browser..."
-    open "$CPU_HTML" "$ALLOC_HTML" "$WALL_HTML" "$LOCK_HTML"
+    echo "   $(format_shell_command open "$CPU_HTML" "$ALLOC_HTML" "$WALL_HTML" "$LOCK_HTML")"
+    echo "Trying to open all flamegraphs in browser..."
+    try_open_outputs "flamegraphs" "$CPU_HTML" "$ALLOC_HTML" "$WALL_HTML" "$LOCK_HTML"
   else
-    echo "Open flamegraphs with:"
     echo "   xdg-open \"$CPU_HTML\""
     echo "   xdg-open \"$ALLOC_HTML\""
     echo "   xdg-open \"$WALL_HTML\""
@@ -321,7 +329,8 @@ else
     html|svg)
       echo "Open in browser:"
       if [[ "$(uname)" == "Darwin" ]]; then
-        open "$OUTPUT"
+        echo "   $(format_shell_command open "$OUTPUT")"
+        try_open_outputs "profile output" "$OUTPUT"
       else
         echo "   xdg-open \"$OUTPUT\""
       fi

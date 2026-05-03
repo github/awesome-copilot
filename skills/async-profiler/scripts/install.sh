@@ -212,4 +212,4 @@ if [[ "$PLATFORM" == "macos" ]]; then
 fi
 
 echo "Quick test (requires a running JVM — find PID with: jps -l):"
-echo "   asprof -d 5 <PID>"
+printf '   %q -d 5 <PID>\n' "$ASPROF"
