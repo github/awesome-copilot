@@ -66,7 +66,7 @@ Remove sideloaded development packages registered by `winapp run` or `winapp cre
 
 ### 6. UI Automation (`winapp ui`) — v0.3.0+
 
-A command group for programmatic interaction with Windows applications via Microsoft UI Automation (UIA). Useful for end-to-end testing, scripting, and AI-agent driven UI workflows.
+A command group for programmatic interaction with Windows applications via Microsoft UI Automation (UIA). Useful for end-to-end testing, scripting, and AI-agent-driven UI workflows.
 
 Common subcommands:
 
@@ -76,7 +76,42 @@ Common subcommands:
 - `winapp ui search` / `winapp ui wait-for` — locate or wait for elements
 - `winapp ui get-focused` — get the currently focused element
 
-All `ui` subcommands support `--json` for machine-readable output. **Note:** the v0.3.1 release reshaped the `ui --json` envelope (see Limitations).
+All `ui` subcommands support `--json` for machine-readable output.
+
+#### `ui --json` envelope (v0.3.1+) — breaking change
+
+The v0.3.1 release reshaped the JSON envelopes. Generate parsers against these shapes (not the pre-0.3.1 flat shapes):
+
+- **`ui inspect --json`** — elements are nested under windows; the top-level shape is:
+
+  ```json
+  {
+    "depth": 0,
+    "interactive": false,
+    "hideDisabled": false,
+    "hideOffscreen": false,
+    "windows": [
+      {
+        "hwnd": "0x...",
+        "title": "...",
+        "className": "...",
+        "elementCount": 0,
+        "elements": [
+          { "selector": "...", "name": "...", "controlType": "...", "children": [ ... ] }
+        ]
+      }
+    ]
+  }
+  ```
+
+  Pre-0.3.1 the shape was a flat `{ "elements": [...] }` list. Per-element `id`, `depth`, `parentSelector`, and `windowHandle` fields have been removed — `selector` is the public handle for an element.
+
+- **`ui inspect --ancestors --json`** — ancestors are now nested as a parent → child chain keyed by `Depth=i` (previously emitted as sibling roots).
+- **`ui get-focused --json`** — emits an envelope, not a bare value:
+  - No focus: `{ "hasFocus": false }`
+  - With focus: `{ "hasFocus": true, "element": { ... } }`
+  - Pre-0.3.1 emitted bare `null` when nothing was focused.
+- **`ui search --json` / `ui wait-for --json`** — the internal `id`, `parentSelector`, and `windowHandle` fields are scrubbed from results, both at the top level and inside any nested `invokableAncestor`. Don't rely on them.
 
 ### 7. Manifest Management (`winapp manifest`)
 
@@ -223,6 +258,7 @@ winapp update --setup-sdks preview
 - `winapp init` no longer auto-generates a certificate (v0.2.0+); run `winapp cert generate` explicitly
 - .NET (csproj) projects skip `winapp.yaml`; SDK packages are configured in the project file directly
 - winapp CLI uses the NuGet global cache for packages (not `%userprofile%/.winapp/packages`)
+- `winapp ui --json` envelopes were reshaped in v0.3.1 (see [`ui --json` envelope](#ui---json-envelope-v031--breaking-change)) — pre-0.3.1 parsers will break
 - winapp CLI is in public preview and subject to change
 
 ## Windows APIs Enabled by Package Identity
