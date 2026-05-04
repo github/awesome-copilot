@@ -1,0 +1,152 @@
+name: Contributor Reputation Check
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]' &&
+      github.actor != 'copilot-swe-agent[bot]'
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install AGT CLI
+        run: pip install --quiet 'agent-governance-toolkit==3.3.0'
+
+      - name: Determine author
+        id: author
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
+            echo "username=${{ github.event.pull_request.user.login }}" >> "$GITHUB_OUTPUT"
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+            echo "type=pr" >> "$GITHUB_OUTPUT"
+          else
+            echo "username=${{ github.event.issue.user.login }}" >> "$GITHUB_OUTPUT"
+            echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+            echo "type=issue" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run profile check
+        id: profile
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          agt-contributor-check \
+            --username "${{ steps.author.outputs.username }}" \
+            --json > /tmp/profile.json 2>/tmp/profile.log
+          set -e
+          risk=$(jq -r '.risk // "UNKNOWN"' /tmp/profile.json 2>/dev/null || echo "UNKNOWN")
+          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+
+      - name: Run credential audit
+        id: credential
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          agt-credential-audit \
+            --username "${{ steps.author.outputs.username }}" \
+            --repo "${{ github.repository }}" \
+            --json > /tmp/cred.json 2>/tmp/cred.log
+          set -e
+          risk=$(jq -r '.risk // "UNKNOWN"' /tmp/cred.json 2>/dev/null || echo "UNKNOWN")
+          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+
+      - name: Compute overall risk
+        id: overall
+        run: |
+          risk_to_num() {
+            case "$1" in
+              HIGH) echo 3 ;;
+              MEDIUM|UNKNOWN) echo 2 ;;
+              LOW) echo 1 ;;
+              *) echo 2 ;;
+            esac
+          }
+          p=$(risk_to_num "${{ steps.profile.outputs.risk }}")
+          c=$(risk_to_num "${{ steps.credential.outputs.risk }}")
+          max=$p; [ "$c" -gt "$max" ] && max=$c
+          case "$max" in 3) r="HIGH" ;; 2) r="MEDIUM" ;; 1) r="LOW" ;; *) r="MEDIUM" ;; esac
+          echo "risk=$r" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on MEDIUM or HIGH risk
+        if: steps.overall.outputs.risk == 'MEDIUM' || steps.overall.outputs.risk == 'HIGH'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          number="${{ steps.author.outputs.number }}"
+          type="${{ steps.author.outputs.type }}"
+          risk="${{ steps.overall.outputs.risk }}"
+          profile="${{ steps.profile.outputs.risk }}"
+          cred="${{ steps.credential.outputs.risk }}"
+
+          if [ "$risk" = "HIGH" ]; then icon="🔴"; else icon="🟡"; fi
+
+          body=$(cat <<EOF
+          <!-- agt-contributor-check -->
+          $icon **Contributor Reputation Check: $risk risk**
+
+          | Check | Risk |
+          |-------|------|
+          | Profile | $profile |
+          | Credential audit | $cred |
+
+          Maintainers: please review this contributor before merging.
+          See the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for full details.
+          *Automated check powered by [AGT](https://github.com/microsoft/agent-governance-toolkit).*
+          EOF
+          )
+
+          if [ "$type" = "pr" ]; then
+            gh pr comment "$number" --body "$body"
+          else
+            gh issue comment "$number" --body "$body"
+          fi
+
+      - name: Add risk label
+        if: steps.overall.outputs.risk == 'MEDIUM' || steps.overall.outputs.risk == 'HIGH'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          number="${{ steps.author.outputs.number }}"
+          type="${{ steps.author.outputs.type }}"
+          risk="${{ steps.overall.outputs.risk }}"
+
+          gh label create "needs-review:$risk" \
+            --description "Contributor reputation check flagged $risk risk" \
+            --color "FFA500" --force 2>/dev/null || true
+
+          if [ "$type" = "pr" ]; then
+            gh pr edit "$number" --add-label "needs-review:$risk"
+          else
+            gh issue edit "$number" --add-label "needs-review:$risk"
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          risk="${{ steps.overall.outputs.risk }}"
+          case "$risk" in HIGH) icon="🔴" ;; MEDIUM) icon="🟡" ;; LOW) icon="✅" ;; *) icon="❓" ;; esac
+          {
+            echo "## $icon Contributor Check: \`${{ steps.author.outputs.username }}\`"
+            echo "| Check | Risk |"
+            echo "|-------|------|"
+            echo "| Profile | ${{ steps.profile.outputs.risk }} |"
+            echo "| Credential | ${{ steps.credential.outputs.risk }} |"
+            echo "| **Overall** | **$risk** |"
+          } >> "$GITHUB_STEP_SUMMARY"
