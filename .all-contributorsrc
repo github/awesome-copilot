@@ -3226,6 +3226,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mvanderbend-msoft",
+      "name": "mvanderbend-msoft",
+      "avatar_url": "https://avatars.githubusercontent.com/u/259659559?v=4",
+      "profile": "https://github.com/mvanderbend-msoft",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ]
 }
