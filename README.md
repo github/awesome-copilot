@@ -27,6 +27,7 @@ New to GitHub Copilot customization? The **[Learning Hub](https://awesome-copilo
 | 🍳 [Cookbook](cookbook/README.md) | Copy-paste-ready recipes for working with Copilot APIs | — |
 
 ## 🛠️ Tools
+- [OpenClaw Monitor](https://github.com/flik2002/openclaw-monitor) — AI agent monitoring dashboard, tracks sessions/tokens/tasks in real-time. [Demo](http://47.109.47.116/)
 
 Looking at how to use Awesome Copilot? Check out the **[Tools section](https://awesome-copilot.github.com/tools)** of the website for MCP servers, editor integrations, and other developer tooling to get the most out of this collection.
 
