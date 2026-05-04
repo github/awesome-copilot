@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "acreadiness-cockpit",
+      "source": "acreadiness-cockpit",
+      "description": "Drive Microsoft AgentRC from Copilot chat: assess AI readiness, generate Copilot instructions (flat or nested with applyTo globs for monorepos), and manage policies. Produces a self-contained static HTML dashboard at reports/index.html.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
       "version": "1.0.0",
@@ -76,6 +82,12 @@
       "description": "Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance.",
       "version": "1.0.0",
       "source": "./plugins/clojure-interactive-programming"
+    },
+    {
+      "name": "cms-development",
+      "source": "cms-development",
+      "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
+      "version": "1.0.0"
     },
     {
       "name": "context-engineering",
@@ -223,6 +235,12 @@
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
       "version": "1.0.0",
       "source": "./plugins/ember"
+    },
+    {
+      "name": "eyeball",
+      "source": "eyeball",
+      "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
+      "version": "1.0.0"
     },
     {
       "name": "fastah-ip-geo-tools",
@@ -464,6 +482,12 @@
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
       "version": "1.0.0",
       "source": "./plugins/power-platform-mcp-connector-development"
+    },
+    {
+      "name": "project-documenter",
+      "source": "project-documenter",
+      "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
+      "version": "1.0.0"
     },
     {
       "name": "project-planning",

@@ -353,52 +353,60 @@ tools:
       - macos
       - launchagent
 
-  - id: copilot-swarm-orchestrator
-    name: Copilot Swarm Orchestrator
+  - id: swarm-orchestrator
+    name: Swarm Orchestrator
     description: >-
-      Parallel AI workflow orchestrator for GitHub Copilot CLI. Coordinates multiple
-      specialized agents across wave-based execution with dependency-aware scheduling,
-      evidence-based verification, six quality gates, cost governance, and persistent
-      learning. Runs as a standalone CLI or as an MCP server exposing execution runs,
-      agent profiles, and quality gates via JSON-RPC over stdio.
+      Independent verification battery for patches written by AI coding agents.
+      Wraps GitHub Copilot CLI, Claude Code, or Codex; runs each agent-authored
+      patch through a five-layer falsification battery (intent, regression,
+      solution quality, behavioral, provenance) on isolated git branches before
+      merge. Hard gates block patches that fail intent or regression checks;
+      advisory layers feed a composite score with signed SLSA attestation
+      attached as a git note.
     category: CLI Tools
     featured: false
     requirements:
-      - Node.js 18 or higher
-      - Git 2.20+ (worktree support)
-      - GitHub Copilot CLI installed and authenticated
+      - "Node.js >= 20"
+      - "git >= 2.40 (worktrees required)"
+      - "One of: GitHub Copilot CLI, Claude Code, or Codex (installed and authenticated separately)"
+      - Docker (optional, for SWE-bench evaluation containers)
     links:
-      github: https://github.com/moonrunnerkc/copilot-swarm-orchestrator
-      npm: https://www.npmjs.com/package/copilot-swarm-orchestrator
+      github: https://github.com/moonrunnerkc/swarm-orchestrator
+      npm: https://www.npmjs.com/package/swarm-orchestrator
     features:
-      - "🌊 Wave Execution: Parallel agent scheduling with dependency-aware wave splitting"
-      - "🔍 Evidence Verification: Every agent proves its work via transcript analysis before merge"
-      - "🚦 Six Quality Gates: Lint, type-check, test coverage, security, complexity, documentation"
-      - "💰 Cost Governance: Premium request estimation, tracking, and budget enforcement"
-      - "🔌 MCP Server: 4 tools and 5 resources over JSON-RPC stdio transport"
-      - "🧠 Persistent Learning: Cross-run knowledge base with pattern detection and retry calibration"
+      - "Five-layer falsification battery: differential gating, mutation testing, semantic cheat detection, property-based testing, signed SLSA attestation"
+      - "Worker/reviewer execution model on isolated git worktrees"
+      - "Static dependency analyzer for safe parallelism (the planner does not declare independence; the analyzer detects it)"
+      - "In-toto SLSA v1.0 attestation with cosign keyless signing via Fulcio + OIDC"
+      - "Multi-agent: adapters for Copilot CLI, Claude Code, Codex, Claude Code Teams"
+      - "Audit-ready run artifacts in runs/<execution-id>/"
     configuration:
       type: bash
       content: |
-        # Install globally from npm
-        npm install -g copilot-swarm-orchestrator
+        # Install globally
+        npm install -g swarm-orchestrator
 
         # Run a demo
-        swarm demo-fast
+        swarm demo demo-fast
 
         # Plan and execute a goal
-        swarm run --goal "Build a REST API with auth and tests"
+        swarm run --goal "Add a /health endpoint that returns 200 OK" \
+          --tool claude-code --target ./my-repo
 
-        # Start the MCP server
-        swarm mcp-server
+        # Verify a signed attestation on a merge commit
+        swarm attest verify <commit-sha>
     tags:
       - cli
       - npm
-      - mcp
-      - orchestration
       - verification
-      - quality-gates
-      - cost-governance
+      - falsification
+      - attestation
+      - mutation-testing
+      - slsa
+      - copilot-cli
+      - claude-code
+      - codex
+      - agent-orchestrator
 
   - id: copilot-cockpit
     name: Copilot Cockpit

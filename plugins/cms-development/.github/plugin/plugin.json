@@ -1,0 +1,27 @@
+{
+  "name": "cms-development",
+  "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
+  "version": "1.0.0",
+  "keywords": [
+    "cms",
+    "content-management-system",
+    "wordpress",
+    "shopify",
+    "drupal",
+    "theme",
+    "plugin",
+    "media",
+    "static-site"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/content-management-systems/",
+    "./skills/markdown-to-html/",
+    "./skills/quasi-coder/",
+    "./skills/web-coder/"
+  ]
+}
