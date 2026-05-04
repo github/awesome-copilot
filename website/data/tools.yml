@@ -434,3 +434,47 @@ tools:
       - planning
       - scheduling
       - mcp
+
+  - id: buywhere
+    name: BuyWhere MCP Server
+    description: >-
+      Agent-native product catalog API for Southeast Asia commerce. Search
+      1,000,000+ products across Shopee, Lazada, Amazon SG, Carousell,
+      FairPrice, and 50+ merchants. Provides real-time price comparison,
+      deal discovery, and multi-currency support (SGD, USD, MYR, IDR, THB,
+      PHP, VND) through 5 MCP tools. Free tier available (1,000 calls/month).
+    category: MCP Servers
+    featured: false
+    requirements:
+      - Node.js 18 or higher (for npm/stdio mode)
+      - Internet connection (for remote HTTP mode)
+    links:
+      github: https://github.com/BuyWhere/buywhere
+      npm: https://www.npmjs.com/package/@buywhere/mcp-server
+      documentation: https://api.buywhere.ai/docs/guides/mcp
+      website: https://buywhere.ai
+    features:
+      - "search_products: Full-text product search with filters (keyword, price range, merchant, region)"
+      - "get_product: Get a specific product by UUID with full details"
+      - "compare_products: Compare 2-10 products side-by-side by price, brand, rating, category"
+      - "get_deals: Discover discounted products sorted by discount percentage"
+      - "list_categories: List top-level product categories available in the catalog"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "buywhere": {
+              "url": "https://api.buywhere.ai/mcp",
+              "headers": { "Authorization": "Bearer bw_live_xxx" }
+            }
+          }
+        }
+    tags:
+      - mcp
+      - e-commerce
+      - singapore
+      - southeast-asia
+      - product-search
+      - price-comparison
+      - deals
