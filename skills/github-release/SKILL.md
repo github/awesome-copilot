@@ -10,9 +10,9 @@ compatibility: "requires: gh CLI and git"
 
 This skill automates the full release workflow for a single-package GitHub repository,
 from analysis through changelog authoring and PR creation. It relies exclusively on
-`gh` (GitHub CLI) and `git` ï¿½ no other tools needed.
+`gh` (GitHub CLI) and `git` — no other tools needed.
 
-Steps 1ï¿½4 are **read-only reconnaissance** ï¿½ nothing is written to the repo until
+Steps 1–4 are **read-only reconnaissance** — nothing is written to the repo until
 Step 5, once the version number is confirmed.
 
 ## When to Use This Skill
@@ -42,7 +42,7 @@ If any check fails, stop and tell the user what to fix before continuing.
 Then ask the user one question:
 
 > *"Which directory contains your library's public-facing source code?
-> (e.g. `src/`, `lib/`, `pkg/` ï¿½ used to focus the diff on what consumers
+> (e.g. `src/`, `lib/`, `pkg/` — used to focus the diff on what consumers
 > actually see. Press Enter to scan the whole repo.)"*
 
 Store the answer as `PUBLIC_PATH`. If empty, `PUBLIC_PATH` is `.` (repo root).
@@ -59,7 +59,7 @@ its output. Pause and ask for confirmation only when explicitly noted.
 
 ---
 
-### Step 1 ï¿½ Ensure main is up to date
+### Step 1 — Ensure main is up to date
 
 ```bash
 git checkout main
@@ -71,7 +71,7 @@ is confirmed.
 
 ---
 
-### Step 2 ï¿½ Grab the latest version tag
+### Step 2 — Grab the latest version tag
 
 > **Why not `gh release list`?** GitHub Releases are an optional layer on top of Git
 > tags. Many repos tag releases with `git tag` without ever creating a GitHub Release,
@@ -114,7 +114,7 @@ git ls-remote --tags origin | grep "refs/tags/$PREV_TAG$"
 ```
 
 If the remote check returns nothing, warn the user that the tag appears to be local-only
-and hasn't been pushed ï¿½ they may want to push it before continuing.
+and hasn't been pushed — they may want to push it before continuing.
 
 - `PREV_TAG` is the tag name exactly as found (e.g. `v1.4.2`). Strip any leading `v`
   when doing arithmetic; preserve it when naming things.
@@ -130,12 +130,12 @@ PREV_SHA=$(git rev-list -n 1 "$PREV_TAG" 2>/dev/null || git rev-list --max-paren
 
 ---
 
-### Step 3 ï¿½ Analyse what changed since the last release
+### Step 3 — Analyse what changed since the last release
 
 This step uses **two complementary signals**. The code diff is the primary source of
 truth; commit messages provide supporting context about intent.
 
-#### 3a ï¿½ Code diff (primary signal)
+#### 3a — Code diff (primary signal)
 
 ```bash
 # Focused diff on the public source path, excluding noise
@@ -155,15 +155,15 @@ git diff "$($prevSha)..HEAD" -- $publicPath `
 
 Read the full diff output. For each changed file, identify:
 
-1. **Removed symbols** ï¿½ functions, classes, methods, constants, exported names that
+1. **Removed symbols** — functions, classes, methods, constants, exported names that
    existed before and are now gone. ? Strong signal for MAJOR.
-2. **Changed signatures** ï¿½ functions that exist in both versions but with different
+2. **Changed signatures** — functions that exist in both versions but with different
    parameters, return types, or thrown errors. ? Strong signal for MAJOR.
-3. **New exported symbols** ï¿½ public functions, classes, constants that didn't exist
+3. **New exported symbols** — public functions, classes, constants that didn't exist
    before. ? Signal for MINOR.
-4. **Internal-only changes** ï¿½ modifications that don't touch any public interface
+4. **Internal-only changes** — modifications that don't touch any public interface
    (private helpers, unexported functions, algorithm internals). ? PATCH.
-5. **Bug fixes** ï¿½ corrections to logic that was provably wrong (e.g. off-by-one,
+5. **Bug fixes** — corrections to logic that was provably wrong (e.g. off-by-one,
    null check, wrong condition), without changing the public API. ? PATCH.
 
 If the diff is very large (thousands of lines), first run the stat summary to
@@ -177,7 +177,7 @@ Focus your detailed reading on files with the most changes and files whose names
 suggest they define public interfaces (e.g. `index.*`, `api.*`, `exports.*`,
 `public.*`, `mod.*`, `__init__.*`).
 
-#### 3b ï¿½ Commit log (secondary signal)
+#### 3b — Commit log (secondary signal)
 
 ```bash
 git log "$PREV_SHA"..HEAD --oneline --no-merges
@@ -193,7 +193,7 @@ Use this to:
 
 See `references/commit-classification.md` for mapping message patterns to change types.
 
-#### 3c ï¿½ Reconcile the two signals
+#### 3c — Reconcile the two signals
 
 When signals agree ? use that classification with confidence.
 
@@ -202,12 +202,12 @@ When signals conflict ? **prefer the code diff**. Examples:
 - Commit says `feat: new API` but the diff only touches private internals ? treat as PATCH.
 - Commit says `chore: refactor` but the diff adds new exported symbols ? treat as MINOR.
 
-Document any conflicts you notice ï¿½ flag them to the user during the changelog review
+Document any conflicts you notice — flag them to the user during the changelog review
 in Step 6.
 
 ---
 
-### Step 4 ï¿½ Determine the next SemVer version
+### Step 4 — Determine the next SemVer version
 
 Apply these rules to your analysis from Step 3 (full rules in `references/semver-rules.md`):
 
@@ -237,7 +237,7 @@ Wait for confirmation before proceeding.
 
 ---
 
-### Step 5 ï¿½ Create the release branch
+### Step 5 — Create the release branch
 
 Now that the version is confirmed, create the branch with the correct name from the start:
 
@@ -248,7 +248,7 @@ git push -u origin release/vX.Y.Z
 
 ---
 
-### Step 6 ï¿½ Update CHANGELOG.md
+### Step 6 — Update CHANGELOG.md
 
 Read the existing `CHANGELOG.md` (or create it if absent). Follow the
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format strictly.
@@ -279,7 +279,7 @@ Read the existing `CHANGELOG.md` (or create it if absent). Follow the
 
 Rules:
 - Use today's date in `YYYY-MM-DD` format.
-- Omit sections that have no entries ï¿½ don't leave empty headings.
+- Omit sections that have no entries — don't leave empty headings.
 - Write entries in **plain English from a user's perspective**, derived primarily
   from what the code diff shows, supplemented by commit message context.
   Good: *"Added `WithTimeout` option to HTTP client constructor."*
@@ -306,7 +306,7 @@ Incorporate feedback, then write to disk.
 
 ---
 
-### Step 7 ï¿½ Commit and push
+### Step 7 — Commit and push
 
 ```bash
 git add CHANGELOG.md
@@ -318,7 +318,7 @@ Confirm the push succeeded before moving on.
 
 ---
 
-### Step 8 ï¿½ Open a Pull Request
+### Step 8 — Open a Pull Request
 
 **?? IMPORTANT:** Always use `--body-file` to pass PR body text, never `--body` with inline text.
 Inline escape sequences like `\n` are not interpreted as newlines by PowerShell and will appear
@@ -383,7 +383,7 @@ Paste the changelog section into the PR body's "What's included" block (or leave
 
 ---
 
-### Step 9 ï¿½ Hand off to the user
+### Step 9 — Hand off to the user
 
 Tell the user:
 
@@ -437,5 +437,5 @@ Tell the user:
 
 ## Reference files
 
-- `references/semver-rules.md` ï¿½ Extended SemVer decision rules and edge cases
-- `references/commit-classification.md` ï¿½ Heuristics for classifying commit messages into change types
+- `references/semver-rules.md` — Extended SemVer decision rules and edge cases
+- `references/commit-classification.md` — Heuristics for classifying commit messages into change types
