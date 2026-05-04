@@ -51,7 +51,7 @@ Map the change to a Conventional Commits type using this guide:
 | `ci` | CI/CD pipeline changes |
 | `revert` | Reverting a previous commit |
 
-See `conventional-commits-guide.md` for detailed examples.
+See `references/conventional-commits-guide.md` for detailed examples.
 
 ### Step 3: Write the Commit Message
 
@@ -139,4 +139,4 @@ git diff --staged
 git diff
 ```
 
-See `conventional-commits-guide.md` for type examples and scope guidelines.
+See `references/conventional-commits-guide.md` for type examples and scope guidelines.
