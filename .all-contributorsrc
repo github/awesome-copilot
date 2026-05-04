@@ -3226,6 +3226,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kwekudzata",
+      "name": "Kweku Dzata",
+      "avatar_url": "https://avatars.githubusercontent.com/u/148214043?v=4",
+      "profile": "https://kwekudzata.vercel.app/dev",
+      "contributions": [
+        "content"
+      ]
     }
   ]
 }
