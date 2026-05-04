@@ -1,13 +1,13 @@
 {
   "name": "awesome-copilot",
+  "owner": {
+    "name": "GitHub",
+    "email": "copilot@github.com"
+  },
   "metadata": {
     "description": "Community-driven collection of GitHub Copilot plugins, agents, prompts, and skills",
     "version": "1.0.0",
     "pluginRoot": "./plugins"
-  },
-  "owner": {
-    "name": "GitHub",
-    "email": "copilot@github.com"
   },
   "plugins": [
     {
@@ -18,27 +18,27 @@
     },
     {
       "name": "ai-team-orchestration",
-      "source": "ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/ai-team-orchestration"
     },
     {
       "name": "arize-ax",
-      "source": "arize-ax",
       "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/arize-ax"
     },
     {
       "name": "automate-this",
-      "source": "automate-this",
       "description": "Record your screen doing a manual process, drop the video on your Desktop, and let Copilot CLI analyze it frame-by-frame to build working automation scripts. Supports narrated recordings with audio transcription.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/automate-this"
     },
     {
       "name": "awesome-copilot",
-      "source": "awesome-copilot",
       "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "source": "./plugins/awesome-copilot"
     },
     {
       "name": "azure",
@@ -67,21 +67,21 @@
     },
     {
       "name": "azure-cloud-development",
-      "source": "azure-cloud-development",
       "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
-      "version": "1.0.1"
+      "version": "1.0.1",
+      "source": "./plugins/azure-cloud-development"
     },
     {
       "name": "cast-imaging",
-      "source": "cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/cast-imaging"
     },
     {
       "name": "clojure-interactive-programming",
-      "source": "clojure-interactive-programming",
       "description": "Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/clojure-interactive-programming"
     },
     {
       "name": "cms-development",
@@ -91,39 +91,39 @@
     },
     {
       "name": "context-engineering",
-      "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/context-engineering"
     },
     {
       "name": "context-matic",
-      "source": "context-matic",
       "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
-      "version": "0.1.0"
+      "version": "0.1.0",
+      "source": "./plugins/context-matic"
     },
     {
       "name": "copilot-sdk",
-      "source": "copilot-sdk",
       "description": "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/copilot-sdk"
     },
     {
       "name": "csharp-dotnet-development",
-      "source": "csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "source": "./plugins/csharp-dotnet-development"
     },
     {
       "name": "csharp-mcp-development",
-      "source": "csharp-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/csharp-mcp-development"
     },
     {
       "name": "database-data-management",
-      "source": "database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/database-data-management"
     },
     {
       "name": "dataverse",
@@ -152,15 +152,15 @@
     },
     {
       "name": "dataverse-sdk-for-python",
-      "source": "dataverse-sdk-for-python",
       "description": "Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/dataverse-sdk-for-python"
     },
     {
       "name": "devops-oncall",
-      "source": "devops-oncall",
       "description": "A focused set of prompts, instructions, and a chat mode to help triage incidents and respond quickly with DevOps tools and Azure resources.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/devops-oncall"
     },
     {
       "name": "dotnet",
@@ -220,21 +220,21 @@
     },
     {
       "name": "doublecheck",
-      "source": "doublecheck",
       "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/doublecheck"
     },
     {
       "name": "edge-ai-tasks",
-      "source": "edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/edge-ai-tasks"
     },
     {
       "name": "ember",
-      "source": "ember",
       "description": "An AI partner, not a tool. Ember carries fire from person to person — helping humans discover that AI partnership isn't something you learn, it's something you find.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/ember"
     },
     {
       "name": "eyeball",
@@ -244,9 +244,9 @@
     },
     {
       "name": "fastah-ip-geo-tools",
-      "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
-      "version": "0.0.9"
+      "version": "0.0.9",
+      "source": "./plugins/fastah-ip-geo-tools"
     },
     {
       "name": "figma",
@@ -272,51 +272,51 @@
     },
     {
       "name": "flowstudio-power-automate",
-      "source": "flowstudio-power-automate",
       "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
-      "version": "2.0.0"
+      "version": "2.0.0",
+      "source": "./plugins/flowstudio-power-automate"
     },
     {
       "name": "frontend-web-dev",
-      "source": "frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/frontend-web-dev"
     },
     {
       "name": "gem-team",
-      "source": "gem-team",
       "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.13.0"
+      "version": "1.13.0",
+      "source": "./plugins/gem-team"
     },
     {
       "name": "go-mcp-development",
-      "source": "go-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/go-mcp-development"
     },
     {
       "name": "java-development",
-      "source": "java-development",
       "description": "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/java-development"
     },
     {
       "name": "java-mcp-development",
-      "source": "java-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/java-mcp-development"
     },
     {
       "name": "kotlin-mcp-development",
-      "source": "kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/kotlin-mcp-development"
     },
     {
       "name": "mcp-m365-copilot",
-      "source": "mcp-m365-copilot",
       "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/mcp-m365-copilot"
     },
     {
       "name": "microsoft-docs",
@@ -371,117 +371,117 @@
     },
     {
       "name": "modernize-java",
-      "source": "modernize-java",
       "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/modernize-java"
     },
     {
       "name": "napkin",
-      "source": "napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/napkin"
     },
     {
       "name": "noob-mode",
-      "source": "noob-mode",
       "description": "Plain-English translation layer for non-technical Copilot CLI users. Translates every approval prompt, error message, and technical output into clear, jargon-free English with color-coded risk indicators.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/noob-mode"
     },
     {
       "name": "openapi-to-application-csharp-dotnet",
-      "source": "openapi-to-application-csharp-dotnet",
       "description": "Generate production-ready .NET applications from OpenAPI specifications. Includes ASP.NET Core project scaffolding, controller generation, entity framework integration, and C# best practices.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/openapi-to-application-csharp-dotnet"
     },
     {
       "name": "openapi-to-application-go",
-      "source": "openapi-to-application-go",
       "description": "Generate production-ready Go applications from OpenAPI specifications. Includes project scaffolding, handler generation, middleware setup, and Go best practices for REST APIs.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/openapi-to-application-go"
     },
     {
       "name": "openapi-to-application-java-spring-boot",
-      "source": "openapi-to-application-java-spring-boot",
       "description": "Generate production-ready Spring Boot applications from OpenAPI specifications. Includes project scaffolding, REST controller generation, service layer organization, and Spring Boot best practices.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/openapi-to-application-java-spring-boot"
     },
     {
       "name": "openapi-to-application-nodejs-nestjs",
-      "source": "openapi-to-application-nodejs-nestjs",
       "description": "Generate production-ready NestJS applications from OpenAPI specifications. Includes project scaffolding, controller and service generation, TypeScript best practices, and enterprise patterns.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/openapi-to-application-nodejs-nestjs"
     },
     {
       "name": "openapi-to-application-python-fastapi",
-      "source": "openapi-to-application-python-fastapi",
       "description": "Generate production-ready FastAPI applications from OpenAPI specifications. Includes project scaffolding, route generation, dependency injection, and Python best practices for async APIs.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/openapi-to-application-python-fastapi"
     },
     {
       "name": "oracle-to-postgres-migration-expert",
-      "source": "oracle-to-postgres-migration-expert",
       "description": "Expert agent for Oracle-to-PostgreSQL application migrations in .NET solutions. Performs code edits, runs commands, and invokes extension tools to migrate .NET/Oracle data access patterns to PostgreSQL.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/oracle-to-postgres-migration-expert"
     },
     {
       "name": "ospo-sponsorship",
-      "source": "ospo-sponsorship",
       "description": "Tools and resources for Open Source Program Offices (OSPOs) to identify, evaluate, and manage sponsorship of open source dependencies through GitHub Sponsors, Open Collective, and other funding platforms.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/ospo-sponsorship"
     },
     {
       "name": "partners",
-      "source": "partners",
       "description": "Custom agents that have been created by GitHub partners",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/partners"
     },
     {
       "name": "pcf-development",
-      "source": "pcf-development",
       "description": "Complete toolkit for developing custom code components using Power Apps Component Framework for model-driven and canvas apps",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/pcf-development"
     },
     {
       "name": "phoenix",
-      "source": "phoenix",
       "description": "Phoenix AI observability skills for LLM application debugging, evaluation, and tracing. Includes CLI debugging tools, LLM evaluation workflows, and OpenInference tracing instrumentation.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/phoenix"
     },
     {
       "name": "php-mcp-development",
-      "source": "php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/php-mcp-development"
     },
     {
       "name": "polyglot-test-agent",
-      "source": "polyglot-test-agent",
       "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/polyglot-test-agent"
     },
     {
       "name": "power-apps-code-apps",
-      "source": "power-apps-code-apps",
       "description": "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/power-apps-code-apps"
     },
     {
       "name": "power-bi-development",
-      "source": "power-bi-development",
       "description": "Comprehensive Power BI development resources including data modeling, DAX optimization, performance tuning, visualization design, security best practices, and DevOps/ALM guidance for building enterprise-grade Power BI solutions.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/power-bi-development"
     },
     {
       "name": "power-platform-architect",
-      "source": "power-platform-architect",
       "description": "Solution Architect for the Microsoft Power Platform, turning business requirements into functioning Power Platform solution architectures.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/power-platform-architect"
     },
     {
       "name": "power-platform-mcp-connector-development",
-      "source": "power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/power-platform-mcp-connector-development"
     },
     {
       "name": "project-documenter",
@@ -491,63 +491,63 @@
     },
     {
       "name": "project-planning",
-      "source": "project-planning",
       "description": "Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/project-planning"
     },
     {
       "name": "python-mcp-development",
-      "source": "python-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/python-mcp-development"
     },
     {
       "name": "react18-upgrade",
-      "source": "react18-upgrade",
       "description": "Enterprise React 18 migration toolkit with specialized agents and skills for upgrading React 16/17 class-component codebases to React 18.3.1. Includes auditor, dependency surgeon, class component migration specialist, automatic batching fixer, and test guardian.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/react18-upgrade"
     },
     {
       "name": "react19-upgrade",
-      "source": "react19-upgrade",
       "description": "Enterprise React 19 migration toolkit with specialized agents and skills for upgrading React 18 codebases to React 19. Includes auditor, dependency surgeon, source code migrator, and test guardian. Handles removal of deprecated APIs including ReactDOM.render, forwardRef, defaultProps, legacy context, string refs, and more.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/react19-upgrade"
     },
     {
       "name": "roundup",
-      "source": "roundup",
       "description": "Self-configuring status briefing generator. Learns your communication style from examples, discovers your data sources, and produces draft updates for any audience on demand.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/roundup"
     },
     {
       "name": "ruby-mcp-development",
-      "source": "ruby-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Ruby using the official MCP Ruby SDK gem with Rails integration support.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/ruby-mcp-development"
     },
     {
       "name": "rug-agentic-workflow",
-      "source": "rug-agentic-workflow",
       "description": "Three-agent workflow for orchestrated software delivery with an orchestrator plus implementation and QA subagents.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/rug-agentic-workflow"
     },
     {
       "name": "rust-mcp-development",
-      "source": "rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/rust-mcp-development"
     },
     {
       "name": "salesforce-development",
-      "source": "salesforce-development",
       "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "source": "./plugins/salesforce-development"
     },
     {
       "name": "security-best-practices",
-      "source": "security-best-practices",
       "description": "Security frameworks, accessibility guidelines, performance optimization, and code quality best practices for building secure, maintainable, and high-performance applications.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/security-best-practices"
     },
     {
       "name": "skills-for-copilot-studio",
@@ -575,45 +575,45 @@
     },
     {
       "name": "software-engineering-team",
-      "source": "software-engineering-team",
       "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/software-engineering-team"
     },
     {
       "name": "structured-autonomy",
-      "source": "structured-autonomy",
       "description": "Premium planning, thrifty implementation",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/structured-autonomy"
     },
     {
       "name": "swift-mcp-development",
-      "source": "swift-mcp-development",
       "description": "Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/swift-mcp-development"
     },
     {
       "name": "technical-spike",
-      "source": "technical-spike",
       "description": "Tools for creation, management and research of technical spikes to reduce unknowns and assumptions before proceeding to specification and implementation of solutions.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/technical-spike"
     },
     {
       "name": "testing-automation",
-      "source": "testing-automation",
       "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/testing-automation"
     },
     {
       "name": "typescript-mcp-development",
-      "source": "typescript-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in TypeScript/Node.js using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/typescript-mcp-development"
     },
     {
       "name": "typespec-m365-copilot",
-      "source": "typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/typespec-m365-copilot"
     },
     {
       "name": "whatidid",
@@ -642,9 +642,9 @@
     },
     {
       "name": "winui3-development",
-      "source": "winui3-development",
       "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "source": "./plugins/winui3-development"
     }
   ]
 }

@@ -1,0 +1,106 @@
+name: Validate Marketplace
+
+# Runs on PRs that touch any input to the marketplace.json build chain
+# (apm.yml, plugin manifests, external plugin registry, the bridge merge
+# script, or the legacy generator). Two gates, both mirroring the pattern
+# microsoft/apm uses for its own self-check
+# (see microsoft/apm/.github/workflows/ci.yml):
+#
+#   Gate A (supply-chain): `apm audit --ci`. Validates lockfile / install
+#   fidelity, ref consistency between apm.yml and apm.lock.yaml,
+#   no orphan packages, and content-integrity (hidden Unicode) on
+#   deployed package content. SARIF report is uploaded to the run.
+#
+#   Gate B (drift): rebuild marketplace.json with `apm pack` + the
+#   external-plugin merge bridge, and fail if the result differs from
+#   the committed `.github/plugin/marketplace.json`. Catches contributors
+#   who edit apm.yml without re-running `npm run build`, or who
+#   hand-edit the generated marketplace.json.
+
+on:
+  pull_request:
+    branches: [staged, main]
+    paths:
+      - "apm.yml"
+      - "apm.lock.yaml"
+      - "plugins/**/.github/plugin/plugin.json"
+      - "plugins/external.json"
+      - "eng/merge-external-plugins.mjs"
+      - "eng/generate-marketplace.mjs"
+      - ".github/plugin/marketplace.json"
+      - ".github/workflows/validate-marketplace.yml"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  audit-and-drift:
+    name: APM audit + marketplace drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract Node version from package.json
+        id: node-version
+        run: |
+          NODE_VERSION=$(jq -r '.engines.node // "22"' package.json)
+          echo "version=${NODE_VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      # Installs the APM CLI (latest stable), runs `apm install` against
+      # this repo's apm.yml, and emits a SARIF audit report consumed by
+      # the upload step below. For a marketplace-only manifest with no
+      # `dependencies:` block, install is effectively a no-op; the value
+      # this step adds is making `apm` available on PATH and producing
+      # the SARIF artifact.
+      - name: Setup APM
+        uses: microsoft/apm-action@v1
+        with:
+          audit-report: 'true'
+
+      # Gate A: supply-chain integrity (consumer-side).
+      # `apm audit --ci` exits non-zero on policy failures (lockfile drift,
+      # orphan packages, hidden Unicode in deployed content). On a
+      # marketplace-only manifest with no `dependencies:` block this is a
+      # short-circuit pass ("No dependencies declared -- lockfile not
+      # required"), but the gate is wired so the moment awesome-copilot
+      # adds a real dependency the policy fires automatically.
+      - name: apm audit --ci
+        run: apm audit --ci
+
+      # SARIF upload only runs when apm-action actually produced a report.
+      # For marketplace-only manifests there is no lockfile to scan, so
+      # apm-action emits "No apm.lock.yaml found -- nothing to scan" and
+      # writes no file. Guarding on hashFiles() avoids a spurious failure.
+      - name: Upload APM audit SARIF
+        if: always() && hashFiles('apm-audit.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: apm-audit.sarif
+          category: apm-audit
+
+      # Gate B: marketplace.json drift (producer-side).
+      # `npm run build` now invokes `apm pack` + the external-plugin merge
+      # bridge. If the rebuild produces a different marketplace.json than
+      # the one committed in this PR, fail with a clear remediation hint.
+      - name: Rebuild marketplace.json
+        run: npm run build
+
+      - name: Check marketplace.json drift
+        run: |
+          if [ -n "$(git status --porcelain -- .github/plugin/marketplace.json)" ]; then
+            echo "::error::.github/plugin/marketplace.json is out of sync with apm.yml + plugins/external.json."
+            echo "Run 'npm run build' locally and commit the regenerated marketplace.json."
+            git --no-pager diff -- .github/plugin/marketplace.json
+            exit 1
+          fi
+          echo "marketplace.json is in sync."

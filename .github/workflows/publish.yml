@@ -42,6 +42,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Installs the APM CLI (latest stable) and adds `apm` to PATH for
+      # subsequent steps. `npm run build` invokes `apm pack` to build
+      # .github/plugin/marketplace.json from apm.yml; the CLI must be
+      # available on the runner. Mirrors the pattern microsoft/apm uses
+      # in its own CI (see microsoft/apm/.github/workflows/ci.yml).
+      - uses: microsoft/apm-action@v1
+
       - name: Materialize plugin files
         run: node eng/materialize-plugins.mjs
 
