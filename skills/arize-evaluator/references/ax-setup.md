@@ -4,7 +4,7 @@ Consult this only when an `ax` command fails. Do NOT run these checks proactivel
 
 ## Check version first
 
-If `ax` is installed (not `command not found`), always run `ax --version` before investigating further. The version must be `0.8.0` or higher — many errors are caused by an outdated install. If the version is too old, see **Version too old** below.
+If `ax` is installed (not `command not found`), always run `ax --version` before investigating further. The version must be `0.14.0` or higher — many errors are caused by an outdated install. If the version is too old, see **Version too old** below.
 
 ## `ax: command not found`
 
@@ -19,7 +19,7 @@ If `ax` is installed (not `command not found`), always run `ax --version` before
 3. Install: `pip install arize-ax-cli`
 4. Add to PATH: `$env:PATH = "$env:APPDATA\Python\Scripts;$env:PATH"`
 
-## Version too old (below 0.8.0)
+## Version too old (below 0.14.0)
 
 Upgrade: `uv tool install --force --reinstall arize-ax-cli`, `pipx upgrade arize-ax-cli`, or `pip install --upgrade arize-ax-cli`
 

@@ -39,45 +39,29 @@ export function sortSkills<T extends RenderableSkill>(
   });
 }
 
-export function renderSkillsHtml(
-  items: RenderableSkill[],
-  options: {
-    query?: string;
-    highlightTitle?: (title: string, query: string) => string;
-  } = {}
-): string {
-  const { query = "", highlightTitle } = options;
-
+export function renderSkillsHtml(items: RenderableSkill[]): string {
   if (items.length === 0) {
     return `
       <div class="empty-state">
         <h3>No skills found</h3>
-        <p>Try a different search term or adjust filters</p>
+        <p>No skills are available right now.</p>
       </div>
     `;
   }
 
   return items
     .map((item) => {
-      const titleHtml =
-        query && highlightTitle
-          ? highlightTitle(item.title, query)
-          : escapeHtml(item.title);
-
       return `
         <article class="resource-item" data-path="${escapeHtml(
           item.skillFile
         )}" data-skill-id="${escapeHtml(item.id)}" role="listitem">
           <button type="button" class="resource-preview">
             <div class="resource-info">
-              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-title">${escapeHtml(item.title)}</div>
               <div class="resource-description">${escapeHtml(
                 item.description || "No description"
               )}</div>
               <div class="resource-meta">
-                <span class="resource-tag tag-category">${escapeHtml(
-                  item.category
-                )}</span>
                 ${
                   item.hasAssets
                     ? `<span class="resource-tag tag-assets">${

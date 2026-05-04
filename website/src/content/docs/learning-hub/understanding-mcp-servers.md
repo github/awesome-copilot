@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-16
+lastUpdated: 2026-05-01
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -179,6 +179,7 @@ These are especially useful for plugins and installer scripts that need to self-
 Some MCP servers require authentication to connect to protected resources. GitHub Copilot CLI supports several authentication approaches:
 
 - **OAuth**: MCP servers can use the OAuth flow to authenticate with external services. The CLI handles the browser redirect and token storage automatically. This also works when running in ACP (Agent Coordination Protocol) mode.
+- **`client_credentials` grant type**: For fully headless environments where no browser is available and no user interaction is possible (such as server-to-server automation or CI pipelines), MCP servers can authenticate using the OAuth `client_credentials` grant type. This enables machine-to-machine authentication without any browser redirect or device code prompt.
 - **Device code flow (RFC 8628)**: When the CLI runs in a **headless or CI environment** where a browser redirect is not possible, it automatically falls back to the device code flow. You'll see a URL and a code to enter on another device to complete authentication.
 - **`/mcp auth`**: If a token expires or you need to switch accounts, run `/mcp auth` inside a session. This opens the re-authentication UI for any OAuth-enabled MCP server and supports account switching. You can re-authenticate without restarting the session.
 - **Microsoft Entra ID (Azure AD)**: MCP servers that authenticate via Microsoft Entra ID are fully supported. Once you complete the initial login, the CLI caches the authentication and **will not show the consent screen on subsequent connections** — you authenticate once per session rather than every time the server reconnects.
@@ -295,6 +296,10 @@ A: MCP servers run with the same permissions as your user account. Follow least-
 **Q: How many MCP servers can I configure?**
 
 A: There's no hard limit, but each server is a running process. Configure only the servers you actively use. Most projects use 1–3 servers.
+
+**Q: I'm using an Azure DevOps repository. Will the GitHub MCP server interfere?**
+
+A: No. Copilot CLI automatically detects Azure DevOps repositories and disables the built-in GitHub MCP server for those sessions. This prevents irrelevant GitHub API calls when your project is hosted on Azure DevOps. Other MCP servers you have configured are unaffected.
 
 ## Next Steps
 

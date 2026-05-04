@@ -33,19 +33,13 @@ export function sortInstructions<T extends RenderableInstruction>(
 }
 
 export function renderInstructionsHtml(
-  items: RenderableInstruction[],
-  options: {
-    query?: string;
-    highlightTitle?: (title: string, query: string) => string;
-  } = {}
+  items: RenderableInstruction[]
 ): string {
-  const { query = '', highlightTitle } = options;
-
   if (items.length === 0) {
     return `
       <div class="empty-state">
         <h3>No instructions found</h3>
-        <p>Try a different search term or adjust filters</p>
+        <p>Try adjusting the selected filters.</p>
       </div>
     `;
   }
@@ -55,16 +49,12 @@ export function renderInstructionsHtml(
       const applyToText = Array.isArray(item.applyTo)
         ? item.applyTo.join(', ')
         : item.applyTo;
-      const titleHtml =
-        query && highlightTitle
-          ? highlightTitle(item.title, query)
-          : escapeHtml(item.title);
 
       return `
         <article class="resource-item" data-path="${escapeHtml(item.path)}" role="listitem">
           <button type="button" class="resource-preview">
             <div class="resource-info">
-              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-title">${escapeHtml(item.title)}</div>
               <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
               <div class="resource-meta">
                 ${applyToText ? `<span class="resource-tag">applies to: ${escapeHtml(applyToText)}</span>` : ''}

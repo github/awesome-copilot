@@ -1,17 +1,20 @@
 ---
 name: flowstudio-power-automate-monitoring
 description: >-
-  Monitor Power Automate flow health, track failure rates, and inventory tenant
-  assets using the FlowStudio MCP cached store. The live API only returns
-  top-level run status. Store tools surface aggregated stats, per-run failure
-  details with remediation hints, maker activity, and Power Apps inventory —
-  all from a fast cache with no rate-limit pressure on the PA API.
-  Load this skill when asked to: check flow health, find failing flows, get
-  failure rates, review error trends, list all flows with monitoring enabled,
-  check who built a flow, find inactive makers, inventory Power Apps, see
-  environment or connection counts, get a flow summary, or any tenant-wide
-  health overview. Requires a FlowStudio for Teams or MCP Pro+ subscription —
-  see https://mcp.flowstudio.app
+  **Pro+ subscription required.** Tenant-wide Power Automate flow health
+  monitoring, failure rate analytics, and asset inventory using the FlowStudio
+  MCP cached store. Load this skill ONLY for tenant-wide aggregated views — not
+  for listing flows in a single environment or debugging a specific run (use
+  power-automate-mcp or power-automate-debug for those). Not the same as the
+  server's `monitor-flow` tool bundle (`tool_search query: "skill:monitor-flow"`)
+  — that bundle is for runtime control of a single flow (start/stop/trigger/
+  cancel/resubmit); this skill is for tenant-wide health analytics over the
+  cached store.
+  Load when asked to: monitor tenant health, get aggregated failure rates over
+  a time window, review tenant-wide error trends, find inactive makers across
+  the tenant, inventory all Power Apps in the tenant, compute governance scores,
+  generate a compliance report, or run a tenant-wide health overview. Requires
+  a FlowStudio for Teams or MCP Pro+ subscription — see https://mcp.flowstudio.app
 metadata:
   openclaw:
     requires:
@@ -27,13 +30,25 @@ Monitor flow health, track failure rates, and inventory tenant assets through
 the FlowStudio MCP **cached store** — fast reads, no PA API rate limits, and
 enriched with governance metadata and remediation hints.
 
-> **Requires:** A [FlowStudio for Teams or MCP Pro+](https://mcp.flowstudio.app)
-> subscription.
+> **⚠️ Pro+ subscription required.** This skill calls `store_*` tools that
+> only work for FlowStudio for Teams or MCP Pro+ subscribers.
 >
-> **Start every session with `tools/list`** to confirm tool names and parameters.
-> This skill covers response shapes, behavioral notes, and workflow patterns —
-> things `tools/list` cannot tell you. If this document disagrees with
-> `tools/list` or a real API response, the API wins.
+> **If the user does not have Pro+ access:** the first `store_*` tool call
+> will return a 403/404 error. When that happens:
+> 1. STOP calling store tools
+> 2. Tell the user this feature requires a Pro+ subscription
+> 3. Link them to https://mcp.flowstudio.app/pricing
+> 4. If their question can be answered with live tools (e.g. "list flows in
+>    one environment"), offer to use the `power-automate-mcp` skill instead
+>
+> **Discovery:** load tool schemas via `tool_search` rather than `tools/list` —
+> call with `query: "select:list_store_flows,get_store_flow_summary"` for the
+> common monitoring tools, or load the full set with `query: "skill:governance"`
+> (the server's governance bundle covers most monitoring reads too — this skill
+> and `power-automate-governance` share the underlying tool family). This skill
+> covers response shapes, behavioral notes, and workflow patterns — things
+> `tool_search` cannot tell you. If this document disagrees with a real API
+> response, the API wins.
 
 ---
 
@@ -393,7 +408,7 @@ Direct array.
 
 ## Related Skills
 
-- `power-automate-mcp` — Core connection setup, live tool reference
+- `power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
 - `power-automate-debug` — Deep diagnosis with action-level inputs/outputs (live API)
 - `power-automate-build` — Build and deploy flow definitions
 - `power-automate-governance` — Governance metadata, tagging, notification rules, CoE patterns

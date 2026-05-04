@@ -9,7 +9,7 @@ const REPO_BASE_URL =
 const REPO_GITHUB_URL = "https://github.com/github/awesome-copilot/blob/main";
 
 /**
- * The GitHub repo identifier used for `gh skill install` commands
+ * The GitHub repo identifier used for `gh skills install` commands
  */
 export const REPO_IDENTIFIER = "github/awesome-copilot";
 

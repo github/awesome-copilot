@@ -11,6 +11,18 @@
   },
   "plugins": [
     {
+      "name": "acreadiness-cockpit",
+      "source": "acreadiness-cockpit",
+      "description": "Drive Microsoft AgentRC from Copilot chat: assess AI readiness, generate Copilot instructions (flat or nested with applyTo globs for monorepos), and manage policies. Produces a self-contained static HTML dashboard at reports/index.html.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "ai-team-orchestration",
+      "source": "ai-team-orchestration",
+      "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
+      "version": "1.0.0"
+    },
+    {
       "name": "arize-ax",
       "source": "arize-ax",
       "description": "Arize AX platform skills for LLM observability, evaluation, and optimization. Includes trace export, instrumentation, datasets, experiments, evaluators, AI provider integrations, annotations, prompt optimization, and deep linking to the Arize UI.",
@@ -72,6 +84,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "cms-development",
+      "source": "cms-development",
+      "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
+      "version": "1.0.0"
+    },
+    {
       "name": "context-engineering",
       "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
@@ -80,7 +98,7 @@
     {
       "name": "context-matic",
       "source": "context-matic",
-      "description": "ContextMatic turns your AI agents from API-guessers into API-experts. By feeding agents exact, version-aware SDK methods and typed models for providers like PayPal, Spotify, and Twilio, ContextMatic replaces guesswork and outdated training data with high-fidelity ground truth. This eliminates hallucinations and broken code, ensuring surgical accuracy across 7+ languages so your agents build with precision instead of wasting tokens on trial and error.",
+      "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
       "version": "0.1.0"
     },
     {
@@ -219,6 +237,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "eyeball",
+      "source": "eyeball",
+      "description": "Document analysis with inline source screenshots. When you ask Copilot to analyze a document, Eyeball generates a Word doc where every factual claim includes a highlighted screenshot from the source material so you can verify it with your own eyes.",
+      "version": "1.0.0"
+    },
+    {
       "name": "fastah-ip-geo-tools",
       "source": "fastah-ip-geo-tools",
       "description": "This plugin is for network operations engineers who wish to tune and publish IP geolocation feeds in RFC 8805 format. It consists of an AI Skill and an associated MCP server that geocodes geolocation place names to real cities for accuracy.",
@@ -262,7 +286,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.6.6"
+      "version": "1.13.0"
     },
     {
       "name": "go-mcp-development",
@@ -325,7 +349,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1037-preview1",
+      "version": "1.0.1063-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -344,6 +368,12 @@
         "repo": "dotnet/modernize-dotnet",
         "path": "plugins/modernize-dotnet"
       }
+    },
+    {
+      "name": "modernize-java",
+      "source": "modernize-java",
+      "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+      "version": "1.0.0"
     },
     {
       "name": "napkin",
@@ -451,6 +481,12 @@
       "name": "power-platform-mcp-connector-development",
       "source": "power-platform-mcp-connector-development",
       "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
+      "version": "1.0.0"
+    },
+    {
+      "name": "project-documenter",
+      "source": "project-documenter",
+      "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
       "version": "1.0.0"
     },
     {

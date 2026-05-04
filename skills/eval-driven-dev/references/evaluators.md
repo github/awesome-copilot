@@ -1,7 +1,7 @@
 # Built-in Evaluators
 
 > Auto-generated from pixie source code docstrings.
-> Do not edit by hand — regenerate from the upstream [pixie-qa](https://github.com/yiouli/pixie-qa) source repository.
+> Do not edit by hand — run `uv run python scripts/generate_skill_docs.py`.
 
 Autoevals adapters — pre-made evaluators wrapping `autoevals` scorers.
 
@@ -30,13 +30,14 @@ Public API (all are also re-exported from `pixie.evals`):
 
 Choose evaluators based on the **output type** and eval criteria:
 
-| Output type                                  | Evaluator category                                          | Examples                              |
-| -------------------------------------------- | ----------------------------------------------------------- | ------------------------------------- |
-| Deterministic (labels, yes/no, fixed-format) | Heuristic: `ExactMatch`, `JSONDiff`, `ValidJSON`            | Label classification, JSON extraction |
-| Open-ended text with a reference answer      | LLM-as-judge: `Factuality`, `ClosedQA`, `AnswerCorrectness` | Chatbot responses, QA, summaries      |
-| Text with expected context/grounding         | RAG: `Faithfulness`, `ContextRelevancy`                     | RAG pipelines                         |
-| Text with style/format requirements          | Custom via `create_llm_evaluator`                           | Voice-friendly responses, tone checks |
-| Multi-aspect quality                         | Multiple evaluators combined                                | Factuality + relevance + tone         |
+| Output type                                  | Evaluator category                                          | Examples                               |
+| -------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- |
+| Deterministic (labels, yes/no, fixed-format) | Heuristic: `ExactMatch`, `JSONDiff`, `ValidJSON`            | Label classification, JSON extraction  |
+| Open-ended text with a reference answer      | LLM-as-judge: `Factuality`, `ClosedQA`, `AnswerCorrectness` | Chatbot responses, QA, summaries       |
+| Text with expected context/grounding         | RAG: `Faithfulness`, `ContextRelevancy`                     | RAG pipelines                          |
+| Text with style/format requirements          | Custom via `create_llm_evaluator`                           | Voice-friendly responses, tone checks  |
+| Multi-aspect quality                         | Multiple evaluators combined                                | Factuality + relevance + tone          |
+| Trace-dependent quality (tool use, routing)  | Agent evaluator via `create_agent_evaluator`                | Tool correctness, multi-step reasoning |
 
 Critical rules:
 
@@ -529,3 +530,56 @@ An evaluator callable satisfying the `Evaluator` protocol.
 Raises:
 ValueError: If the template uses nested field access like
 `{eval_input[key]}` (only top-level placeholders are supported).
+
+### `create_agent_evaluator`
+
+```python
+create_agent_evaluator(name: 'str', criteria: 'str') -> '_AgentEvaluator'
+```
+
+Create an evaluator whose grading is deferred to a coding agent.
+
+During `pixie test`, agent evaluators are not scored automatically.
+Instead, they raise `AgentEvaluationPending` and record a
+`PendingEvaluation` with the evaluation criteria. The coding agent
+(guided by Step 6) reviews each entry's trace and output, then
+grades the pending evaluations.
+
+**When to use**: Quality dimensions that require holistic review of
+the LLM trace — tool call correctness, multi-step reasoning quality,
+routing decisions — where an automated LLM-as-judge prompt can't
+capture the nuance.
+
+**When NOT to use**: Simple text quality checks (use
+`create_llm_evaluator` instead), deterministic checks (use heuristic
+evaluators), or any criterion that can be scored from input + output
+alone without trace context.
+
+Args:
+name: Display name for the evaluator (shown in scorecard as ⏳ pending).
+criteria: What to evaluate — the grading instructions the agent
+will follow when reviewing results. Be specific and actionable.
+
+Returns:
+An evaluator callable satisfying the `Evaluator` protocol. Its
+`__call__` raises `AgentEvaluationPending` instead of returning an
+`Evaluation`.
+
+Example:
+
+```python
+from pixie import create_agent_evaluator
+
+ResponseQuality = create_agent_evaluator(
+    name="ResponseQuality",
+    criteria="The response directly addresses the user's question with "
+             "accurate, well-structured information. No hallucinations "
+             "or off-topic content.",
+)
+
+ToolUsageCorrectness = create_agent_evaluator(
+    name="ToolUsageCorrectness",
+    criteria="The app called the correct tools in the right order based "
+             "on the user's intent. No unnecessary or missed tool calls.",
+)
+```

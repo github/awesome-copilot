@@ -54,7 +54,7 @@ ax profiles create work --api-key $ARIZE_API_KEY --region us-east-1b
 
 To use a named profile with any `ax` command, add `-p NAME`:
 ```bash
-ax spans export PROJECT_ID -p work
+ax spans export PROJECT -p work
 ```
 
 ## 4. Getting the API key
@@ -67,7 +67,7 @@ If `ARIZE_API_KEY` is not already set, instruct the user to export it in their s
 export ARIZE_API_KEY="..."   # user pastes their key here in their own terminal
 ```
 
-They can find their key at https://app.arize.com/admin > API Keys. Recommend they create a **scoped service key** (not a personal user key) — service keys are not tied to an individual account and are safer for programmatic use. Keys are space-scoped — make sure they copy the key for the correct space.
+They can find their key at https://app.arize.com by navigating to the settings page. Recommend they create a **scoped service key** (not a personal user key) — service keys are not tied to an individual account and are safer for programmatic use. Keys are space-scoped — make sure they copy the key for the correct space.
 
 Once the user confirms the variable is set, proceed with `ax profiles create --api-key $ARIZE_API_KEY` or `ax profiles update --api-key $ARIZE_API_KEY` as described above.
 
@@ -81,19 +81,19 @@ ax profiles show
 
 Confirm the API key and region are correct, then retry the original command.
 
-## Space ID
+## Space
 
-There is no profile flag for space ID. Save it as an environment variable:
+There is no profile flag for space. Save it as an environment variable — accepts a space **name** (e.g., `my-workspace`) or a base64 space **ID** (e.g., `U3BhY2U6...`). Find yours with `ax spaces list -o json`.
 
 **macOS/Linux** — add to `~/.zshrc` or `~/.bashrc`:
 ```bash
-export ARIZE_SPACE_ID="U3BhY2U6..."
+export ARIZE_SPACE="my-workspace"    # name or base64 ID
 ```
 Then `source ~/.zshrc` (or restart terminal).
 
 **Windows (PowerShell):**
 ```powershell
-[System.Environment]::SetEnvironmentVariable('ARIZE_SPACE_ID', 'U3BhY2U6...', 'User')
+[System.Environment]::SetEnvironmentVariable('ARIZE_SPACE', 'my-workspace', 'User')
 ```
 Restart terminal for it to take effect.
 
@@ -103,8 +103,8 @@ At the **end of the session**, if the user manually provided any credentials dur
 
 **Skip this entirely if:**
 - The API key was already loaded from an existing profile or `ARIZE_API_KEY` env var
-- The space ID was already set via `ARIZE_SPACE_ID` env var
-- The user only used base64 project IDs (no space ID was needed)
+- The space was already set via `ARIZE_SPACE` env var
+- The user only used base64 project IDs (no space was needed)
 
 **How to offer:** Use **AskQuestion**: *"Would you like to save your Arize credentials so you don't have to enter them next time?"* with options `"Yes, save them"` / `"No thanks"`.
 
@@ -112,4 +112,4 @@ At the **end of the session**, if the user manually provided any credentials dur
 
 1. **API key** — Run `ax profiles show` to check the current state. Then run `ax profiles create --api-key $ARIZE_API_KEY` or `ax profiles update --api-key $ARIZE_API_KEY` (the key must already be exported as an env var — never pass a raw key value).
 
-2. **Space ID** — See the Space ID section above to persist it as an environment variable.
+2. **Space** — See the Space section above to persist it as an environment variable.

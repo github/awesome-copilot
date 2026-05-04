@@ -297,6 +297,84 @@ jobs:
             }
             core.setOutput('comment_count', String(commentParts.length));
 
+      - name: Close old report discussions
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const RETENTION_DAYS = 5;
+            const CATEGORY_NAME = 'Skill Quality Reports';
+            const TITLE_PREFIX = 'Skill Quality Report — ';
+
+            const cutoff = new Date();
+            cutoff.setUTCDate(cutoff.getUTCDate() - RETENTION_DAYS);
+
+            let after = null;
+            let closedCount = 0;
+            let reachedCutoff = false;
+
+            while (!reachedCutoff) {
+              const result = await github.graphql(`
+                query($owner: String!, $repo: String!, $after: String) {
+                  repository(owner: $owner, name: $repo) {
+                    discussions(first: 100, after: $after, orderBy: { field: CREATED_AT, direction: ASC }) {
+                      nodes {
+                        id
+                        title
+                        createdAt
+                        closed
+                        url
+                        category {
+                          name
+                        }
+                      }
+                      pageInfo {
+                        hasNextPage
+                        endCursor
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                after,
+              });
+
+              const discussions = result.repository.discussions;
+
+              for (const discussion of discussions.nodes) {
+                if (new Date(discussion.createdAt) >= cutoff) {
+                  reachedCutoff = true;
+                  break;
+                }
+
+                if (discussion.category?.name !== CATEGORY_NAME) continue;
+                if (!discussion.title.startsWith(TITLE_PREFIX)) continue;
+                if (discussion.closed) continue;
+
+                await github.graphql(`
+                  mutation($discussionId: ID!) {
+                    closeDiscussion(input: { discussionId: $discussionId }) {
+                      discussion {
+                        id
+                      }
+                    }
+                  }
+                `, { discussionId: discussion.id });
+
+                closedCount++;
+                console.log(`Closed old report discussion: ${discussion.url}`);
+              }
+
+              if (reachedCutoff || !discussions.pageInfo.hasNextPage) {
+                break;
+              }
+
+              after = discussions.pageInfo.endCursor;
+            }
+
+            console.log(`Closed ${closedCount} report discussion(s) older than ${RETENTION_DAYS} days.`);
+
       # ── Create Discussion (preferred) or Issue (fallback) ────────
       - name: Create Discussion
         id: create-discussion
