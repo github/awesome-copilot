@@ -177,7 +177,7 @@ function main() {
   } else {
     console.log(`✅ Removed ${total} materialized file(s) from plugins.`);
     if (manifestsUpdated > 0) {
-      console.log(`✅ Updated ${manifestsUpdated} plugin manifest(s) with canonical spec ordering.`);
+      console.log(`✅ Updated ${manifestsUpdated} plugin manifest(s) to restore and normalize spec entries.`);
     }
   }
 }
