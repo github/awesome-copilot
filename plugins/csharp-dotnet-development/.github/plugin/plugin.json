@@ -17,12 +17,12 @@
     "./agents/expert-dotnet-software-engineer.md"
   ],
   "skills": [
-    "./skills/csharp-async/",
     "./skills/aspnet-minimal-api-openapi/",
-    "./skills/csharp-xunit/",
-    "./skills/csharp-nunit/",
+    "./skills/csharp-async/",
     "./skills/csharp-mstest/",
+    "./skills/csharp-nunit/",
     "./skills/csharp-tunit/",
+    "./skills/csharp-xunit/",
     "./skills/dotnet-best-practices/",
     "./skills/dotnet-upgrade/"
   ]

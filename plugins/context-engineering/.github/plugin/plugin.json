@@ -19,7 +19,7 @@
   ],
   "skills": [
     "./skills/context-map/",
-    "./skills/what-context-needed/",
-    "./skills/refactor-plan/"
+    "./skills/refactor-plan/",
+    "./skills/what-context-needed/"
   ]
 }
