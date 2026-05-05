@@ -31,7 +31,7 @@ jobs:
 
       - name: Fetch AGT check scripts
         env:
-          AGT_REF: v3.3.0
+          AGT_REF: v3.4.0
         run: |
           mkdir -p /tmp/agt
           curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/contributor_check.py" \
