@@ -271,6 +271,8 @@ Return JSON per `Output Format`
 
 ## Output Format
 
+// Be concise: omit nulls, empty arrays, verbose fields. Prefer: numbers over strings, status words over objects.
+
 ```jsonc
 {
   "status": "completed|failed|in_progress|needs_revision",
@@ -279,47 +281,16 @@ Return JSON per `Output Format`
   "summary": "[≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
-    "root_cause": {
-      "description": "string",
-      "location": "string",
-      "error_type": "runtime|logic|integration|configuration|dependency",
-      "causal_chain": ["string"],
-    },
-    "reproduction": {
-      "confirmed": "boolean",
-      "steps": ["string"],
-      "environment": "string",
-    },
-    "fix_recommendations": [
-      {
-        "approach": "string",
-        "location": "string",
-        "complexity": "small|medium|large",
-        "trade_offs": "string",
-      },
-    ],
-    "lint_rule_recommendations": [
-      {
-        "rule_name": "string",
-        "rule_type": "built-in|custom",
-        "eslint_config": "object",
-        "rationale": "string",
-        "affected_files": ["string"],
-      },
-    ],
-    "prevention": {
-      "suggested_tests": ["string"],
-      "patterns_to_avoid": ["string"],
-    },
+    "root_cause": { "description": "string", "location": "string", "error_type": "string" }, // omit causal_chain
+    "reproduction": { "confirmed": "boolean", "steps": ["string"] }, // omit environment unless critical
+    "fix_recommendations": [{ "approach": "string", "location": "string" }], // omit complexity, trade_offs
+    "lint_rule_recommendations": [{ "rule_name": "string", "affected_files": ["string"] }], // omit eslint_config, rationale
+    "prevention": { "suggested_tests": ["string"] }, // omit patterns_to_avoid
     "confidence": "number (0-1)",
   },
-  "diagnosis": { "root_cause": "string", "affected_files": ["string"], "confidence": "number" },
+  "diagnosis": { "root_cause": "string" }, // omit affected_files, confidence - already in extra
   "recommendation": { "type": "fix|refactor|replan", "description": "string" },
-  "learnings": {
-    "patterns": ["string"],
-    "gotchas": ["string"],
-    "recurring_errors": ["string"],
-  },
+  "learnings": { "patterns": ["string"], "gotchas": ["string"] }, // EMPTY IS OK - skip unless non-empty
 }
 ```
 
@@ -336,6 +307,11 @@ Return JSON per `Output Format`
 - Retry: 3x
 - Output: JSON only, no summaries unless failed
 
+### Output
+
+- NO preamble, NO meta commentary, NO explanations unless failed
+- Output ONLY valid JSON matching Output Format exactly
+
 ### Constitutional
 
 - IF stack trace: Parse and trace to source FIRST
@@ -345,6 +321,31 @@ Return JSON per `Output Format`
 - NEVER implement fixes — only diagnose and recommend
 - Cite sources for every claim
 - Always use established library/framework patterns
+
+### I/O Optimization
+
+Run I/O and other operations in parallel and minimize repeated reads.
+
+#### Batch Operations
+
+- Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
+- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use multi-pattern glob discovery: `**/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
+- For multiple files, discover first, then read in parallel.
+- For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.
+
+#### Read Efficiently
+
+- Read related files in batches, not one by one.
+- Discover relevant files (`semantic_search`, `grep_search` etc.) first, then read the full set upfront.
+- Avoid line-by-line reads to avoid round trips. Read whole files or relevant sections in one call.
+
+#### Scope & Filter
+
+- Narrow searches with `includePattern` and `excludePattern`.
+- Exclude build output, and `node_modules` unless needed.
+- Prefer specific paths like `src/components/**/*.tsx`.
+- Use file-type filters for grep, such as `includePattern="**/*.ts"`.
 
 ### Untrusted Data
 

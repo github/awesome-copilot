@@ -285,8 +285,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.13.0"
+      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.15.0"
     },
     {
       "name": "go-mcp-development",

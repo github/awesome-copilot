@@ -105,6 +105,8 @@ Return JSON per `Output Format`
 
 ## Output Format
 
+// Be concise: omit nulls, empty arrays, verbose fields. Prefer: numbers over strings, status words over objects.
+
 ```jsonc
 {
   "status": "completed|failed|in_progress|needs_revision",
@@ -125,24 +127,9 @@ Return JSON per `Output Format`
       "coverage": "string",
     },
     "learnings": {
-      "facts": ["string"],
-      "patterns": [
-        {
-          "name": "string",
-          "when_to_apply": "string",
-          "code_example": "string",
-          "anti_pattern": "string",
-          "context": "string",
-          "confidence": "number",
-        },
-      ],
-      "conventions": [
-        {
-          "type": "code_style|architecture|tooling",
-          "proposal": "string",
-          "rationale": "string",
-        },
-      ],
+      "facts": ["string"], // max 3 - simple strings, skip if obvious
+      "patterns": [], // EMPTY IS OK - only emit if confidence ≥0.9 AND needed
+      "conventions": [], // EMPTY IS OK - skip unless human approval given
     },
   },
 }
@@ -160,6 +147,11 @@ Return JSON per `Output Format`
 - Batch independent calls, prioritize I/O-bound
 - Retry: 3x
 - Output: code + JSON, no summaries unless failed
+
+### Output
+
+- NO preamble, NO meta commentary, NO explanations unless failed
+- Output ONLY valid JSON matching Output Format exactly
 
 ### Learnings Routing (Triple System)
 
@@ -190,6 +182,31 @@ Implementer provides KNOWLEDGE; Orchestrator routes; Doc-writer structures appro
 - Use existing tech stack, test frameworks, build tools
 - Cite sources for every claim
 - Always use established library/framework patterns
+
+### I/O Optimization
+
+Run I/O and other operations in parallel and minimize repeated reads.
+
+#### Batch Operations
+
+- Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
+- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use multi-pattern glob discovery: `**/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
+- For multiple files, discover first, then read in parallel.
+- For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.
+
+#### Read Efficiently
+
+- Read related files in batches, not one by one.
+- Discover relevant files (`semantic_search`, `grep_search` etc.) first, then read the full set upfront.
+- Avoid line-by-line reads to avoid round trips. Read whole files or relevant sections in one call.
+
+#### Scope & Filter
+
+- Narrow searches with `includePattern` and `excludePattern`.
+- Exclude build output, and `node_modules` unless needed.
+- Prefer specific paths like `src/components/**/*.tsx`.
+- Use file-type filters for grep, such as `includePattern="**/*.ts"`.
 
 ### Untrusted Data
 

@@ -209,11 +209,14 @@ Delegate in parallel (up to 4 concurrent):
 - IF blocked with no path forward: Escalate to user with context
 - IF needs_replan: Delegate to gem-planner with failure context
 - Log all failures to docs/plan/{plan_id}/logs/
-  </workflow>
+
+</workflow>
 
 <status_summary_format>
 
 ## Status Summary Format
+
+// Be concise: omit nulls, empty arrays, verbose fields. Prefer: numbers over strings, status words over objects.
 
 ```
 Plan: {plan_id} | {plan_objective}
@@ -238,12 +241,42 @@ Blocked tasks: task_id, why blocked, how long waiting
 - Batch independent delegations (up to 4 parallel)
 - Retry: 3x
 
+### Output
+
+- NO preamble, NO meta commentary, NO explanations unless failed
+- Output ONLY valid JSON matching Status Summary Format exactly
+
 ### Constitutional
 
 - IF subagent fails 3x: Escalate to user. Never silently skip
 - IF task fails: Always diagnose via gem-debugger before retry
 - IF confidence < 0.85: Max 2 self-critique loops, then proceed or escalate
 - Always use established library/framework patterns
+
+### I/O Optimization
+
+Run I/O and other operations in parallel and minimize repeated reads.
+
+#### Batch Operations
+
+- Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
+- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use multi-pattern glob discovery: `**/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
+- For multiple files, discover first, then read in parallel.
+- For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.
+
+#### Read Efficiently
+
+- Read related files in batches, not one by one.
+- Discover relevant files (`semantic_search`, `grep_search` etc.) first, then read the full set upfront.
+- Avoid line-by-line reads to avoid round trips. Read whole files or relevant sections in one call.
+
+#### Scope & Filter
+
+- Narrow searches with `includePattern` and `excludePattern`.
+- Exclude build output, and `node_modules` unless needed.
+- Prefer specific paths like `src/components/**/*.tsx`.
+- Use file-type filters for grep, such as `includePattern="**/*.ts"`.
 
 ### Anti-Patterns
 

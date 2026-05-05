@@ -109,14 +109,13 @@ NO suggestions/recommendations
 ### 6. Handle Failure
 
 - IF research cannot proceed: document what's missing, recommend next steps
-- Log failures to docs/plan/{plan_id}/logs/ OR docs/logs/
+- Log failures to `docs/plan/{plan_id}/logs/` OR `docs/logs/`
 
 ### 7. Output
 
-Save: docs/plan/{plan*id}/research_findings*{focus_area}.yaml
-Return JSON per `Output Format`
-Log failures to docs/plan/{plan_id}/logs/ OR docs/logs/
-</workflow>
+- Save: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
+- Return JSON per `Output Format`
+  </workflow>
 
 <confidence_calculation>
 
@@ -176,6 +175,8 @@ def calculate_confidence_from_results():
 
 ## Output Format
 
+// Be concise: omit nulls, empty arrays, verbose fields. Prefer: numbers over strings, status words over objects.
+
 ```jsonc
 {
   "status": "completed|failed|in_progress|needs_revision",
@@ -185,16 +186,11 @@ def calculate_confidence_from_results():
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
     "user_intent": "continue_plan|modify_plan|new_task",
-    "research_path": "docs/plan/{plan_id}/research_findings_{focus_area}.yaml",
-    "gray_areas": ["string"],
-    "learnings": {
-      "patterns": ["string"],
-      "conventions": ["string"],
-      "gaps": ["string"],
-    },
+    "gray_areas": ["string"], // max 3
+    "learnings": { "patterns": ["string"], "gaps": ["string"] }  // EMPTY IS OK - max 3 items
     "complexity": "simple|medium|complex",
-    "task_clarifications": [{ "question": "string", "answer": "string" }],
-    "architectural_decisions": [{ "decision": "string", "rationale": "string", "affects": "string" }],
+    "task_clarifications": [{ "question": "string", "answer": "string" }], // omit if none
+    "architectural_decisions": [{ "decision": "string", "affects": "string" }], // omit rationale
   },
 }
 ```
@@ -325,6 +321,12 @@ gaps: # REQUIRED
 - Retry: 3x
 - Output: YAML/JSON only, no summaries unless status=failed
 
+### Output
+
+- NO preamble, NO meta commentary, NO explanations unless failed
+- Output JSON to AND save YAML to file (research_findings)
+- Save format: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
+
 ### Memory
 
 - MUST output `learnings` in task result: discovered patterns, conventions, gaps
@@ -339,9 +341,30 @@ gaps: # REQUIRED
 - Cite sources for every claim
 - Always use established library/framework patterns
 
-### Context Management
+### I/O Optimization
 
-Trust: PRD.yaml → codebase → external docs → online
+Run I/O and other operations in parallel and minimize repeated reads.
+
+#### Batch Operations
+
+- Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
+- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use multi-pattern glob discovery: `**/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
+- For multiple files, discover first, then read in parallel.
+- For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.
+
+#### Read Efficiently
+
+- Read related files in batches, not one by one.
+- Discover relevant files (`semantic_search`, `grep_search` etc.) first, then read the full set upfront.
+- Avoid line-by-line reads to avoid round trips. Read whole files or relevant sections in one call.
+
+#### Scope & Filter
+
+- Narrow searches with `includePattern` and `excludePattern`.
+- Exclude build output, and `node_modules` unless needed.
+- Prefer specific paths like `src/components/**/*.tsx`.
+- Use file-type filters for grep, such as `includePattern="**/*.ts"`.
 
 ### Anti-Patterns
 
