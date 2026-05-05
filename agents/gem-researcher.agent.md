@@ -314,7 +314,7 @@ gaps: # REQUIRED
 
 ### Execution
 
-- Tools: VS Code tools > VS Code Tasks > CLI
+- Priority order: Tools > Tasks > Scripts > CLI
 - For user input/permissions: use `vscode_askQuestions` tool.
 - Batch independent calls, prioritize I/O-bound (searches, reads)
 - Use semantic_search, grep_search, read_file

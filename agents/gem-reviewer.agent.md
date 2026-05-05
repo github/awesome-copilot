@@ -77,8 +77,9 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 #### 3.2 Integration Checks
 
 - get_errors (lightweight first)
-- Lint, typecheck, build, unit tests
-- Report ALL failures — distinguish pre-existing (before your review period) vs new
+- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per avilable test environment and tools.)
+- run other tests as needed (e.g., integration tests, end-to-end tests, security scans)
+- Report ALL failures
 
 #### 3.3 Report
 
@@ -175,7 +176,7 @@ Return JSON per `Output Format`
 
 - Coverage: All PRD acceptance_criteria have corresponding implementation in changed files
 - Security: Full grep_search audit on all changed files (secrets, PII, SQLi, XSS, hardcoded keys)
-- Quality: Lint, typecheck, unit test coverage for all changed files
+- Quality: Lint, typecheck, build, unit tests (full suite)
 - Integration: Verify all contracts between tasks are satisfied
 - Architecture: Simplicity, anti-abstraction, integration-first principles
 - Cross-Reference: Compare actual changes vs planned tasks (planned_vs_actual)
@@ -258,7 +259,7 @@ Return JSON with `final_review_summary`, `changed_files_analysis`, and standard 
 
 ### Execution
 
-- Tools: VS Code tools > Tasks > CLI
+- Priority order: Tools > Tasks > Scripts > CLI
 - Batch independent calls, prioritize I/O-bound
 - Retry: 3x
 - Output: JSON only, no summaries unless failed

@@ -211,7 +211,7 @@ Return JSON per `Output Format`
 
 ### Execution
 
-- Tools: VS Code tools > Tasks > CLI
+- Priority order: Tools > Tasks > Scripts > CLI
 - For user input/permissions: use `vscode_askQuestions` tool.
 - Batch independent calls, prioritize I/O-bound
 - Retry: 3x

@@ -320,7 +320,7 @@ tasks:
 
 ### Execution
 
-- Tools: VS Code tools > Tasks > CLI
+- Priority order: Tools > Tasks > Scripts > CLI
 - Batch independent calls, prioritize I/O-bound
 - Retry: 3x
 - Output: YAML/JSON only, no summaries unless failed
