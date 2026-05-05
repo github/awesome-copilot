@@ -2924,7 +2924,9 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/59716480?v=4",
       "profile": "https://github.com/proflead",
       "contributions": [
-        "agents"
+        "agents",
+        "code",
+        "content"
       ]
     },
     {
@@ -3223,6 +3225,192 @@
       "profile": "https://www.flemingtechnologies.cl/",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "steve-magne",
+      "name": "Steve Magne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14792628?v=4",
+      "profile": "https://www.movinglive.ca/",
+      "contributions": [
+        "doc",
+        "instructions"
+      ]
+    },
+    {
+      "login": "Sertxito",
+      "name": "Sertxito",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25170262?v=4",
+      "profile": "https://github.com/Sertxito",
+      "contributions": [
+        "agents",
+        "ideas",
+        "infra",
+        "instructions"
+      ]
+    },
+    {
+      "login": "ZengLiangYi",
+      "name": "Rayner Zeng",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104827876?v=4",
+      "profile": "https://www.zengliangyi.online/",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "ilderaj",
+      "name": "ilderaj",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6321440?v=4",
+      "profile": "https://github.com/ilderaj",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "mvanderbend-msoft",
+      "name": "mvanderbend-msoft",
+      "avatar_url": "https://avatars.githubusercontent.com/u/259659559?v=4",
+      "profile": "https://github.com/mvanderbend-msoft",
+      "contributions": [
+        "agents",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "parveen-dotnet",
+      "name": "Parveen Sharma",
+      "avatar_url": "https://avatars.githubusercontent.com/u/226729782?v=4",
+      "profile": "https://github.com/parveen-dotnet",
+      "contributions": [
+        "agents",
+        "code",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "pmorong",
+      "name": "pmorong",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10659855?v=4",
+      "profile": "https://github.com/pmorong",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "thevinodkumar",
+      "name": "vinod kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42086653?v=4",
+      "profile": "https://github.com/thevinodkumar",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "vidhartbhatia",
+      "name": "Vidhart Bhatia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23387006?v=4",
+      "profile": "https://vidhartbhatia.com/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "leonard520",
+      "name": "Xiaoyun Ding",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5118845?v=4",
+      "profile": "https://github.com/leonard520",
+      "contributions": [
+        "agents",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "denis-a-evdokimov",
+      "name": "denis-a-evdokimov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19668152?v=4",
+      "profile": "https://github.com/denis-a-evdokimov",
+      "contributions": [
+        "agents",
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "amorguettinogueira",
+      "name": "Adriano Nogueira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17970602?v=4",
+      "profile": "https://connexio.digital/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "AezanPathan",
+      "name": "Aezan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110289332?v=4",
+      "profile": "https://github.com/AezanPathan",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "clubanderson",
+      "name": "Andy Anderson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/407614?v=4",
+      "profile": "https://github.com/clubanderson",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "kwekudzata",
+      "name": "Kweku Dzata",
+      "avatar_url": "https://avatars.githubusercontent.com/u/148214043?v=4",
+      "profile": "https://kwekudzata.vercel.app/dev",
+      "contributions": [
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "goodguy1963",
+      "name": "Marcel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49859266?v=4",
+      "profile": "https://github.com/goodguy1963",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "navaneethreddydevops",
+      "name": "Navaneeth Reddy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42119880?v=4",
+      "profile": "https://github.com/navaneethreddydevops",
+      "contributions": [
+        "agents"
+      ]
+    },
+    {
+      "login": "jamcgrath",
+      "name": "James",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1762902?v=4",
+      "profile": "http://jamesmcgrath.net/",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "jcountsNR",
+      "name": "Joseph Counts",
+      "avatar_url": "https://avatars.githubusercontent.com/u/94138069?v=4",
+      "profile": "https://github.com/jcountsNR",
+      "contributions": [
+        "agents"
       ]
     }
   ]

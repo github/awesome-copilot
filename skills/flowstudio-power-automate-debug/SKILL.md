@@ -28,7 +28,7 @@ cloud flows through the FlowStudio MCP server.
 > [Null value crashes child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/null-child-flow.md)
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
-See the `flowstudio-power-automate-mcp` skill for connection setup.  
+See the `power-automate-mcp` skill for connection setup.  
 Subscribe at https://mcp.flowstudio.app
 
 ---
@@ -309,6 +309,18 @@ print(json.dumps(out['outputs']['body'], indent=2)[:500])
 Look for `ConnectionAuthorizationFailed` — the connection owner must match the
 service account running the flow. Cannot fix via API; fix in PA designer.
 
+### Outlook user-picker failures (`DynamicListValuesUndefinedOrInvalid`)
+Outlook actions like `GetEmailsV3` use parameters (`mailboxAddress`, `to`, `cc`,
+`from`) whose dropdown is backed by `builtInOperation:AadGraph.GetUsers` — which
+is broken at the PA listEnum layer and always returns
+`DynamicListValuesUndefinedOrInvalid`. This shows up when an agent rebuilds or
+modifies an Outlook action via `update_live_flow` and tries to resolve a user
+through dynamic options. **Don't fix it by retrying AadGraph** — switch to
+`shared_office365users.SearchUserV2` instead (returns the same AAD user shape).
+See the `power-automate-build` skill, **Step 3a — Resolving Dynamic Connector
+Values**, for the working pattern. `describe_live_connector` (v1.1.6+) returns
+this fallback as a structured `fallback` field on the affected parameter.
+
 ---
 
 ## Step 8 — Apply the Fix
@@ -421,5 +433,5 @@ print(f"Status: {result['responseStatus']}, Body: {result.get('responseBody')}")
 
 ## Related Skills
 
-- `flowstudio-power-automate-mcp` — Core connection setup and operation reference
-- `flowstudio-power-automate-build` — Build and deploy new flows
+- `power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
+- `power-automate-build` — Build and deploy new flows

@@ -1,4 +1,8 @@
-import { escapeHtml, getGitHubUrl, sanitizeUrl } from '../utils';
+import {
+  escapeHtml,
+  getGitHubUrl,
+  sanitizeUrl,
+} from '../utils';
 
 interface PluginAuthor {
   name: string;
@@ -17,11 +21,29 @@ export interface RenderablePlugin {
   path: string;
   tags?: string[];
   itemCount: number;
+  lastUpdated?: string | null;
   external?: boolean;
   repository?: string | null;
   homepage?: string | null;
   author?: PluginAuthor | null;
   source?: PluginSource | null;
+}
+
+export type PluginSortOption = 'title' | 'lastUpdated';
+
+export function sortPlugins<T extends RenderablePlugin>(
+  items: T[],
+  sort: PluginSortOption
+): T[] {
+  return [...items].sort((a, b) => {
+    if (sort === 'lastUpdated') {
+      const dateA = a.lastUpdated ? new Date(a.lastUpdated).getTime() : 0;
+      const dateB = b.lastUpdated ? new Date(b.lastUpdated).getTime() : 0;
+      return dateB - dateA;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
 }
 
 function getExternalPluginUrl(plugin: RenderablePlugin): string {
@@ -33,20 +55,12 @@ function getExternalPluginUrl(plugin: RenderablePlugin): string {
   return sanitizeUrl(plugin.repository || plugin.homepage);
 }
 
-export function renderPluginsHtml(
-  items: RenderablePlugin[],
-  options: {
-    query?: string;
-    highlightTitle?: (title: string, query: string) => string;
-  } = {}
-): string {
-  const { query = '', highlightTitle } = options;
-
+export function renderPluginsHtml(items: RenderablePlugin[]): string {
   if (items.length === 0) {
     return `
       <div class="empty-state">
         <h3>No plugins found</h3>
-        <p>Try a different search term or adjust filters</p>
+        <p>Try different tags or clear the current filters</p>
       </div>
     `;
   }
@@ -64,16 +78,11 @@ export function renderPluginsHtml(
       const githubHref = isExternal
         ? escapeHtml(getExternalPluginUrl(item))
         : getGitHubUrl(item.path);
-      const titleHtml =
-        query && highlightTitle
-          ? highlightTitle(item.name, query)
-          : escapeHtml(item.name);
-
       return `
         <article class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}" role="listitem">
           <button type="button" class="resource-preview">
             <div class="resource-info">
-              <div class="resource-title">${titleHtml}</div>
+              <div class="resource-title">${escapeHtml(item.name)}</div>
               <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
               <div class="resource-meta">
                 ${metaTag}

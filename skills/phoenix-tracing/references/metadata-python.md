@@ -5,13 +5,13 @@ Add custom attributes to spans for richer observability.
 ## Install
 
 ```bash
-pip install openinference-instrumentation
+pip install arize-phoenix-otel  # context managers and SpanAttributes re-exported since 0.16.0
 ```
 
 ## Session
 
 ```python
-from openinference.instrumentation import using_session
+from phoenix.otel import using_session
 
 with using_session(session_id="my-session-id"):
     # Spans get: "session.id" = "my-session-id"
@@ -21,7 +21,7 @@ with using_session(session_id="my-session-id"):
 ## User
 
 ```python
-from openinference.instrumentation import using_user
+from phoenix.otel import using_user
 
 with using_user("my-user-id"):
     # Spans get: "user.id" = "my-user-id"
@@ -31,7 +31,7 @@ with using_user("my-user-id"):
 ## Metadata
 
 ```python
-from openinference.instrumentation import using_metadata
+from phoenix.otel import using_metadata
 
 with using_metadata({"key": "value", "experiment_id": "exp_123"}):
     # Spans get: "metadata" = '{"key": "value", "experiment_id": "exp_123"}'
@@ -41,7 +41,7 @@ with using_metadata({"key": "value", "experiment_id": "exp_123"}):
 ## Tags
 
 ```python
-from openinference.instrumentation import using_tags
+from phoenix.otel import using_tags
 
 with using_tags(["tag_1", "tag_2"]):
     # Spans get: "tag.tags" = '["tag_1", "tag_2"]'
@@ -51,7 +51,7 @@ with using_tags(["tag_1", "tag_2"]):
 ## Combined (using_attributes)
 
 ```python
-from openinference.instrumentation import using_attributes
+from phoenix.otel import using_attributes
 
 with using_attributes(
     session_id="my-session-id",
@@ -79,6 +79,8 @@ span.set_attribute("session.id", "session_456")
 All context managers can be used as decorators:
 
 ```python
+from phoenix.otel import using_session, using_user, using_metadata
+
 @using_session(session_id="my-session-id")
 @using_user("my-user-id")
 @using_metadata({"env": "prod"})

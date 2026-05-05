@@ -42,6 +42,14 @@ export function restoreManifestFromMaterializedFiles(pluginPath) {
 
   let changed = false;
   for (const [field, spec] of Object.entries(MATERIALIZED_SPECS)) {
+    if (Array.isArray(plugin[field])) {
+      const sortedEntries = sortPluginEntries(plugin[field]);
+      if (!arraysEqual(plugin[field], sortedEntries)) {
+        plugin[field] = sortedEntries;
+        changed = true;
+      }
+    }
+
     const materializedPath = path.join(pluginPath, spec.path);
     if (!fs.existsSync(materializedPath) || !fs.statSync(materializedPath).isDirectory()) {
       continue;
@@ -132,6 +140,10 @@ function arraysEqual(left, right) {
   return left.every((value, index) => value === right[index]);
 }
 
+function sortPluginEntries(entries) {
+  return [...entries].sort((left, right) => left.localeCompare(right));
+}
+
 function toPosixPath(filePath) {
   return filePath.split(path.sep).join("/");
 }
@@ -165,7 +177,7 @@ function main() {
   } else {
     console.log(`✅ Removed ${total} materialized file(s) from plugins.`);
     if (manifestsUpdated > 0) {
-      console.log(`✅ Updated ${manifestsUpdated} plugin manifest(s) with folder trailing slashes.`);
+      console.log(`✅ Updated ${manifestsUpdated} plugin manifest(s) to restore and normalize spec entries.`);
     }
   }
 }
