@@ -29,8 +29,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install AGT CLI
-        run: pip install --quiet 'agent-governance-toolkit==3.3.0'
+      - name: Fetch AGT check scripts
+        env:
+          AGT_REF: v3.3.0
+        run: |
+          mkdir -p /tmp/agt
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/contributor_check.py" \
+            -o /tmp/agt/contributor_check.py
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/credential_audit.py" \
+            -o /tmp/agt/credential_audit.py
 
       - name: Determine author
         id: author
@@ -50,21 +57,36 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          agt-contributor-check \
+          python3 /tmp/agt/contributor_check.py \
             --username "${{ steps.author.outputs.username }}" \
+            --repo "${{ github.repository }}" \
             --json > /tmp/profile.json 2>/tmp/profile.log
+          status=$?
           set -e
+          if [ "$status" -ne 0 ] && [ ! -s /tmp/profile.json ]; then
+            echo "::warning::Profile check failed"
+            if [ -s /tmp/profile.log ]; then
+              sed -n '1,120p' /tmp/profile.log
+            fi
+          fi
 
       - name: Run credential audit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          agt-credential-audit \
+          python3 /tmp/agt/credential_audit.py \
             --username "${{ steps.author.outputs.username }}" \
             --repo "${{ github.repository }}" \
             --json > /tmp/cred.json 2>/tmp/cred.log
+          status=$?
           set -e
+          if [ "$status" -ne 0 ] && [ ! -s /tmp/cred.json ]; then
+            echo "::warning::Credential audit failed"
+            if [ -s /tmp/cred.log ]; then
+              sed -n '1,120p' /tmp/cred.log
+            fi
+          fi
 
       - name: Resolve check risks
         id: results
