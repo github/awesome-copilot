@@ -3,7 +3,7 @@ title: 'Agents and Subagents'
 description: 'Learn how delegated subagents differ from primary agents, when to use them, and how to launch them in VS Code and Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-02
+lastUpdated: 2026-05-04
 estimatedReadingTime: '9 minutes'
 tags:
   - agents
@@ -123,6 +123,8 @@ For non-interactive execution:
 copilot -p "/fleet Update the auth docs, refactor the auth service, and add related tests." --no-ask-user
 ```
 
+> **Prompt mode and repo hooks (v1.0.40+)**: When using `copilot -p "..."` (prompt mode), repository hooks are disabled by default for security. If your `/fleet` workflow relies on hooks (e.g., auto-formatting or lint checks after edits), opt in by setting `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` before running. See [Automating with Hooks](../automating-with-hooks/) for details.
+
 The important behavior is different from a single chat turn:
 
 - the orchestrator plans work items first
@@ -145,6 +147,8 @@ Run parallel subagents for different lenses - correctness, security, code qualit
 ### Research, then act
 
 Use one subagent to gather facts and another to implement with those facts. This pattern is especially helpful when you want the main thread to stay free of exploratory noise.
+
+The built-in **`/research`** command uses this orchestrator/subagent model automatically (v1.0.40+): it spawns an orchestrator that breaks the topic into research threads, runs them in parallel as subagents, and synthesizes the findings into a structured report. This means you get deeper and more reliable results than a single-turn query provides — without having to set up the multi-agent pattern yourself.
 
 ## Repository examples you can inspect
 

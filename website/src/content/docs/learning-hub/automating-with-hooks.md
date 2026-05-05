@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-28
+lastUpdated: 2026-05-04
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -272,6 +272,12 @@ exit 1     # deny (let the user decide interactively)
 ```
 
 > **Security note**: Use `PermissionRequest` hooks carefully. Blanket auto-approval in non-CI environments removes an important safety check. Scope the auto-approval logic precisely (e.g., only in CI, only for specific tools).
+
+> **Prompt mode security (v1.0.40+)**: When running the CLI in **prompt mode** (`copilot -p "..."`) — the non-interactive mode commonly used in CI pipelines — repo hooks are **disabled by default** for security. To opt in to repo hooks in prompt mode, set the environment variable `GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true` before running the command:
+> ```bash
+> GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true copilot -p "..." --no-ask-user
+> ```
+> This is a secure-by-default change: it prevents untrusted repository hooks from firing silently when a user runs a quick prompt command in an unfamiliar repository. Similarly, workspace MCP servers are disabled in prompt mode by default; opt in with `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`.
 
 ### Handling Tool Failures with postToolUseFailure
 

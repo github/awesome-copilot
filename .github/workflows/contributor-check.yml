@@ -29,8 +29,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install AGT CLI
-        run: pip install --quiet 'agent-governance-toolkit==3.3.0'
+      - name: Fetch AGT check scripts
+        env:
+          AGT_REF: v3.4.0
+        run: |
+          mkdir -p /tmp/agt
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/contributor_check.py" \
+            -o /tmp/agt/contributor_check.py
+          curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/credential_audit.py" \
+            -o /tmp/agt/credential_audit.py
 
       - name: Determine author
         id: author
@@ -46,31 +53,112 @@ jobs:
           fi
 
       - name: Run profile check
-        id: profile
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          agt-contributor-check \
+          python3 /tmp/agt/contributor_check.py \
             --username "${{ steps.author.outputs.username }}" \
+            --repo "${{ github.repository }}" \
             --json > /tmp/profile.json 2>/tmp/profile.log
+          status=$?
           set -e
-          risk=$(jq -r '.risk // "UNKNOWN"' /tmp/profile.json 2>/dev/null || echo "UNKNOWN")
-          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+          if [ "$status" -ne 0 ] && [ ! -s /tmp/profile.json ]; then
+            echo "::warning::Profile check failed"
+            if [ -s /tmp/profile.log ]; then
+              sed -n '1,120p' /tmp/profile.log
+            fi
+          fi
 
       - name: Run credential audit
-        id: credential
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set +e
-          agt-credential-audit \
+          python3 /tmp/agt/credential_audit.py \
             --username "${{ steps.author.outputs.username }}" \
             --repo "${{ github.repository }}" \
             --json > /tmp/cred.json 2>/tmp/cred.log
+          status=$?
           set -e
-          risk=$(jq -r '.risk // "UNKNOWN"' /tmp/cred.json 2>/dev/null || echo "UNKNOWN")
-          echo "risk=$risk" >> "$GITHUB_OUTPUT"
+          if [ "$status" -ne 0 ] && [ ! -s /tmp/cred.json ]; then
+            echo "::warning::Credential audit failed"
+            if [ -s /tmp/cred.log ]; then
+              sed -n '1,120p' /tmp/cred.log
+            fi
+          fi
+
+      - name: Dump check outputs
+        if: always()
+        run: |
+          dump_json() {
+            label="$1"
+            file="$2"
+            log_file="$3"
+
+            echo "::group::${label} JSON"
+            if [ -s "$file" ]; then
+              if jq . "$file"; then
+                :
+              else
+                cat "$file"
+              fi
+            else
+              echo "<missing>"
+            fi
+            echo "::endgroup::"
+
+            if [ -s "$log_file" ]; then
+              echo "::group::${label} stderr"
+              sed -n '1,120p' "$log_file"
+              echo "::endgroup::"
+            fi
+          }
+
+          dump_json "Profile check" /tmp/profile.json /tmp/profile.log
+          dump_json "Credential audit" /tmp/cred.json /tmp/cred.log
+
+      - name: Resolve check risks
+        id: results
+        run: |
+          extract_risk() {
+            file="$1"
+            fallback="$2"
+
+            if [ ! -s "$file" ]; then
+              echo "$fallback"
+              return
+            fi
+
+            risk=$(
+              jq -r '
+                [
+                  .risk,
+                  .overall_risk,
+                  .overallRisk,
+                  .result.risk,
+                  .result.overall_risk,
+                  .result.overallRisk
+                ]
+                | map(select(. != null and . != ""))
+                | .[0] // empty
+              ' "$file" 2>/dev/null \
+                | tr "[:lower:]" "[:upper:]" \
+                | tr -d "\r"
+            )
+
+            case "$risk" in
+              HIGH|MEDIUM|LOW|NONE|UNKNOWN) echo "$risk" ;;
+              "") echo "$fallback" ;;
+              *) echo "$fallback" ;;
+            esac
+          }
+
+          profile_risk=$(extract_risk /tmp/profile.json UNKNOWN)
+          credential_risk=$(extract_risk /tmp/cred.json UNKNOWN)
+
+          echo "profile=$profile_risk" >> "$GITHUB_OUTPUT"
+          echo "credential=$credential_risk" >> "$GITHUB_OUTPUT"
 
       - name: Compute overall risk
         id: overall
@@ -78,15 +166,21 @@ jobs:
           risk_to_num() {
             case "$1" in
               HIGH) echo 3 ;;
-              MEDIUM|UNKNOWN) echo 2 ;;
-              LOW) echo 1 ;;
-              *) echo 2 ;;
+              MEDIUM) echo 2 ;;
+              LOW|NONE) echo 1 ;;
+              UNKNOWN|"") echo 0 ;;
+              *) echo 0 ;;
             esac
           }
-          p=$(risk_to_num "${{ steps.profile.outputs.risk }}")
-          c=$(risk_to_num "${{ steps.credential.outputs.risk }}")
+          p=$(risk_to_num "${{ steps.results.outputs.profile }}")
+          c=$(risk_to_num "${{ steps.results.outputs.credential }}")
           max=$p; [ "$c" -gt "$max" ] && max=$c
-          case "$max" in 3) r="HIGH" ;; 2) r="MEDIUM" ;; 1) r="LOW" ;; *) r="MEDIUM" ;; esac
+          case "$max" in
+            3) r="HIGH" ;;
+            2) r="MEDIUM" ;;
+            1) r="LOW" ;;
+            *) r="UNKNOWN" ;;
+          esac
           echo "risk=$r" >> "$GITHUB_OUTPUT"
 
       - name: Comment on MEDIUM or HIGH risk
@@ -97,8 +191,8 @@ jobs:
           number="${{ steps.author.outputs.number }}"
           type="${{ steps.author.outputs.type }}"
           risk="${{ steps.overall.outputs.risk }}"
-          profile="${{ steps.profile.outputs.risk }}"
-          cred="${{ steps.credential.outputs.risk }}"
+          profile="${{ steps.results.outputs.profile }}"
+          cred="${{ steps.results.outputs.credential }}"
 
           if [ "$risk" = "HIGH" ]; then icon="🔴"; else icon="🟡"; fi
 
@@ -151,7 +245,7 @@ jobs:
             echo "## $icon Contributor Check: \`${{ steps.author.outputs.username }}\`"
             echo "| Check | Risk |"
             echo "|-------|------|"
-            echo "| Profile | ${{ steps.profile.outputs.risk }} |"
-            echo "| Credential | ${{ steps.credential.outputs.risk }} |"
+            echo "| Profile | ${{ steps.results.outputs.profile }} |"
+            echo "| Credential | ${{ steps.results.outputs.credential }} |"
             echo "| **Overall** | **$risk** |"
           } >> "$GITHUB_STEP_SUMMARY"
