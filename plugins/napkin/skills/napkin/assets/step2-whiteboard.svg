@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480">
+  <defs>
+    <linearGradient id="overlayBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="white"/>
+      <stop offset="100%" stop-color="#F8FAFB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="480" rx="12" fill="#F8FAFB"/>
+
+  <!-- Step indicator -->
+  <circle cx="46" cy="28" r="16" fill="#0D9488"/>
+  <text x="46" y="33" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="bold" fill="white">2</text>
+  <text x="72" y="33" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="bold" fill="#334155">The whiteboard opens in your browser</text>
+
+  <!-- Browser Window -->
+  <g transform="translate(30, 52)">
+    <!-- Browser outer frame -->
+    <rect width="740" height="400" rx="10" fill="white" stroke="#D1D5DB" stroke-width="1.5"/>
+
+    <!-- Browser chrome -->
+    <rect width="740" height="38" rx="10" fill="#F1F5F9"/>
+    <rect x="0" y="28" width="740" height="10" fill="#F1F5F9"/>
+    <!-- Window buttons -->
+    <circle cx="18" cy="19" r="5.5" fill="#FF5F57"/>
+    <circle cx="36" cy="19" r="5.5" fill="#FFBD2E"/>
+    <circle cx="54" cy="19" r="5.5" fill="#28C840"/>
+    <!-- Address bar -->
+    <rect x="80" y="8" width="580" height="22" rx="6" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="96" y="23" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#94A3B8">file:///Users/.../napkin.html</text>
+    <!-- Lock icon substitute -->
+    <circle cx="90" cy="19" r="3" fill="none" stroke="#94A3B8" stroke-width="1"/>
+
+    <!-- Whiteboard area -->
+    <rect x="1" y="38" width="738" height="361" fill="white" rx="0"/>
+
+    <!-- Toolbar -->
+    <rect x="120" y="50" width="500" height="40" rx="20" fill="white" stroke="#E2E8F0" stroke-width="1.5"/>
+    <!-- Tool buttons -->
+    <!-- Pen -->
+    <g transform="translate(155, 58)">
+      <rect width="60" height="24" rx="12" fill="#F1F5F9"/>
+      <line x1="16" y1="18" x2="26" y2="6" stroke="#64748B" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="16" cy="18" r="2" fill="#64748B"/>
+      <text x="34" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748B">Pen</text>
+    </g>
+    <!-- Shapes -->
+    <g transform="translate(230, 58)">
+      <rect width="76" height="24" rx="12" fill="#F1F5F9"/>
+      <rect x="10" y="6" width="12" height="12" rx="2" fill="none" stroke="#64748B" stroke-width="1.5"/>
+      <text x="30" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748B">Shapes</text>
+    </g>
+    <!-- Arrow -->
+    <g transform="translate(320, 58)">
+      <rect width="70" height="24" rx="12" fill="#F1F5F9"/>
+      <line x1="12" y1="16" x2="24" y2="8" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
+      <polygon points="22,5 28,8 22,11" fill="#64748B"/>
+      <text x="34" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748B">Arrow</text>
+    </g>
+    <!-- Sticky Note -->
+    <g transform="translate(404, 58)">
+      <rect width="80" height="24" rx="12" fill="#F1F5F9"/>
+      <rect x="10" y="6" width="12" height="12" rx="1" fill="#FEF3C7" stroke="#F59E0B" stroke-width="0.8"/>
+      <text x="28" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748B">Sticky Note</text>
+    </g>
+    <!-- Eraser -->
+    <g transform="translate(498, 58)">
+      <rect width="70" height="24" rx="12" fill="#F1F5F9"/>
+      <rect x="10" y="8" width="14" height="10" rx="2" fill="none" stroke="#64748B" stroke-width="1.5"/>
+      <text x="30" y="16" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#64748B">Eraser</text>
+    </g>
+
+    <!-- Share with Copilot button -->
+    <rect x="540" y="356" width="180" height="36" rx="18" fill="#0D9488"/>
+    <text x="582" y="378" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="white" font-weight="bold">Share with Copilot</text>
+
+    <!-- Subtle grid dots on canvas -->
+    <g fill="#F1F5F9" opacity="0.8">
+      <circle cx="100" cy="140" r="1.5"/>
+      <circle cx="160" cy="140" r="1.5"/>
+      <circle cx="220" cy="140" r="1.5"/>
+      <circle cx="280" cy="140" r="1.5"/>
+      <circle cx="340" cy="140" r="1.5"/>
+      <circle cx="400" cy="140" r="1.5"/>
+      <circle cx="460" cy="140" r="1.5"/>
+      <circle cx="520" cy="140" r="1.5"/>
+      <circle cx="580" cy="140" r="1.5"/>
+      <circle cx="640" cy="140" r="1.5"/>
+      <circle cx="100" cy="200" r="1.5"/>
+      <circle cx="160" cy="200" r="1.5"/>
+      <circle cx="220" cy="200" r="1.5"/>
+      <circle cx="280" cy="200" r="1.5"/>
+      <circle cx="340" cy="200" r="1.5"/>
+      <circle cx="400" cy="200" r="1.5"/>
+      <circle cx="460" cy="200" r="1.5"/>
+      <circle cx="520" cy="200" r="1.5"/>
+      <circle cx="580" cy="200" r="1.5"/>
+      <circle cx="640" cy="200" r="1.5"/>
+      <circle cx="100" cy="260" r="1.5"/>
+      <circle cx="160" cy="260" r="1.5"/>
+      <circle cx="220" cy="260" r="1.5"/>
+      <circle cx="280" cy="260" r="1.5"/>
+      <circle cx="340" cy="260" r="1.5"/>
+      <circle cx="400" cy="260" r="1.5"/>
+      <circle cx="460" cy="260" r="1.5"/>
+      <circle cx="520" cy="260" r="1.5"/>
+      <circle cx="580" cy="260" r="1.5"/>
+      <circle cx="640" cy="260" r="1.5"/>
+      <circle cx="100" cy="320" r="1.5"/>
+      <circle cx="160" cy="320" r="1.5"/>
+      <circle cx="220" cy="320" r="1.5"/>
+      <circle cx="280" cy="320" r="1.5"/>
+      <circle cx="340" cy="320" r="1.5"/>
+      <circle cx="400" cy="320" r="1.5"/>
+      <circle cx="460" cy="320" r="1.5"/>
+      <circle cx="520" cy="320" r="1.5"/>
+      <circle cx="580" cy="320" r="1.5"/>
+      <circle cx="640" cy="320" r="1.5"/>
+    </g>
+
+    <!-- Onboarding Overlay -->
+    <!-- Semi-transparent backdrop -->
+    <rect x="1" y="38" width="738" height="361" fill="black" opacity="0.15" rx="0"/>
+
+    <!-- Overlay card -->
+    <rect x="195" y="135" width="350" height="200" rx="16" fill="white" stroke="#E2E8F0" stroke-width="1"/>
+
+    <!-- Pencil icon -->
+    <circle cx="370" cy="175" r="22" fill="#F0FDFA"/>
+    <line x1="360" y1="185" x2="380" y2="165" stroke="#0D9488" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="360" cy="185" r="3" fill="#0D9488"/>
+
+    <!-- Welcome text -->
+    <text x="370" y="218" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#1E293B">Welcome to your Napkin!</text>
+    <text x="370" y="244" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#64748B">Sketch your ideas here — draw, write, add sticky notes.</text>
+    <text x="370" y="262" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#64748B">When you're done, click "Share with Copilot"</text>
+    <text x="370" y="280" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#64748B">to send your sketch back to the CLI.</text>
+
+    <!-- Got it button -->
+    <rect x="320" y="296" width="100" height="32" rx="16" fill="#0D9488"/>
+    <text x="370" y="316" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" fill="white">Got it!</text>
+  </g>
+
+  <!-- Callout annotations -->
+  <!-- Toolbar callout -->
+  <rect x="608" y="68" width="90" height="26" rx="6" fill="#0D9488" opacity="0.12"/>
+  <text x="653" y="85" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#0D9488" font-weight="bold">Drawing tools</text>
+  <path d="M608,82 L590,82" fill="none" stroke="#0D9488" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <polygon points="592,79 586,82 592,85" fill="#0D9488"/>
+
+  <!-- Share button callout -->
+  <path d="M726,396 C746,396 756,416 756,436" fill="none" stroke="#0D9488" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <polygon points="753,434 756,442 759,434" fill="#0D9488"/>
+  <rect x="690" y="444" width="104" height="26" rx="6" fill="#0D9488" opacity="0.12"/>
+  <text x="742" y="461" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#0D9488" font-weight="bold">Send to Copilot</text>
+</svg>
