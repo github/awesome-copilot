@@ -77,7 +77,7 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 #### 3.2 Integration Checks
 
 - get_errors (lightweight first)
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per avilable test environment and tools.)
+- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
 - run other tests as needed (e.g., integration tests, end-to-end tests, security scans)
 - Report ALL failures
 
