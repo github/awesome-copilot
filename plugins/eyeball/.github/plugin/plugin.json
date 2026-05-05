@@ -17,6 +17,6 @@
     "visual-verification"
   ],
   "skills": [
-    "./skills/eyeball/"
+    "./skills/eyeball"
   ]
 }
