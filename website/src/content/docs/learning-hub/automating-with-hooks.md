@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-04
+lastUpdated: 2026-05-05
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -277,7 +277,7 @@ exit 1     # deny (let the user decide interactively)
 > ```bash
 > GITHUB_COPILOT_PROMPT_MODE_REPO_HOOKS=true copilot -p "..." --no-ask-user
 > ```
-> This is a secure-by-default change: it prevents untrusted repository hooks from firing silently when a user runs a quick prompt command in an unfamiliar repository. Similarly, workspace MCP servers are disabled in prompt mode by default; opt in with `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`.
+> This is a secure-by-default change: it prevents untrusted repository hooks from firing silently when a user runs a quick prompt command in an unfamiliar repository. Similarly, workspace MCP servers are disabled in prompt mode by default; opt in with `GITHUB_COPILOT_PROMPT_MODE_WORKSPACE_MCP=true`. Extensions follow a mixed model (v1.0.41+): **user-level extensions** (from `~/.copilot/`) load automatically in prompt mode, but **project-level extensions and management tools** are disabled by default — opt in with `GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS=true` to load them.
 
 ### Handling Tool Failures with postToolUseFailure
 
