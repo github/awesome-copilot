@@ -88,6 +88,36 @@ jobs:
             fi
           fi
 
+      - name: Dump check outputs
+        if: always()
+        run: |
+          dump_json() {
+            label="$1"
+            file="$2"
+            log_file="$3"
+
+            echo "::group::${label} JSON"
+            if [ -s "$file" ]; then
+              if jq . "$file"; then
+                :
+              else
+                cat "$file"
+              fi
+            else
+              echo "<missing>"
+            fi
+            echo "::endgroup::"
+
+            if [ -s "$log_file" ]; then
+              echo "::group::${label} stderr"
+              sed -n '1,120p' "$log_file"
+              echo "::endgroup::"
+            fi
+          }
+
+          dump_json "Profile check" /tmp/profile.json /tmp/profile.log
+          dump_json "Credential audit" /tmp/cred.json /tmp/cred.log
+
       - name: Resolve check risks
         id: results
         run: |
