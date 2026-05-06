@@ -100,9 +100,12 @@ export default function pagefindResources(): AstroIntegration {
             const typePage = TYPE_PAGES[record.type];
             if (!typePage) continue;
 
-            const url = `${base}${typePage.slice(1)}#file=${encodeURIComponent(
-              record.path
-            )}`;
+            // Tools link to an anchor on the tools page (no file modal); all other
+            // resource types link with a #file= hash that opens the file modal.
+            const url =
+              record.type === "tool"
+                ? `${base}${typePage.slice(1)}#${record.id}`
+                : `${base}${typePage.slice(1)}#file=${encodeURIComponent(record.path)}`;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({

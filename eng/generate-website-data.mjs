@@ -669,7 +669,8 @@ function generateSearchIndex(
   hooks,
   workflows,
   skills,
-  plugins
+  plugins,
+  tools
 ) {
   const index = [];
 
@@ -749,6 +750,18 @@ function generateSearchIndex(
       tags: plugin.tags,
       lastUpdated: plugin.lastUpdated,
       searchText: plugin.searchText,
+    });
+  }
+
+  for (const tool of tools) {
+    index.push({
+      type: "tool",
+      id: tool.id,
+      title: tool.name,
+      description: tool.description,
+      path: tool.id,
+      tags: tool.tags,
+      searchText: `${tool.name} ${tool.description} ${tool.category} ${tool.tags.join(" ")}`.toLowerCase(),
     });
   }
 
@@ -956,7 +969,8 @@ async function main() {
     hooks,
     workflows,
     skills,
-    plugins
+    plugins,
+    tools
   );
   console.log(`✓ Generated search index with ${searchIndex.length} items`);
 
