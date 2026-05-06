@@ -2,9 +2,9 @@ name: Contributor Reputation Check
 
 on:
   pull_request_target:
-    types: [opened]
+    types: [opened, synchronize, reopened, edited, ready_for_review]
   issues:
-    types: [opened]
+    types: [opened, reopened, edited]
 
 permissions:
   contents: read
