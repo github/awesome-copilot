@@ -754,14 +754,15 @@ function generateSearchIndex(
   }
 
   for (const tool of tools) {
+    const tags = tool.tags || [];
     index.push({
       type: "tool",
       id: tool.id,
       title: tool.name,
       description: tool.description,
       path: tool.id,
-      tags: tool.tags,
-      searchText: `${tool.name} ${tool.description} ${tool.category} ${tool.tags.join(" ")}`.toLowerCase(),
+      tags,
+      searchText: `${tool.name} ${tool.description} ${tool.category} ${tags.join(" ")}`.toLowerCase(),
     });
   }
 
