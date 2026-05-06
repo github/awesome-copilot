@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Workflow Efficiency"
+  short_description: "Trim CI and Codespaces waste on GitHub"
+  default_prompt: "Use $github-actions-codespaces-efficiency to audit this repo for GitHub Actions and Codespaces waste, then propose the highest-value fixes."
