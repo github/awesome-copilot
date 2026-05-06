@@ -1,4 +1,26 @@
 {
+  "name": "gem-team",
+  "version": "1.16.0",
+  "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
+  "author": {
+    "name": "mubaidr",
+    "email": "mubaidr@gmail.com",
+    "url": "https://github.com/mubaidr"
+  },
+  "license": "Apache-2.0",
+  "repository": "https://github.com/mubaidr/gem-team",
+  "keywords": [
+    "multi-agent",
+    "orchestration",
+    "tdd",
+    "testing",
+    "e2e",
+    "devops",
+    "security-audit",
+    "code-review",
+    "prd",
+    "mobile"
+  ],
   "agents": [
     "./agents/gem-browser-tester.md",
     "./agents/gem-code-simplifier.md",
@@ -15,27 +37,5 @@
     "./agents/gem-planner.md",
     "./agents/gem-researcher.md",
     "./agents/gem-reviewer.md"
-  ],
-  "author": {
-    "email": "mubaidr@gmail.com",
-    "name": "mubaidr",
-    "url": "https://github.com/mubaidr"
-  },
-  "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-  "keywords": [
-    "multi-agent",
-    "orchestration",
-    "tdd",
-    "testing",
-    "e2e",
-    "devops",
-    "security-audit",
-    "code-review",
-    "prd",
-    "mobile"
-  ],
-  "license": "Apache-2.0",
-  "name": "gem-team",
-  "repository": "https://github.com/mubaidr/gem-team",
-  "version": "1.13.0"
+  ]
 }

@@ -10,6 +10,7 @@ on:
     types: [completed]
 
 permissions:
+  issues: write
   pull-requests: write
   actions: read # needed to download artifacts
 
@@ -30,14 +31,75 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const managedLabels = {
+              'skill-check-warning': {
+                color: 'FBCA04',
+                description: 'Skill validator reported warnings'
+              },
+              'skill-check-error': {
+                color: 'B60205',
+                description: 'Skill validator reported errors'
+              }
+            };
 
-            const total = parseInt(fs.readFileSync('total.txt', 'utf8').trim(), 10);
-            if (total === 0) {
-              console.log('No skills/agents were checked — skipping comment.');
-              return;
+            async function ensureLabel(name, { color, description }) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color,
+                  description
+                });
+              } catch (error) {
+                if (error.status !== 422) {
+                  throw error;
+                }
+              }
+            }
+
+            async function syncManagedLabels(issueNumber, desiredLabels) {
+              await Promise.all(
+                Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config))
+              );
+
+              const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100
+              });
+
+              const currentManagedLabels = currentLabels
+                .map((label) => label.name)
+                .filter((name) => Object.prototype.hasOwnProperty.call(managedLabels, name));
+
+              const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
+              const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
+
+              if (labelsToAdd.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: labelsToAdd
+                });
+              }
+
+              for (const name of labelsToRemove) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name
+                });
+              }
+
+              console.log(`Managed skill check labels: ${[...desiredLabels].sort().join(', ') || 'none'}`);
             }
 
             const prNumber = parseInt(fs.readFileSync('pr-number.txt', 'utf8').trim(), 10);
+            const total = parseInt(fs.readFileSync('total.txt', 'utf8').trim(), 10);
             const exitCode = fs.readFileSync('exit-code.txt', 'utf8').trim();
             const skillCount = parseInt(fs.readFileSync('skill-count.txt', 'utf8').trim(), 10);
             const agentCount = parseInt(fs.readFileSync('agent-count.txt', 'utf8').trim(), 10);
@@ -52,6 +114,22 @@ jobs:
             const errorCount = (output.match(/❌/g) || []).length;
             const warningCount = (output.match(/⚠/g) || []).length;
             const advisoryCount = (output.match(/ℹ/g) || []).length;
+            const desiredLabels = new Set();
+
+            if (warningCount > 0) {
+              desiredLabels.add('skill-check-warning');
+            }
+
+            if (exitCode !== '0' || errorCount > 0) {
+              desiredLabels.add('skill-check-error');
+            }
+
+            await syncManagedLabels(prNumber, desiredLabels);
+
+            if (total === 0) {
+              console.log('No skills/agents were checked — skipping comment.');
+              return;
+            }
 
             let verdict = '✅ All checks passed';
             if (exitCode !== '0' || errorCount > 0) {
