@@ -183,7 +183,7 @@ export function renderToolsHtml(
           : "";
 
       return `
-      <div class="tool-card">
+      <div class="tool-card" id="${escapeHtml(tool.id)}">
         <div class="tool-header">
           <h2>${escapeHtml(tool.name)}</h2>
           <div class="tool-badges">
