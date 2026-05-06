@@ -20,9 +20,9 @@
     "async-await"
   ],
   "agents": [
-    "./agents/swift-mcp-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/swift-mcp-server-generator/"
+    "./skills/swift-mcp-server-generator"
   ]
 }

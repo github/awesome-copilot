@@ -14,10 +14,10 @@
     "azure"
   ],
   "agents": [
-    "./agents/azure-principal-architect.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/azure-resource-health-diagnose/",
-    "./skills/multi-stage-dockerfile/"
+    "./skills/azure-resource-health-diagnose",
+    "./skills/multi-stage-dockerfile"
   ]
 }
