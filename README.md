@@ -3,6 +3,17 @@
 
 A community-created collection of custom agents, instructions, skills, hooks, workflows, and plugins to supercharge your GitHub Copilot experience.
 
+
+## OpenClaw Monitor
+
+⭐ **Real-time AI Agent Monitoring Dashboard for OpenClaw** — Monitor Gateway status, session metrics, token usage & trends in real-time.
+
+![Dashboard](https://raw.githubusercontent.com/flik2002/openclaw-monitor/main/Openclaw%20Monitor.jpg)
+
+### Links
+- GitHub: https://github.com/flik2002/openclaw-monitor
+
+
 > [!TIP]
 > **Explore the full collection on the website →** [awesome-copilot.github.com](https://awesome-copilot.github.com)
 >
