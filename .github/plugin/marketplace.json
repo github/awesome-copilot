@@ -284,9 +284,31 @@
     },
     {
       "name": "gem-team",
-      "source": "gem-team",
+      "version": "1.16.0",
       "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.16.0"
+      "author": {
+        "name": "mubaidr",
+        "email": "mubaidr@gmail.com",
+        "url": "https://github.com/mubaidr"
+      },
+      "license": "Apache-2.0",
+      "repository": "https://github.com/mubaidr/gem-team",
+      "keywords": [
+        "multi-agent",
+        "orchestration",
+        "tdd",
+        "testing",
+        "e2e",
+        "devops",
+        "security-audit",
+        "code-review",
+        "prd",
+        "mobile"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "mubaidr/gem-team"
+      }
     },
     {
       "name": "go-mcp-development",
