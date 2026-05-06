@@ -5,13 +5,14 @@ import { getEmbeddedData as getEmbeddedPageData } from "./embedded-data";
  */
 
 const REPO_BASE_URL =
-  "https://raw.githubusercontent.com/github/awesome-copilot/main";
-const REPO_GITHUB_URL = "https://github.com/github/awesome-copilot/blob/main";
+  "https://raw.githubusercontent.com/ENEL-GICT-PTG/awesome-copilot/main";
+const REPO_GITHUB_URL =
+  "https://github.com/ENEL-GICT-PTG/awesome-copilot/blob/main";
 
 /**
  * The GitHub repo identifier used for `gh skills install` commands
  */
-export const REPO_IDENTIFIER = "github/awesome-copilot";
+export const REPO_IDENTIFIER = "ENEL-GICT-PTG/awesome-copilot";
 
 // VS Code install URL configurations
 const VSCODE_INSTALL_CONFIG: Record<
