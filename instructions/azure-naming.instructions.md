@@ -224,7 +224,7 @@ cosmos-navigator-prod
 psql-navigator-prod-001
 
 # Storage / Security
-stnavigatordata001        # no hyphens!
+stnavigatorprod001        # no hyphens!
 kv-navigator-prod-001
 id-navigator-prod-001
 
