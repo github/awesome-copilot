@@ -629,7 +629,7 @@ function generateSkillsSection(skillsDir) {
 
     content += `| [${
       skill.name
-    }](${link})<br />\`gh skills install github/awesome-copilot ${
+    }](${link})<br />\`gh skills install ENEL-GICT-PTG/awesome-copilot ${
       skill.folder
     }\` | ${formatTableCell(skill.description)} | ${assetsList} |\n`;
   }
