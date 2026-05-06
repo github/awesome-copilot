@@ -391,7 +391,7 @@ For more information on effective code reviews and GitHub Copilot customization:
 
 - [GitHub Copilot Prompt Engineering](https://docs.github.com/en/copilot/concepts/prompting/prompt-engineering)
 - [GitHub Copilot Custom Instructions](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
-- [Awesome GitHub Copilot Repository](https://github.com/github/awesome-copilot)
+- [ENEL Awesome GitHub Copilot Repository](https://github.com/github/awesome-copilot)
 - [GitHub Code Review Guidelines](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests)
 - [Google Engineering Practices - Code Review](https://google.github.io/eng-practices/review/)
 - [OWASP Security Guidelines](https://owasp.org/)

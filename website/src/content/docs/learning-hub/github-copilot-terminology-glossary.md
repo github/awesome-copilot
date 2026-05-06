@@ -14,7 +14,7 @@ relatedArticles:
   - ./copilot-configuration-basics.md
 ---
 
-New to GitHub Copilot customization? This glossary defines common terms you'll encounter while exploring agents, skills, instructions, and related concepts in the Awesome GitHub Copilot ecosystem.
+New to GitHub Copilot customization? This glossary defines common terms you'll encounter while exploring agents, skills, instructions, and related concepts in the ENEL Awesome GitHub Copilot ecosystem.
 
 Use this page as a quick reference when reading articles in the Learning Hub or browsing the repository.
 
@@ -62,7 +62,7 @@ Previously, "chat mode" was an alternative term for [Agent](#agent) that describ
 
 ### Collection
 
-**Note**: Collections are a concept specific to the Awesome GitHub Copilot repository and are not part of standard GitHub Copilot terminology.
+**Note**: Collections are a concept specific to the ENEL Awesome GitHub Copilot repository and are not part of standard GitHub Copilot terminology.
 
 A curated grouping of related skills, instructions, and agents organized around a specific theme or workflow. Collections are defined in YAML files (`*.collection.yml`) in the `collections/` directory and help users discover related customizations together.
 
@@ -74,7 +74,7 @@ A curated grouping of related skills, instructions, and agents organized around 
 
 ### Custom Agent
 
-See [Agent](#agent). The term "custom" emphasizes that these are user-defined configurations rather than GitHub Copilot's default behavior. Custom agents can be created by anyone and shared via repositories like Awesome GitHub Copilot.
+See [Agent](#agent). The term "custom" emphasizes that these are user-defined configurations rather than GitHub Copilot's default behavior. Custom agents can be created by anyone and shared via repositories like ENEL Awesome GitHub Copilot.
 
 ---
 

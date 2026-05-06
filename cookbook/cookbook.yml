@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../.schemas/cookbook.schema.json
-# Cookbook manifest for the Awesome GitHub Copilot website
+# Cookbook manifest for the ENEL Awesome GitHub Copilot website
 # This file defines the structure of cookbooks and recipes for the Samples page
 
 cookbooks:

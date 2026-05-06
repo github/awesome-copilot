@@ -30,7 +30,7 @@ export const GET: APIRoute = async () => {
   let content = "";
 
   // H1 header (required)
-  content += "# Awesome GitHub Copilot\n\n";
+  content += "# ENEL Awesome GitHub Copilot\n\n";
 
   // Summary blockquote (optional but recommended)
   content +=

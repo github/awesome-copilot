@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=../../.schemas/tools.schema.json
-# Tools data for the Awesome GitHub Copilot website
+# Tools data for the ENEL Awesome GitHub Copilot website
 # Each tool entry provides information for the tools page
 
 tools:
@@ -87,7 +87,7 @@ tools:
       - semantic-search
 
   - id: vscode-extension
-    name: Awesome GitHub Copilot Browser
+    name: ENEL Awesome GitHub Copilot Browser
     description: >-
       A VS Code extension that allows you to browse, preview, and download GitHub Copilot
       customizations from the awesome-copilot repository. Features a tree view for exploring
