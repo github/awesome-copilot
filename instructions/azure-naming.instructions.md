@@ -124,7 +124,7 @@ Always follow these rules when creating, suggesting, or reviewing Azure resource
 
 | Resource | Abbr | Scope | Length | Valid Characters | Example |
 |----------|------|-------|--------|-----------------|---------|
-| Storage account | `st` | global | 3-24 | **Lowercase letters and numbers only — no hyphens** | `stnavigatordata001` |
+| Storage account | `st` | global | 3-24 | **Lowercase letters and numbers only — no hyphens** | `stnavigatorprod001` |
 | Backup vault | `bvault` | resource group | 2-50 | Alphanumerics and hyphens. Start with a letter. | `bvault-navigator-prod-001` |
 
 ### Security
