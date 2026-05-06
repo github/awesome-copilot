@@ -3,7 +3,7 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import pagefindResources from "./src/integrations/pagefind-resources";
 
-const site = "https://awesome-copilot.github.com/";
+const site = "https://enel-gict-ptg.github.io/awesome-copilot/";
 const siteDescription =
   "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience";
 const socialImageUrl = new URL("/images/social-image.png", site).toString();
@@ -11,7 +11,7 @@ const socialImageUrl = new URL("/images/social-image.png", site).toString();
 // https://astro.build/config
 export default defineConfig({
   site,
-  base: "/",
+  base: "/awesome-copilot/",
   output: "static",
   integrations: [
     starlight({

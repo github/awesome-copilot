@@ -8,6 +8,7 @@ env:
   SOURCE_BRANCH: staged
   LEGACY_PUBLISHED_BRANCH: main
   MARKETPLACE_BRANCH: marketplace
+  WEBSITE_DEPLOY_REF: main
 
 concurrency:
   group: publish-distribution-branches
@@ -58,4 +59,9 @@ jobs:
           git add -f plugins/*/agents/ plugins/*/skills/
           git commit -m "chore: publish from ${SOURCE_BRANCH}" --allow-empty
           git push origin --force --atomic HEAD:${LEGACY_PUBLISHED_BRANCH} HEAD:${MARKETPLACE_BRANCH}
+
+      - name: Dispatch website deployment
+        run: gh workflow run deploy-website.yml --ref "${WEBSITE_DEPLOY_REF}"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
