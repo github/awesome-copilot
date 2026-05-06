@@ -24,6 +24,8 @@ Always follow these rules when creating, suggesting, or reviewing Azure resource
 - **Region** — use Azure region short names: `westus`, `eastus2`, `westeurope`, `northeurope`, `uksouth`, `southeastasia`, `australiaeast`, etc.
 - **Instance** — zero-padded number: `001`, `002`
 
+> Some resource types deviate from this pattern (e.g., no hyphens allowed). See [Official Abbreviations and Naming Rules](#official-abbreviations-and-naming-rules) for per-resource patterns and constraints.
+
 **General character rules:**
 - Prefer lowercase letters and hyphens (`-`). No spaces, no underscores unless the resource type requires it.
 - Some resources **do not allow hyphens** — use concatenated lowercase alphanumerics instead (see table).
