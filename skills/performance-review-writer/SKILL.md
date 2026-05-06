@@ -38,8 +38,8 @@ Ask the user (max 3 clarifying questions if not already provided):
 1. **Review type** — self-assessment, peer review, or upward feedback?
 2. **Subject** — who is the review about? (for peer/upward: name and role)
 3. **Review period** — what time range does this cover? (e.g., Jan–Dec 2025, last 6 months)
-4. **Format constraints** — does their company use a specific form, word limit, or rating scale?
-5. **Focus areas** — any themes to emphasise or avoid? (e.g., "I want to highlight the migration project", "I struggled with X but improved")
+
+If format constraints or focus areas are relevant, ask about those during drafting rather than upfront.
 
 If the user provides all of these upfront, proceed directly to Step 2.
 
