@@ -183,21 +183,32 @@ jobs:
           esac
           echo "risk=$r" >> "$GITHUB_OUTPUT"
 
-      - name: Comment on MEDIUM or HIGH risk
-        if: steps.overall.outputs.risk == 'MEDIUM' || steps.overall.outputs.risk == 'HIGH'
+      - name: Sync risk comment
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           number="${{ steps.author.outputs.number }}"
-          type="${{ steps.author.outputs.type }}"
           risk="${{ steps.overall.outputs.risk }}"
           profile="${{ steps.results.outputs.profile }}"
           cred="${{ steps.results.outputs.credential }}"
+          marker="<!-- agt-contributor-check -->"
+          comment_id=$(
+            gh api "repos/${{ github.repository }}/issues/$number/comments" --paginate \
+              --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" \
+              | head -n 1
+          )
+
+          if [ "$risk" != "MEDIUM" ] && [ "$risk" != "HIGH" ]; then
+            if [ -n "$comment_id" ]; then
+              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id"
+            fi
+            exit 0
+          fi
 
           if [ "$risk" = "HIGH" ]; then icon="🔴"; else icon="🟡"; fi
 
           body=$(cat <<EOF
-          <!-- agt-contributor-check -->
+          $marker
           $icon **Contributor Reputation Check: $risk risk**
 
           | Check | Risk |
@@ -211,30 +222,35 @@ jobs:
           EOF
           )
 
-          if [ "$type" = "pr" ]; then
-            gh pr comment "$number" --body "$body"
+          if [ -n "$comment_id" ]; then
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$comment_id" -f body="$body"
           else
-            gh issue comment "$number" --body "$body"
+            gh api --method POST "repos/${{ github.repository }}/issues/$number/comments" -f body="$body"
           fi
 
-      - name: Add risk label
-        if: steps.overall.outputs.risk == 'MEDIUM' || steps.overall.outputs.risk == 'HIGH'
+      - name: Sync risk label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           number="${{ steps.author.outputs.number }}"
-          type="${{ steps.author.outputs.type }}"
           risk="${{ steps.overall.outputs.risk }}"
+
+          for label in needs-review:MEDIUM needs-review:HIGH; do
+            if [ "$label" != "needs-review:$risk" ]; then
+              gh api --method DELETE "repos/${{ github.repository }}/issues/$number/labels/$label" >/dev/null 2>&1 || true
+            fi
+          done
+
+          if [ "$risk" != "MEDIUM" ] && [ "$risk" != "HIGH" ]; then
+            exit 0
+          fi
 
           gh label create "needs-review:$risk" \
             --description "Contributor reputation check flagged $risk risk" \
             --color "FFA500" --force 2>/dev/null || true
 
-          if [ "$type" = "pr" ]; then
-            gh pr edit "$number" --add-label "needs-review:$risk"
-          else
-            gh issue edit "$number" --add-label "needs-review:$risk"
-          fi
+          gh api --method POST "repos/${{ github.repository }}/issues/$number/labels" \
+            -f labels[]="needs-review:$risk" >/dev/null
 
       - name: Job summary
         if: always()
