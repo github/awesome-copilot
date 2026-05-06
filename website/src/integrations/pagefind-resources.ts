@@ -42,14 +42,9 @@ const TYPE_PAGES: Record<string, string> = {
 };
 
 export default function pagefindResources(): AstroIntegration {
-  let siteBase = "/";
-
   return {
     name: "pagefind-resources",
     hooks: {
-      "astro:config:done": ({ config }) => {
-        siteBase = config.base;
-      },
       "astro:build:done": async ({ dir, logger }) => {
         const log = logger.fork("pagefind-resources");
         const now = performance.now();
@@ -92,9 +87,6 @@ export default function pagefindResources(): AstroIntegration {
             records = [];
           }
 
-          // Use the base path from Astro config (e.g. "/")
-          const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
-
           let added = 0;
           for (const record of records) {
             const typePage = TYPE_PAGES[record.type];
@@ -102,10 +94,13 @@ export default function pagefindResources(): AstroIntegration {
 
             // Tools link to an anchor on the tools page (no file modal); all other
             // resource types link with a #file= hash that opens the file modal.
+            // URLs are relative to the site base (no base-path prefix) because
+            // PagefindUI already prepends baseUrl (import.meta.env.BASE_URL) when
+            // it renders result links; including the base here would double it.
             const url =
               record.type === "tool"
-                ? `${base}${typePage.slice(1)}#${record.id}`
-                : `${base}${typePage.slice(1)}#file=${encodeURIComponent(record.path)}`;
+                ? `${typePage.slice(1)}#${record.id}`
+                : `${typePage.slice(1)}#file=${encodeURIComponent(record.path)}`;
             const typeLabel = TYPE_LABELS[record.type] || record.type;
 
             const addResult = await index.addCustomRecord({
