@@ -434,3 +434,58 @@ tools:
       - planning
       - scheduling
       - mcp
+
+  - id: agentsmesh
+    name: AgentsMesh
+    description: >-
+      Universal config sync for AI coding agents. Maintain rules, commands, agents,
+      skills, MCP servers, hooks, and permissions in a single canonical source
+      (.agentsmesh/), then auto-generate native config files for 18+ tools including
+      GitHub Copilot, Claude Code, Cursor, Gemini CLI, Windsurf, Codex CLI, and more.
+      Bidirectional sync lets you import existing configs losslessly and detect drift
+      in CI. Supports both project-level and global (user-level) configuration.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Node.js 20 or higher
+      - npm, pnpm, or yarn
+    links:
+      github: https://github.com/sampleXbro/agentsmesh
+      npm: https://www.npmjs.com/package/agentsmesh
+      documentation: https://samplexbro.github.io/agentsmesh/
+    features:
+      - "🔄 One source, every tool: Write config once in .agentsmesh/, generate native files for 18+ AI coding tools"
+      - "📥 Bidirectional sync: Import existing tool configs losslessly, generate back out with auto-rebased cross-file links"
+      - "🛡️ CI drift detection: agentsmesh check exits non-zero when generated files drift from lock, ideal for CI gates"
+      - "🌐 Global mode: Sync personal AI config to ~/.claude/, ~/.cursor/, and other tool directories across all projects"
+      - "📦 Community packs: Install shared skills, rules, and agents from git repos with deterministic restoration"
+      - "🔌 Plugin system: Extend with new target support via standalone npm packages"
+    configuration:
+      type: bash
+      content: |
+        # Quick start (no install needed)
+        npx agentsmesh init
+
+        # Or install as a dev dependency
+        npm install -D agentsmesh
+
+        # Generate native configs for all targets
+        npx agentsmesh generate
+
+        # Import existing Copilot config into canonical form
+        npx agentsmesh import --from copilot
+
+        # Check for config drift in CI
+        npx agentsmesh check
+    tags:
+      - cli
+      - npm
+      - config-sync
+      - copilot
+      - claude-code
+      - cursor
+      - gemini
+      - ai-agents
+      - rules
+      - mcp
+      - devtools
