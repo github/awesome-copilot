@@ -155,5 +155,22 @@
       "source": "github",
       "repo": "microsoft/What-I-Did-Copilot"
     }
+  },
+  {
+    "name": "git-ape",
+    "description": "Intelligent Azure deployment agent system for GitHub Copilot with guided ARM template generation, security gates, cost analysis, and deployment workflows.",
+    "version": "0.0.1",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/Azure/git-ape"
+    },
+    "homepage": "https://github.com/Azure/git-ape",
+    "keywords": ["azure", "cloud", "infrastructure", "arm-templates", "deployment", "devops", "iac", "security", "cost-estimation", "github-actions"],
+    "license": "MIT",
+    "repository": "https://github.com/Azure/git-ape",
+    "source": {
+      "source": "github",
+      "repo": "Azure/git-ape"
+    }
   }
 ]
