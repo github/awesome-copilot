@@ -289,6 +289,34 @@
       "version": "1.16.0"
     },
     {
+      "name": "git-ape",
+      "description": "Intelligent Azure deployment agent system for GitHub Copilot with guided ARM template generation, security gates, cost analysis, and deployment workflows.",
+      "version": "0.0.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure/git-ape"
+      },
+      "homepage": "https://github.com/Azure/git-ape",
+      "keywords": [
+        "azure",
+        "cloud",
+        "infrastructure",
+        "arm-templates",
+        "deployment",
+        "devops",
+        "iac",
+        "security",
+        "cost-estimation",
+        "github-actions"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/Azure/git-ape",
+      "source": {
+        "source": "github",
+        "repo": "Azure/git-ape"
+      }
+    },
+    {
       "name": "go-mcp-development",
       "source": "go-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
