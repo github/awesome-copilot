@@ -78,6 +78,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "chrome-devtools-mcp",
+      "source": "chrome-devtools-mcp",
+      "description": "Reliable automation, in-depth debugging, and performance analysis in Chrome using Chrome DevTools and Puppeteer",
+      "version": "0.21.0"
+    },
+    {
       "name": "clojure-interactive-programming",
       "source": "clojure-interactive-programming",
       "description": "Tools for REPL-first Clojure workflows featuring Clojure instructions, the interactive programming chat mode and supporting guidance.",
