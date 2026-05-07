@@ -696,7 +696,8 @@ def generate_html(services: list, connections: list, title: str, vnet_info: str 
       <button class="tool-btn" onclick="zoomIn()">+</button>
       <button class="tool-btn" onclick="zoomOut()">&minus;</button>
       <div class="tool-sep"></div>
-      <button class="tool-btn" onclick="resetZoom()">Reset</button>
+      <button class="tool-btn" onclick="textBigger()" title="Bigger text" style="font-size:13px;">A+</button>
+      <button class="tool-btn" onclick="textSmaller()" title="Smaller text" style="font-size:10px;">A&minus;</button>
       <div class="tool-sep"></div>
       <button class="tool-btn" onclick="downloadPNG()" title="Download PNG">&#128247; PNG</button>
     </div>
@@ -704,16 +705,16 @@ def generate_html(services: list, connections: list, title: str, vnet_info: str 
     <svg id="canvas">
       <defs>
         <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#0078D4" opacity="0.5"/>
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.7"/>
         </marker>
         <marker id="arr-data" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#0F9D58" opacity="0.5"/>
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.7"/>
         </marker>
         <marker id="arr-sec" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#E8A000" opacity="0.5"/>
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.7"/>
         </marker>
         <marker id="arr-pe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#5C2D91" opacity="0.5"/>
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.7"/>
         </marker>
         <filter id="shadow">
           <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/>
@@ -745,8 +746,8 @@ const VNET_INFO = {vnet_info_js};
 const HIERARCHY = {hierarchy_js};
 
 // ── Node sizing ──
-const SVC_W = 150, SVC_H = 100;  // service node (icon above, name below)
-const PE_W = 100, PE_H = 70;     // pe node (smaller)
+const SVC_W = 180, SVC_H = 120;  // service node (icon above, name below) — 20% larger
+const PE_W = 120, PE_H = 84;     // pe node (smaller) — 20% larger
 const GAP = 40;
 
 // ── Layout: Category Group Box style ──
@@ -762,10 +763,10 @@ const mainNodes = useRgLayout ? NODES : NODES.filter(n => n.type !== 'pe');
 // Group box layout parameters
 const GROUP_PAD = 24;
 const GROUP_TITLE_H = 28;
-const GROUP_GAP = 50;
+const GROUP_GAP = 60;
 const COLS_PER_GROUP = 3;
-const CELL_W = SVC_W + 70;
-const CELL_H = SVC_H + 70;
+const CELL_W = SVC_W + 100;
+const CELL_H = SVC_H + 90;
 
 function groupDimensions(nodeCount) {{
   const cols = Math.min(nodeCount, COLS_PER_GROUP);
@@ -863,10 +864,10 @@ const fullCatOrder = [...catOrder, ...extraCats];
 const serviceGroups = fullCatOrder.filter(cat => catGroups[cat] && catGroups[cat].length > 0
   && !bottomCategories.includes(cat));
 
-let gx = 60, gy = 140;  // starting position for service groups
+let gx = 60, gy = 140;
 let rowMaxH = 0;
 let rowStartX = 60;
-const MAX_ROW_W = Math.max(1600, serviceGroups.length * 400);  // wider to keep Security alongside AI/Data
+const MAX_ROW_W = Math.max(1600, serviceGroups.length * 400);
 
 serviceGroups.forEach(cat => {{
   const nodes = catGroups[cat];
@@ -1019,6 +1020,7 @@ const _leftMarginBase = groupBoxes.length > 0 ? Math.min(...groupBoxes.map(g => 
 // ── State ──
 let dragging = null, dragOffX = 0, dragOffY = 0;
 let draggingGroup = null, groupDragNodes = [];  // for RG/group box dragging
+let _dragStartX = 0, _dragStartY = 0, _didDrag = false;  // global so renderDiagram rebuilding DOM mid-drag doesn't reset them
 let viewTransform = {{ x: 0, y: 0, scale: 1 }};
 let isPanning = false, panSX = 0, panSY = 0, panSTx = 0, panSTy = 0;
 let _routeCounter = 0;
@@ -1036,13 +1038,23 @@ function selectNode(nodeId) {{
   if (wasSelected) {{ _selectedNodeId = null; return; }}
 
   _selectedNodeId = nodeId;
+  applySelectionHighlight();
+  // Scroll sidebar card into view on initial selection
+  const sCard = document.getElementById('card-' + nodeId);
+  if (sCard) sCard.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }});
+}}
+
+// Re-apply CSS classes for current _selectedNodeId (called after renderDiagram rebuilds DOM)
+function applySelectionHighlight() {{
+  const nodeId = _selectedNodeId;
+  if (!nodeId) return;
 
   // Highlight diagram node
   const svgNode = document.querySelector(`.node[data-id="${{nodeId}}"]`);
   if (svgNode) svgNode.classList.add('selected');
   // Highlight sidebar card
   const card = document.getElementById('card-' + nodeId);
-  if (card) {{ card.classList.add('selected'); card.scrollIntoView({{ behavior: 'smooth', block: 'nearest' }}); }}
+  if (card) card.classList.add('selected');
 
   // Find connected edges (where this node is from or to)
   const connectedNodeIds = new Set([nodeId]);
@@ -1094,6 +1106,22 @@ function renderDiagram() {{
   root.innerHTML = '';
   _routeCounter = 0;  // reset stagger counter each render
 
+  // ── VNet bounds (hoisted so avoidNodes can push detours outside VNet) ──
+  let _vnetBounds = null;
+  if (!useRgLayout) {{
+    const _pg = groupBoxes.filter(gb => !gb.isBottom);
+    const _hasPriv = NODES.some(n => n.private && n.type !== 'pe');
+    const _hasVNI = VNET_INFO && VNET_INFO.length > 0;
+    const _hasPe = NODES.some(n => n.type === 'pe');
+    if (_pg.length > 0 && (_hasPriv || _hasVNI || _hasPe)) {{
+      const vx = Math.min(..._pg.map(g => g.x)) - 16;
+      const vy = Math.min(..._pg.map(g => g.y)) - 36;
+      const vR = Math.max(..._pg.map(g => g.x + g.w)) + 16;
+      const vB = Math.max(..._pg.map(g => g.y + g.h)) + 16;
+      _vnetBounds = {{ x: vx, y: vy, w: vR - vx, h: vB - vy }};
+    }}
+  }}
+
   // ── Draw VNet boundary (only in category-based layout, not RG layout) ──
   if (!useRgLayout) {{
   const privateGroups = groupBoxes.filter(gb => !gb.isBottom);
@@ -1135,6 +1163,7 @@ function renderDiagram() {{
   }} // end if(!useRgLayout) for VNet boundary
 
   // ── Draw group boxes (category or RG — depends on layout mode) ──
+  const _groupLabelElements = []; // store labels to re-render on top of edges
   groupBoxes.forEach(gb => {{
     if (gb.isPE) {{
       // PE group — always draw with dashed style
@@ -1142,7 +1171,7 @@ function renderDiagram() {{
       gr.setAttribute('x', gb.x); gr.setAttribute('y', gb.y);
       gr.setAttribute('width', gb.w); gr.setAttribute('height', gb.h);
       gr.setAttribute('rx', '8'); gr.setAttribute('fill', '#f3eef9');
-      gr.setAttribute('stroke', '#d4b8ff'); gr.setAttribute('stroke-width', '1');
+      gr.setAttribute('stroke', '#c8b8e8'); gr.setAttribute('stroke-width', '1.2');
       gr.setAttribute('stroke-dasharray', '4,4');
       root.appendChild(gr);
     }} else {{
@@ -1152,8 +1181,8 @@ function renderDiagram() {{
       gr.setAttribute('width', gb.w); gr.setAttribute('height', gb.h);
       gr.setAttribute('rx', '8');
       gr.setAttribute('fill', gb.isRG ? '#fafafa' : 'white');
-      gr.setAttribute('stroke', gb.isRG ? gb.color : '#e1dfdd');
-      gr.setAttribute('stroke-width', gb.isRG ? '1.5' : '1');
+      gr.setAttribute('stroke', gb.isRG ? gb.color : '#c8c6c4');
+      gr.setAttribute('stroke-width', gb.isRG ? '1.5' : '1.2');
       if (gb.isRG) gr.setAttribute('stroke-dasharray', '6,3');
       root.appendChild(gr);
     }}
@@ -1182,10 +1211,11 @@ function renderDiagram() {{
     // Group label — RG uses 📁, PE uses "Private Endpoints", category uses category name
     const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     label.setAttribute('x', gb.x + 12); label.setAttribute('y', gb.y + 18);
-    label.setAttribute('font-size', '11'); label.setAttribute('font-weight', '600');
+    label.setAttribute('font-size', '12'); label.setAttribute('font-weight', '600');
     label.setAttribute('fill', gb.color); label.setAttribute('font-family', 'Segoe UI, sans-serif');
     label.textContent = gb.isRG ? `📁 ${{gb.cat}}` : gb.cat;
     root.appendChild(label);
+    _groupLabelElements.push(label);
 
     // Make title bar draggable — drags all nodes inside
     titleBar.style.cursor = 'grab';
@@ -1259,36 +1289,6 @@ function renderDiagram() {{
     return {{ x: pos.x, y: pos.y, w, h, cx: pos.x + w/2, cy: pos.y + h/2 }};
   }}
 
-  // Check if direct line between two nodes crosses ANY other node
-  function hasObstacle(fromId, toId, x1, y1, x2, y2) {{
-    for (const n of NODES) {{
-      if (n.id === fromId || n.id === toId) continue;
-      const pos = positions[n.id];
-      if (!pos) continue;
-      const w = n.type === 'pe' ? PE_W : SVC_W;
-      const h = n.type === 'pe' ? PE_H : SVC_H;
-      const pad = 6;
-      const left = pos.x - pad, right = pos.x + w + pad;
-      const top = pos.y - pad, bottom = pos.y + h + pad;
-      // Liang-Barsky line clipping
-      const dx = x2 - x1, dy = y2 - y1;
-      let tmin = 0, tmax = 1;
-      const edges = [[-dx, x1 - left], [dx, right - x1], [-dy, y1 - top], [dy, bottom - y1]];
-      let hit = true;
-      for (const [p, q] of edges) {{
-        if (Math.abs(p) < 0.001) {{ if (q < 0) {{ hit = false; break; }} }}
-        else {{
-          const t = q / p;
-          if (p < 0) {{ if (t > tmin) tmin = t; }}
-          else {{ if (t < tmax) tmax = t; }}
-          if (tmin > tmax) {{ hit = false; break; }}
-        }}
-      }}
-      if (hit && tmin < tmax) return true;
-    }}
-    return false;
-  }}
-
   // Border point: exit/enter at edge of rectangle
   function borderExit(box, side) {{
     // side: 'top', 'bottom', 'left', 'right'
@@ -1357,6 +1357,113 @@ function renderDiagram() {{
     return d;
   }}
 
+  // Find crossing point between two orthogonal segments (H crosses V only)
+  function findSegCrossing(ax1, ay1, ax2, ay2, bx1, by1, bx2, by2) {{
+    const aIsH = Math.abs(ay1 - ay2) < 1;
+    const bIsH = Math.abs(by1 - by2) < 1;
+    if (aIsH === bIsH) return null;
+    let hx1, hx2, hy, vx, vy1, vy2;
+    if (aIsH) {{
+      hy = ay1; hx1 = Math.min(ax1, ax2); hx2 = Math.max(ax1, ax2);
+      vx = bx1; vy1 = Math.min(by1, by2); vy2 = Math.max(by1, by2);
+    }} else {{
+      hy = by1; hx1 = Math.min(bx1, bx2); hx2 = Math.max(bx1, bx2);
+      vx = ax1; vy1 = Math.min(ay1, ay2); vy2 = Math.max(ay1, ay2);
+    }}
+    const MM = 2;
+    if (vx > hx1 + MM && vx < hx2 - MM &&
+        hy > vy1 + MM && hy < vy2 - MM) {{
+      return {{ x: vx, y: hy }};
+    }}
+    return null;
+  }}
+
+  // Build orthogonal path with rounded corners AND bridge arcs at crossing points
+  function buildPathWithBridges(pts, bridges) {{
+    const CR = 6, BR = 12;
+    if (pts.length <= 1) return '';
+
+    // Index bridges by segment, sort along travel direction
+    const bySeg = {{}};
+    (bridges || []).forEach(b => {{
+      if (!bySeg[b.segIdx]) bySeg[b.segIdx] = [];
+      bySeg[b.segIdx].push(b);
+    }});
+    for (const si in bySeg) {{
+      const i = parseInt(si);
+      if (i >= pts.length - 1) continue;
+      const p1 = pts[i], p2 = pts[i + 1];
+      const isH = Math.abs(p1.y - p2.y) < 1;
+      if (isH) {{
+        const dir = Math.sign(p2.x - p1.x) || 1;
+        bySeg[si].sort((a, b) => (a.x - b.x) * dir);
+      }} else {{
+        const dir = Math.sign(p2.y - p1.y) || 1;
+        bySeg[si].sort((a, b) => (a.y - b.y) * dir);
+      }}
+    }}
+
+    // Helper: append bridge arcs for a segment
+    function appendBridges(d, segIdx, segP1, segP2) {{
+      const segB = bySeg[segIdx] || [];
+      if (segB.length === 0) return d;
+      const isH = Math.abs(segP1.y - segP2.y) < 1;
+      segB.forEach(b => {{
+        if (isH) {{
+          const dir = Math.sign(segP2.x - segP1.x) || 1;
+          d += ` L ${{b.x - BR * dir}} ${{segP1.y}}`;
+          d += ` A ${{BR}} ${{BR}} 0 0 ${{dir > 0 ? 1 : 0}} ${{b.x + BR * dir}} ${{segP1.y}}`;
+        }} else {{
+          const dir = Math.sign(segP2.y - segP1.y) || 1;
+          d += ` L ${{segP1.x}} ${{b.y - BR * dir}}`;
+          d += ` A ${{BR}} ${{BR}} 0 0 ${{dir > 0 ? 0 : 1}} ${{segP1.x}} ${{b.y + BR * dir}}`;
+        }}
+      }});
+      return d;
+    }}
+
+    // 2-point path (straight line)
+    if (pts.length === 2) {{
+      let d = `M ${{pts[0].x}} ${{pts[0].y}}`;
+      d = appendBridges(d, 0, pts[0], pts[1]);
+      d += ` L ${{pts[1].x}} ${{pts[1].y}}`;
+      return d;
+    }}
+
+    // Multi-point path with corners + bridges
+    let d = `M ${{pts[0].x}} ${{pts[0].y}}`;
+    for (let i = 1; i < pts.length; i++) {{
+      const prev = pts[i - 1], curr = pts[i];
+      const isLast = (i === pts.length - 1);
+
+      // Compute corner trimming for non-last points
+      let target = curr, cSuffix = '';
+      if (!isLast) {{
+        const next = pts[i + 1];
+        const dx1 = curr.x - prev.x, dy1 = curr.y - prev.y;
+        const dx2 = next.x - curr.x, dy2 = next.y - curr.y;
+        const len1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+        const len2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+        if (len1 >= 1 && len2 >= 1) {{
+          const r = Math.min(CR, len1 / 2, len2 / 2);
+          const bx = curr.x - (dx1 / len1) * r;
+          const by = curr.y - (dy1 / len1) * r;
+          const ax = curr.x + (dx2 / len2) * r;
+          const ay = curr.y + (dy2 / len2) * r;
+          target = {{ x: bx, y: by }};
+          cSuffix = ` Q ${{curr.x}} ${{curr.y}} ${{ax}} ${{ay}}`;
+        }}
+      }}
+
+      // Draw bridges on segment (i-1) → i
+      d = appendBridges(d, i - 1, prev, curr);
+
+      // Line to target + optional corner curve
+      d += ` L ${{target.x}} ${{target.y}}${{cSuffix}}`;
+    }}
+    return d;
+  }}
+
   // ── Obstacle avoidance: route edges around nodes ──
   function segHitsNode(x1, y1, x2, y2, pos, nw, nh, margin) {{
     const nx1 = pos.x - margin, ny1 = pos.y - margin;
@@ -1376,23 +1483,134 @@ function renderDiagram() {{
 
   function avoidNodes(pts, fromId, toId) {{
     const MARGIN = 25;
+    const SECTION_MARGIN = 12;
     let points = pts.map(p => ({{...p}}));
     // Save original anchors — these must NEVER move (they attach to nodes)
     const startAnchor = {{...points[0]}};
     const endAnchor = {{...points[points.length - 1]}};
 
-    for (let iter = 0; iter < 8; iter++) {{
+    // Section (groupBox) obstacles: groupBoxes containing NEITHER endpoint.
+    // Skip PE group since PE-type edges legitimately traverse into it.
+    const _fromGrp = _nodeGrp[fromId];
+    const _toGrp = _nodeGrp[toId];
+    const sectionObstacles = [];
+    for (let gi = 0; gi < groupBoxes.length; gi++) {{
+      if (gi === _fromGrp || gi === _toGrp) continue;
+      const gb = groupBoxes[gi];
+      if (gb.isPE) continue;
+      sectionObstacles.push(gb);
+    }}
+
+    // Helper: if the section detour coord lands inside the VNet rect while
+    // either endpoint sits outside the VNet, push the detour past the nearer
+    // VNet edge so unrelated VNet interior is not traversed.
+    function _clampOutsideVNet(val, axis) {{
+      if (!_vnetBounds) return val;
+      const inAnchor = (a) => (a.x > _vnetBounds.x && a.x < _vnetBounds.x + _vnetBounds.w
+                            && a.y > _vnetBounds.y && a.y < _vnetBounds.y + _vnetBounds.h);
+      const srcOut = !inAnchor(startAnchor);
+      const dstOut = !inAnchor(endAnchor);
+      if (!srcOut && !dstOut) return val;
+      if (axis === 'x') {{
+        const L = _vnetBounds.x, R = _vnetBounds.x + _vnetBounds.w;
+        if (val > L && val < R) return (val - L) <= (R - val) ? L - SECTION_MARGIN : R + SECTION_MARGIN;
+      }} else {{
+        const T = _vnetBounds.y, B = _vnetBounds.y + _vnetBounds.h;
+        if (val > T && val < B) return (val - T) <= (B - val) ? T - SECTION_MARGIN : B + SECTION_MARGIN;
+      }}
+      return val;
+    }}
+
+    for (let iter = 0; iter < 20; iter++) {{
       let found = false;
 
       for (let i = 0; i < points.length - 1 && !found; i++) {{
         const p1 = points[i], p2 = points[i+1];
 
+        // 1) Section obstacles (larger, checked first)
+        for (const gb of sectionObstacles) {{
+          const pos = {{x: gb.x, y: gb.y}};
+          if (!segHitsNode(p1.x, p1.y, p2.x, p2.y, pos, gb.w, gb.h, SECTION_MARGIN)) continue;
+
+          found = true;
+          const isVert = Math.abs(p1.x - p2.x) < 1;
+          const isFirst = (i === 0);
+          const isLast = (i + 1 === points.length - 1);
+
+          if (points.length <= 2) {{
+            if (isVert) {{
+              const leftX = gb.x - SECTION_MARGIN;
+              const rightX = gb.x + gb.w + SECTION_MARGIN;
+              let detourX = Math.abs(p1.x - leftX) <= Math.abs(p1.x - rightX) ? leftX : rightX;
+              detourX = _clampOutsideVNet(detourX, 'x');
+              points = [points[0], {{x: detourX, y: p1.y}}, {{x: detourX, y: p2.y}}, points[points.length-1]];
+            }} else {{
+              const topY = gb.y - SECTION_MARGIN;
+              const bottomY = gb.y + gb.h + SECTION_MARGIN;
+              let detourY = Math.abs(p1.y - topY) <= Math.abs(p1.y - bottomY) ? topY : bottomY;
+              detourY = _clampOutsideVNet(detourY, 'y');
+              points = [points[0], {{x: p1.x, y: detourY}}, {{x: p2.x, y: detourY}}, points[points.length-1]];
+            }}
+          }} else if (isFirst) {{
+            if (isVert) {{
+              const leftX = gb.x - SECTION_MARGIN;
+              const rightX = gb.x + gb.w + SECTION_MARGIN;
+              let detourX = Math.abs(p1.x - leftX) <= Math.abs(p1.x - rightX) ? leftX : rightX;
+              detourX = _clampOutsideVNet(detourX, 'x');
+              points.splice(1, 0, {{x: p1.x, y: p1.y}}, {{x: detourX, y: p1.y}});
+              points[3] = {{x: detourX, y: p2.y}};
+            }} else {{
+              const topY = gb.y - SECTION_MARGIN;
+              const bottomY = gb.y + gb.h + SECTION_MARGIN;
+              let detourY = Math.abs(p1.y - topY) <= Math.abs(p1.y - bottomY) ? topY : bottomY;
+              detourY = _clampOutsideVNet(detourY, 'y');
+              points.splice(1, 0, {{x: p1.x, y: detourY}});
+              points[2] = {{x: p2.x, y: detourY}};
+            }}
+          }} else if (isLast) {{
+            if (isVert) {{
+              const leftX = gb.x - SECTION_MARGIN;
+              const rightX = gb.x + gb.w + SECTION_MARGIN;
+              let detourX = Math.abs(p1.x - leftX) <= Math.abs(p1.x - rightX) ? leftX : rightX;
+              detourX = _clampOutsideVNet(detourX, 'x');
+              points[i] = {{x: detourX, y: p1.y}};
+              points.splice(i + 1, 0, {{x: detourX, y: p2.y}}, {{x: p2.x, y: p2.y}});
+            }} else {{
+              const topY = gb.y - SECTION_MARGIN;
+              const bottomY = gb.y + gb.h + SECTION_MARGIN;
+              let detourY = Math.abs(p1.y - topY) <= Math.abs(p1.y - bottomY) ? topY : bottomY;
+              detourY = _clampOutsideVNet(detourY, 'y');
+              points[i] = {{x: p1.x, y: detourY}};
+              points.splice(i + 1, 0, {{x: p2.x, y: detourY}});
+            }}
+          }} else {{
+            if (isVert) {{
+              const leftX = gb.x - SECTION_MARGIN;
+              const rightX = gb.x + gb.w + SECTION_MARGIN;
+              let newX = Math.abs(p1.x - leftX) <= Math.abs(p1.x - rightX) ? leftX : rightX;
+              newX = _clampOutsideVNet(newX, 'x');
+              points[i] = {{ x: newX, y: p1.y }};
+              points[i+1] = {{ x: newX, y: p2.y }};
+            }} else {{
+              const topY = gb.y - SECTION_MARGIN;
+              const bottomY = gb.y + gb.h + SECTION_MARGIN;
+              let newY = Math.abs(p1.y - topY) <= Math.abs(p1.y - bottomY) ? topY : bottomY;
+              newY = _clampOutsideVNet(newY, 'y');
+              points[i] = {{ x: p1.x, y: newY }};
+              points[i+1] = {{ x: p2.x, y: newY }};
+            }}
+          }}
+          break;
+        }}
+        if (found) break;
+
+        // 2) Service node obstacles
         for (const node of NODES) {{
           if (node.id === fromId || node.id === toId) continue;
           const pos = positions[node.id];
           if (!pos) continue;
           const nw = node.type === 'pe' ? PE_W : SVC_W;
-          const nh = node.type === 'pe' ? PE_H : SVC_H;
+          const nh = (node.type === 'pe' ? PE_H : SVC_H) + 20; // include text below box
 
           if (!segHitsNode(p1.x, p1.y, p2.x, p2.y, pos, nw, nh, MARGIN)) continue;
 
@@ -1474,39 +1692,29 @@ function renderDiagram() {{
     return points;
   }}
 
-  // ── Edges (rendered FIRST — nodes render on top, covering crossings) ──
-  // Edge labels are collected and rendered AFTER nodes so they stay visible.
-  // Orthogonal routing only: horizontal/vertical segments with right-angle turns.
+  // ── Edges: three-phase rendering ──
+  // Phase 0: pre-scan exit sides → Phase 1: compute paths with staggered anchors
+  // Phase 2: detect crossings → Phase 3: render with bridge arcs
   const _edgeLabels = [];
+
+  // PHASE 0 — pre-scan: count how many edges exit each side of each node
+  const _sideTotal = {{}};
+  const _edgeSides = [];
   EDGES.forEach(edge => {{
     const fn = NODES.find(n => n.id === edge.from);
     const tn = NODES.find(n => n.id === edge.to);
-    if (!fn || !tn) return;
+    if (!fn || !tn) {{ _edgeSides.push(null); return; }}
     const fromBox = getNodeBox(fn);
     const toBox = getNodeBox(tn);
-    if (!fromBox || !toBox) return;
+    if (!fromBox || !toBox) {{ _edgeSides.push(null); return; }}
 
     const isPeEdge = edge.type === 'private';
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    let pts;
-
+    let exitSide, entrySide;
     if (isPeEdge) {{
-      // PE → orthogonal routing (also avoids nodes)
-      const sx = fromBox.cx, sy = fromBox.y + fromBox.h;
-      const ex = toBox.cx, ey = toBox.y;
-      if (Math.abs(sx - ex) < 8) {{
-        pts = [{{x: sx, y: sy}}, {{x: ex, y: ey}}];
-      }} else {{
-        const midY = (sy + ey) / 2;
-        pts = [{{x: sx, y: sy}}, {{x: sx, y: midY}}, {{x: ex, y: midY}}, {{x: ex, y: ey}}];
-      }}
-      pts = avoidNodes(pts, edge.from, edge.to);
+      exitSide = 'bottom'; entrySide = 'top';
     }} else {{
-      // Orthogonal routing: determine exit/entry sides
       const dx = toBox.cx - fromBox.cx;
       const dy = toBox.cy - fromBox.cy;
-      let exitSide, entrySide;
-
       if (Math.abs(dx) >= Math.abs(dy)) {{
         exitSide = dx >= 0 ? 'right' : 'left';
         entrySide = dx >= 0 ? 'left' : 'right';
@@ -1514,49 +1722,828 @@ function renderDiagram() {{
         exitSide = dy >= 0 ? 'bottom' : 'top';
         entrySide = dy >= 0 ? 'top' : 'bottom';
       }}
+    }}
+    const ek = `${{edge.from}}_${{exitSide}}`;
+    const nk = `${{edge.to}}_${{entrySide}}`;
+    _sideTotal[ek] = (_sideTotal[ek] || 0) + 1;
+    _sideTotal[nk] = (_sideTotal[nk] || 0) + 1;
+    _edgeSides.push({{ exitSide, entrySide, isPeEdge, fromBox, toBox, edge }});
+  }});
 
-      const sp = borderExit(fromBox, exitSide);
-      const ep = borderExit(toBox, entrySide);
-      const stagger = (_routeCounter % 5 - 2) * 6;
-      _routeCounter++;
+  // ── RACK MARSHALLING: build channel map for inter-group edge bundling ──
+  // Step 1: map each node to its containing group box
+  const _nodeGrp = {{}};
+  NODES.forEach(n => {{
+    const pos = positions[n.id];
+    if (!pos) return;
+    const nw = n.type === 'pe' ? PE_W : SVC_W;
+    const nh = n.type === 'pe' ? PE_H : SVC_H;
+    const cx = pos.x + nw / 2, cy = pos.y + nh / 2;
+    for (let gi = 0; gi < groupBoxes.length; gi++) {{
+      const gb = groupBoxes[gi];
+      if (cx >= gb.x && cx <= gb.x + gb.w && cy >= gb.y && cy <= gb.y + gb.h) {{
+        _nodeGrp[n.id] = gi; break;
+      }}
+    }}
+  }});
+
+  // Step 2: identify channels between group pairs + assign slot offsets
+  const _chMap = {{}};       // key → {{ axis:'y'|'x', value: number }}
+  const _chEdges = {{}};     // key → [edgeIdx, ...]
+  _edgeSides.forEach((info, idx) => {{
+    if (!info || info.isPeEdge) return;
+    const sg = _nodeGrp[info.edge.from], tg = _nodeGrp[info.edge.to];
+    if (sg === undefined || tg === undefined) return;
+
+    let key;
+    if (sg !== tg) {{
+      key = Math.min(sg, tg) + '_' + Math.max(sg, tg);
+      if (!_chEdges[key]) _chEdges[key] = [];
+      _chEdges[key].push(idx);
+      if (!_chMap[key]) {{
+        const a = groupBoxes[sg], b = groupBoxes[tg];
+        if (a.y + a.h <= b.y)      _chMap[key] = {{ axis: 'y', value: (a.y + a.h + b.y) / 2 }};
+        else if (b.y + b.h <= a.y) _chMap[key] = {{ axis: 'y', value: (b.y + b.h + a.y) / 2 }};
+        else if (a.x + a.w <= b.x) _chMap[key] = {{ axis: 'x', value: (a.x + a.w + b.x) / 2 }};
+        else if (b.x + b.w <= a.x) _chMap[key] = {{ axis: 'x', value: (b.x + b.w + a.x) / 2 }};
+      }}
+    }} else {{
+      // Intra-group edges: group by direction for slot offset assignment
+      const dir = (info.exitSide === 'bottom' || info.exitSide === 'top') ? 'v' : 'h';
+      key = 'i' + sg + dir;
+      if (!_chEdges[key]) _chEdges[key] = [];
+      _chEdges[key].push(idx);
+      // No fixed channel value — each edge uses its own midpoint + offset
+    }}
+  }});
+
+  // Step 3: sort edges within each channel and assign slot offsets
+  const _chOff = {{}};  // edgeIdx → offset in px
+  const _CH_SLOT = 18;  // spacing between lines in a bundle
+  Object.keys(_chEdges).forEach(key => {{
+    const ch = _chMap[key];
+    const arr = _chEdges[key];
+    const isVert = ch ? ch.axis === 'y' : key.endsWith('v');
+    arr.sort((a, b) => {{
+      const ia = _edgeSides[a], ib = _edgeSides[b];
+      if (isVert) return (ia.fromBox.cx + ia.toBox.cx) - (ib.fromBox.cx + ib.toBox.cx);
+      return (ia.fromBox.cy + ia.toBox.cy) - (ib.fromBox.cy + ib.toBox.cy);
+    }});
+    const n = arr.length;
+    arr.forEach((ei, slot) => {{
+      _chOff[ei] = n > 1 ? (slot - (n - 1) / 2) * _CH_SLOT : 0;
+    }});
+  }});
+
+  // Staggered border exit: spread multiple edges evenly along node side
+  const _sideUsed = {{}};
+  function staggeredExit(nodeId, box, side) {{
+    const key = `${{nodeId}}_${{side}}`;
+    const total = _sideTotal[key] || 1;
+    const idx = _sideUsed[key] || 0;
+    _sideUsed[key] = idx + 1;
+    const isH = (side === 'top' || side === 'bottom');
+    const sideLen = isH ? box.w : box.h;
+    const CM = Math.max(40, sideLen * 0.3); // corner margin — 40px min or 30% of side
+    const usable = Math.max(0, sideLen - 2 * CM);
+    const maxSpread = Math.min(usable, total * 14);
+    const step = total > 1 ? maxSpread / (total - 1) : 0;
+    const offset = total > 1 ? -maxSpread / 2 + idx * step : 0;
+    if (side === 'top') return {{ x: Math.max(box.x + CM, Math.min(box.x + box.w - CM, box.cx + offset)), y: box.y }};
+    if (side === 'bottom') return {{ x: Math.max(box.x + CM, Math.min(box.x + box.w - CM, box.cx + offset)), y: box.y + box.h }};
+    if (side === 'left') return {{ x: box.x, y: Math.max(box.y + CM, Math.min(box.y + box.h - CM, box.cy + offset)) }};
+    return {{ x: box.x + box.w, y: Math.max(box.y + CM, Math.min(box.y + box.h - CM, box.cy + offset)) }};
+  }}
+
+  // PHASE 1 — compute edge paths with staggered anchors
+  const _allEdgePaths = [];
+  _edgeSides.forEach((info, idx) => {{
+    if (!info) return;
+    const {{ exitSide, entrySide, isPeEdge, fromBox, toBox, edge }} = info;
+    let pts;
+
+    if (isPeEdge) {{
+      const sp = staggeredExit(edge.from, fromBox, 'bottom');
+      const ep = staggeredExit(edge.to, toBox, 'top');
+      if (Math.abs(sp.x - ep.x) < 8) {{
+        pts = [sp, ep];
+      }} else {{
+        let midY = (sp.y + ep.y) / 2;
+        midY = Math.max(midY, fromBox.y + fromBox.h + 40);
+        midY = Math.min(midY, toBox.y - 40);
+        pts = [sp, {{x: sp.x, y: midY}}, {{x: ep.x, y: midY}}, ep];
+      }}
+      pts = avoidNodes(pts, edge.from, edge.to);
+    }} else {{
+      const sp = staggeredExit(edge.from, fromBox, exitSide);
+      const ep = staggeredExit(edge.to, toBox, entrySide);
+      const STUB = 40;
+
+      // Channel lookup for inter-group marshalling
+      const _sg = _nodeGrp[edge.from], _tg = _nodeGrp[edge.to];
+      const _ck = _sg !== undefined && _tg !== undefined && _sg !== _tg
+        ? Math.min(_sg, _tg) + '_' + Math.max(_sg, _tg) : null;
+      const _cc = _ck ? _chMap[_ck] : null;
+      const _co = _chOff[idx] || 0;
 
       if (exitSide === 'right' || exitSide === 'left') {{
         if (Math.abs(sp.y - ep.y) < 8) {{
-          pts = [sp, ep]; // straight horizontal
+          pts = [sp, ep];
         }} else {{
-          const midX = (sp.x + ep.x) / 2 + stagger;
+          let midX = (_cc && _cc.axis === 'x') ? _cc.value + _co : (sp.x + ep.x) / 2 + _co;
+          if (exitSide === 'right') midX = Math.max(midX, fromBox.x + fromBox.w + STUB);
+          if (exitSide === 'left') midX = Math.min(midX, fromBox.x - STUB);
+          if (entrySide === 'right') midX = Math.max(midX, toBox.x + toBox.w + STUB);
+          if (entrySide === 'left') midX = Math.min(midX, toBox.x - STUB);
           pts = [sp, {{x: midX, y: sp.y}}, {{x: midX, y: ep.y}}, ep];
         }}
       }} else {{
         if (Math.abs(sp.x - ep.x) < 8) {{
-          pts = [sp, ep]; // straight vertical
+          pts = [sp, ep];
         }} else {{
-          const midY = (sp.y + ep.y) / 2 + stagger;
+          let midY = (_cc && _cc.axis === 'y') ? _cc.value + _co : (sp.y + ep.y) / 2 + _co;
+          if (exitSide === 'bottom') midY = Math.max(midY, fromBox.y + fromBox.h + STUB);
+          if (exitSide === 'top') midY = Math.min(midY, fromBox.y - STUB);
+          if (entrySide === 'bottom') midY = Math.max(midY, toBox.y + toBox.h + STUB);
+          if (entrySide === 'top') midY = Math.min(midY, toBox.y - STUB);
           pts = [sp, {{x: sp.x, y: midY}}, {{x: ep.x, y: midY}}, ep];
         }}
       }}
 
-      // Avoid intermediate nodes
       pts = avoidNodes(pts, edge.from, edge.to);
     }}
 
-    // Render path
-    path.setAttribute('d', pts.length <= 2
-      ? `M ${{pts[0].x}} ${{pts[0].y}} L ${{pts[pts.length-1].x}} ${{pts[pts.length-1].y}}`
-      : buildOrthoPath(pts));
+    // POST-ROUTING: enforce perpendicular stub at exit & entry ends
+    // 3 cases: (a) already orthogonal + long enough → skip
+    //          (b) orthogonal but short → extend existing turn point
+    //          (c) non-orthogonal → insert 2-point connector
+    const _eSide = isPeEdge ? 'bottom' : exitSide;
+    const _nSide = isPeEdge ? 'top' : entrySide;
+    const _STUB = 40;
+    if (pts.length >= 3) {{
+      // --- EXIT end ---
+      const _p0 = pts[0], _p1 = pts[1];
+      const _eH = (_eSide === 'right' || _eSide === 'left');
+      if (_eH) {{
+        const _d = _eSide === 'right' ? 1 : -1;
+        const _ortho = Math.abs(_p0.y - _p1.y) <= 1;
+        if (_ortho) {{
+          const _dist = (_p1.x - _p0.x) * _d;
+          if (_dist < _STUB) {{
+            const sx = _p0.x + _d * _STUB;
+            pts[1] = {{x: sx, y: _p0.y}};
+            if (pts.length > 2 && Math.abs(pts[2].x - _p1.x) <= 1) {{
+              pts[2] = {{x: sx, y: pts[2].y}};
+            }}
+          }}
+        }} else {{
+          const sx = _p0.x + _d * _STUB;
+          pts.splice(1, 0, {{x: sx, y: _p0.y}}, {{x: sx, y: _p1.y}});
+        }}
+      }} else {{
+        const _d = _eSide === 'bottom' ? 1 : -1;
+        const _ortho = Math.abs(_p0.x - _p1.x) <= 1;
+        if (_ortho) {{
+          const _dist = (_p1.y - _p0.y) * _d;
+          if (_dist < _STUB) {{
+            const sy = _p0.y + _d * _STUB;
+            pts[1] = {{x: _p0.x, y: sy}};
+            if (pts.length > 2 && Math.abs(pts[2].y - _p1.y) <= 1) {{
+              pts[2] = {{x: pts[2].x, y: sy}};
+            }}
+          }}
+        }} else {{
+          const sy = _p0.y + _d * _STUB;
+          pts.splice(1, 0, {{x: _p0.x, y: sy}}, {{x: _p1.x, y: sy}});
+        }}
+      }}
+      // --- ENTRY end ---
+      const _pN = pts[pts.length - 1], _pP = pts[pts.length - 2];
+      const _nH = (_nSide === 'right' || _nSide === 'left');
+      if (_nH) {{
+        const _d = _nSide === 'left' ? -1 : 1;
+        const _ortho = Math.abs(_pN.y - _pP.y) <= 1;
+        if (_ortho) {{
+          const _dist = (_pP.x - _pN.x) * _d;
+          if (_dist < _STUB) {{
+            const sx = _pN.x + _d * _STUB;
+            const _idx = pts.length - 2;
+            pts[_idx] = {{x: sx, y: _pN.y}};
+            if (_idx > 0 && Math.abs(pts[_idx - 1].x - _pP.x) <= 1) {{
+              pts[_idx - 1] = {{x: sx, y: pts[_idx - 1].y}};
+            }}
+          }}
+        }} else {{
+          const sx = _pN.x + _d * _STUB;
+          pts.splice(pts.length - 1, 0, {{x: sx, y: _pP.y}}, {{x: sx, y: _pN.y}});
+        }}
+      }} else {{
+        const _d = _nSide === 'top' ? -1 : 1;
+        const _ortho = Math.abs(_pN.x - _pP.x) <= 1;
+        if (_ortho) {{
+          const _dist = (_pP.y - _pN.y) * _d;
+          if (_dist < _STUB) {{
+            const sy = _pN.y + _d * _STUB;
+            const _idx = pts.length - 2;
+            pts[_idx] = {{x: _pN.x, y: sy}};
+            if (_idx > 0 && Math.abs(pts[_idx - 1].y - _pP.y) <= 1) {{
+              pts[_idx - 1] = {{x: pts[_idx - 1].x, y: sy}};
+            }}
+          }}
+        }} else {{
+          const sy = _pN.y + _d * _STUB;
+          pts.splice(pts.length - 1, 0, {{x: _pP.x, y: sy}}, {{x: _pN.x, y: sy}});
+        }}
+      }}
+    }}
+
+    // SAFETY: break any remaining diagonal segments into orthogonal L-shapes
+    for (let _i = 0; _i < pts.length - 1; _i++) {{
+      const _a = pts[_i], _b = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) > 1 && Math.abs(_a.y - _b.y) > 1) {{
+        pts.splice(_i + 1, 0, {{x: _a.x, y: _b.y}});
+      }}
+    }}
+
+    // SIMPLIFY: remove duplicate & collinear middle points
+    for (let _i = pts.length - 2; _i >= 1; _i--) {{
+      const _a = pts[_i - 1], _b = pts[_i], _c = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) <= 1 && Math.abs(_a.y - _b.y) <= 1) {{
+        pts.splice(_i, 1); continue;
+      }}
+      if ((Math.abs(_a.x - _b.x) <= 1 && Math.abs(_b.x - _c.x) <= 1) ||
+          (Math.abs(_a.y - _b.y) <= 1 && Math.abs(_b.y - _c.y) <= 1)) {{
+        pts.splice(_i, 1);
+      }}
+    }}
+
+    _allEdgePaths.push({{ edge, pts, isPeEdge }});
+  }});
+
+  // OVERLAP SEPARATION — shift collinear overlapping segments apart
+  // Only separate segments closer than OSEP — pre-marshalled edges (16px apart) are unaffected
+  const OSEP = 8;
+  for (let pass = 0; pass < 4; pass++) {{
+    for (let i = 0; i < _allEdgePaths.length; i++) {{
+      for (let j = i + 1; j < _allEdgePaths.length; j++) {{
+        const pA = _allEdgePaths[i].pts;
+        const pB = _allEdgePaths[j].pts;
+        const dir = (j % 2 === 0) ? 1 : -1;
+        for (let si = 0; si < pA.length - 1; si++) {{
+          for (let sj = 0; sj < pB.length - 1; sj++) {{
+            const a1 = pA[si], a2 = pA[si + 1];
+            const b1 = pB[sj], b2 = pB[sj + 1];
+            const aV = Math.abs(a1.x - a2.x) < 2;
+            const bV = Math.abs(b1.x - b2.x) < 2;
+            const aH = Math.abs(a1.y - a2.y) < 2;
+            const bH = Math.abs(b1.y - b2.y) < 2;
+
+            if (aV && bV && Math.abs(a1.x - b1.x) < OSEP) {{
+              const ov = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y))
+                       - Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
+              if (ov > 10) {{
+                let shift = OSEP * dir;
+                if (b1.x + shift < 20) shift = Math.abs(shift);
+                if (sj > 0) pB[sj] = {{ x: b1.x + shift, y: b1.y }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x + shift, y: b2.y }};
+              }}
+            }}
+            if (aH && bH && Math.abs(a1.y - b1.y) < OSEP) {{
+              const ov = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x))
+                       - Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
+              if (ov > 10) {{
+                const shift = OSEP * dir;
+                if (sj > 0) pB[sj] = {{ x: b1.x, y: b1.y + shift }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x, y: b2.y + shift }};
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+
+  // FINAL ORTHOGONALIZATION — fix diagonals introduced by overlap separation
+  _allEdgePaths.forEach(({{ pts }}) => {{
+    for (let _i = 0; _i < pts.length - 1; _i++) {{
+      const _a = pts[_i], _b = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) > 1 && Math.abs(_a.y - _b.y) > 1) {{
+        pts.splice(_i + 1, 0, {{x: _a.x, y: _b.y}});
+      }}
+    }}
+    // Remove collinear
+    for (let _i = pts.length - 2; _i >= 1; _i--) {{
+      const _a = pts[_i - 1], _b = pts[_i], _c = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) <= 1 && Math.abs(_a.y - _b.y) <= 1) {{
+        pts.splice(_i, 1); continue;
+      }}
+      if ((Math.abs(_a.x - _b.x) <= 1 && Math.abs(_b.x - _c.x) <= 1) ||
+          (Math.abs(_a.y - _b.y) <= 1 && Math.abs(_b.y - _c.y) <= 1)) {{
+        pts.splice(_i, 1);
+      }}
+    }}
+  }});
+
+  // ── RE-ROUTING PASS: minimize crossings by routing edges via outer margins ──
+  // Instead of shortest-path, reroute crossing edges AROUND group boxes
+  const _gbLeft = groupBoxes.length > 0 ? Math.min(...groupBoxes.map(g => g.x)) : 0;
+  const _gbRight = groupBoxes.length > 0 ? Math.max(...groupBoxes.map(g => g.x + g.w)) : 800;
+  const _gbTop = groupBoxes.length > 0 ? Math.min(...groupBoxes.map(g => g.y)) : 0;
+  const _gbBottom = groupBoxes.length > 0 ? Math.max(...groupBoxes.map(g => g.y + g.h)) : 600;
+  const _RMARGIN = 50; // margin outside group bounds for rerouted edges
+  const _RM_SLOT = 14; // spacing between rerouted edges on the same margin
+
+  // Count H×V crossings between one edge and all others
+  function _cntCross(eIdx) {{
+    let c = 0;
+    const pA = _allEdgePaths[eIdx].pts;
+    for (let j = 0; j < _allEdgePaths.length; j++) {{
+      if (j === eIdx) continue;
+      const pB = _allEdgePaths[j].pts;
+      for (let si = 0; si < pA.length - 1; si++) {{
+        for (let sj = 0; sj < pB.length - 1; sj++) {{
+          if (findSegCrossing(pA[si].x, pA[si].y, pA[si+1].x, pA[si+1].y,
+                              pB[sj].x, pB[sj].y, pB[sj+1].x, pB[sj+1].y)) c++;
+        }}
+      }}
+    }}
+    return c;
+  }}
+
+  // Generate a margin route: sp → stub → margin → margin → stub → ep
+  function _mRoute(sp, ep, exitSide, entrySide, side, slotOff) {{
+    const S = 40; // stub length
+    const so = slotOff || 0;
+    // stub exit from source node
+    const s1 = exitSide === 'bottom' ? {{x: sp.x, y: sp.y + S}}
+             : exitSide === 'top'    ? {{x: sp.x, y: sp.y - S}}
+             : exitSide === 'right'  ? {{x: sp.x + S, y: sp.y}}
+             :                         {{x: sp.x - S, y: sp.y}};
+    // stub entry to target node
+    const s2 = entrySide === 'top'    ? {{x: ep.x, y: ep.y - S}}
+             : entrySide === 'bottom' ? {{x: ep.x, y: ep.y + S}}
+             : entrySide === 'left'   ? {{x: ep.x - S, y: ep.y}}
+             :                          {{x: ep.x + S, y: ep.y}};
+    if (side === 'left') {{
+      const mx = _gbLeft - _RMARGIN - so;
+      return [sp, s1, {{x: mx, y: s1.y}}, {{x: mx, y: s2.y}}, s2, ep];
+    }}
+    if (side === 'right') {{
+      const mx = _gbRight + _RMARGIN + so;
+      return [sp, s1, {{x: mx, y: s1.y}}, {{x: mx, y: s2.y}}, s2, ep];
+    }}
+    if (side === 'top') {{
+      const my = _gbTop - _RMARGIN - so;
+      return [sp, s1, {{x: s1.x, y: my}}, {{x: s2.x, y: my}}, s2, ep];
+    }}
+    // bottom
+    const my = _gbBottom + _RMARGIN + so;
+    return [sp, s1, {{x: s1.x, y: my}}, {{x: s2.x, y: my}}, s2, ep];
+  }}
+
+  // Iteratively reroute edges with crossings via margins
+  const _marginUsed = {{ left: 0, right: 0, top: 0, bottom: 0 }};
+  const _tried = new Set();
+  for (let _ri = 0; _ri < 30; _ri++) {{
+    // Find edge with most crossings that hasn't been tried
+    let worstIdx = -1, worstCnt = 0;
+    for (let i = 0; i < _allEdgePaths.length; i++) {{
+      if (_allEdgePaths[i].isPeEdge || _tried.has(i)) continue;
+      const cnt = _cntCross(i);
+      if (cnt > worstCnt) {{ worstCnt = cnt; worstIdx = i; }}
+    }}
+    if (worstIdx < 0 || worstCnt === 0) break;
+
+    const ei = _edgeSides[worstIdx];
+    if (!ei) {{ _tried.add(worstIdx); continue; }}
+    const origPts = _allEdgePaths[worstIdx].pts;
+    const sp = origPts[0];
+    const ep = origPts[origPts.length - 1];
+    let bestPts = origPts, bestCnt = worstCnt, bestSide = null;
+
+    // Calculate span width for each margin to assign proper slot depth
+    for (const side of ['left', 'right', 'top', 'bottom']) {{
+      const alt = _mRoute(sp, ep, ei.exitSide, ei.entrySide, side, _marginUsed[side]);
+      _allEdgePaths[worstIdx].pts = alt;
+      const cnt = _cntCross(worstIdx);
+      _allEdgePaths[worstIdx].pts = origPts;
+      if (cnt < bestCnt) {{
+        bestCnt = cnt; bestPts = alt; bestSide = side;
+      }}
+    }}
+
+    if (bestSide && bestCnt < worstCnt) {{
+      _allEdgePaths[worstIdx].pts = bestPts;
+      _marginUsed[bestSide] += _RM_SLOT;
+    }} else {{
+      _tried.add(worstIdx); // mark as cannot-improve, try next edge
+    }}
+  }}
+
+  // POST-REROUTE: sort co-margin edges by span width (widest = outermost)
+  // Prevents vertical-segment crossings between edges on same margin side
+  const _marginEdges = {{ left: [], right: [], top: [], bottom: [] }};
+  for (let i = 0; i < _allEdgePaths.length; i++) {{
+    const pts = _allEdgePaths[i].pts;
+    if (pts.length !== 6) continue; // only margin-routed edges have 6 points
+    // Detect which margin side this edge uses
+    const p2 = pts[2], p3 = pts[3];
+    if (p2.y === p3.y) {{
+      // horizontal segment on margin → top or bottom
+      if (p2.y < _gbTop) {{ _marginEdges.top.push(i); }}
+      else if (p2.y > _gbBottom) {{ _marginEdges.bottom.push(i); }}
+    }} else if (p2.x === p3.x) {{
+      // vertical segment on margin → left or right
+      if (p2.x < _gbLeft) {{ _marginEdges.left.push(i); }}
+      else if (p2.x > _gbRight) {{ _marginEdges.right.push(i); }}
+    }}
+  }}
+  // Sort each margin group: widest span → outermost slot
+  for (const side of ['left', 'right', 'top', 'bottom']) {{
+    const idxs = _marginEdges[side];
+    if (idxs.length < 2) continue;
+    const isHoriz = (side === 'top' || side === 'bottom');
+    // Calculate span for each edge
+    const spans = idxs.map(i => {{
+      const pts = _allEdgePaths[i].pts;
+      return isHoriz
+        ? Math.abs(pts[2].x - pts[3].x)
+        : Math.abs(pts[2].y - pts[3].y);
+    }});
+    // Sort indices by span descending (widest first → outermost)
+    const sorted = idxs.map((idx, j) => ({{ idx, span: spans[j] }}))
+                       .sort((a, b) => b.span - a.span);
+    // Reassign y/x positions for sorted edges
+    const baseMargin = isHoriz
+      ? (side === 'top' ? _gbTop - _RMARGIN : _gbBottom + _RMARGIN)
+      : (side === 'left' ? _gbLeft - _RMARGIN : _gbRight + _RMARGIN);
+    const dir = (side === 'top' || side === 'left') ? -1 : 1;
+    sorted.forEach((s, k) => {{
+      const pts = _allEdgePaths[s.idx].pts;
+      const newM = baseMargin + dir * k * _RM_SLOT;
+      if (isHoriz) {{
+        pts[2].y = newM; pts[3].y = newM;
+      }} else {{
+        pts[2].x = newM; pts[3].x = newM;
+      }}
+    }});
+  }}
+
+  // BOTTOM-LANE REROUTER — marshalled U-shape approach
+  // Reroute overlapping edges via evenly-spaced horizontal lanes below all sections.
+  // Direct vertical descent from node when possible (2 bends); offset only when blocked (4 bends).
+  const OSEP2 = 14;
+  const _bottomLaneBase = _gbBottom + _RMARGIN + 30;
+  let _bottomSlot = 0;
+  const _LANE_SPC = OSEP2; // 14px lane spacing — precise marshalled look
+  const _COL_SPC = OSEP2; // minimum distance between vertical corridors
+  const _rerouted = new Set();
+  const _usedCols = [];
+  function _colUsed(cx) {{ for (const ux of _usedCols) {{ if (Math.abs(cx - ux) < _COL_SPC) return true; }} return false; }}
+  // Check if vertical column is free of nodes and non-exempt section boxes
+  function _isColClear(cx, yMin, yMax, skipId1, skipId2, skipGbs) {{
+    for (const _nd of NODES) {{
+      if (_nd.id === skipId1 || _nd.id === skipId2) continue;
+      const _np = positions[_nd.id]; if (!_np) continue;
+      const _nw = _nd.type === 'pe' ? PE_W : SVC_W;
+      const _nh = (_nd.type === 'pe' ? PE_H : SVC_H) + 20;
+      const _pad = 6;
+      if (cx > _np.x - _pad && cx < _np.x + _nw + _pad &&
+          yMin < _np.y + _nh + _pad && yMax > _np.y - _pad) {{
+        return false;
+      }}
+    }}
+    for (const _gb of groupBoxes) {{
+      if (skipGbs && skipGbs.indexOf(_gb) >= 0) continue;
+      if (cx > _gb.x - 4 && cx < _gb.x + _gb.w + 4 &&
+          yMin < _gb.y + _gb.h + 4 && yMax > _gb.y - 4) {{
+        return false;
+      }}
+    }}
+    return true;
+  }}
+  // Check if horizontal row is free of nodes and non-exempt section boxes
+  function _isRowClear(cy, xMin, xMax, skipId1, skipId2, skipGbs) {{
+    for (const _nd of NODES) {{
+      if (_nd.id === skipId1 || _nd.id === skipId2) continue;
+      const _np = positions[_nd.id]; if (!_np) continue;
+      const _nw = _nd.type === 'pe' ? PE_W : SVC_W;
+      const _nh = (_nd.type === 'pe' ? PE_H : SVC_H) + 20;
+      const _pad = 6;
+      if (cy > _np.y - _pad && cy < _np.y + _nh + _pad &&
+          xMin < _np.x + _nw + _pad && xMax > _np.x - _pad) {{
+        return false;
+      }}
+    }}
+    for (const _gb of groupBoxes) {{
+      if (skipGbs && skipGbs.indexOf(_gb) >= 0) continue;
+      if (cy > _gb.y - 4 && cy < _gb.y + _gb.h + 4 &&
+          xMin < _gb.x + _gb.w + 4 && xMax > _gb.x - 4) {{
+        return false;
+      }}
+    }}
+    return true;
+  }}
+  function _findGb(px, py) {{
+    for (const _gb of groupBoxes) {{
+      if (px >= _gb.x && px <= _gb.x + _gb.w && py >= _gb.y && py <= _gb.y + _gb.h) return _gb;
+    }}
+    return null;
+  }}
+  // Find nearest clear column starting from preferred x, skipping source/dest sections
+  function _findCol(prefX, yMin, yMax, skipId1, skipId2, skipGbs, preferDir) {{
+    // Try preferred position first (direct vertical from node)
+    if (!_colUsed(prefX) && _isColClear(prefX, yMin, yMax, skipId1, skipId2, skipGbs)) return prefX;
+    // Search outward in small steps
+    const _dirs = preferDir < 0 ? [-1, 1] : (preferDir > 0 ? [1, -1] : [-1, 1]);
+    for (let _t = 1; _t <= 100; _t++) {{
+      for (const _d of _dirs) {{
+        const _cx = prefX + _d * _t * OSEP;
+        if (_cx < 20) continue;
+        if (_colUsed(_cx)) continue;
+        if (_isColClear(_cx, yMin, yMax, skipId1, skipId2, skipGbs)) return _cx;
+      }}
+    }}
+    return null;
+  }}
+  for (let _blPass = 0; _blPass < 20; _blPass++) {{
+    let _worstEdge = -1, _worstCount = 0;
+    for (let i = 0; i < _allEdgePaths.length; i++) {{
+      if (_rerouted.has(i)) continue;
+      let cnt = 0;
+      const pB = _allEdgePaths[i].pts;
+      for (let j = 0; j < _allEdgePaths.length; j++) {{
+        if (j === i) continue;
+        const pA = _allEdgePaths[j].pts;
+        let maxOv = 0;
+        for (let si = 0; si < pA.length - 1; si++) {{
+          for (let sj = 0; sj < pB.length - 1; sj++) {{
+            const a1 = pA[si], a2 = pA[si + 1], b1 = pB[sj], b2 = pB[sj + 1];
+            if (Math.abs(a1.y - a2.y) < 2 && Math.abs(b1.y - b2.y) < 2 && Math.abs(a1.y - b1.y) < OSEP2) {{
+              const ov = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x))
+                       - Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
+              if (ov > maxOv) maxOv = ov;
+            }}
+            if (Math.abs(a1.x - a2.x) < 2 && Math.abs(b1.x - b2.x) < 2 && Math.abs(a1.x - b1.x) < OSEP2) {{
+              const ov = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y))
+                       - Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
+              if (ov > maxOv) maxOv = ov;
+            }}
+          }}
+        }}
+        if (maxOv > 20) cnt++;
+      }}
+      if (cnt > _worstCount) {{ _worstCount = cnt; _worstEdge = i; }}
+    }}
+    if (_worstEdge < 0) break;
+    const pB = _allEdgePaths[_worstEdge].pts;
+    const _fromId = _allEdgePaths[_worstEdge].edge.from;
+    const _toId = _allEdgePaths[_worstEdge].edge.to;
+    const start = pB[0];
+    const end = pB[pB.length - 1];
+    // Source/dest sections are exempt — verticals can pass through own sections
+    const srcGb = _findGb(start.x, start.y);
+    const dstGb = _findGb(end.x, end.y);
+    const skipGbs = [srcGb, dstGb].filter(g => g !== null);
+    const _yMin = Math.min(start.y, end.y);
+    const _yMax = Math.max(start.y, end.y);
+    const _spanX = Math.abs(end.x - start.x);
+    // Prefer a local single-column reroute first to avoid long bottom-lane detours.
+    const _localPrefX = (start.x + end.x) / 2;
+    const _localX = _findCol(_localPrefX, _yMin, _yMax, _fromId, _toId, skipGbs);
+    const _localLimit = Math.max(_spanX + 40, 120);
+    if (_localX !== null &&
+        Math.abs(_localX - start.x) <= _localLimit &&
+        Math.abs(_localX - end.x) <= _localLimit &&
+        _isRowClear(start.y, Math.min(start.x, _localX), Math.max(start.x, _localX), _fromId, _toId, skipGbs) &&
+        _isRowClear(end.y, Math.min(end.x, _localX), Math.max(end.x, _localX), _fromId, _toId, skipGbs)) {{
+      _usedCols.push(_localX);
+      pB.length = 0;
+      pB.push(start);
+      if (Math.abs(_localX - start.x) > 2) pB.push({{ x: _localX, y: start.y }});
+      if (Math.abs(end.y - start.y) > 2) pB.push({{ x: _localX, y: end.y }});
+      if (Math.abs(_localX - end.x) > 2) pB.push({{ x: _localX, y: end.y }});
+      pB.push(end);
+      _rerouted.add(_worstEdge);
+      continue;
+    }}
+    const laneY = _bottomLaneBase + _bottomSlot * _LANE_SPC;
+    const _towardEnd = end.x >= start.x ? 1 : -1;
+    const _exitX = _findCol(start.x, Math.min(start.y, laneY), Math.max(start.y, laneY), _fromId, _toId, skipGbs, _towardEnd);
+    const _enterX = _findCol(end.x, Math.min(end.y, laneY), Math.max(end.y, laneY), _fromId, _toId, skipGbs, -_towardEnd);
+    if (_exitX === null || _enterX === null) {{
+      _rerouted.add(_worstEdge);
+      continue;
+    }}
+    _usedCols.push(_exitX);
+    _usedCols.push(_enterX);
+    _bottomSlot++;
+    pB.length = 0;
+    pB.push(start);
+    // Only add horizontal stub if exit column differs from node x
+    if (Math.abs(_exitX - start.x) > 2) pB.push({{ x: _exitX, y: start.y }});
+    pB.push({{ x: _exitX, y: laneY }});
+    pB.push({{ x: _enterX, y: laneY }});
+    if (Math.abs(_enterX - end.x) > 2) pB.push({{ x: _enterX, y: end.y }});
+    pB.push(end);
+    _rerouted.add(_worstEdge);
+  }}
+  // POST-REROUTE OVERLAP SEPARATION — push rerouted segments apart
+  for (let _rSep = 0; _rSep < 6; _rSep++) {{
+    for (let i = 0; i < _allEdgePaths.length; i++) {{
+      for (let j = i + 1; j < _allEdgePaths.length; j++) {{
+        const pA = _allEdgePaths[i].pts;
+        const pB = _allEdgePaths[j].pts;
+        // Separate all edge pairs (rerouted or not) to handle post-reroute overlaps
+        const dir = (j % 2 === 0) ? 1 : -1;
+        for (let si = 0; si < pA.length - 1; si++) {{
+          for (let sj = 0; sj < pB.length - 1; sj++) {{
+            const a1 = pA[si], a2 = pA[si + 1];
+            const b1 = pB[sj], b2 = pB[sj + 1];
+            const aV = Math.abs(a1.x - a2.x) < 2;
+            const bV = Math.abs(b1.x - b2.x) < 2;
+            const aH = Math.abs(a1.y - a2.y) < 2;
+            const bH = Math.abs(b1.y - b2.y) < 2;
+            if (aV && bV && Math.abs(a1.x - b1.x) < OSEP2) {{
+              const ov = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y))
+                       - Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
+              if (ov > 10) {{
+                let shift = OSEP2 * dir;
+                if (b1.x + shift < 20) shift = Math.abs(shift);
+                if (sj > 0) pB[sj] = {{ x: b1.x + shift, y: b1.y }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x + shift, y: b2.y }};
+              }}
+            }}
+            if (aH && bH && Math.abs(a1.y - b1.y) < OSEP2) {{
+              const ov = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x))
+                       - Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
+              if (ov > 10) {{
+                const shift = OSEP2 * dir;
+                if (sj > 0) pB[sj] = {{ x: b1.x, y: b1.y + shift }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x, y: b2.y + shift }};
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+  // POST-REROUTE ORTHOGONALIZATION
+  _allEdgePaths.forEach(({{ pts }}) => {{
+    for (let _i = 0; _i < pts.length - 1; _i++) {{
+      const _a = pts[_i], _b = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) > 1 && Math.abs(_a.y - _b.y) > 1) {{
+        pts.splice(_i + 1, 0, {{x: _a.x, y: _b.y}});
+      }}
+    }}
+    for (let _i = pts.length - 2; _i >= 1; _i--) {{
+      const _a = pts[_i - 1], _b = pts[_i], _c = pts[_i + 1];
+      if (Math.abs(_a.x - _b.x) <= 1 && Math.abs(_a.y - _b.y) <= 1) {{
+        pts.splice(_i, 1); continue;
+      }}
+      if ((Math.abs(_a.x - _b.x) <= 1 && Math.abs(_b.x - _c.x) <= 1) ||
+          (Math.abs(_a.y - _b.y) <= 1 && Math.abs(_b.y - _c.y) <= 1)) {{
+        pts.splice(_i, 1);
+      }}
+    }}
+  }});
+
+  // FINAL OVERLAP SEPARATION — catch any overlaps re-created by orthogonalization
+  for (let _fSep = 0; _fSep < 4; _fSep++) {{
+    for (let i = 0; i < _allEdgePaths.length; i++) {{
+      for (let j = i + 1; j < _allEdgePaths.length; j++) {{
+        const pA = _allEdgePaths[i].pts;
+        const pB = _allEdgePaths[j].pts;
+        for (let si = 0; si < pA.length - 1; si++) {{
+          for (let sj = 0; sj < pB.length - 1; sj++) {{
+            const a1 = pA[si], a2 = pA[si + 1];
+            const b1 = pB[sj], b2 = pB[sj + 1];
+            const aH = Math.abs(a1.y - a2.y) < 2;
+            const bH = Math.abs(b1.y - b2.y) < 2;
+            const aV = Math.abs(a1.x - a2.x) < 2;
+            const bV = Math.abs(b1.x - b2.x) < 2;
+            if (aH && bH && Math.abs(a1.y - b1.y) < 6) {{
+              const ov = Math.min(Math.max(a1.x, a2.x), Math.max(b1.x, b2.x))
+                       - Math.max(Math.min(a1.x, a2.x), Math.min(b1.x, b2.x));
+              if (ov > 20) {{
+                const shift = 8 * ((j % 2 === 0) ? 1 : -1);
+                if (sj > 0) pB[sj] = {{ x: b1.x, y: b1.y + shift }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x, y: b2.y + shift }};
+              }}
+            }}
+            if (aV && bV && Math.abs(a1.x - b1.x) < 6) {{
+              const ov = Math.min(Math.max(a1.y, a2.y), Math.max(b1.y, b2.y))
+                       - Math.max(Math.min(a1.y, a2.y), Math.min(b1.y, b2.y));
+              if (ov > 20) {{
+                let shift = 8 * ((j % 2 === 0) ? 1 : -1);
+                if (b1.x + shift < 20) shift = Math.abs(shift);
+                if (sj > 0) pB[sj] = {{ x: b1.x + shift, y: b1.y }};
+                if (sj + 1 < pB.length - 1) pB[sj + 1] = {{ x: b2.x + shift, y: b2.y }};
+              }}
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+
+  // FINAL DIAGONAL BREAKER — any non-orthogonal segment is split into an L-shape.
+  // Diagonals may be introduced by the separation pass above when only one
+  // endpoint of a segment is shifted. Axis-align every segment as a last safety net.
+  for (const _ep of _allEdgePaths) {{
+    const pts = _ep.pts;
+    for (let k = 0; k < pts.length - 1; k++) {{
+      const q1 = pts[k], q2 = pts[k + 1];
+      const dx = q2.x - q1.x;
+      const dy = q2.y - q1.y;
+      if (Math.abs(dx) > 1 && Math.abs(dy) > 1) {{
+        // Insert elbow at (q2.x, q1.y) — preserves endpoints, forces L-shape.
+        // Direction heuristic: follow the dominant axis first.
+        const elbow = Math.abs(dx) >= Math.abs(dy)
+          ? {{ x: q2.x, y: q1.y }}
+          : {{ x: q1.x, y: q2.y }};
+        pts.splice(k + 1, 0, elbow);
+        // Re-check the newly inserted segments in the next iteration
+      }}
+    }}
+  }}
+
+  // CROSSING DETECTION— find which edges cross each other (for color differentiation)
+  const _crossNeighbors = {{}};
+  for (let i = 0; i < _allEdgePaths.length; i++) {{
+    for (let j = i + 1; j < _allEdgePaths.length; j++) {{
+      const ptsA = _allEdgePaths[i].pts;
+      const ptsB = _allEdgePaths[j].pts;
+      let crossed = false;
+      for (let si = 0; si < ptsA.length - 1 && !crossed; si++) {{
+        for (let sj = 0; sj < ptsB.length - 1 && !crossed; sj++) {{
+          if (findSegCrossing(
+            ptsA[si].x, ptsA[si].y, ptsA[si + 1].x, ptsA[si + 1].y,
+            ptsB[sj].x, ptsB[sj].y, ptsB[sj + 1].x, ptsB[sj + 1].y
+          )) crossed = true;
+        }}
+      }}
+      if (crossed) {{
+        if (!_crossNeighbors[i]) _crossNeighbors[i] = new Set();
+        if (!_crossNeighbors[j]) _crossNeighbors[j] = new Set();
+        _crossNeighbors[i].add(j);
+        _crossNeighbors[j].add(i);
+      }}
+    }}
+  }}
+
+  // Greedy graph coloring — crossing edges get distinct colors
+  const _CROSS_COLORS = ['#0078D4', '#E3008C', '#00B7C3', '#FF8C00', '#107C10', '#881798'];
+  const _edgeColor = {{}};
+  const crossingEdges = Object.keys(_crossNeighbors).map(Number)
+    .sort((a, b) => _crossNeighbors[b].size - _crossNeighbors[a].size);
+  crossingEdges.forEach(eIdx => {{
+    const neighborColors = new Set();
+    _crossNeighbors[eIdx].forEach(n => {{
+      if (_edgeColor[n] !== undefined) neighborColors.add(_edgeColor[n]);
+    }});
+    let colorIdx = 0;
+    while (neighborColors.has(colorIdx)) colorIdx++;
+    _edgeColor[eIdx] = colorIdx;
+  }});
+
+  // RENDER EDGES — no bridge arcs, just orthogonal paths with color coding
+
+  function renderEdge({{ edge, pts, isPeEdge, edgeIdx }}) {{
+    let pathD;
+    if (pts.length <= 2) {{
+      pathD = `M ${{pts[0].x}} ${{pts[0].y}} L ${{pts[pts.length - 1].x}} ${{pts[pts.length - 1].y}}`;
+    }} else {{
+      pathD = buildOrthoPath(pts);
+    }}
+
+    // Determine edge color: PE=purple, crossing=colored, normal=gray
+    let edgeStroke, edgeOpacity;
+    if (isPeEdge) {{
+      edgeStroke = '#5C2D91';
+      edgeOpacity = '0.5';
+    }} else if (_edgeColor[edgeIdx] !== undefined) {{
+      edgeStroke = _CROSS_COLORS[_edgeColor[edgeIdx] % _CROSS_COLORS.length];
+      edgeOpacity = '0.75';
+    }} else {{
+      edgeStroke = '#8a8886';
+      edgeOpacity = '0.65';
+    }}
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathD);
     path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', isPeEdge ? '#5C2D91' : '#8a8886');
+    path.setAttribute('stroke', edgeStroke);
     path.setAttribute('stroke-width', isPeEdge ? '1' : '1.2');
     path.setAttribute('stroke-dasharray', edge.dash || '0');
     path.setAttribute('marker-end', `url(#${{markerFor(edge.type)}})`);
-    path.setAttribute('opacity', isPeEdge ? '0.5' : '0.65');
+    path.setAttribute('opacity', edgeOpacity);
     path.classList.add('edge-path');
     path.setAttribute('data-from', edge.from);
     path.setAttribute('data-to', edge.to);
     root.appendChild(path);
 
-    // Store label position for deferred rendering (after nodes)
-    // Collision-aware: try each segment's midpoint, pick the first that doesn't overlap a node.
+    // Label placement — collision-aware
     if (edge.label) {{
       const bw = edge.label.length * 5.5 + 10;
       const bh = 14;
@@ -1572,30 +2559,25 @@ function renderDiagram() {{
         }});
       }}
 
-      // Collect candidate positions: midpoint of each segment
       const candidates = [];
       for (let s = 0; s < pts.length - 1; s++) {{
-        const cx = (pts[s].x + pts[s+1].x) / 2;
-        const cy = (pts[s].y + pts[s+1].y) / 2;
-        // Prefer middle segments first, then outer ones
-        const priority = Math.abs(s - (pts.length-2)/2);
+        const cx = (pts[s].x + pts[s + 1].x) / 2;
+        const cy = (pts[s].y + pts[s + 1].y) / 2;
+        const priority = Math.abs(s - (pts.length - 2) / 2);
         candidates.push({{ x: cx, y: cy, priority }});
       }}
       candidates.sort((a, b) => a.priority - b.priority);
 
-      // Pick first candidate that doesn't hit a node
       let chosen = candidates[0];
       for (const c of candidates) {{
         if (!labelHitsNode(c.x, c.y)) {{ chosen = c; break; }}
       }}
 
-      // If all candidates hit, offset the best one perpendicular to segment
       if (labelHitsNode(chosen.x, chosen.y)) {{
-        // Try shifting up/down/left/right by 20px
         const offsets = [{{x:0,y:-20}},{{x:0,y:20}},{{x:-20,y:0}},{{x:20,y:0}}];
         for (const off of offsets) {{
-          if (!labelHitsNode(chosen.x+off.x, chosen.y+off.y)) {{
-            chosen = {{ x: chosen.x+off.x, y: chosen.y+off.y }};
+          if (!labelHitsNode(chosen.x + off.x, chosen.y + off.y)) {{
+            chosen = {{ x: chosen.x + off.x, y: chosen.y + off.y }};
             break;
           }}
         }}
@@ -1603,7 +2585,15 @@ function renderDiagram() {{
 
       _edgeLabels.push({{ label: edge.label, x: chosen.x, y: chosen.y, from: edge.from, to: edge.to }});
     }}
-  }});
+
+    return {{ path, edge, pts }};
+  }}
+
+  // Render all edges
+  _allEdgePaths.forEach((ep, edgeIdx) => renderEdge({{ ...ep, edgeIdx }}));
+
+  // Re-append group labels on top of edges
+  _groupLabelElements.forEach(el => root.appendChild(el));
 
   // ── Nodes (rendered LAST — on top of edges, covering crossing points) ──
   NODES.forEach(node => {{
@@ -1622,7 +2612,7 @@ function renderDiagram() {{
     rect.setAttribute('class', 'node-bg');
     rect.setAttribute('width', nw); rect.setAttribute('height', nh);
     rect.setAttribute('rx', '8'); rect.setAttribute('fill', 'white');
-    rect.setAttribute('stroke', '#edebe9'); rect.setAttribute('stroke-width', '1');
+    rect.setAttribute('stroke', '#c8c6c4'); rect.setAttribute('stroke-width', '1.2');
     rect.setAttribute('filter', 'url(#shadow)');
     g.appendChild(rect);
 
@@ -1636,7 +2626,7 @@ function renderDiagram() {{
     // Icon — official Azure icon (data URI) preferred, fallback to SVG
     const iconSize = isPe ? 28 : 36;
     const iconX = (nw - iconSize) / 2;
-    const iconY = isPe ? 10 : 12;
+    const iconY = isPe ? 12 : 14;
     if (node.icon_data_uri) {{
       // Official Azure icon (Base64 image)
       const iconImg = document.createElementNS('http://www.w3.org/2000/svg', 'image');
@@ -1654,11 +2644,11 @@ function renderDiagram() {{
       g.appendChild(iconG);
     }}
 
-    // Name
+    // Name — extra gap below icon (icon bottom ~50, name baseline at 74 → 24px breathing room)
     const name = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    name.setAttribute('x', nw/2); name.setAttribute('y', isPe ? 52 : 60);
+    name.setAttribute('x', nw/2); name.setAttribute('y', isPe ? 64 : 74);
     name.setAttribute('text-anchor', 'middle');
-    name.setAttribute('font-size', isPe ? '9' : '10');
+    name.setAttribute('font-size', isPe ? '10' : '11');
     name.setAttribute('font-weight', '600'); name.setAttribute('fill', '#323130');
     name.setAttribute('font-family', 'Segoe UI, sans-serif');
     const maxC = isPe ? 14 : 20;
@@ -1668,9 +2658,9 @@ function renderDiagram() {{
     // SKU label
     if (!isPe && node.sku) {{
       const sku = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      sku.setAttribute('x', nw/2); sku.setAttribute('y', 72);
+      sku.setAttribute('x', nw/2); sku.setAttribute('y', 90);
       sku.setAttribute('text-anchor', 'middle');
-      sku.setAttribute('font-size', '9'); sku.setAttribute('fill', '#a19f9d');
+      sku.setAttribute('font-size', '10'); sku.setAttribute('fill', '#a19f9d');
       sku.setAttribute('font-family', 'Segoe UI, sans-serif');
       sku.textContent = node.sku;
       g.appendChild(sku);
@@ -1678,9 +2668,9 @@ function renderDiagram() {{
 
     if (isPe && node.details.length > 0) {{
       const det = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      det.setAttribute('x', nw/2); det.setAttribute('y', 63);
+      det.setAttribute('x', nw/2); det.setAttribute('y', 76);
       det.setAttribute('text-anchor', 'middle');
-      det.setAttribute('font-size', '8'); det.setAttribute('fill', '#a19f9d');
+      det.setAttribute('font-size', '9'); det.setAttribute('fill', '#a19f9d');
       det.setAttribute('font-family', 'Segoe UI, sans-serif');
       det.textContent = node.details[0];
       g.appendChild(det);
@@ -1709,7 +2699,7 @@ function renderDiagram() {{
       const cat = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       cat.setAttribute('x', nw/2); cat.setAttribute('y', nh + 14);
       cat.setAttribute('text-anchor', 'middle');
-      cat.setAttribute('font-size', '9'); cat.setAttribute('fill', node.color);
+      cat.setAttribute('font-size', '10'); cat.setAttribute('fill', node.color);
       cat.setAttribute('font-weight', '600');
       cat.setAttribute('font-family', 'Segoe UI, sans-serif');
       cat.textContent = typeLabel;
@@ -1729,7 +2719,6 @@ function renderDiagram() {{
     }}
 
     // ── Events: drag vs click separation ──
-    let _dragStartX = 0, _dragStartY = 0, _didDrag = false;
     g.addEventListener('mousedown', e => {{
       if (e.button !== 0) return;
       dragging = node.id;
@@ -1775,19 +2764,23 @@ function renderDiagram() {{
     const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
     r.classList.add('edge-label-bg');
     const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    const bw = el.label.length * 5.5 + 10;
+    const bw = el.label.length * 6 + 10;
     r.setAttribute('x', el.x-bw/2); r.setAttribute('y', el.y-7);
     r.setAttribute('width', bw); r.setAttribute('height', 14);
     r.setAttribute('rx', '3'); r.setAttribute('fill', 'white');
     r.setAttribute('stroke', '#d2d0ce'); r.setAttribute('stroke-width', '0.5');
     r.setAttribute('opacity', '0.95');
     t.setAttribute('x', el.x); t.setAttribute('y', el.y+3);
-    t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '8');
+    t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-size', '9');
     t.setAttribute('fill', '#605e5c'); t.setAttribute('font-family', 'Segoe UI, sans-serif');
     t.textContent = el.label;
     g.appendChild(r); g.appendChild(t);
     root.appendChild(g);
   }});
+
+  // Re-apply text scale and selection state after DOM rebuild
+  if (typeof _textScale !== 'undefined' && _textScale !== 1) applyTextScale();
+  if (_selectedNodeId) applySelectionHighlight();
 
 }}
 
@@ -1846,7 +2839,25 @@ function fitToScreen() {{
 }}
 function zoomIn() {{ viewTransform.scale *= 1.25; applyTransform(); }}
 function zoomOut() {{ viewTransform.scale *= 0.8; applyTransform(); }}
-function resetZoom() {{ viewTransform = {{x:0,y:0,scale:1}}; applyTransform(); }}
+
+// ── Text size controls ──
+let _textScale = 1.4;  // default 40% larger than raw attribute sizes
+function applyTextScale() {{
+  document.querySelectorAll('#canvas text').forEach(t => {{
+    let orig = t.getAttribute('data-orig-fs');
+    if (!orig) {{
+      orig = t.getAttribute('font-size');
+      if (!orig) {{
+        const cs = window.getComputedStyle(t).fontSize;
+        orig = cs ? parseFloat(cs).toString() : '11';
+      }}
+      t.setAttribute('data-orig-fs', orig);
+    }}
+    t.setAttribute('font-size', (parseFloat(orig) * _textScale).toFixed(2));
+  }});
+}}
+function textBigger() {{ _textScale = Math.min(2.5, _textScale * 1.15); applyTextScale(); }}
+function textSmaller() {{ _textScale = Math.max(0.5, _textScale / 1.15); applyTextScale(); }}
 
 function downloadPNG() {{
   const svg = document.getElementById('canvas');
@@ -1918,8 +2929,6 @@ document.getElementById('canvas').addEventListener('wheel', e => {{
 
 document.getElementById('canvas').addEventListener('mousedown', e => {{
   if (e.target.closest('.node')) return;
-  // Clear selection when clicking on empty canvas area
-  if (_selectedNodeId && !e.target.closest('.node')) clearSelection();
   isPanning = true;
   panSX = e.clientX; panSY = e.clientY;
   panSTx = viewTransform.x; panSTy = viewTransform.y;
