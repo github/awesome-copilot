@@ -201,7 +201,8 @@ jobs:
 
           if [ "$risk" != "MEDIUM" ] && [ "$risk" != "HIGH" ]; then
             if [ -n "$comment_id" ]; then
-              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id"
+              gh api --method DELETE "repos/${{ github.repository }}/issues/comments/$comment_id" \
+                || echo "Comment $comment_id could not be deleted; continuing because the comment may have already been removed or changed."
             fi
             exit 0
           fi
