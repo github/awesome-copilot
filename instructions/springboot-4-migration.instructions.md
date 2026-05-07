@@ -1495,7 +1495,7 @@ tasks.withType<JavaExec> {
 - [Spring Boot 4.0 Migration Guide](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide)
 - [Spring Boot 4.0 Release Notes](https://github.com/spring-projects/spring-boot/releases)
 - [Spring Framework 7.0 Documentation](https://docs.spring.io/spring-framework/reference/)
-- [Jackson 3 Migration Guide](https://github.com/FasterXML/jackson/wiki/Jackson-3.0-Migration-Guide)
+- [Jackson 3 Migration Guide](https://github.com/FasterXML/jackson/blob/main/jackson3/MIGRATING_TO_JACKSON_3.md)
 - [Kotlin 2.2 Release Notes](https://kotlinlang.org/docs/whatsnew22.html)
 
 ---
