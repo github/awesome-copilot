@@ -1,6 +1,6 @@
 ---
 name: github-actions-codespaces-efficiency
-description: Audit and improve GitHub Actions and Codespaces efficiency. Use this skill when a user wants to reduce CI minutes, cancel redundant runs, add dependency caching, narrow workflow triggers with path filters, slim devcontainers, right-size Codespaces, tune idle timeout guidance, or scope prebuilds to high-value branches.
+description: 'Audit and improve GitHub Actions and Codespaces efficiency. Use this skill when a user wants to reduce CI minutes, cancel redundant runs, add dependency caching, narrow workflow triggers with path filters, slim devcontainers, right-size Codespaces, tune idle timeout guidance, or scope prebuilds to high-value branches.'
 ---
 
 # GitHub Actions and Codespaces Efficiency
