@@ -194,7 +194,8 @@ jobs:
           marker="<!-- agt-contributor-check -->"
           comment_id=$(
             gh api "repos/${{ github.repository }}/issues/$number/comments" --paginate \
-              --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | contains(\"$marker\"))) | .id" \
+              --arg marker "$marker" \
+              --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains($marker))) | .id' \
               | head -n 1
           )
 
