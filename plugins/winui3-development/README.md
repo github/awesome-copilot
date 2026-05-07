@@ -16,7 +16,9 @@ copilot plugin install winui3-development@awesome-copilot
 | Command | Description |
 |---------|-------------|
 | `/winui3-development:msstore-cli` | Microsoft Store Developer CLI for publishing Windows apps to the Microsoft Store — credentials, app/submission management, package flights, CI/CD publishing |
-| `/winui3-development:mvvm-toolkit` | CommunityToolkit.Mvvm reference: source generators (`[ObservableProperty]`, `[RelayCommand]`), base classes, Messenger, validation, and `Microsoft.Extensions.DependencyInjection` integration |
+| `/winui3-development:mvvm-toolkit` | CommunityToolkit.Mvvm core: source generators (`[ObservableProperty]`, `[RelayCommand]`), base classes, validation, and pitfalls |
+| `/winui3-development:mvvm-toolkit-di` | Wire MVVM Toolkit ViewModels into `Microsoft.Extensions.DependencyInjection` — Generic Host, lifetimes, constructor injection, testing |
+| `/winui3-development:mvvm-toolkit-messenger` | MVVM Toolkit Messenger pub/sub — `WeakReferenceMessenger`, `IRecipient<T>`, `RequestMessage<T>`, channels, lifecycle |
 | `/winui3-development:winapp-cli` | Windows App Development CLI for building, MSIX packaging, debugging-as-packaged, manifests, certificates, signing, and UI automation |
 | `/winui3-development:winui3-migration-guide` | UWP-to-WinUI 3 migration reference with API mappings and before/after code snippets |
 

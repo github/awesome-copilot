@@ -42,7 +42,7 @@ Access the payload via `.Value`.
 ### Empty signal
 
 ```csharp
-public sealed class RefreshRequestedMessage;
+public sealed record RefreshRequestedMessage;
 ```
 
 Useful for "reload now" or "save now" broadcasts where there is no payload.
