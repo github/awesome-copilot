@@ -643,8 +643,8 @@
     {
       "name": "winui3-development",
       "source": "winui3-development",
-      "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
-      "version": "1.0.0"
+      "description": "End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus CLIs for packaging/debugging (winapp) and Microsoft Store publishing (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse.",
+      "version": "1.2.0"
     }
   ]
 }

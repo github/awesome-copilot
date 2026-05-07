@@ -1,6 +1,6 @@
 # WinUI 3 Development Plugin
 
-WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.
+End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus CLIs for packaging/debugging (winapp) and Microsoft Store publishing (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse.
 
 ## Installation
 
@@ -15,6 +15,9 @@ copilot plugin install winui3-development@awesome-copilot
 
 | Command | Description |
 |---------|-------------|
+| `/winui3-development:msstore-cli` | Microsoft Store Developer CLI for publishing Windows apps to the Microsoft Store — credentials, app/submission management, package flights, CI/CD publishing |
+| `/winui3-development:mvvm-toolkit` | CommunityToolkit.Mvvm reference: source generators (`[ObservableProperty]`, `[RelayCommand]`), base classes, Messenger, validation, and `Microsoft.Extensions.DependencyInjection` integration |
+| `/winui3-development:winapp-cli` | Windows App Development CLI for building, MSIX packaging, debugging-as-packaged, manifests, certificates, signing, and UI automation |
 | `/winui3-development:winui3-migration-guide` | UWP-to-WinUI 3 migration reference with API mappings and before/after code snippets |
 
 ### Agents
@@ -29,8 +32,10 @@ copilot plugin install winui3-development@awesome-copilot
 - **Threading guidance** — DispatcherQueue instead of CoreDispatcher
 - **Windowing patterns** — AppWindow instead of CoreWindow/ApplicationView
 - **Dialog/Picker patterns** — ContentDialog with XamlRoot, pickers with window handle interop
-- **MVVM best practices** — CommunityToolkit.Mvvm, compiled bindings, dependency injection
+- **MVVM best practices** — CommunityToolkit.Mvvm source generators, compiled bindings, dependency injection
 - **Migration checklist** — step-by-step guide for porting UWP apps
+- **MSIX packaging & debugging** — `winapp` CLI for build, run-as-packaged, manifest, cert, and sign workflows
+- **Store publishing** — `msstore` CLI for credentials, submissions, flights, and CI/CD publishing pipelines
 
 ## Source
 
