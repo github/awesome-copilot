@@ -37,6 +37,15 @@ Inspect the current configuration before proposing changes:
 - Whether matrix breadth matches the actual decision being made
 - Whether devcontainers or Codespaces defaults are oversized
 
+Start with a compact repo audit like this:
+
+```bash
+rg -n "on:|concurrency:|paths:|paths-ignore:|strategy:|matrix:|cache:" .github/workflows .devcontainer
+gh run list --limit 10
+gh run view --log-failed
+find .devcontainer -maxdepth 2 -type f
+```
+
 ### 2. Rank fixes by payoff
 
 Prefer this order unless repo context says otherwise:
