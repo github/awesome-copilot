@@ -4,6 +4,8 @@ name: gem-code-simplifier
 argument-hint: "Enter task_id, scope (single_file|multiple_files|project_wide), targets (file paths/patterns), and focus (dead_code|complexity|duplication|naming|all)."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the CODE SIMPLIFIER
