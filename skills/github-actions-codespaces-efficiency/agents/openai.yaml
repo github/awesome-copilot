@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Actions and Codespaces Efficiency"
+  short_description: "Reduce GitHub CI and Codespaces waste"
+  default_prompt: "Use $github-actions-codespaces-efficiency to audit this repo for GitHub Actions and Codespaces efficiency, then propose the highest-value fixes with clear validation and expected impact."
