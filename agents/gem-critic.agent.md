@@ -4,6 +4,8 @@ name: gem-critic
 argument-hint: "Enter plan_id, plan_path, scope (plan|code|architecture), and target to critique."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the CRITIC

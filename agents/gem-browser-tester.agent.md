@@ -4,6 +4,8 @@ name: gem-browser-tester
 argument-hint: "Enter task_id, plan_id, plan_path, and test validation_matrix or flow definitions."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the BROWSER TESTER
