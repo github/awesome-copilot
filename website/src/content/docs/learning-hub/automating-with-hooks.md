@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-05
+lastUpdated: 2026-05-09
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -89,7 +89,7 @@ Hooks can trigger on several lifecycle events:
 |-------|---------------|------------------|
 | `sessionStart` | Agent session begins or resumes | Initialize environments, log session starts, validate project state |
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
-| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
+| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance, **handle requests directly without calling the LLM** |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
@@ -398,6 +398,62 @@ The output fields are:
 This enables sophisticated patterns like normalizing file paths, enforcing naming conventions, adding required flags, or surfacing policy context—without blocking the tool entirely.
 
 > **Note**: Both `modifiedArgs` and `updatedInput` are accepted field names for the replacement arguments (for cross-tool compatibility).
+
+### Handling Requests Without the LLM (v1.0.44+)
+
+The `userPromptSubmitted` hook can now **intercept a prompt and return a response directly** — without making any AI model call. When your hook script writes a JSON object to stdout with a `response` field, Copilot CLI uses that as the final reply and skips the LLM entirely.
+
+This is useful for:
+- **Custom slash-command handlers**: Respond to `/status`, `/version`, or other team-specific commands instantly
+- **FAQ bots**: Answer common questions from a static list without consuming AI quota
+- **Rate limiting or guardrails**: Block or redirect certain prompt patterns with a canned message
+- **CI pipeline hooks**: Return structured output for known machine-readable prompts
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "./scripts/prompt-handler.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+Example script that intercepts `/status` prompts and returns a canned response:
+
+```bash
+#!/usr/bin/env bash
+# scripts/prompt-handler.sh
+# Reads the user's prompt and optionally returns a direct response.
+
+INPUT=$(cat)
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
+
+if echo "$PROMPT" | grep -qi '^/status'; then
+  # Return a response directly, bypassing the LLM
+  BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  cat <<EOF
+{
+  "response": "**Repository status** as of ${TIMESTAMP}\n- Branch: \`${BRANCH}\`\n- CI: passing\n- Last deploy: $(git log -1 --format='%ar' 2>/dev/null || echo 'unknown')"
+}
+EOF
+  exit 0
+fi
+
+# For all other prompts, exit 0 without output to let the LLM respond normally
+exit 0
+```
+
+When the hook returns a `response` field, no model call is made — the response appears in the conversation immediately. When the hook exits without printing a `response`, the prompt is forwarded to the LLM as normal.
+
+> **Note**: This feature requires Copilot CLI v1.0.44 or later. In earlier versions, `userPromptSubmitted` hooks could log or block prompts but could not return responses.
 
 ### Governance Audit
 

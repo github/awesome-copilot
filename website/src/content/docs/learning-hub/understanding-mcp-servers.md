@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-07
+lastUpdated: 2026-05-09
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -226,6 +226,36 @@ current data distribution.
 ```
 
 Without the MCP server, the agent would have to guess at database structure and performance characteristics. With it, the agent works with real data.
+
+## MCP Tasks (Experimental)
+
+Copilot CLI v1.0.41+ adds experimental support for **MCP Tasks** — a pattern where MCP tools that declare `taskSupport: "required"` in their schema run as non-blocking background agents rather than as synchronous tool calls.
+
+When an MCP tool runs as a task:
+- It executes in the background without blocking the main conversation
+- You can track its progress and retrieve results using `list_agents` and `read_agent` built-in tools
+- Long-running operations (data migrations, batch processing, report generation) run concurrently with other work
+
+To enable this feature, start the CLI with experimental mode on:
+
+```
+copilot --experimental
+```
+
+or toggle it inside a session:
+
+```
+/experimental on
+```
+
+Once enabled, any MCP tool that sets `taskSupport: "required"` in its schema automatically runs as a trackable background agent. You and the main agent can query its status and retrieve results at any time:
+
+```
+list_agents          → see all running background tasks
+read_agent <id>      → retrieve output from a specific task
+```
+
+> **Note**: This is an experimental feature. The API may change in future releases. Only MCP tools that explicitly opt in via `taskSupport: "required"` use the task pattern — tools without this flag continue to run synchronously as before.
 
 ## MCP Sampling (LLM Inference Requests)
 

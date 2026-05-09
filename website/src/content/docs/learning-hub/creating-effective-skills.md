@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-05-09
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -347,7 +347,7 @@ Use [scripts/parse-test-output.sh](scripts/parse-test-output.sh) to extract stru
 
 **Q: How do I invoke a skill?**
 
-A: Skills can be invoked in two ways. Users can type the skill name as a `/command` in VS Code Chat (e.g., `/generate-tests`). Agents can also discover and invoke skills automatically based on the skill's description and the user's intent.
+A: Skills can be invoked in several ways. Users can type the skill name as a `/command` (e.g., `/generate-tests`). As of v1.0.44, **multiple skills can be invoked in a single message** — for example, `/generate-tests /explain-architecture` invokes both in sequence. Slash commands can also appear mid-input, not just at the start of a message. Agents can also discover and invoke skills automatically based on the skill's description and the user's intent.
 
 **Q: How are skills different from prompts?**
 
