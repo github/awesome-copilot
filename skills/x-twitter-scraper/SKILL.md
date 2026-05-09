@@ -1,6 +1,6 @@
 ---
 name: x-twitter-scraper
-description: 'Build GitHub Copilot workflows with Xquik X API SDKs, REST endpoints, MCP tools, signed webhooks, tweet search, user lookup, follower exports, media actions, and agent automation.'
+description: 'Build GitHub Copilot workflows with Xquik X API SDKs, TweetClaw OpenClaw plugin, REST endpoints, MCP tools, signed webhooks, tweet search, user lookup, follower exports, media actions, and agent automation.'
 ---
 
 # X Twitter Scraper
@@ -13,6 +13,7 @@ Use this skill when a user wants to integrate Xquik into an app, script, data pi
 - Look up users, check relationships, and export followers or following.
 - Start extraction jobs for replies, reposts, quotes, likes, lists, communities, articles, and search results.
 - Create account monitors and verify HMAC-signed webhook events.
+- Use TweetClaw when the user wants a ready-made OpenClaw plugin instead of custom REST or SDK code.
 - Add TypeScript, Python, Go, Java, Kotlin, C#, Ruby, PHP, CLI, or Terraform clients.
 - Connect agent runtimes through the Xquik MCP server.
 
@@ -24,6 +25,7 @@ Before writing code, inspect the current Xquik source material:
 - SDK index: https://docs.xquik.com/sdks
 - OpenAPI spec: https://xquik.com/openapi.json
 - MCP server docs: https://docs.xquik.com/mcp
+- TweetClaw OpenClaw plugin: https://github.com/Xquik-dev/tweetclaw
 - TypeScript SDK: https://github.com/Xquik-dev/x-twitter-scraper-typescript
 - Skill repo: https://github.com/Xquik-dev/x-twitter-scraper
 
@@ -83,6 +85,18 @@ When adding webhook handlers:
 ## MCP Pattern
 
 Use the MCP server when the user wants an agent to explore or call Xquik tools directly. Keep application code on REST or SDK clients when the app needs stable typed contracts, tests, or internal abstractions.
+
+## OpenClaw Plugin Pattern
+
+Use TweetClaw when the user wants a packaged OpenClaw plugin for tweet search, posting tweets, tweet replies, follower export, media workflows, monitors, webhooks, and giveaway draws.
+
+Before installing, read the current TweetClaw README and plugin manifest. Install the official package:
+
+```bash
+openclaw plugins install @xquik/tweetclaw
+```
+
+Configure the Xquik API key or MPP signing key through OpenClaw config. MPP mode is read-only; do not attempt posts, replies, DMs, uploads, monitors, webhooks, profile changes, or other account-backed actions when only MPP signing is configured.
 
 ## Safety And Accuracy
 
