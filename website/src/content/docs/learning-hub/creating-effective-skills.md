@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-05-10
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -347,7 +347,10 @@ Use [scripts/parse-test-output.sh](scripts/parse-test-output.sh) to extract stru
 
 **Q: How do I invoke a skill?**
 
-A: Skills can be invoked in two ways. Users can type the skill name as a `/command` in VS Code Chat (e.g., `/generate-tests`). Agents can also discover and invoke skills automatically based on the skill's description and the user's intent.
+A: Skills can be invoked in multiple ways:
+- **Slash command**: Type the skill name as a `/command` in the chat input (e.g., `/generate-tests`). As of v1.0.44, you can include slash commands **anywhere in your message**, and invoke **multiple skills in a single message** (e.g., "Fix the failing tests `/run-tests` then review the changes `/code-review`").
+- **Agent discovery**: Agents can automatically discover and invoke skills based on the skill's `description` and the user's intent — no explicit slash command needed.
+- **ACP clients**: Skills are also available as slash commands in ACP-compatible clients like Zed.
 
 **Q: How are skills different from prompts?**
 
@@ -363,7 +366,10 @@ A: Store skill folders in your repository's `.github/skills/` directory. They're
 
 **Q: Can agents chain multiple skills?**
 
-A: Agents can discover and invoke multiple skills during a conversation based on user intent. Each skill invocation is independent, but agents maintain conversation context across invocations.
+A: Yes, in several ways:
+- **Single-message multi-skill** (v1.0.44+): Users can invoke multiple slash commands in one message (e.g., `/generate-tests /check-style`). The agent processes each skill sequentially.
+- **Agent-driven chaining**: Agents can discover and invoke multiple skills during a conversation based on user intent — each invocation is independent, but agents maintain conversation context across them.
+- **Explicit sequencing**: Describe a multi-step workflow in your prompt and the agent will identify and invoke relevant skills in order.
 
 **Q: Should skills include code examples?**
 

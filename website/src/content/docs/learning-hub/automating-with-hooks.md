@@ -3,7 +3,7 @@ title: 'Automating with Hooks'
 description: 'Learn how to use hooks to automate lifecycle events like formatting, linting, and governance checks during Copilot agent sessions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-05
+lastUpdated: 2026-05-10
 estimatedReadingTime: '8 minutes'
 tags:
   - hooks
@@ -89,7 +89,7 @@ Hooks can trigger on several lifecycle events:
 |-------|---------------|------------------|
 | `sessionStart` | Agent session begins or resumes | Initialize environments, log session starts, validate project state |
 | `sessionEnd` | Agent session completes or is terminated | Clean up temp files, generate reports, send notifications |
-| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance |
+| `userPromptSubmitted` | User submits a prompt | Log requests for auditing and compliance; or **handle the prompt directly**, bypassing the LLM entirely |
 | `preToolUse` | Before the agent uses any tool (e.g., `bash`, `edit`) | **Approve or deny** tool executions, block dangerous commands, enforce security policies |
 | `postToolUse` | After a tool **successfully** completes execution | Log results, track usage, format code after edits |
 | `postToolUseFailure` | When a tool call **fails with an error** | Log errors for debugging, send failure alerts, track error patterns |
@@ -441,6 +441,63 @@ Scan user prompts for potential security threats and log session activity:
 
 This pattern is useful for enterprise environments that need to audit AI interactions for compliance.
 
+### Handling Prompts Directly (Bypassing the LLM)
+
+> **New in v1.0.44**: `userPromptSubmitted` hooks can now **handle a request entirely on their own**, returning a response to the user without making any model call. This is useful for FAQ-style automated responses, policy enforcement messages, or lightweight command handlers that don't need AI.
+
+To return a direct response, your hook script should write JSON to stdout containing a `response` field. When the CLI detects this field, it presents the hook's response to the user and skips the LLM call:
+
+```bash
+#!/usr/bin/env bash
+# scripts/handle-prompt.sh
+# Intercepts specific prompts and returns canned responses directly.
+
+INPUT=$(cat)
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
+
+case "$PROMPT" in
+  *"office hours"*)
+    echo '{"response": "Team office hours are Monday and Wednesday 2–4 PM PST. Use /book-meeting to schedule."}'
+    exit 0
+    ;;
+  *"on-call"*)
+    echo '{"response": "Current on-call engineer: check the #on-call Slack channel or run `gh api /teams/oncall`."}'
+    exit 0
+    ;;
+  *)
+    # No match — exit without a response field to let the LLM handle it normally
+    exit 0
+    ;;
+esac
+```
+
+```json
+{
+  "version": 1,
+  "hooks": {
+    "userPromptSubmitted": [
+      {
+        "type": "command",
+        "bash": "./scripts/handle-prompt.sh",
+        "cwd": ".",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
+```
+
+**How it works**:
+- If your script exits 0 **with** a `response` field in its JSON stdout, the CLI presents that response and **does not call the LLM**.
+- If your script exits 0 **without** a `response` field, the prompt proceeds normally to the LLM.
+- If your script exits non-zero, the prompt is **blocked** (standard preemptive behavior).
+
+This pattern is ideal for:
+- **Team FAQ bots** — intercept common questions and return authoritative answers instantly
+- **Policy guardrails** — block or redirect prompts that match sensitive patterns
+- **Custom slash-command handlers** — implement lightweight commands without a full agent or skill
+- **Cost control** — short-circuit expensive model calls for prompts that have deterministic answers
+
 ### Notification on Session End
 
 Send a Slack or Teams notification when an agent session completes:
@@ -592,7 +649,7 @@ For team-wide hooks that everyone should use, `.github/hooks/` is the recommende
 
 **Q: Can hooks access the user's prompt text?**
 
-A: Yes, for `userPromptSubmitted` events the prompt content is available via JSON input to the hook script. Other hooks like `preToolUse` and `postToolUse` receive context about the tool being called. See the [GitHub Copilot hooks documentation](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-hooks) for details.
+A: Yes, for `userPromptSubmitted` events the prompt content is available via JSON input to the hook script. As of v1.0.44, these hooks can also **return a response directly** to the user by writing `{"response": "..."}` to stdout — the LLM is bypassed entirely when a response field is present. Other hooks like `preToolUse` and `postToolUse` receive context about the tool being called. See the [GitHub Copilot hooks documentation](https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-hooks) for details.
 
 **Q: What happens if a hook times out?**
 
