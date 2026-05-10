@@ -114,12 +114,6 @@
       "version": "1.1.0"
     },
     {
-      "name": "csharp-mcp-development",
-      "source": "csharp-mcp-development",
-      "description": "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
-    },
-    {
       "name": "database-data-management",
       "source": "database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
