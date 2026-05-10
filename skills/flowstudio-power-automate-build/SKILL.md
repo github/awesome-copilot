@@ -24,7 +24,7 @@ Step-by-step guide for constructing and deploying Power Automate cloud flows
 programmatically through the FlowStudio MCP server.
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
-See the `power-automate-mcp` skill for connection setup.  
+See the `flowstudio-power-automate-mcp` skill for connection setup.
 Subscribe at https://mcp.flowstudio.app
 
 ---
@@ -192,7 +192,7 @@ for connector in connectors_needed:
 > connection_references = ref_flow["properties"]["connectionReferences"]
 > ```
 
-See the `power-automate-mcp` skill's **connection-references.md** reference
+See the `flowstudio-power-automate-mcp` skill's **connection-references.md** reference
 for the full connection reference structure.
 
 ---
@@ -216,59 +216,6 @@ definition = {
 
 > See [build-patterns.md](references/build-patterns.md) for complete, ready-to-use
 > flow definitions covering Recurrence+SharePoint+Teams, HTTP triggers, and more.
-
----
-
-## Step 3a — Resolving Dynamic Connector Values
-
-When an action input needs a value picked from a connector dropdown (e.g. a
-SharePoint list ID, a Dataverse table name, a user's Azure AD UPN), use
-`get_live_dynamic_options` to resolve it via MCP rather than hardcoding GUIDs.
-
-```python
-# Resolve a SharePoint list by site
-opts = mcp("get_live_dynamic_options",
-    environmentName=ENV,
-    connectorName="shared_sharepointonline",
-    operationId="GetTables",
-    parameters={"dataset": "https://contoso.sharepoint.com/sites/HR"})
-# opts["value"] → [{"Name": "<list-guid>", "DisplayName": "Employees"}, ...]
-```
-
-> **Outer-parameter auto-bridge** (server v1.1.6+): you can pass arbitrary outer
-> parameters directly in `parameters` — the server now synthesizes the
-> `parameterReference` mapping that PA's listEnum requires. Before 1.1.6 you had
-> to declare `dynamicMetadata.parameters: {paramName: {parameterReference: "name"}}`
-> manually or get `IncorrectDynamicInvokeParameter`. This makes it practical to
-> invoke arbitrary connector operations through the dynamic-options pipeline
-> (e.g. `shared_office365users.SearchUserV2` for AAD user lookup).
-
-### AadGraph user-picker fallback
-
-For Outlook actions like `GetEmailsV3` (parameters `mailboxAddress`, `to`, `cc`,
-`from`), PA's listEnum uses `builtInOperation:AadGraph.GetUsers` — which is
-broken and returns `DynamicListValuesUndefinedOrInvalid` for every call.
-
-`describe_live_connector` (v1.1.6+) detects these parameters and returns a
-structured `fallback` field on each affected parameter pointing at a working
-alternative. **Use `shared_office365users.SearchUserV2`** to resolve the same
-AAD user shape `{value: [{id, displayName, mail, userPrincipalName, ...}]}`:
-
-```python
-# Borrow a shared_office365users connection (any active one will do)
-conn = next(c for c in conn_map if "office365users" in c)
-
-users = mcp("get_live_dynamic_options",
-    environmentName=ENV,
-    connectorName="shared_office365users",
-    connectionName=conn_map[conn],   # see Step 2a
-    operationId="SearchUserV2",
-    parameters={"searchTerm": "john", "top": 10})
-# users["value"] → [{"Id": "...", "DisplayName": "John Smith", "Mail": "..."}, ...]
-```
-
-Then plug the resolved `Mail` value into the Outlook action's parameter — no
-need to call `AadGraph.GetUsers` directly.
 
 ---
 
@@ -382,10 +329,9 @@ than the original run. For verifying a fix, `resubmit_live_flow_run` is
 better because it uses the exact data that caused the failure.
 
 ```python
-# Read the request schema directly from the flow definition
-defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
-manual = next(iter(defn["properties"]["definition"]["triggers"].values()))
-print("Expected body:", manual.get("inputs", {}).get("schema"))
+schema = mcp("get_live_flow_http_schema",
+    environmentName=ENV, flowName=FLOW_ID)
+print("Expected body:", schema.get("requestSchema"))
 
 result = mcp("trigger_live_flow",
     environmentName=ENV, flowName=FLOW_ID,
@@ -457,7 +403,7 @@ if run["status"] == "Failed":
     root = err["failedActions"][-1]
     print(f"Root cause: {root['actionName']} → {root.get('code')}")
     # Debug and fix the definition before proceeding
-    # See power-automate-debug skill for full diagnosis workflow
+    # See flowstudio-power-automate-debug skill for full diagnosis workflow
 ```
 
 #### 7c — Swap to the production trigger
@@ -503,6 +449,12 @@ else:
 | Checking `result["error"]` exists | Always present; true error is `!= null` | Use `result.get("error") is not None` |
 | Flow deployed but state is "Stopped" | Flow won't run on schedule | Call `set_live_flow_state` with `state: "Started"` — do **not** use `update_live_flow` for state changes |
 | Teams "Chat with Flow bot" recipient as object | 400 `GraphUserDetailNotFound` | Use plain string with trailing semicolon (see below) |
+| Copilot/Skills flow not in a solution | Copilot Studio may not discover it as an agent tool | After deploy, call `add_live_flow_to_solution` with the target `solutionId` |
+| Button/Skills trigger used for MCP testing | MCP cannot directly fire the production trigger | Test the same actions through a temporary HTTP twin, then swap the trigger back |
+| Connector action missing `metadata.operationMetadataId` | Designer/run-only UI can behave inconsistently | Preserve existing IDs; add stable GUIDs for new connector actions |
+| Placeholder Excel `scriptId` | Dynamic validation fails at save time | Resolve the real Office Script ID before deploying |
+| SharePoint `PatchItem` omits required fields | Save can fail even if the field is not changing | Echo unchanged required fields such as `item/Title` |
+| Copilot Studio connector calls a draft agent | Connector invocation can fail or hit stale behavior | Publish the agent before testing/resubmitting the flow |
 
 ### Teams `PostMessageToConversation` — Recipient Formats
 
@@ -529,5 +481,5 @@ The `body/recipient` parameter format depends on the `location` value:
 
 ## Related Skills
 
-- `power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
-- `power-automate-debug` — Debug failing flows after deployment
+- `flowstudio-power-automate-mcp` — Core connection setup and tool reference
+- `flowstudio-power-automate-debug` — Debug failing flows after deployment

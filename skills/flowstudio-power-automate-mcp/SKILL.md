@@ -5,8 +5,8 @@ description: >-
   reusable MCP helper (Python + Node.js), tool discovery via `list_skills` /
   `tool_search`, and oversized-response handling. Load this skill first when
   connecting an agent to Power Automate. For specialized workflows, load
-  `power-automate-build`, `power-automate-debug`, `power-automate-monitoring`
-  (Pro+), or `power-automate-governance` (Pro+) — each contains the workflow
+  `flowstudio-power-automate-build`, `flowstudio-power-automate-debug`, `flowstudio-power-automate-monitoring`
+  (Pro+), or `flowstudio-power-automate-governance` (Pro+) — each contains the workflow
   narrative, this skill provides the plumbing they all rely on. Requires a
   FlowStudio MCP subscription or compatible server — see https://mcp.flowstudio.app
 metadata:
@@ -45,16 +45,16 @@ trying to accomplish.
 
 | The user wants to… | Load this skill |
 |---|---|
-| Make or change a flow (build new, modify existing, fix a bug, deploy) | **`power-automate-build`** |
-| Diagnose why a flow failed (root cause analysis on a failing run) | **`power-automate-debug`** |
-| See tenant-wide flow health, failure rates, asset inventory | **`power-automate-monitoring`** *(Pro+)* |
-| Tag, audit, classify, score, or offboard flows | **`power-automate-governance`** *(Pro+)* |
+| Make or change a flow (build new, modify existing, fix a bug, deploy) | **`flowstudio-power-automate-build`** |
+| Diagnose why a flow failed (root cause analysis on a failing run) | **`flowstudio-power-automate-debug`** |
+| See tenant-wide flow health, failure rates, asset inventory | **`flowstudio-power-automate-monitoring`** *(Pro+)* |
+| Tag, audit, classify, score, or offboard flows | **`flowstudio-power-automate-governance`** *(Pro+)* |
 | Just connect, set up auth, write the helper, parse responses | this skill (foundation) |
 
-**Same tools, different lenses.** `power-automate-build` and `power-automate-debug`
+**Same tools, different lenses.** `flowstudio-power-automate-build` and `flowstudio-power-automate-debug`
 both call `update_live_flow`, `get_live_flow`, and the run-error tools — they
 differ in *direction* (forward vs backward) and *intent* (compose vs diagnose).
-`power-automate-monitoring` and `power-automate-governance` both call the Store
+`flowstudio-power-automate-monitoring` and `flowstudio-power-automate-governance` both call the Store
 tools — they differ in *audience* (ops vs compliance) and *outcome* (read
 health vs write metadata). Don't try to memorize "which tools belong to which
 skill"; pick the skill by what the user is doing.
@@ -91,7 +91,7 @@ tool names.
 
 The server's `tool_search` bundles are intentionally **narrower than this
 skill family** — they're starter packs of the most-likely-needed tools per
-intent. A workflow skill (e.g. `power-automate-debug`) may pull a bundle and
+intent. A workflow skill (e.g. `flowstudio-power-automate-debug`) may pull a bundle and
 then call `tool_search` again for additional tools as the workflow progresses.
 
 ```python

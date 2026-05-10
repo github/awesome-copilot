@@ -223,6 +223,15 @@ Response:
 
 Migrates a non-solution flow into a solution. Returns error if already in a solution.
 
+Use this after creating a Copilot Studio Skills-triggered flow that must be
+discoverable as an agent tool. Pass `solutionId` for the target solution. If the
+server supports omitting `solutionId`, it uses the environment's default solution;
+prefer an explicit unmanaged solution for production ALM.
+
+This tool changes solution membership only. It does not validate the trigger
+schema, publish a Copilot Studio agent, or prove that the flow is callable by the
+agent.
+
 ---
 
 ## Run History & Monitoring
@@ -322,26 +331,29 @@ Cancels a `Running` flow run.
 
 ## HTTP Trigger Tools
 
-### Reading the request schema and trigger URL
+### `get_live_flow_http_schema`
 
-Both pieces of metadata live inside the flow definition — call `get_live_flow`
-and read them directly:
-
-```python
-defn = mcp("get_live_flow", {"environmentName": ENV, "flowName": FLOW})
-trigger_name, trigger = next(iter(defn["properties"]["definition"]["triggers"].items()))
-request_schema = trigger.get("inputs", {}).get("schema")
-callback_url   = trigger.get("metadata", {}).get("callbackUrl")  # null for non-HTTP
-
-# Response action schemas
-for name, act in defn["properties"]["definition"]["actions"].items():
-    if act.get("type") == "Response":
-        print(name, act.get("inputs", {}).get("schema"))
+Response keys:
+```
+flowKey            - Flow GUID
+displayName        - Flow display name
+triggerName        - Trigger action name (e.g. "manual")
+triggerType        - Trigger type (e.g. "Request")
+triggerKind        - Trigger kind (e.g. "Http")
+requestMethod      - HTTP method (e.g. "POST")
+relativePath       - Relative path configured on the trigger (if any)
+requestSchema      - JSON schema the trigger expects as POST body
+requestHeaders     - Headers the trigger expects
+responseSchemas    - Array of JSON schemas defined on Response action(s)
+responseSchemaCount - Number of Response actions that define output schemas
 ```
 
-> Previous wrappers `get_live_flow_http_schema`, `get_live_flow_trigger_url`,
-> and `get_store_flow_trigger_url` are deprecated. The cached version is
-> available as the `triggerUrl` field on `get_store_flow`.
+> The request body schema is in `requestSchema` (not `triggerSchema`).
+
+### `get_live_flow_trigger_url`
+
+Returns the signed callback URL for HTTP-triggered flows. Response includes
+`flowKey`, `triggerName`, `triggerType`, `triggerKind`, `triggerMethod`, `triggerUrl`.
 
 ### `trigger_live_flow`
 
@@ -389,11 +401,30 @@ Response:
 > **Use this tool** — not `update_live_flow` — to start or stop a flow.
 > `update_live_flow` only changes displayName/definition; the PA API ignores
 > state passed through that endpoint.
+
+### `set_store_flow_state`
+
+Start or stop a flow via the live PA API **and** persist the updated state back
+to the Power Clarity cache. Same parameters as `set_live_flow_state` but requires
+a Power Clarity workspace.
+
+Response (different shape from `set_live_flow_state`):
+```json
+{
+  "flowKey": "<environmentId>.<flowId>",
+  "requestedState": "Stopped",
+  "currentState": "Stopped",
+  "flow": { /* full gFlows record, same shape as get_store_flow */ }
+}
+```
+
+> Prefer `set_live_flow_state` when you only need to toggle state — it's
+> simpler and has no subscription requirement.
 >
-> The previous `set_store_flow_state` wrapper (which also synced state back
-> to the cache) is deprecated. The cache will catch up on the next daily
-> scan; if you need cache freshness sooner, call `get_live_flow` after the
-> state change to verify and let the next scan sync.
+> Use `set_store_flow_state` when you need the cache updated immediately
+> (without waiting for the next daily scan) AND want the full updated
+> governance record back in the same call — useful for workflows that
+> stop a flow and immediately tag or inspect it.
 
 ---
 
@@ -416,8 +447,14 @@ Response: aggregated run statistics.
 ### `get_store_flow_runs`
 
 Cached run history for the last N days with duration and remediation hints.
-Pass `status=["Failed"]` for an errors-only view (replaces the deprecated
-`get_store_flow_errors` wrapper).
+
+### `get_store_flow_errors`
+
+Cached failed-only runs with failed action names and remediation hints.
+
+### `get_store_flow_trigger_url`
+
+Trigger URL from cache (instant, no PA API call).
 
 ### `update_store_flow`
 

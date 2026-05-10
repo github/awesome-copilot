@@ -28,7 +28,7 @@ cloud flows through the FlowStudio MCP server.
 > [Null value crashes child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/null-child-flow.md)
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
-See the `power-automate-mcp` skill for connection setup.  
+See the `flowstudio-power-automate-mcp` skill for connection setup.
 Subscribe at https://mcp.flowstudio.app
 
 ---
@@ -198,6 +198,14 @@ if out.get("inputs"):
 | `InvalidTemplate` | The exact expression that failed and the null/wrong-type value |
 | `BadRequest` | The request body that was sent and why the server rejected it |
 
+### Evidence Compose Bookends
+
+For uncertain connector work, add a `Compose_*_Request` before the risky action
+and a `Compose_*_Result` after it, with the result action allowed on both
+`Succeeded` and `Failed`. This gives future debugging a clean payload snapshot
+without requiring another deploy. Do not include secrets or long binary payloads
+in these bookends.
+
 ### Example: HTTP action returning 500
 
 ```
@@ -317,9 +325,9 @@ is broken at the PA listEnum layer and always returns
 modifies an Outlook action via `update_live_flow` and tries to resolve a user
 through dynamic options. **Don't fix it by retrying AadGraph** — switch to
 `shared_office365users.SearchUserV2` instead (returns the same AAD user shape).
-See the `power-automate-build` skill, **Step 3a — Resolving Dynamic Connector
-Values**, for the working pattern. `describe_live_connector` (v1.1.6+) returns
-this fallback as a structured `fallback` field on the affected parameter.
+Use `describe_live_connector` to confirm whether the affected parameter exposes
+a structured `fallback`, then call `get_live_dynamic_options` against
+`shared_office365users.SearchUserV2` instead of the broken AadGraph operation.
 
 ---
 
@@ -439,5 +447,5 @@ print(f"Status: {result['responseStatus']}, Body: {result.get('responseBody')}")
 
 ## Related Skills
 
-- `power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
-- `power-automate-build` — Build and deploy new flows
+- `flowstudio-power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
+- `flowstudio-power-automate-build` — Build and deploy new flows

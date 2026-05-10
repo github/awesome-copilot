@@ -49,7 +49,7 @@ The first three skills call the live Power Automate API. The monitoring and gove
 1. Install the plugin
 2. Get your API key at [mcp.flowstudio.app](https://mcp.flowstudio.app)
 3. Configure the MCP connection in VS Code (`.vscode/mcp.json`):
-   
+
    ```json
    {
      "servers": {
