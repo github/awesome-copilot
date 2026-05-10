@@ -7,13 +7,6 @@ description: >-
   aggregated tenant views. For one environment, one flow, run control, or
   root-cause debugging, use flowstudio-power-automate-mcp, flowstudio-power-automate-debug, or the
   server monitor-flow bundle. Requires FlowStudio for Teams or MCP Pro+.
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FLOWSTUDIO_MCP_TOKEN
-    primaryEnv: FLOWSTUDIO_MCP_TOKEN
-    homepage: https://mcp.flowstudio.app
 ---
 
 # Power Automate Monitoring with FlowStudio MCP

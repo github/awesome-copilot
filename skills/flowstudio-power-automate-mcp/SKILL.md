@@ -9,13 +9,6 @@ description: >-
   (Pro+), or `flowstudio-power-automate-governance` (Pro+) — each contains the workflow
   narrative, this skill provides the plumbing they all rely on. Requires a
   FlowStudio MCP subscription or compatible server — see https://mcp.flowstudio.app
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FLOWSTUDIO_MCP_TOKEN
-    primaryEnv: FLOWSTUDIO_MCP_TOKEN
-    homepage: https://mcp.flowstudio.app
 ---
 
 # Power Automate via FlowStudio MCP — Foundation

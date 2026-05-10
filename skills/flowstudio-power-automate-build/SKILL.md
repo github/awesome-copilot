@@ -9,13 +9,6 @@ description: >-
   JSON, update an existing flow's actions, patch a flow definition, add actions
   to a flow, wire up connections, or generate a workflow definition from scratch.
   Requires a FlowStudio MCP subscription — see https://mcp.flowstudio.app
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FLOWSTUDIO_MCP_TOKEN
-    primaryEnv: FLOWSTUDIO_MCP_TOKEN
-    homepage: https://mcp.flowstudio.app
 ---
 
 # Build & Deploy Power Automate Flows with FlowStudio MCP
@@ -131,86 +124,47 @@ in the environment.
 > user for connection names or GUIDs. The API returns the exact values you need.
 > Only prompt the user if the API confirms that required connections are missing.
 
-### 2a — Always call `list_live_connections` first
+### 2a — Find active connections
 
 ```python
 conns = mcp("list_live_connections", environmentName=ENV)
-
-# Filter to connected (authenticated) connections only
 active = [c for c in conns["connections"]
           if c["statuses"][0]["status"] == "Connected"]
-
-# Build a lookup: connectorName → connectionName (id)
-conn_map = {}
-for c in active:
-    conn_map[c["connectorName"]] = c["id"]
-
-print(f"Found {len(active)} active connections")
-print("Available connectors:", list(conn_map.keys()))
+conn_map = {c["connectorName"]: c["id"] for c in active}
 ```
 
-For a known connector, use `search` to reduce output and ask the server for
-paste-ready templates:
+For a known connector, pass `search` to reduce output and get paste-ready
+`connectionReferenceTemplate` and `hostTemplate` values:
 
 ```python
 sp_conns = mcp("list_live_connections",
     environmentName=ENV,
     search="shared_sharepointonline")
-
-# Each matching connection may include:
-# - connectionReferenceTemplate: copy into update_live_flow.connectionReferences
-# - hostTemplate: copy into action inputs.host
 ```
 
 ### 2b — Determine which connectors the flow needs
 
-Based on the flow you are building, identify which connectors are required.
-Common connector API names:
+Common connector API names: SharePoint `shared_sharepointonline`, Outlook
+`shared_office365`, Teams `shared_teams`, Approvals `shared_approvals`,
+OneDrive `shared_onedriveforbusiness`, Excel `shared_excelonlinebusiness`,
+Dataverse `shared_commondataserviceforapps`, Forms `shared_microsoftforms`.
 
-| Connector | API name |
-|---|---|
-| SharePoint | `shared_sharepointonline` |
-| Outlook / Office 365 | `shared_office365` |
-| Teams | `shared_teams` |
-| Approvals | `shared_approvals` |
-| OneDrive for Business | `shared_onedriveforbusiness` |
-| Excel Online (Business) | `shared_excelonlinebusiness` |
-| Dataverse | `shared_commondataserviceforapps` |
-| Microsoft Forms | `shared_microsoftforms` |
-
-> **Flows that need NO connections** (e.g. Recurrence + Compose + HTTP only)
-> can skip the rest of Step 2 — omit `connectionReferences` from the deploy call.
+Flows that need no connectors, such as Recurrence + Compose + HTTP only, can
+omit `connectionReferences`.
 
 ### 2c — If connections are missing, guide the user
 
 ```python
 connectors_needed = ["shared_sharepointonline", "shared_office365"]  # adjust per flow
-
 missing = [c for c in connectors_needed if c not in conn_map]
-
-if not missing:
-    print("✅ All required connections are available — proceeding to build")
-else:
-    # ── STOP: connections must be created interactively ──
-    # Connections require OAuth consent in a browser — no API can create them.
-    print("⚠️  The following connectors have no active connection in this environment:")
-    for c in missing:
-        friendly = c.replace("shared_", "").replace("onlinebusiness", " Online (Business)")
-        print(f"   • {friendly}  (API name: {c})")
-    print()
-    print("Please create the missing connections:")
-    print("  1. Open https://make.powerautomate.com/connections")
-    print("  2. Select the correct environment from the top-right picker")
-    print("  3. Click '+ New connection' for each missing connector listed above")
-    print("  4. Sign in and authorize when prompted")
-    print("  5. Tell me when done — I will re-check and continue building")
-    # DO NOT proceed to Step 3 until the user confirms.
-    # After user confirms, re-run Step 2a to refresh conn_map.
+if missing:
+    # STOP: connections require browser OAuth consent.
+    # Ask the user to create the missing connector connections in the
+    # selected environment, then re-run list_live_connections.
+    raise Exception(f"Missing active connections: {missing}")
 ```
 
 ### 2d — Build the connectionReferences block
-
-Only execute this after 2c confirms no missing connectors:
 
 ```python
 connection_references = {}
@@ -227,21 +181,11 @@ for connector in connectors_needed:
     }
 ```
 
-> **IMPORTANT — `host.connectionName` in actions**: When building actions in
-> Step 3, set `host.connectionName` to the **key** from this map (e.g.
-> `shared_teams`), NOT the connection GUID. The GUID only goes inside the
-> `connectionReferences` entry. The engine matches the action's
-> `host.connectionName` to the key to find the right connection.
-
-> **Alternative** — if you already have a flow using the same connectors,
-> you can extract `connectionReferences` from its definition:
-> ```python
-> ref_flow = mcp("get_live_flow", environmentName=ENV, flowName="<existing-flow-id>")
-> connection_references = ref_flow["properties"]["connectionReferences"]
-> ```
-
-See the `flowstudio-power-automate-mcp` skill's **connection-references.md** reference
-for the full connection reference structure.
+In Step 3 action JSON, `inputs.host.connectionName` must be the map key such as
+`shared_teams`, not the GUID. The GUID belongs only inside the
+`connectionReferences[connector].connectionName` value. If an existing flow uses
+the same connectors, you may also copy its `properties.connectionReferences`
+from `get_live_flow`.
 
 ---
 
@@ -464,95 +408,43 @@ resubmit and no HTTP endpoint to call. This is the ONLY scenario where you
 need the temporary HTTP trigger approach below. **Deploy with a temporary
 HTTP trigger first, test the actions, then swap to the production trigger.**
 
-#### 7a — Save the real trigger, deploy with a temporary HTTP trigger
+Compact recipe:
 
 ```python
-# Save the production trigger you built in Step 3
 production_trigger = definition["triggers"]
-
-# Replace with a temporary HTTP trigger
 definition["triggers"] = {
-    "manual": {
-        "type": "Request",
-        "kind": "Http",
-        "inputs": {
-            "schema": {}
-        }
-    }
+    "manual": {"type": "Request", "kind": "Http", "inputs": {"schema": {}}}
 }
 
-# Deploy (create or update) with the temp trigger
-definition["description"] = "Deployed with temp HTTP trigger for testing"
 result = mcp("update_live_flow",
     environmentName=ENV,
     flowName=FLOW_ID,       # omit if creating new
     definition=definition,
     connectionReferences=connection_references,
     displayName="Overdue Invoice Notifications")
+FLOW_ID = FLOW_ID or result["created"]
 
-if result.get("error") is not None:
-    print("Deploy failed:", result["error"])
-else:
-    if not FLOW_ID:
-        FLOW_ID = result["created"]
-    print(f"✅ Deployed with temp HTTP trigger: {FLOW_ID}")
-```
+test = mcp("trigger_live_flow", environmentName=ENV, flowName=FLOW_ID,
+           body={"sample": "payload"})
+runs = mcp("get_live_flow_runs", environmentName=ENV, flowName=FLOW_ID, top=1)
 
-#### 7b — Fire the flow and check the result
-
-```python
-# Trigger the flow
-test = mcp("trigger_live_flow",
-    environmentName=ENV, flowName=FLOW_ID)
-print(f"Trigger response status: {test['responseStatus']}")
-
-# Wait for the run to complete
-import time; time.sleep(15)
-
-# Check the run result
-runs = mcp("get_live_flow_runs",
-    environmentName=ENV, flowName=FLOW_ID, top=1)
-run = runs[0]
-print(f"Run {run['name']}: {run['status']}")
-
-if run["status"] == "Failed":
+if runs[0]["status"] == "Failed":
     err = mcp("get_live_flow_run_error",
-        environmentName=ENV, flowName=FLOW_ID, runName=run["name"])
-    root = err["failedActions"][-1]
-    print(f"Root cause: {root['actionName']} → {root.get('code')}")
-    # Debug and fix the definition before proceeding
-    # See flowstudio-power-automate-debug skill for full diagnosis workflow
-```
+        environmentName=ENV, flowName=FLOW_ID, runName=runs[0]["name"])
+    raise Exception(err["failedActions"][-1])
 
-#### 7c — Swap to the production trigger
-
-Once the test run succeeds, replace the temporary HTTP trigger with the real one:
-
-```python
-# Restore the production trigger
 definition["triggers"] = production_trigger
-
-definition["description"] = "Swapped to production trigger after successful test"
-result = mcp("update_live_flow",
+mcp("update_live_flow",
     environmentName=ENV,
     flowName=FLOW_ID,
     definition=definition,
     connectionReferences=connection_references)
-
-if result.get("error") is not None:
-    print("Trigger swap failed:", result["error"])
-else:
-    print("✅ Production trigger deployed — flow is live")
 ```
 
-> **Why this works**: The trigger is just the entry point — the actions are
-> identical regardless of how the flow starts. Testing via HTTP trigger
-> exercises all the same Compose, SharePoint, Teams, etc. actions.
->
-> **Connector triggers** (e.g. "When an item is created in SharePoint"):
-> If actions reference `triggerBody()` or `triggerOutputs()`, pass a
-> representative test payload in `trigger_live_flow`'s `body` parameter
-> that matches the shape the connector trigger would produce.
+The trigger is only the entry point; testing through HTTP still exercises the
+same actions. If actions use `triggerBody()` or `triggerOutputs()`, pass a
+representative `trigger_live_flow.body` shaped like the production trigger
+payload.
 
 ---
 

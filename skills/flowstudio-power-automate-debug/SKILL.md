@@ -9,13 +9,6 @@ description: >-
   fix a broken Power Automate flow, diagnose a timeout, trace a DynamicOperationRequestFailure,
   check connector auth errors, read error details from a run, or troubleshoot
   expression failures. Requires a FlowStudio MCP subscription — see https://mcp.flowstudio.app
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FLOWSTUDIO_MCP_TOKEN
-    primaryEnv: FLOWSTUDIO_MCP_TOKEN
-    homepage: https://mcp.flowstudio.app
 ---
 
 # Power Automate Debugging with FlowStudio MCP
