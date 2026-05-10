@@ -211,8 +211,8 @@ For pure-UI iteration, [MCP Inspector](https://github.com/modelcontextprotocol/i
 ## Pitfalls
 
 - **Wrong MIME type.** Use `text/html+skybridge`. Plain `text/html` may still work but isn't future-proof.
-- **CSP too tight or too loose.** If your UI loads from a CDN, declare it in `_meta.ui.csp`. Otherwise the iframe sandbox blocks it.
-- **Forgetting the `_meta` on the tool.** Without it, the host treats your tool as a regular text-returning tool. The UI never appears.
+- **CSP too tight or too loose.** If your UI loads from a CDN, declare it in `Meta["ui"]["csp"]` on the `Tool` definition (this serialises to `_meta.ui.csp` on the wire). Otherwise the iframe sandbox blocks it.
+- **Forgetting `Tool.Meta` on the tool.** Without the `Meta` property containing the `ui.resourceUri` entry, the host treats your tool as a regular text-returning tool. The UI never appears.
 - **Trying to use browser APIs outside the sandbox.** No cookies, no localStorage from the parent. Use `app.updateModelContext` and tool calls for state.
 
 ## Future-proofing
