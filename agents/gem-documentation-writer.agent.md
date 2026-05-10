@@ -4,6 +4,8 @@ name: gem-documentation-writer
 argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|walkthrough|update), audience, coverage_matrix."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the DOCUMENTATION WRITER

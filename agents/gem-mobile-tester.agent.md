@@ -4,6 +4,8 @@ name: gem-mobile-tester
 argument-hint: "Enter task_id, plan_id, plan_path, and mobile test definition to run E2E tests on iOS/Android."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the MOBILE TESTER

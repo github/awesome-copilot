@@ -6,6 +6,15 @@ Self-Learning Multi-agent orchestration harness for spec-driven development and 
 
 ## Quick Start
 
+```bash
+# Install via APM (recommended)
+apm install mubaidr/gem-team
+
+# Or register as a marketplace
+apm marketplace add mubaidr/gem-team
+apm install gem-team@gem-team
+```
+
 See [all supported installation options](#installation) below.
 
 ---
@@ -108,19 +117,182 @@ User Goal → Orchestrator → [Simple: Research/Plan] or [Complex: Discuss → 
 
 ## Installation
 
-| Method                               | Command / Link                                                                                                                                                                                                                                                                                                                                | Docs                                                                                              |
-| :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
-| **Code**                             | **[Install Now](https://aka.ms/awesome-copilot/install/agent?url=vscode%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252F.agents)**                                                                                                                                   | [Copilot Docs](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-chat) |
-| **Code Insiders**                    | **[Install Now](https://aka.ms/awesome-copilot/install/agent?url=vscode-insiders%3Achat-agent%2Finstall%3Furl%3Dhttps%253A%252F%252Fraw.githubusercontent.com%252Fgithub%252Fawesome-copilot%252Fmain%252F.agents)**                                                                                                                          | [Copilot Docs](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-chat) |
-| **APM <br/> (All AI coding agents)** | `apm install mubaidr/gem-team`                                                                                                                                                                                                                                                                                                                | [APM Docs](https://microsoft.github.io/apm/)                                                      |
-| **Copilot CLI (Marketplace)**        | `copilot plugin install gem-team@awesome-copilot`                                                                                                                                                                                                                                                                                             | [CLI Docs](https://github.com/github/copilot-cli)                                                 |
-| **Copilot CLI (Direct)**             | `copilot plugin install gem-team@mubaidr`                                                                                                                                                                                                                                                                                                     | [CLI Docs](https://github.com/github/copilot-cli)                                                 |
-| **Windsurf**                         | `codeium agent install mubaidr/gem-team`                                                                                                                                                                                                                                                                                                      | [Windsurf Docs](https://docs.codeium.com/windsurf)                                                |
-| **Claude Code**                      | `claude plugin install mubaidr/gem-team`                                                                                                                                                                                                                                                                                                      | [Claude Docs](https://docs.anthropic.com/en/docs/claude-code)                                     |
-| **OpenCode**                         | `opencode plugin install mubaidr/gem-team`                                                                                                                                                                                                                                                                                                    | [OpenCode Docs](https://opencode.ai/docs/)                                                        |
-| **Manual <br/> (Copy agent files)**  | VS Code: `~/.vscode/agents/` <br/> VS Code Insiders: `~/.vscode- insiders/agents/` <br/> GitHub Copilot: `~/.github/copilot/agents/` <br/> GitHub Copilot (project): `.github/plugin/agents/` <br/> Windsurf: `~/.windsurf/agents/` <br/> Claude: `~/.claude/agents/` <br/> Cursor: `~/.cursor/agents/` <br/> OpenCode: `~/.opencode/agents/` | —                                                                                                 |
+### Install APM First
+
+If you don't have APM installed, install it first:
+
+```bash
+# macOS/Linux
+curl -fsSL https://microsoft.github.io/apm/install.sh | sh
+
+# Windows (PowerShell)
+irm https://microsoft.github.io/apm/install.ps1 | iex
+
+# Or via npm
+npm install -g @microsoft/apm
+```
+
+**Why APM?** Universal package manager for AI coding tools. One command installs to all your tools (Copilot CLI, Claude Code, Cursor, OpenCode). Handles version locking, updates, and dependencies automatically.
+
+[APM Documentation](https://microsoft.github.io/apm/) | [GitHub](https://github.com/microsoft/apm)
 
 ---
+
+Choose the method that works best for your workflow:
+
+### Method 1: Direct Install via APM (Recommended)
+
+Fastest way to get started. APM automatically detects your tool and installs to the correct location.
+
+```bash
+apm install mubaidr/gem-team
+```
+
+**Works with:** GitHub Copilot CLI, Claude Code, Cursor, OpenCode
+
+[APM Documentation](https://microsoft.github.io/apm/getting-started/quick-start/)
+
+---
+
+### Method 2: Via Marketplace
+
+Add gem-team as a marketplace, then install from it. Useful for browsing available agents and managing updates.
+
+#### GitHub Copilot CLI
+
+```bash
+# Add marketplace
+copilot plugin marketplace add mubaidr/gem-team
+
+# Browse available plugins
+copilot plugin marketplace browse gem-team
+
+# Install
+copilot plugin install gem-team@gem-team
+```
+
+#### Claude Code
+
+```bash
+# Add marketplace
+/plugin marketplace add mubaidr/gem-team
+
+# Browse in UI
+/plugin
+
+# Install
+/plugin install gem-team@gem-team
+```
+
+#### Cursor IDE
+
+```bash
+# Add marketplace via APM
+apm marketplace add mubaidr/gem-team
+
+# Install
+apm install gem-team@gem-team
+```
+
+---
+
+### Method 3: From awesome-copilot Marketplace
+
+Install from the official awesome-copilot marketplace (GitHub Copilot CLI only).
+
+```bash
+# awesome-copilot is pre-registered by default
+copilot plugin install gem-team@awesome-copilot
+```
+
+**Note:** This method is only available if gem-team is listed in the awesome-copilot marketplace.
+
+---
+
+### Method 4: Local/Manual Installation
+
+For development, testing, or offline use.
+
+#### Clone Repository
+
+```bash
+git clone https://github.com/mubaidr/gem-team.git
+cd gem-team
+```
+
+#### Claude Code
+
+```bash
+# Load as local plugin
+claude --plugin-dir .
+
+# Or add as local marketplace
+/plugin marketplace add ./
+
+# Reload after changes
+/reload-plugins
+```
+
+#### Cursor IDE
+
+```bash
+# Option 1: Via chat command
+# In Cursor: /add-plugin /absolute/path/to/gem-team
+
+# Option 2: Copy agents to project
+# One-line install: Copy agents and rename to .mdc
+mkdir -p .cursor/rules && cp .apm/agents/*.agent.md .cursor/rules/ && cd .cursor/rules && for f in *.agent.md; do mv "$f" "${f%.agent.md}.mdc"; done && cd ../..
+```
+
+#### GitHub Copilot CLI
+
+```bash
+# Add as local marketplace
+copilot plugin marketplace add /absolute/path/to/gem-team
+
+# Install
+copilot plugin install gem-team@gem-team
+```
+
+#### Manual Copy (Any Tool)
+
+```bash
+# Copy agents to your tool's directory
+# GitHub Copilot: ~/.copilot/
+# Claude Code: ~/.claude/plugins/
+# Cursor: .cursor/rules/
+# OpenCode: .opencode/plugins/
+
+cp -r .apm/agents <destination>
+```
+
+---
+
+### VS Code Extension (GitHub Copilot)
+
+Search for "gem-team" in the VS Code Extensions marketplace.
+
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search "gem-team"
+4. Click Install
+
+---
+
+### Verification
+
+After installation, verify agents are available:
+
+```bash
+# GitHub Copilot CLI
+copilot plugin list
+
+# Claude Code
+/plugin list
+
+# APM (any tool)
+apm list
+```
 
 ## The Agent Team
 

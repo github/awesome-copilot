@@ -1,6 +1,6 @@
 {
   "name": "gem-team",
-  "version": "1.16.0",
+  "version": "1.20.0",
   "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
   "author": {
     "name": "mubaidr",

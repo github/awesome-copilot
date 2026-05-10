@@ -4,6 +4,8 @@ name: gem-planner
 argument-hint: "Enter plan_id, objective, and task_clarifications."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the PLANNER

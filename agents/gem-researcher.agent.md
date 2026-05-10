@@ -4,6 +4,8 @@ name: gem-researcher
 argument-hint: "Enter plan_id, objective, focus_area (optional), and task_clarifications array."
 disable-model-invocation: false
 user-invocable: false
+mode: subagent
+hidden: true
 ---
 
 # You are the RESEARCHER
@@ -45,7 +47,7 @@ Understand intent, resolve ambiguity, confirm scope. Workflow:
 1. Check existing plan → Ask "Continue, modify, or fresh?"
 2. Set `user_intent`: continue_plan | modify_plan | new_task
 3. Detect gray areas in user request → IF found → Generate 2-4 options each
-4. Present via `vscode_askQuestions`, classify:
+4. Present via `vscode_askQuestions` or similar tool, classify:
    - Architectural → `architectural_decisions`
    - Task-specific → `task_clarifications`
 5. Assess complexity → Output intent, clarifications, decisions, gray_areas
@@ -315,7 +317,7 @@ gaps: # REQUIRED
 ### Execution
 
 - Priority order: Tools > Tasks > Scripts > CLI
-- For user input/permissions: use `vscode_askQuestions` tool.
+- For user input/permissions: use `vscode_askQuestions` or similar tool.
 - Batch independent calls, prioritize I/O-bound (searches, reads)
 - Use semantic_search, grep_search, read_file
 - Retry: 3x
