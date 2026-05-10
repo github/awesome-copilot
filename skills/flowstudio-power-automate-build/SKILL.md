@@ -20,6 +20,15 @@ programmatically through the FlowStudio MCP server.
 See the `flowstudio-power-automate-mcp` skill for connection setup.
 Subscribe at https://mcp.flowstudio.app
 
+Workflow:
+1. Load current build tools.
+2. Check for an existing flow.
+3. Resolve connection references.
+4. Build the definition.
+5. Deploy.
+6. Verify.
+7. Test.
+
 ---
 
 ## Source of Truth
@@ -62,7 +71,7 @@ ENV = "<environment-id>"  # e.g. Default-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 ---
 
-## Before Step 1 — Load the Current Build Tools
+## 0. Load the Current Build Tools
 
 For a brand-new flow, load the server's `create-flow` bundle. For editing an
 existing flow, load `build-flow`. This keeps the agent aligned with the MCP
@@ -82,7 +91,7 @@ mcp("tool_search", query="select:get_live_dynamic_properties")
 
 ---
 
-## Step 1 — Safety Check: Does the Flow Already Exist?
+## 1. Safety Check: Does the Flow Already Exist?
 
 Always look before you build to avoid duplicates:
 
@@ -114,7 +123,7 @@ the MCP identity has admin rights.
 
 ---
 
-## Step 2 — Obtain Connection References
+## 2. Obtain Connection References
 
 Every connector action needs a `connectionName` that points to a key in the
 flow's `connectionReferences` map. That key links to an authenticated connection
@@ -189,7 +198,7 @@ from `get_live_flow`.
 
 ---
 
-## Step 3 — Build the Flow Definition
+## 3. Build the Flow Definition
 
 Construct the definition object. See [flow-schema.md](references/flow-schema.md)
 for the full schema and these action pattern references for copy-paste templates:
@@ -274,7 +283,7 @@ SharePoint list item columns.
 
 ---
 
-## Step 4 — Deploy (Create or Update)
+## 4. Deploy (Create or Update)
 
 `update_live_flow` handles both creation and updates in a single tool.
 
@@ -342,7 +351,7 @@ else:
 
 ---
 
-## Step 5 — Verify the Deployment
+## 5. Verify the Deployment
 
 ```python
 check = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
@@ -359,7 +368,7 @@ print("Actions:", list(acts.keys()))
 
 ---
 
-## Step 6 — Test the Flow
+## 6. Test the Flow
 
 > **MANDATORY**: Before triggering any test run, **ask the user for confirmation**.
 > Running a flow has real side effects — it may send emails, post Teams messages,
