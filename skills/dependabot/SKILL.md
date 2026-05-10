@@ -5,7 +5,10 @@ description: >-
   users ask about creating or optimizing dependabot.yml files, managing Dependabot pull requests,
   configuring dependency update strategies, setting up grouped updates, monorepo patterns,
   multi-ecosystem groups, security update configuration, auto-triage rules, or any GitHub
-  Advanced Security (GHAS) supply chain security topic related to Dependabot.
+  Advanced Security (GHAS) supply chain security topic related to Dependabot. For pre-commit
+  dependency vulnerability scanning in AI coding agents via the GitHub MCP Server, this skill
+  references the Advanced Security plugin (`advanced-security@copilot-plugins`). Use this skill
+  when an agent needs to scan dependencies for known vulnerabilities before committing.
 ---
 
 # Dependabot Configuration & Management
@@ -414,6 +417,34 @@ Use `groups` to batch updates, `directories` with globs for coverage, and `group
 
 **How do I handle dependencies outside the workspace?**
 Create a separate ecosystem entry with its own `directory` pointing to that location.
+
+## Pre-Commit Dependency Scanning via AI Coding Agents
+
+For scanning code changes for vulnerable dependencies inside an AI coding agent before committing, the GitHub MCP Server's `dependabot` toolset can check your dependency additions against the GitHub Advisory Database and return structured results with affected packages, severity, and recommended fixed versions. For more thorough post-commit checks, it can also run the Dependabot CLI locally to diff dependency graphs before and after your changes.
+
+Install the **Advanced Security plugin** which provides dedicated dependency scanning tools and the `/dependency-scanning` skill.
+
+**GitHub Copilot CLI (shell):**
+```bash
+# Enable the dependabot toolset for the GitHub MCP Server
+copilot --add-github-mcp-toolset dependabot
+```
+
+**GitHub Copilot CLI (inside `copilot`):**
+```text
+> /plugin install advanced-security@copilot-plugins
+```
+
+**Visual Studio Code:**
+- Add `"X-MCP-Toolsets": "dependabot"` to your GitHub MCP Server headers, or pick **Dependabot** from the toolset selector in Copilot Chat
+- Install the `advanced-security` plugin, then use `/dependency-scanning` in Copilot Chat
+
+**Example prompt:**
+> Scan the dependencies I added on this branch for known vulnerabilities and tell me which versions to upgrade to before I commit.
+
+See: [Advanced Security Plugin — Dependency Scanning Skill](https://github.com/github/copilot-plugins/blob/main/plugins/advanced-security/skills/dependency-scanning/SKILL.md)
+
+> Announced in [Dependency scanning with GitHub MCP Server is in public preview](https://github.blog/changelog/2026-05-05-dependency-scanning-with-github-mcp-server-is-in-public-preview/) (May 2026)
 
 ## Resources
 

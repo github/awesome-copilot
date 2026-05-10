@@ -11,12 +11,16 @@ Common mistakes and fixes.
 | Saturation blindness | 100% pass = no signal | Keep capability evals at 50-80% |
 | Similarity metrics | BERTScore/ROUGE for generation | Use for retrieval only |
 | Model switching | Hoping a model works better | Error analysis first |
+| Single-run scoring | LLM judges and non-deterministic tasks add per-run noise that can drown the signal from a prompt change on a small dataset | Set `repetitions` on `runExperiment` (or grow the dataset) when the task or judge is an LLM call |
 
 ## Quantify Changes
 
 ```python
-baseline = run_experiment(dataset, old_prompt, evaluators)
-improved = run_experiment(dataset, new_prompt, evaluators)
+from phoenix.client import Client
+
+client = Client()
+baseline = client.experiments.run_experiment(dataset=dataset, task=old_prompt, evaluators=evaluators)
+improved = client.experiments.run_experiment(dataset=dataset, task=new_prompt, evaluators=evaluators)
 print(f"Improvement: {improved.pass_rate - baseline.pass_rate:+.1%}")
 ```
 

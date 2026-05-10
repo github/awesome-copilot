@@ -64,6 +64,18 @@ function validateKeywords(keywords) {
   return null;
 }
 
+function arraysEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function sortPluginEntries(entries) {
+  return [...entries].sort((left, right) => left.localeCompare(right));
+}
+
 function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
@@ -77,6 +89,9 @@ function validateSpecPaths(plugin) {
     if (!Array.isArray(arr)) {
       errors.push(`${field} must be an array`);
       continue;
+    }
+    if (!arraysEqual(arr, sortPluginEntries(arr))) {
+      errors.push(`${field} must be sorted alphabetically`);
     }
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];

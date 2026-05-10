@@ -14,6 +14,10 @@ CI/CD evals vs production monitoring - complementary approaches.
 ## CI/CD Evaluations
 
 ```python
+from phoenix.client import Client
+
+client = Client()
+
 # Fast, deterministic checks
 ci_evaluators = [
     has_required_format,
@@ -23,7 +27,7 @@ ci_evaluators = [
 ]
 
 # Small but representative dataset (~100 examples)
-run_experiment(ci_dataset, task, ci_evaluators)
+client.experiments.run_experiment(dataset=ci_dataset, task=task, evaluators=ci_evaluators)
 ```
 
 Set thresholds: regression=0.95, safety=1.0, format=0.98.

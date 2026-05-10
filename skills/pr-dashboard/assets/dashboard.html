@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PR Dashboard</title>
+  <style>
+    :root {
+      --bg:#ffffff; --bg2:#f6f8fa; --bg3:#eaeef2; --border:#d0d7de;
+      --text:#1f2328; --muted:#636c76; --link:#0969da;
+      --hover:#f3f4f6; --thead:#f6f8fa;
+    }
+    [data-theme="dark"] {
+      --bg:#0d1117; --bg2:#161b22; --bg3:#21262d; --border:#30363d;
+      --text:#e6edf3; --muted:#8b949e; --link:#58a6ff;
+      --hover:#1c2128; --thead:#21262d;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:1rem;background:var(--bg);color:var(--text);padding:24px 32px;transition:background .2s,color .2s}
+    h1{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
+    .meta{color:var(--muted);font-size:.875rem;margin-bottom:32px}
+    .stats{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+    .stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 28px;text-align:center;transition:all .2s;cursor:default}
+    .stat:hover{border-color:var(--link);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+    .stat .n{font-size:2.5rem;font-weight:800;line-height:1}.stat .l{font-size:.85rem;color:var(--muted);margin-top:6px;font-weight:500}
+    .stat.open .n{color:#1a7f37}.stat.merged .n{color:#8250df}.stat.closed .n{color:#cf222e}.stat.draft .n{color:#636c76}
+    [data-theme="dark"] .stat.open .n{color:#2ea043}[data-theme="dark"] .stat.merged .n{color:#8957e5}
+    [data-theme="dark"] .stat.closed .n{color:#da3633}[data-theme="dark"] .stat.draft .n{color:#848d97}
+    .toolbar{display:flex;gap:12px;margin-bottom:20px;align-items:center;flex-wrap:wrap;padding:12px;background:var(--bg2);border-radius:8px}
+    .toolbar input,.toolbar select{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:.95rem;outline:none;transition:border .2s}
+    .toolbar input{flex:1;min-width:200px}.toolbar input:focus,.toolbar select:focus{border-color:var(--link);box-shadow:0 0 0 3px rgba(9,105,218,.1)}
+    .visible-count{margin-left:auto;font-size:.875rem;color:var(--muted);font-weight:500}
+    .theme-toggle{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 14px;color:var(--text);font-size:.875rem;cursor:pointer;white-space:nowrap;transition:all .2s;font-weight:500}
+    .theme-toggle:hover{background:var(--bg3);border-color:var(--link)}
+    table{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:.95rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+    thead{background:var(--thead)}
+    th{padding:14px 16px;text-align:left;font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    td{padding:16px;border-top:1px solid var(--border);vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--hover)}
+    a{color:var(--link);text-decoration:none;font-weight:500}a:hover{text-decoration:underline}
+    .title-line{font-weight:600;font-size:1rem;margin-bottom:6px}
+    .badge{display:inline-block;padding:4px 10px;border-radius:14px;font-size:.75rem;font-weight:700;color:#fff;letter-spacing:.3px;text-transform:uppercase}
+    .empty{text-align:center;padding:60px 40px;color:var(--muted);font-size:1.1rem}
+    .controls{display:inline-flex;gap:6px;margin-left:8px}
+    .mini-btn{background:var(--bg2);border:1px solid var(--border);padding:4px 8px;border-radius:6px;font-size:.75rem;cursor:pointer;transition:all .2s}
+    .mini-btn:hover{background:var(--bg3);border-color:var(--link)}
+
+
+  </style>
+</head>
+<body>
+  <h1>🔀 PR Dashboard</h1>
+  <div class="meta">PR Dashboard</div>
+
+  <div class="stats">
+    <div class="stat open"><div class="n">0</div><div class="l">Open</div></div>
+    <div class="stat merged"><div class="n">0</div><div class="l">Merged</div></div>
+    <div class="stat closed"><div class="n">0</div><div class="l">Closed</div></div>
+    <div class="stat draft"><div class="n">0</div><div class="l">Draft</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Search title or repo…" aria-label="Search pull requests" oninput="filter()">
+    <select id="sf" aria-label="Filter by status" onchange="filter()">
+      <option value="">All statuses</option>
+      <option>OPEN</option><option>MERGED</option><option>CLOSED</option><option>DRAFT</option>
+    </select>
+    <select id="rf" aria-label="Filter by review status" onchange="filter()">
+      <option value="">All reviews</option>
+      <option>APPROVED</option><option>CHANGES_REQUESTED</option><option>REVIEW_REQUIRED</option>
+    </select>
+    <span class="visible-count" id="vc">0 PRs</span>
+    <button id="exportMdBtn" class="theme-toggle" onclick="downloadMarkdown()">📄 Export MD</button>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Dark</button>
+  </div>
+
+  <table>
+    <thead><tr><th>Repository</th><th>Title</th><th>Status</th><th>Review</th><th>CI</th><th>Created</th><th>Updated</th></tr></thead>
+    <tbody id="tb">
+      <tr>
+        <td colspan="7" style="text-align:center;color:var(--muted);">No pull request data loaded.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>const __md = "";
+    function filter(){
+      const q=document.getElementById("q").value.toLowerCase();
+      const sf=document.getElementById("sf").value;
+      const rf=document.getElementById("rf").value;
+      let n=0;
+      document.querySelectorAll("#tb tr").forEach(r=>{
+        const t=r.textContent.toLowerCase();
+        const badges=[...r.querySelectorAll(".badge")].map(b=>b.textContent);
+        const show=(!q||t.includes(q))&&(!sf||badges[0]===sf)&&(!rf||badges[1]===rf);
+        r.style.display=show?"":"none";
+        if(show)n++;
+      });
+      document.getElementById("vc").textContent=n+" PR"+(n!==1?"s":"");
+    }
+    function toggleTheme(){
+      const html=document.documentElement;
+      const isDark=html.getAttribute("data-theme")==="dark";
+      html.setAttribute("data-theme",isDark?"light":"dark");
+      document.getElementById("themeBtn").textContent=isDark?"🌙 Dark":"☀️ Light";
+      localStorage.setItem("pr-dashboard-theme",isDark?"light":"dark");
+    }
+    function downloadMarkdown(){
+      try{
+        const md = __md || '';
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const filename = 'pr-dashboard.md';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      } catch (e) { console.error(e); }
+    }
+
+
+
+
+    // Restore saved theme preference
+    const saved=localStorage.getItem("pr-dashboard-theme");
+    if(saved==="dark"){
+      document.documentElement.setAttribute("data-theme","dark");
+      document.getElementById("themeBtn").textContent="☀️ Light";
+    }
+  </script>
+</body>
+</html>
+

@@ -1,9 +1,11 @@
 ---
 name: arize-experiment
-description: "INVOKE THIS SKILL when creating, running, or analyzing Arize experiments. Covers experiment CRUD, exporting runs, comparing results, and evaluation workflows using the ax CLI."
+description: "INVOKE THIS SKILL when creating, running, or analyzing Arize experiments. Also use when the user wants to evaluate or measure model performance, compare models (including GPT-4, Claude, or others), or assess how well their AI is doing. Covers experiment CRUD, exporting runs, comparing results, and evaluation workflows using the ax CLI."
 ---
 
 # Arize Experiment Skill
+
+> **`SPACE`** — All `--space` flags and the `ARIZE_SPACE` env var accept a space **name** (e.g., `my-workspace`) or a base64 space **ID** (e.g., `U3BhY2U6...`). Find yours with `ax spaces list`.
 
 ## Concepts
 
@@ -20,9 +22,11 @@ Proceed directly with the task — run the `ax` command you need. Do NOT check v
 
 If an `ax` command fails, troubleshoot based on the error:
 - `command not found` or version error → see references/ax-setup.md
-- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via references/ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
-- Space ID unknown → check `.env` for `ARIZE_SPACE_ID`, or run `ax spaces list -o json`, or ask the user
-- Project unclear → check `.env` for `ARIZE_DEFAULT_PROJECT`, or ask, or run `ax projects list -o json --limit 100` and present as selectable options
+- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong, follow references/ax-profiles.md to create/update it. If the user doesn't have their key, direct them to https://app.arize.com/admin > API Keys
+- Space unknown → run `ax spaces list` to pick by name, or ask the user
+- Project unclear → ask the user, or run `ax projects list -o json --limit 100` and present as selectable options
+- **Security:** Never read `.env` files or search the filesystem for credentials. Use `ax profiles` for Arize credentials and `ax ai-integrations` for LLM provider keys. If credentials are not available through these channels, ask the user.
+- **CRITICAL — Never fabricate outputs:** When running an experiment, you MUST call the real model API specified by the user for every dataset example. Never fabricate, simulate, or hardcode model outputs, latencies, or evaluation scores. If you cannot call the API (missing SDK, missing credentials, network error), stop and tell the user what is needed before proceeding.
 
 ## List Experiments: `ax experiments list`
 
@@ -30,7 +34,7 @@ Browse experiments, optionally filtered by dataset. Output goes to stdout.
 
 ```bash
 ax experiments list
-ax experiments list --dataset-id DATASET_ID --limit 20
+ax experiments list --dataset DATASET_NAME --space SPACE --limit 20   # DATASET_NAME: name or ID (name preferred)
 ax experiments list --cursor CURSOR_TOKEN
 ax experiments list -o json
 ```
@@ -39,7 +43,7 @@ ax experiments list -o json
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--dataset-id` | string | none | Filter by dataset |
+| `--dataset` | string | none | Filter by dataset |
 | `--limit, -l` | int | 15 | Max results (1-100) |
 | `--cursor` | string | none | Pagination cursor from previous response |
 | `-o, --output` | string | table | Output format: table, json, csv, parquet, or file path |
@@ -50,15 +54,18 @@ ax experiments list -o json
 Quick metadata lookup -- returns experiment name, linked dataset/version, and timestamps.
 
 ```bash
-ax experiments get EXPERIMENT_ID
-ax experiments get EXPERIMENT_ID -o json
+ax experiments get NAME_OR_ID
+ax experiments get NAME_OR_ID -o json
+ax experiments get NAME_OR_ID --dataset DATASET_NAME --space SPACE   # required when using experiment name instead of ID
 ```
 
 ### Flags
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `EXPERIMENT_ID` | string | required | Positional argument |
+| `NAME_OR_ID` | string | required | Experiment name or ID (positional) |
+| `--dataset` | string | none | Dataset name or ID (required if using experiment name instead of ID) |
+| `--space` | string | none | Space name or ID (required if using dataset name instead of ID) |
 | `-o, --output` | string | table | Output format |
 | `-p, --profile` | string | default | Configuration profile |
 
@@ -79,20 +86,23 @@ ax experiments get EXPERIMENT_ID -o json
 Download all runs to a file. By default uses the REST API; pass `--all` to use Arrow Flight for bulk transfer.
 
 ```bash
-ax experiments export EXPERIMENT_ID
+# EXPERIMENT_NAME, DATASET_NAME: name or ID (name preferred)
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE
 # -> experiment_abc123_20260305_141500/runs.json
 
-ax experiments export EXPERIMENT_ID --all
-ax experiments export EXPERIMENT_ID --output-dir ./results
-ax experiments export EXPERIMENT_ID --stdout
-ax experiments export EXPERIMENT_ID --stdout | jq '.[0]'
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --all
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --output-dir ./results
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | jq '.[0]'
 ```
 
 ### Flags
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `EXPERIMENT_ID` | string | required | Positional argument |
+| `NAME_OR_ID` | string | required | Experiment name or ID (positional) |
+| `--dataset` | string | none | Dataset name or ID (required if using experiment name instead of ID) |
+| `--space` | string | none | Space name or ID (required if using dataset name instead of ID) |
 | `--all` | bool | false | Use Arrow Flight for bulk export (see below) |
 | `--output-dir` | string | `.` | Output directory |
 | `--stdout` | bool | false | Print JSON to stdout instead of file |
@@ -127,8 +137,8 @@ Output is a JSON array of run objects:
 Create a new experiment with runs from a data file.
 
 ```bash
-ax experiments create --name "gpt-4o-baseline" --dataset-id DATASET_ID --file runs.json
-ax experiments create --name "claude-test" --dataset-id DATASET_ID --file runs.csv
+ax experiments create --name "gpt-4o-baseline" --dataset DATASET_NAME --space SPACE --file runs.json
+ax experiments create --name "claude-test" --dataset DATASET_NAME --space SPACE --file runs.csv
 ```
 
 ### Flags
@@ -136,7 +146,8 @@ ax experiments create --name "claude-test" --dataset-id DATASET_ID --file runs.c
 | Flag | Type | Required | Description |
 |------|------|----------|-------------|
 | `--name, -n` | string | yes | Experiment name |
-| `--dataset-id` | string | yes | Dataset to run the experiment against |
+| `--dataset` | string | yes | Dataset to run the experiment against |
+| `--space, -s` | string | no | Space name or ID (required if using dataset name instead of ID) |
 | `--file, -f` | path | yes | Data file with runs: CSV, JSON, JSONL, or Parquet |
 | `-o, --output` | string | no | Output format |
 | `-p, --profile` | string | no | Configuration profile |
@@ -146,10 +157,10 @@ ax experiments create --name "claude-test" --dataset-id DATASET_ID --file runs.c
 Use `--file -` to pipe data directly — no temp file needed:
 
 ```bash
-echo '[{"example_id": "ex_001", "output": "Paris"}]' | ax experiments create --name "my-experiment" --dataset-id DATASET_ID --file -
+echo '[{"example_id": "ex_001", "output": "Paris"}]' | ax experiments create --name "my-experiment" --dataset DATASET_NAME --space SPACE --file -
 
 # Or with a heredoc
-ax experiments create --name "my-experiment" --dataset-id DATASET_ID --file - << 'EOF'
+ax experiments create --name "my-experiment" --dataset DATASET_NAME --space SPACE --file - << 'EOF'
 [{"example_id": "ex_001", "output": "Paris"}]
 EOF
 ```
@@ -166,15 +177,18 @@ Additional columns are passed through as `additionalProperties` on the run.
 ## Delete Experiment: `ax experiments delete`
 
 ```bash
-ax experiments delete EXPERIMENT_ID
-ax experiments delete EXPERIMENT_ID --force   # skip confirmation prompt
+ax experiments delete NAME_OR_ID
+ax experiments delete NAME_OR_ID --dataset DATASET_NAME --space SPACE   # required when using experiment name instead of ID
+ax experiments delete NAME_OR_ID --force   # skip confirmation prompt
 ```
 
 ### Flags
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `EXPERIMENT_ID` | string | required | Positional argument |
+| `NAME_OR_ID` | string | required | Experiment name or ID (positional) |
+| `--dataset` | string | none | Dataset name or ID (required if using experiment name instead of ID) |
+| `--space` | string | none | Space name or ID (required if using dataset name instead of ID) |
 | `--force, -f` | bool | false | Skip confirmation prompt |
 | `-p, --profile` | string | default | Configuration profile |
 
@@ -217,33 +231,103 @@ At least one of `label`, `score`, or `explanation` should be present per evaluat
 
 1. Find or create a dataset:
    ```bash
-   ax datasets list
-   ax datasets export DATASET_ID --stdout | jq 'length'
+   ax datasets list --space SPACE
+   ax datasets export DATASET_NAME --space SPACE --stdout | jq 'length'
    ```
 2. Export the dataset examples:
    ```bash
-   ax datasets export DATASET_ID
+   ax datasets export DATASET_NAME --space SPACE
    ```
-3. Process each example through your system, collecting outputs and evaluations
-4. Build a runs file (JSON array) with `example_id`, `output`, and optional `evaluations`:
-   ```json
-   [
-     {"example_id": "ex_001", "output": "4", "evaluations": {"correctness": {"label": "correct", "score": 1.0}}},
-     {"example_id": "ex_002", "output": "Paris", "evaluations": {"correctness": {"label": "correct", "score": 1.0}}}
-   ]
+3. Call the real model API for each example and collect outputs. Use `ax datasets export --stdout` to pipe examples directly into an inference script:
+
+   ```bash
+   ax datasets export DATASET_NAME --space SPACE --stdout | python3 infer.py > runs.json
    ```
+
+   Write `infer.py` to read examples from stdin, call the target model, and write runs JSON to stdout. The script below is a template — first inspect the exported dataset JSON to find the correct input field name, then uncomment the provider block the user wants:
+
+   ```python
+   import json, sys, time
+
+   examples = json.load(sys.stdin)
+   runs = []
+
+   for ex in examples:
+       # Inspect the exported JSON to find the right field (e.g. "input", "question", "prompt")
+       user_input = ex.get("input") or ex.get("question") or ex.get("prompt") or str(ex)
+
+       start = time.time()
+
+       # === CALL THE REAL MODEL API HERE — never fabricate or simulate ===
+       # Uncomment and adapt the provider block the user requested:
+       #
+       # OpenAI (pip install openai  — uses OPENAI_API_KEY env var):
+       #   from openai import OpenAI
+       #   resp = OpenAI().chat.completions.create(
+       #       model="gpt-4o",
+       #       messages=[{"role": "user", "content": user_input}]
+       #   )
+       #   output_text = resp.choices[0].message.content
+       #
+       # Anthropic (pip install anthropic  — uses ANTHROPIC_API_KEY env var):
+       #   import anthropic
+       #   resp = anthropic.Anthropic().messages.create(
+       #       model="claude-sonnet-4-6", max_tokens=1024,
+       #       messages=[{"role": "user", "content": user_input}]
+       #   )
+       #   output_text = resp.content[0].text
+       #
+       # Google Gemini (pip install google-genai  — uses GOOGLE_API_KEY env var):
+       #   from google import genai
+       #   resp = genai.Client().models.generate_content(
+       #       model="gemini-2.5-pro", contents=user_input
+       #   )
+       #   output_text = resp.text
+       #
+       # Custom / OpenAI-compatible proxy (pip install openai — uses CUSTOM_BASE_URL + CUSTOM_API_KEY env vars):
+       # Use this for Azure OpenAI, NVIDIA NIM, local Ollama, or any OpenAI-compatible endpoint,
+       # including a test integration proxy. Matches the `custom` provider in `ax ai-integrations create`.
+       #   import os
+       #   from openai import OpenAI
+       #   resp = OpenAI(
+       #       base_url=os.environ["CUSTOM_BASE_URL"],          # e.g. https://my-proxy.example.com/v1
+       #       api_key=os.environ.get("CUSTOM_API_KEY", "none"),
+       #   ).chat.completions.create(
+       #       model=os.environ.get("CUSTOM_MODEL", "default"),
+       #       messages=[{"role": "user", "content": user_input}]
+       #   )
+       #   output_text = resp.choices[0].message.content
+
+       latency_ms = round((time.time() - start) * 1000)
+       runs.append({
+           "example_id": ex["id"],
+           "output": output_text,
+           "metadata": {"model": "MODEL_NAME", "latency_ms": latency_ms}
+       })
+       print(f"  {ex['id']}: {latency_ms}ms", file=sys.stderr)
+
+   json.dump(runs, sys.stdout, indent=2)
+   ```
+
+   **Before running:** install the provider SDK (`pip install openai` / `anthropic` / `google-genai`) and ensure the API key is set as an environment variable in your shell. If you cannot access the API, stop and tell the user what is needed.
+
+4. Verify the runs file:
+   ```bash
+   python3 -c "import json; runs=json.load(open('runs.json')); print(f'{len(runs)} runs'); print(json.dumps(runs[0], indent=2))"
+   ```
+   Each run must have `example_id` and `output`. Optional fields: `evaluations`, `metadata`.
 5. Create the experiment:
    ```bash
-   ax experiments create --name "gpt-4o-baseline" --dataset-id DATASET_ID --file runs.json
+   ax experiments create --name "gpt-4o-baseline" --dataset DATASET_NAME --space SPACE --file runs.json
    ```
-6. Verify: `ax experiments get EXPERIMENT_ID`
+6. Verify: `ax experiments get "gpt-4o-baseline" --dataset DATASET_NAME --space SPACE`
 
 ### Compare two experiments
 
 1. Export both experiments:
    ```bash
-   ax experiments export EXPERIMENT_ID_A --stdout > a.json
-   ax experiments export EXPERIMENT_ID_B --stdout > b.json
+   ax experiments export "experiment-a" --dataset DATASET_NAME --space SPACE --stdout > a.json
+   ax experiments export "experiment-b" --dataset DATASET_NAME --space SPACE --stdout > b.json
    ```
 2. Compare evaluation scores by `example_id`:
    ```bash
@@ -281,24 +365,24 @@ At least one of `label`, `score`, or `explanation` should be present per evaluat
 
 ### Download experiment results for analysis
 
-1. `ax experiments list --dataset-id DATASET_ID` -- find experiments
-2. `ax experiments export EXPERIMENT_ID` -- download to file
+1. `ax experiments list --dataset DATASET_NAME --space SPACE` -- find experiments
+2. `ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE` -- download to file
 3. Parse: `jq '.[] | {example_id, score: .evaluations.correctness.score}' experiment_*/runs.json`
 
 ### Pipe export to other tools
 
 ```bash
 # Count runs
-ax experiments export EXPERIMENT_ID --stdout | jq 'length'
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | jq 'length'
 
 # Extract all outputs
-ax experiments export EXPERIMENT_ID --stdout | jq '.[].output'
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | jq '.[].output'
 
 # Get runs with low scores
-ax experiments export EXPERIMENT_ID --stdout | jq '[.[] | select(.evaluations.correctness.score < 0.5)]'
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | jq '[.[] | select(.evaluations.correctness.score < 0.5)]'
 
 # Convert to CSV
-ax experiments export EXPERIMENT_ID --stdout | jq -r '.[] | [.example_id, .output, .evaluations.correctness.score] | @csv'
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | jq -r '.[] | [.example_id, .output, .evaluations.correctness.score] | @csv'
 ```
 
 ## Related Skills
@@ -315,7 +399,7 @@ ax experiments export EXPERIMENT_ID --stdout | jq -r '.[] | [.example_id, .outpu
 | `ax: command not found` | See references/ax-setup.md |
 | `401 Unauthorized` | API key is wrong, expired, or doesn't have access to this space. Fix the profile using references/ax-profiles.md. |
 | `No profile found` | No profile is configured. See references/ax-profiles.md to create one. |
-| `Experiment not found` | Verify experiment ID with `ax experiments list` |
+| `Experiment not found` | Verify experiment name with `ax experiments list --space SPACE` |
 | `Invalid runs file` | Each run must have `example_id` and `output` fields |
 | `example_id mismatch` | Ensure `example_id` values match IDs from the dataset (export dataset to verify) |
 | `No runs found` | Export returned empty -- verify experiment has runs via `ax experiments get` |

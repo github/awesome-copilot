@@ -495,6 +495,29 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MarioCodes"><img src="https://avatars.githubusercontent.com/u/17473450?v=4" width="100px;" alt=""/><br /><sub><b>Mario Codes</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.flemingtechnologies.cl/"><img src="https://avatars.githubusercontent.com/u/5702027?v=4" width="100px;" alt=""/><br /><sub><b>Gonzalo Fleming</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.movinglive.ca/"><img src="https://avatars.githubusercontent.com/u/14792628?v=4" width="100px;" alt=""/><br /><sub><b>Steve Magne</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Sertxito"><img src="https://avatars.githubusercontent.com/u/25170262?v=4" width="100px;" alt=""/><br /><sub><b>Sertxito</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.zengliangyi.online/"><img src="https://avatars.githubusercontent.com/u/104827876?v=4" width="100px;" alt=""/><br /><sub><b>Rayner Zeng</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ilderaj"><img src="https://avatars.githubusercontent.com/u/6321440?v=4" width="100px;" alt=""/><br /><sub><b>ilderaj</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mvanderbend-msoft"><img src="https://avatars.githubusercontent.com/u/259659559?v=4" width="100px;" alt=""/><br /><sub><b>mvanderbend-msoft</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/parveen-dotnet"><img src="https://avatars.githubusercontent.com/u/226729782?v=4" width="100px;" alt=""/><br /><sub><b>Parveen Sharma</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pmorong"><img src="https://avatars.githubusercontent.com/u/10659855?v=4" width="100px;" alt=""/><br /><sub><b>pmorong</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/thevinodkumar"><img src="https://avatars.githubusercontent.com/u/42086653?v=4" width="100px;" alt=""/><br /><sub><b>vinod kumar</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://vidhartbhatia.com/"><img src="https://avatars.githubusercontent.com/u/23387006?v=4" width="100px;" alt=""/><br /><sub><b>Vidhart Bhatia</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/leonard520"><img src="https://avatars.githubusercontent.com/u/5118845?v=4" width="100px;" alt=""/><br /><sub><b>Xiaoyun Ding</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/denis-a-evdokimov"><img src="https://avatars.githubusercontent.com/u/19668152?v=4" width="100px;" alt=""/><br /><sub><b>denis-a-evdokimov</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://connexio.digital/"><img src="https://avatars.githubusercontent.com/u/17970602?v=4" width="100px;" alt=""/><br /><sub><b>Adriano Nogueira</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/AezanPathan"><img src="https://avatars.githubusercontent.com/u/110289332?v=4" width="100px;" alt=""/><br /><sub><b>Aezan</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/clubanderson"><img src="https://avatars.githubusercontent.com/u/407614?v=4" width="100px;" alt=""/><br /><sub><b>Andy Anderson</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://kwekudzata.vercel.app/dev"><img src="https://avatars.githubusercontent.com/u/148214043?v=4" width="100px;" alt=""/><br /><sub><b>Kweku Dzata</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/goodguy1963"><img src="https://avatars.githubusercontent.com/u/49859266?v=4" width="100px;" alt=""/><br /><sub><b>Marcel</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/navaneethreddydevops"><img src="https://avatars.githubusercontent.com/u/42119880?v=4" width="100px;" alt=""/><br /><sub><b>Navaneeth Reddy</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://jamesmcgrath.net/"><img src="https://avatars.githubusercontent.com/u/1762902?v=4" width="100px;" alt=""/><br /><sub><b>James</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jcountsNR"><img src="https://avatars.githubusercontent.com/u/94138069?v=4" width="100px;" alt=""/><br /><sub><b>Joseph Counts</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>

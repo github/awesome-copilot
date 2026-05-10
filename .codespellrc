@@ -52,7 +52,9 @@
 
 # FO - tasklist option /FO to format running task output
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO
+# CAF - Microsoft Cloud Adoption Framework acronym
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF
 
 # Skip certain files and directories
 

@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-28
+lastUpdated: 2026-05-07
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -402,9 +402,13 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
+> **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.agents/` for user-level agents, `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
+
 ### Model Picker
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
+
+**Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 ### CLI Session Commands
 
@@ -477,7 +481,19 @@ The `/share html` command exports the current session — including conversation
 
 The exported file contains everything needed to view the session without a network connection and can be shared with teammates or stored for later reference. This complements `/share` (which shares via URL) for cases where an offline or attached format is preferred.
 
+The `/chronicle` command opens an interactive timeline of everything the agent has done in the current session. It shows file changes, tool calls, and conversation turns in chronological order, letting you review the full arc of the session at a glance:
+
+```
+/chronicle
+```
+
+Chronicle tracks which files were created, modified, or deleted during the session alongside the conversation that led to those changes. Use it to review what happened before a `/rewind`, audit what the agent changed, or share a summary of session activity with teammates.
+
+> **Note**: Session history, file tracking, and the `/chronicle` command were previously experimental features. As of v1.0.40, they are available to all users without enabling experimental mode.
+
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
+
+**Background running tasks**: Press **Ctrl+X → B** to move the current running task or shell command to the background. The task continues executing while you can type a new message or review earlier output. This is useful for long-running commands where you want to interact with the agent while waiting for the result.
 
 The `/ask` command lets you ask a quick question without affecting your conversation history. The current session context is preserved, so you can use it for one-off lookups without derailing an ongoing task. Responses are rendered as full markdown, including tables and formatted links:
 
@@ -491,11 +507,35 @@ The `/env` command shows all loaded environment details — instructions, MCP se
 /env
 ```
 
-The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, and quota. The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit:
+The `/context` command shows a visualization of the current conversation's context window usage — how many tokens are consumed and how much headroom remains:
+
+```
+/context
+```
+
+The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session:
+
+```
+/usage
+```
+
+The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
+
+```
+/compact
+```
+
+> **Note**: Skills remain loaded and effective after `/compact`. You do not need to re-invoke them after compacting.
+
+> **ACP sessions (v1.0.39+)**: The `/compact`, `/context`, `/usage`, and `/env` commands are now available in ACP (Agent Coordination Protocol) sessions, allowing remote ACP clients to surface session details and manage context from within their own automated workflows.
+
+The `/statusline` command (with `/footer` as an alias) lets you control which items appear in the terminal status bar. You can show or hide individual indicators like the working directory, current branch, effort level, context window usage, quota, and **active account username** (v1.0.43+). The **changes** toggle shows a running count of added/removed lines for the session — useful when tracking the scope of an ongoing edit:
 
 ```
 /statusline             # show the statusline configuration menu
 ```
+
+Toggle the **username** indicator to display which GitHub account is currently active in the footer — helpful when you work with multiple accounts or switch between personal and organization contexts.
 
 The `/keep-alive` command prevents the system from sleeping while Copilot CLI is active. This is useful during long-running agent sessions on laptops or machines with aggressive sleep settings:
 
@@ -515,6 +555,8 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
 
+> **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
+
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
 ```bash
@@ -525,6 +567,13 @@ Accepted values are `low`, `medium`, and `high`. You can also set a default via 
 
 ### CLI Startup Flags
 
+The `-C <directory>` flag changes the working directory before starting, similar to `git -C` (v1.0.42+). This is useful for scripts or aliases that need to start Copilot CLI in a specific project directory without a separate `cd`:
+
+```bash
+copilot -C ~/projects/my-repo          # start in a different directory
+copilot -C ~/projects/my-repo -p "..."  # combine with prompt mode
+```
+
 The `--mode` flag (along with its aliases `--autopilot` and `--plan`) lets you launch the CLI directly in a specific agent mode without waiting for the interactive session to start:
 
 ```bash
@@ -534,6 +583,61 @@ copilot --plan          # start in plan mode (propose without executing)
 ```
 
 This is useful in scripts or CI pipelines where you want the CLI to immediately begin working in a specific mode without an interactive prompt.
+
+The `--max-autopilot-continues` flag controls how many times Copilot can automatically continue in autopilot mode before pausing for confirmation. The default is 5:
+
+```bash
+copilot --autopilot --max-autopilot-continues 10 "Refactor the authentication module"
+```
+
+Set it higher for long-running tasks, or lower for tasks where you want more frequent checkpoints. Setting it to `0` disables automatic continuation entirely.
+
+The `--attachment` flag (available in prompt mode, `-p`) lets you attach files — images or native documents — to the initial prompt in non-interactive mode:
+
+```bash
+copilot -p "Summarize the architecture shown in these diagrams" \
+  --attachment arch-overview.png \
+  --attachment data-flow.pdf
+```
+
+This is useful in automated pipelines where you want to pass visual or document context (screenshots, design specs, PDF reports) to the model without interactive file selection. Multiple `--attachment` flags can be specified to include several files at once.
+
+The `COPILOT_HOME` environment variable sets the Copilot CLI configuration directory. It is the preferred replacement for the `--config-dir` flag, which is deprecated:
+
+```bash
+# Preferred — set via environment variable
+export COPILOT_HOME=~/.my-copilot-config
+copilot
+
+# Deprecated — use COPILOT_HOME instead
+copilot --config-dir ~/.my-copilot-config
+```
+
+Set `COPILOT_HOME` in your shell profile to use a custom config directory across all sessions. This is especially useful when running multiple Copilot configurations for different projects or teams.
+
+### Shell Completion
+
+The `copilot completion` subcommand generates a static shell completion script for subcommands, flags, and known option values. Once installed, pressing Tab auto-completes Copilot CLI commands in your terminal.
+
+```bash
+# Bash — add to ~/.bashrc
+eval "$(copilot completion bash)"
+
+# Zsh — add to ~/.zshrc
+eval "$(copilot completion zsh)"
+
+# Fish — add to ~/.config/fish/config.fish
+copilot completion fish | source
+```
+
+Or write the script to a file and source it from your shell profile:
+
+```bash
+copilot completion bash > ~/.copilot-completion.bash
+echo 'source ~/.copilot-completion.bash' >> ~/.bashrc
+```
+
+> **Tip**: Reload your shell (`source ~/.bashrc` or open a new terminal) after adding the completion script for changes to take effect.
 
 ## Common Questions
 

@@ -14,9 +14,10 @@ EXPERIMENT  → Run task on all examples, score results
 ## Basic Usage
 
 ```python
-from phoenix.client.experiments import run_experiment
+from phoenix.client import Client
 
-experiment = run_experiment(
+client = Client()
+experiment = client.experiments.run_experiment(
     dataset=my_dataset,
     task=my_task,
     evaluators=[accuracy, faithfulness],
@@ -40,7 +41,28 @@ print(experiment.aggregate_scores)
 Test setup before full execution:
 
 ```python
-experiment = run_experiment(dataset, task, evaluators, dry_run=3)  # Just 3 examples
+experiment = client.experiments.run_experiment(
+    dataset=dataset,
+    task=task,
+    evaluators=evaluators,
+    dry_run=3,
+)  # Just 3 examples
+```
+
+## Async Usage
+
+Use `AsyncClient` when your task or evaluators make network calls and you want higher throughput:
+
+```python
+from phoenix.client import AsyncClient
+
+client = AsyncClient()
+experiment = await client.experiments.run_experiment(
+    dataset=my_dataset,
+    task=my_async_task,
+    evaluators=[accuracy, faithfulness],
+    experiment_name="improved-retrieval-v2",
+)
 ```
 
 ## Best Practices

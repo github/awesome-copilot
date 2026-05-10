@@ -5,6 +5,8 @@ description: "INVOKE THIS SKILL for LLM-as-judge evaluation workflows on Arize: 
 
 # Arize Evaluator Skill
 
+> **`SPACE`** — All `--space` flags and the `ARIZE_SPACE` env var accept a space **name** (e.g., `my-workspace`) or a base64 space **ID** (e.g., `U3BhY2U6...`). Find yours with `ax spaces list`.
+
 This skill covers designing, creating, and running **LLM-as-judge evaluators** on Arize. An evaluator defines the judge; a **task** is how you run it against real data.
 
 ---
@@ -15,9 +17,11 @@ Proceed directly with the task — run the `ax` command you need. Do NOT check v
 
 If an `ax` command fails, troubleshoot based on the error:
 - `command not found` or version error → see references/ax-setup.md
-- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong: check `.env` for `ARIZE_API_KEY` and use it to create/update the profile via references/ax-profiles.md. If `.env` has no key either, ask the user for their Arize API key (https://app.arize.com/admin > API Keys)
-- Space ID unknown → check `.env` for `ARIZE_SPACE_ID`, or run `ax spaces list -o json`, or ask the user
-- LLM provider call fails (missing OPENAI_API_KEY / ANTHROPIC_API_KEY) → check `.env`, load if present, otherwise ask the user
+- `401 Unauthorized` / missing API key → run `ax profiles show` to inspect the current profile. If the profile is missing or the API key is wrong, follow references/ax-profiles.md to create/update it. If the user doesn't have their key, direct them to https://app.arize.com/admin > API Keys
+- Space unknown → run `ax spaces list` to pick by name, or ask the user
+- LLM provider call fails (missing OPENAI_API_KEY / ANTHROPIC_API_KEY) → run `ax ai-integrations list --space SPACE` to check for platform-managed credentials. If none exist, ask the user to provide the key or create an integration via the **arize-ai-provider-integration** skill
+- **Security:** Never read `.env` files or search the filesystem for credentials. Use `ax profiles` for Arize credentials and `ax ai-integrations` for LLM provider keys. If credentials are not available through these channels, ask the user.
+- **CRITICAL — Never fabricate evaluation results:** If an evaluation task fails, is cancelled, or produces no scores, report the failure clearly and explain what went wrong. Do NOT perform a "manual evaluation," invent quality scores, estimate percentages, or present any agent-generated analysis as if it came from the Arize evaluation system. Instead suggest: (1) fix the identified issue and retry, (2) try running from the Arize UI, (3) verify integration credentials with `ax ai-integrations list`, (4) contact support at https://arize.com/support
 
 ---
 
@@ -91,7 +95,7 @@ Quick reference for the common case (OpenAI):
 
 ```bash
 # Check for an existing integration first
-ax ai-integrations list --space-id SPACE_ID
+ax ai-integrations list --space SPACE
 
 # Create if none exists
 ax ai-integrations create \
@@ -106,15 +110,16 @@ Copy the returned integration ID — it is required for `ax evaluators create --
 
 ```bash
 # List / Get
-ax evaluators list --space-id SPACE_ID
-ax evaluators get EVALUATOR_ID
-ax evaluators list-versions EVALUATOR_ID
+ax evaluators list --space SPACE
+ax evaluators get ID                    # accepts name or ID
+ax evaluators get NAME --space SPACE   # required when using name instead of ID
+ax evaluators list-versions NAME_OR_ID
 ax evaluators get-version VERSION_ID
 
 # Create (creates the evaluator and its first version)
 ax evaluators create \
   --name "Answer Correctness" \
-  --space-id SPACE_ID \
+  --space SPACE \
   --description "Judges if the model answer is correct" \
   --template-name "correctness" \
   --commit-message "Initial version" \
@@ -132,7 +137,7 @@ Model response: {output}
 Respond with exactly one of these labels: correct, incorrect'
 
 # Create a new version (for prompt or model changes — versions are immutable)
-ax evaluators create-version EVALUATOR_ID \
+ax evaluators create-version NAME_OR_ID \
   --commit-message "Added context grounding" \
   --template-name "correctness" \
   --ai-integration-id INT_ID \
@@ -144,12 +149,12 @@ ax evaluators create-version EVALUATOR_ID \
 {input} / {output} / {context}'
 
 # Update metadata only (name, description — not prompt)
-ax evaluators update EVALUATOR_ID \
+ax evaluators update NAME_OR_ID \
   --name "New Name" \
   --description "Updated description"
 
 # Delete (permanent — removes all versions)
-ax evaluators delete EVALUATOR_ID
+ax evaluators delete NAME_OR_ID
 ```
 
 **Key flags for `create`:**
@@ -157,7 +162,7 @@ ax evaluators delete EVALUATOR_ID
 | Flag | Required | Description |
 |------|----------|-------------|
 | `--name` | yes | Evaluator name (unique within space) |
-| `--space-id` | yes | Space to create in |
+| `--space` | yes | Space name or ID to create in |
 | `--template-name` | yes | Eval column name — alphanumeric, spaces, hyphens, underscores |
 | `--commit-message` | yes | Description of this version |
 | `--ai-integration-id` | yes | AI integration ID (from above) |
@@ -169,22 +174,25 @@ ax evaluators delete EVALUATOR_ID
 | `--use-function-calling` | no | Prefer structured function-call output |
 | `--invocation-params` | no | JSON of model params e.g. `'{"temperature": 0}'` |
 | `--data-granularity` | no | `span` (default), `trace`, or `session`. Only relevant for project tasks, not dataset/experiment tasks. See Data Granularity section. |
+| `--direction` | no | Optimization direction: `maximize` or `minimize`. Sets how the UI renders trends. |
 | `--provider-params` | no | JSON object of provider-specific parameters |
 
 ### Tasks
 
+> `PROJECT_NAME`, `DATASET_NAME`, and `evaluator_id` all accept a name or base64 ID.
+
 ```bash
 # List / Get
-ax tasks list --space-id SPACE_ID
-ax tasks list --project-id PROJ_ID
-ax tasks list --dataset-id DATASET_ID
+ax tasks list --space SPACE
+ax tasks list --project PROJECT_NAME
+ax tasks list --dataset DATASET_NAME --space SPACE
 ax tasks get TASK_ID
 
 # Create (project — continuous)
 ax tasks create \
   --name "Correctness Monitor" \
   --task-type template_evaluation \
-  --project-id PROJ_ID \
+  --project PROJECT_NAME \
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"input": "attributes.input.value", "output": "attributes.output.value"}}]' \
   --is-continuous \
   --sampling-rate 0.1
@@ -193,7 +201,7 @@ ax tasks create \
 ax tasks create \
   --name "Correctness Backfill" \
   --task-type template_evaluation \
-  --project-id PROJ_ID \
+  --project PROJECT_NAME \
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"input": "attributes.input.value", "output": "attributes.output.value"}}]' \
   --no-continuous
 
@@ -201,8 +209,8 @@ ax tasks create \
 ax tasks create \
   --name "Experiment Scoring" \
   --task-type template_evaluation \
-  --dataset-id DATASET_ID \
-  --experiment-ids "EXP_ID_1,EXP_ID_2" \
+  --dataset DATASET_NAME --space SPACE \
+  --experiment-ids "EXP_ID_1,EXP_ID_2" \   # base64 IDs from `ax experiments list --space SPACE -o json`
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"output": "output"}}]' \
   --no-continuous
 
@@ -214,7 +222,7 @@ ax tasks trigger-run TASK_ID \
 
 # Trigger a run (experiment task — use experiment IDs)
 ax tasks trigger-run TASK_ID \
-  --experiment-ids "EXP_ID_1" \
+  --experiment-ids "EXP_ID_1" \   # base64 ID from `ax experiments list --space SPACE -o json`
   --wait
 
 # Monitor
@@ -240,7 +248,7 @@ ax tasks cancel-run RUN_ID --force
 
 | Status | Meaning |
 |--------|---------|
-| `completed`, 0 spans | No spans in eval index for that window — widen time range |
+| `completed`, 0 spans | The eval index lags 1–2 hours — spans ingested recently may not be indexed yet. Shift the window to data at least 2 hours old, or widen the time range to cover more historical data. |
 | `cancelled` ~1s | Integration credentials invalid |
 | `cancelled` ~3min | Found spans but LLM call failed — check model name or key |
 | `completed`, N > 0 | Success — check scores in UI |
@@ -251,15 +259,15 @@ ax tasks cancel-run RUN_ID --force
 
 Use this when the user says something like *"create an evaluator for my Playground Traces project"*.
 
-### Step 1: Resolve the project name to an ID
+### Step 1: Confirm the project name
 
-`ax spans export` requires a project **ID**, not a name — passing a name causes a validation error. Always look up the ID first:
+`ax spans export` accepts a project name directly — no ID lookup needed. If you don't know the project name, list available projects:
 
 ```bash
-ax projects list --space-id SPACE_ID -o json
+ax projects list --space SPACE -o json
 ```
 
-Find the entry whose `"name"` matches (case-insensitive). Copy its `"id"` (a base64 string).
+Find the entry whose `"name"` matches (case-insensitive) and use that name as `PROJECT` in subsequent commands. If you later hit a validation error with a name, fall back to using the project's `"id"` (a base64 string) instead.
 
 ### Step 2: Understand what to evaluate
 
@@ -268,7 +276,7 @@ If the user specified the evaluator type (hallucination, correctness, relevance,
 If not, sample recent spans to base the evaluator on actual data:
 
 ```bash
-ax spans export PROJECT_ID --space-id SPACE_ID -l 10 --days 30 --stdout
+ax spans export PROJECT --space SPACE -l 10 --days 30 --stdout
 ```
 
 Inspect `attributes.input`, `attributes.output`, span kinds, and any existing annotations. Identify failure modes (e.g. hallucinated facts, off-topic answers, missing context) and propose **1–3 concrete evaluator ideas**. Let the user pick.
@@ -284,7 +292,7 @@ Example:
 ### Step 3: Confirm or create an AI integration
 
 ```bash
-ax ai-integrations list --space-id SPACE_ID -o json
+ax ai-integrations list --space SPACE -o json
 ```
 
 If a suitable integration exists, note its ID. If not, create one using the **arize-ai-provider-integration** skill. Ask the user which provider/model they want for the judge.
@@ -296,7 +304,7 @@ Use the template design best practices below. Keep the evaluator name and variab
 ```bash
 ax evaluators create \
   --name "Hallucination" \
-  --space-id SPACE_ID \
+  --space SPACE \
   --template-name "hallucination" \
   --commit-message "Initial version" \
   --ai-integration-id INT_ID \
@@ -315,19 +323,21 @@ Respond with exactly one of these labels: hallucinated, factual'
 
 ### Step 5: Ask — backfill, continuous, or both?
 
+**Recommended approach:** Always start with a small backfill (~100 historical spans) to validate the evaluator before turning on continuous monitoring. This lets you catch column mapping errors, wrong span kinds, and template issues on known data before scoring all future production spans. Only enable continuous after a backfill confirms correct scoring.
+
 Before creating the task, ask:
 
 > "Would you like to:
 > (a) Run a **backfill** on historical spans (one-time)?
 > (b) Set up **continuous** evaluation on new spans going forward?
-> (c) **Both** — backfill now and keep scoring new spans automatically?"
+> (c) **Both** — backfill first to validate, then keep scoring new spans automatically? (recommended)"
 
 ### Step 6: Determine column mappings from real span data
 
 Do not guess paths. Pull a sample and inspect what fields are actually present:
 
 ```bash
-ax spans export PROJECT_ID --space-id SPACE_ID -l 5 --days 7 --stdout
+ax spans export PROJECT --space SPACE -l 5 --days 7 --stdout
 ```
 
 For each template variable (`{input}`, `{output}`, `{context}`), find the matching JSON path. Common starting points — **always verify on your actual data before using**:
@@ -340,6 +350,8 @@ For each template variable (`{input}`, `{output}`, `{context}`), find the matchi
 | `tool_output` | `attributes.input.value` (fallback) | `attributes.output.value` |
 
 **Validate span kind alignment:** If the evaluator prompt assumes LLM final text but the task targets CHAIN spans (or vice versa), runs can cancel or score the wrong text. Make sure the `query_filter` on the task matches the span kind you mapped.
+
+**`query_filter` only works on indexed attributes:** The `query_filter` in the evaluators JSON is evaluated against the eval index, not the raw span store. Attributes under `attributes.metadata.*` or custom keys may not be indexed and will silently match nothing. Use well-known indexed attributes like `span_kind` or `attributes.llm.model_name` for filtering. If a filter returns 0 spans despite data existing, try removing the filter as a diagnostic step.
 
 **Full example `--evaluators` JSON:**
 
@@ -366,7 +378,7 @@ Include a mapping for **every** variable the template references. Omitting one c
 ax tasks create \
   --name "Hallucination Backfill" \
   --task-type template_evaluation \
-  --project-id PROJECT_ID \
+  --project PROJECT \
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"input": "attributes.input.value", "output": "attributes.output.value"}}]' \
   --no-continuous
 ```
@@ -376,7 +388,7 @@ ax tasks create \
 ax tasks create \
   --name "Hallucination Monitor" \
   --task-type template_evaluation \
-  --project-id PROJECT_ID \
+  --project PROJECT \
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"input": "attributes.input.value", "output": "attributes.output.value"}}]' \
   --is-continuous \
   --sampling-rate 0.1
@@ -386,20 +398,25 @@ ax tasks create \
 
 ### Step 8: Trigger a backfill run (if requested)
 
+> **Eval index lag:** The eval index is built asynchronously from the primary trace store and can lag **1–2 hours**. For your first test run, use a time window ending at least 2 hours in the past. If you set `--data-end-time` to "now" on spans ingested in the last hour, the run will complete successfully but score 0 spans.
+
 First find what time range has data:
 ```bash
-ax spans export PROJECT_ID --space-id SPACE_ID -l 100 --days 1 --stdout   # try last 24h first
-ax spans export PROJECT_ID --space-id SPACE_ID -l 100 --days 7 --stdout   # widen if empty
+ax spans export PROJECT --space SPACE -l 100 --days 1 --stdout   # try last 24h first
+ax spans export PROJECT --space SPACE -l 100 --days 7 --stdout   # widen if empty
 ```
 
-Use the `start_time` / `end_time` fields from real spans to set the window. Use the most recent data for your first test run.
+Use the `start_time` / `end_time` fields from real spans to set the window. For the first validation run, cap `--max-spans` at ~100 to get quick feedback:
 
 ```bash
 ax tasks trigger-run TASK_ID \
   --data-start-time "2026-03-20T00:00:00" \
   --data-end-time "2026-03-21T23:59:59" \
+  --max-spans 100 \
   --wait
 ```
+
+Review scores and explanations before widening to the full backfill or enabling continuous.
 
 ---
 
@@ -412,14 +429,14 @@ Use this when the user says something like *"create an evaluator for my experime
 
 If yes, use the **arize-experiment** skill to create one, then return here.
 
-### Step 1: Resolve dataset and experiment
+### Step 1: Find the dataset and experiment names
 
 ```bash
-ax datasets list --space-id SPACE_ID -o json
-ax experiments list --dataset-id DATASET_ID -o json
+ax datasets list --space SPACE
+ax experiments list --dataset DATASET_NAME --space SPACE -o json
 ```
 
-Note the dataset ID and the experiment ID(s) to score.
+Note the dataset name and the experiment name(s) to score. These accept names or IDs in subsequent commands — names are preferred.
 
 ### Step 2: Understand what to evaluate
 
@@ -428,7 +445,7 @@ If the user specified the evaluator type → skip to Step 3.
 If not, inspect a recent experiment run to base the evaluator on actual data:
 
 ```bash
-ax experiments export EXPERIMENT_ID --stdout | python3 -c "import sys,json; runs=json.load(sys.stdin); print(json.dumps(runs[0], indent=2))"
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | python3 -c "import sys,json; runs=json.load(sys.stdin); print(json.dumps(runs[0], indent=2))"
 ```
 
 Look at the `output`, `input`, `evaluations`, and `metadata` fields. Identify gaps (metrics the user cares about but doesn't have yet) and propose **1–3 evaluator ideas**. Each suggestion must include: the evaluator name (bold), a one-sentence description, and the binary label pair in parentheses — same format as Workflow A, Step 2.
@@ -446,7 +463,7 @@ Same as Workflow A, Step 4. Keep variables generic.
 Run data shape differs from span data. Inspect:
 
 ```bash
-ax experiments export EXPERIMENT_ID --stdout | python3 -c "import sys,json; runs=json.load(sys.stdin); print(json.dumps(runs[0], indent=2))"
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | python3 -c "import sys,json; runs=json.load(sys.stdin); print(json.dumps(runs[0], indent=2))"
 ```
 
 Common mapping for experiment runs:
@@ -455,7 +472,7 @@ Common mapping for experiment runs:
 
 If `input` is not on the run JSON, export dataset examples to find the path:
 ```bash
-ax datasets export DATASET_ID --stdout | python3 -c "import sys,json; ex=json.load(sys.stdin); print(json.dumps(ex[0], indent=2))"
+ax datasets export DATASET_NAME --space SPACE --stdout | python3 -c "import sys,json; ex=json.load(sys.stdin); print(json.dumps(ex[0], indent=2))"
 ```
 
 ### Step 6: Create the task
@@ -464,8 +481,8 @@ ax datasets export DATASET_ID --stdout | python3 -c "import sys,json; ex=json.lo
 ax tasks create \
   --name "Experiment Correctness" \
   --task-type template_evaluation \
-  --dataset-id DATASET_ID \
-  --experiment-ids "EXP_ID" \
+  --dataset DATASET_NAME --space SPACE \
+  --experiment-ids "EXP_ID" \   # base64 ID from `ax experiments list --space SPACE -o json`
   --evaluators '[{"evaluator_id": "EVAL_ID", "column_mappings": {"output": "output"}}]' \
   --no-continuous
 ```
@@ -474,7 +491,7 @@ ax tasks create \
 
 ```bash
 ax tasks trigger-run TASK_ID \
-  --experiment-ids "EXP_ID" \
+  --experiment-ids "EXP_ID" \   # base64 ID from `ax experiments list --space SPACE -o json`
   --wait
 
 ax tasks list-runs TASK_ID
@@ -544,13 +561,13 @@ The labels in `--classification-choices` must exactly match the labels reference
 |---------|----------|
 | `ax: command not found` | See references/ax-setup.md |
 | `401 Unauthorized` | API key may not have access to this space. Verify at https://app.arize.com/admin > API Keys |
-| `Evaluator not found` | `ax evaluators list --space-id SPACE_ID` |
-| `Integration not found` | `ax ai-integrations list --space-id SPACE_ID` |
-| `Task not found` | `ax tasks list --space-id SPACE_ID` |
-| `project-id and dataset-id are mutually exclusive` | Use only one when creating a task |
+| `Evaluator not found` | `ax evaluators list --space SPACE` |
+| `Integration not found` | `ax ai-integrations list --space SPACE` |
+| `Task not found` | `ax tasks list --space SPACE` |
+| `project and dataset-id are mutually exclusive` | Use only one when creating a task |
 | `experiment-ids required for dataset tasks` | Add `--experiment-ids` to `create` and `trigger-run` |
 | `sampling-rate only valid for project tasks` | Remove `--sampling-rate` from dataset tasks |
-| Validation error on `ax spans export` | Pass project ID (base64), not project name — look up via `ax projects list` |
+| Validation error on `ax spans export` | Project name usually works; if you still get a validation error, look up the base64 project ID via `ax projects list --space SPACE -o json` and use the `id` field instead |
 | Template validation errors | Use single-quoted `--template '...'` in bash; single braces `{var}`, not double `{{var}}` |
 | Run stuck in `pending` | `ax tasks get-run RUN_ID`; then `ax tasks cancel-run RUN_ID` |
 | Run `cancelled` ~1s | Integration credentials invalid — check AI integration |
@@ -562,6 +579,78 @@ The labels in `--classification-choices` must exactly match the labels reference
 | Time format error on `trigger-run` | Use `2026-03-21T09:00:00` — no trailing `Z` |
 | Run failed: "missing rails and classification choices" | Add `--classification-choices '{"label_a": 1, "label_b": 0}'` to `ax evaluators create` — labels must match the template |
 | Run `completed`, all spans skipped | Query filter matched spans but column mappings are wrong or template variables don't resolve — export a sample span and verify paths |
+| `query_filter` set but 0 spans scored | The filter attribute may not be indexed in the eval index. `attributes.metadata.*` and custom attributes are often not indexed. Use `span_kind` or `attributes.llm.model_name` instead, or remove the filter to confirm spans exist in the window. |
+
+### Diagnosing cancelled runs
+
+When a task run is cancelled (status `cancelled`), follow this checklist in order:
+
+**1. Check integration credentials**
+```bash
+ax ai-integrations list --space SPACE -o json
+```
+Verify the integration ID used by the evaluator exists and has valid credentials. If the integration was deleted or the API key expired, the run cancels within ~1 second.
+
+**2. Verify the model name**
+```bash
+ax evaluators get EVALUATOR_NAME --space SPACE -o json
+```
+Check the `model_name` field. A typo or deprecated model causes the LLM call to fail and the run to cancel after ~3 minutes.
+
+**3. Export a sample span/run and compare paths to column_mappings**
+
+For project tasks:
+```bash
+ax spans export PROJECT --space SPACE -l 1 --days 7 --stdout | python3 -m json.tool
+```
+
+For experiment tasks:
+```bash
+ax experiments export EXPERIMENT_NAME --dataset DATASET_NAME --space SPACE --stdout | python3 -c "import sys,json; runs=json.load(sys.stdin); print(json.dumps(runs[0], indent=2)) if runs else print('No runs')"
+```
+
+Compare the exported JSON paths against the task's `column_mappings`. For each template variable, confirm the mapped path actually exists. Common mismatches:
+- Mapping `output` to `attributes.output.value` on an experiment run (should be just `output`)
+- Mapping `input` to `attributes.input.value` on a CHAIN span when the actual path is `attributes.llm.input_messages`
+- Mapping `context` to a path that doesn't exist on the span kind being filtered
+
+**4. Check that `data_start_time` is not epoch**
+
+If `trigger-run` used a start time of `0`, `1970-01-01`, or an empty string, the time window is invalid. Always derive from real span timestamps:
+```bash
+ax spans export PROJECT --space SPACE -l 5 --days 30 --stdout | python3 -c "
+import sys, json
+spans = json.load(sys.stdin)
+for s in spans:
+    print(s.get('start_time', 'N/A'), s.get('end_time', 'N/A'))
+"
+```
+
+**5. Verify span kind matches evaluator scope**
+
+If the evaluator was created with `--data-granularity trace` but the task's `query_filter` is `span_kind = 'LLM'`, the run may find no qualifying data and cancel. Ensure the granularity and filter are consistent.
+
+**6. Check that all template variables resolve**
+
+Every `{variable}` in the evaluator template must have a corresponding `column_mappings` entry that resolves to a non-null value. Test resolution against a real span:
+```bash
+ax spans export PROJECT --space SPACE -l 3 --days 7 --stdout | python3 -c "
+import sys, json
+spans = json.load(sys.stdin)
+# Replace these paths with your actual column_mappings values
+mappings = {'input': 'attributes.input.value', 'output': 'attributes.output.value'}
+for i, span in enumerate(spans):
+    print(f'--- Span {i} ---')
+    for var, path in mappings.items():
+        parts = path.split('.')
+        val = span
+        for p in parts:
+            val = val.get(p) if isinstance(val, dict) else None
+        status = 'FOUND' if val else 'MISSING'
+        print(f'  {var} ({path}): {status} — {str(val)[:80] if val else \"null\"}')
+"
+```
+If any variable shows MISSING on all spans, fix the column mapping or adjust `query_filter` to target a different span kind.
 
 ---
 

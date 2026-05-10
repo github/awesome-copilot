@@ -26,7 +26,7 @@
   ],
   "skills": [
     "./skills/salesforce-apex-quality/",
-    "./skills/salesforce-flow-design/",
-    "./skills/salesforce-component-standards/"
+    "./skills/salesforce-component-standards/",
+    "./skills/salesforce-flow-design/"
   ]
 }
