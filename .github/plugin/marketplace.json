@@ -676,27 +676,11 @@
         "msix",
         "packaging",
         "installer",
-        "identity",
-        "electron",
-        "winapp",
-        "windows-app-sdk",
-        "windows-sdk",
-        "appxmanifest",
         "code-signing",
-        "certificate",
-        "signtool",
-        "makeappx",
+        "appxmanifest",
         "microsoft-store",
-        "push-notifications",
-        "background-tasks",
+        "electron",
         "tauri",
-        "flutter",
-        "rust",
-        "dotnet",
-        "wpf",
-        "winforms",
-        "cpp",
-        "winrt",
         "desktop-app"
       ],
       "license": "MIT",
@@ -704,7 +688,7 @@
       "source": {
         "source": "github",
         "repo": "microsoft/WinAppCli",
-        "branch": "rel/v0.3.1"
+        "ref": "rel/v0.3.1"
       }
     },
     {

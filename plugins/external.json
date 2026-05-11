@@ -182,13 +182,13 @@
       "url": "https://github.com/microsoft/WinAppCli"
     },
     "homepage": "https://github.com/microsoft/WinAppCli",
-    "keywords": ["windows", "msix", "packaging", "installer", "identity", "electron", "winapp", "windows-app-sdk", "windows-sdk", "appxmanifest", "code-signing", "certificate", "signtool", "makeappx", "microsoft-store", "push-notifications", "background-tasks", "tauri", "flutter", "rust", "dotnet", "wpf", "winforms", "cpp", "winrt", "desktop-app"],
+    "keywords": ["windows", "msix", "packaging", "installer", "code-signing", "appxmanifest", "microsoft-store", "electron", "tauri", "desktop-app"],
     "license": "MIT",
     "repository": "https://github.com/microsoft/WinAppCli",
     "source": {
       "source": "github",
       "repo": "microsoft/WinAppCli",
-      "branch": "rel/v0.3.1"
+      "ref": "rel/v0.3.1"
     }
   }
 ]
