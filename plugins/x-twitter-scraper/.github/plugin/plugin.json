@@ -1,0 +1,24 @@
+{
+  "name": "x-twitter-scraper",
+  "description": "Xquik X API integration guidance for GitHub Copilot: SDK selection, REST endpoints, MCP tools, signed webhooks, tweet search, user lookup, follower exports, media actions, and automation workflows.",
+  "version": "1.0.0",
+  "keywords": [
+    "x-api",
+    "twitter",
+    "social-media",
+    "sdk",
+    "mcp",
+    "webhooks",
+    "automation",
+    "xquik"
+  ],
+  "author": {
+    "name": "Xquik"
+  },
+  "homepage": "https://docs.xquik.com",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/x-twitter-scraper/"
+  ]
+}
