@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-07
+lastUpdated: 2026-05-11
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -465,6 +465,14 @@ The `/undo` command reverts the last turn—including any file changes the agent
 
 Use `/undo` when the agent's last response went in an unwanted direction and you want to try a different approach from that point.
 
+The `/fork` command (v1.0.45+) copies the current session into a **new independent session** that starts from the same conversation state. The original session continues unchanged — you can switch back to it at any time. This is useful when you want to explore two different approaches to a problem simultaneously:
+
+```
+/fork
+```
+
+After forking, the new session is immediately active. Both sessions share the same history up to the fork point but accumulate changes independently from that moment forward. Use `/fork` to experiment with a risky refactor without abandoning your current working session.
+
 The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
 
 ```
@@ -556,6 +564,14 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
 
 > **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
+
+The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches between **interactive mode** (where the agent pauses to ask for confirmation before tool use) and **autopilot mode** (where it runs autonomously). Unlike `/allow-all` which specifically controls whether tool permissions are required, `/autopilot` toggles the overall agent mode:
+
+```
+/autopilot        # toggle between interactive and autopilot modes
+```
+
+Use `/autopilot` when you want to flip between supervised and unsupervised operation mid-session without typing out the full `/allow-all on` or `/allow-all off` commands.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
