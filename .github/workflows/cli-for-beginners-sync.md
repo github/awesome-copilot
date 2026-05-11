@@ -13,6 +13,7 @@ safe-outputs:
   create-pull-request:
     labels: [automated-update, learning-hub, cli-for-beginners]
     title-prefix: "[bot] "
+    base-branch: staged
 ---
 
 # CLI for Beginners Content Sync
@@ -115,7 +116,7 @@ Before opening the PR, write an updated `cli-for-beginners-sync-state.json` to `
 
 ## Step 6 — Open a pull request
 
-Create a pull request with your changes using the `create-pull-request` safe output. The PR body must include:
+Create a pull request with your changes using the `create-pull-request` safe output. Use `staged` as the base branch for all work related to this workflow, and never branch from `main`. The PR body must include:
 
 1. **What changed upstream** — a concise summary of the commits and file changes found in `github/copilot-cli-for-beginners`
 2. **What was updated locally** — list each mirrored Learning Hub file or asset you edited and what changed
@@ -131,6 +132,7 @@ If there is nothing to change after your analysis, do **not** open a PR. Instead
 - Only edit `website/astro.config.mjs` or `website/src/content/docs/learning-hub/index.md` when upstream course structure or navigation truly requires it
 - Preserve existing frontmatter fields; only update `lastUpdated` and `description` if genuinely warranted
 - Keep the course source-faithful; avoid summaries or interpretive rewrites
+- Use `staged` as the base branch for any branch or PR created by this workflow; never branch from `main`
 - Do not auto-merge; the PR is for human review
 - If you are uncertain whether an upstream change warrants a Learning Hub update, err on the side of creating the PR — a human reviewer can always decline
 - Always call either `create-pull-request` or `noop` at the end of your run so the workflow clearly signals its outcome
