@@ -172,5 +172,23 @@
       "source": "github",
       "repo": "Azure/git-ape"
     }
+  },
+  {
+    "name": "winappcli",
+    "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
+    "version": "0.3.1",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft/WinAppCli"
+    },
+    "homepage": "https://github.com/microsoft/WinAppCli",
+    "keywords": ["windows", "msix", "packaging", "installer", "identity", "electron", "winapp", "windows-app-sdk", "windows-sdk", "appxmanifest", "code-signing", "certificate", "signtool", "makeappx", "microsoft-store", "push-notifications", "background-tasks", "tauri", "flutter", "rust", "dotnet", "wpf", "winforms", "cpp", "winrt", "desktop-app"],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/WinAppCli",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/WinAppCli",
+      "branch": "rel/v0.3.1"
+    }
   }
 ]

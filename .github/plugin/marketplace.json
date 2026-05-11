@@ -663,6 +663,51 @@
       }
     },
     {
+      "name": "winappcli",
+      "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
+      "version": "0.3.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft/WinAppCli"
+      },
+      "homepage": "https://github.com/microsoft/WinAppCli",
+      "keywords": [
+        "windows",
+        "msix",
+        "packaging",
+        "installer",
+        "identity",
+        "electron",
+        "winapp",
+        "windows-app-sdk",
+        "windows-sdk",
+        "appxmanifest",
+        "code-signing",
+        "certificate",
+        "signtool",
+        "makeappx",
+        "microsoft-store",
+        "push-notifications",
+        "background-tasks",
+        "tauri",
+        "flutter",
+        "rust",
+        "dotnet",
+        "wpf",
+        "winforms",
+        "cpp",
+        "winrt",
+        "desktop-app"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/WinAppCli",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/WinAppCli",
+        "branch": "rel/v0.3.1"
+      }
+    },
+    {
       "name": "winui3-development",
       "source": "winui3-development",
       "description": "End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus CLIs for packaging/debugging (winapp) and Microsoft Store publishing (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse.",
