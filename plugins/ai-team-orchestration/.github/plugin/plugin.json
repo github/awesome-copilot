@@ -17,9 +17,11 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "agents": [
-    "./agents"
+    "./agents/ai-team-dev.md",
+    "./agents/ai-team-producer.md",
+    "./agents/ai-team-qa.md"
   ],
   "skills": [
-    "./skills/ai-team-orchestration"
+    "./skills/ai-team-orchestration/"
   ]
 }
