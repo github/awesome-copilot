@@ -122,6 +122,8 @@ Get permissions right before writing auth code — wrong scopes result in 403 er
 | List all users in tenant (app-only) | `GET /users` |
 | Get group members | `GET /groups/{id}/members` |
 
+In similar fashion, use the SDK's fluent API to navigate to these resources in code.
+
 ## Workflow
 
 1. Determine the target language and read the matching reference file.
