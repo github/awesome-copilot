@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-11
+lastUpdated: 2026-05-12
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -562,6 +562,8 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 ```
 
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
+
+> **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` CLI operations — such as `gh list`, `gh view`, `gh status`, and `gh diff` — are **automatically approved** without prompting for confirmation, even in interactive mode. Only mutating operations (creating, updating, deleting resources) still require explicit approval. This reduces interruptions for common information-gathering tasks.
 
 > **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
 
