@@ -714,12 +714,6 @@
         "repo": "microsoft/win-dev-skills",
         "path": "plugins/winui"
       }
-    },
-    {
-      "name": "winui3-development",
-      "source": "winui3-development",
-      "description": "End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus CLIs for packaging/debugging (winapp) and Microsoft Store publishing (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse.",
-      "version": "1.2.0"
     }
   ]
 }
