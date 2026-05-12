@@ -19,7 +19,7 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "skills": [
-    "./skills/integrate-context-matic/",
-    "./skills/onboard-context-matic/"
+    "./skills/integrate-context-matic",
+    "./skills/onboard-context-matic"
   ]
 }
