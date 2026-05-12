@@ -369,6 +369,30 @@
       }
     },
     {
+      "name": "microsoft-events",
+      "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/Build-CLI",
+      "keywords": [
+        "microsoft",
+        "build",
+        "ignite",
+        "events",
+        "sessions",
+        "learn"
+      ],
+      "license": "Apache-2.0",
+      "repository": "https://github.com/microsoft/Build-CLI",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/Build-CLI"
+      }
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
       "version": "1.0.1102-preview1",
