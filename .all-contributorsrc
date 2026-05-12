@@ -3412,6 +3412,16 @@
       "contributions": [
         "agents"
       ]
+    },
+    {
+      "login": "The3dVehicleguy",
+      "name": "Thomas Ray",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74461863?v=4",
+      "profile": "https://thomas-f-ray.art/",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ]
 }
