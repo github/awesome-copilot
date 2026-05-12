@@ -278,5 +278,34 @@
       "source": "github",
       "repo": "microsoft/Build-CLI"
     }
+  },
+  {
+    "name": "winui",
+    "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
+    "version": "0.3.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/win-dev-skills",
+    "keywords": [
+      "windows",
+      "winui",
+      "winui3",
+      "xaml",
+      "windows-app-sdk",
+      "msix",
+      "packaging",
+      "desktop",
+      "wpf-migration",
+      "electron-migration"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/win-dev-skills",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/win-dev-skills",
+      "path": "plugins/winui"
+    }
   }
 ]
