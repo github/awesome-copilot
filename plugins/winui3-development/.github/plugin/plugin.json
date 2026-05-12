@@ -19,14 +19,14 @@
     "microsoft-store"
   ],
   "agents": [
-    "./agents/winui3-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/msstore-cli/",
-    "./skills/mvvm-toolkit-di/",
-    "./skills/mvvm-toolkit-messenger/",
-    "./skills/mvvm-toolkit/",
-    "./skills/winapp-cli/",
-    "./skills/winui3-migration-guide/"
+    "./skills/msstore-cli",
+    "./skills/mvvm-toolkit-di",
+    "./skills/mvvm-toolkit-messenger",
+    "./skills/mvvm-toolkit",
+    "./skills/winapp-cli",
+    "./skills/winui3-migration-guide"
   ]
 }

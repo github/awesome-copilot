@@ -13,9 +13,9 @@
     "interactive-programming"
   ],
   "agents": [
-    "./agents/clojure-interactive-programming.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/remember-interactive-programming/"
+    "./skills/remember-interactive-programming"
   ]
 }

@@ -18,13 +18,12 @@
     "data-management"
   ],
   "agents": [
-    "./agents/ms-sql-dba.md",
-    "./agents/postgresql-dba.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/postgresql-code-review/",
-    "./skills/postgresql-optimization/",
-    "./skills/sql-code-review/",
-    "./skills/sql-optimization/"
+    "./skills/postgresql-code-review",
+    "./skills/postgresql-optimization",
+    "./skills/sql-code-review",
+    "./skills/sql-optimization"
   ]
 }
