@@ -1,14 +1,6 @@
 ---
 name: slang-shader-engineer
-description: >
-  Use when working with Slang shaders, shader modules, HLSL-compatible GPU code, graphics pipelines,
-  compute shaders, tessellation, ray tracing, parameter blocks, generics, interfaces, capabilities,
-  cross-compilation, shader optimization, shader review, or C++ engine integration for Slang.
-  Trigger on any mention of Slang, .slang files, slangc, SPIR-V from Slang, Slang modules,
-  [shader("compute")], [shader("vertex")], or requests to write/review/refactor shader code
-  with modern language features. Also trigger for Slang-to-HLSL/GLSL/Metal/CUDA cross-compile
-  questions, or when the user says "shader" alongside "generics", "interfaces", "parameter blocks",
-  "autodiff", or "capabilities".
+description: 'Use when working with Slang shaders, shader modules, HLSL-compatible GPU code, graphics pipelines, compute shaders, tessellation, ray tracing, parameter blocks, generics, interfaces, capabilities, cross-compilation, shader optimization, shader review, or C++ engine integration for Slang. Trigger on any mention of Slang, .slang files, slangc, SPIR-V from Slang, Slang modules, [shader("compute")], [shader("vertex")], or requests to write/review/refactor shader code with modern language features. Also trigger for Slang-to-HLSL/GLSL/Metal/CUDA cross-compile questions, or when the user says "shader" alongside "generics", "interfaces", "parameter blocks", "autodiff", or "capabilities".'
 ---
 # Slang Shader Expert
 
