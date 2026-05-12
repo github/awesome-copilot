@@ -19,8 +19,8 @@
     "vue"
   ],
   "agents": [
-    "./agents/expert-react-frontend-engineer.md",
-    "./agents/electron-angular-native.md"
+    "./agents/electron-angular-native.md",
+    "./agents/expert-react-frontend-engineer.md"
   ],
   "skills": [
     "./skills/playwright-explore-website/",

@@ -32,7 +32,7 @@ copilot plugin install flowstudio-power-automate@awesome-copilot
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `flowstudio-power-automate-mcp`        | Foundation skill — auth setup, the reusable MCP helper (Python + Node.js), tool discovery via `list_skills`/`tool_search`, oversized-response handling. Load first. |
 | `flowstudio-power-automate-debug`      | Step-by-step diagnostic workflow — action-level inputs and outputs, not just error codes. Identifies root cause across nested child flows and loop iterations. |
-| `flowstudio-power-automate-build`      | Build and deploy flow definitions from scratch — scaffold triggers, wire connections, deploy, and test via resubmit.                                           |
+| `flowstudio-power-automate-build`      | Build and deploy flow definitions from scratch — load `create-flow`, discover connector operations, resolve dynamic options/properties, wire connection templates, deploy, and test via resubmit. |
 | `flowstudio-power-automate-monitoring` | Flow health from the cached store — failure rates, run history with remediation hints, maker inventory, Power Apps, environment and connection counts.         |
 | `flowstudio-power-automate-governance` | Governance workflows — classify flows by business impact, detect orphaned resources, audit connectors, manage notification rules, compute archive scores.      |
 
@@ -49,7 +49,7 @@ The first three skills call the live Power Automate API. The monitoring and gove
 1. Install the plugin
 2. Get your API key at [mcp.flowstudio.app](https://mcp.flowstudio.app)
 3. Configure the MCP connection in VS Code (`.vscode/mcp.json`):
-   
+
    ```json
    {
      "servers": {

@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "acreadiness-cockpit",
+      "source": "acreadiness-cockpit",
+      "description": "Drive Microsoft AgentRC from Copilot chat: assess AI readiness, generate Copilot instructions (flat or nested with applyTo globs for monorepos), and manage policies. Produces a self-contained static HTML dashboard at reports/index.html.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-team-orchestration",
       "source": "ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
@@ -78,6 +84,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "cms-development",
+      "source": "cms-development",
+      "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
+      "version": "1.0.0"
+    },
+    {
       "name": "context-engineering",
       "source": "context-engineering",
       "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
@@ -100,12 +112,6 @@
       "source": "csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
       "version": "1.1.0"
-    },
-    {
-      "name": "csharp-mcp-development",
-      "source": "csharp-mcp-development",
-      "description": "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
     },
     {
       "name": "database-data-management",
@@ -273,8 +279,36 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.13.0"
+      "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
+      "version": "1.20.0"
+    },
+    {
+      "name": "git-ape",
+      "description": "Intelligent Azure deployment agent system for GitHub Copilot with guided ARM template generation, security gates, cost analysis, and deployment workflows.",
+      "version": "0.0.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/Azure/git-ape"
+      },
+      "homepage": "https://github.com/Azure/git-ape",
+      "keywords": [
+        "azure",
+        "cloud",
+        "infrastructure",
+        "arm-templates",
+        "deployment",
+        "devops",
+        "iac",
+        "security",
+        "cost-estimation",
+        "github-actions"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/Azure/git-ape",
+      "source": {
+        "source": "github",
+        "repo": "Azure/git-ape"
+      }
     },
     {
       "name": "go-mcp-development",
@@ -335,9 +369,33 @@
       }
     },
     {
+      "name": "microsoft-events",
+      "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/Build-CLI",
+      "keywords": [
+        "microsoft",
+        "build",
+        "ignite",
+        "events",
+        "sessions",
+        "learn"
+      ],
+      "license": "Apache-2.0",
+      "repository": "https://github.com/microsoft/Build-CLI",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/Build-CLI"
+      }
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1063-preview1",
+      "version": "1.0.1102-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -631,8 +689,8 @@
     {
       "name": "winui3-development",
       "source": "winui3-development",
-      "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
-      "version": "1.0.0"
+      "description": "End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus CLIs for packaging/debugging (winapp) and Microsoft Store publishing (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse.",
+      "version": "1.2.0"
     }
   ]
 }
