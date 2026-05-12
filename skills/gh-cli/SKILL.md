@@ -15,6 +15,35 @@ Comprehensive reference for `gh`, loaded on demand.
 2. Read that one file from `reference/` — each is self-contained with flags and examples.
 3. Fall back to `gh <command> --help` for rarely used flags not documented here.
 
+## Quick start
+
+```bash
+# Install (macOS / Windows / Debian-based Linux)
+brew install gh                       # macOS
+winget install --id GitHub.cli        # Windows
+sudo apt install gh                   # Debian/Ubuntu (after adding the GH apt repo)
+
+# Authenticate
+gh auth login                         # interactive
+gh auth status                        # verify
+gh auth setup-git                     # use gh as git credential helper
+
+# Everyday commands — full flags and variants live in reference/
+gh repo clone owner/repo                      # → reference/repo.md
+gh issue create --title "..." --body "..."    # → reference/issue.md
+gh pr create --fill                           # → reference/pr.md
+gh pr checks --watch                          # → reference/pr.md
+gh run watch <run-id> --exit-status           # → reference/actions.md
+gh api /user --jq '.login'                    # → reference/api.md
+```
+
+For scripts / CI, two env vars cover most cases:
+
+```bash
+export GH_TOKEN=$(gh auth token)      # avoid interactive auth
+export GH_PROMPT_DISABLED=true        # prevent any hidden prompts
+```
+
 ## Reference index
 
 | File | Covers |
