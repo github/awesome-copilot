@@ -5,17 +5,10 @@ description: >-
   reusable MCP helper (Python + Node.js), tool discovery via `list_skills` /
   `tool_search`, and oversized-response handling. Load this skill first when
   connecting an agent to Power Automate. For specialized workflows, load
-  `power-automate-build`, `power-automate-debug`, `power-automate-monitoring`
-  (Pro+), or `power-automate-governance` (Pro+) — each contains the workflow
+  `flowstudio-power-automate-build`, `flowstudio-power-automate-debug`, `flowstudio-power-automate-monitoring`
+  (Pro+), or `flowstudio-power-automate-governance` (Pro+) — each contains the workflow
   narrative, this skill provides the plumbing they all rely on. Requires a
   FlowStudio MCP subscription or compatible server — see https://mcp.flowstudio.app
-metadata:
-  openclaw:
-    requires:
-      env:
-        - FLOWSTUDIO_MCP_TOKEN
-    primaryEnv: FLOWSTUDIO_MCP_TOKEN
-    homepage: https://mcp.flowstudio.app
 ---
 
 # Power Automate via FlowStudio MCP — Foundation
@@ -45,16 +38,16 @@ trying to accomplish.
 
 | The user wants to… | Load this skill |
 |---|---|
-| Make or change a flow (build new, modify existing, fix a bug, deploy) | **`power-automate-build`** |
-| Diagnose why a flow failed (root cause analysis on a failing run) | **`power-automate-debug`** |
-| See tenant-wide flow health, failure rates, asset inventory | **`power-automate-monitoring`** *(Pro+)* |
-| Tag, audit, classify, score, or offboard flows | **`power-automate-governance`** *(Pro+)* |
+| Make or change a flow (build new, modify existing, fix a bug, deploy) | **`flowstudio-power-automate-build`** |
+| Diagnose why a flow failed (root cause analysis on a failing run) | **`flowstudio-power-automate-debug`** |
+| See tenant-wide flow health, failure rates, asset inventory | **`flowstudio-power-automate-monitoring`** *(Pro+)* |
+| Tag, audit, classify, score, or offboard flows | **`flowstudio-power-automate-governance`** *(Pro+)* |
 | Just connect, set up auth, write the helper, parse responses | this skill (foundation) |
 
-**Same tools, different lenses.** `power-automate-build` and `power-automate-debug`
+**Same tools, different lenses.** `flowstudio-power-automate-build` and `flowstudio-power-automate-debug`
 both call `update_live_flow`, `get_live_flow`, and the run-error tools — they
 differ in *direction* (forward vs backward) and *intent* (compose vs diagnose).
-`power-automate-monitoring` and `power-automate-governance` both call the Store
+`flowstudio-power-automate-monitoring` and `flowstudio-power-automate-governance` both call the Store
 tools — they differ in *audience* (ops vs compliance) and *outcome* (read
 health vs write metadata). Don't try to memorize "which tools belong to which
 skill"; pick the skill by what the user is doing.
@@ -84,14 +77,14 @@ tool names.
 
 | Meta-tool | When to call |
 |---|---|
-| `list_skills` | Cold start — see the available bundles (`build-flow`, `debug-flow`, `monitor-flow`, `discover`, `governance`) and pick one |
+| `list_skills` | Cold start — see the available bundles (`build-flow`, `create-flow`, `debug-flow`, `monitor-flow`, `discover`, `governance`) and pick one |
 | `tool_search` with `query: "skill:<name>"` | Load the full schema set for one bundle (e.g. `skill:debug-flow`) |
 | `tool_search` with `query: "select:tool1,tool2"` | Load specific tools by name (e.g. when chaining across bundles) |
 | `tool_search` with `query: "<keywords>"` | Free-text search when the user request is ambiguous (e.g. `"cancel run"`) |
 
 The server's `tool_search` bundles are intentionally **narrower than this
 skill family** — they're starter packs of the most-likely-needed tools per
-intent. A workflow skill (e.g. `power-automate-debug`) may pull a bundle and
+intent. A workflow skill (e.g. `flowstudio-power-automate-debug`) may pull a bundle and
 then call `tool_search` again for additional tools as the workflow progresses.
 
 ```python
@@ -103,6 +96,17 @@ skills = mcp("list_skills", {})
 # Load schemas for the bundle
 debug_tools = mcp("tool_search", {"query": "skill:debug-flow"})
 ```
+
+Current common bundles:
+
+| Bundle | Use when |
+|---|---|
+| `create-flow` | Creating a brand-new flow; includes environment/connection discovery, connector description, dynamic options, and `update_live_flow` |
+| `build-flow` | Reading or modifying an existing flow definition |
+| `debug-flow` | Investigating failed runs and action-level inputs/outputs |
+| `monitor-flow` | Starting/stopping, triggering, cancelling, or resubmitting runs |
+| `discover` | Enumerating environments, flows, and connections |
+| `governance` | Pro+ cached-store tagging, maker audit, and metadata updates |
 
 ---
 
@@ -213,7 +217,7 @@ print(f"Connected — {len(skills)} skill bundles available:",
 Expected output:
 
 ```text
-Connected — 5 skill bundles available: ['build-flow', 'debug-flow', 'monitor-flow', 'discover', 'governance']
+Connected — 6 skill bundles available: ['build-flow', 'create-flow', 'debug-flow', 'monitor-flow', 'discover', 'governance']
 ```
 
 If this fails, see the **Common auth errors** note above. If it succeeds, hand
@@ -228,7 +232,8 @@ Some MCP tool responses are large enough to overflow the agent's context window:
 | Tool | Typical size | Cause |
 |---|---|---|
 | `describe_live_connector` | 100-600 KB | Full Swagger spec for a connector |
-| `get_live_flow_run_action_outputs` (no `actionName`) | 50 KB – several MB | All actions × all foreach iterations |
+| `get_live_dynamic_properties` | 50-500 KB | Dynamic connector field schemas such as SharePoint list columns |
+| `get_live_flow_run_action_outputs` (no `actionName`) | 50 KB – several MB | Top-level action outputs; with an action in a foreach, every repetition can be returned |
 | `get_live_flow` (large flows) | 50-500 KB | Deeply nested branches |
 | `list_live_flows` (large tenants) | 50-200 KB | Hundreds of flow records |
 
@@ -259,7 +264,7 @@ $payload = ((Get-Content $path -Raw | ConvertFrom-Json)[0].text) | ConvertFrom-J
 ### Rules of thumb
 
 1. **Extract, don't echo.** Pull the specific field(s) you need (one `operationId`, one action's outputs) and discard the rest before reasoning about it.
-2. **Always pass `actionName` to `get_live_flow_run_action_outputs`.** Omitting it fetches every action × every iteration — fine for offline debug scripts, dangerous for an agent that ingests the whole response.
+2. **Always pass `actionName` to `get_live_flow_run_action_outputs`.** Omitting it fetches all top-level actions. For actions inside a foreach, passing `actionName` without `iterationIndex` can return every repetition of that action.
 3. **Reuse the spill file within a session.** Refetching the same connector swagger costs 30+ seconds and produces another spill — cache the path.
 4. **Don't grep the spill file for JSON keys directly.** Strings are JSON-escaped inside the file (`\"OperationId\":`), so a plain grep for `"OperationId":` will not match. Parse first, then filter.
 5. **Summarize tool output to the user.** Echo `name + state + trigger` for flow lists and `actionName + status + code` for run errors — not raw JSON, unless asked.
