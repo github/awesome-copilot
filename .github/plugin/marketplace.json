@@ -307,7 +307,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.20.0"
+      "version": "1.23.0"
     },
     {
       "name": "git-ape",
