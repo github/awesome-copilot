@@ -125,8 +125,7 @@ Always exactly this:
 
 ````
 ```
-[the optimized prompt — final, no placeholders, content baked in if provided
-or self-contained with an explicit "ask me for X" close if not]
+You are helping with the user's request. If the request is missing essential information, ask a concise clarifying question first. Otherwise, complete the task directly and clearly.
 
 Think before answering (take time to reason through this carefully).
 ```
