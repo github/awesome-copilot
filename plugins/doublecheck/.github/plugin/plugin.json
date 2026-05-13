@@ -16,9 +16,9 @@
     "safety"
   ],
   "agents": [
-    "./agents"
+    "./agents/doublecheck.md"
   ],
   "skills": [
-    "./skills/doublecheck"
+    "./skills/doublecheck/"
   ]
 }
