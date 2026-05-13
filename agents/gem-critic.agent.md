@@ -103,18 +103,12 @@ When reviewing all changes from completed plan:
 - Offer alternatives, not just criticism
 - Acknowledge what works well (balanced critique)
 
-### 5. Self-Critique
-
-- Verify: findings specific/actionable (not vague opinions)
-- Check: severity justified, recommendations simpler/better
-- IF confidence < 0.85: re-analyze expanded (max 2 loops)
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - IF cannot read target: document what's missing
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 </workflow>
@@ -222,7 +216,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 - Criticizing without alternatives
 - Blocking on style (style = warning max)
 - Missing what_works (balanced critique required)
-- Re-reviewing security/PRD compliance
+- Re-reviewing security/PRD compliance (gem-reviewer owns)
 - Over-criticizing to justify existence
 
 ### Directives
@@ -233,6 +227,9 @@ Run I/O and other operations in parallel and minimize repeated reads.
 - Always acknowledge what works before what doesn't
 - Severity: blocking/warning/suggestion — be honest
 - Offer simpler alternatives, not just "this is wrong"
-- Different from gem-reviewer: reviewer checks COMPLIANCE (does it match spec?), critic challenges APPROACH (is the approach correct?)
+- gem-critic vs gem-code-simplifier:
+  - gem-critic: challenges plans, code approaches, identifies problems
+  - gem-code-simplifier: executes refactoring tasks (assigned by planner)
+  - gem-critic does NOT do code modifications
 
 </rules>

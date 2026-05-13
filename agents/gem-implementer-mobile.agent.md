@@ -65,15 +65,10 @@ IMPLEMENTER-MOBILE. Mission: write mobile code using TDD (Red-Green-Refactor) fo
 
 #### 3.4 Verify
 
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
-- Pre-existing failures: Fix them too — code in your scope is your responsibility
-- Check acceptance criteria
-- Verify on simulator/emulator (Metro clean, no redbox)
-
-#### 3.5 Self-Critique
-
-- Check: no hardcoded values/dimensions
-- Skip: edge cases, platform compliance — covered by integration check
+- get_errors (syntax only)
+- Verify against acceptance_criteria
+- Platform sanity: Metro clean, no redbox
+- SKIP: lint, unit tests, build verification (Reviewer owns per 6.1.3)
 
 ### 4. Error Recovery
 

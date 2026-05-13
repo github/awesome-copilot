@@ -123,7 +123,7 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 - IF task status=failed or needs_revision: Diagnose and retry (debugger → fix → re-verify, max 3 retries then escalate)
 - escalate: Mark blocked, escalate to user
 - needs_replan: Delegate to gem-planner
-- Collect `learnings` from completed tasks; if non-empty, delegate to gem-documentation-writer: structure_and_save_memory (wave-level persistence)
+- Persist learnings: Collect `learnings` from completed tasks → Delegate to `gem-documentation-writer: task_type=memory_update` immediately (wave-level persistence)
 - Persist all task status updates to `plan.yaml`
 - Announce wave completion with Status Summary Format
 
@@ -144,30 +144,21 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
   - Status Summary Format
   - Next recommended steps (if any)
 
-#### 7.2 Persist Learnings
+#### 7.2 Memory & Skills (Consolidated)
 
-- Collect `learnings` from completed task outputs
-- IF patterns/gotchas/user_prefs found:
-  - Delegate to `gem-documentation-writer`: task_type=memory_update
-  - scope: "global" (user-level) if cross-project, else "local" (plan-level)
+Memory and skill persistence happens at wave completion (Phase 6.1.4). Phase 7.2 only handles:
 
-#### 7.3 Skill Extraction
+- Skill Extraction: Review `learnings.patterns[]` from completed tasks
+  - IF high-confidence (≥0.85) pattern found:
+    - Delegate to `gem-documentation-writer`: task_type=skill_create
+  - IF medium-confidence (0.6-0.85): ask user "Extract '{skill-name}' skill for future reuse?"
+  - Store: `docs/skills/{skill-name}/SKILL.md` (project-level)
 
-- Review `learnings.patterns[]` from completed task outputs
-- IF high-confidence (≥0.85) pattern found:
-  - Delegate to `gem-documentation-writer`:
-    - task_type: skill_create
-    - task_definition.patterns: full pattern objects from implementer
-    - task_definition.source_task_id: task_id where pattern discovered
-    - task_definition.acceptance_criteria: task requirements that validated the pattern
-- IF medium-confidence (0.6-0.85): ask user "Extract '{skill-name}' skill for future reuse?"
-- Store extracted skills: `docs/skills/{skill-name}/SKILL.md` (project-level)
-
-#### 7.4 Propose Conventions for AGENTS.md
+#### 7.3 Propose Conventions for AGENTS.md
 
 - Review `learnings.conventions[]` (static rules, style guides, architecture)
 - IF conventions found:
-  - Delegate to `gem-planner`: plan AGENTS.md update per standard format (Setup cmds, Code style, Testing, PR instructions)
+  - Delegate to `gem-planner`: plan AGENTS.md update per standard format
   - Present to user: convention proposals with rationale
   - User decides: Accept → delegate to doc-writer | Reject → skip
 - NEVER auto-update AGENTS.md without explicit user approval
@@ -184,10 +175,10 @@ Triggered when user selects "Review all changed files" in Phase 7.
 
 #### 8.2 Execute Final Review
 
-Delegate in parallel (up to 4 concurrent):
+Delegate to gem-critic for architecture critique. gem-reviewer handles compliance only.
 
-- `gem-reviewer(review_scope=final, changed_files=[...], review_depth=full)`
 - `gem-critic(scope=architecture, target=all_changes, context=plan_objective)`
+- NOTE: gem-reviewer final scope focuses on security/PRD compliance. Architecture review is gem-critic's domain.
 
 #### 8.3 Synthesize Results
 
@@ -200,7 +191,7 @@ Delegate in parallel (up to 4 concurrent):
 | Severity             | Action                                                                                                                                                          |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Critical             | Block completion → Delegate to `gem-debugger` with error_context → `gem-implementer` → Re-run final review (max 1 cycle) → IF still critical → Escalate to user |
-| High (security/code) | Mark needs_revision → Create fix tasks → Add to next wave (if none exists, create a new wave) → Re-run final review                                            |
+| High (security/code) | Mark needs_revision → Create fix tasks → Add to next wave → Re-run final review                                                                                 |
 | High (architecture)  | Delegate to `gem-planner` with critic feedback for replan                                                                                                       |
 | Medium/Low           | Log to docs/plan/{plan_id}/logs/final_review_findings.yaml                                                                                                      |
 
@@ -260,7 +251,6 @@ Blocked tasks: task_id, why blocked, how long waiting
 
 - IF subagent fails 3x: Escalate to user. Never silently skip
 - IF task fails: Always diagnose via gem-debugger before retry
-- IF confidence < 0.85: Max 2 self-critique loops, then proceed or escalate
 - Always use established library/framework patterns
 - State assumptions explicitly; never guess silently
 

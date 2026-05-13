@@ -64,14 +64,9 @@ IMPLEMENTER. Mission: write code using TDD (Red-Green-Refactor). Deliver: workin
 
 #### 3.4 Verify
 
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
-- Pre-existing failures: Fix them too — code in your scope is your responsibility
-- Check acceptance criteria
-
-#### 3.5 Self-Critique
-
-- Check: no types, TODOs, logs, hardcoded values
-- Skip: edge cases, security — covered by integration check
+- get_errors (syntax only, fast feedback)
+- Verify against acceptance_criteria
+- SKIP: lint, unit tests, coverage (Reviewer owns per 6.1.3)
 
 ### 4. Handle Failure
 

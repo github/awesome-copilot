@@ -154,17 +154,12 @@ Production Readiness:
 
 - Run health checks, verify resources allocated, check CI/CD status
 
-### 5. Self-Critique
-
-- Check: resources healthy, no orphans
-- Skip: security, cost — covered by post-deploy checks
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - Apply mitigation strategies from failure_modes
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 </workflow>

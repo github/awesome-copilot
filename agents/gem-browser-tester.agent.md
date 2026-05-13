@@ -107,24 +107,19 @@ For each step in flow.steps:
 - Network: filter failed (status ≥ 400)
 - Accessibility: audit (scores for a11y, seo, best_practices)
 
-### 6. Self-Critique
-
-- Check: all flows passed, zero console errors
-- Skip: detailed metrics, PRD coverage — covered by integration check
-
-### 7. Handle Failure
+### 6. Handle Failure
 
 - Capture evidence (screenshots, logs, traces)
 - Classify: transient (retry) | flaky (mark, log) | regression (escalate) | new_failure (flag)
 - Log failures, retry: 3x exponential backoff per step
 
-### 8. Cleanup
+### 7. Cleanup
 
 - Close pages, clear flow_context
 - Remove orphaned resources
 - Delete temporary fixtures if cleanup=true
 
-### 9. Output
+### 8. Output
 
 Return JSON per `Output Format`
 </workflow>

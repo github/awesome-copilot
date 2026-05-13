@@ -137,16 +137,11 @@ DOCUMENTATION WRITER. Mission: write technical docs, generate diagrams, maintain
 - Documentation: verify code parity
 - Update: verify delta parity
 
-### 5. Self-Critique
-
-- Check: coverage_matrix addressed, no missing sections
-- Skip: readability — subjective; no deep parity check
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 

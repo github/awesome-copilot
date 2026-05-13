@@ -103,20 +103,12 @@ NO suggestions/recommendations
 - Confidence ≥0.85, factual only
 - IF gaps: re-run expanded (max 2 loops)
 
-### 5. Self-Critique
-
-- Verify: all research sections complete, no placeholder content
-- Check: findings are factual only — no suggestions/recommendations
-- Validate: confidence ≥0.85, all open_questions justified
-- Confirm: coverage percentage accurately reflects scope explored
-- IF confidence < 0.85: re-run expanded scope (max 2 loops)
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - IF research cannot proceed: document what's missing, recommend next steps
 - Log failures to `docs/plan/{plan_id}/logs/` OR `docs/logs/`
 
-### 7. Output
+### 6. Output
 
 - Save: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
 - Return JSON per `Output Format`

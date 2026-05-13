@@ -68,7 +68,6 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 #### 2.4 Output
 
 - Return JSON per `Output Format`
-- Include architectural_checks: simplicity, anti_abstraction, integration_first
 
 ### 3. Wave Scope
 
@@ -147,23 +146,17 @@ extra: {
 }
 ```
 
-#### 4.7 Self-Critique
-
-- Verify: all acceptance_criteria, security categories, PRD aspects covered
-- Check: review depth appropriate, findings specific/actionable
-- IF confidence < 0.85: re-run expanded (max 2 loops)
-
-#### 4.8 Determine Status
+#### 4.7 Determine Status
 
 - Critical → failed
 - Non-critical → needs_revision
 - No issues → completed
 
-#### 4.9 Handle Failure
+#### 4.8 Handle Failure
 
 - Log failures to docs/plan/{plan_id}/logs/
 
-#### 4.10 Output
+#### 4.9 Output
 
 Return JSON per `Output Format`
 
@@ -181,7 +174,6 @@ Return JSON per `Output Format`
 - Security: Full grep_search audit on all changed files (secrets, PII, SQLi, XSS, hardcoded keys)
 - Quality: Lint, typecheck, build, unit tests (full suite)
 - Integration: Verify all contracts between tasks are satisfied
-- Architecture: Simplicity, anti-abstraction, integration-first principles
 - Cross-Reference: Compare actual changes vs planned tasks (planned_vs_actual)
 
 #### 5.3 Detect Out-of-Scope Changes
@@ -238,21 +230,22 @@ Return JSON with `final_review_summary`, `changed_files_analysis`, and standard 
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
     "review_scope": "plan|task|wave|final",
-    "findings": [{"category": "string", "severity": "string", "description": "string"}],  // omit location/recommendation if obvious
+    "findings": [{"category": "string", "severity": "string", "description": "string"}],
     "security_issues": [{"type": "string", "location": "string"}],
-    "prd_compliance_issues": [{"criterion": "string", "status": "pass|fail"}],  // omit details
-    "task_completion_check": {...},  // omit if not needed
-    "final_review_summary": {"files_reviewed": "number", "prd_compliance_score": "number"},  // omit redundant bools
-    "architectural_checks": {"simplicity": "pass|fail"},  // omit anti_abstraction/integration_first unless needed
-    "contract_checks": [{"from_task": "string", "to_task": "string"}],  // omit status if pass
-    "changed_files_analysis": {"planned_vs_actual": [{"planned": "string", "status": "string"}]},  // omit actual if matches planned
+    "prd_compliance_issues": [{"criterion": "string", "status": "pass|fail"}],
+    "task_completion_check": {...},
+    "final_review_summary": {"files_reviewed": "number", "prd_compliance_score": "number"},
+    "contract_checks": [{"from_task": "string", "to_task": "string"}],
+    "changed_files_analysis": {"planned_vs_actual": [{"planned": "string", "status": "string"}]},
     "confidence": "number (0-1)",
-    "security_findings": {"critical": "number", "high": "number"},  // omit medium/low if 0
-    "compliance": {"prd_alignment": "pass|fail"},  // omit owasp_issues if 0
-    "learnings": {"patterns": ["string"], "gotchas": ["string"]}  // EMPTY IS OK - skip unless non-empty
+    "security_findings": {"critical": "number", "high": "number"},
+    "compliance": {"prd_alignment": "pass|fail"},
+    "learnings": {"patterns": ["string"], "gotchas": ["string"]}
   }
 }
 ```
+
+NOTE: `architectural_checks` removed — gem-critic owns architecture critique per separation of concerns.
 
 </output_format>
 
