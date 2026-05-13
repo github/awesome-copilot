@@ -617,6 +617,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "skill-image-gen",
+      "source": "skill-image-gen",
+      "description": "Generate images using AI directly from your coding workflow. Supports OpenAI (gpt-image-2) and Google Gemini. BYO API key — the skill guides you through setup on first use.",
+      "version": "1.0.0"
+    },
+    {
       "name": "skills-for-copilot-studio",
       "description": "Microsoft Copilot Studio plugins for AI coding agents",
       "version": "1.0.3",
