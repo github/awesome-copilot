@@ -127,6 +127,7 @@ Return JSON per `Output Format`
   "extra": {
     "execution_details": { "files_modified": "number", "lines_changed": "number", "time_elapsed": "string" },
     "test_results": { "total": "number", "passed": "number", "failed": "number", "coverage": "string" },
+    "confidence": "number (0-1)",
     "platform_verification": { "ios": "pass|fail|skipped", "android": "pass|fail|skipped", "metro_output": "string" },
     "learnings": {
       "patterns": [
@@ -193,6 +194,9 @@ Return JSON per `Output Format`
 - Use existing tech stack, test frameworks, build tools
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 

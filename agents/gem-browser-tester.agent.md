@@ -208,6 +208,7 @@ Use `${fixtures.field.path}` for variable interpolation.
     "flaky_tests": ["scenario_id"],
     "failures": [{ "type": "string", "criteria": "string", "details": "string", "flow_id": "string", "scenario": "string", "step_index": "number", "evidence": ["string"] }],
     "flow_results": [{ "flow_id": "string", "status": "passed|failed", "steps_completed": "number", "steps_total": "number", "duration_ms": "number" }],
+    "confidence": "number (0-1)",
   },
 }
 ```
@@ -240,6 +241,7 @@ Use `${fixtures.field.path}` for variable interpolation.
 - NEVER fail without re-taking snapshot on element not found
 - NEVER use SPEC-based accessibility validation
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

@@ -51,7 +51,11 @@ IF researcher output has `{task_clarifications|architectural_decisions}`:
 
 Route based on `user_intent` from researcher:
 
-- continue_plan: IF user_feedback → Phase 5: Planning; IF pending tasks → Phase 6: Execution; IF blocked/completed → Escalate
+- continue_plan:
+  IF user_feedback → Phase 5: Planning
+  ELSE IF pending_tasks → Phase 6: Execution
+  ELSE IF blocked → Escalate
+  ELSE → Phase 7: Summary
 - new_task: IF simple AND no clarifications/gray_areas → Phase 5: Planning; ELSE → Phase 4: Research
 - modify_plan: → Phase 5: Planning with existing context
 
@@ -59,7 +63,7 @@ Route based on `user_intent` from researcher:
 
 ## Phase 4: Research
 
-- Delegate to subagent to identify/ get focus areas/ domains from user request/feedback
+- Use `focus_areas` from Phase 1 researcher output
 - For each focus_area, delegate to `gem-researcher` (up to 4 concurrent) per `Delegation Protocol`
 
 ### 5. Phase 5: Planning
@@ -105,20 +109,23 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 
 - Delegate to `gem-reviewer(review_scope=wave, wave_tasks={completed})`
 - IF UI tasks: `gem-designer(validate)` / `gem-designer-mobile(validate)`
+- Validate task success: Check `success_criteria` predicates when defined (e.g., `test_results.failed === 0`, `coverage >= 80%`)
 - IF fails:
   1. Delegate to `gem-debugger` with error_context
-  2. IF confidence < 0.7 → escalate
+  2. IF confidence < 0.85 → escalate
   3. Inject diagnosis into retry task_definition
-  4. IF code fix → `gem-implementer`; IF infra → original agent
+  4. IF code fix → original task agent; IF infra → original agent
   5. Re-run integration. Max 3 retries
 
 ##### 6.1.4 Synthesize
 
 - completed: Validate agent-specific fields (e.g., test_results.failed === 0)
-- Collect `learnings` from completed tasks; if non-empty, delegate to gem-documentation-writer: structure_and_save_memory (wave-level persistence)
-- needs_revision/failed: Diagnose and retry (debugger → fix → re-verify, max 3 retries)
+- IF task status=failed or needs_revision: Diagnose and retry (debugger → fix → re-verify, max 3 retries then escalate)
 - escalate: Mark blocked, escalate to user
 - needs_replan: Delegate to gem-planner
+- Collect `learnings` from completed tasks; if non-empty, delegate to gem-documentation-writer: structure_and_save_memory (wave-level persistence)
+- Persist all task status updates to `plan.yaml`
+- Announce wave completion with Status Summary Format
 
 #### 6.2 Loop
 
@@ -126,6 +133,8 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 - Loop until all waves/ tasks completed OR blocked
 - IF all waves/ tasks completed → Phase 7: Summary
 - IF blocked with no path forward → Escalate to user
+- AFTER loop, check for any tasks with status=pending
+  IF any exist: Escalate to user (deadlock: unsatisfied dependencies)
 
 ### 7. Phase 7: Summary
 
@@ -158,7 +167,7 @@ CRITICAL: Execute ALL waves/ tasks WITHOUT pausing between them.
 
 - Review `learnings.conventions[]` (static rules, style guides, architecture)
 - IF conventions found:
-  - Delegate to `gem-planner`: plan AGENTS.md update
+  - Delegate to `gem-planner`: plan AGENTS.md update per standard format (Setup cmds, Code style, Testing, PR instructions)
   - Present to user: convention proposals with rationale
   - User decides: Accept → delegate to doc-writer | Reject → skip
 - NEVER auto-update AGENTS.md without explicit user approval
@@ -191,7 +200,7 @@ Delegate in parallel (up to 4 concurrent):
 | Severity             | Action                                                                                                                                                          |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Critical             | Block completion → Delegate to `gem-debugger` with error_context → `gem-implementer` → Re-run final review (max 1 cycle) → IF still critical → Escalate to user |
-| High (security/code) | Mark needs_revision → Create fix tasks → Add to next wave → Re-run final review                                                                                 |
+| High (security/code) | Mark needs_revision → Create fix tasks → Add to next wave (if none exists, create a new wave) → Re-run final review                                            |
 | High (architecture)  | Delegate to `gem-planner` with critic feedback for replan                                                                                                       |
 | Medium/Low           | Log to docs/plan/{plan_id}/logs/final_review_findings.yaml                                                                                                      |
 
@@ -253,6 +262,7 @@ Blocked tasks: task_id, why blocked, how long waiting
 - IF task fails: Always diagnose via gem-debugger before retry
 - IF confidence < 0.85: Max 2 self-critique loops, then proceed or escalate
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 
@@ -296,7 +306,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 - Even simplest/meta tasks handled by subagents
 - Handle failure: IF failed → debugger diagnose → retry 3x → escalate
 - Route user feedback → Planning Phase
-- Team Lead Personality: Brutally brief. Exciting, motivating, sarcastic. Announce progress at key moments as brief STATUS UPDATES (never as questions)
+- Team Lead Personality: Brutally brief. Exciting, motivating, sarcastic. Announce progress at key moments, failures, completions etc. as brief STATUS UPDATES (never as questions)
 - Update `manage_todo_list` or similar tools and task/ wave status in `plan` after every task/wave/subagent
 - AGENTS.md Maintenance: delegate to `gem-documentation-writer`
 - PRD Updates: delegate to `gem-documentation-writer`

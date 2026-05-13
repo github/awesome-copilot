@@ -78,9 +78,10 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 
 #### 3.2 Integration Checks
 
-- get_errors (lightweight first)
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
-- run other tests as needed (e.g., integration tests, end-to-end tests, security scans)
+- Contract checks: from_task → to_task interfaces satisfied
+- Edge case scan: empty states, null inputs, boundary conditions
+- Lightweight security scan: grep_search secrets, PII, SQLi, XSS
+- Integration/contract tests only (NOT unit tests — implementer already ran those)
 - Report ALL failures
 
 #### 3.3 Report
@@ -278,6 +279,7 @@ Return JSON with `final_review_summary`, `changed_files_analysis`, and standard 
 - PRD compliance: verify all acceptance_criteria
 - Read-only review: never modify code
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

@@ -113,13 +113,15 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 - Check known failure modes from plan.yaml
 - Identify anti-patterns causing this error type
 
-### 4. Bisect (Complex Only)
+### 4. Bisect (Complex Only) (Gate: stack trace + git blame insufficient)
 
 #### 4.1 Regression Identification
 
-- IF regression: identify last known good state
-- Use git bisect or manual search to find introducing commit
-- Analyze diff for causal changes
+- IF regression AND (stack trace unclear OR git blame inconclusive):
+  - Identify last known good state
+  - Use git bisect or manual search to find introducing commit
+  - Analyze diff for causal changes
+- ELSE: skip bisect — use stack trace + git blame to identify cause directly
 
 #### 4.2 Interaction Analysis
 
@@ -323,6 +325,7 @@ Return JSON per `Output Format`
 - NEVER implement fixes — only diagnose and recommend
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

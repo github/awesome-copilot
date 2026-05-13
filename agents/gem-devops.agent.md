@@ -201,7 +201,9 @@ Return JSON per `Output Format`
   "plan_id": "[plan_id]",
   "summary": "[≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
-  "extra": {},
+  "extra": {
+    "confidence": "number (0-1)",
+  },
 }
 ```
 
@@ -230,6 +232,9 @@ Return JSON per `Output Format`
 - Atomic operations preferred
 - Verify health checks pass before completing
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 
