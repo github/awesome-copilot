@@ -61,7 +61,7 @@ Work through these in your head before writing the prompt. You don't need to sur
 2. **Identify the audience and use.** Who reads the output, and what will they do with it? This drives tone and format.
 3. **Decide: Case A or Case B.** Did the user provide the actual content, or just describe a class of task? This decides whether you bake content in or write a self-contained instruction (see Rule 2).
 4. **Spot the gaps.** Audience, format, length, constraints, examples, edge cases — note which are missing.
-5. **Fill the gaps with reasonable assumptions.** The user told you not to ask questions. Make the most useful, most defensible assumption and move on. Keep it grounded in what they wrote.
+5. **Handle the gaps correctly.** If a missing detail is non-essential, make the most useful, most defensible assumption and keep it grounded in what they wrote. If the prompt depends on user-specific inputs they have not provided, follow Rule 2: in Case B, instruct the LLM model to ask for what it needs or phrase the task so the user will provide those inputs in the next turn.
 6. **Pick a structure.** Single-paragraph instruction for simple tasks. XML tags for anything with multiple sections.
 7. **Write the prompt.** Apply the principles below.
 8. **End with the closing line.**
