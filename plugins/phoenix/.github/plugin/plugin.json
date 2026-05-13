@@ -18,8 +18,8 @@
     "instrumentation"
   ],
   "skills": [
-    "./skills/phoenix-cli/",
-    "./skills/phoenix-evals/",
-    "./skills/phoenix-tracing/"
+    "./skills/phoenix-cli",
+    "./skills/phoenix-evals",
+    "./skills/phoenix-tracing"
   ]
 }
