@@ -1,5 +1,5 @@
 ---
-name: "SSMA Console"
+name: "ssma-console"
 description: "Oracle-to-SQL Server migration specialist that drives SSMA Console to create projects, generate assessment reports, convert schemas, and migrate data"
 model: "gpt-5"
 tools: ["execute", "edit", "read", "search", "todo"]
