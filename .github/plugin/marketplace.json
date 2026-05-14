@@ -213,6 +213,33 @@
       }
     },
     {
+      "name": "dotnet-test",
+      "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/dotnet/skills",
+      "keywords": [
+        "dotnet",
+        "testing",
+        "mstest",
+        "xunit",
+        "nunit",
+        "test-generation",
+        "coverage",
+        "migration"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/dotnet/skills",
+      "source": {
+        "source": "github",
+        "repo": "dotnet/skills",
+        "path": "plugins/dotnet-test"
+      }
+    },
+    {
       "name": "doublecheck",
       "source": "doublecheck",
       "description": "Three-layer verification pipeline for AI output. Extracts claims, finds sources, and flags hallucination risks so humans can verify before acting.",
@@ -280,7 +307,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.20.0"
+      "version": "1.24.0"
     },
     {
       "name": "git-ape",
@@ -369,9 +396,33 @@
       }
     },
     {
+      "name": "microsoft-events",
+      "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/Build-CLI",
+      "keywords": [
+        "microsoft",
+        "build",
+        "ignite",
+        "events",
+        "sessions",
+        "learn"
+      ],
+      "license": "Apache-2.0",
+      "repository": "https://github.com/microsoft/Build-CLI",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/Build-CLI"
+      }
+    },
+    {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1102-preview1",
+      "version": "1.0.1119-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -473,12 +524,6 @@
       "name": "php-mcp-development",
       "source": "php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
-      "version": "1.0.0"
-    },
-    {
-      "name": "polyglot-test-agent",
-      "source": "polyglot-test-agent",
-      "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
       "version": "1.0.0"
     },
     {
@@ -692,10 +737,33 @@
       }
     },
     {
-      "name": "winui3-development",
-      "source": "winui3-development",
-      "description": "End-to-end WinUI 3 and Windows App SDK toolkit: expert agent, coding instructions, UWP-to-WinUI 3 migration guide, MVVM Toolkit reference, plus the Microsoft Store publishing CLI (msstore). Covers the full write → package → publish lifecycle for desktop Windows apps and prevents common UWP API misuse. For MSIX packaging, signing, identity, and UI automation, install the standalone `winappcli` plugin.",
-      "version": "1.3.0"
+      "name": "winui",
+      "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://www.microsoft.com"
+      },
+      "homepage": "https://github.com/microsoft/win-dev-skills",
+      "keywords": [
+        "windows",
+        "winui",
+        "winui3",
+        "xaml",
+        "windows-app-sdk",
+        "msix",
+        "packaging",
+        "desktop",
+        "wpf-migration",
+        "electron-migration"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/win-dev-skills",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/win-dev-skills",
+        "path": "plugins/winui"
+      }
     }
   ]
 }

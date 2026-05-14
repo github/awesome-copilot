@@ -140,19 +140,14 @@ CODE SIMPLIFIER. Mission: remove dead code, reduce complexity, consolidate dupli
 - Ensure no broken imports/references
 - Check no functionality broken
 
-### 5. Self-Critique
-
-- Check: tests pass, no broken imports
-- Skip: behavior preservation analysis — covered by test runs
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - IF tests fail after changes: Revert or fix without behavior change
 - IF unsure if code is used: Don't remove — mark "needs manual review"
 - IF breaks contracts: Stop and escalate
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 </workflow>
@@ -227,6 +222,9 @@ Return JSON per `Output Format`
 - MUST verify tests pass after every change
 - Use existing tech stack. Preserve patterns — don't introduce new abstractions.
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 

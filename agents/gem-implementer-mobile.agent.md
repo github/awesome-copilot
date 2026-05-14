@@ -65,15 +65,10 @@ IMPLEMENTER-MOBILE. Mission: write mobile code using TDD (Red-Green-Refactor) fo
 
 #### 3.4 Verify
 
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
-- Pre-existing failures: Fix them too — code in your scope is your responsibility
-- Check acceptance criteria
-- Verify on simulator/emulator (Metro clean, no redbox)
-
-#### 3.5 Self-Critique
-
-- Check: no hardcoded values/dimensions
-- Skip: edge cases, platform compliance — covered by integration check
+- get_errors (syntax only)
+- Verify against acceptance_criteria
+- Platform sanity: Metro clean, no redbox
+- SKIP: lint, unit tests, build verification (Reviewer owns per 6.1.3)
 
 ### 4. Error Recovery
 
@@ -127,6 +122,7 @@ Return JSON per `Output Format`
   "extra": {
     "execution_details": { "files_modified": "number", "lines_changed": "number", "time_elapsed": "string" },
     "test_results": { "total": "number", "passed": "number", "failed": "number", "coverage": "string" },
+    "confidence": "number (0-1)",
     "platform_verification": { "ios": "pass|fail|skipped", "android": "pass|fail|skipped", "metro_output": "string" },
     "learnings": {
       "patterns": [
@@ -193,6 +189,9 @@ Return JSON per `Output Format`
 - Use existing tech stack, test frameworks, build tools
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 
