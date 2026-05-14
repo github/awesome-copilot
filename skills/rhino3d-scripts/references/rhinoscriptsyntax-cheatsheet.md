@@ -1,7 +1,5 @@
 # `rhinoscriptsyntax` Cheatsheet
 
-The `rhinoscriptsyntax` (Python) and `Rhino.*` (VBScript) APIs are 1:1 mirrors. Function names match; only the call syntax differs.
-
 ```python
 import rhinoscriptsyntax as rs
 ```
