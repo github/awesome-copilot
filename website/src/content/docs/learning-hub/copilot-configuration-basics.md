@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-11
+lastUpdated: 2026-05-14
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -408,6 +408,8 @@ These files follow the same format as `config.json` and are loaded after the glo
 
 The model picker opens in a **full-screen view** with inline reasoning effort adjustment. Use the **← / →** arrow keys to change the reasoning effort level (`low`, `medium`, `high`) directly from the picker without leaving the session. The current reasoning effort level is also displayed in the model header (e.g., `claude-sonnet-4.6 (high)`) so you always know which level is active.
 
+For **token-based billing users** (v1.0.48+), the model picker displays each model's actual token prices instead of relative dot indicators. This lets you make informed cost-vs-capability tradeoffs when choosing a model for a given task.
+
 **Auto mode and server-side model routing** (v1.0.43+): When you select **Auto** as your model, the CLI uses server-side model routing for real-time model selection. Instead of locking in a single model at session start, Auto mode evaluates each request and routes it to the most appropriate model dynamically. This means straightforward questions can be handled by a faster model while complex reasoning tasks are automatically escalated — without you needing to switch models manually.
 
 ### CLI Session Commands
@@ -468,10 +470,11 @@ Use `/undo` when the agent's last response went in an unwanted direction and you
 The `/fork` command (v1.0.45+) copies the current session into a **new independent session** that starts from the same conversation state. The original session continues unchanged — you can switch back to it at any time. This is useful when you want to explore two different approaches to a problem simultaneously:
 
 ```
-/fork
+/fork                    # fork with an auto-generated name
+/fork "try-approach-b"  # fork and give the new session a specific name (v1.0.47+)
 ```
 
-After forking, the new session is immediately active. Both sessions share the same history up to the fork point but accumulate changes independently from that moment forward. Use `/fork` to experiment with a risky refactor without abandoning your current working session.
+After forking, the new session is immediately active. Both sessions share the same history up to the fork point but accumulate changes independently from that moment forward. Forked sessions display their origin session in the session picker, so you can easily trace which session each fork came from. Use `/fork` to experiment with a risky refactor without abandoning your current working session.
 
 The `/cd` command changes the working directory for the current session. Each session maintains its own working directory that persists when you switch between sessions:
 
@@ -562,6 +565,8 @@ The `/allow-all` command (also accessible as `/yolo`) enables autopilot mode, wh
 ```
 
 > **Note**: `/allow-all on` permissions persist after `/clear` starts a new session, so you don't need to re-enable it each time.
+
+> **Note (v1.0.46+)**: Read-only `gh` CLI commands — such as `gh issue list`, `gh pr view`, `gh status`, and `gh diff` — are automatically approved without prompting for user confirmation, even when `/allow-all` is not enabled. Only write operations (creating issues, merging PRs, etc.) still require explicit approval.
 
 > **ACP clients (v1.0.39+)**: ACP clients can also toggle allow-all mode programmatically via session configuration, without issuing a slash command. This is useful for automated pipelines that drive Copilot CLI through the ACP protocol.
 
