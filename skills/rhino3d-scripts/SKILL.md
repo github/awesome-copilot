@@ -148,8 +148,8 @@ else:
 | Python `ImportError: No module named Rhino` | You’re running CPython outside Rhino. RhinoCommon is only available in Rhino’s embedded Python (or via `rhino3dm` for read-only file work). |
 | Created geometry doesn’t appear | You forgot `doc.Views.Redraw()`, or `rs.EnableRedraw(False)` was never re-enabled. |
 | Undo undoes only the last object of a batch | Wrap the batch in `BeginUndoRecord` / `EndUndoRecord`. |
-| Script works alone but fails as a startup script | Startup runs before any document is open — guard with `if sc.doc is not None`. |
-| `rs.command("...")` returns `False` | The macro string is malformed. Prefix with `!` and `-`, end every prompt with `_Enter` or a value. |
+| Script works alone but fails as a startup script | Startup runs before any document is open — return early or skip document-dependent work when `sc.doc is None`. |
+| `rs.Command("...")` returns `False` | The macro string is malformed. Prefix with `!` and `-`, end every prompt with `_Enter` or a value. |
 
 ## References
 

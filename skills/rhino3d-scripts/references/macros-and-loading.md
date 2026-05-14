@@ -65,8 +65,12 @@ A single `.rvb` can hold many subs; `_RunScript` chooses which to invoke.
 
 ```python
 import scriptcontext as sc
-if sc.doc is None:
-    return
+
+def startup():
+    if sc.doc is None:
+        return
+
+startup()
 ```
 
 ## Toolbar Buttons & Aliases

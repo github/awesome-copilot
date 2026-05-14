@@ -59,6 +59,7 @@ Use this to decide which `Rhino.*` namespace to import for a task. All of these 
 ```python
 import Rhino
 import scriptcontext as sc
+import System.Drawing
 
 doc = sc.doc                                          # Rhino.RhinoDoc
 tol = doc.ModelAbsoluteTolerance                      # float
