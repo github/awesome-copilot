@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "github/agent-skills"
+      }
+    }
+  },
+  "enabledPlugins": {
+      "assign-issue-to-copilot@agent-skills": true
+  }
+}
