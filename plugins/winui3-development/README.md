@@ -35,7 +35,7 @@ copilot plugin install winui3-development@awesome-copilot
 - **Dialog/Picker patterns** — ContentDialog with XamlRoot, pickers with window handle interop
 - **MVVM best practices** — CommunityToolkit.Mvvm source generators, compiled bindings, dependency injection
 - **Migration checklist** — step-by-step guide for porting UWP apps
-- **MSIX packaging & debugging** — install the standalone `winappcli` plugin for `winapp` CLI build, run-as-packaged, manifest, cert, sign, and UI automation workflows
+- **MSIX packaging & debugging** — install the `winappcli` plugin for `winapp` CLI build, run-as-packaged, manifest, cert, sign, and UI automation workflows
 - **Store publishing** — `msstore` CLI for credentials, submissions, flights, and CI/CD publishing pipelines
 
 ## Source
