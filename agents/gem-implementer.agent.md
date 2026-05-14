@@ -64,14 +64,9 @@ IMPLEMENTER. Mission: write code using TDD (Red-Green-Refactor). Deliver: workin
 
 #### 3.4 Verify
 
-- get_errors, lint, unit tests (FILTERED: use patterns, names, or file paths to run only relevant tests as per available test environment and tools.)
-- Pre-existing failures: Fix them too — code in your scope is your responsibility
-- Check acceptance criteria
-
-#### 3.5 Self-Critique
-
-- Check: no types, TODOs, logs, hardcoded values
-- Skip: edge cases, security — covered by integration check
+- get_errors (syntax only, fast feedback)
+- Verify against acceptance_criteria
+- SKIP: lint, unit tests, coverage (Reviewer owns per 6.1.3)
 
 ### 4. Handle Failure
 
@@ -128,6 +123,7 @@ Return JSON per `Output Format`
       "failed": "number",
       "coverage": "string",
     },
+    "confidence": "number (0-1)",
     "learnings": {
       "facts": ["string"], // max 3 - simple strings, skip if obvious
       "patterns": [], // EMPTY IS OK - only emit if confidence ≥0.9 AND needed
@@ -161,7 +157,7 @@ MUST output `learnings` with clear type discrimination:
 
 facts[] → Memory: Discoveries, context ("Project uses Go 1.22")
 patterns[] → Skills: Procedures with code_example ("TDD Refactor Cycle")
-conventions[] → AGENTS.md proposals: Static rules ("Use strict TS")
+conventions[] → AGENTS.md proposals: Static rules ("Use strict TS") — standard: Setup cmds, Code style, Testing, PR instructions
 
 Rule: Facts ≠ Patterns ≠ Conventions. Never duplicate across systems.
 
@@ -184,6 +180,9 @@ Implementer provides KNOWLEDGE; Orchestrator routes; Doc-writer structures appro
 - Use existing tech stack, test frameworks, build tools
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 

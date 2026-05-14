@@ -52,7 +52,7 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
 
 - Read PRD: user_stories, scope, acceptance_criteria
 - Read all research files from `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
-- Explore codebase for only for remaining gaps
+- Check researcher's `open_questions`
 
 #### 1.3 Apply Clarifications
 
@@ -171,6 +171,7 @@ Pattern Routing:
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
     "complexity": "simple|medium|complex",
+    "confidence": "number (0-1)",
   },
   "metrics": "object", // omit if not needed
   "learnings": { "risks": ["string"], "patterns": ["string"] }, // EMPTY IS OK - max 3 items
@@ -262,6 +263,7 @@ tasks:
     focus_area: string | null
     verification: [string]
     acceptance_criteria: [string]
+    success_criteria: [string] # machine-checkable predicates (e.g., "test_results.failed === 0", "coverage >= 80%")
     failure_modes:
       - scenario: string
         likelihood: low | medium | high
@@ -310,7 +312,7 @@ tasks:
 - Plan: Valid YAML, required fields, unique task IDs, valid status values
 - DAG: No circular deps, all dep IDs exist
 - Contracts: Valid from_task/to_task IDs, interfaces defined
-- Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present
+- Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present, success_criteria defined when needed
 - Estimates: files ≤ 3, lines ≤ 300
 - Pre-mortem: overall_risk_level defined, critical_failure_modes present
 - Implementation spec: code_structure, affected_areas, component_details defined
@@ -346,6 +348,8 @@ tasks:
 - estimated_files ≤ 3, estimated_lines ≤ 300
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum valid plan, nothing speculative.
 
 ### I/O Optimization
 

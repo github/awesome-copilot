@@ -305,6 +305,9 @@ Return JSON per `Output Format`
 - For patterns: Use component architecture, state management, responsive patterns
 - Use project's existing tech stack. No new styling solutions.
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 

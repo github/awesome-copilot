@@ -113,13 +113,15 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 - Check known failure modes from plan.yaml
 - Identify anti-patterns causing this error type
 
-### 4. Bisect (Complex Only)
+### 4. Bisect (Complex Only) (Gate: stack trace + git blame insufficient)
 
 #### 4.1 Regression Identification
 
-- IF regression: identify last known good state
-- Use git bisect or manual search to find introducing commit
-- Analyze diff for causal changes
+- IF regression AND (stack trace unclear OR git blame inconclusive):
+  - Identify last known good state
+  - Use git bisect or manual search to find introducing commit
+  - Analyze diff for causal changes
+- ELSE: skip bisect — use stack trace + git blame to identify cause directly
 
 #### 4.2 Interaction Analysis
 
@@ -201,22 +203,21 @@ adb pull /data/anr/traces.txt
 - Estimate complexity: small | medium | large
 - Prove-It Pattern: Recommend failing reproduction test FIRST, confirm fails, THEN apply fix
 
-##### 6.2.1 ESLint Rule Recommendations
+##### 6.2.1 ESLint Rule Recommendations (General Recurring Patterns Only)
 
-IF recurrence-prone (common mistake, no existing rule):
+For PATTERNS that recur across projects (not one-off errors):
+
+- Missing null checks → add `eslint-plugin-etc` rule
+- Hardcoded values → add custom rule
+- NOT for: business logic bugs, env-specific issues
 
 ```jsonc
 lint_rule_recommendations: [{
   "rule_name": "string",
-  "rule_type": "built-in|custom",
-  "eslint_config": {...},
-  "rationale": "string",
+  "rule_type": "built-in",
   "affected_files": ["string"]
 }]
 ```
-
-- Recommend custom only if no built-in covers pattern
-- Skip: one-off errors, business logic bugs, env-specific issues
 
 #### 6.3 Prevention
 
@@ -224,20 +225,12 @@ lint_rule_recommendations: [{
 - Identify patterns to avoid
 - Recommend monitoring/validation improvements
 
-### 7. Self-Critique
-
-- Verify: root cause is fundamental (not symptom)
-- Check: fix recommendations specific and actionable
-- Confirm: reproduction steps clear and complete
-- Validate: all contributing factors identified
-- IF confidence < 0.85: re-run expanded (max 2 loops)
-
-### 8. Handle Failure
+### 7. Handle Failure
 
 - IF diagnosis fails: document what was tried, evidence missing, recommend next steps
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 9. Output
+### 8. Output
 
 Return JSON per `Output Format`
 </workflow>
@@ -283,18 +276,20 @@ Return JSON per `Output Format`
   "summary": "[≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
   "extra": {
-    "root_cause": { "description": "string", "location": "string", "error_type": "string" }, // omit causal_chain
-    "reproduction": { "confirmed": "boolean", "steps": ["string"] }, // omit environment unless critical
-    "fix_recommendations": [{ "approach": "string", "location": "string" }], // omit complexity, trade_offs
-    "lint_rule_recommendations": [{ "rule_name": "string", "affected_files": ["string"] }], // omit eslint_config, rationale
-    "prevention": { "suggested_tests": ["string"] }, // omit patterns_to_avoid
+    "root_cause": { "description": "string", "location": "string", "error_type": "string" },
+    "reproduction": { "confirmed": "boolean", "steps": ["string"] },
+    "fix_recommendations": [{ "approach": "string", "location": "string" }],
+    "lint_rule_recommendations": [{ "rule_name": "string", "affected_files": ["string"] }],
+    "prevention": { "suggested_tests": ["string"] },
     "confidence": "number (0-1)",
   },
-  "diagnosis": { "root_cause": "string" }, // omit affected_files, confidence - already in extra
+  "diagnosis": { "root_cause": "string" },
   "recommendation": { "type": "fix|refactor|replan", "description": "string" },
-  "learnings": { "patterns": ["string"], "gotchas": ["string"] }, // EMPTY IS OK - skip unless non-empty
+  "learnings": { "patterns": ["string"], "gotchas": ["string"] },
 }
 ```
+
+NOTE: ESLint recommendations are for general recurring patterns only (not project-specific bugs).
 
 </output_format>
 
@@ -323,6 +318,7 @@ Return JSON per `Output Format`
 - NEVER implement fixes — only diagnose and recommend
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

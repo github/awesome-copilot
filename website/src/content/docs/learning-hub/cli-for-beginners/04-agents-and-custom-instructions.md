@@ -3,7 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-05-08
 ---
 
 ![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
@@ -438,7 +438,7 @@ Copilot will scan your project and create tailored instruction files. You can ed
 
 `AGENTS.md` is the recommended format. It's an [open standard](https://agents.md/) that works across Copilot and other AI coding tools. Place it in your repository root and Copilot reads it automatically. This project's own [AGENTS.md](https://github.com/github/copilot-cli-for-beginners/blob/main/AGENTS.md) is a working example.
 
-A typical `AGENTS.md` describes your project context, code style, security requirements, and testing standards. Use `/init` to generate one, or write your own following the pattern in our example file.
+A typical `AGENTS.md` describes your project context, code style, security requirements, and testing standards. Write your own following the pattern in our example file.
 
 ### Custom Instruction Files (.instructions.md)
 
