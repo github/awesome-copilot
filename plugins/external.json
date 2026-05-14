@@ -188,7 +188,7 @@
     "source": {
       "source": "github",
       "repo": "microsoft/WinAppCli",
-      "ref": "rel/v0.3.1"
+      "ref": "stable"
     }
   }
 ]
