@@ -19,5 +19,5 @@ This skill helps the user install the latest [ai-ready](https://github.com/johnp
 
    This downloads the latest version of the skill to their personal skills directory. Re-running the command updates to the latest version.
 
-2. After the user confirms they've installed it, tell them to say `make this repo ai-ready`.
+2. After the user confirms they've installed it, tell them to reload skills with `/skills reload` and then say `make this repo ai-ready`.
 3. Do **not** run the install command on the user's behalf. The user must run it themselves.
