@@ -16,15 +16,11 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "agents": [
-    "./agents/react19-auditor.md",
-    "./agents/react19-commander.md",
-    "./agents/react19-dep-surgeon.md",
-    "./agents/react19-migrator.md",
-    "./agents/react19-test-guardian.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/react19-concurrent-patterns/",
-    "./skills/react19-source-patterns/",
-    "./skills/react19-test-patterns/"
+    "./skills/react19-concurrent-patterns",
+    "./skills/react19-source-patterns",
+    "./skills/react19-test-patterns"
   ]
 }
