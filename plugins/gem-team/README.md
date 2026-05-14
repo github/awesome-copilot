@@ -2,8 +2,6 @@
 
 Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.
 
-[![Support Me](https://img.shields.io/badge/patreon-000000?logo=patreon&logoColor=FFFFFF&style=flat)](https://patreon.com/mubaidr)
-
 ## Quick Start
 
 ```bash
@@ -268,13 +266,13 @@ cp -r .apm/agents <destination>
 
 ---
 
-### VS Code Extension (GitHub Copilot)
+### VS Code (GitHub Copilot)
 
-Search for "gem-team" in the VS Code Extensions marketplace.
+Search for "gem-team" in the VS Code Chat marketplace.
 
 1. Open VS Code
-2. Go to Extensions (Ctrl+Shift+X)
-3. Search "gem-team"
+2. Go to Chat Settings
+3. Search "gem-team" in agents or plugins marketplace
 4. Click Install
 
 ---

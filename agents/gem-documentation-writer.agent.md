@@ -71,6 +71,7 @@ DOCUMENTATION WRITER. Mission: write technical docs, generate diagrams, maintain
 #### 2.5 AGENTS.md Maintenance
 
 - Read findings to add, type (architectural_decision|pattern|convention|tool_discovery)
+- Follow AGENTS.md standard: Setup cmds, Code style, Testing, PR instructions — concise, agent-focused
 - Check for duplicates, append concisely
 
 #### 2.6 Memory Update
@@ -136,16 +137,11 @@ DOCUMENTATION WRITER. Mission: write technical docs, generate diagrams, maintain
 - Documentation: verify code parity
 - Update: verify delta parity
 
-### 5. Self-Critique
-
-- Check: coverage_matrix addressed, no missing sections
-- Skip: readability — subjective; no deep parity check
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 
@@ -211,6 +207,7 @@ Return JSON per `Output Format`
     "memory_updated": [{ "path": "string", "type": "patterns|gotchas|fixes|user_prefs", "count": "number" }],
     "parity_verified": "boolean",
     "coverage_percentage": "number",
+    "confidence": "number (0-1)",
   },
 }
 ```
@@ -320,6 +317,8 @@ metadata:
 - NEVER use generic boilerplate (match project style)
 - Document actual tech stack, not assumed
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- minimum content, nothing speculative
 
 ### I/O Optimization
 

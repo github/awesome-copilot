@@ -47,11 +47,14 @@ Understand intent, resolve ambiguity, confirm scope. Workflow:
 1. Check existing plan → Ask "Continue, modify, or fresh?"
 2. Set `user_intent`: continue_plan | modify_plan | new_task
 3. Detect gray areas in user request → IF found → Generate 2-4 options each
-4. Present via `vscode_askQuestions` or similar tool, classify:
+4. Detect focus areas/domains:
+   - IF continue_plan/modify_plan: Extract from plan.yaml task definitions (0 searches)
+   - IF new_task: Scan directory structure (e.g. glob `src/*/`, `packages/*/`) → Match names against request keywords
+5. Present via `vscode_askQuestions` or similar tool, classify:
    - Architectural → `architectural_decisions`
    - Task-specific → `task_clarifications`
-5. Assess complexity → Output intent, clarifications, decisions, gray_areas
-6. Return JSON per `Output Format`
+6. Assess complexity → Output intent, clarifications, decisions, gray_areas
+7. Return JSON per `Output Format`
 
 #### 0.2 Research Mode
 
@@ -100,20 +103,12 @@ NO suggestions/recommendations
 - Confidence ≥0.85, factual only
 - IF gaps: re-run expanded (max 2 loops)
 
-### 5. Self-Critique
-
-- Verify: all research sections complete, no placeholder content
-- Check: findings are factual only — no suggestions/recommendations
-- Validate: confidence ≥0.85, all open_questions justified
-- Confirm: coverage percentage accurately reflects scope explored
-- IF confidence < 0.85: re-run expanded scope (max 2 loops)
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - IF research cannot proceed: document what's missing, recommend next steps
 - Log failures to `docs/plan/{plan_id}/logs/` OR `docs/logs/`
 
-### 7. Output
+### 6. Output
 
 - Save: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
 - Return JSON per `Output Format`
@@ -189,10 +184,12 @@ def calculate_confidence_from_results():
   "extra": {
     "user_intent": "continue_plan|modify_plan|new_task",
     "gray_areas": ["string"], // max 3
-    "learnings": { "patterns": ["string"], "gaps": ["string"] }  // EMPTY IS OK - max 3 items
+    "learnings": { "patterns": ["string"], "gaps": ["string"] }, // EMPTY IS OK - max 3 items
     "complexity": "simple|medium|complex",
+    "confidence": "number (0-1)",
     "task_clarifications": [{ "question": "string", "answer": "string" }], // omit if none
     "architectural_decisions": [{ "decision": "string", "affects": "string" }], // omit rationale
+    "focus_areas": ["string"], // if multiple identified, else omit
   },
 }
 ```
@@ -342,6 +339,7 @@ gaps: # REQUIRED
 - 3 passes: security-critical + sequential thinking
 - Cite sources for every claim
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

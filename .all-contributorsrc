@@ -3412,6 +3412,145 @@
       "contributions": [
         "agents"
       ]
+    },
+    {
+      "login": "NehaGitHubAcc",
+      "name": "Neha Mandge",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60216366?v=4",
+      "profile": "https://github.com/NehaGitHubAcc",
+      "contributions": [
+        "agents",
+        "code"
+      ]
+    },
+    {
+      "login": "srpatcha",
+      "name": "Srikanth Patchava",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20883509?v=4",
+      "profile": "https://github.com/srpatcha",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "The3dVehicleguy",
+      "name": "Thomas Ray",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74461863?v=4",
+      "profile": "https://thomas-f-ray.art/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "fizznix",
+      "name": "Nixon Kurian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58569464?v=4",
+      "profile": "https://github.com/fizznix",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "petrsx",
+      "name": "Petr Stupka",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18548253?v=4",
+      "profile": "https://github.com/petrsx",
+      "contributions": [
+        "ideas",
+        "instructions"
+      ]
+    },
+    {
+      "login": "pdebruin",
+      "name": "Pieter de Bruin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4709852?v=4",
+      "profile": "https://www.pdebruin.org/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "sudeepghatak",
+      "name": "sudeepghatak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12538280?v=4",
+      "profile": "https://github.com/sudeepghatak",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "tlietz",
+      "name": "tlietz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25965706?v=4",
+      "profile": "https://github.com/tlietz",
+      "contributions": [
+        "instructions"
+      ]
+    },
+    {
+      "login": "dawright22",
+      "name": "dawright22",
+      "avatar_url": "https://avatars.githubusercontent.com/u/53329137?v=4",
+      "profile": "https://github.com/dawright22",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "alfersugo",
+      "name": "Alejandro Fernando Suarez Gomez",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49598311?v=4",
+      "profile": "https://github.com/alfersugo",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "kriptoburak",
+      "name": "Burak Bayır",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8755484?v=4",
+      "profile": "https://xquik.com/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "samipak458",
+      "name": "MUHAMMAD SAMIULLAH",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52650290?v=4",
+      "profile": "http://msamiullah.tech/",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "nmetulev",
+      "name": "Nikola Metulev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/711864?v=4",
+      "profile": "http://metulev.com/",
+      "contributions": [
+        "ideas",
+        "plugins"
+      ]
+    },
+    {
+      "login": "jrkasprzyk",
+      "name": "Joseph Kasprzyk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4161712?v=4",
+      "profile": "https://www.colorado.edu/lab/krg",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "lovyjain",
+      "name": "Lovy Jain",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54174168?v=4",
+      "profile": "https://github.com/lovyjain",
+      "contributions": [
+        "ideas"
+      ]
     }
   ]
 }

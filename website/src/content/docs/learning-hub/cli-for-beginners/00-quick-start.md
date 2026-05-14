@@ -3,7 +3,7 @@ title: '00 · Quick Start'
 description: 'Install GitHub Copilot CLI, authenticate, and verify your environment with the same flow as the source course.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-03-20
+lastUpdated: 2026-05-08
 ---
 
 ![Chapter 00: Quick Start](/images/learning-hub/copilot-cli-for-beginners/00/chapter-header.png)
@@ -89,6 +89,31 @@ winget install GitHub.Copilot
 ```bash
 curl -fsSL https://gh.io/copilot-install | bash
 ```
+
+<details>
+<summary>Optional: Enable shell tab completion</summary>
+
+Shell tab completion lets you press **Tab** to complete `copilot` subcommands, command options, and some option values. This is optional, but it can be handy once you're comfortable using the CLI.
+
+Copilot CLI currently supports completion scripts for Bash, Zsh, and Fish:
+
+```shell
+# Bash, current session only
+source <(copilot completion bash)
+
+# Bash, persistent on Linux
+copilot completion bash | sudo tee /etc/bash_completion.d/copilot
+
+# Zsh
+copilot completion zsh > "${fpath[1]}/_copilot"
+
+# Fish
+copilot completion fish > ~/.config/fish/completions/copilot.fish
+```
+
+Restart your shell after adding persistent completion. PowerShell is supported for running Copilot CLI on Windows, but `copilot completion` currently supports only Bash, Zsh, and Fish.
+
+</details>
 
 ---
 

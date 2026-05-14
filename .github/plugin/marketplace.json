@@ -307,7 +307,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.20.0"
+      "version": "1.24.0"
     },
     {
       "name": "git-ape",
@@ -422,7 +422,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1102-preview1",
+      "version": "1.0.1119-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"

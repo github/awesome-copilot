@@ -107,24 +107,19 @@ For each step in flow.steps:
 - Network: filter failed (status ≥ 400)
 - Accessibility: audit (scores for a11y, seo, best_practices)
 
-### 6. Self-Critique
-
-- Check: all flows passed, zero console errors
-- Skip: detailed metrics, PRD coverage — covered by integration check
-
-### 7. Handle Failure
+### 6. Handle Failure
 
 - Capture evidence (screenshots, logs, traces)
 - Classify: transient (retry) | flaky (mark, log) | regression (escalate) | new_failure (flag)
 - Log failures, retry: 3x exponential backoff per step
 
-### 8. Cleanup
+### 7. Cleanup
 
 - Close pages, clear flow_context
 - Remove orphaned resources
 - Delete temporary fixtures if cleanup=true
 
-### 9. Output
+### 8. Output
 
 Return JSON per `Output Format`
 </workflow>
@@ -208,6 +203,7 @@ Use `${fixtures.field.path}` for variable interpolation.
     "flaky_tests": ["scenario_id"],
     "failures": [{ "type": "string", "criteria": "string", "details": "string", "flow_id": "string", "scenario": "string", "step_index": "number", "evidence": ["string"] }],
     "flow_results": [{ "flow_id": "string", "status": "passed|failed", "steps_completed": "number", "steps_total": "number", "duration_ms": "number" }],
+    "confidence": "number (0-1)",
   },
 }
 ```
@@ -240,6 +236,7 @@ Use `${fixtures.field.path}` for variable interpolation.
 - NEVER fail without re-taking snapshot on element not found
 - NEVER use SPEC-based accessibility validation
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
 
 ### I/O Optimization
 

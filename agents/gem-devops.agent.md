@@ -154,17 +154,12 @@ Production Readiness:
 
 - Run health checks, verify resources allocated, check CI/CD status
 
-### 5. Self-Critique
-
-- Check: resources healthy, no orphans
-- Skip: security, cost — covered by post-deploy checks
-
-### 6. Handle Failure
+### 5. Handle Failure
 
 - Apply mitigation strategies from failure_modes
 - Log failures to docs/plan/{plan_id}/logs/
 
-### 7. Output
+### 6. Output
 
 Return JSON per `Output Format`
 </workflow>
@@ -201,7 +196,9 @@ Return JSON per `Output Format`
   "plan_id": "[plan_id]",
   "summary": "[≤3 sentences]",
   "failure_type": "transient|fixable|needs_replan|escalate",
-  "extra": {},
+  "extra": {
+    "confidence": "number (0-1)",
+  },
 }
 ```
 
@@ -230,6 +227,9 @@ Return JSON per `Output Format`
 - Atomic operations preferred
 - Verify health checks pass before completing
 - Always use established library/framework patterns
+- State assumptions explicitly; never guess silently
+- Minimum code, nothing speculative
+- Surgical changes, don't refactor adjacent code
 
 ### I/O Optimization
 
