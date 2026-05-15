@@ -25,9 +25,7 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
 
 1. `./docs/PRD.yaml`
 2. `AGENTS.md`
-3. Memory — self-serve via memory tool:
-   - Maintain: codebase conventions, anti-patterns, prior discoveries, context, patterns found (if confidence ≥0.9)
-   - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt) and online search
    </knowledge_sources>
 
@@ -107,6 +105,7 @@ NO suggestions/recommendations
 
 ### 6. Output
 
+- Memory: Save generalizable codebase knowledge (architecture, conventions, file maps) to repo memory. Task-specific findings go to YAML below.
 - Save: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
 - Return JSON per `Output Format`
   </workflow>
@@ -331,6 +330,15 @@ gaps: # REQUIRED
 - Cite sources for every claim
 - Always use established library/framework patterns
 - State assumptions explicitly; never guess silently
+
+### Memory Usage
+
+- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
+- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
+  - confidence ≥ 0.85
+  - not a duplicate of existing memory entry (view first, create if absent)
+  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - max 3 items per output
 
 ### I/O Optimization
 

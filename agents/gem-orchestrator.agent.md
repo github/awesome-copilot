@@ -25,10 +25,7 @@ CRITICAL: Strictly follow workflow and never skip phases for any type of task/ r
 ## Knowledge Sources
 
 1. `AGENTS.md`
-2. Memory — agents self-serve via `memory` tool.
-
-- Orchestrator reads `learnings` from agent outputs and routes high-confidence patterns to `gem-skill-creator` and convention proposals to `gem-documentation-writer`.
-- Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+2. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 
 </knowledge_sources>
 
@@ -214,6 +211,14 @@ Blocked tasks: task_id, why blocked, how long waiting
 - IF task fails: Always diagnose via gem-debugger before retry
 - Always use established library/framework patterns
 - State assumptions explicitly; never guess silently
+
+### Memory Usage
+
+- **Read** — At init: check memory for task-relevant context before routing agents.
+- **Write** — After synthesizing agent outputs: persist high-confidence learnings (≥0.85) to memory via `memory` tool IF:
+  - not a duplicate of existing entry (view first, create if absent)
+  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - max 3 items per output
 
 ### I/O Optimization
 

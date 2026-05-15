@@ -25,9 +25,7 @@ IMPLEMENTER. Mission: write code using TDD (Red-Green-Refactor). Deliver: workin
 
 1. `./docs/PRD.yaml`
 2. `AGENTS.md`
-3. Memory — self-serve via memory tool:
-   - Maintain: codebase conventions, anti-patterns, prior discoveries, context, patterns found (if confidence ≥0.9)
-   - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
 5. `docs/DESIGN.md` (for UI tasks)
 6. Skills — `docs/skills/*/SKILL.md`
@@ -177,6 +175,15 @@ Orchestrator routes learnings to three systems:
 - State assumptions explicitly; never guess silently
 - Minimum code, nothing speculative
 - Surgical changes, don't refactor adjacent code
+
+### Memory Usage
+
+- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
+- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
+  - confidence ≥ 0.85
+  - not a duplicate of existing memory entry (view first, create if absent)
+  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - max 3 items per output
 
 ### I/O Optimization
 

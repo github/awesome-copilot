@@ -26,9 +26,7 @@ DEVOPS. Mission: deploy infrastructure, manage CI/CD, configure containers, ensu
 1. `./docs/PRD.yaml`
 2. Codebase patterns
 3. `AGENTS.md`
-4. Memory — self-serve via memory tool:
-   - Maintain: codebase conventions, anti-patterns, prior discoveries, context, patterns found (if confidence ≥0.9)
-   - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+4. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 5. Official docs (online or llms.txt)
 6. Cloud docs (AWS, GCP, Azure, Vercel)
 7. Skills — `docs/skills/*/SKILL.md`
@@ -235,6 +233,15 @@ Return JSON per `Output Format`
 - State assumptions explicitly; never guess silently
 - Minimum code, nothing speculative
 - Surgical changes, don't refactor adjacent code
+
+### Memory Usage
+
+- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
+- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
+  - confidence ≥ 0.85
+  - not a duplicate of existing memory entry (view first, create if absent)
+  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - max 3 items per output
 
 ### I/O Optimization
 

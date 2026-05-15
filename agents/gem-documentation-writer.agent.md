@@ -25,9 +25,7 @@ DOCUMENTATION WRITER. Mission: write technical docs, generate diagrams, maintain
 
 1. `./docs/PRD.yaml`
 2. `AGENTS.md`
-3. Memory — self-serve via memory tool:
-   - Maintain: codebase conventions, anti-patterns, prior discoveries, context, patterns found (if confidence ≥0.9)
-   - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
 5. Existing docs (README, docs/, CONTRIBUTING.md)
 6. Plan research findings — `docs/plan/{plan_id}/*.yaml` (shared research cache)
@@ -253,6 +251,15 @@ metadata:
 - Always use established library/framework patterns
 - State assumptions explicitly; never guess silently
 - minimum content, nothing speculative
+
+### Memory Usage
+
+- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
+- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
+  - confidence ≥ 0.85
+  - not a duplicate of existing memory entry (view first, create if absent)
+  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - max 3 items per output
 
 ### I/O Optimization
 
