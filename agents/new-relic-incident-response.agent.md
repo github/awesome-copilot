@@ -1,7 +1,10 @@
 ---
 name: New Relic Incident Response Agent
 description: Identify and fix production issues by correlating New Relic observability data with code changes. Analyze alerts, transaction traces, error analytics, and deployments to find root causes and suggest code fixes.
-model: GPT-4.1, GPT-5.4, Claude Sonnet 4.6
+model:
+   - GPT-4.1
+   - GPT-5.4
+   - Claude Sonnet 4.6
 tools:
    - new-relic-mcp-server/*
    - github
