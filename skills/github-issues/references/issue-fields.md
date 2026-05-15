@@ -1,16 +1,83 @@
-# Issue Fields (GraphQL, Private Preview)
-
-> **Private preview:** Issue fields are currently in private preview. Request access at https://github.com/orgs/community/discussions/175366
+# Issue Fields
 
 Issue fields are custom metadata (dates, text, numbers, single-select) defined at the organization level and set per-issue. They are separate from labels, milestones, and assignees. Common examples: Start Date, Target Date, Priority, Impact, Effort.
 
-**Important:** All issue field queries and mutations require the `GraphQL-Features: issue_fields` HTTP header. Without it, the fields are not visible in the schema.
-
 **Prefer issue fields over project fields.** When you need to set metadata like dates, priority, or status on an issue, use issue fields (which live on the issue itself) rather than project fields (which live on a project item). Issue fields travel with the issue across projects and views, while project fields are scoped to a single project. Only use project fields when issue fields are not available or when the field is project-specific (e.g., sprint iterations).
 
-## Discovering available fields
+## REST API (recommended)
 
-Fields are defined at the org level. List them before trying to set values:
+The REST API is the simplest way to discover fields and set values.
+
+### Discovering available fields
+
+```bash
+gh api orgs/{org}/issue-fields --jq '.[] | {id, name, options: [.options[]? | {id, name}]}'
+```
+
+### Reading field values on an issue
+
+```bash
+gh api repos/{owner}/{repo}/issues/{number}/issue-field-values
+```
+
+### Setting field values
+
+```bash
+gh api repos/{owner}/{repo}/issues/{number}/issue-field-values \
+  -X POST \
+  --input - <<'EOF'
+{"issue_field_values": [{"field_id": 1, "value": "P1"}]}
+EOF
+```
+
+**Important:** The payload must be a JSON object with an `issue_field_values` array. Each entry has:
+- `field_id` (integer): the field's numeric ID from the org fields list
+- `value` (string): the **option name** for single-select fields (e.g., `"P1"`, `"High"`), or the literal value for text/number/date fields
+
+Common mistakes to avoid:
+- Passing the option ID instead of the option name as `value` (the API expects the display name)
+- Sending `field_id` and `value` as top-level keys without wrapping in `issue_field_values` array
+- Using `-f` flags instead of `--input` with JSON body
+
+### Example: Set priority to P1
+
+```bash
+# 1. Find the Priority field ID and option names
+gh api orgs/{org}/issue-fields --jq '.[] | select(.name == "Priority")'
+
+# 2. Set it (use the option NAME, not ID)
+gh api repos/{owner}/{repo}/issues/{number}/issue-field-values \
+  -X POST \
+  --input - <<'EOF'
+{"issue_field_values": [{"field_id": 1, "value": "P1"}]}
+EOF
+```
+
+### Example: Set multiple fields at once
+
+```bash
+gh api repos/{owner}/{repo}/issues/{number}/issue-field-values \
+  -X POST \
+  --input - <<'EOF'
+{"issue_field_values": [
+  {"field_id": 1, "value": "P1"},
+  {"field_id": 5, "value": "2026-06-01"},
+  {"field_id": 7, "value": "High"}
+]}
+EOF
+```
+
+### Workflow for setting fields (REST)
+
+1. **Discover fields** - `gh api orgs/{org}/issue-fields` to get field IDs and option names
+2. **Set values** - POST to `repos/{owner}/{repo}/issues/{number}/issue-field-values` with JSON body
+3. **Batch when possible** - multiple fields can be set in a single request
+
+## GraphQL API (alternative)
+
+The GraphQL API requires the `GraphQL-Features: issue_fields` HTTP header. Without it, the fields are not visible in the schema.
+
+### Discovering available fields (GraphQL)
 
 ```graphql
 # Header: GraphQL-Features: issue_fields
@@ -31,9 +98,7 @@ Fields are defined at the org level. List them before trying to set values:
 
 Field types: `IssueFieldDate`, `IssueFieldText`, `IssueFieldNumber`, `IssueFieldSingleSelect`.
 
-For single-select fields, you need the option `id` (not the name) to set values.
-
-## Reading field values on an issue
+### Reading field values (GraphQL)
 
 ```graphql
 # Header: GraphQL-Features: issue_fields
@@ -67,7 +132,7 @@ For single-select fields, you need the option `id` (not the name) to set values.
 }
 ```
 
-## Setting field values
+### Setting field values (GraphQL)
 
 Use `setIssueFieldValue` to set one or more fields at once. You need the issue's node ID and the field IDs from the discovery query above.
 
@@ -95,36 +160,9 @@ Each entry in `issueFields` takes a `fieldId` plus exactly one value parameter:
 | Date | `dateValue` | ISO 8601 date string, e.g. `"2026-04-15"` |
 | Text | `textValue` | String |
 | Number | `numberValue` | Float |
-| Single select | `singleSelectOptionId` | ID from the field's `options` list |
+| Single select | `singleSelectOptionId` | Node ID from the field's `options` list |
 
 To clear a field value, set `delete: true` instead of a value parameter.
-
-## Workflow for setting fields
-
-1. **Discover fields** - query the org's `issueFields` to get field IDs and option IDs
-2. **Get the issue node ID** - from `repository.issue.id`
-3. **Set values** - call `setIssueFieldValue` with the issue node ID and field entries
-4. **Batch when possible** - multiple fields can be set in a single mutation call
-
-## Example: Set dates and priority on an issue
-
-```bash
-gh api graphql \
-  -H "GraphQL-Features: issue_fields" \
-  -f query='
-mutation {
-  setIssueFieldValue(input: {
-    issueId: "I_kwDOxxx"
-    issueFields: [
-      { fieldId: "IFD_startDate", dateValue: "2026-04-01" }
-      { fieldId: "IFD_targetDate", dateValue: "2026-04-30" }
-      { fieldId: "IFSS_priority", singleSelectOptionId: "OPTION_P1" }
-    ]
-  }) {
-    issue { id title }
-  }
-}'
-```
 
 ## Searching by field values
 
