@@ -46,6 +46,7 @@ function normalizePathValue(value) {
 function stripIssueTitlePrefix(title) {
   return String(title ?? "")
     .trim()
+    .replace(/^\[\s*external plugin\s*\]\s*:\s*/i, "")
     .replace(/^(external plugin(?: submission)?|public external plugin)(?:\s*[:-]\s*|\s+)/i, "")
     .trim();
 }

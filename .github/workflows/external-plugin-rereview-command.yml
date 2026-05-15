@@ -90,10 +90,13 @@ jobs:
       - name: Renew six-month review window
         if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'keep'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+          HAS_PLUGIN: ${{ steps.parse.outputs.has-plugin }}
         with:
           script: |
-            const pluginName = '${{ steps.parse.outputs.plugin-name }}';
-            const hasPlugin = '${{ steps.parse.outputs.has-plugin }}' === 'true';
+            const pluginName = process.env.PLUGIN_NAME;
+            const hasPlugin = process.env.HAS_PLUGIN === 'true';
 
             async function removeLabel(name) {
               try {
@@ -148,6 +151,8 @@ jobs:
       - name: Mark follow-up needed
         if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'needs-changes'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
         with:
           script: |
             const managedLabels = {
@@ -189,7 +194,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Marked **${{ steps.parse.outputs.plugin-name }}** as needing follow-up. The plugin will stay in the six-month re-review queue until a maintainer comments \`/re-review-keep\` or \`/re-review-remove\`.`
+              body: `Marked **${process.env.PLUGIN_NAME}** as needing follow-up. The plugin will stay in the six-month re-review queue until a maintainer comments \`/re-review-keep\` or \`/re-review-remove\`.`
             });
 
       - name: Install dependencies
@@ -248,6 +253,8 @@ jobs:
         env:
           CHANGED: ${{ steps.remove_pr.outputs.changed }}
           PR_URL: ${{ steps.remove_pr.outputs.pr-url }}
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+          HAS_PLUGIN: ${{ steps.parse.outputs.has-plugin }}
         with:
           script: |
             async function ensureLabel(name, color, description) {
@@ -281,28 +288,33 @@ jobs:
               }
             }
 
-            await ensureLabel('removed', 'B60205', 'External plugin was removed from the marketplace after re-review');
-            await removeLabel('approved');
-            await removeLabel('re-review-due');
-            await removeLabel('re-review-follow-up');
-
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['removed']
-            });
-
             const changed = process.env.CHANGED === 'true';
             const prUrl = process.env.PR_URL;
-            const pluginName = '${{ steps.parse.outputs.plugin-name }}';
-            const hasPlugin = '${{ steps.parse.outputs.has-plugin }}' === 'true';
+            const pluginName = process.env.PLUGIN_NAME;
+            const hasPlugin = process.env.HAS_PLUGIN === 'true';
 
             let body;
             if (!hasPlugin || !changed) {
+              await ensureLabel('removed', 'B60205', 'External plugin was removed from the marketplace after re-review');
+              await removeLabel('approved');
+              await removeLabel('re-review-due');
+              await removeLabel('re-review-follow-up');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['removed']
+              });
               body = `Marked **${pluginName}** as removed. No new PR was needed because the listing is already absent from \`plugins/external.json\`.`;
             } else {
-              body = `Marked **${pluginName}** as removed and opened the removal PR: ${prUrl}`;
+              await ensureLabel('re-review-follow-up', 'D4C5F9', 'Six-month re-review needs maintainer follow-up before a final decision');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['re-review-due', 're-review-follow-up']
+              });
+              body = `Opened the removal PR for **${pluginName}**: ${prUrl}. The issue remains approved and due for re-review until that removal lands in \`staged\`.`;
             }
 
             await github.rest.issues.createComment({

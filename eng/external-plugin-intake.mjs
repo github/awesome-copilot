@@ -175,11 +175,6 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
     return;
   }
 
-  if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
-    errors.push('submission: commit SHAs in "Immutable ref to review" must use the full 40-character SHA');
-    return;
-  }
-
   if (/^[0-9a-f]{40}$/i.test(ref)) {
     const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(ref)}`, token);
     if (!commitResponse.ok) {
@@ -190,6 +185,15 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
 
   const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
+
+  if (tagResponse.ok) {
+    return;
+  }
+
+  if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
+    errors.push('submission: commit SHAs in "Immutable ref to review" must use the full 40-character SHA');
+    return;
+  }
 
   if (!tagResponse.ok) {
     errors.push(`submission: tag "${ref}" was not found in GitHub repository "${repo}"`);

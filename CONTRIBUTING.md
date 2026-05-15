@@ -240,7 +240,7 @@ Maintainers are responsible for confirming that the submission:
 
 - Clearly fits the Awesome Copilot collection and adds value beyond existing listings
 - Uses a public GitHub repository and an immutable ref that can be reviewed reliably
-- Includes the metadata needed for `plugins/external.json` (`name`, `description`, `version`, `source`, and any supplied author/homepage/license/keyword fields)
+- Includes the required metadata for `plugins/external.json` (`name`, `description`, `version`, `author.name`, `repository`, `keywords`, and `source`), plus any supplied homepage/license fields
 - Does not obviously duplicate an existing marketplace entry
 - Continues to meet this repository's content, security, and responsible AI policies
 
@@ -261,7 +261,7 @@ Maintainers complete the re-review on the **original approved submission issue**
 
 - `/re-review-keep` — renew the listing for another six months by reopening and reclosing the approved issue, which resets the `closed_at` review anchor and removes the due labels
 - `/re-review-needs-changes` — keep the listing in the due queue while adding `re-review-follow-up` so maintainers can track extra investigation or remediation work
-- `/re-review-remove` — open or update a PR against `staged` that removes the plugin from `plugins/external.json`, regenerates marketplace outputs, and relabels the issue as `removed`
+- `/re-review-remove` — open or update a PR against `staged` that removes the plugin from `plugins/external.json` and regenerates marketplace outputs; the issue stays in the due queue until that removal lands
 
 Approved submissions are converted into `plugins/external.json` entries following the [Claude Code plugin marketplace spec](https://code.claude.com/docs/en/plugin-marketplaces#plugin-entries). A typical GitHub-hosted entry looks like this:
 

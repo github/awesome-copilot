@@ -113,7 +113,11 @@ function validateKeywords(keywords, prefix, errors, warnings, required) {
   }
 
   if (keywords.length === 0) {
-    warnings.push(`${prefix}: "keywords" is empty; at least one keyword is recommended for discovery`);
+    if (required) {
+      errors.push(`${prefix}: "keywords" must contain at least one entry`);
+    } else {
+      warnings.push(`${prefix}: "keywords" is empty; at least one keyword is recommended for discovery`);
+    }
   }
 }
 

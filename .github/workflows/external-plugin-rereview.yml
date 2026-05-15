@@ -135,9 +135,14 @@ jobs:
               return Date.parse(issue.closed_at) <= threshold.getTime();
             });
 
+            const dueIssueNumbers = new Set([
+              ...dueRecords.map((record) => record.issue.number),
+              ...unmatchedDueRecords.map((record) => record.issue.number)
+            ]);
+
             for (const { issue, match } of issueRecords) {
               const labelNames = new Set((issue.labels || []).map((label) => label.name));
-              const shouldHaveDueLabel = dueRecords.some((record) => record.issue.number === issue.number);
+              const shouldHaveDueLabel = dueIssueNumbers.has(issue.number);
 
               if (shouldHaveDueLabel && !labelNames.has(rereview.REREVIEW_LABELS.due)) {
                 await addLabel(issue.number, rereview.REREVIEW_LABELS.due);
