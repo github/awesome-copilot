@@ -45,7 +45,7 @@ To maintain a safe, responsible, and high-signal collection, we will **not accep
 - **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
 - **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
 - **Duplicate Existing Model Strengths Without Meaningful Uplift**: Submissions that mainly tell Copilot to do work frontier models already handle well (for example, generic TypeScript, HTML, or other broadly-supported coding tasks) without addressing a clear gap, specialized workflow, or domain-specific constraint. These contributions are often lower value for users and can introduce weaker or conflicting guidance than the model's default behavior.
-- **Unreviewed remote-source plugins**: Do not open a pull request that directly adds a third-party plugin to `plugins/external.json`. Public external plugins must use the review workflow documented below. In v1, that workflow only accepts plugins hosted in public GitHub repositories; non-GitHub sources such as generic git URLs, npm packages, and pip packages are not accepted for public submissions.
+- **Unreviewed remote-source plugins**: Do not open a pull request that directly adds a third-party plugin to `plugins/external.json`. Public external plugins must use the review workflow documented below. In v1, that workflow only accepts plugins hosted in public GitHub repositories; non-GitHub sources such as generic git URLs are not accepted for public submissions.
 
 ## Quality Guidelines
 
