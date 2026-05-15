@@ -1,0 +1,369 @@
+#!/usr/bin/env node
+
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { ROOT_FOLDER } from "./constants.mjs";
+import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
+
+const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
+const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
+
+const REQUIRED_CHECKLIST_ITEMS = [
+  "The plugin lives in a public GitHub repository.",
+  "The ref I provided is an immutable release tag or full 40-character commit SHA, not a branch.",
+  "This submission follows this repository's contribution, security, and responsible AI policies.",
+  "This plugin is not already listed in the Awesome Copilot marketplace.",
+];
+
+const FIELD_TITLES = Object.freeze({
+  pluginName: "Plugin name",
+  shortDescription: "Short description",
+  githubRepository: "GitHub repository",
+  pluginPath: "Plugin path inside the repository",
+  immutableRef: "Immutable ref to review",
+  version: "Version",
+  license: "License identifier",
+  authorName: "Author name",
+  authorUrl: "Author URL",
+  homepageUrl: "Homepage URL",
+  keywords: "Keywords",
+  additionalNotes: "Additional notes for reviewers",
+  submissionChecklist: "Submission checklist",
+});
+
+function normalizeMultilineText(value) {
+  return String(value ?? "").replace(/\r\n/g, "\n");
+}
+
+function stripNoResponse(value) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const normalized = normalizeMultilineText(value).trim();
+  if (!normalized || normalized === "_No response_") {
+    return undefined;
+  }
+
+  return normalized;
+}
+
+function parseIssueFormSections(body) {
+  const normalized = normalizeMultilineText(body);
+  const sections = new Map();
+  const matches = [...normalized.matchAll(/^###\s+(.+)$/gm)];
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const heading = matches[index][1].trim();
+    const start = matches[index].index + matches[index][0].length;
+    const end = index + 1 < matches.length ? matches[index + 1].index : normalized.length;
+    const content = normalized.slice(start, end).trim();
+    sections.set(heading, content);
+  }
+
+  return sections;
+}
+
+function normalizeGitHubRepo(value) {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  const urlMatch = trimmed.match(/^https:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?\/?$/i);
+  if (urlMatch) {
+    return urlMatch[1];
+  }
+
+  return trimmed.replace(/^github\.com\//i, "").replace(/\.git$/i, "").replace(/^\/+|\/+$/g, "");
+}
+
+function parseKeywords(value) {
+  const normalized = stripNoResponse(value);
+  if (!normalized) {
+    return undefined;
+  }
+
+  const keywords = normalized
+    .split(/[\n,]/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  return keywords.length > 0 ? keywords : undefined;
+}
+
+function parseChecklist(value) {
+  const checked = new Set();
+  const normalized = normalizeMultilineText(value);
+
+  for (const match of normalized.matchAll(/^- \[(x|X)\] (.+)$/gm)) {
+    checked.add(match[2].trim());
+  }
+
+  return checked;
+}
+
+function readLocalPluginNames() {
+  if (!fs.existsSync(PLUGINS_DIR)) {
+    return [];
+  }
+
+  return fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+}
+
+function toSubmissionError(message) {
+  return message.replace(/^external\.json\[0\]:\s*/, "submission: ");
+}
+
+async function fetchGitHubJson(apiPath, token) {
+  const response = await fetch(`https://api.github.com${apiPath}`, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "awesome-copilot-external-plugin-intake",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (response.status === 404) {
+    return { ok: false, status: 404, data: null };
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    data,
+  };
+}
+
+function encodeRepoPath(repo) {
+  const [owner, name] = String(repo).split("/");
+  return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
+}
+
+async function validateRemoteRepository(repo, ref, errors, warnings, token) {
+  const encodedRepo = encodeRepoPath(repo);
+  const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
+
+  if (!repositoryResponse.ok) {
+    if (repositoryResponse.status === 404) {
+      errors.push(`submission: GitHub repository "${repo}" was not found`);
+    } else {
+      errors.push(`submission: could not inspect GitHub repository "${repo}" (HTTP ${repositoryResponse.status})`);
+    }
+    return;
+  }
+
+  if (repositoryResponse.data?.private) {
+    errors.push(`submission: GitHub repository "${repo}" must be public`);
+  }
+
+  if (repositoryResponse.data?.archived) {
+    warnings.push(`submission: GitHub repository "${repo}" is archived`);
+  }
+
+  if (!ref) {
+    return;
+  }
+
+  if (/^[0-9a-f]{40}$/i.test(ref)) {
+    const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(ref)}`, token);
+    if (!commitResponse.ok) {
+      errors.push(`submission: commit "${ref}" was not found in GitHub repository "${repo}"`);
+    }
+    return;
+  }
+
+  const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
+  const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
+
+  if (tagResponse.ok) {
+    return;
+  }
+
+  if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
+    errors.push('submission: commit SHAs in "Immutable ref to review" must use the full 40-character SHA');
+    return;
+  }
+
+  if (!tagResponse.ok) {
+    errors.push(`submission: tag "${ref}" was not found in GitHub repository "${repo}"`);
+  }
+}
+
+export function parseExternalPluginIssueBody(body) {
+  const sections = parseIssueFormSections(body);
+  const errors = [];
+
+  function requiredField(title) {
+    const value = stripNoResponse(sections.get(title));
+    if (!value) {
+      errors.push(`submission: "${title}" is required`);
+    }
+    return value;
+  }
+
+  const pluginName = requiredField(FIELD_TITLES.pluginName);
+  const shortDescription = requiredField(FIELD_TITLES.shortDescription);
+  const repoInput = normalizeGitHubRepo(requiredField(FIELD_TITLES.githubRepository));
+  const immutableRef = requiredField(FIELD_TITLES.immutableRef);
+  const version = requiredField(FIELD_TITLES.version);
+  const license = requiredField(FIELD_TITLES.license);
+  const authorName = requiredField(FIELD_TITLES.authorName);
+
+  const pluginPath = stripNoResponse(sections.get(FIELD_TITLES.pluginPath));
+  const authorUrl = stripNoResponse(sections.get(FIELD_TITLES.authorUrl));
+  const homepageUrl = stripNoResponse(sections.get(FIELD_TITLES.homepageUrl));
+  const keywords = parseKeywords(sections.get(FIELD_TITLES.keywords));
+  const additionalNotes = stripNoResponse(sections.get(FIELD_TITLES.additionalNotes));
+  const checkedItems = parseChecklist(sections.get(FIELD_TITLES.submissionChecklist));
+
+  for (const item of REQUIRED_CHECKLIST_ITEMS) {
+    if (!checkedItems.has(item)) {
+      errors.push(`submission: checklist item must be checked: "${item}"`);
+    }
+  }
+
+  const plugin = {
+    name: pluginName,
+    description: shortDescription,
+    version,
+    author: {
+      name: authorName,
+      ...(authorUrl ? { url: authorUrl } : {}),
+    },
+    repository: repoInput ? `https://github.com/${repoInput}` : undefined,
+    ...(homepageUrl ? { homepage: homepageUrl } : {}),
+    ...(license ? { license } : {}),
+    ...(keywords ? { keywords } : {}),
+    source: {
+      source: "github",
+      repo: repoInput,
+      ...(pluginPath ? { path: pluginPath } : {}),
+      ...(immutableRef ? { ref: immutableRef } : {}),
+    },
+  };
+
+  return {
+    markerPresent: normalizeMultilineText(body).includes(ISSUE_FORM_MARKER),
+    errors,
+    plugin,
+    additionalNotes,
+  };
+}
+
+export async function evaluateExternalPluginIssue({ issue, token } = {}) {
+  const issueBody = issue?.body ?? "";
+  const parsed = parseExternalPluginIssueBody(issueBody);
+  const errors = [...parsed.errors];
+  const warnings = [];
+
+  const localPluginNames = readLocalPluginNames();
+  const { plugins: existingExternalPlugins } = readExternalPlugins({ policy: "marketplace" });
+  const duplicateNames = [
+    ...localPluginNames,
+    ...existingExternalPlugins.map((plugin) => plugin.name).filter(Boolean),
+  ];
+
+  const validationResult = validateExternalPlugin(parsed.plugin, 0, { policy: "publicSubmission" });
+  errors.push(...validationResult.errors.map(toSubmissionError));
+  warnings.push(...validationResult.warnings.map(toSubmissionError));
+
+  if (parsed.plugin?.name) {
+    const matchingName = duplicateNames.find(
+      (name) => String(name).toLowerCase() === String(parsed.plugin.name).toLowerCase(),
+    );
+    if (matchingName) {
+      errors.push(`submission: plugin name "${parsed.plugin.name}" conflicts with existing plugin "${matchingName}"`);
+    }
+  }
+
+  if (parsed.plugin?.source?.repo && parsed.plugin?.source?.ref) {
+    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source.ref, errors, warnings, token);
+  }
+
+  const dedupedErrors = [...new Set(errors)];
+  const dedupedWarnings = [...new Set(warnings)];
+  const valid = dedupedErrors.length === 0;
+  const marker = "<!-- external-plugin-intake -->";
+  const normalizedKeywords = parsed.plugin?.keywords?.length ? parsed.plugin.keywords.join(", ") : "_None provided_";
+  const notes = parsed.additionalNotes ?? "_No additional notes provided._";
+  const payload = parsed.plugin
+    ? [
+        "```json",
+        JSON.stringify(parsed.plugin, null, 2),
+        "```",
+      ].join("\n")
+    : "```json\n{}\n```";
+
+  const commentBody = valid
+    ? [
+        marker,
+        "## ✅ External plugin intake passed",
+        "",
+        `This submission passed automated intake validation and is ready for maintainer review.`,
+        "",
+        `- **Plugin:** ${parsed.plugin.name}`,
+        `- **Repository:** ${parsed.plugin.repository}`,
+        `- **Ref:** ${parsed.plugin.source.ref}`,
+        `- **Keywords:** ${normalizedKeywords}`,
+        "",
+        "### Canonical external.json payload",
+        "",
+        payload,
+        "",
+        "### Reviewer notes",
+        "",
+        notes,
+        dedupedWarnings.length > 0
+          ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
+          : "",
+      ].filter(Boolean).join("\n")
+    : [
+        marker,
+        "## ❌ External plugin intake failed",
+        "",
+        "This submission did not pass automated intake validation, so the issue has been closed.",
+        "Update the issue form, then reopen the issue to run intake validation again.",
+        "",
+        "### Required fixes",
+        "",
+        ...dedupedErrors.map((error) => `- ${error}`),
+        dedupedWarnings.length > 0
+          ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
+          : "",
+      ].filter(Boolean).join("\n");
+
+  return {
+    valid,
+    markerPresent: parsed.markerPresent,
+    errors: dedupedErrors,
+    warnings: dedupedWarnings,
+    plugin: parsed.plugin,
+    commentBody,
+    commentMarker: marker,
+  };
+}
+
+const isCli = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isCli) {
+  const eventPath = process.argv[2];
+  if (!eventPath) {
+    console.error("Usage: node ./eng/external-plugin-intake.mjs <github-event.json>");
+    process.exit(1);
+  }
+
+  const event = JSON.parse(fs.readFileSync(eventPath, "utf8"));
+  const result = await evaluateExternalPluginIssue({ issue: event.issue, token: process.env.GITHUB_TOKEN });
+  process.stdout.write(JSON.stringify(result));
+}

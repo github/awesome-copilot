@@ -5,31 +5,23 @@ description: 'Make any repo AI-ready — analyzes your codebase and generates AG
 
 # AI Ready
 
-This skill helps the user install the latest [ai-ready](https://github.com/johnpapa/ai-ready) `SKILL.md` by [John Papa](https://github.com/johnpapa) into their personal skills directory.
+This skill helps the user install the latest [ai-ready](https://github.com/johnpapa/ai-ready) skill by [John Papa](https://github.com/johnpapa).
 
 *Why?*: The full ai-ready skill is ~600 lines of detailed instructions that evolve frequently. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date.
 
 ## Steps
 
-1. Tell the user to download the latest `SKILL.md` to their personal skills directory by running one of these commands in their terminal. This will overwrite any existing local copy.
+1. Tell the user to add the skill by running this command inside Copilot CLI:
 
-   **bash / zsh**
-   ```bash
-   mkdir -p ~/.copilot/skills/ai-ready
-   curl -fsSL https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md \
-     -o ~/.copilot/skills/ai-ready/SKILL.md
+   ```
+   /skills add johnpapa/ai-ready
    ```
 
-   **PowerShell**
-   ```powershell
-   New-Item -ItemType Directory -Force -Path "$HOME/.copilot/skills/ai-ready" | Out-Null
-   Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/johnpapa/ai-ready/main/skills/ai-ready/SKILL.md" -OutFile "$HOME/.copilot/skills/ai-ready/SKILL.md"
-   ```
+   This downloads the latest version of the skill to their personal skills directory. Re-running the command updates to the latest version.
 
-   For reproducible behavior, the user can replace `main` in the URL with a specific tag or commit SHA.
-2. Suggest the user review the downloaded skill before loading it to confirm it contains expected instructions:
+2. Remind the user to review the skill before loading it. They can inspect it with:
    ```bash
    head -20 ~/.copilot/skills/ai-ready/SKILL.md
    ```
-3. After the user confirms they've installed it, tell them to reload skills with `/skills reload` and then say `make this repo ai-ready`.
-4. Do **not** run the install command on the user's behalf. The user must run it themselves.
+3. After the user confirms they've reviewed and installed it, tell them to reload skills with `/skills reload` and then say `make this repo ai-ready`.
+4. Do **not** run the command on the user's behalf. The user must run it themselves.

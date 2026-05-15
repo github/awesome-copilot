@@ -162,10 +162,15 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 
 **For External Plugins:**
 
-1. Edit `plugins/external.json` and add an entry with `name`, `source`, `description`, and `version`
-2. The `source` field should be an object specifying a GitHub repo, git URL, npm package, or pip package (see [CONTRIBUTING.md](CONTRIBUTING.md#adding-external-plugins))
-3. Run `npm run build` to regenerate marketplace.json
-4. Verify the external plugin appears in `.github/plugin/marketplace.json`
+1. Do not open a direct PR that edits `plugins/external.json` for a public third-party plugin submission
+2. Public external plugin submissions use the external plugin issue workflow documented in [CONTRIBUTING.md](CONTRIBUTING.md#adding-external-plugins)
+3. In v1, only GitHub-hosted plugins are accepted for public submission, using a public repo plus an immutable `ref`
+4. The shared validator in `eng/external-plugin-validation.mjs` is the canonical source of truth for external plugin data rules; reuse it instead of duplicating checks in scripts or workflows
+5. Submission issues move through `external-plugin` + `awaiting-review` -> `ready-for-review` -> `approved` or `rejected`
+6. Maintainers make the decision with `/approve` or `/reject <reason>` issue comments; approved issues are closed and used as the six-month re-review anchor
+7. Approval automation creates or updates the PR against `staged`, updates `plugins/external.json`, and regenerates marketplace outputs
+8. Nightly re-review automation finds closed `external-plugin` + `approved` issues that are at least six months old, applies `re-review-due`, and opens or updates a tracking issue for maintainers
+9. Maintainers complete re-review on the original approved submission issue with `/re-review-keep`, `/re-review-needs-changes`, or `/re-review-remove`; keep resets the issue `closed_at`, and remove opens a PR against `staged`
 
 ### Testing Instructions
 

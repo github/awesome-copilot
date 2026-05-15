@@ -45,7 +45,7 @@ To maintain a safe, responsible, and high-signal collection, we will **not accep
 - **Promote Harmful Content**: Guidance that could lead to the creation of harmful, discriminatory, or inappropriate content
 - **Circumvent Platform Policies**: Attempts to work around GitHub, Microsoft, or other platform terms of service
 - **Duplicate Existing Model Strengths Without Meaningful Uplift**: Submissions that mainly tell Copilot to do work frontier models already handle well (for example, generic TypeScript, HTML, or other broadly-supported coding tasks) without addressing a clear gap, specialized workflow, or domain-specific constraint. These contributions are often lower value for users and can introduce weaker or conflicting guidance than the model's default behavior.
-- **Plugins from remote sources**: While the plugin design allows us to support plugins from other GitHub repos, or other Git endpoints, we are not accepting contributions that simply add plugins from external sources. Plugins from remote sources represent a security risk as we are unable to verify their content for the policies we enforce on this repository. This policy does not apply to repositories that are managed by Microsoft or GitHub.
+- **Unreviewed remote-source plugins**: Do not open a pull request that directly adds a third-party plugin to `plugins/external.json`. Public external plugins must use the review workflow documented below. In v1, that workflow only accepts plugins hosted in public GitHub repositories; non-GitHub sources such as generic git URLs are not accepted for public submissions.
 
 ## Quality Guidelines
 
@@ -189,32 +189,105 @@ plugins/my-plugin-id/
 
 #### Adding External Plugins
 
-External plugins are plugins hosted outside this repository (e.g., in a GitHub repo, npm package, or git URL). They are listed in `plugins/external.json` and merged into the generated `marketplace.json` during build.
+External plugins are plugins hosted outside this repository and listed in `plugins/external.json`. Public contributors should **not** open a PR that edits `plugins/external.json` directly. Instead, submit external plugins through the public review workflow below.
 
-To add an external plugin, append an entry to `plugins/external.json` following the [Claude Code plugin marketplace spec](https://code.claude.com/docs/en/plugin-marketplaces#plugin-entries). Each entry requires `name`, `source`, `description`, and `version`:
+> [!IMPORTANT]
+> Public external plugin submissions are GitHub-only in v1. The submitted plugin must live in a public GitHub repository and use `source.source: "github"`.
+
+##### Submission fields
+
+The external plugin issue form will collect these fields:
+
+- Plugin name
+- Short description
+- GitHub repository in `owner/repo` format
+- Plugin path inside the repository (optional when the plugin is at the repository root)
+- Immutable ref to review (`ref`), using a release tag or full commit SHA rather than a branch
+- Plugin version
+- License identifier
+- Author name
+- Author URL (optional)
+- Homepage URL (optional)
+- Keywords/tags
+- Additional notes for reviewers (optional)
+- Confirmation checkboxes that the repository is public, the ref is immutable, the submission follows this repository's policies, and the plugin is not a duplicate listing
+
+The repository's canonical validation rules live in `eng/external-plugin-validation.mjs`. Build scripts reuse the `marketplace` policy from that module, and the issue intake automation uses the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
+
+For entries committed to `plugins/external.json`, the current marketplace validation requires:
+
+- `name`, `description`, and `version`
+- `author.name`
+- `repository` as an HTTPS GitHub URL
+- `keywords` as lowercase hyphenated tags
+- `source.source: "github"` plus `source.repo` in `owner/repo` format
+- optional `source.path` values to stay relative to the repository root
+
+The public-submission policy builds on those rules and also requires `license` plus an immutable `source.ref`.
+
+##### Review workflow
+
+1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
+2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are closed with a comment explaining what must be fixed before resubmitting.
+3. **Ready for maintainer review**: if the issue passes intake validation, automation removes `awaiting-review` and adds `ready-for-review`.
+4. **Maintainer decision**: a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
+5. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
+6. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. Submitters can open a new issue after addressing the feedback.
+
+##### Maintainer review responsibilities
+
+Maintainers are responsible for confirming that the submission:
+
+- Clearly fits the Awesome Copilot collection and adds value beyond existing listings
+- Uses a public GitHub repository and an immutable ref that can be reviewed reliably
+- Includes the required metadata for `plugins/external.json` (`name`, `description`, `version`, `author.name`, `repository`, `keywords`, and `source`), plus any supplied homepage/license fields
+- Does not obviously duplicate an existing marketplace entry
+- Continues to meet this repository's content, security, and responsible AI policies
+
+##### Review cadence and label semantics
+
+- `external-plugin`: applied to every public external plugin submission and retained on approved issues so scheduled review automation can find them later
+- `awaiting-review`: initial intake state before automation finishes validating the issue
+- `ready-for-review`: the issue passed automated intake checks and is waiting on a maintainer decision
+- `approved`: the issue was approved, closed, and can be used as the source of truth for six-month re-review
+- `rejected`: the issue was rejected and closed without being added to the marketplace
+- `re-review-due`: the approved issue reached the six-month review threshold and is waiting on a maintainer re-review decision
+- `re-review-follow-up`: a maintainer reviewed the plugin and requested more follow-up before renewing or removing it
+- `removed`: the plugin was removed from `plugins/external.json` after re-review and should no longer be considered active
+
+The six-month re-review window starts when an approved submission issue is **closed**. A nightly workflow looks for closed issues labeled `external-plugin` and `approved` whose `closed_at` is at least six months old, applies `re-review-due`, and opens or updates a maintainer-facing tracking issue that links every plugin currently due.
+
+Maintainers complete the re-review on the **original approved submission issue** with one of these issue-comment commands:
+
+- `/re-review-keep` — renew the listing for another six months by reopening and reclosing the approved issue, which resets the `closed_at` review anchor and removes the due labels
+- `/re-review-needs-changes` — keep the listing in the due queue while adding `re-review-follow-up` so maintainers can track extra investigation or remediation work
+- `/re-review-remove` — open or update a PR against `staged` that removes the plugin from `plugins/external.json` and regenerates marketplace outputs; the issue stays in the due queue until that removal lands
+
+Approved submissions are converted into `plugins/external.json` entries following the [Claude Code plugin marketplace spec](https://code.claude.com/docs/en/plugin-marketplaces#plugin-entries). A typical GitHub-hosted entry looks like this:
 
 ```json
 [
   {
     "name": "my-external-plugin",
+    "description": "Description of the external plugin",
+    "version": "1.0.0",
+    "author": {
+      "name": "Plugin Author",
+      "url": "https://github.com/plugin-author"
+    },
+    "homepage": "https://github.com/owner/plugin-repo",
+    "keywords": ["category", "workflow"],
+    "license": "MIT",
+    "repository": "https://github.com/owner/plugin-repo",
     "source": {
       "source": "github",
-      "repo": "owner/plugin-repo"
-    },
-    "description": "Description of the external plugin",
-    "version": "1.0.0"
+      "repo": "owner/plugin-repo",
+      "path": ".github/plugins/my-external-plugin",
+      "ref": "v1.0.0"
+    }
   }
 ]
 ```
-
-Supported source types:
-
-- **GitHub**: `{ "source": "github", "repo": "owner/repo", "ref": "v1.0.0" }`
-- **Git URL**: `{ "source": "url", "url": "https://gitlab.com/team/plugin.git" }`
-- **npm**: `{ "source": "npm", "package": "@scope/package", "version": "1.0.0" }`
-- **pip**: `{ "source": "pip", "package": "package-name", "version": "1.0.0" }`
-
-After editing `plugins/external.json`, run `npm run build` to regenerate `marketplace.json`.
 
 ### Adding Hooks
 

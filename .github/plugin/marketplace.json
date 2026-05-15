@@ -422,7 +422,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1102-preview1",
+      "version": "1.0.1119-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -617,6 +617,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "skill-image-gen",
+      "source": "skill-image-gen",
+      "description": "Generate images using AI directly from your coding workflow. Supports OpenAI (gpt-image-2) and Google Gemini. BYO API key — the skill guides you through setup on first use.",
+      "version": "1.0.0"
+    },
+    {
       "name": "skills-for-copilot-studio",
       "description": "Microsoft Copilot Studio plugins for AI coding agents",
       "version": "1.0.3",
@@ -705,6 +711,35 @@
       "source": {
         "source": "github",
         "repo": "microsoft/What-I-Did-Copilot"
+      }
+    },
+    {
+      "name": "winappcli",
+      "description": "Windows app development, packaging, and distribution. Helps with creating Windows installers (MSIX), code signing, certificates, Windows SDK and Windows App SDK setup, package identity for Windows APIs (push notifications, background tasks, share target), appxmanifest authoring, and Microsoft Store distribution. Supports Electron, .NET, C++, Rust, Flutter, and Tauri apps.",
+      "version": "0.3.1",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft/WinAppCli"
+      },
+      "homepage": "https://github.com/microsoft/WinAppCli",
+      "keywords": [
+        "windows",
+        "msix",
+        "packaging",
+        "installer",
+        "code-signing",
+        "appxmanifest",
+        "microsoft-store",
+        "electron",
+        "tauri",
+        "desktop-app"
+      ],
+      "license": "MIT",
+      "repository": "https://github.com/microsoft/WinAppCli",
+      "source": {
+        "source": "github",
+        "repo": "microsoft/WinAppCli",
+        "ref": "stable"
       }
     },
     {

@@ -63,6 +63,26 @@ Based on today's date, classify each resource:
 - **🟡 Aging** — last major change was **between 14 and 30 days ago**
 - Resources changed within the last 14 days are **fresh** and should NOT be listed
 
+### Deeper Review for the Oldest Stale Resources
+
+After producing the age-based inventory, perform a **content review** of the **10 oldest stale resources**.
+
+For each of those 10 resources:
+
+1. Read the current file contents (for hooks and skills, inspect the folder's primary instruction file and any bundled files that materially affect behavior).
+2. Determine whether the resource is:
+   - **Materially stale** — guidance is outdated, incomplete in an important way, or references older patterns that should be replaced
+   - **Problematic** — guidance is misleading, harmful, overly broad, or likely to produce poor results even if it is not version-stale
+   - **Mostly current** — old by date, but still broadly aligned with current best practices
+3. Identify the most important concrete issues. Focus on substantive problems, not minor wording nits.
+4. Recommend what should be done next:
+   - **Immediate rework/removal**
+   - **Targeted refresh**
+   - **Minor modernization**
+   - **No urgent change needed**
+
+Do **not** assume that old automatically means bad. The deeper review should separate truly risky resources from ones that are simply old.
+
 ### Output Format
 
 Create an issue with the title: `📋 Resource Staleness Report`
@@ -87,6 +107,19 @@ Organize the issue body as follows:
 | Resource | Type | Last Major Change | Days Ago |
 |----------|------|-------------------|----------|
 | `prompts/example.prompt.md` | Prompt | 2025-02-01 | 20 |
+
+### Deep Review: 10 Oldest Stale Resources
+
+| Resource | Verdict | Key Problems | Recommended Action |
+|----------|---------|--------------|--------------------|
+| `instructions/example.instructions.md` | Materially stale | References older framework defaults and misses current patterns | Targeted refresh |
+
+### Priority Actions
+
+1. Immediate rework/removal: `resource-a`, `resource-b`
+2. Targeted refresh: `resource-c`, `resource-d`
+3. Minor modernization: `resource-e`
+4. No urgent change needed: `resource-f`
 ```
 
 If a category has no resources, include the header with a note: "✅ No resources in this category."
@@ -98,6 +131,10 @@ Use `<details>` blocks to collapse sections with more than 15 entries.
 - Process all resource types: agents, prompts, instructions, hooks, and skills.
 - For **hooks** and **skills**, treat the entire folder as one resource. Report it by folder name and use the most recent change date of any file within.
 - Sort tables by "Days Ago" descending (oldest first).
+- After building the stale table, inspect the **10 oldest stale resources** in more depth and include the deeper review section.
+- In the deeper review, prefer **high-signal issues**: outdated version assumptions, deprecated APIs, misleading instructions, harmful heuristics, unsafe defaults, or instructions that are scoped too broadly.
+- If a resource is old but still sound, explicitly say so. The goal is to prioritize maintenance work, not just restate age.
+- Keep the deeper review concise but specific. Each row should explain the main problem and the best next step.
 - If there are no stale or aging resources at all, call the `noop` safe output with the message: "All resources have been updated within the last 14 days. No staleness report needed."
 - Do not include fresh resources in the tables — only mention the count in the summary.
 - Use the `create-issue` safe output to file the report. Previous reports will be automatically closed.
