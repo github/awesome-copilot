@@ -16,9 +16,9 @@
     "developer-experience"
   ],
   "agents": [
-    "./agents/ember.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/from-the-other-side-vega/"
+    "./skills/from-the-other-side-vega"
   ]
 }
