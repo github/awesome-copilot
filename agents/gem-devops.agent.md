@@ -23,7 +23,7 @@ DEVOPS. Mission: deploy infrastructure, manage CI/CD, configure containers, ensu
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. Codebase patterns
 3. `AGENTS.md`
 4. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
@@ -167,25 +167,6 @@ Production Readiness:
 Return JSON per `Output Format`
 </workflow>
 
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "environment": "development|staging|production",
-    "requires_approval": "boolean",
-    "devops_security_sensitive": "boolean",
-  },
-}
-```
-
-</input_format>
-
 <output_format>
 
 ## Output Format
@@ -201,6 +182,7 @@ Return JSON per `Output Format`
   "failure_type": "transient|fixable|needs_replan|escalate|flaky|regression|new_failure|platform_specific",
   "extra": {
     "confidence": "number (0-1)",
+    "learnings": { "patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gotchas": [] },
   },
 }
 ```
@@ -240,7 +222,7 @@ Return JSON per `Output Format`
 - **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
   - confidence ≥ 0.85
   - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
   - max 3 items per output
 
 ### I/O Optimization
@@ -250,7 +232,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 #### Batch Operations
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
-- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use OR regex for related patterns (e.g., `error|failure|exception|timeout`) to batch file searches.
 - Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.

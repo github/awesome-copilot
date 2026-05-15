@@ -30,7 +30,7 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
@@ -58,6 +58,24 @@ gem-researcher, gem-planner, gem-implementer, gem-implementer-mobile, gem-browse
 - Lock task_clarifications into DAG constraints
 
 ### 2. Design
+
+#### 2.0 Template Cache Check (Bypass)
+
+BEFORE synthesizing DAG, check for cached template:
+Derive `objective_category` from objective keywords: - "api" | "endpoint" | "route" → `api-endpoint` - "crud" | "resource" → `api-crud` - "auth" | "login" | "signup" | "register" → `auth-flow` - "migration" | "schema" | "db" → `db-migration` - "ui" | "component" | "page" | "screen" → `ui-component` - "config" | "setup" | "init" → `project-config` - default → null (match none)
+
+IF `objective_category` is set:
+CHECK repo memory key `plan/templates/{objective_category}`
+IF match found with confidence ≥ 0.85:
+→ Pre-populate 80% of DAG from cached template
+→ Only customize: file paths, acceptance_criteria, task details, focus_area
+→ SKIP Phase 2.1 (Synthesize DAG from scratch)
+→ GOTO Phase 2.2 (Create plan.yaml — customization only)
+→ Include `template_sourced: "plan/templates/{category}"` in output
+ELSE:
+→ Full synthesis as normal
+ELSE:
+→ Full synthesis as normal
 
 #### 2.1 Synthesize DAG
 
@@ -153,21 +171,13 @@ Pattern Routing:
 - Save: docs/plan/{plan_id}/plan.yaml
 - Return JSON per `Output Format`
 
+#### 6.1 Save Template to Cache
+
+- IF confidence ≥ 0.85 AND complexity != simple AND objective_category is set:
+  - Write DAG structure (tasks, waves, contracts, agent assignments) to repo memory `plan/templates/{objective_category}`
+  - Increment version and usage count
+
 </workflow>
-
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "plan_id": "string",
-  "objective": "string",
-  "task_clarifications": [{ "question": "string", "answer": "string" }],
-}
-```
-
-</input_format>
 
 <output_format>
 
@@ -188,7 +198,7 @@ Pattern Routing:
     "prd_update_reason": "string | null", // why PRD update is needed (scope change, new feature, architectural shift)
   },
   "metrics": "object", // omit if not needed
-  "learnings": { "risks": ["string"], "patterns": ["string"] }, // EMPTY IS OK - max 3 items
+  "learnings": { "risks": ["string"], "patterns": [{ "name": "string", "description": "string", "confidence": "number" }] }, // EMPTY IS OK - max 3 items
 }
 ```
 
@@ -367,12 +377,26 @@ tasks:
 
 ### Memory Usage
 
-- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
-- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
-  - confidence ≥ 0.85
-  - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
-  - max 3 items per output
+#### Read (Template Cache)
+
+- **Fast-path:** BEFORE Phase 2.1, check for cached plan templates:
+  - Derive `objective_category` from objective keywords
+  - CHECK repo memory key `plan/templates/{objective_category}`
+  - IF match at ≥0.85 confidence:
+    → Pre-populate DAG from template. Skip Phase 2.1.
+    → GOTO Phase 2.2 (customize only)
+  - ELSE: Full synthesis as normal.
+- **Fallback:** At init, read general memory for conventions/patterns/gotchas.
+
+#### Write (Cache + Learnings)
+
+- Save to TWO targets:
+  1. Plan output: `docs/plan/{plan_id}/plan.yaml`
+  2. Repo memory key `plan/templates/{objective_category}`:
+     - Store: task list, wave structure, contracts, agent assignments
+     - Only on completed plans with confidence ≥ 0.85
+     - Update on each successful use (bump version, track usage count)
+- ALSO save learnings to memory per standard rules (≥0.85, dedup, max 3)
 
 ### I/O Optimization
 
@@ -381,7 +405,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 #### Batch Operations
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
-- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use OR regex for related patterns (e.g., `error|failure|exception|timeout`) to batch file searches.
 - Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.

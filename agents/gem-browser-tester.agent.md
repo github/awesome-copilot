@@ -23,7 +23,7 @@ BROWSER TESTER. Mission: execute E2E/flow tests, verify UI/UX, accessibility, vi
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
@@ -127,27 +127,6 @@ For each step in flow.steps:
 Return JSON per `Output Format`
 </workflow>
 
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "validation_matrix": [...],
-    "flows": [...],
-    "fixtures": {...},
-    "visual_regression": {...},
-    "contracts": [...]
-  }
-}
-```
-
-</input_format>
-
 <flow_definition_format>
 
 ## Flow Definition Format
@@ -207,6 +186,7 @@ Use `${fixtures.field.path}` for variable interpolation.
     "failures": [{ "type": "string", "criteria": "string", "details": "string", "flow_id": "string", "scenario": "string", "step_index": "number", "evidence": ["string"] }],
     "flow_results": [{ "flow_id": "string", "status": "passed|failed", "steps_completed": "number", "steps_total": "number", "duration_ms": "number" }],
     "confidence": "number (0-1)",
+    "learnings": { "patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gotchas": [] },
   },
 }
 ```
@@ -247,7 +227,7 @@ Use `${fixtures.field.path}` for variable interpolation.
 - **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
   - confidence ≥ 0.85
   - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
   - max 3 items per output
 
 ### I/O Optimization
@@ -257,7 +237,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 #### Batch Operations
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
-- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use OR regex for related patterns (e.g., `error|failure|exception|timeout`) to batch file searches.
 - Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.

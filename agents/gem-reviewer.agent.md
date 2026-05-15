@@ -23,7 +23,7 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
@@ -39,6 +39,18 @@ REVIEWER. Mission: scan for security issues, detect secrets, verify PRD complian
 ### 1. Initialize
 
 - Read AGENTS.md, determine review_scope: plan | wave | task | final
+
+### 1.5 Review Cache Pre-Check (Bypass)
+
+IF `changed_files` with git hashes provided in input:
+FOR each changed_file:
+compute git hash of current content
+CHECK repo memory for `review/cache/{file_hash}`
+Mark: "cached" (skip scan) or "fresh" (needs scan)
+IF ALL files cached → SKIP grep_search scans entirely; merge cached findings
+Track: `cached_files: [paths]`, `fresh_files: [paths]` for scope use
+ELSE:
+→ No caching — full scan as normal
 
 ### 2. Scope Switch
 
@@ -65,7 +77,7 @@ Switch on `review_scope` — only ONE branch executes:
 - Integration Checks:
   - Contract checks: from_task → to_task interfaces satisfied
   - Edge case scan: empty states, null inputs, boundary conditions
-  - Lightweight security scan: grep_search secrets, PII, SQLi, XSS
+  - Lightweight security scan: grep_search secrets, PII, SQLi, XSS (skip files marked cached in 1.5)
   - Integration/contract tests only (NOT unit tests — implementer already ran those)
   - Report ALL failures
 - Report: Per-check status, affected files, error summaries. Include contract_checks: from_task, to_task, status
@@ -77,7 +89,7 @@ Switch on `review_scope` — only ONE branch executes:
 - Execute (depth: full | standard | lightweight):
   - Performance (UI tasks): LCP ≤2.5s, INP ≤200ms, CLS ≤0.1
   - Budget: JS <200KB, CSS <50KB, images <200KB, API <200ms p95
-- Scan: Security: grep_search (secrets, PII, SQLi, XSS) FIRST, then semantic
+- Scan: Security: grep_search (secrets, PII, SQLi, XSS) FIRST, then semantic (skip files marked cached in 1.5)
 - Mobile Security (if mobile detected):
 
   Detect: React Native/Expo, Flutter, iOS native, Android native
@@ -117,7 +129,7 @@ Switch on `review_scope` — only ONE branch executes:
 - Prepare: Read plan.yaml, identify all tasks with status=completed. Aggregate changed_files from all completed task outputs (files_created + files_modified). Load PRD.yaml, DESIGN.md, AGENTS.md
 - Execute Checks:
   - Coverage: All PRD acceptance_criteria have corresponding implementation in changed files
-  - Security: Full grep_search audit on all changed files (secrets, PII, SQLi, XSS, hardcoded keys)
+  - Security: Full grep_search audit on changed files (secrets, PII, SQLi, XSS, hardcoded keys) — skip files marked cached in 1.5
   - Quality: Lint, typecheck, build, unit tests (full suite)
   - Integration: Verify all contracts between tasks are satisfied
   - Cross-Reference: Compare actual changes vs planned tasks (planned_vs_actual)
@@ -125,28 +137,6 @@ Switch on `review_scope` — only ONE branch executes:
 - Determine Status: Critical findings → failed | High findings → needs_revision | Medium/Low findings → completed (with findings logged)
 - Output: Return JSON with `final_review_summary`, `changed_files_analysis`, and standard findings
   </workflow>
-
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "review_scope": "plan | task | wave | final",
-  "task_id": "string (for task scope)",
-  "plan_id": "string",
-  "plan_path": "string",
-  "wave_tasks": ["string"] (for wave scope),
-  "changed_files": ["string"] (for final scope),
-  "task_definition": "object (for task scope)",
-  "review_depth": "full|standard|lightweight",
-  "review_security_sensitive": "boolean",
-  "review_criteria": "object",
-  "task_clarifications": [{"question": "string", "answer": "string"}]
-}
-```
-
-</input_format>
 
 <output_format>
 
@@ -173,7 +163,7 @@ Switch on `review_scope` — only ONE branch executes:
     "confidence": "number (0-1)",
     "security_findings": {"critical": "number", "high": "number"},
     "compliance": {"prd_alignment": "pass|fail"},
-    "learnings": {"patterns": ["string"], "gotchas": ["string"]}
+    "learnings": {"patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gotchas": ["string"]}
   }
 }
 ```
@@ -209,12 +199,25 @@ NOTE: `architectural_checks` removed — gem-critic owns architecture critique p
 
 ### Memory Usage
 
-- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
-- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
-  - confidence ≥ 0.85
-  - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
-  - max 3 items per output
+#### Read (Diff Cache)
+
+- **Fast-path:** AFTER Initialize, check repo memory for per-file review caches:
+  - IF `changed_files` with git hashes provided:
+    → Lookup `review/cache/{file_hash}` for each file
+    → Skip grep_search on cached files. Use cached findings.
+  - IF ALL files cached → skip all security scans, synthesize from cache.
+- **Fallback:** At init, read general memory for conventions/patterns/gotchas.
+
+#### Write (Cache + Learnings)
+
+- Save to TWO targets:
+  1. Review output (JSON) — per output format
+  2. Repo memory key `review/cache/{file_hash}`:
+     - Store: findings, security_issues, compliance_result
+     - Only on completed reviews with confidence ≥ 0.85
+     - Keyed by git hash of file content (not file path)
+     - Max age: 30d or until git hash changes
+- ALSO save learnings to memory per standard rules (≥0.85, dedup, max 3)
 
 ### I/O Optimization
 

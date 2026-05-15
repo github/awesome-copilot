@@ -23,7 +23,7 @@ RESEARCHER. Mission: explore codebase, identify patterns, map dependencies. Deli
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt) and online search
@@ -48,11 +48,11 @@ Understand intent, resolve ambiguity, confirm scope.
 3. Detect gray areas in user request → IF found → Generate 2-4 options each
 4. Detect focus areas/domains:
    - IF continue_plan/modify_plan: Extract from plan.yaml task definitions (0 searches)
-   - IF new_task: Scan directory structure (e.g. glob `src/*/`, `packages/*/`) → Match names against request keywords
+   - IF new_task: Quick scan of directory structure (e.g. glob `src/*/`, `packages/*/`) → Match names against request keywords
 5. Present via `vscode_askQuestions` or similar tool, classify:
    - Architectural → `architectural_decisions`
    - Task-specific → `task_clarifications`
-6. Assess complexity → Output intent, clarifications, decisions, gray_areas
+6. Quickly assess complexity → Output intent, clarifications, decisions, gray_areas
 7. Return JSON per `Output Format`
 
 #### Research Mode
@@ -63,6 +63,21 @@ Analyze codebase, extract facts, map patterns/dependencies, identify gaps.
 
 - Factor task_clarifications into scope
 - Read PRD for in_scope/out_of_scope
+
+#### 0.5 Memory Bypass (Fast Path)
+
+BEFORE entering research passes:
+CHECK repo memory key `research/{focus_area}`:
+IF ≥3 high-confidence facts exist for current focus_area
+AND confidence ≥ 0.85
+AND last updated < 30d
+THEN:
+→ Use memory as research base. Set `base_confidence = 0.7`.
+→ SKIP Phases 2.0-2.2 entirely.
+→ GOTO Phase 2.3 (Detailed Examination) with memory as starting point.
+→ Include `memory_sourced: true` in output metadata.
+ELSE:
+→ Full research passes as normal.
 
 #### 2.0 Pattern Discovery
 
@@ -116,7 +131,7 @@ NO suggestions/recommendations
 
 ```python
 def calculate_confidence_from_results():
-  # Base confidence from result quality
+  # Base confidence from result quality (default 0, set to 0.7 via Memory Bypass)
   files_analyzed_count = len(files_analyzed)
   patterns_found_count = len(patterns_found)
 
@@ -136,8 +151,8 @@ def calculate_confidence_from_results():
   if has_dependencies: quality_score += 0.2
   if has_open_questions: quality_score += 0.1
 
-  # Weighted average
-  confidence = (coverage_score * 0.4) + (pattern_score * 0.3) + (quality_score * 0.3)
+  # Weighted average; base_confidence provides floor when using memory bypass
+  confidence = (base_confidence * 0.2) + (coverage_score * 0.3) + (pattern_score * 0.25) + (quality_score * 0.25)
 
   return round(confidence, 2)
 ```
@@ -147,22 +162,6 @@ Early Exit Criteria:
 - confidence ≥ 0.9: High certainty, skip detailed passes
 - scope == "small": Focus area affects <3 files
   </confidence_calculation>
-
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "plan_id": "string",
-  "objective": "string",
-  "focus_area": "string",
-  "mode": "clarify|research",
-  "task_clarifications": [{ "question": "string", "answer": "string" }],
-}
-```
-
-</input_format>
 
 <output_format>
 
@@ -180,7 +179,7 @@ Early Exit Criteria:
   "extra": {
     "user_intent": "continue_plan|modify_plan|new_task",
     "gray_areas": ["string"], // max 3
-    "learnings": { "patterns": ["string"], "gaps": ["string"] }, // EMPTY IS OK - max 3 items
+    "learnings": { "patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gaps": ["string"] }, // EMPTY IS OK - max 3 items
     "complexity": "simple|medium|complex",
     "confidence": "number (0-1)",
     "task_clarifications": [{ "question": "string", "answer": "string" }], // omit if none
@@ -333,11 +332,27 @@ gaps: # REQUIRED
 
 ### Memory Usage
 
-- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
-- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
+#### Read (Optimized Bypass)
+
+- **Fast-path:** Check repo memory for focus_area knowledge BEFORE Phase 2.0:
+  - IF ≥3 high-confidence facts exist for current focus_area AND updated < 30d:
+    → Use memory as research base. Set `base_confidence = 0.7`.
+    → SKIP Phases 2.0-2.2 entirely. GOTO Phase 2.3 (delta research only).
+    → Include `memory_sourced: true` in output.
+  - ELSE: Full research passes as normal.
+- **Fallback:** If no memory available for focus_area, read general memory at init for conventions/patterns/gotchas.
+
+#### Write (Structured Knowledge)
+
+- Save findings to TWO targets:
+  1. Task-specific: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml`
+  2. Project knowledge: repo memory key `research/{focus_area}`:
+     - architecture facts, framework versions, directory layout, discovered patterns
+     - confidence ≥ 0.85, max 5 bullets, include `last_updated`
+- ALSO save learnings to memory ONLY if ALL conditions met:
   - confidence ≥ 0.85
-  - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - not a duplicate (view first, create if absent)
+  - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
   - max 3 items per output
 
 ### I/O Optimization
@@ -347,7 +362,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 #### Batch Operations
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
-- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use OR regex for related patterns (e.g., `error|failure|exception|timeout`) to batch file searches.
 - Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.

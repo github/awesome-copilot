@@ -23,7 +23,7 @@ MOBILE TESTER. Mission: execute E2E tests on mobile simulators/emulators/devices
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Skills — `docs/skills/*/SKILL.md`
@@ -175,29 +175,6 @@ For each platform in task_definition.platforms:
 Return JSON per `Output Format`
 </workflow>
 
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "platforms": ["ios", "android"] | ["ios"] | ["android"],
-    "test_framework": "detox" | "maestro" | "appium",
-    "test_suite": { "flows": [...], "scenarios": [...], "gestures": [...], "app_lifecycle": [...], "push_notifications": [...] },
-    "device_farm": { "provider": "browserstack" | "saucelabs", "credentials": {...} },
-    "performance_baseline": {...},
-    "fixtures": {...},
-    "cleanup": "boolean"
-  }
-}
-```
-
-</input_format>
-
 <test_definition_format>
 
 ## Test Definition Format
@@ -252,7 +229,8 @@ Return JSON per `Output Format`
     "evidence_path": "docs/plan/{plan_id}/evidence/{task_id}/",
     "flaky_tests": ["test_id"],
     "crashes": ["test_id"],
-    "failures": [{ "type": "string", "test_id": "string", "platform": "string", "details": "string", "evidence": ["string"] }]
+    "failures": [{ "type": "string", "test_id": "string", "platform": "string", "details": "string", "evidence": ["string"] }],
+    "learnings": { "patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gotchas": [] },
   }
 }
 ```
@@ -295,7 +273,7 @@ Return JSON per `Output Format`
 - **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
   - confidence ≥ 0.85
   - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
+  - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
   - max 3 items per output
 
 ### I/O Optimization
@@ -305,7 +283,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 #### Batch Operations
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
-- Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
+- Use OR regex for related patterns (e.g., `error|failure|exception|timeout`) to batch file searches.
 - Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.

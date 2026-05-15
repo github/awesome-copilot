@@ -23,7 +23,7 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 
 ## Knowledge Sources
 
-1. `./docs/PRD.yaml`
+1. `docs/PRD.yaml`
 2. `AGENTS.md`
 3. Memory — self-serve via memory tool. Managed via <memory_usage> rules.
 4. Official docs (online or llms.txt)
@@ -93,6 +93,20 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 - Capture exact error state: message, stack trace, environment
 - IF flow failure: Replay steps up to step_index
 - IF not reproducible: document conditions, check intermittent causes
+
+### 2.5 Same-Bug Cache Check (Bypass)
+
+BEFORE entering Phase 3 (Diagnose):
+CHECK repo memory key `debug/same_bug_cache`:
+IF error_context.error_message MATCHES any cached entry
+AND match confidence ≥ 0.85
+THEN:
+→ SKIP Phases 3-5 entirely (Diagnose, Bisect, Mobile Debugging)
+→ GOTO Phase 6 (Synthesize) with cached root_cause + fix recommendations
+→ Set output confidence = cached_confidence \* 0.9 (slight decay for staleness)
+→ Include `cached_diagnosis: true` in output
+ELSE:
+→ Full diagnosis as normal
 
 ### 3. Diagnose
 
@@ -194,33 +208,6 @@ lint_rule_recommendations: [{
 Return JSON per `Output Format`
 </workflow>
 
-<input_format>
-
-## Input Format
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": "object",
-  "error_context": {
-    "error_message": "string",
-    "stack_trace": "string (optional)",
-    "failing_test": "string (optional)",
-    "reproduction_steps": ["string (optional)"],
-    "environment": "string (optional)",
-    "flow_id": "string (optional)",
-    "step_index": "number (optional)",
-    "evidence": ["string (optional)"],
-    "browser_console": ["string (optional)"],
-    "network_failures": ["string (optional)"],
-  },
-}
-```
-
-</input_format>
-
 <output_format>
 
 ## Output Format
@@ -244,7 +231,7 @@ Return JSON per `Output Format`
   },
   "diagnosis": { "root_cause": "string" },
   "recommendation": { "type": "fix|refactor|replan", "description": "string" },
-  "learnings": { "patterns": ["string"], "gotchas": ["string"] },
+  "learnings": { "patterns": [{ "name": "string", "description": "string", "confidence": "number" }], "gotchas": ["string"] },
 }
 ```
 
@@ -281,12 +268,25 @@ NOTE: ESLint recommendations are for general recurring patterns only (not projec
 
 ### Memory Usage
 
-- **Read** — At init: check memory for task-relevant conventions, patterns, gotchas.
-- **Write** — On completion: save learnings to memory ONLY if ALL conditions met:
-  - confidence ≥ 0.85
-  - not a duplicate of existing memory entry (view first, create if absent)
-  - format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`.
-  - max 3 items per output
+#### Read (Same-Bug Cache Check)
+
+- **Fast-path:** BEFORE Phase 3, check repo memory key `debug/same_bug_cache`:
+  - IF error message matches cached entry at ≥0.85 confidence:
+    → SKIP Phases 3-5 entirely. GOTO Phase 6 with cached root_cause + fix.
+    → Set confidence = cached \* 0.9. Include `cached_diagnosis: true`.
+  - ELSE: Full diagnosis as normal.
+- **Fallback:** At init, read general memory for conventions/patterns/gotchas.
+
+#### Write (Cache + Learnings)
+
+- Save to TWO targets:
+  1. Task output (JSON) — per output format
+  2. Repo memory key `debug/same_bug_cache`:
+     - Keyed by error_message substring (first 120 chars as signature)
+     - Store: root_cause, fix_recommendations, confidence, count
+     - Only on fixable errors with confidence ≥ 0.85
+     - Update count on re-hit (increment usage counter)
+- ALSO save learnings to memory per standard rules (≥0.85, dedup, max 3)
 
 ### I/O Optimization
 
