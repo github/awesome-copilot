@@ -29,7 +29,12 @@ function resolvePolicy(policy) {
   }
 
   if (typeof policy === "string") {
-    return EXTERNAL_PLUGIN_POLICIES[policy] ?? EXTERNAL_PLUGIN_POLICIES.marketplace;
+    const resolved = EXTERNAL_PLUGIN_POLICIES[policy];
+    if (!resolved) {
+      throw new Error(`Unknown external plugin validation policy "${policy}"`);
+    }
+
+    return resolved;
   }
 
   return {

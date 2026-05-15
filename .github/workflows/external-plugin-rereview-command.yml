@@ -64,6 +64,14 @@ jobs:
               return;
             }
 
+            const inRereviewQueue =
+              labelNames.has('re-review-due') ||
+              labelNames.has('re-review-follow-up');
+            if (!inRereviewQueue) {
+              core.info(`Ignoring ${command} because the issue is not currently in the six-month re-review queue.`);
+              return;
+            }
+
             const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
             if (errors.length > 0) {
               core.setFailed(errors.join('\n'));

@@ -158,6 +158,7 @@ jobs:
         if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'approve' && steps.parse.outputs.validation-valid == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           result=$(node ./eng/external-plugin-approval.mjs approve "$GITHUB_EVENT_PATH" --file ./plugins/external.json)
           {
