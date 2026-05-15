@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
@@ -222,8 +223,24 @@ function validatePlugins() {
     }
   }
 
+  console.log("\nValidating external plugin catalog...");
+  const { plugins: externalPlugins, errors: externalErrors, warnings: externalWarnings } = readExternalPlugins({
+    localPluginNames: pluginDirs,
+    policy: "marketplace",
+  });
+
+  externalWarnings.forEach((warning) => console.warn(`⚠️  ${warning}`));
+
+  if (externalErrors.length > 0) {
+    console.error("❌ external.json:");
+    externalErrors.forEach((error) => console.error(`   - ${error}`));
+    hasErrors = true;
+  } else {
+    console.log(`✅ external.json is valid (${externalPlugins.length} external plugins)`);
+  }
+
   if (!hasErrors) {
-    console.log(`\n✅ All ${pluginDirs.length} plugins are valid`);
+    console.log(`\n✅ All ${pluginDirs.length} plugins and the external catalog are valid`);
   }
 
   return !hasErrors;
