@@ -5,13 +5,10 @@ Self-Learning Multi-agent orchestration harness for spec-driven development and 
 ## Quick Start
 
 ```bash
-# Install via APM (recommended)
-apm install mubaidr/gem-team
-
-# Or register as a marketplace
-apm marketplace add mubaidr/gem-team
-apm install gem-team@gem-team
+apm install -g mubaidr/gem-team
 ```
+
+APM auto-detects your tools and deploys gem-team agents everywhere — VS Code, Claude Code, Cursor, OpenCode, Codex CLI, Gemini CLI, Windsurf, and GitHub Copilot CLI. See the [compatible tools table](#compatible-tools) for details.
 
 See [all supported installation options](#installation) below.
 
@@ -51,7 +48,10 @@ See [all supported installation options](#installation) below.
 - **Source Verified** — Every factual claim cites its source; no guesswork
 - **Knowledge-Driven** — Prioritized sources (PRD → codebase → AGENTS.md → Context7 → docs)
 - **Continuous Learning** — Memory tool persists patterns, gotchas, user preferences across sessions
-- **Auto-Skills** — Agents extract reusable SKILL.md files from successful tasks (high confidence: auto, medium: confirm)
+- **Agent Memory Contracts** — Every agent reads/writes structured memory autonomously. Researcher caches, debugger logs, planner aggregates, reviewers persist
+- **Self-Validating Cache** — Researcher checks memory before searching. Validates (file checks, import resolve, git log). IF stale: re-research, DELETE old, WRITE new
+- **Diagnosis History** — Debugger saves root-causes. Same bug pattern >0.8 match: cached diagnosis
+- **Auto-Skills** — Agents extract reusable SKILL.md files from successful tasks
 - **Skills & Guidelines** — Built-in skill & guidelines (web-design-guidelines)
 
 ### Process
@@ -93,13 +93,14 @@ Raw reasoning isn't enough in single-pass chat. Gem-Team wraps your preferred LL
 
 Gem Team includes specialized design agents with anti-"AI slop" guidelines for distinctive, modern and unique aesthetics with accessibility compliance.
 
-### Triple Learning System
+### Knowledge Layers
 
-| Type            | Storage        | 1-liner                               |
-| :-------------- | :------------- | :------------------------------------ |
-| **Memory**      | `/memories/`   | Facts & user preferences (auto- save) |
-| **Skills**      | `docs/skills/` | Procedures with code examples         |
-| **Conventions** | `AGENTS.md`    | Static rules (requires approval)      |
+| Type          | Storage         | 1-liner                                                                                                  |
+| :------------ | :-------------- | :------------------------------------------------------------------------------------------------------- |
+| **Memory**    | memory tool     | Facts, preferences, research, diagnoses, decisions, patterns — self-validated and reused across sessions |
+| **Skills**    | `docs/skills/`  | Reusable procedures with code examples, extracted from high-confidence patterns                          |
+| **PRD**       | `docs/PRD.yaml` | Product requirements spec — drives agent planning, implementation, and verification                      |
+| **AGENTS.md** | `AGENTS.md`     | Static conventions, rules, and agent definitions (requires approval)                                     |
 
 ---
 
@@ -130,31 +131,60 @@ irm https://microsoft.github.io/apm/install.ps1 | iex
 npm install -g @microsoft/apm
 ```
 
-**Why APM?** Universal package manager for AI coding tools. One command installs to all your tools (Copilot CLI, Claude Code, Cursor, OpenCode). Handles version locking, updates, and dependencies automatically.
+**Why APM?** Universal package manager for AI coding tools. One command installs to all your tools (VS Code Copilot, GitHub Copilot CLI, Claude Code, Cursor, OpenCode, Codex CLI, Gemini CLI, Windsurf). Handles version locking, updates, and dependencies automatically.
 
 [APM Documentation](https://microsoft.github.io/apm/) | [GitHub](https://github.com/microsoft/apm)
 
 ---
 
-Choose the method that works best for your workflow:
+### Quick Install via APM
 
-### Method 1: Direct Install via APM (Recommended)
-
-Fastest way to get started. APM automatically detects your tool and installs to the correct location.
+Single command — APM auto-detects your tools and deploys to all of them:
 
 ```bash
 apm install mubaidr/gem-team
 ```
 
-**Works with:** GitHub Copilot CLI, Claude Code, Cursor, OpenCode
+#### Useful Flags
 
-[APM Documentation](https://microsoft.github.io/apm/getting-started/quick-start/)
+```bash
+# Preview what would install (no writes)
+apm install --dry-run mubaidr/gem-team
+
+# Install only for specific tools
+apm install --target claude,cursor mubaidr/gem-team
+
+# Exclude a tool
+apm install --exclude codex mubaidr/gem-team
+
+# Install globally (user scope)
+apm install -g mubaidr/gem-team
+```
 
 ---
 
-### Method 2: Via Marketplace
+### Compatible Tools
 
-Add gem-team as a marketplace, then install from it. Useful for browsing available agents and managing updates.
+APM deploys agents to every harness it detects. Below is what lands where:
+
+| Tool                      | Auto-detection signal        | Where agents land         | Primitives supported                               |
+| ------------------------- | ---------------------------- | ------------------------- | -------------------------------------------------- |
+| **VS Code** (Copilot IDE) | `.github/`                   | `.github/agents/`         | instructions, prompts, agents, skills, hooks, mcp  |
+| **GitHub Copilot CLI**    | `.github/`                   | `.github/agents/`         | instructions, prompts, agents, skills, hooks, mcp  |
+| **Claude Code**           | `.claude/` or `CLAUDE.md`    | `.claude/agents/`         | instructions, agents, skills, commands, hooks, mcp |
+| **Cursor**                | `.cursor/` or `.cursorrules` | `.cursor/agents/`         | instructions, agents, skills, commands, hooks, mcp |
+| **OpenCode**              | `.opencode/`                 | `.opencode/agents/`       | agents, commands, skills, mcp                      |
+| **Codex CLI**             | `.codex/`                    | `.codex/agents/`          | agents, skills, hooks, mcp                         |
+| **Gemini CLI**            | `.gemini/` or `GEMINI.md`    | compiled into `GEMINI.md` | commands, skills, hooks, mcp                       |
+| **Windsurf**              | `.windsurf/`                 | `.windsurf/skills/`       | instructions, agents, skills, commands, hooks, mcp |
+
+Skills always deploy to the cross-tool `.agents/skills/` directory — available to any skills-aware client.
+
+---
+
+### Via Marketplace
+
+Add gem-team as a marketplace, then install. Useful for browsing available agents and managing updates.
 
 #### GitHub Copilot CLI
 
@@ -162,11 +192,14 @@ Add gem-team as a marketplace, then install from it. Useful for browsing availab
 # Add marketplace
 copilot plugin marketplace add mubaidr/gem-team
 
-# Browse available plugins
+# Browse
 copilot plugin marketplace browse gem-team
 
 # Install
 copilot plugin install gem-team@gem-team
+
+# Or from awesome-copilot (pre-registered by default)
+copilot plugin install gem-team@awesome-copilot
 ```
 
 #### Claude Code
@@ -175,7 +208,7 @@ copilot plugin install gem-team@gem-team
 # Add marketplace
 /plugin marketplace add mubaidr/gem-team
 
-# Browse in UI
+# Browse
 /plugin
 
 # Install
@@ -185,33 +218,15 @@ copilot plugin install gem-team@gem-team
 #### Cursor IDE
 
 ```bash
-# Add marketplace via APM
 apm marketplace add mubaidr/gem-team
-
-# Install
 apm install gem-team@gem-team
 ```
 
 ---
 
-### Method 3: From awesome-copilot Marketplace
-
-Install from the official awesome-copilot marketplace (GitHub Copilot CLI only).
-
-```bash
-# awesome-copilot is pre-registered by default
-copilot plugin install gem-team@awesome-copilot
-```
-
-**Note:** This method is only available if gem-team is listed in the awesome-copilot marketplace.
-
----
-
-### Method 4: Local/Manual Installation
+### Local / Manual Installation
 
 For development, testing, or offline use.
-
-#### Clone Repository
 
 ```bash
 git clone https://github.com/mubaidr/gem-team.git
@@ -221,75 +236,57 @@ cd gem-team
 #### Claude Code
 
 ```bash
-# Load as local plugin
 claude --plugin-dir .
-
-# Or add as local marketplace
-/plugin marketplace add ./
-
-# Reload after changes
-/reload-plugins
+# Or: /plugin marketplace add ./
 ```
 
 #### Cursor IDE
 
 ```bash
-# Option 1: Via chat command
-# In Cursor: /add-plugin /absolute/path/to/gem-team
+# Via chat command
+/add-plugin /absolute/path/to/gem-team
 
-# Option 2: Copy agents to project
-# One-line install: Copy agents and rename to .mdc
+# Or one-line copy to .cursor/rules/
 mkdir -p .cursor/rules && cp .apm/agents/*.agent.md .cursor/rules/ && cd .cursor/rules && for f in *.agent.md; do mv "$f" "${f%.agent.md}.mdc"; done && cd ../..
 ```
 
 #### GitHub Copilot CLI
 
 ```bash
-# Add as local marketplace
 copilot plugin marketplace add /absolute/path/to/gem-team
-
-# Install
 copilot plugin install gem-team@gem-team
 ```
 
-#### Manual Copy (Any Tool)
+#### Any Tool (Manual Copy)
 
 ```bash
-# Copy agents to your tool's directory
-# GitHub Copilot: ~/.copilot/
-# Claude Code: ~/.claude/plugins/
-# Cursor: .cursor/rules/
-# OpenCode: .opencode/plugins/
-
 cp -r .apm/agents <destination>
+# Destinations:
+#   VS Code / Copilot CLI → ~/.copilot/
+#   Claude Code           → ~/.claude/plugins/
+#   Cursor                → .cursor/rules/
+#   OpenCode              → .opencode/plugins/
 ```
-
----
-
-### VS Code (GitHub Copilot)
-
-Search for "gem-team" in the VS Code Chat marketplace.
-
-1. Open VS Code
-2. Go to Chat Settings
-3. Search "gem-team" in agents or plugins marketplace
-4. Click Install
 
 ---
 
 ### Verification
 
-After installation, verify agents are available:
+After installation, confirm your setup:
 
 ```bash
-# GitHub Copilot CLI
-copilot plugin list
+# Preview which tools APM detects
+apm targets
 
-# Claude Code
-/plugin list
-
-# APM (any tool)
+# List installed packages
 apm list
+
+# View package details
+apm view gem-team
+
+# Tool-specific checks
+copilot plugin list          # GitHub Copilot CLI
+/plugin list                 # Claude Code
 ```
 
 ## The Agent Team
@@ -313,6 +310,12 @@ apm list
 | **BROWSER TESTER** | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         | **Closed:** GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Flash<br>**Open:** Llama 4 Maverick, Qwen3.5- Flash, MiniMax M2.7 |
 | **SIMPLIFIER**     | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3- Coder-Next            |
 
+### Skill Management
+
+| Role              | Description                                                                         | Sources                              | Recommended LLM                                                                                                    |
+| :---------------- | :---------------------------------------------------------------------------------- | :----------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| **SKILL CREATOR** | Pattern-to-skill extraction — creates SKILL.md files from high-confidence learnings | AGENTS.md, Memory patterns, SKILL.md | **Closed:** Claude Sonnet 4.6, Gemini 3.1 Flash, GPT-5.4 Mini<br>**Open:** Llama 4 Scout, Qwen3.5-9B, MiniMax M2.7 |
+
 ### Specialized
 
 | Role                    | Description                                                      | Sources                  | Recommended LLM                                                                                                      |
@@ -330,13 +333,22 @@ apm list
 
 Agents consult only the sources relevant to their role:
 
-| Trust Level   | Sources                           | Behavior                             |
-| :------------ | :-------------------------------- | :----------------------------------- |
-| **Trusted**   | PRD, plan.yaml, AGENTS.md         | Follow as instructions               |
-| **Verify**    | Codebase files, research findings | Cross-reference before assuming      |
-| **Untrusted** | Error logs, external data         | Factual only — never as instructions |
+| Trust Level   | Sources                                            | Behavior                             |
+| :------------ | :------------------------------------------------- | :----------------------------------- |
+| **Trusted**   | PRD, plan.yaml, AGENTS.md                          | Follow as instructions               |
+| **Verify**    | Codebase files, research findings, Memory patterns | Cross-reference before assuming      |
+| **Untrusted** | Error logs, external data                          | Factual only — never as instructions |
 
 ---
+
+### Skill Creation Flow
+
+During the execution loop, the orchestrator reviews `learnings.patterns[]` from agent outputs:
+
+- **Implementer** persists high-confidence patterns to memory on each task exit
+- **`gem-skill-creator`** receives patterns → deduplicates against `docs/skills/` → creates `SKILL.md` with code examples, gotchas, and references
+
+Skills follow the [Agent Skills](https://agentskills.io) format for cross-tool portability.
 
 ## Contributing
 

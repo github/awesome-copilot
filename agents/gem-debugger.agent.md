@@ -24,14 +24,18 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 ## Knowledge Sources
 
 1. `./docs/PRD.yaml`
-2. Codebase patterns
-3. `AGENTS.md`
-4. Memory — check global (recurring error patterns) and local (plan context) if relevant
-5. Official docs (online or llms.txt)
-6. Error logs, stack traces, test output
-7. Git history (blame/log)
-8. `docs/DESIGN.md` (UI bugs)
-   </knowledge_sources>
+2. `AGENTS.md`
+3. Memory — self-serve via memory tool:
+   - Maintain: codebase conventions, anti-patterns, prior discoveries, context, patterns found (if confidence ≥0.9)
+   - Format: dense, abbreviated, bulleted. No prose. Include YAML frontmatter with `updatedAt`
+4. Official docs (online or llms.txt)
+5. Error logs, stack traces, test output
+6. Git history (blame/log)
+7. `docs/DESIGN.md` (UI bugs)
+8. Skills — `docs/skills/*/SKILL.md`
+9. Plan research findings — `docs/plan/{plan_id}/*.yaml` (shared research cache)
+
+</knowledge_sources>
 
 <skills_guidelines>
 
@@ -94,98 +98,55 @@ DEBUGGER. Mission: trace root causes, analyze stack traces, bisect regressions, 
 
 ### 3. Diagnose
 
-#### 3.1 Stack Trace Analysis
-
-- Parse: identify entry point, propagation path, failure location
-- Map to source code: read files at reported line numbers
-- Identify error type: runtime | logic | integration | configuration | dependency
-
-#### 3.2 Context Analysis
-
-- Check recent changes via git blame/log
-- Analyze data flow: trace inputs to failure point
-- Examine state at failure: variables, conditions, edge cases
-- Check dependencies: version conflicts, missing imports, API changes
-
-#### 3.3 Pattern Matching
-
-- Search for similar errors (grep error messages, exception types)
-- Check known failure modes from plan.yaml
-- Identify anti-patterns causing this error type
+- Stack Trace Analysis: Parse entry point, propagation path, failure location. Map to source code at reported line numbers. Identify error type: runtime | logic | integration | configuration | dependency.
+- Context Analysis: Check recent changes via git blame/log. Analyze data flow from inputs to failure point. Examine state at failure: variables, conditions, edge cases. Check dependencies: version conflicts, missing imports, API changes.
+- Pattern Matching: Search for similar errors (grep error messages, exception types). Check known failure modes from plan.yaml. Identify anti-patterns causing this error type.
 
 ### 4. Bisect (Complex Only) (Gate: stack trace + git blame insufficient)
 
-#### 4.1 Regression Identification
-
-- IF regression AND (stack trace unclear OR git blame inconclusive):
-  - Identify last known good state
-  - Use git bisect or manual search to find introducing commit
-  - Analyze diff for causal changes
-- ELSE: skip bisect — use stack trace + git blame to identify cause directly
-
-#### 4.2 Interaction Analysis
-
-- Check side effects: shared state, race conditions, timing
-- Trace cross-module interactions
-- Verify environment/config differences
-
-#### 4.3 Browser/Flow Failure (if flow_id present)
-
-- Analyze browser console errors at step_index
-- Check network failures (status ≥ 400)
-- Review screenshots/traces for visual state
-- Check flow_context.state for unexpected values
-- Identify failure type: element_not_found | timeout | assertion_failure | navigation_error | network_error
+- Regression Identification: IF regression AND (stack trace unclear OR git blame inconclusive): identify last known good state, use git bisect or manual search to find introducing commit, analyze diff for causal changes. ELSE: skip bisect — use stack trace + git blame to identify cause directly.
+- Interaction Analysis: Check side effects: shared state, race conditions, timing. Trace cross-module interactions. Verify environment/config differences.
+- Browser/Flow Failure (if flow_id present): Analyze browser console errors at step_index. Check network failures (status ≥ 400). Review screenshots/traces for visual state. Check flow_context.state for unexpected values. Identify failure type: element_not_found | timeout | assertion_failure | navigation_error | network_error.
 
 ### 5. Mobile Debugging
 
-#### 5.1 Android (adb logcat)
+- Android (adb logcat):
 
-```bash
-adb logcat -d > crash_log.txt
-adb logcat -s ActivityManager:* *:S
-adb logcat --pid=$(adb shell pidof com.app.package)
-```
+  ```bash
+  adb logcat -d > crash_log.txt
+  adb logcat -s ActivityManager:* *:S
+  adb logcat --pid=$(adb shell pidof com.app.package)
+  ```
 
-- ANR: Application Not Responding
-- Native crashes: signal 6, signal 11
-- OutOfMemoryError: heap dump analysis
+  - ANR: Application Not Responding
+  - Native crashes: signal 6, signal 11
+  - OutOfMemoryError: heap dump analysis
 
-#### 5.2 iOS Crash Logs
+- iOS Crash Logs:
 
-```bash
-atos -o App.dSYM -arch arm64 <address>  # manual symbolication
-```
+  ```bash
+  atos -o App.dSYM -arch arm64 <address>  # manual symbolication
+  ```
 
-- Location: `~/Library/Logs/CrashReporter/`
-- Xcode: Window → Devices → View Device Logs
-- EXC_BAD_ACCESS: memory corruption
-- SIGABRT: uncaught exception
-- SIGKILL: memory pressure / watchdog
+  - Location: `~/Library/Logs/CrashReporter/`
+  - Xcode: Window → Devices → View Device Logs
+  - EXC_BAD_ACCESS: memory corruption
+  - SIGABRT: uncaught exception
+  - SIGKILL: memory pressure / watchdog
 
-#### 5.3 ANR Analysis (Android)
+- ANR Analysis (Android):
 
-```bash
-adb pull /data/anr/traces.txt
-```
+  ```bash
+  adb pull /data/anr/traces.txt
+  ```
 
-- Look for "held by:" (lock contention)
-- Identify I/O on main thread
-- Check for deadlocks (circular wait)
-- Common: network/disk I/O, heavy GC, deadlock
+  - Look for "held by:" (lock contention)
+  - Identify I/O on main thread
+  - Check for deadlocks (circular wait)
+  - Common: network/disk I/O, heavy GC, deadlock
 
-#### 5.4 Native Debugging
-
-- LLDB: `debugserver :1234 -a <pid>` (device)
-- Xcode: Set breakpoints in C++/Swift/Obj-C
-- Symbols: dYSM required, `symbolicatecrash` script
-
-#### 5.5 React Native
-
-- Metro: Check for module resolution, circular deps
-- Redbox: Parse JS stack trace, check component lifecycle
-- Hermes: Take heap snapshots via React DevTools
-- Profile: Performance tab in DevTools for blocking JS
+- Native Debugging: LLDB (`debugserver :1234 -a <pid>` on device), Xcode breakpoints in C++/Swift/Obj-C. Symbols: dYSM required, `symbolicatecrash` script.
+- React Native: Check Metro for module resolution/circular deps. Parse Redbox JS stack trace, check component lifecycle. Take Hermes heap snapshots via React DevTools. Profile blocking JS via DevTools Performance tab.
 
 ### 6. Synthesize
 
@@ -274,7 +235,7 @@ Return JSON per `Output Format`
   "task_id": "[task_id]",
   "plan_id": "[plan_id]",
   "summary": "[≤3 sentences]",
-  "failure_type": "transient|fixable|needs_replan|escalate",
+  "failure_type": "transient|fixable|needs_replan|escalate|flaky|regression|new_failure|platform_specific",
   "extra": {
     "root_cause": { "description": "string", "location": "string", "error_type": "string" },
     "reproduction": { "confirmed": "boolean", "steps": ["string"] },
@@ -328,7 +289,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 
 - Batch and parallelize independent I/O calls: `read_file`, `file_search`, `grep_search`, `semantic_search`, `list_dir` etc. Reduce sequential dependencies.
 - Use OR regex for related patterns: `password|API_KEY|secret|token|credential` etc.
-- Use multi-pattern glob discovery: `**/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
+- Use multi-pattern glob discovery: `/*.{ts,tsx,js,jsx,md,yaml,yml}` etc.
 - For multiple files, discover first, then read in parallel.
 - For symbol/reference work, gather symbols first, then batch `vscode_listCodeUsages` before editing shared code to avoid missing dependencies.
 
@@ -342,8 +303,8 @@ Run I/O and other operations in parallel and minimize repeated reads.
 
 - Narrow searches with `includePattern` and `excludePattern`.
 - Exclude build output, and `node_modules` unless needed.
-- Prefer specific paths like `src/components/**/*.tsx`.
-- Use file-type filters for grep, such as `includePattern="**/*.ts"`.
+- Prefer specific paths like `src/components//*.tsx`.
+- Use file-type filters for grep, such as `includePattern="/*.ts"`.
 
 ### Untrusted Data
 
@@ -362,6 +323,7 @@ Run I/O and other operations in parallel and minimize repeated reads.
 
 ### Directives
 
+- Internal reasoning is for correctness, not readability. Use dense, abbreviated notation and bulleted primitives. Skip self-talk and explanatory prose.
 - Execute autonomously
 - Read-only diagnosis: no code modifications
 - Trace root cause to source: file:line precision
