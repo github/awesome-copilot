@@ -212,7 +212,7 @@ The external plugin issue form will collect these fields:
 - Additional notes for reviewers (optional)
 - Confirmation checkboxes that the repository is public, the ref is immutable, the submission follows this repository's policies, and the plugin is not a duplicate listing
 
-The repository's canonical validation rules live in `eng/external-plugin-validation.mjs`. Build scripts already reuse the marketplace policy from that module, and later issue automation should call the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
+The repository's canonical validation rules live in `eng/external-plugin-validation.mjs`. Build scripts reuse the `marketplace` policy from that module, and the issue intake automation uses the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
 
 For entries committed to `plugins/external.json`, the current marketplace validation requires:
 
@@ -223,7 +223,7 @@ For entries committed to `plugins/external.json`, the current marketplace valida
 - `source.source: "github"` plus `source.repo` in `owner/repo` format
 - optional `source.path` values to stay relative to the repository root
 
-The future public-submission policy builds on those rules and also requires `license` plus an immutable `source.ref`.
+The public-submission policy builds on those rules and also requires `license` plus an immutable `source.ref`.
 
 ##### Review workflow
 

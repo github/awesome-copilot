@@ -38,8 +38,6 @@ jobs:
 
             const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-rereview.mjs')).href);
             const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-validation.mjs')).href);
-
-            const allowedAssociations = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
             const command = rereview.parseRereviewCommand(context.payload.comment.body);
 
             core.setOutput('should-run', 'false');
@@ -48,8 +46,15 @@ jobs:
               return;
             }
 
-            if (!allowedAssociations.has(context.payload.comment.author_association)) {
-              core.info(`Ignoring ${command} because ${context.payload.comment.author_association} is not a maintainer association.`);
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login
+            });
+
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring ${command} because ${context.payload.comment.user.login} does not have write access.`);
               return;
             }
 

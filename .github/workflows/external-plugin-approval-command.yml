@@ -40,8 +40,6 @@ jobs:
 
             const approval = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-approval.mjs')).href);
             const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
-
-            const allowedAssociations = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
             const parsedCommand = approval.parseDecisionCommand(context.payload.comment.body);
 
             core.setOutput('should-run', 'false');
@@ -50,8 +48,15 @@ jobs:
               return;
             }
 
-            if (!allowedAssociations.has(context.payload.comment.author_association)) {
-              core.info(`Ignoring ${parsedCommand.command} because ${context.payload.comment.author_association} is not a maintainer association.`);
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login
+            });
+
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring ${parsedCommand.command} because ${context.payload.comment.user.login} does not have write access.`);
               return;
             }
 

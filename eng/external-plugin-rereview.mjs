@@ -36,6 +36,13 @@ function normalizeRepositoryUrl(value) {
     .replace(/^\/+|\/+$/g, "");
 }
 
+function normalizePathValue(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
+}
+
 function stripIssueTitlePrefix(title) {
   return String(title ?? "")
     .trim()
@@ -77,6 +84,7 @@ export function extractSubmissionData(issue) {
   return {
     pluginName: plugin.name ?? fallback.pluginName,
     sourceRepo: plugin.source?.repo ?? fallback.sourceRepo,
+    sourcePath: plugin.source?.path,
     repository: plugin.repository ?? fallback.repository,
     ref: plugin.source?.ref,
   };
@@ -87,18 +95,30 @@ function pluginMatchesSubmission(plugin, submission) {
   const submissionName = normalizeValue(submission.pluginName);
   const pluginRepo = normalizeValue(plugin?.source?.repo);
   const submissionRepo = normalizeValue(submission.sourceRepo);
+  const pluginPath = normalizePathValue(plugin?.source?.path);
+  const submissionPath = normalizePathValue(submission.sourcePath);
   const pluginRepository = normalizeRepositoryUrl(plugin?.repository);
   const submissionRepository = normalizeRepositoryUrl(submission.repository);
 
   const nameMatch = pluginName && submissionName && pluginName === submissionName;
   const repoMatch = pluginRepo && submissionRepo && pluginRepo === submissionRepo;
   const repositoryMatch = pluginRepository && submissionRepository && pluginRepository === submissionRepository;
+  const pathProvided = Boolean(submissionPath);
+  const pathMatch = pluginPath === submissionPath;
+
+  if (nameMatch && pathProvided) {
+    return pathMatch && (repoMatch || repositoryMatch || !submissionRepo);
+  }
 
   if (nameMatch && (repoMatch || repositoryMatch || !submissionRepo)) {
     return true;
   }
 
-  if ((repoMatch || repositoryMatch) && (!submissionName || nameMatch)) {
+  if ((repoMatch || repositoryMatch) && pathProvided) {
+    return pathMatch && (!submissionName || nameMatch);
+  }
+
+  if ((repoMatch || repositoryMatch) && submissionName && nameMatch) {
     return true;
   }
 
@@ -116,17 +136,6 @@ export function matchExternalPluginForIssue(issue, plugins) {
     };
   }
 
-  const byRepo = submission.sourceRepo
-    ? plugins.find((plugin) => normalizeValue(plugin?.source?.repo) === normalizeValue(submission.sourceRepo))
-    : undefined;
-  if (byRepo) {
-    return {
-      plugin: byRepo,
-      submission,
-      matchReason: "repo",
-    };
-  }
-
   const byName = submission.pluginName
     ? plugins.find((plugin) => normalizeValue(plugin?.name) === normalizeValue(submission.pluginName))
     : undefined;
@@ -138,6 +147,17 @@ export function matchExternalPluginForIssue(issue, plugins) {
     };
   }
 
+  const repoMatches = submission.sourceRepo
+    ? plugins.filter((plugin) => normalizeValue(plugin?.source?.repo) === normalizeValue(submission.sourceRepo))
+    : [];
+  if (repoMatches.length === 1) {
+    return {
+      plugin: repoMatches[0],
+      submission,
+      matchReason: "repo",
+    };
+  }
+
   return {
     plugin: undefined,
     submission,
@@ -146,7 +166,7 @@ export function matchExternalPluginForIssue(issue, plugins) {
 }
 
 export function parseRereviewCommand(body) {
-  const match = String(body ?? "").match(/(?:^|\n)\s*\/re-review-(keep|needs-changes|remove)\b/i);
+  const match = String(body ?? "").match(/(?:^|\n)\s*\/re-review-(keep|needs-changes|remove)(?=\s|$)/i);
   if (!match) {
     return undefined;
   }
@@ -182,15 +202,14 @@ export function removePluginFromExternalJson({ pluginName, sourceRepo, filePath 
   const normalizedPluginName = normalizeValue(pluginName);
   const normalizedSourceRepo = normalizeValue(sourceRepo);
   const matchIndex = plugins.findIndex((plugin) => {
-    if (normalizedPluginName && normalizeValue(plugin?.name) === normalizedPluginName) {
-      return true;
+    const nameMatches = normalizedPluginName && normalizeValue(plugin?.name) === normalizedPluginName;
+    const repoMatches = normalizedSourceRepo && normalizeValue(plugin?.source?.repo) === normalizedSourceRepo;
+
+    if (normalizedPluginName && normalizedSourceRepo) {
+      return nameMatches && repoMatches;
     }
 
-    if (normalizedSourceRepo && normalizeValue(plugin?.source?.repo) === normalizedSourceRepo) {
-      return true;
-    }
-
-    return false;
+    return Boolean(nameMatches || repoMatches);
   });
 
   if (matchIndex === -1) {

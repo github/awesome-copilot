@@ -32,8 +32,15 @@ function normalizeRepositoryUrl(value) {
     .replace(/^\/+|\/+$/g, "");
 }
 
+function normalizePathValue(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
+}
+
 export function parseDecisionCommand(body) {
-  const match = String(body ?? "").match(/(?:^|\n)\s*\/(approve|reject)\b([\s\S]*)$/i);
+  const match = String(body ?? "").match(/(?:^|\n)\s*\/(approve|reject)(?=\s|$)([\s\S]*)$/i);
   if (!match) {
     return undefined;
   }
@@ -73,6 +80,8 @@ function pluginsMatch(left, right) {
   const rightName = normalizeValue(right?.name);
   const leftRepo = normalizeValue(left?.source?.repo);
   const rightRepo = normalizeValue(right?.source?.repo);
+  const leftPath = normalizePathValue(left?.source?.path);
+  const rightPath = normalizePathValue(right?.source?.path);
   const leftRepository = normalizeRepositoryUrl(left?.repository);
   const rightRepository = normalizeRepositoryUrl(right?.repository);
 
@@ -80,11 +89,16 @@ function pluginsMatch(left, right) {
     return true;
   }
 
-  if (leftRepo && rightRepo && leftRepo === rightRepo) {
+  const repoMatches = leftRepo && rightRepo && leftRepo === rightRepo;
+  const repositoryMatches = leftRepository && rightRepository && leftRepository === rightRepository;
+  const pathKnown = Boolean(leftPath || rightPath);
+  const pathMatches = leftPath === rightPath;
+
+  if ((repoMatches || repositoryMatches) && pathKnown && pathMatches) {
     return true;
   }
 
-  return Boolean(leftRepository && rightRepository && leftRepository === rightRepository);
+  return false;
 }
 
 export function upsertExternalPlugin(plugin, { filePath = EXTERNAL_PLUGINS_FILE } = {}) {
