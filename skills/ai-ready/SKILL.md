@@ -1,13 +1,13 @@
 ---
 name: ai-ready
-description: 'Make any repo AI-ready — analyzes your codebase and generates AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack. WHEN: "make this repo ai-ready", "set up AI config", "add copilot instructions", "prepare this repo for AI contributions", "generate AGENTS.md". INVOKES: glob, grep, view, create, edit for repo analysis and file generation. FOR SINGLE OPERATIONS: use create/edit directly for individual config files.'
+description: 'Make any repo AI-ready — analyzes your codebase and generates AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack. USE THIS SKILL when the user asks to "make this repo ai-ready", "set up AI config", or "prepare this repo for AI contributions".'
 ---
 
 # AI Ready
 
 This skill helps the user install the latest [ai-ready](https://github.com/johnpapa/ai-ready) skill by [John Papa](https://github.com/johnpapa).
 
-*Why?*: The full ai-ready skill is a 12-step procedure with progressive disclosure via reference files. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date, currently at v1.0.0.
+*Why?*: The full ai-ready skill is a 12-step procedure with progressive disclosure via reference files. This wrapper keeps it discoverable here while the source of truth stays in [johnpapa/ai-ready](https://github.com/johnpapa/ai-ready) — always up to date.
 
 ## Steps
 
