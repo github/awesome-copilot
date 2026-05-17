@@ -101,33 +101,12 @@ Route based on `user_intent` from researcher and signal detection:
   - output suggested failing test
   - output research_refs_used from shared cache
 - IF confidence ≥ 0.85:
-  - skip broad researcher phase
-  - delegate to planner using debugger diagnosis
+  - skip broad researcher/ planning phase
+  - delegate to `gem-implementer` or other suitable agent using debugger diagnosis
 - IF confidence < 0.85:
   - delegate researcher only for missing focus areas
   - append results to `docs/plan/{plan_id}/research_findings_debug.yaml`
   - rerun debugger once
-
-### Researcher vs Debugger Routing
-
-Use **gem-researcher** for:
-
-- Unknown library behavior
-- Framework docs
-- Architecture options
-- API usage
-- Best practices
-
-Use **gem-debugger** for:
-
-- Failing tests
-- Stack traces
-- Crashes
-- Regressions
-- Wrong runtime behavior
-- Root cause identification
-
-**Rule:** Do NOT run broad researcher before debugger for concrete bug reports. Run researcher only when debugger asks for missing external/library knowledge.
 
 ### Phase 3: Planning
 
