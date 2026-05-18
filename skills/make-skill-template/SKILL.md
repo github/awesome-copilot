@@ -27,7 +27,7 @@ A meta-skill for creating new Agent Skills. Use this skill when you need to scaf
 Create a new folder with a lowercase, hyphenated name:
 
 ```
-skills/<skill-name>/
+.github/skills/<skill-name>/
 └── SKILL.md          # Required
 ```
 
@@ -121,7 +121,7 @@ my-awesome-skill/
    - Write a keyword-rich `description:`
    - Replace body content with your instructions
 4. Add bundled resources as needed
-5. Validate with `npm run skill:validate`
+5. Validate your skill using the checklist below
 
 ## Validation Checklist
 
