@@ -110,12 +110,18 @@ Proceed **only after the user confirms** the Phase 1 analysis.
    - Python: `pip install arize-otel` plus `openinference-instrumentation-{name}` (hyphens in package name; underscores in import, e.g. `openinference.instrumentation.llama_index`).
    - TypeScript/JavaScript: `@opentelemetry/sdk-trace-node` plus the relevant `@arizeai/openinference-*` package.
    - Java: OpenTelemetry SDK plus `openinference-instrumentation-*` in pom.xml or build.gradle.
-   - Go: `go get go.opentelemetry.io/otel go.opentelemetry.io/otel/sdk go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp` — no auto-instrumentors yet, so the agent sets OpenInference attributes manually on spans. **Wire the exporter** with `otlptracehttp.WithEndpoint("otlp.arize.com")` (US) or `otlptracehttp.WithEndpoint("otlp.eu-west-1a.arize.com")` (EU) — pass the bare hostname, no `https://` scheme — and `otlptracehttp.WithHeaders(map[string]string{"space_id": ..., "api_key": ...})`. Recent OTel Go modules require Go ≥ 1.23 — `go mod tidy` may bump the toolchain.
+   - Go: No auto-instrumentors yet — the agent sets OpenInference attributes manually on spans. Install the OTel SDK:
+     ```
+     go get go.opentelemetry.io/otel
+     go get go.opentelemetry.io/otel/sdk
+     go get go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp
+     ```
+     **Wire the exporter** with `otlptracehttp.WithEndpoint("otlp.arize.com")` (US) or `otlptracehttp.WithEndpoint("otlp.eu-west-1a.arize.com")` (EU) — pass the bare hostname, no `https://` scheme — and `otlptracehttp.WithHeaders(map[string]string{"space_id": ..., "api_key": ...})`. Recent OTel Go modules require Go ≥ 1.23 — run `go mod tidy` after installing.
 3. **Credentials** — User needs an **Arize API Key** and **Space ID**. Check existing `ax` profiles for `ARIZE_API_KEY` and `ARIZE_SPACE` — never read `.env` files:
    - Run `ax profiles show` to check for an existing profile.
    - If no profile exists, guide the user to run `ax profiles create` which provides an **interactive wizard** that walks through API key and space setup. See [CLI profiles docs](https://arize.com/docs/api-clients/cli/profiles) for details.
    - If the user needs to find their API key manually, direct them to **https://app.arize.com** and to navigate to the settings page (do not use organization-specific URLs with placeholder IDs — they won't resolve for new users).
-   - If credentials are not set, instruct the user to set them as environment variables — never embed raw values in generated code. All generated instrumentation code must reference `os.environ["ARIZE_API_KEY"]` (Python), `process.env.ARIZE_API_KEY` (TypeScript/JavaScript), or `os.Getenv("ARIZE_API_KEY")` (Go).
+   - If credentials are not set, instruct the user to set them as environment variables — never embed raw values in generated code. All generated instrumentation code must reference `os.environ["ARIZE_API_KEY"]` / `os.environ["ARIZE_SPACE"]` (Python), `process.env.ARIZE_API_KEY` / `process.env.ARIZE_SPACE` (TypeScript/JavaScript), or `os.Getenv("ARIZE_API_KEY")` / `os.Getenv("ARIZE_SPACE")` (Go).
    - See references/ax-profiles.md for full profile setup and troubleshooting.
 4. **Centralized instrumentation** — Create a single module (e.g. `instrumentation.py`, `instrumentation.ts`, `instrumentation.go`) and initialize tracing **before** any LLM client is created.
 5. **Existing OTel** — If there is already a TracerProvider, add Arize as an **additional** exporter (e.g. BatchSpanProcessor with Arize OTLP). Do not replace existing setup unless the user asks.
@@ -213,6 +219,7 @@ import (
     "encoding/json"
     "go.opentelemetry.io/otel"
     "go.opentelemetry.io/otel/attribute"
+    "go.opentelemetry.io/otel/codes"
 )
 
 var tracer = otel.Tracer("my-app")
@@ -227,10 +234,11 @@ func runAgent(ctx context.Context, userMessage string) string {
 
     // ... LLM call ...
     for _, toolUse := range toolUses {
-        ctx, toolSpan := tracer.Start(ctx, toolUse.Name)
+        _, toolSpan := tracer.Start(ctx, toolUse.Name)
         argsJSON, err := json.Marshal(toolUse.Input)
         if err != nil {
             toolSpan.RecordError(err)
+            toolSpan.SetStatus(codes.Error, err.Error())
         }
         toolSpan.SetAttributes(
             attribute.String("openinference.span.kind", "TOOL"),
