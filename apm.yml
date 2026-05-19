@@ -1,9 +1,10 @@
 # APM manifest -- the authoring source of truth for the Awesome Copilot marketplace.
 #
 # Running `apm pack` reads the `marketplace:` block below and emits an
-# Anthropic-compliant `.claude-plugin/marketplace.json` (we route the output
-# to `.github/plugin/marketplace.json` via `--marketplace-output` to keep the
-# canonical install path stable).
+# Anthropic-compliant `marketplace.json`. We route the output to
+# `.github/plugin/marketplace.json` via
+# `--marketplace claude --marketplace-path claude=...` to keep the
+# canonical install path stable (see `package.json`).
 #
 # To add or update a local plugin, edit the corresponding entry under
 # `marketplace.plugins:` and bump its `version`. External (remote) plugins
