@@ -766,6 +766,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "vibe-coding",
+      "source": "vibe-coding",
+      "description": "Discipline plugin for vibe-driven development — turns mood, feel, and outcome-shaped requests into shippable code without drift, hallucinated APIs, or silent scope creep. Bundles a vibe-lock entry skill with companion skills for visual design, shorthand translation, and plain-English explanation.",
+      "version": "0.1.0"
+    },
+    {
       "name": "whatidid",
       "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
       "version": "1.0.0",
