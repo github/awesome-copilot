@@ -2,20 +2,30 @@ name: Validate Marketplace
 
 # Runs on PRs that touch any input to the marketplace.json build chain
 # (apm.yml, plugin manifests, external plugin registry, the bridge merge
-# script, or the legacy generator). Two gates, both mirroring the pattern
-# microsoft/apm uses for its own self-check
-# (see microsoft/apm/.github/workflows/ci.yml):
+# script, or the legacy generator). Two gates, both wired through the
+# canonical APM consumer pattern shipped by microsoft/apm-action@v1
+# (the same install+audit substrate used by downstream consumers such
+# as DevExpGbb/zava-agent-config, whose reusable apm-audit.yml is the
+# golden example for repos with a real `dependencies:` block):
 #
 #   Gate A (supply-chain): `apm audit --ci`. Validates lockfile / install
 #   fidelity, ref consistency between apm.yml and apm.lock.yaml,
 #   no orphan packages, and content-integrity (hidden Unicode) on
-#   deployed package content. SARIF report is uploaded to the run.
+#   deployed package content. Short-circuits cleanly on this repo today
+#   (no `dependencies:` block -- marketplace-only manifest), but fires
+#   automatically the moment awesome-copilot adds a real dependency.
+#   SARIF report is uploaded to the run when apm-action produces one.
 #
 #   Gate B (drift): rebuild marketplace.json with `apm pack` + the
 #   external-plugin merge bridge, and fail if the result differs from
 #   the committed `.github/plugin/marketplace.json`. Catches contributors
 #   who edit apm.yml without re-running `npm run build`, or who
-#   hand-edit the generated marketplace.json.
+#   hand-edit the generated marketplace.json. This is the producer-side
+#   counterpart to the consumer-side gate (`apm marketplace check`)
+#   documented in microsoft/apm's producer guide -- we cannot use
+#   `apm marketplace check` directly today because it does not yet
+#   short-circuit local-path sources (treats `./plugins/<name>` as
+#   remote refs).
 
 on:
   pull_request:
