@@ -1,6 +1,6 @@
 {
   "name": "modernize-java",
-  "version": "1.0.0",
+  "version": "1.17.0",
   "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
   "author": {
     "name": "Microsoft"
@@ -22,7 +22,9 @@
       "command": "npx",
       "args": [
         "-y",
-        "@microsoft/github-copilot-app-modernization-mcp-server"
+        "@microsoft/github-copilot-app-modernization-mcp-server@1.17.0",
+        "--callerType",
+        "plugin"
       ]
     }
   }
