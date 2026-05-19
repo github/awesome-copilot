@@ -1,30 +1,5 @@
 [
   {
-    "name": "dataverse",
-    "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
-    "version": "1.0.0",
-    "author": {
-      "name": "Microsoft",
-      "url": "https://www.microsoft.com"
-    },
-    "homepage": "https://github.com/microsoft/Dataverse-skills",
-    "keywords": [
-      "dataverse",
-      "power-platform",
-      "microsoft",
-      "mcp",
-      "python",
-      "sdk"
-    ],
-    "license": "MIT",
-    "repository": "https://github.com/microsoft/Dataverse-skills",
-    "source": {
-      "source": "github",
-      "repo": "microsoft/Dataverse-skills",
-      "path": ".github/plugins/dataverse"
-    }
-  },
-  {
     "name": "azure",
     "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
     "version": "1.0.0",
@@ -47,6 +22,31 @@
       "source": "github",
       "repo": "microsoft/azure-skills",
       "path": ".github/plugins/azure-skills"
+    }
+  },
+  {
+    "name": "dataverse",
+    "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/Dataverse-skills",
+    "keywords": [
+      "dataverse",
+      "power-platform",
+      "microsoft",
+      "mcp",
+      "python",
+      "sdk"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/Dataverse-skills",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/Dataverse-skills",
+      "path": ".github/plugins/dataverse"
     }
   },
   {
@@ -74,33 +74,6 @@
       "source": "github",
       "repo": "dotnet/skills",
       "path": "plugins/dotnet"
-    }
-  },
-  {
-    "name": "dotnet-test",
-    "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
-    "version": "0.1.0",
-    "author": {
-      "name": "Microsoft",
-      "url": "https://www.microsoft.com"
-    },
-    "homepage": "https://github.com/dotnet/skills",
-    "keywords": [
-      "dotnet",
-      "testing",
-      "mstest",
-      "xunit",
-      "nunit",
-      "test-generation",
-      "coverage",
-      "migration"
-    ],
-    "license": "MIT",
-    "repository": "https://github.com/dotnet/skills",
-    "source": {
-      "source": "github",
-      "repo": "dotnet/skills",
-      "path": "plugins/dotnet-test"
     }
   },
   {
@@ -133,78 +106,30 @@
     }
   },
   {
-    "name": "skills-for-copilot-studio",
-    "description": "Microsoft Copilot Studio plugins for AI coding agents",
-    "version": "1.0.3",
-    "author": {
-      "name": "Microsoft Copilot Studio CAT Team",
-      "url": "https://www.microsoft.com"
-    },
-    "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
-    "keywords": [
-      "copilot",
-      "copilot-studio",
-      "studio",
-      "agent",
-      "microsoft",
-      "coding"
-    ],
-    "license": "MIT",
-    "repository": "https://github.com/microsoft/skills-for-copilot-studio",
-    "source": {
-      "source": "github",
-      "repo": "microsoft/skills-for-copilot-studio"
-    }
-  },
-  {
-    "name": "modernize-dotnet",
-    "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-    "version": "1.0.1119-preview1",
+    "name": "dotnet-test",
+    "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
+    "version": "0.1.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
     },
-    "homepage": "https://github.com/dotnet/modernize-dotnet",
+    "homepage": "https://github.com/dotnet/skills",
     "keywords": [
-      "modernization",
-      "upgrade",
-      "migration",
-      "dotnet"
-    ],
-    "license": "MIT",
-    "repository": "https://github.com/dotnet/modernize-dotnet",
-    "source": {
-      "source": "github",
-      "repo": "dotnet/modernize-dotnet",
-      "path": "plugins/modernize-dotnet"
-    }
-  },
-  {
-    "name": "microsoft-docs",
-    "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
-    "version": "1.0.0",
-    "author": {
-      "name": "Microsoft",
-      "url": "https://www.microsoft.com"
-    },
-    "homepage": "https://learn.microsoft.com",
-    "keywords": [
-      "microsoft",
-      "azure",
       "dotnet",
-      "windows",
-      "api",
-      "documentation",
-      "rag",
-      "dynamics",
-      "powerbi",
-      "code-samples"
+      "testing",
+      "mstest",
+      "xunit",
+      "nunit",
+      "test-generation",
+      "coverage",
+      "migration"
     ],
     "license": "MIT",
-    "repository": "https://github.com/MicrosoftDocs/mcp",
+    "repository": "https://github.com/dotnet/skills",
     "source": {
       "source": "github",
-      "repo": "MicrosoftDocs/mcp"
+      "repo": "dotnet/skills",
+      "path": "plugins/dotnet-test"
     }
   },
   {
@@ -227,31 +152,6 @@
     "source": {
       "source": "github",
       "repo": "figma/mcp-server-guide"
-    }
-  },
-  {
-    "name": "whatidid",
-    "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
-    "version": "1.0.0",
-    "author": {
-      "name": "Microsoft",
-      "url": "https://www.microsoft.com"
-    },
-    "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
-    "keywords": [
-      "copilot",
-      "productivity",
-      "impact",
-      "report",
-      "estimation",
-      "roi",
-      "session-logs"
-    ],
-    "license": "MIT",
-    "repository": "https://github.com/microsoft/What-I-Did-Copilot",
-    "source": {
-      "source": "github",
-      "repo": "microsoft/What-I-Did-Copilot"
     }
   },
   {
@@ -283,6 +183,34 @@
     }
   },
   {
+    "name": "microsoft-docs",
+    "description": "Access official Microsoft documentation, API references, and code samples for Azure, .NET, Windows, and more.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://learn.microsoft.com",
+    "keywords": [
+      "microsoft",
+      "azure",
+      "dotnet",
+      "windows",
+      "api",
+      "documentation",
+      "rag",
+      "dynamics",
+      "powerbi",
+      "code-samples"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/MicrosoftDocs/mcp",
+    "source": {
+      "source": "github",
+      "repo": "MicrosoftDocs/mcp"
+    }
+  },
+  {
     "name": "microsoft-events",
     "description": "Connect your project to Microsoft Build and Ignite sessions — discover relevant talks, explore what's new for your stack, and plan next steps from your development environment.",
     "version": "1.0.0",
@@ -307,32 +235,99 @@
     }
   },
   {
-    "name": "winui",
-    "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
-    "version": "0.3.0",
+    "name": "modernize-dotnet",
+    "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
+    "version": "1.0.1119-preview1",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
     },
-    "homepage": "https://github.com/microsoft/win-dev-skills",
+    "homepage": "https://github.com/dotnet/modernize-dotnet",
     "keywords": [
-      "windows",
-      "winui",
-      "winui3",
-      "xaml",
-      "windows-app-sdk",
-      "msix",
-      "packaging",
-      "desktop",
-      "wpf-migration",
-      "electron-migration"
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet"
     ],
     "license": "MIT",
-    "repository": "https://github.com/microsoft/win-dev-skills",
+    "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
       "source": "github",
-      "repo": "microsoft/win-dev-skills",
-      "path": "plugins/winui"
+      "repo": "dotnet/modernize-dotnet",
+      "path": "plugins/modernize-dotnet"
+    }
+  },
+  {
+    "name": "skills-for-copilot-studio",
+    "description": "Microsoft Copilot Studio plugins for AI coding agents",
+    "version": "1.0.3",
+    "author": {
+      "name": "Microsoft Copilot Studio CAT Team",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/skills-for-copilot-studio",
+    "keywords": [
+      "copilot",
+      "copilot-studio",
+      "studio",
+      "agent",
+      "microsoft",
+      "coding"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/skills-for-copilot-studio",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/skills-for-copilot-studio"
+    }
+  },
+  {
+    "name": "sonarqube",
+    "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
+    "version": "2.0.0",
+    "author": {
+      "name": "Sonar",
+      "url": "https://sonarsource.com/"
+    },
+    "repository": "https://github.com/SonarSource/sonarqube-agent-plugins",
+    "homepage": "https://sonarsource.com/",
+    "license": "SSAL-1.0",
+    "keywords": [
+      "sonarqube",
+      "code-quality",
+      "static-analysis",
+      "security",
+      "secrets"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "SonarSource/sonarqube-agent-plugins",
+      "ref": "b1492121b8591fba7dc477392ae0ea6be924fb31"
+    }
+  },
+  {
+    "name": "whatidid",
+    "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
+    "version": "1.0.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/What-I-Did-Copilot",
+    "keywords": [
+      "copilot",
+      "productivity",
+      "impact",
+      "report",
+      "estimation",
+      "roi",
+      "session-logs"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/What-I-Did-Copilot",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/What-I-Did-Copilot"
     }
   },
   {
@@ -362,6 +357,35 @@
       "source": "github",
       "repo": "microsoft/WinAppCli",
       "ref": "stable"
+    }
+  },
+  {
+    "name": "winui",
+    "description": "Agents and skills for WinUI 3 app development. Create new WinUI 3 desktop apps, convert from other frameworks (WPF, WinForms, Electron, Tauri, Flutter) to WinUI 3, or add features to existing WinUI 3 applications. Includes MSIX packaging, code signing, UI automation testing, and Windows App SDK guidance.",
+    "version": "0.3.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/win-dev-skills",
+    "keywords": [
+      "windows",
+      "winui",
+      "winui3",
+      "xaml",
+      "windows-app-sdk",
+      "msix",
+      "packaging",
+      "desktop",
+      "wpf-migration",
+      "electron-migration"
+    ],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/win-dev-skills",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/win-dev-skills",
+      "path": "plugins/winui"
     }
   }
 ]
