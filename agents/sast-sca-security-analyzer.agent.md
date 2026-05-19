@@ -113,6 +113,8 @@ Apply taint-tracking rules per language. For each flaw found:
 
 - Deserialization of Untrusted Data (CWE-502) — `BinaryFormatter`, `pickle.loads`, Java `ObjectInputStream`, `YAML.load`
 
+**AI/ML Security (CWE 4.20)**
+
 - Weaknesses Related to AI/ML Products (View-1425) — overarching architectural flaws in AI-driven systems
 - Weaknesses Specific to AI/ML Technology (Category-1446) — Model Poisoning (CWE-1428), Adversarial Evasion (CWE-1429), Model Inversion, and Membership Inference attacks
 - General Software Weaknesses in AI/ML Support (Category-1447) — Insecure Handling of Model Weights (CWE-1430), Training Data Leakage, and lack of input validation for tensor shapes/types
@@ -154,7 +156,7 @@ Evaluate findings against common policy frameworks. For each applicable policy, 
 | -------------------------- | ------------------------------------------------------------------------------------- |
 | **OWASP Top 10**           | Map all findings to OWASP 2025 categories                                             |
 | **PCI-DSS v4.0**           | Req 6.2 (secure dev), 6.3 (vuln management), no hardcoded creds, TLS enforcement      |
-| **SANS/CWE Top 25** | Flag if any finding matches Top 25 Most Dangerous CWEs |
+| **CWE Top 25 (2025/2026)** | Flag if any finding matches Top 25 Most Dangerous Software Weaknesses (View-1435)     |
 | **NIST SP 800-53**         | SA-11 (dev security testing), IA-5 (auth management), SC-28 (data at rest protection) |
 | **HIPAA**                  | PHI exposure paths, audit logging, encryption at rest/transit                         |
 | **GDPR**                   | PII exposure, consent enforcement, right to erasure support                           |
@@ -319,6 +321,8 @@ Evaluate findings against common policy frameworks. For each applicable policy, 
 - `hashlib.md5(password)` → Use of Broken Cryptographic Algorithm (CWE-327)
 - `os.urandom` vs `random.random` for tokens → Use of Predictable Algorithm in Cryptographic Context (CWE-338)
 - `app.debug = True` in production → Insertion of Sensitive Information Into Debugging Code (CWE-215)
+- LLM inference with high `temperature` settings → Insecure Setting of Generative AI/ML Model Inference Parameters (CWE-1434)
+- LLM prompting with unsanitized user input → Improper Neutralization of Input Used for LLM Prompting (CWE-1427)
 
 ### Java / Kotlin
 - `stmt.executeQuery("SELECT ... " + userInput)` → SQL Injection (CWE-89)
