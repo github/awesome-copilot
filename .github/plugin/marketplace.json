@@ -17,6 +17,33 @@
       "version": "1.0.0"
     },
     {
+      "name": "ai-ready",
+      "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
+      "version": "1.0.0",
+      "author": {
+        "name": "John Papa",
+        "url": "https://github.com/johnpapa"
+      },
+      "repository": "https://github.com/johnpapa/ai-ready",
+      "homepage": "https://github.com/johnpapa/ai-ready",
+      "license": "MIT",
+      "keywords": [
+        "ai-ready",
+        "copilot",
+        "agents",
+        "configuration",
+        "skills",
+        "code-review",
+        "onboarding"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "johnpapa/ai-ready",
+        "path": ".github/plugin",
+        "ref": "b993d6512c918d8a21a61b7931726f5980c3c920"
+      }
+    },
+    {
       "name": "ai-team-orchestration",
       "source": "ai-team-orchestration",
       "description": "Bootstrap and run a multi-agent AI development team with named roles (Producer, Dev Team, QA). Sprint planning, brainstorm prompts with distinct agent voices, cross-chat context survival, and parallel team workflows. Based on a proven template that shipped a 30-game app in 5 days with zero human-written code.",
@@ -677,6 +704,30 @@
       "source": "software-engineering-team",
       "description": "7 specialized agents covering the full software development lifecycle from UX design and architecture to security and DevOps.",
       "version": "1.0.0"
+    },
+    {
+      "name": "sonarqube",
+      "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
+      "version": "2.0.0",
+      "author": {
+        "name": "Sonar",
+        "url": "https://sonarsource.com/"
+      },
+      "repository": "https://github.com/SonarSource/sonarqube-agent-plugins",
+      "homepage": "https://sonarsource.com/",
+      "license": "SSAL-1.0",
+      "keywords": [
+        "sonarqube",
+        "code-quality",
+        "static-analysis",
+        "security",
+        "secrets"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "SonarSource/sonarqube-agent-plugins",
+        "ref": "b1492121b8591fba7dc477392ae0ea6be924fb31"
+      }
     },
     {
       "name": "structured-autonomy",
