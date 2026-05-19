@@ -1,0 +1,28 @@
+{
+  "name": "vibe-coding",
+  "description": "Discipline plugin for vibe-driven development — turns mood, feel, and outcome-shaped requests into shippable code without drift, hallucinated APIs, or silent scope creep. Bundles a vibe-lock entry skill with companion skills for visual design, shorthand translation, and plain-English explanation.",
+  "version": "0.1.0",
+  "keywords": [
+    "vibe-coding",
+    "prototyping",
+    "intent-driven",
+    "natural-language-to-code",
+    "design",
+    "shorthand",
+    "pseudo-code",
+    "beginner-friendly"
+  ],
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [],
+  "commands": [],
+  "skills": [
+    "./skills/graphic-designer/",
+    "./skills/noob-mode/",
+    "./skills/quasi-coder/",
+    "./skills/vibe-coder/"
+  ]
+}
