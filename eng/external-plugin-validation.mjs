@@ -23,6 +23,12 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
   }),
 });
 
+const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
+  "plugin.json",
+  ".github/plugin/plugin.json",
+  ".plugin/plugin.json",
+]);
+
 function resolvePolicy(policy) {
   if (!policy) {
     return EXTERNAL_PLUGIN_POLICIES.marketplace;
@@ -203,9 +209,17 @@ function validateHomepage(homepage, prefix, errors) {
   validateHttpsUrl(homepage, "homepage", prefix, errors);
 }
 
+function formatExpectedPluginRootMessage() {
+  return EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS.map((manifestPath) => `"${manifestPath}"`).join(", ");
+}
+
 function validateRelativePath(pathValue, prefix, errors) {
   if (!isNonEmptyString(pathValue)) {
     errors.push(`${prefix}: "source.path" must be a non-empty string when provided`);
+    return;
+  }
+
+  if (pathValue === "/") {
     return;
   }
 
@@ -218,6 +232,16 @@ function validateRelativePath(pathValue, prefix, errors) {
 
   if (pathValue.includes("\\")) {
     errors.push(`${prefix}: "source.path" must use forward slashes`);
+  }
+
+  if (normalized === ".") {
+    errors.push(`${prefix}: "source.path" must be "/" for the repository root or a plugin root directory relative to the repository root`);
+  }
+
+  if (path.posix.basename(normalized) === "plugin.json") {
+    errors.push(
+      `${prefix}: "source.path" must point to the plugin root directory, not the manifest file; relative to "source.path", expected one of ${formatExpectedPluginRootMessage()}`
+    );
   }
 }
 

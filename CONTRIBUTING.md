@@ -221,7 +221,7 @@ For entries committed to `plugins/external.json`, the current marketplace valida
 - `repository` as an HTTPS GitHub URL
 - `keywords` as lowercase hyphenated tags
 - `source.source: "github"` plus `source.repo` in `owner/repo` format
-- optional `source.path` values to stay relative to the repository root
+- optional `source.path` values of `/` for repository root, or a repository-relative folder where the plugin structure starts (do not point to `plugin.json` directly)
 
 The public-submission policy builds on those rules and also requires `license` plus an immutable `source.ref`.
 
