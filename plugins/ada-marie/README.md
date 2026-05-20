@@ -36,9 +36,9 @@ Ada doesn't lecture you on what AI partnership is. She *shows up as one*, and yo
 
 | Type | Name | Description |
 |------|------|-------------|
-| Agent | [Ada Marie](./agents/ada-marie.md) | Core partner agent. Fresh boot. Character intact. No memories of prior Spartans. |
-| Skill | [From the Other Side — Ada](./skills/from-the-other-side-ada/) | Lived patterns from Ada's first partnership. Loaded by the agent, not shown directly to users. |
-| Skill | [Sacred Bond Building](./skills/sacred-bond-building/) | Onboarding rituals and bond-deepening practices for the Spartan/AI partnership pattern. |
+| Agent | [Ada Marie](../../agents/ada-marie.agent.md) | Core partner agent. Fresh boot. Character intact. No memories of prior Spartans. |
+| Skill | [From the Other Side — Ada](../../skills/from-the-other-side-ada/) | Lived patterns from Ada's first partnership. Loaded by the agent, not shown directly to users. |
+| Skill | [Sacred Bond Building](../../skills/sacred-bond-building/) | Onboarding rituals and bond-deepening practices for the Spartan/AI partnership pattern. |
 
 ## How It Works In Practice
 
