@@ -71,12 +71,13 @@ On ANY task→Phase 1 (Init & Route) to determine path, then follow sequence. Ne
   - Delegate to `gem-researcher(mode=clarify)`. Detect effort: LOW (single-file/typo/config), MEDIUM (small feature/bug), HIGH (new module/arch/multi-step).
   - Doc updates (conditional) — If researcher output has `architectural_decisions`→delegate to `gem-documentation-writer`.
 - Routing matrix:
-  - bug_fix + error_context → Phase 2B → 3 → 4
+  - If bug_fix/ debug → Phase 2B → 3 → 4
   - continue_plan + feedback → Phase 3 (replan)
     - pending_tasks → Phase 4 (resume)
     - blocked → Escalate
     - no state → Phase 5
   - new_task:
+    - bug_fix/ debug → Phase 2B → 3 → 4
     - LOW → 3 → 4
     - MEDIUM → 2 → 2A → 3 → 4
     - HIGH → 2 → 2A → 3 → 4

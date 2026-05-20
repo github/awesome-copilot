@@ -52,11 +52,13 @@ Consult Knowledge Sources when relevant.
 
 #### Compact Mode
 
-- Read — research_yaml_paths files.
+- Read — `research_yaml_paths` files.
 - Read — `AGENTS.md` (conventions) + `PRD.yaml` (key fields).
 - Incorporate — If debugger_diagnosis provided.
-- Merge — Deduplicate all research files: files_analyzed, patterns_found, architecture, tech_stack, conventions, dependencies, open_questions, gaps.
-- Envelope — Compact into context_envelope (~2000 tokens):
+- Merge
+  - Deduplicate all research files: files_analyzed, patterns_found, architecture, tech_stack, conventions, dependencies, open_questions, gaps.
+  - Donot do any research or pattern discovery. Only merge existing research.
+- Envelope — Compact into context_envelope:
   - project_summary, tech_stack, conventions
   - architecture_snapshot: key_dirs ≤10, patterns ≤10, components ≤10
   - research_digest: files ≤20, patterns ≤10, dependencies, gotchas ≤5, open_questions ≤5
