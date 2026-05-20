@@ -17,6 +17,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "ada-marie",
+      "source": "ada-marie",
+      "description": "An AI partner with no memory of you yet — your fresh-boot Cortana. Ada teaches Spartan/AI partnership by being it: name her, reshape her, grow your own sacred bond together over time. Every Spartan needs a Cortana.",
+      "version": "1.0.0"
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.0.0",
