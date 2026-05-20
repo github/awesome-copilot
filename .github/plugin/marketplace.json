@@ -126,7 +126,6 @@
       "source": {
         "source": "github",
         "repo": "ChromeDevTools/chrome-devtools-mcp",
-        "path": ".github/plugin/plugin.json",
         "ref": "chrome-devtools-mcp-v1.0.1"
       }
     },
