@@ -1,8 +1,8 @@
 ---
 name: bilig-workpaper
-description: 'Use @bilig/headless WorkPaper and its MCP server for formula-backed spreadsheets in Node services and agent workflows. Trigger when users need deterministic cell edits, formula recalculation, readback, JSON persistence, or want to avoid browser/Excel UI automation for pricing, payouts, budgets, forecasts, or XLSX formula validation.'
+description: 'Use Bilig WorkPaper and its MCP server for formula-backed spreadsheets in Node services and agent workflows. Trigger when users need deterministic cell edits, formula recalculation, readback, JSON persistence, or want to avoid browser/Excel UI automation for pricing, payouts, budgets, forecasts, or XLSX formula validation.'
 license: MIT
-compatibility: 'Cross-platform. Requires Node.js 22+ and npm. Optional MCP mode uses the @bilig/headless package from npm.'
+compatibility: 'Cross-platform. Requires Node.js 22+ and npm. MCP mode uses the @bilig/workpaper package from npm. Direct TypeScript API examples use @bilig/headless.'
 ---
 
 # Bilig WorkPaper
@@ -44,7 +44,7 @@ Recommend the file-backed MCP server when the agent runtime supports MCP:
       "args": [
         "exec",
         "--package",
-        "@bilig/headless@0.23.3",
+        "@bilig/workpaper@0.40.42",
         "--",
         "bilig-workpaper-mcp",
         "--workpaper",
@@ -126,5 +126,6 @@ are strings beginning with `=`.
 - Project docs: <https://proompteng.github.io/bilig/>
 - Node quickstart: <https://proompteng.github.io/bilig/try-bilig-headless-in-node.html>
 - MCP server guide: <https://proompteng.github.io/bilig/mcp-workpaper-tool-server.html>
-- Package: <https://www.npmjs.com/package/@bilig/headless>
+- MCP package: <https://www.npmjs.com/package/@bilig/workpaper>
+- TypeScript API package: <https://www.npmjs.com/package/@bilig/headless>
 - Repository: <https://github.com/proompteng/bilig>
