@@ -230,9 +230,10 @@ The public-submission policy builds on those rules and also requires `license` p
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are closed with a comment explaining what must be fixed before resubmitting.
 3. **Ready for maintainer review**: if the issue passes intake validation, automation removes `awaiting-review` and adds `ready-for-review`.
-4. **Maintainer decision**: a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
-5. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
-6. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. Submitters can open a new issue after addressing the feedback.
+4. **Requesting another intake pass**: after updating the issue body, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake on demand. Open issues still re-trigger intake automatically on edit, but closed rejected issues need `/rerun-intake`.
+5. **Maintainer decision**: a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
+6. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
+7. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
 
 ##### Maintainer review responsibilities
 

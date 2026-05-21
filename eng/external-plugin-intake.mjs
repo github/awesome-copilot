@@ -6,7 +6,9 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
 
-const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
+export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
+export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
+export const RERUN_INTAKE_COMMAND = "/rerun-intake";
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
 const REQUIRED_CHECKLIST_ITEMS = [
@@ -261,6 +263,10 @@ export function parseExternalPluginIssueBody(body) {
   };
 }
 
+export function parseRerunIntakeCommand(body) {
+  return /^\s*\/rerun-intake\b/m.test(String(body ?? ""));
+}
+
 export async function evaluateExternalPluginIssue({ issue, token } = {}) {
   const issueBody = issue?.body ?? "";
   const parsed = parseExternalPluginIssueBody(issueBody);
@@ -294,7 +300,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
   const dedupedErrors = [...new Set(errors)];
   const dedupedWarnings = [...new Set(warnings)];
   const valid = dedupedErrors.length === 0;
-  const marker = "<!-- external-plugin-intake -->";
+  const marker = EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
   const normalizedKeywords = parsed.plugin?.keywords?.length ? parsed.plugin.keywords.join(", ") : "_None provided_";
   const notes = parsed.additionalNotes ?? "_No additional notes provided._";
   const payload = parsed.plugin
@@ -333,7 +339,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         "## ❌ External plugin intake failed",
         "",
         "This submission did not pass automated intake validation, so the issue has been closed.",
-        "Update the issue form, then reopen the issue to run intake validation again.",
+        `Edit the issue form to address the fixes below, then have the issue author or a maintainer comment \`${RERUN_INTAKE_COMMAND}\` to re-run intake for this closed submission.`,
         "",
         "### Required fixes",
         "",
