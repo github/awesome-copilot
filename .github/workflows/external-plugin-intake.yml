@@ -6,7 +6,7 @@ on:
 
 concurrency:
   group: external-plugin-intake-${{ github.event.issue.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
