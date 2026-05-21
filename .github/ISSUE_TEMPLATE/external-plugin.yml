@@ -44,8 +44,8 @@ body:
     id: plugin-path
     attributes:
       label: Plugin path inside the repository
-      description: Optional if the plugin lives at the repository root.
-      placeholder: .github/plugins/my-plugin
+      description: Optional if the plugin lives at the repository root. Otherwise, enter the folder where the plugin structure starts, not the plugin.json file.
+      placeholder: plugins/my-plugin
     validations:
       required: false
   - type: input
