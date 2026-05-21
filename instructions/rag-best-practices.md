@@ -23,7 +23,7 @@ Pero los documentos dicen:
 - "teletrabajo"
 - "incorporaciones recientes"
 
-**La búsqueda tradicional por keywords falla.** Busca coincidencias exactas, no intención.
+**La search tradicional por keywords falla.** Busca coincidencias exactas, no intención.
 
 ---
 
@@ -36,7 +36,7 @@ El contenido enterprise abarca múltiples plataformas:
 - Blob Storage (PDFs, docs Word)
 - Repositorios de código (SQL, procedimientos)
 
-**Crear un corpus de búsqueda unificado sin interrumpir las operaciones de datos es esencial.**
+**Crear un corpus de search unificado sin interrumpir las operaciones de datos es esencial.**
 
 ---
 
@@ -61,7 +61,7 @@ Los usuarios esperan respuestas potenciadas por IA en **3-5 segundos**, no minut
 
 ---
 
-### 5. Seguridad y gobernanza
+### 5. security y gobernanza
 
 **El problema:**  
 Abrir contenido privado a LLMs requiere control de acceso granular:
@@ -177,9 +177,9 @@ Respuesta devuelta al usuario
 ```
 
 **Características:**
-- Consultas híbridas combinan keyword (BM25) y búsqueda vectorial para máximo recall
+- Consultas híbridas combinan keyword (BM25) y search vectorial para máximo recall
 - Ranking semántico re-puntúa resultados por significado, no solo keywords
-- Búsqueda por similitud vectorial coincide conceptos, no términos exactos
+- search por similitud vectorial coincide conceptos, no términos exactos
 - Arquitectura más simple con menos puntos de fallo
 - Control granular sobre el pipeline de consultas
 
@@ -222,7 +222,7 @@ response = llm.generate(
 #### 1. **Estrategia de chunking**
 
 **Problema:**  
-Documentos grandes (50+ páginas) no funcionan bien en búsqueda vectorial. Los resultados devuelven documentos enteros en vez de secciones relevantes.
+Documentos grandes (50+ páginas) no funcionan bien en search vectorial. Los resultados devuelven documentos enteros en vez de secciones relevantes.
 
 **Solución:**  
 Dividir documentos en chunks semánticos (200-500 tokens cada uno):
@@ -255,10 +255,10 @@ Chunk N: "Sección 8.5: Procedimientos de terminación" (275 tokens)
 #### 2. **Vectorización**
 
 **Problema:**  
-La búsqueda por keywords falla en consultas conceptuales. "Política PTO" y "días libres" son semánticamente idénticos pero textualmente diferentes.
+La search por keywords falla en consultas conceptuales. "Política PTO" y "días libres" son semánticamente idénticos pero textualmente diferentes.
 
 **Solución:**  
-Crear embeddings (representaciones vectoriales) para cada chunk.
+Crear embeddings (representaciones vector) para cada chunk.
 
 ```
 Texto del chunk: "La política de días libres permite 30 días anuales"
@@ -285,14 +285,14 @@ Recuperar chunks relevantes
 - Usar embeddings de Azure OpenAI (o Azure Vision para imágenes)
 - Mantener el modelo de embeddings consistente (no cambiar a mitad de proyecto)
 - Trade-offs de dimensión: Mayor dims = mejor precisión, mayor coste
-- Embeddings multilingüe soportan 50+ idiomas
+- embeddings multilingüe soportan 50+ idiomas
 
 ---
 
 #### 3. **Extracción de metadatos**
 
 **Problema:**  
-Los resultados de búsqueda carecen de contexto. El usuario no sabe de dónde viene la información.
+Los resultados de search carecen de contexto. El usuario no sabe de dónde viene la información.
 
 **Solución:**  
 Extraer y almacenar metadatos con cada chunk:
@@ -334,7 +334,7 @@ response = {
 #### 4. **Soporte multilingüe**
 
 **Problema:**  
-MENSADEF probablemente tiene documentos en español. La búsqueda por keywords estándar no entiende stemming/lematización en español.
+MENSADEF probablemente tiene documentos en español. La search por keywords estándar no entiende stemming/lematización en español.
 
 **Solución:**  
 Usar analizadores de idioma apropiados:
@@ -397,9 +397,9 @@ resource ocrSkill 'Microsoft.Search/searchServices/skillsets@2023-11-01' = {
 - [ ] **Idioma:** Analizador apropiado configurado
 - [ ] **PDFs/Imágenes:** OCR aplicado
 - [ ] **Sinónimos:** Mapas de sinónimos para diferencias terminológicas (PTO = "días libres", "vacaciones")
-- [ ] **Filtros:** Metadatos de seguridad a nivel documento incluidos
+- [ ] **Filtros:** Metadatos de security a nivel documento incluidos
 - [ ] **Scoring:** Campos clave potenciados (título > cuerpo)
-- [ ] **Testing:** Calidad de búsqueda validada con consultas de ejemplo
+- [ ] **Testing:** Calidad de search validada con consultas de ejemplo
 
 ---
 
@@ -407,14 +407,14 @@ resource ocrSkill 'Microsoft.Search/searchServices/skillsets@2023-11-01' = {
 
 ### 1. Consultas híbridas (Keyword + Vector)
 
-**Enfoque clásico:** SOLO búsqueda por keywords (BM25)
+**Enfoque clásico:** SOLO search por keywords (BM25)
 ```
 Consulta: "Política PTO"
 Resultados: Solo coincidencias exactas de frase
 Problema: No encuentra "días de vacaciones", "días libres", "política de ausencias"
 ```
 
-**Mejor enfoque:** Búsqueda híbrida (keyword + vector)
+**Mejor enfoque:** search híbrida (keyword + vector)
 ```
 Consulta: "Política PTO"
     ├─► Búsqueda keyword: "política PTO", "días libres", "vacaciones"
@@ -422,7 +422,7 @@ Consulta: "Política PTO"
 Resultado: Combina lo mejor de ambos (alto recall + alta precisión)
 ```
 
-**Implementación:**
+**implementation:**
 ```python
 from azure.search.documents.models import HybridSearch, VectorizedQuery
 
@@ -440,7 +440,7 @@ results = client.search(
 ### 2. Ranking semántico
 
 **Problema:**  
-Los resultados top de búsqueda híbrida pueden no ser semánticamente relevantes.
+Los resultados top de search híbrida pueden no ser semánticamente relevantes.
 
 ```
 Top 3 Resultados:
@@ -464,7 +464,7 @@ Después de re-ranking semántico:
 3. "Manual nóminas" - Score semántico: 0.4
 ```
 
-**Implementación:**
+**implementation:**
 ```bicep
 // Habilitar en el índice de búsqueda
 semanticConfiguration: {
@@ -518,7 +518,7 @@ scoringProfiles: [
 
 ---
 
-### 4. Parámetros de búsqueda vectorial
+### 4. Parámetros de search vectorial
 
 **Ponderación vectorial en consultas híbridas:**
 ```python
@@ -564,7 +564,7 @@ Una consulta → Un conjunto de resultados → Una respuesta
 (Probablemente pierde contexto importante)
 
 **Retrieval agéntico:**
-LLM descompone la pregunta → Múltiples sub-consultas enfocadas → Búsqueda paralela
+LLM descompone la pregunta → Múltiples sub-consultas enfocadas → search paralela
 
 ```
 Consulta original:
@@ -590,7 +590,7 @@ Síntesis de respuesta
 
 ---
 
-## Seguridad: Control de acceso a nivel documento
+## security: Control de acceso a nivel documento
 
 ### Escenario
 
@@ -603,9 +603,9 @@ Con DLS: Solo el equipo de Finanzas ve documentos financieros
           El ejecutivo obtiene "Sin autorización para estos datos"
 ```
 
-### Implementación
+### implementation
 
-**En tiempo de indexación:**
+**En tiempo de indexing:**
 ```json
 {
   "id": "finance-budget-2024",
@@ -636,12 +636,12 @@ results = client.search(
 
 ---
 
-## Checklist de ajuste de rendimiento
+## Checklist de ajuste de performance
 
 - [ ] **Consultas híbridas habilitadas** (keyword + vector)
 - [ ] **Ranking semántico habilitado** (re-scoring cross-encoder)
 - [ ] **Perfiles de scoring aplicados** (potenciar campos clave)
-- [ ] **Búsqueda vectorial ajustada** (ponderación, umbrales mínimos)
+- [ ] **search vectorial ajustada** (ponderación, umbrales mínimos)
 - [ ] **Resultados top-k limitados** (top: 5-10, no 100)
 - [ ] **Filtros optimizados** (estrechar resultados antes de rankear)
 - [ ] **Réplicas escaladas** (1+ para escenarios multi-usuario)
@@ -650,7 +650,7 @@ results = client.search(
 
 ---
 
-## Optimización de costes
+## optimization de costes
 
 ### Selección de tier
 
@@ -670,7 +670,7 @@ results = client.search(
 
 ---
 
-## Monitorización y observabilidad
+## Monitorización y observability
 
 ### Métricas clave
 
@@ -710,7 +710,7 @@ Errores:
 | **Ejecución** | Sub-consultas paralelas | Petición única |
 | **Respuesta** | Estructurada (citas, metadatos) | Conjunto plano de resultados |
 | **Relevancia** | Máxima (multi-facetada) | Buena (consulta única) |
-| **Velocidad** | Moderada (múltiples búsquedas) | Rápida (una petición) |
+| **Velocidad** | Moderada (múltiples searches) | Rápida (una petición) |
 | **Madurez** | Preview (features nuevos) | GA (estable) |
 | **Coste** | Ligeramente mayor (más consultas) | Menor (consulta única) |
 
@@ -724,7 +724,7 @@ Errores:
 ## Referencias
 
 - 📚 [Visión general RAG (Microsoft Learn)](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview)
-- 🔍 [Búsqueda híbrida](https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview)
+- 🔍 [search híbrida](https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview)
 - ⭐ [Ranking semántico](https://learn.microsoft.com/en-us/azure/search/semantic-ranking)
 - 🏗️ [README - Arquitectura](README.md)
 - 📋 [Agentes](.github/agents/)

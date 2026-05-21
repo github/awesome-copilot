@@ -1,6 +1,6 @@
 ---
 name: 'rag-deployment-templates'
-description: 'Plantillas Bicep IaC para desplegar Azure OpenAI, AI Search y Application Insights. Reutilizables en cualquier proyecto RAG. Incluye main.bicep y orquestación deploy.sh.'
+description: 'Plantillas Bicep IaC para deploy Azure OpenAI, AI Search y Application Insights. Reutilizables en cualquier proyecto RAG. Incluye main.bicep y orquestación deploy.sh.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
@@ -9,13 +9,13 @@ description: 'Plantillas Bicep IaC para desplegar Azure OpenAI, AI Search y Appl
 **Versión:** 1.0
 **Assets incluidos:** `main.bicep`, `deploy.sh`, `deployer.py`, `indexer_runner.py`, `document_indexer.py`
 
-## Propósito
+## Purpose
 
-Plantillas Infrastructure-as-Code y orquestación de despliegue para stack Azure completo:
+Plantillas Infrastructure-as-Code y orquestación de deployment para stack Azure completo:
 - Azure Cognitive Services (OpenAI) con múltiples deployments de modelos
 - Azure AI Search (tier Standard para vector search)
 - Application Insights + Log Analytics
-- Indexación de documentos y runners de despliegue
+- indexing de documentos y runners de deployment
 - Todo configurado, vinculado y automatizado
 
 ## Uso
@@ -54,7 +54,7 @@ az deployment group create \
 - `Azure AI Search` (Basic o Standard, configurable)
   - Basic: $25/mes — suficiente para PoC/Mínima (soporta indexers incluyendo SharePoint)
   - Standard S1: $295/mes por réplica — para volumen de producción
-  - Vector + búsqueda semántica habilitada
+  - Vector + search semántica habilitada
   - Índice: `rag-documents`
 
 - `Storage Account` (LRS o ZRS, configurable)

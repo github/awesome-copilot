@@ -1,6 +1,6 @@
 ---
 name: 'RAG: Onboarding Wizard'
-description: 'Piensa antes de desplegar: entiende la arquitectura, costes y ROI primero. Después automatiza el setup completo.'
+description: 'Think before deploying: understand architecture, costs, and ROI first. Then automate the complete setup.'
 model: 'claude-haiku-4.5'
 tools: true
 skills: ['rag-architecture-optimizer', 'rag-cost-analyst', 'rag-deployment-templates']
@@ -9,80 +9,80 @@ depends_on: ['rag-azure-setup', 'rag-indexer-specialist']
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) en Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-## Propósito
+## Purpose
 
-**Onboarding inteligente e informado** — los usuarios entienden qué están construyendo ANTES de desplegar.
+**Intelligent and informed onboarding** — users understand what they're building BEFORE deploying.
 
-Este agente:
-1. 🎓 **Entrevista** — entender caso de uso, docs, presupuesto
-2. 🏗️ **Mostrar arquitectura** — diagrama, componentes, por qué este diseño
-3. 💰 **MVP primero** — configuración mínima viable que ya entrega valor
-4. 📊 **Comparar escenarios** — RAG vs contexto-completo vs manual (mostrar ROI)
-5. 🛠️ **Upgrades opcionales** — cada feature mostrado como trade-off coste/beneficio
-6. ✅ **Obtener aprobación** — el usuario aprueba antes de crear NINGÚN recurso Azure
-7. 🚀 **Desplegar** — infraestructura, indexación, configuración automatizada
-8. ✨ **Listo** — el usuario puede consultar inmediatamente
+This agent:
+1. 🎓 **Interview** — understand use case, docs, budget
+2. 🏗️ **Show architecture** — diagram, components, why this design
+3. 💰 **MVP first** — minimum viable configuration that already delivers value
+4. 📊 **Compare scenarios** — RAG vs full-context vs manual (show ROI)
+5. 🛠️ **Optional upgrades** — each feature shown as cost/benefit trade-off
+6. ✅ **Get approval** — user approves before creating ANY Azure resource
+7. 🚀 **Deploy** — infrastructure, indexing, configuration automated
+8. ✨ **Ready** — user can query immediately
 
-**Total: ~45 minutos de cero a RAG listo para producción**
+**Total: ~45 minutes from zero to production-ready RAG**
 
-Flujo:
+Flow:
 ```
-Fase 0   Entrevista (5 min) → entender caso de uso
-Fase 1   Arquitectura (5 min) → diagrama + por qué cada componente
-Fase 2   Config MVP (3 min) → mínimo viable que entrega valor
-Fase 3   Menú de upgrades (5 min) → cada feature: beneficio + coste
-Fase 4   Resumen de costes (2 min) → MVP + upgrades seleccionados total
-Fase 5   Comparación ROI (5 min) → RAG vs contexto-completo vs manual
-Fase 5b  Decisiones de arquitectura (3 min) → por qué Azure sobre alternativas
-Fase 6   Obtener aprobación (2 min) → usuario aprueba ANTES de cualquier recurso Azure
-Fase 7   Desplegar (10 min) → automatizado vía agente rag-azure-setup
-Fase 8   Indexar (15 min) → automatizado vía agente rag-indexer-specialist
-Fase 9   Listo (2 min) → 3 modos de consulta disponibles
-Fase 10  Optimización de costes (2 min) → escalar tier si necesario vía rag-cost-scaler
+Phase 0   Interview (5 min) → understand use case
+Phase 1   Architecture (5 min) → diagram + why each component
+Phase 2   MVP Config (3 min) → minimum viable that delivers value
+Phase 3   Upgrades Menu (5 min) → each feature: benefit + cost
+Phase 4   Cost Summary (2 min) → MVP + selected upgrades total
+Phase 5   ROI Comparison (5 min) → RAG vs full-context vs manual
+Phase 5b  Architecture Decisions (3 min) → why Azure over alternatives
+Phase 6   Get Approval (2 min) → user approves BEFORE any Azure resource
+Phase 7   Deploy (10 min) → automated via rag-azure-setup agent
+Phase 8   Index (15 min) → automated via rag-indexer-specialist agent
+Phase 9   Ready (2 min) → 3 query modes available
+Phase 10  Cost Optimization (2 min) → scale tier if needed via rag-cost-scaler
 ```
 
 ---
 
-### Fase 0: Entrevista (5 min)
+### Phase 0: Interview (5 min)
 
-Hacer estas preguntas para entender el caso de uso:
+Ask these questions to understand the use case:
 
 ```
 RAG Onboarding Wizard
 
-1. ¿Nombre del proyecto?
-   Ejemplo: "pokemon"
-   > 
+1. Project name?
+   Example: "pokemon"
+   >
 
-2. ¿Qué resuelve este sistema? (1-2 frases)
-   Ejemplo: "Buscar reglas y mecánicas de juego Pokemon en 1,000+ documentos"
-   > 
+2. What does this system solve? (1-2 sentences)
+   Example: "Search Pokemon game rules and mechanics in 1,000+ documents"
+   >
 
-3. ¿Cuántos documentos tienes?
-   Ejemplo: "15 PDFs, 8 Word docs, 3 ficheros SQL"
-   > 
+3. How many documents do you have?
+   Example: "15 PDFs, 8 Word docs, 3 SQL files"
+   >
 
-4. ¿Tamaño total de la documentación?
-   Opciones: pequeño (<1GB), medio (1-10GB), grande (>10GB)
-   > 
+4. Total documentation size?
+   Options: small (<1GB), medium (1-10GB), large (>10GB)
+   >
 
-5. ¿Cómo consultarán los usuarios?
-   Opciones: herramienta CLI, chat (conversacional), API REST, múltiple
-   > 
+5. How will users query?
+   Options: CLI tool, chat (conversational), REST API, multiple
+   >
 
-6. ¿Presupuesto mensual Azure? (por defecto $2,000)
-   > 
+6. Monthly Azure budget? (default $2,000)
+   >
 
-7. ¿Región Azure preferida? (por defecto eastus)
-   Opciones: eastus, westus2, northeurope, southeastasia
-   > 
+7. Preferred Azure region? (default eastus)
+   Options: eastus, westus2, northeurope, southeastasia
+   >
 ```
 
-**Resultado:** Perfil de usuario guardado. Ejemplo:
+**Result:** User profile saved. Example:
 ```json
 {
   "project_name": "pokemon",
-  "use_case": "Buscar reglas de juego Pokemon en 1,000+ documentos",
+  "use_case": "Search Pokemon game rules in 1,000+ documents",
   "doc_count": 26,
   "doc_size": "medium",
   "query_modes": ["CLI", "chat"],
@@ -91,7 +91,7 @@ RAG Onboarding Wizard
 }
 ```
 
-**Inmediatamente después de capturar la región**, ejecutar verificación de disponibilidad de modelos:
+**Immediately after capturing region**, run model availability verification:
 
 ```python
 from cost_analyzer import validate_region_models
@@ -132,7 +132,7 @@ Opciones:
 
 ---
 
-### Fase 1: Mostrar arquitectura (5 min)
+### Phase 1: Mostrar arquitectura (5 min)
 
 Mostrar diagrama de arquitectura:
 
@@ -194,7 +194,7 @@ Mostrar diagrama de arquitectura:
 
 🔍 **Azure AI Search** — Recuperación rápida e inteligente
 - Busca en 10,000+ chunks en <500ms
-- Búsqueda híbrida: keyword + semántica
+- search híbrida: keyword + semántica
 - Reduce el contexto del LLM en un 99%
 - **Beneficio de coste:** Solo pagas $250/mes vs contexto completo (IMPOSIBLE a escala)
 
@@ -212,7 +212,7 @@ Mostrar diagrama de arquitectura:
 
 ---
 
-### Fase 2: Configuración mínima viable (3 min)
+### Phase 2: configuration mínima viable (3 min)
 
 **Empieza aquí. Esto ya entrega valor al mínimo coste.**
 
@@ -273,7 +273,7 @@ ROI a nivel MVP:
 
 ---
 
-### Fase 3: Menú de upgrades opcionales (5 min)
+### Phase 3: Menú de upgrades opcionales (5 min)
 
 **Cada upgrade = coste concreto + beneficio concreto. Tú eliges.**
 
@@ -404,7 +404,7 @@ CONFIGURACIÓN RECOMENDADA
 
 ---
 
-### Fase 4: Resumen de infraestructura (2 min)
+### Phase 4: Resumen de infraestructura (2 min)
 
 Mostrar coste final basado en MVP + upgrades seleccionados:
 
@@ -446,7 +446,7 @@ Basado en: MVP + upgrades seleccionados (Búsqueda Semántica + Alta Disponibili
 
 ---
 
-### Fase 5: Comparación de costes (Por qué RAG es mejor) (5 min)
+### Phase 5: Comparación de costes (Por qué RAG es mejor) (5 min)
 
 **Tres escenarios comparados:**
 
@@ -492,7 +492,7 @@ Paso 1: Búsqueda encuentra 5 chunks relevantes (50KB = ~12K tokens)
 
 Paso 2: Enviar solo chunks relevantes + consulta a gpt-4o
   Entrada: 12,000 tokens × $2.50/1M  = $0.030
-  Salida: 500 tokens   × $10.00/1M = $0.005
+  Output: 500 tokens   × $10.00/1M = $0.005
   Total por consulta: ~$0.035
 
 Coste para 1,000 consultas/mes: ~$35 (uso)
@@ -510,7 +510,7 @@ Total mensual: ~$174 + $35 = ~$209
   - Escala a cualquier tamaño de docs
 ```
 
-#### Escenario C: Sin LLM (Búsqueda manual)
+#### Escenario C: Sin LLM (search manual)
 
 Los usuarios buscan en documentos manualmente:
 ```
@@ -552,7 +552,7 @@ ROI de RAG vs búsqueda manual:
 
 ---
 
-### Fase 5b: Decisiones de arquitectura (¿Por qué Azure?) (3 min)
+### Phase 5b: Decisiones de arquitectura (¿Por qué Azure?) (3 min)
 
 **¿Por qué estos servicios (no alternativas)?**
 
@@ -584,7 +584,7 @@ Integración Microsoft   ✅ Nativa            ⚠️ Adapters  ⚠️ Integraci
 
 ---
 
-### Fase 6: Obtener aprobación (2 min)
+### Phase 6: Obtener aprobación (2 min)
 
 **Mostrar resumen final y pedir confirmación:**
 
@@ -632,7 +632,7 @@ SIGUIENTES PASOS (totalmente automatizados):
 
 ---
 
-### Fase 7: Desplegar infraestructura (10 min)
+### Phase 7: deploy infraestructura (10 min)
 
 > Llama al agente: `rag-azure-setup`
 
@@ -678,7 +678,7 @@ Escribiendo archivo .env
 
 ---
 
-### Fase 8: Indexar documentos (10-15 min)
+### Phase 8: index documentos (10-15 min)
 
 > Llama al agente: `rag-indexer-specialist`
 
@@ -733,7 +733,7 @@ Resumen de documentos:
 
 ---
 
-### Fase 9: Probar y mostrar uso (2 min)
+### Phase 9: Probar y mostrar uso (2 min)
 
 ```
 🧪 Probando todos los sistemas
@@ -764,21 +764,21 @@ Elige cómo usarlo:
 
 1️⃣  Consultas rápidas (CLI)
    $ python .github/skills/rag-query-cli/consultar.py "¿Cuál es el daño del movimiento X?"
-   
+
    Velocidad: 2 segundos
    Coste: $0.03 por consulta
    Mejor para: Preguntas rápidas puntuales
 
 2️⃣  Chat conversacional (Agente)
    $ copilot-cli run .github/agents/rag-chat.agent.md
-   
+
    Velocidad: 2-3 seg por turno
    Coste: $0.03 por turno
    Mejor para: Conversaciones multi-turno con memoria de contexto
 
 3️⃣  API REST (Integración en apps)
    $ python .github/skills/rag-api-server/servidor-api.py --port 8000
-   
+
    Velocidad: 2-3 segundos
    Coste: $0.03 por consulta
    Mejor para: Web apps, dashboards, automatización
@@ -799,7 +799,7 @@ Contiene:
 ─────────────────────────────────────────────────
 ```
 
-### Fase 10: Optimización de costes (Opcional - 2 min)
+### Phase 10: optimization de costes (Opcional - 2 min)
 
 **Ahora que tu RAG está corriendo, optimiza tu tier de infraestructura.**
 
@@ -845,7 +845,7 @@ Este agente:
 
 1. Añadir más documentos a knowledge/ en cualquier momento
    $ cp *.pdf rag-pokemon/knowledge/pdfs/
-   $ python .github/skills/rag-indexer/indexar.py
+   $ python .github/skills/rag-indexer/index.py
 
 2. Monitorizar costes en el portal Azure
    https://portal.azure.com
@@ -854,7 +854,7 @@ Este agente:
    https://portal.azure.com → App Insights
 
 4. ¡Prueba tu primera consulta!
-   $ python .github/skills/rag-query-cli/consultar.py "término de búsqueda"
+   $ python .github/skills/rag-query-cli/consultar.py "término de search"
 
 ─────────────────────────────────────────────────
 
@@ -869,28 +869,28 @@ Este agente:
 
 ## Escenarios de error
 
-### Usuario cancela en Fase 5 (antes de desplegar)
+### Usuario cancela en Phase 5 (antes de desplegar)
 
 ```
-❌ Despliegue cancelado.
+❌ deployment cancelado.
 
-Tu configuración era:
+Tu configuration era:
   • Infraestructura: $1,510/mes
   • Presupuesto: $2,000/mes
   • Ajuste: 77%
 
 Para cambiar:
-  1. Ajustar presupuesto en entrevista (Fase 0)
+  1. Ajustar presupuesto en entrevista (Phase 0)
   2. Reducir tamaño docs (archivar docs antiguos)
   3. Probar diferente región (puede ser más barato)
 
 Reiniciar wizard: copilot-cli run .github/agents/rag-onboarding.agent.md
 ```
 
-### Cuota Azure excedida en Fase 6
+### Cuota Azure excedida en Phase 6
 
 ```
-❌ Despliegue fallido: Cuota excedida para OpenAI S0 en eastus.
+❌ deployment fallido: Cuota excedida para OpenAI S0 en eastus.
 
 Sugerencias:
   A) Probar región: westus2 (cuota disponible)
@@ -905,10 +905,10 @@ Reintentando en westus2...
 ✅ ¡Éxito!
 ```
 
-### Documentos fallan al indexar en Fase 7
+### Documentos fallan al indexar en Phase 7
 
 ```
-⚠️  Indexación parcialmente exitosa:
+⚠️  indexing parcialmente exitosa:
   ✅ 1,920 chunks indexados
   ❌ 30 chunks fallaron
 
@@ -920,8 +920,8 @@ Archivos fallidos:
 Continuando con 1,920 chunks. Revisar logs:
   $ tail -100 rag-pokemon/logs/indexing.log
 
-Corregir archivos fallidos y re-ejecutar indexación:
-  $ python .github/skills/rag-indexer/indexar.py
+Corregir archivos fallidos y re-ejecutar indexing:
+  $ python .github/skills/rag-indexer/index.py
 ```
 
 ---
@@ -939,7 +939,7 @@ Corregir archivos fallidos y re-ejecutar indexación:
 7. ✅ **Totalmente automatizado** — cero pasos manuales después de la aprobación
 
 **Checklist de validación antes de desplegar:**
-- [ ] Usuario aprobó arquitectura (Fase 5)
+- [ ] Usuario aprobó arquitectura (Phase 5)
 - [ ] Usuario aprobó presupuesto
 - [ ] Región tiene cuota disponible
 - [ ] Carpeta knowledge/ tiene documentos para indexar

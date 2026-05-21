@@ -3,26 +3,26 @@
 
 
 
-**Propósito:** Indexar todos los documentos de `knowledge/` en Azure AI Search. Automático.
+**Purpose:** index todos los documentos de `knowledge/` en Azure AI Search. Automático.
 
-**Invocado por:** rag-onboarding.agent.md (Fase 5) O manual: `copilot-cli run rag-indexer-specialist.agent.md`
+**Invocado por:** rag-onboarding.agent.md (Phase 5) O manual: `copilot-cli run rag-indexer-specialist.agent.md`
 
-**Duración estimada:** 10-15 minutos dependiendo del tamaño de los documentos
+**Estimated Duration:** 10-15 minutos dependiendo del tamaño de los documentos
 
 ---
 
-## ✅ Checklist de Indexación
+## ✅ Checklist de indexing
 
-- [ ] Conectar a Azure Search
+- [ ] Conectar a Azure AI Search
 - [ ] Escanear la estructura de carpetas de `knowledge/`
-- [ ] Procesar PDFs (OCR + fragmentación)
-- [ ] Procesar documentos Word/Excel (parsing + fragmentación)
-- [ ] Procesar archivos de código (fragmentación consciente de sintaxis)
-- [ ] Procesar presentaciones (extracción de texto + fragmentación)
+- [ ] Procesar PDFs (OCR + chunking)
+- [ ] Procesar documentos Word/Excel (parsing + chunking)
+- [ ] Procesar archivos de código (chunking consciente de sintaxis)
+- [ ] Procesar presentaciones (extracción de texto + chunking)
 - [ ] Generar embeddings para todos los fragmentos
-- [ ] Subir al índice de Azure Search
-- [ ] Habilitar búsqueda semántica
-- [ ] Mostrar resumen de indexación
+- [ ] Subir al índice de Azure AI Search
+- [ ] Habilitar search semántica
+- [ ] Mostrar resumen de indexing
 
 ---
 
@@ -67,7 +67,7 @@ print(f"""
 
 ---
 
-## Fase 1: Conectar a Azure Search (1 min - AUTO)
+## Phase 1: Conectar a Azure AI Search (1 min - AUTO)
 
 ```python
 import os
@@ -95,7 +95,7 @@ except Exception as e:
 
 ---
 
-## Fase 2: Procesar PDFs (3 min)
+## Phase 2: Procesar PDFs (3 min)
 
 ```python
 import os
@@ -154,7 +154,7 @@ print(f"✅ Procesamiento de PDFs completado: {len(processed_chunks)} fragmentos
 
 ---
 
-## Fase 3: Procesar Procedimientos (2 min)
+## Phase 3: Procesar Procedimientos (2 min)
 
 ```python
 import os
@@ -218,7 +218,7 @@ print(f"✅ Procesamiento de Procedimientos completado")
 
 ---
 
-## Fase 4: Procesar Código (2 min)
+## Phase 4: Procesar Código (2 min)
 
 ```python
 from pathlib import Path
@@ -263,7 +263,7 @@ print(f"✅ Procesamiento de Código completado")
 
 ---
 
-## Fase 5: Procesar Presentaciones (2 min)
+## Phase 5: Procesar Presentaciones (2 min)
 
 ```python
 from pathlib import Path
@@ -308,7 +308,7 @@ print(f"✅ Procesamiento de Presentaciones completado")
 
 ---
 
-## Fase 6: Generar Embeddings (3 min - AUTO)
+## Phase 6: Generar embeddings (3 min - AUTO)
 
 ```python
 import os
@@ -349,7 +349,7 @@ print(f"✅ Embeddings generados para {len(processed_chunks)} fragmentos")
 
 ---
 
-## Fase 7: Subir a Search (2 min - AUTO)
+## Phase 7: Subir a Search (2 min - AUTO)
 
 ```python
 print("⏳ Subiendo a Azure Search...")
@@ -371,7 +371,7 @@ print(f"✅ Los {len(processed_chunks)} fragmentos se subieron a Search")
 
 ---
 
-## Fase 8: Habilitar Búsqueda Semántica (1 min - AUTO)
+## Phase 8: Habilitar search Semántica (1 min - AUTO)
 
 ```python
 from azure.search.documents.indexes.models import (
@@ -400,7 +400,7 @@ except Exception as e:
 
 ---
 
-## Fase 9: Mostrar Resumen (1 min)
+## Phase 9: Mostrar Resumen (1 min)
 
 ```
 ✅ ¡INDEXACIÓN COMPLETADA!
@@ -419,13 +419,13 @@ except Exception as e:
 └────────────────────────────────────────┘
 
 Siguientes pasos:
-  1. Probar conexión: rag-azure-setup.agent.md (Fase 7)
+  1. Probar conexión: rag-azure-setup.agent.md (Phase 7)
   2. Empezar a consultar: python .github/skills/rag-query-cli/consultar.py
 ```
 
 ---
 
-## Manejo de Errores
+## Error Handling
 
 ### Carpeta Vacía
 ```
@@ -450,7 +450,7 @@ Tasa de éxito: 98,6%
 Detalles guardados en: logs/indexing-errors.log
 ```
 
-### Fallo en Generación de Embeddings
+### Fallo en Generación de embeddings
 ```
 ❌ La API de embeddings de OpenAI falló: Límite de tasa excedido.
 

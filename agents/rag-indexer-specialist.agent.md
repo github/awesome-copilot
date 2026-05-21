@@ -1,6 +1,6 @@
 ---
-name: 'RAG: Especialista en Indexación'
-description: 'Indexa el conocimiento del proyecto en Azure AI Search para RAG. Fragmenta documentación, código y configs. Crea índices con búsqueda semántica y vectorial habilitada. Devuelve estadísticas del índice y métricas de calidad de búsqueda.'
+name: 'RAG: Indexing Specialist'
+description: 'Indexes project knowledge in Azure AI Search for RAG. Chunks documentation, code, and configs. Creates indexes with semantic and vector search enabled. Returns index statistics and search quality metrics.'
 model: 'claude-haiku-4.5'
 tools: true
 skills: ['rag-agent-instrumentation']
@@ -12,29 +12,29 @@ skills: ['rag-agent-instrumentation']
 
 
 
-## Propósito
+## Purpose
 
-Configurar RAG (Retrieval-Augmented Generation) indexando contenido del repositorio en Azure AI Search.
+Configure RAG (Retrieval-Augmented Generation) by indexing repository content in Azure AI Search.
 
-**Lo que hace:**
-- Escanear repositorio (docs, código, configs)
-- Fragmentar inteligentemente (preservar significado semántico)
-- Subir al índice de AI Search
-- Habilitar búsqueda vectorial + recuperación híbrida
-- Validar calidad de búsqueda
+**What it does:**
+- Scan repository (docs, code, configs)
+- Chunk intelligently (preserve semantic meaning)
+- Upload to AI Search index
+- Enable vector search + hybrid retrieval
+- Validate search quality
 
-**Para qué lo usan los agentes RAG:**
-- Agente de resumen: recuperar docs clave
-- Agente de búsqueda: encontrar patrones arquitectónicos
-- Agente de arquitectura: análisis profundo de ficheros
-- Agente de despliegue: configs de pipelines CI/CD
+**What RAG agents use it for:**
+- Summary agent: retrieve key docs
+- Search agent: find architectural patterns
+- Architecture agent: deep file analysis
+- Deployment agent: CI/CD pipeline configs
 
-## Cuándo usar
+## When to Use
 
-- `Configurar indexación RAG para un proyecto`
-- `Indexar nuevo repositorio`
-- `Reconstruir índice de búsqueda`
-- `Validar calidad de búsqueda`
+- `Configure RAG indexing for a project`
+- `Index new repository`
+- `Rebuild search index`
+- `Validate search quality`
 
 ## Tu workflow
 
@@ -219,7 +219,7 @@ if documents:
 print(f"✓ Subidos {len(all_chunks)} fragmentos al índice de búsqueda")
 ```
 
-### 5. Validar calidad de búsqueda (3 min)
+### 5. Validar calidad de search (3 min)
 
 ```python
 test_queries = [
@@ -270,7 +270,7 @@ save_json("outputs/rag_index_stats.json", stats)
 print(f"\n✓ Estadísticas del índice guardadas")
 ```
 
-## Salida esperada
+## Output esperada
 
 Fichero: `outputs/rag_index_stats.json`
 
@@ -291,14 +291,14 @@ Fichero: `outputs/rag_index_stats.json`
 }
 ```
 
-## Resolución de problemas
+## Troubleshooting
 
 | Problema | Solución |
 |---|---|
-| "No se encontró modelo de embedding" | Desplegar text-embedding-3-small en Azure OpenAI |
+| "No se encontró modelo de embedding" | deploy text-embedding-3-small en Azure OpenAI |
 | "Timeout al crear índice de Search" | Verificar que el servicio Search está activo (az resource list) |
 | "Subida falla a mitad" | Reducir batch_size a 50 o 25 |
-| "Búsqueda no devuelve resultados" | Verificar que los fragmentos se crearon correctamente + índice poblado |
+| "search no devuelve resultados" | Verificar que los fragmentos se crearon correctamente + índice poblado |
 
 ## Tiempos
 
@@ -306,12 +306,12 @@ Fichero: `outputs/rag_index_stats.json`
 - Crear fragmentos: 5 min
 - Crear índice: 2 min
 - Generar embeddings + subir: 5 min
-- Validar búsqueda: 3 min
+- Validar search: 3 min
 - **Total: ~18 min**
 
 ---
 
 **Rol**: Especialista en Infraestructura RAG
-**Especialidad**: Recuperación de información, fragmentación, embeddings
+**Especialidad**: Recuperación de información, chunking, embeddings
 **Timeout**: 30 minutos
-**Salida**: Índice AI Search + `outputs/rag_index_stats.json`
+**Output**: Índice AI Search + `outputs/rag_index_stats.json`

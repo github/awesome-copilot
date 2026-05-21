@@ -3,11 +3,11 @@
 
 
 
-**Propósito:** Asistente de onboarding completamente automatizado para nuevos usuarios. Configurar → Desplegar → Indexar → Listo.
+**Purpose:** Asistente de onboarding completamente automatizado para nuevos usuarios. Configurar → deploy → index → Listo.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-onboarding.agent.md`
 
-**Duración estimada:** ~30 minutos en total (totalmente automático)
+**Estimated Duration:** ~30 minutos en total (totalmente automático)
 
 ---
 
@@ -16,20 +16,20 @@
 - [ ] Preguntar nombre del proyecto → crear `rag-{nombre}/`
 - [ ] Crear estructura de carpetas dentro de `rag-{nombre}/`
 - [ ] Entrevistar al usuario (5 preguntas)
-- [ ] Recomendar configuración según tamaño de docs
-- [ ] Validar costes ANTES de desplegar
-- [ ] Desplegar infraestructura Azure (Bicep)
-- [ ] Indexar todos los documentos de `knowledge/`
-- [ ] Generar `.env` con credenciales
+- [ ] Recomendar configuration según tamaño de docs
+- [ ] Validar costes ANTES de deploy
+- [ ] deploy infraestructura Azure (Bicep)
+- [ ] index todos los documentos de `knowledge/`
+- [ ] Generar `.env` con credentials
 - [ ] Probar todas las conexiones
 - [ ] Mostrar instrucciones de uso (3 modos)
 - [ ] Guardar resumen en `outputs/`
 
 ---
 
-## Automatización fase a fase
+## Automatización Phase a Phase
 
-### Fase 0: Crear estructura del proyecto (1 min)
+### Phase 0: Crear estructura del proyecto (1 min)
 
 Pregunta el nombre del proyecto y crea la carpeta con toda la estructura:
 
@@ -59,7 +59,7 @@ print(f"✅ Creada carpeta: {folder_name}/")
 print(f"   Añade tus documentos en {folder_name}/knowledge/ antes de continuar")
 ```
 
-### Fase 1: Verificar estructura de documentos (2 min)
+### Phase 1: Verificar estructura de documentos (2 min)
 
 ```python
 import os
@@ -91,7 +91,7 @@ print(f"   Código: {code_count} archivos")
 print(f"   Presentaciones: {ppt_count} archivos")
 ```
 
-### Fase 2: Entrevista al usuario (5 min)
+### Phase 2: Entrevista al usuario (5 min)
 
 ```
 Preguntar EXACTAMENTE estas 5 preguntas (ni más, ni menos):
@@ -118,7 +118,7 @@ Preguntar EXACTAMENTE estas 5 preguntas (ni más, ni menos):
 Guardar respuestas en: outputs/interview-{timestamp}.json
 ```
 
-### Fase 3: Recomendar configuración (1 min - AUTO)
+### Phase 3: Recomendar configuration (1 min - AUTO)
 
 ```python
 recommendations = {
@@ -159,7 +159,7 @@ Estado: {"✅ DENTRO DEL PRESUPUESTO" if config['total'] <= budget else "⚠️ 
 print("¿Proceder con esta configuración? (S/n)")
 ```
 
-### Fase 4: Validar costes (1 min - AUTO)
+### Phase 4: Validar costes (1 min - AUTO)
 
 ```python
 if config_cost > user_budget:
@@ -199,7 +199,7 @@ except:
 print("✅ Validación de costes superada")
 ```
 
-### Fase 5: Desplegar infraestructura (10 min - AUTO, SILENCIOSO)
+### Phase 5: deploy infraestructura (10 min - AUTO, SILENCIOSO)
 
 ```bash
 #!/bin/bash
@@ -236,7 +236,7 @@ echo "✅ Infraestructura desplegada"
 ✅ ¡Toda la infraestructura lista!
 ```
 
-### Fase 6: Indexar documentos (10-15 min - AUTO, MOSTRAR PROGRESO)
+### Phase 6: index documentos (10-15 min - AUTO, MOSTRAR PROGRESO)
 
 ```python
 import os
@@ -296,7 +296,7 @@ print("\n✅ ¡Indexación completa!")
    TOTAL:       2,130 chunks indexados
 ```
 
-### Fase 7: Configurar credenciales (1 min - AUTO)
+### Phase 7: Configurar credentials (1 min - AUTO)
 
 ```python
 import os
@@ -332,7 +332,7 @@ with open(".env", "w") as f:
 print("✅ Credenciales guardadas en .env")
 ```
 
-### Fase 8: Probar conexiones (2 min - AUTO)
+### Phase 8: Probar conexiones (2 min - AUTO)
 
 ```python
 import os
@@ -372,7 +372,7 @@ except Exception as e:
     print(f"❌ AppInsights falló: {e}")
 ```
 
-### Fase 9: ¡Listo! Mostrar uso (1 min - AUTO)
+### Phase 9: ¡Listo! Mostrar uso (1 min - AUTO)
 
 ```
 🎉 ¡TU RAG ESTÁ LISTO!
@@ -445,7 +445,7 @@ Configuración guardada en: outputs/setup-summary-{timestamp}.json
 
 ---
 
-## Manejo de errores
+## Error Handling
 
 ### Si falta la carpeta
 ```
@@ -462,7 +462,7 @@ Por favor añade tus documentos y ejecuta el wizard de nuevo.
    Inténtalo de nuevo...
 ```
 
-### Si falla el despliegue
+### Si falla el deployment
 ```
 ❌ Despliegue Azure fallido: Cuota excedida para la región eastus
 
@@ -474,7 +474,7 @@ Sugerencias:
 ¿Tu elección? (A/B/C)
 ```
 
-### Si la indexación falla parcialmente
+### Si la indexing falla parcialmente
 ```
 ⚠️ Indexación parcialmente exitosa:
    ✅ 2,100 chunks indexados correctamente
@@ -517,7 +517,7 @@ Si el wizard se interrumpe, guardar checkpoint:
   "status": "en-progreso",
   "timestamp": "2026-05-13T10:30:00Z",
   "indexed_chunks": 1250,
-  "next": "Completar indexación + Fase 6"
+  "next": "Completar indexación + Phase 6"
 }
 ```
 
@@ -525,10 +525,10 @@ Al reiniciar:
 ```
 🔄 Detectada configuración incompleta del 2026-05-13 10:30
 
-Última fase: Fase 5 (Indexar Documentos)
+Última fase: Phase 5 (Indexar Documentos)
 Progreso: 1,250 / 2,130 chunks indexados
 
-¿Reanudar desde la Fase 5? (S/n)
+¿Reanudar desde la Phase 5? (S/n)
 ```
 
 ---
@@ -544,6 +544,6 @@ python .github/skills/rag-api-server/servidor-api.py --port 8000
 
 ✅ La primera consulta devuelve resultado en 2-5 segundos
 
-✅ Resumen de configuración guardado en `outputs/setup-summary-{timestamp}.json`
+✅ Resumen de configuration guardado en `outputs/setup-summary-{timestamp}.json`
 
 ✅ El usuario NUNCA tuvo que abrir el Portal de Azure

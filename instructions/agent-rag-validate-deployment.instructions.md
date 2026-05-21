@@ -3,21 +3,21 @@
 
 
 
-**Propósito:** Validar costes y arquitectura ANTES de desplegar. Previene sorpresas de presupuesto.
+**Purpose:** Validar costes y arquitectura ANTES de deploy. Previene sorpresas de presupuesto.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-validate-deployment.agent.md`
 
-**Duración estimada:** ~2 minutos
+**Estimated Duration:** ~2 minutos
 
 ---
 
 ## Qué hace este agente
 
-Valida que la configuración se ajuste al presupuesto del usuario + restricciones de Azure ANTES de cualquier despliegue.
+Valida que la configuration se ajuste al presupuesto del usuario + restricciones de Azure ANTES de cualquier deployment.
 
 ---
 
-## ✅ Lista de verificación de validación
+## ✅ Lista de verificación de validation
 
 - [ ] Preguntar al usuario: tamaño de docs, presupuesto, región
 - [ ] Consultar cuotas actuales de Azure en la región
@@ -144,7 +144,7 @@ Diferencia: ${difference}
 Estado: {"✅ DENTRO DEL PRESUPUESTO" if total <= user_budget else "⚠️ EXCEDE PRESUPUESTO"}
 ```
 
-### Paso 5: Resultado de validación (30 seg)
+### Paso 5: Resultado de validation (30 seg)
 
 ```
 SI total_cost <= user_budget:
@@ -252,9 +252,9 @@ Recomendaciones:
 
 ---
 
-## Integración con el wizard
+## integration con el wizard
 
-Después de que la validación PASE, el wizard puede continuar:
+Después de que la validation PASE, el wizard puede continuar:
 
 ```
 ✅ Validación APROBADA
@@ -263,7 +263,7 @@ Después de que la validación PASE, el wizard puede continuar:
 → Llama a: rag-azure-setup.agent.md
 ```
 
-Si la validación FALLA, detener:
+Si la validation FALLA, detener:
 
 ```
 ❌ Validación FALLIDA
@@ -280,7 +280,7 @@ Salir.
 
 ✅ El usuario ve un desglose claro de costes
 
-✅ Problemas de cuota identificados ANTES del despliegue
+✅ Problemas de cuota identificados ANTES del deployment
 
 ✅ El usuario puede decidir: continuar o ajustar
 

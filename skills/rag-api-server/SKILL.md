@@ -20,7 +20,7 @@ Servidor API REST que envuelve la funcionalidad de consulta RAG, permitiendo a c
 pip install -r .github/requirements.txt
 ```
 
-- `.env` con credenciales Azure:
+- `.env` con credentials Azure:
   - `AZURE_OPENAI_KEY`
   - `AZURE_OPENAI_ENDPOINT`
   - `AZURE_SEARCH_ENDPOINT`

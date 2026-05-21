@@ -1,6 +1,6 @@
 ---
 name: 'rag-validator'
-description: 'Validador experto RAG: verifica que agentes, instrucciones, skills e implementación RAG cumplen con mejores prácticas Microsoft RAG y directrices del repositorio.'
+description: 'Validador experto RAG: verifica que agentes, instrucciones, skills e implementation RAG cumplen con mejores prácticas Microsoft RAG y directrices del repositorio.'
 applyTo: '**/*.agent.md, **/*.instructions.md, **/SKILL.md, **/*.py'
 ---
 
@@ -12,7 +12,7 @@ applyTo: '**/*.agent.md, **/*.instructions.md, **/SKILL.md, **/*.py'
 
 ---
 
-## Propósito
+## Purpose
 
 Verificación automatizada de cumplimiento para asegurar que este repositorio se mantiene alineado con las mejores prácticas RAG de Microsoft y las convenciones de personalización de agentes/skills.
 
@@ -24,8 +24,8 @@ Este skill valida dos capas:
 - Pureza del catálogo (`.github/agents` contiene solo `.agent.md`)
 
 **Capa 2 — Cumplimiento de calidad RAG (alineado con Microsoft Learn):**
-- Implementación de búsqueda híbrida (keyword + semántica/vectorial)
-- Configuración de ranking semántico
+- implementation de search híbrida (keyword + semántica/vectorial)
+- configuration de ranking semántico
 - Estrategia de chunking para gestión de restricciones de tokens
 - Pipeline de vectorización
 - Límite de resultados (top-k) para prevenir overflow de tokens LLM
@@ -41,10 +41,10 @@ Basado en [guía RAG de Microsoft](https://learn.microsoft.com/en-us/azure/searc
 | Desafío | Recomendación Microsoft | Verificación del Validador |
 |---|---|---|
 | **Comprensión de consulta** | Queries híbridas (keyword + vector) + ranking semántico | `hybrid_search`, `semantic_ranking` |
-| **Restricciones de tokens** | Chunking en tiempo de indexación, límites top-k en tiempo de query | `chunking_strategy`, `token_limits` |
+| **Restricciones de tokens** | Chunking en tiempo de indexing, límites top-k en tiempo de query | `chunking_strategy`, `token_limits` |
 | **Datos multi-fuente** | Indexers desde Azure Blob, SharePoint, bases de datos | `rag_best_practices_content` |
 | **Tiempo de respuesta** | Queries single-shot (clásico) o subqueries paralelas (agéntico) | `index_schema` |
-| **Seguridad y gobernanza** | Security trimming a nivel de documento, filtros Entra ID | `rag_best_practices_content` |
+| **security y gobernanza** | Security trimming a nivel de documento, filtros Entra ID | `rag_best_practices_content` |
 
 ### Retrieval Agéntico vs RAG Clásico
 
@@ -66,11 +66,11 @@ Referencias:
 
 ---
 
-## Cuándo usar
+## When to Use
 
 - Antes de mergear cambios a `.github/agents`, `.github/instructions`, `.github/skills`
 - Antes de clonar este baseline en un nuevo proyecto
-- Después de modificar scripts de indexación o query, para verificar patrones de calidad RAG
+- Después de modificar scripts de indexing o query, para verificar patrones de calidad RAG
 - Durante QA/revisión para prevenir drift estructural
 
 No usar este skill como health check runtime para recursos Azure.
@@ -109,7 +109,7 @@ python .github/skills/microsoft-guidelines-validator/guidelines_validator.py --r
 
 9. **hybrid_search** — Scripts de query usan `search_text` + `query_type="semantic"` o `vector_queries`
 10. **semantic_ranking** — `SemanticConfiguration` definida en schema del índice y activada en query time
-11. **chunking_strategy** — Scripts de indexación dividen documentos grandes en chunks
+11. **chunking_strategy** — Scripts de indexing dividen documentos grandes en chunks
 12. **vectorization** — Pipeline genera vector embeddings requeridos para similarity search
 13. **token_limits** — Scripts de query configuran límites `top=` o `top_k` para prevenir overflow de tokens LLM
 14. **index_schema** — Definición del índice incluye campo key, campo content buscable, campo vector y config semántica
@@ -154,13 +154,13 @@ Ejemplo de output JSON:
 }
 ```
 
-Códigos de salida:
+Códigos de Output:
 - `0` — cumplimiento (sin failures; `--strict` también requiere sin warnings)
 - `1` — una o más verificaciones fallidas
 
 ---
 
-## Patrón de Integración
+## Patrón de integration
 
 Usar como gate preflight en pipelines de onboarding y revisión:
 
@@ -168,4 +168,4 @@ Usar como gate preflight en pipelines de onboarding y revisión:
 python .github/skills/microsoft-guidelines-validator/guidelines_validator.py --root . --strict
 ```
 
-Si este comando falla, corregir los problemas reportados antes de continuar con despliegue o clonado.
+Si este comando falla, corregir los problemas reportados antes de continuar con deployment o clonado.

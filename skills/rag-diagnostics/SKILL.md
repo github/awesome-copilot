@@ -4,13 +4,13 @@
 
 ## Descripción General
 
-Colección de herramientas de diagnóstico y monitorización para verificar la salud de Azure AI Search, estado del índice y configuración del sistema.
+Colección de herramientas de diagnóstico y monitorización para verificar la salud de Azure AI Search, estado del índice y configuration del sistema.
 
 ## Características
 
 - Informe de estado del sistema (todos los componentes)
 - Diagnósticos del índice (documentos, campos, salud)
-- Verificación de configuración
+- Verificación de configuration
 - Monitorización en tiempo real
 - Informes de error con soluciones
 
@@ -51,7 +51,7 @@ python .github/skills/rag-diagnostics/estado-sistema.py
 
 ### 2. **diagnosticar.py** — Diagnósticos Detallados
 
-Análisis profundo de configuración Azure Search y problemas.
+Análisis profundo de configuration Azure AI Search y problemas.
 
 ```bash
 python .github/skills/rag-diagnostics/diagnosticar.py
@@ -103,7 +103,7 @@ Pulsa Ctrl+C para detener
 pip install -r .github/requirements.txt
 ```
 
-- `.env` con credenciales Azure Search:
+- `.env` con credentials Azure AI Search:
   - `AZURE_SEARCH_ENDPOINT`
   - `AZURE_SEARCH_KEY`
 
@@ -133,11 +133,11 @@ python .github/skills/rag-diagnostics/monitorear.py
 | Problema | Diagnóstico | Solución |
 |---|---|---|
 | Índice vacío | `estado-sistema.py` muestra 0 docs | Ejecutar skill `rag-indexer` |
-| Indexer fallido | `diagnosticar.py` muestra status: Failed | Verificar credenciales `.env` |
-| Búsqueda semántica no funciona | Índice sin config semántica | Recrear índice con semántica habilitada |
-| Indexación lenta | `monitorear.py` muestra bajo throughput | Aumentar tier Search o batch size |
+| Indexer fallido | `diagnosticar.py` muestra status: Failed | Verificar credentials `.env` |
+| search semántica no funciona | Índice sin config semántica | Recrear índice con semántica habilitada |
+| indexing lenta | `monitorear.py` muestra bajo throughput | Aumentar tier Search o batch size |
 
-## Integración
+## integration
 
 ### En Scripts
 

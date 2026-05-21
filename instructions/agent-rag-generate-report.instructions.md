@@ -1,29 +1,29 @@
 **RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
 
-**Propósito:** Generar un informe ejecutivo profesional escrito por IA (DOCX) que venda tu implementación RAG a los stakeholders.
+**Purpose:** Generar un informe ejecutivo profesional escrito por IA (DOCX) que venda tu implementation RAG a los stakeholders.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-generate-report.agent.md`
 
-**Duración estimada:** 5-20 minutos (según complejidad)
+**Estimated Duration:** 5-20 minutos (según complejidad)
 
 ---
 
 ## ✅ Lista de verificación OBLIGATORIA
 
-- [ ] Recopilar métricas del cliente (nº documentos, precisión, rendimiento)
-- [ ] Definir tipo de informe (Implementación RAG, Análisis, Costes, Preparación)
+- [ ] Recopilar métricas del cliente (nº documentos, precisión, performance)
+- [ ] Definir tipo de informe (implementation RAG, Análisis, Costes, Preparación)
 - [ ] Generar contenido con IA (Resumen Ejecutivo, Hallazgos, Recomendaciones)
 - [ ] Crear DOCX profesional (formato, branding, maquetación)
-- [ ] Ejecutar controles de calidad (validación de 25 puntos)
+- [ ] Ejecutar controles de calidad (validation de 25 puntos)
 - [ ] Validar que no haya afirmaciones vagas (todas respaldadas por datos)
 - [ ] Guardar en carpeta outputs/
-- [ ] Mostrar salida de éxito
+- [ ] Mostrar Output de éxito
 
 ---
 
-## Implementación fase a fase
+## implementation Phase a Phase
 
-### Fase 1: Entrevista al usuario (2 min - INTERACTIVO)
+### Phase 1: Entrevista al usuario (2 min - INTERACTIVO)
 
 ```python
 print("="*50)
@@ -59,7 +59,7 @@ recommendation = ask_user("¿Principal recomendación a futuro?")
 print("\n✓ Información capturada")
 ```
 
-### Fase 2: Validar métricas (1 min - AUTO)
+### Phase 2: Validar métricas (1 min - AUTO)
 
 ```python
 # Verificación de coherencia
@@ -75,7 +75,7 @@ if accuracy_percent > 100 or accuracy_percent < 50:
 print("✓ Métricas validadas")
 ```
 
-### Fase 3: Preparar contenido (1 min - AUTO)
+### Phase 3: Preparar contenido (1 min - AUTO)
 
 ```python
 from report_generator import ExecutiveReportGenerator
@@ -92,7 +92,7 @@ print("  • Recomendaciones...")
 print("  • Cronograma...")
 ```
 
-### Fase 4: Generar Resumen Ejecutivo (2 min - AUTO)
+### Phase 4: Generar Resumen Ejecutivo (2 min - AUTO)
 
 ```python
 print("\n▶ Resumen Ejecutivo")
@@ -117,7 +117,7 @@ print(summary[:400] + "...")
 print("-" * 50)
 ```
 
-### Fase 5: Generar Hallazgos y Recomendaciones (2 min - AUTO)
+### Phase 5: Generar Hallazgos y Recomendaciones (2 min - AUTO)
 
 ```python
 print("\n▶ Sección de Hallazgos")
@@ -143,7 +143,7 @@ recommendations = gen.generate_recommendations(
 print("✓ Generado (4-5 acciones estratégicas)")
 ```
 
-### Fase 6: Crear DOCX profesional (2 min - AUTO)
+### Phase 6: Crear DOCX profesional (2 min - AUTO)
 
 ```python
 from report_generator import ReportMetadata, ReportType
@@ -175,10 +175,10 @@ content = {
     "findings_text": findings,
     "recommendations_text": recommendations,
     "timeline": {
-        "Fase 1 - Preparación": "1-2 semanas",
-        "Fase 2 - Implementación": "2-4 semanas",
-        "Fase 3 - Validación": "1-2 semanas",
-        "Fase 4 - Producción": "1 semana",
+        "Phase 1 - Preparación": "1-2 semanas",
+        "Phase 2 - Implementación": "2-4 semanas",
+        "Phase 3 - Validación": "1-2 semanas",
+        "Phase 4 - Producción": "1 semana",
     },
 }
 
@@ -194,7 +194,7 @@ report_path = gen.generate_report(metadata, content, output_path)
 print(f"\n✓ DOCX creado: {report_path}")
 ```
 
-### Fase 7: Control de calidad (2 min - AUTO)
+### Phase 7: Control de calidad (2 min - AUTO)
 
 ```python
 from report_templates import ReportTemplate
@@ -226,7 +226,7 @@ else:
     print("⚠️  Algunas comprobaciones fallaron. Revisa en Word y vuelve a ejecutar si es necesario.")
 ```
 
-### Fase 8: Validar calidad del contenido (1 min - AUTO)
+### Phase 8: Validar calidad del contenido (1 min - AUTO)
 
 ```python
 # Comprobar lenguaje vago
@@ -257,7 +257,7 @@ else:
     print("⚠️  Pocas referencias a métricas. Considera volver a ejecutar con más datos.")
 ```
 
-### Fase 9: Resumen y salida (1 min - AUTO)
+### Phase 9: Resumen y Output (1 min - AUTO)
 
 ```python
 print("\n" + "="*50)
@@ -311,7 +311,7 @@ print(f"\nPara compartir: envía {report_path} a los stakeholders")
 print("Para refinar: vuelve a ejecutar el agente con métricas actualizadas")
 ```
 
-### Fase 10: Manejo de errores
+### Phase 10: Error Handling
 
 ```python
 # Si Claude falla

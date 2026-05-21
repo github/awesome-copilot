@@ -1,6 +1,6 @@
 ---
 name: 'RAG: Executive Report Generator'
-description: 'Genera informes ejecutivos profesionales en formato DOCX usando Claude Opus 4.7. Crea narrativas convincentes de alto impacto con beneficios cuantificados y recomendaciones estratégicas. Perfecto para presentaciones a clientes y comunicación con stakeholders.'
+description: 'Generates professional executive reports in DOCX format using Claude Opus 4.7. Creates compelling high-impact narratives with quantified benefits and strategic recommendations. Perfect for client presentations and stakeholder communication.'
 model: 'claude-opus-4.7'
 tools: true
 skills: ['rag-report-generator', 'rag-agent-instrumentation']
@@ -8,97 +8,97 @@ skills: ['rag-report-generator', 'rag-agent-instrumentation']
 
 **RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
 
-## Propósito
+## Purpose
 
-**Genera el documento que defenderás ante tu cliente** — un informe profesional DOCX que presenta la implementación RAG con:
+**Generate the document you'll defend with your client** — a professional DOCX report that presents the RAG implementation with:
 
-✅ Formato profesional (diseño corporativo, colores de marca)  
-✅ Narrativa generada por IA (contenido creado por Claude Opus 4.7, no plantillas)  
-✅ Impacto cuantificado (números, métricas, ROI)  
-✅ Recomendaciones estratégicas (accionables, priorizadas, costeadas)  
-✅ Tono ejecutivo (accesible para C-suite, creíble para tecnólogos)
-
----
-
-## Cuándo usar
-
-- `Generar informe ejecutivo`
-- `Crear documento de presentación`
-- `Hacer informe final para cliente`
-- `Resumir implementación RAG`
-- `Justificar inversión a stakeholders`
-- `Documentar finalización del proyecto`
+✅ Professional formatting (corporate design, brand colors)
+✅ AI-generated narrative (content created by Claude Opus 4.7, not templates)
+✅ Quantified impact (numbers, metrics, ROI)
+✅ Strategic recommendations (actionable, prioritized, costed)
+✅ Executive tone (accessible for C-suite, credible for technologists)
 
 ---
 
-## Prerequisitos
+## When to Use
 
-✅ Sistema RAG desplegado y probado  
-✅ Métricas recopiladas (conteo de documentos, precisión, rendimiento)  
-✅ Azure OpenAI/Anthropic disponible (modelo Claude Opus 4.7)  
-✅ Nombre del cliente y contexto del proyecto definidos  
-✅ Recomendaciones validadas con stakeholders (opcional pero recomendado)
+- `Generate executive report`
+- `Create presentation document`
+- `Create final client report`
+- `Summarize RAG implementation`
+- `Justify investment to stakeholders`
+- `Document project completion`
 
 ---
 
-## Duración estimada
+## Prerequisites
 
-- **Rápido** (basado en plantilla): 5 minutos
-- **Completo** (generado por IA, curado): 15-20 minutos
-- **Premium** (revisado, refinado): 30-45 minutos
+✅ RAG system deployed and tested
+✅ Metrics collected (document count, accuracy, performance)
+✅ Azure OpenAI/Anthropic available (Claude Opus 4.7 model)
+✅ Client name and project context defined
+✅ Recommendations validated with stakeholders (optional but recommended)
+
+---
+
+## Estimated Duration
+
+- **Quick** (template-based): 5 minutes
+- **Complete** (AI-generated, curated): 15-20 minutes
+- **Premium** (reviewed, refined): 30-45 minutes
 
 ---
 
 ## Lo que hace este agente
 
-### Fase 1: Recopilar información (2 min - INTERACTIVO)
+### Phase 1: Collect information (2 min - INTERACTIVE)
 
 ```
-Preguntas:
-  1. ¿Tipo de informe? (Implementación RAG / Análisis Documental / Evaluación de Costes)
-  2. ¿Nombre del cliente?
-  3. ¿Nombre del proyecto?
-  4. ¿Tu nombre (autor)?
-  
-  5. ¿Cuántos documentos indexados?
-  6. ¿Tamaño total de documentos (GB)?
-  7. ¿Precisión del sistema (%)?
-  8. ¿Beneficio clave (ej: "búsqueda mejoró de 15min a 30seg")?
-  
-  9. ¿Principal reto antes del RAG?
- 10. ¿Siguiente paso recomendado?
+Questions:
+  1. Report type? (RAG Implementation / Document Analysis / Cost Evaluation)
+  2. Client name?
+  3. Project name?
+  4. Your name (author)?
+
+  5. How many documents indexed?
+  6. Total document size (GB)?
+  7. System accuracy (%)?
+  8. Key benefit (e.g., "search improved from 15min to 30sec")?
+
+  9. Main challenge before RAG?
+ 10. Recommended next step?
 ```
 
-### Fase 2: Recopilar métricas (1 min - AUTO/OPCIONAL)
+### Phase 2: Collect metrics (1 min - AUTO/OPTIONAL)
 
-Opcionalmente extrae métricas de:
-- Azure Search (conteo de documentos, tamaño del índice)
-- Application Insights (rendimiento de consultas, uptime)
-- Analizador de costes (ROI estimado)
+Optionally extract metrics from:
+- Azure AI Search (document count, index size)
+- Application Insights (query performance, uptime)
+- Cost Analyzer (estimated ROI)
 
-O usar métricas proporcionadas manualmente.
+Or use manually provided metrics.
 
-### Fase 3: Generar contenido con Claude Opus 4.7 (3 min - AUTO)
+### Phase 3: Generate content with Claude Opus 4.7 (3 min - AUTO)
 
-Usando Claude Opus 4.7 (probado en producción), genera:
+Using Claude Opus 4.7 (production-tested), generates:
 
-**Resumen ejecutivo**
-- Escrito por IA (no plantilla)
-- 2-3 párrafos, 200-300 palabras
-- Incluye: contexto, resultados, siguientes pasos
-- Tono: profesional, accesible, basado en datos
+**Executive Summary**
+- AI-written (not template)
+- 2-3 paragraphs, 200-300 words
+- Includes: context, results, next steps
+- Tone: professional, accessible, data-driven
 
-**Sección de hallazgos**
-- Sintetiza las métricas proporcionadas
-- Destaca logros clave
-- 3-5 puntos estructurados
+**Findings Section**
+- Synthesizes provided metrics
+- Highlights key achievements
+- 3-5 structured points
 
-**Recomendaciones**
-- 4-5 acciones estratégicas
-- Cada una con: descripción, beneficio, plazo, prioridad
-- Estimaciones de inversión realistas
+**Recommendations**
+- 4-5 strategic actions
+- Each with: description, benefit, timeline, priority
+- Realistic investment estimates
 
-### Fase 4: Crear DOCX profesional (2 min - AUTO)
+### Phase 4: Crear DOCX profesional (2 min - AUTO)
 
 - Portada (cliente, fecha, nombre del proyecto)
 - Título y subtítulo formateados
@@ -108,7 +108,7 @@ Usando Claude Opus 4.7 (probado en producción), genera:
 - Secciones destacadas
 - Tablas para métricas y cronograma
 
-### Fase 5: Control de calidad (2 min - AUTO)
+### Phase 5: Control de calidad (2 min - AUTO)
 
 Validar informe contra checklist de 25 puntos:
 - ☑ Sin afirmaciones vagas
@@ -119,7 +119,7 @@ Validar informe contra checklist de 25 puntos:
 - ☑ Formato consistente
 - ☑ Todas las secciones presentes
 
-### Fase 6: Salida y siguientes pasos (1 min - AUTO)
+### Phase 6: Output y siguientes pasos (1 min - AUTO)
 
 Guardar informe en `outputs/informe-ejecutivo-{fecha}.docx`
 
@@ -142,9 +142,9 @@ Siguientes pasos:
 
 ---
 
-## Salida
+## Output
 
-### Salida exitosa
+### Output exitosa
 
 ```
 ✅ INFORME EJECUTIVO GENERADO
@@ -185,14 +185,14 @@ El informe está listo para producción y puede compartirse inmediatamente.
 
 Cada informe pasa:
 
-### ✅ Validación de contenido
+### ✅ validation de contenido
 - Sin afirmaciones vagas ("bueno", "mejor", "bien")
 - Todas las afirmaciones respaldadas por métricas
 - ≥ 3 beneficios cuantificados
 - Resumen ejecutivo < 300 palabras
 - Recomendaciones accionables (no genéricas)
 
-### ✅ Validación de tono
+### ✅ validation de tono
 - Profesional pero accesible
 - Impacto de negocio enfatizado (no detalles técnicos)
 - Números concretos (2,345 no "muchos")
@@ -222,7 +222,7 @@ Ver [rag-report-generator/SKILL.md](../rag-report-generator/SKILL.md) para:
 
 ---
 
-## Skills relacionados
+## Related Skills
 
 - **rag-report-generator** - Motor principal de generación
 - **rag-diagnostics** - Recopilación de métricas

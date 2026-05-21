@@ -1,6 +1,6 @@
 ---
 name: 'RAG: Azure Setup'
-description: 'Despliega infraestructura Azure para RAG: OpenAI, AI Search, Application Insights. Usa plantillas Bicep. Valida conectividad y genera credenciales.'
+description: 'Deploys Azure infrastructure for RAG: OpenAI, AI Search, Application Insights. Uses Bicep templates. Validates connectivity and generates credentials.'
 model: 'claude-haiku-4.5'
 tools: true
 skills: ['rag-deployment-templates', 'rag-agent-instrumentation']
@@ -12,45 +12,45 @@ skills: ['rag-deployment-templates', 'rag-agent-instrumentation']
 
 
 
-## Propósito
+## Purpose
 
-Desplegar infraestructura Azure completa para RAG **de un solo golpe**:
+Deploy complete Azure infrastructure for RAG **in one go**:
 
-✅ Azure OpenAI Service (despliegues de gpt-4o + text-embedding-3-small)
-✅ Azure AI Search (para búsqueda semántica + indexación)
-✅ Application Insights (observabilidad y seguimiento de costes)
-✅ Cuenta de almacenamiento (para staging de documentos)
+✅ Azure OpenAI Service (deployments of gpt-4o + text-embedding-3-small)
+✅ Azure AI Search (for semantic search + indexing)
+✅ Application Insights (observability and cost tracking)
+✅ Storage Account (for document staging)
 
-**Verificación de disponibilidad de modelo:** Antes de desplegar, verificar que gpt-4o esté disponible en tu
-región objetivo. Ejecutar `python .github/skills/rag-cost-analyst/cost_analyzer.py`
-o llamar `validate_region_models(["gpt-4o", "text-embedding-3-small"], region)`.
+**Model availability verification:** Before deployment, verify that gpt-4o is available in your
+target region. Run `python .github/skills/rag-cost-analyst/cost_analyzer.py`
+or call `validate_region_models(["gpt-4o", "text-embedding-3-small"], region)`.
 
-**Valida:** Todos los servicios funcionando + credenciales almacenadas
-
----
-
-## Cuándo usar
-
-- `Desplegar infraestructura Azure para RAG`
-- `Configurar OpenAI + Search + AppInsights`
-- `Crear entorno RAG de producción`
+**Validates:** All services running + credentials stored
 
 ---
 
-## Workflow
+## When to Use
 
-### 1. Validar prerequisitos (1 min)
+- `Deploy Azure infrastructure for RAG`
+- `Configure OpenAI + Search + AppInsights`
+- `Create production RAG environment`
+
+---
+
+## workflow
+
+### 1. Validate Prerequisites (1 min)
 
 ```bash
-az account show  # ¿Sesión iniciada?
-az group list    # ¿Existen grupos de recursos?
+az account show  # Logged in?
+az group list    # Resource groups exist?
 ```
 
-### 2. Recopilar configuración (2 min)
+### 2. Collect configuration (2 min)
 
-Desde `.env` o preguntar:
+From `.env` or prompt:
 ```
-AZURE_SUBSCRIPTION_ID=<tu-suscripcion>
+AZURE_SUBSCRIPTION_ID=<your-subscription>
 AZURE_RESOURCE_GROUP=rag-builder-rg
 AZURE_REGION=eastus
 OPENAI_TIER=S0
@@ -58,7 +58,7 @@ SEARCH_TIER=standard
 SEARCH_REPLICAS=3
 ```
 
-### 3. Desplegar plantilla Bicep (5-10 min)
+### 3. Deploy Bicep template (5-10 min)
 
 ```bash
 cd infra/
@@ -70,17 +70,17 @@ cd infra/
   --search-replicas 3
 ```
 
-### 4. Despliegues de modelos (creados por Bicep)
+### 4. Model Deployments (created by Bicep)
 
-La plantilla Bicep auto-crea estos despliegues:
-- `gpt-4o` (GlobalStandard, capacidad 10) — modelo mínimo de calidad para RAG
-- `text-embedding-3-small` (Standard, capacidad 50) — embeddings vectoriales
+The Bicep template auto-creates these deployments:
+- `gpt-4o` (GlobalStandard, capacity 10) — minimum quality model for RAG
+- `text-embedding-3-small` (Standard, capacity 50) — vector embeddings
 
-Si necesitas añadir despliegues adicionales manualmente:
+If you need to add additional deployments manually:
 ```bash
 az cognitiveservices account deployment create \
   --resource-group rag-builder-rg \
-  --name <recurso-openai> \
+  --name <openai-resource> \
   --deployment-name gpt-4o \
   --model-name gpt-4o \
   --model-version 2024-08-06 \
@@ -88,25 +88,25 @@ az cognitiveservices account deployment create \
   --sku-capacity 10
 ```
 
-### 5. Validar conectividad (1 min)
+### 5. Validate connectivity (1 min)
 
 ```python
 from azure.openai import AzureOpenAI
 from azure.search.documents import SearchClient
 
 client = AzureOpenAI(...)
-response = client.chat.completions.create(...)  # ✅ ¿Funciona?
+response = client.chat.completions.create(...)  # ✅ Working?
 
 search = SearchClient(...)
-results = search.search("test")  # ✅ ¿Funciona?
+results = search.search("test")  # ✅ Working?
 
 from azure.monitor.opentelemetry import AzureMonitorTraceExporter
-exporter = AzureMonitorTraceExporter(...)  # ✅ ¿Funciona?
+exporter = AzureMonitorTraceExporter(...)  # ✅ Working?
 ```
 
-### 6. Guardar credenciales
+### 6. Store credentials
 
-Generar `.env` con:
+Generate `.env` with:
 ```
 AZURE_OPENAI_ENDPOINT=https://....openai.azure.com/
 AZURE_OPENAI_API_KEY=...
@@ -122,10 +122,10 @@ STORAGE_ACCOUNT_KEY=...
 
 ---
 
-## Resolución de problemas
+## Troubleshooting
 
-**El despliegue falla con error de cuota**
-→ La región puede estar sin cuota. Probar otra región en `.env`
+**Deployment fails with quota error**
+→ Region may have no quota. Try another region in `.env`
 
-**No se puede crear despliegue de OpenAI**
-→ Verificar que la cuenta de Cognitive Services existe y es accesible
+**Cannot create OpenAI deployment**
+→ Verify that the Cognitive Services account exists and is accessible

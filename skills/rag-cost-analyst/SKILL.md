@@ -1,6 +1,6 @@
 ---
 name: 'rag-cost-analyst'
-description: 'Análisis exhaustivo de costes Azure, previsiones y recomendaciones de optimización. Analiza costes de infraestructura, costes de inferencia de modelos, e identifica oportunidades de ahorro.'
+description: 'Análisis exhaustivo de costes Azure, previsiones y recomendaciones de optimization. Analiza costes de infraestructura, costes de inferencia de modelos, e identifica oportunidades de ahorro.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
@@ -9,15 +9,15 @@ description: 'Análisis exhaustivo de costes Azure, previsiones y recomendacione
 **Versión:** 1.0
 **Módulos:** `cost_analyzer.py`, `validator.py`
 
-## Propósito
+## Purpose
 
-Análisis de costes y optimización pre y post-despliegue. Valida configuración contra presupuesto antes del despliegue, luego calcula costes reales vs esperados y recomienda acciones específicas para reducir gasto mensual sin sacrificar fiabilidad.
+Análisis de costes y optimization pre y post-deployment. Valida configuration contra presupuesto antes del deployment, luego calcula costes reales vs esperados y recomienda acciones específicas para reducir gasto mensual sin sacrificar fiabilidad.
 
-## Cuándo Usar
+## When to Use
 
-- Después del despliegue para validar que costes coincidan con presupuesto
+- Después del deployment para validar que costes coincidan con presupuesto
 - Revisiones mensuales de coste
-- Al identificar oportunidades de optimización
+- Al identificar oportunidades de optimization
 - Antes de escalar a producción
 
 ## Componentes de Coste Analizados
@@ -30,22 +30,22 @@ Análisis de costes y optimización pre y post-despliegue. Valida configuración
 |---|---|---|---|
 | **gpt-4o** | $2.50 | $10.00 | Barra mínima de calidad para RAG |
 | **o3-mini** | $1.10 | $4.40 | Tareas intensivas en razonamiento |
-| **text-embedding-3-small** | $0.02 | — | Embeddings por defecto |
-| **text-embedding-3-large** | $0.13 | — | Embeddings alta precisión |
+| **text-embedding-3-small** | $0.02 | — | embeddings por defecto |
+| **text-embedding-3-large** | $0.13 | — | embeddings alta precisión |
 
 > `gpt-4o-mini` **no** está soportado (por debajo del umbral de calidad para RAG)
 > Disponibilidad de modelos varía por región — ver `cost_analyzer.check_model_availability()`.
 
 ### 2. Azure AI Search (por réplica al mes)
 
-| Tier | Coste/réplica | Almacenamiento | Búsqueda semántica |
+| Tier | Coste/réplica | Storage | search semántica |
 |---|---|---|---|
 | **Free** | $0 | <=50 MB | No |
 | **Basic** | $82 | <=2 GB | No |
 | **Standard S1** | $295 | <=25 GB | Sí |
 | **Standard S2** | $590 | <=100 GB | Sí |
 
-Add-on de búsqueda semántica: **1,000 queries gratis/mes**, luego **$5 por 1,000 queries**.
+Add-on de search semántica: **1,000 queries gratis/mes**, luego **$5 por 1,000 queries**.
 
 ### 3. Application Insights
 
@@ -84,8 +84,8 @@ TOTAL:                     ~$2,100/mes
 
 ## Módulos
 
-- **`cost_analyzer.py`** — core: disponibilidad de modelos por región (live + estática), precios por token, validación de presupuesto
-- **`azure_cost_analyst.py`** — análisis: recomendaciones de optimización, previsiones, scoring de costes
+- **`cost_analyzer.py`** — core: disponibilidad de modelos por región (live + estática), precios por token, validation de presupuesto
+- **`azure_cost_analyst.py`** — análisis: recomendaciones de optimization, previsiones, scoring de costes
 - **`validator.py`** — wrapper de punto de entrada público
 
 ## Uso
@@ -107,10 +107,10 @@ result = validate_deployment(
 # result incluye: region_check, cost_estimate, budget_check, warnings, recommendations
 ```
 
-## Palancas de Optimización
+## Palancas de optimization
 
 | Acción | Esfuerzo | Ahorro | Riesgo |
 |---|---|---|---|
 | Bajar a Standard S1 desde S2 (si docs <25GB) | 5 min | $295/mes por réplica | Bajo |
-| Desactivar búsqueda semántica (pierde ~30% precisión) | 5 min | $5/1K queries | Medio (calidad) |
+| Desactivar search semántica (pierde ~30% precisión) | 5 min | $5/1K queries | Medio (calidad) |
 | Eliminar 2ª réplica (pierde HA) | 5 min | $295/mes | Alto (sin failover) |

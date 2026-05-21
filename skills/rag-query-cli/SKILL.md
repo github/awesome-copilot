@@ -1,4 +1,4 @@
-# RAG Query CLI — Búsqueda Interactiva de Documentos
+# RAG Query CLI — search Interactiva de Documentos
 
 **Consulta tu sistema RAG interactivamente desde línea de comandos.**
 
@@ -8,17 +8,17 @@ CLI interactivo para buscar y consultar documentos indexados en tu sistema RAG u
 
 ## Características
 
-- Búsqueda híbrida (keyword + ranking semántico)
+- search híbrida (keyword + ranking semántico)
 - Recuperación de documentos con seguimiento de fuentes
 - Generación de respuestas con contexto
-- Métricas de rendimiento
+- Métricas de performance
 - Manejo de caracteres especiales UTF-8 (compatible Windows)
 
 ## Requisitos
 
 - Cuenta Azure OpenAI con modelo desplegado
 - Instancia Azure AI Search con documentos indexados
-- Archivo `.env` con credenciales:
+- Archivo `.env` con credentials:
   - `AZURE_OPENAI_KEY`
   - `AZURE_OPENAI_ENDPOINT`
   - `AZURE_SEARCH_ENDPOINT`

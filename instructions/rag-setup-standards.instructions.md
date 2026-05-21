@@ -1,17 +1,17 @@
 ---
-description: 'Estándares de configuración RAG para observabilidad, manejo de errores y consistencia de logging en agentes y scripts.'
+description: 'Estándares de configuration RAG para observability, Error Handling y consistencia de logging en agentes y scripts.'
 applyTo: '**/*.py, **/*.agent.md'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-# Instrucción: Estándares de Configuración RAG
+# Instrucción: Estándares de configuration RAG
 
 
 
 
 
-## Requisitos de observabilidad
+## Requisitos de observability
 
 Todos los agentes y scripts DEBEN:
 
@@ -45,7 +45,7 @@ def my_function():
     pass
 ```
 
-### 3. Manejo de errores
+### 3. Error Handling
 
 ```python
 try:
@@ -91,10 +91,10 @@ logger.info(f"Agente summary ejecutado en {latency_ms}ms")
 ### Agentes Markdown (.agent.md)
 
 - Incluir frontmatter YAML con: `name`, `description`, `model`, `tools`
-- Sección clara de "Cuándo usar"
-- Workflow paso a paso con estimaciones de tiempo
-- Tabla de manejo de errores
-- Salidas esperadas documentadas
+- Sección clara de "When to Use"
+- workflow paso a paso con estimaciones de tiempo
+- Tabla de Error Handling
+- Outputs esperadas documentadas
 
 ## Testing
 
@@ -102,20 +102,20 @@ logger.info(f"Agente summary ejecutado en {latency_ms}ms")
 - Todos los scripts: incluir precheck `--validate`
 - Dry-runs RAG: ejecutar 3x para validar estabilidad (< 20% variación)
 
-## Lista de verificación de despliegue
+## Lista de verificación de deployment
 
 Antes de ejecutar workflows RAG:
 
-- [ ] `.env` configurado con todas las credenciales Azure
+- [ ] `.env` configurado con todas las credentials Azure
 - [ ] Recursos Azure desplegados (ejecutar `azure-setup-specialist`)
 - [ ] Índice RAG creado (ejecutar `rag-indexer-specialist`)
-- [ ] Validación pasada: `python .github/skills/rag-diagnostics/validate_setup.py --verbose`
-- [ ] Todas las rutas de salida de métricas existen: `outputs/`
+- [ ] validation pasada: `python .github/skills/rag-diagnostics/validate_setup.py --verbose`
+- [ ] Todas las rutas de Output de métricas existen: `outputs/`
 - [ ] Fichero de logs configurado: `outputs/rag.log`
 
-## Formato de salida
+## Formato de Output
 
-Todos los agentes deben generar JSON o salida estructurada en `outputs/`:
+Todos los agentes deben generar JSON o Output estructurada en `outputs/`:
 
 ```json
 {

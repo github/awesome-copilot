@@ -1,6 +1,6 @@
 ---
 name: 'RAG: Cost Scaler'
-description: 'Gestiona dinámicamente los costes de infraestructura RAG en Azure post-despliegue — escala entre tiers mínimo/estándar/premium con cero downtime y alertas automáticas de presupuesto.'
+description: 'Dynamically manages RAG infrastructure costs in Azure post-deployment — scales between minimal/standard/premium tiers with zero downtime and automatic budget alerts.'
 model: 'claude-haiku-4.5'
 tools: true
 skills: ['rag-cost-scaler']
@@ -9,34 +9,34 @@ depends_on: ['rag-azure-setup']
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-## Propósito
+## Purpose
 
-Después de desplegar tu infraestructura RAG, los costes quedan **fijados** al tier inicial que elegiste.
+After deploying your RAG infrastructure, costs are **locked** at the initial tier you chose.
 
-Este agente te permite:
-- 🟢 Escalar ABAJO a Mínimo (€30/mes) si sobredimensionaste
-- 🟡 Escalar ARRIBA a Estándar (€75/mes) cuando la producción lo requiera
-- 🔴 Escalar a Premium (€250/mes) para cargas de trabajo enterprise
-- 📊 **Cero downtime** — sin pérdida de datos, sin re-indexación
-- 🚨 Auto-configurar alertas de presupuesto
+This agent allows you to:
+- 🟢 Scale DOWN to Minimal ($30/month) if oversized
+- 🟡 Scale UP to Standard ($75/month) when production needs it
+- 🔴 Scale to Premium ($250/month) for enterprise workloads
+- 📊 **Zero downtime** — no data loss, no re-indexing
+- 🚨 Auto-configure budget alerts
 
-**Tiempo total: 5-10 minutos**
-
----
-
-## Cuándo usar
-
-- `Reducir costes RAG` — Ahorrar dinero en dev/testing
-- `Optimizar infraestructura` — Ajustar costes al uso real
-- `Preparar para producción` — Escalar para más consultas
-- `Configurar alertas de presupuesto` — Prevenir facturas sorpresa
-- `Revisar tiers de coste` — Entender qué ofrece cada tier
+**Total time: 5-10 minutes**
 
 ---
 
-## Workflow
+## When to Use
 
-### Fase 1: Detectar configuración actual (1 min)
+- `Reduce RAG costs` — Save money on dev/testing
+- `Optimize infrastructure` — Adjust costs to actual usage
+- `Prepare for production` — Scale for more queries
+- `Configure budget alerts` — Prevent surprise bills
+- `Review cost tiers` — Understand what each tier offers
+
+---
+
+## workflow
+
+### Phase 1: Detectar configuration actual (1 min)
 
 **Qué ocurre:**
 ```
@@ -48,7 +48,7 @@ Este agente te permite:
 ✓ Calcula coste mensual actual
 ```
 
-**Ejemplo de salida:**
+**Ejemplo de Output:**
 ```
 Configuración actual:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -65,7 +65,7 @@ Configuración actual:
 
 ---
 
-### Fase 2: Mostrar tiers disponibles (1 min)
+### Phase 2: Mostrar tiers disponibles (1 min)
 
 **Tabla comparativa:**
 
@@ -85,7 +85,7 @@ Actual:           ✓
 
 ---
 
-### Fase 3: Elegir acción (2 min - INTERACTIVO)
+### Phase 3: Elegir acción (2 min - INTERACTIVO)
 
 **El sistema pregunta:**
 
@@ -99,12 +99,12 @@ Actual:           ✓
 5. Crear alertas de presupuesto
 6. Cancelar
 
-Tu elección: 
+Tu elección:
 ```
 
 ---
 
-### Fase 4a: DRY-RUN (2 min - si escala)
+### Phase 4a: DRY-RUN (2 min - si escala)
 
 **Si el usuario elige escalar:**
 
@@ -128,7 +128,7 @@ Pérdida de datos: Ninguna (re-indexación automática)
 
 ---
 
-### Fase 4b: APLICAR CAMBIOS (5 min - si confirmado)
+### Phase 4b: APLICAR CAMBIOS (5 min - si confirmado)
 
 **El sistema ejecuta:**
 
@@ -165,7 +165,7 @@ Paso 5: Eliminando servicio antiguo...
 
 ---
 
-### Fase 5: Configurar alertas de presupuesto (2 min)
+### Phase 5: Configurar alertas de presupuesto (2 min)
 
 **El sistema pregunta:**
 
@@ -180,7 +180,7 @@ Opciones de presupuesto:
 3. Alerta al 100% (€75/mes consumidos)
 4. Umbral personalizado: €_____
 
-Tu elección: 
+Tu elección:
 ```
 
 **Si el usuario confirma:**
@@ -198,9 +198,9 @@ Recibirás un email si el gasto supera €75/mes
 
 ---
 
-### Fase 6: Resumen y siguientes pasos (1 min)
+### Phase 6: Resumen y siguientes pasos (1 min)
 
-**Salida final:**
+**Output final:**
 
 ```
 ✅ ¡Completado!
@@ -226,14 +226,14 @@ Alertas de presupuesto activas:
 
 ---
 
-## Manejo de errores
+## Error Handling
 
 | Error | Causa | Recuperación |
 |---|---|---|
 | Servicio Search no encontrado | Aún no desplegado | Ejecutar agente `rag-azure-setup` primero |
 | Cuota insuficiente | Límite de suscripción Azure | Solicitar aumento de cuota o probar otra región |
 | Permiso RBAC denegado | Sin rol Contributor | Pedir al admin que conceda rol Contributor |
-| Timeout de re-indexación | Conjunto de documentos grande | Reintento manual o contactar soporte |
+| Timeout de re-indexing | Conjunto de documentos grande | Reintento manual o contactar soporte |
 | Alerta de presupuesto ya existe | Umbral duplicado | Eliminar alerta antigua primero |
 
 ---
@@ -241,9 +241,9 @@ Alertas de presupuesto activas:
 ## Limitaciones y notas
 
 ⚠️ **Importante:**
-- Los cambios de tier tardan **5-10 minutos** (re-indexación)
+- Los cambios de tier tardan **5-10 minutos** (re-indexing)
 - Todos los datos se **preservan** — cero pérdida de datos
-- Las consultas **no disponibles** durante re-indexación (< 10 min downtime)
+- Las consultas **no disponibles** durante re-indexing (< 10 min downtime)
 - Los costes son **estimaciones** — verificar en azure.com/pricing
 - Costes mensuales mostrados en **EUR** para facturación Avanade
 - Alertas configuradas en portal de **Azure Cost Management**
@@ -281,7 +281,7 @@ python cost-scaler-wrapper.py --action CreateAlerts --resource-group rag-defensa
 R: No. Todos los datos se preservan y re-indexan automáticamente. Cero pérdida de datos.
 
 **P: ¿Cuánto tarda?**
-R: 5-10 minutos para cambio de tier + re-indexación, dependiendo del volumen de documentos.
+R: 5-10 minutos para cambio de tier + re-indexing, dependiendo del volumen de documentos.
 
 **P: ¿Puedo volver a Mínimo?**
 R: ¡Sí! Puedes escalar abajo en cualquier momento. Los costes bajan inmediatamente.
@@ -290,7 +290,7 @@ R: ¡Sí! Puedes escalar abajo en cualquier momento. Los costes bajan inmediatam
 R: Escala de vuelta abajo. Solo se te cobra por el tier actual a partir del siguiente ciclo de facturación.
 
 **P: ¿Hay otros tiers?**
-R: Solo 3 tiers predefinidos. SKUs personalizados disponibles vía portal Azure (requiere configuración manual).
+R: Solo 3 tiers predefinidos. SKUs personalizados disponibles vía portal Azure (requiere configuration manual).
 
 ---
 

@@ -1,27 +1,27 @@
 **RAG Reference:** [Retrieval-augmented Generation con SharePoint - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-solutions-retrieval-augmented-generation)
 
-**Propósito:** Configurar la integración completa con SharePoint (ambos modos) sin intervención manual excepto configuración opcional en el portal de Azure.
+**Purpose:** Configurar la integration completa con SharePoint (ambos modos) sin intervención manual excepto configuration opcional en el portal de Azure.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-sharepoint-setup.agent.md`
 
-**Duración estimada:** 5-15 minutos (dependiendo del modo y tamaño de documentos)
+**Estimated Duration:** 5-15 minutos (dependiendo del modo y tamaño de documentos)
 
 ---
 
-## ✅ Lista de verificación de configuración
+## ✅ Lista de verificación de configuration
 
 - [ ] App de Azure AD registrada (enlace proporcionado si es necesario)
 - [ ] Tenant ID y Client ID obtenidos
 - [ ] URL del sitio SharePoint identificada
 - [ ] (Opcional) Client Secret para service principal
 - [ ] (Modo local) Suficiente espacio en disco para la descarga
-- [ ] (Modo profesional) Instancia de Azure Search desplegada
+- [ ] (Modo profesional) Instancia de Azure AI Search desplegada
 
 ---
 
-## Implementación fase a fase
+## implementation Phase a Phase
 
-### Fase 1: Verificación previa (1 min - AUTO)
+### Phase 1: Verificación previa (1 min - AUTO)
 
 ```python
 # Comprobar prerequisitos
@@ -43,7 +43,7 @@ if not all(checks.values()):
     exit(1)
 ```
 
-### Fase 2: Entrevista al usuario (2 min - INTERACTIVO)
+### Phase 2: Entrevista al usuario (2 min - INTERACTIVO)
 
 ```python
 print("\n" + "="*50)
@@ -113,7 +113,7 @@ if use_secret == "Sí":
 print("\n✓ Configuración capturada")
 ```
 
-### Fase 3: Autenticación (2 min - AUTO)
+### Phase 3: authentication (2 min - AUTO)
 
 ```python
 from sharepoint_auth import SharePointAuthenticator
@@ -141,7 +141,7 @@ auth.save_config(config_file)
 print(f"   Config cacheada: {config_file}")
 ```
 
-### Fase 4: Resolver sitio SharePoint (1 min - AUTO)
+### Phase 4: Resolver sitio SharePoint (1 min - AUTO)
 
 ```python
 from sharepoint_connector import SharePointConnector
@@ -161,7 +161,7 @@ print(f"   Site ID: {site_info['site_id']}")
 print(f"   Drive ID: {site_info['drive_id']}")
 ```
 
-### Fase 5: Contar documentos (1 min - AUTO)
+### Phase 5: Contar documentos (1 min - AUTO)
 
 ```python
 print("\n" + "="*50)
@@ -187,7 +187,7 @@ if len(items) > 10000:
         exit(0)
 ```
 
-### Fase 6: Configuración específica por modo
+### Phase 6: configuration específica por modo
 
 #### MODO PROFESIONAL (2-3 min)
 
@@ -270,7 +270,7 @@ else:  # modo local
     print(f"   Manifiesto: {download_dir / 'manifest.json'}")
 ```
 
-### Fase 7: Indexar documentos (solo modo local)
+### Phase 7: index documentos (solo modo local)
 
 ```python
 if mode == "local":
@@ -299,7 +299,7 @@ if mode == "local":
             print("   python .github/skills/rag-indexer/indexar.py")
 ```
 
-### Fase 8: Guardar configuración (1 min - AUTO)
+### Phase 8: Guardar configuration (1 min - AUTO)
 
 ```python
 print("\n" + "="*50)
@@ -339,7 +339,7 @@ if env_file.exists():
     print(f"✓ .env actualizado con configuración SharePoint")
 ```
 
-### Fase 9: Validación (1 min - AUTO)
+### Phase 9: validation (1 min - AUTO)
 
 ```python
 print("\n" + "="*50)
@@ -361,7 +361,7 @@ if not all(tests.values()):
     exit(1)
 ```
 
-### Fase 10: Resumen y siguientes pasos (1 min - AUTO)
+### Phase 10: Resumen y siguientes pasos (1 min - AUTO)
 
 ```python
 print("\n" + "="*50)
@@ -426,7 +426,7 @@ print("\nDocumentación completa: .github/skills/rag-sharepoint-connector/SKILL.
 
 ## Recuperación de errores
 
-### Errores de autenticación
+### Errores de authentication
 
 ```python
 except Exception as e:
@@ -470,17 +470,17 @@ except requests.Timeout:
 
 ---
 
-## Integración con onboarding
+## integration con onboarding
 
 Cuando el usuario tiene SharePoint en `rag-onboarding.agent.md`:
 
 ```python
-# En rag-onboarding agente Fase 2 (Entrevista):
+# En rag-onboarding agente Phase 2 (Entrevista):
 if ask_user("¿Tienes documentos en SharePoint?") == "Sí":
     print("\n¡Genial! Nos encargamos de SharePoint.")
     mode = ask_user("¿Modo preferido?", choices=["Profesional", "Local"])
     
-    # Después, en Fase 5 (Indexación):
+    # Después, en Phase 5 (Indexación):
     call_agent("rag-sharepoint-setup", {
         "mode": mode.lower(),
     })
@@ -495,5 +495,5 @@ if ask_user("¿Tienes documentos en SharePoint?") == "Sí":
 - [ ] Sitio SharePoint resuelto (drive ID encontrado)
 - [ ] Documentos descubiertos (al menos 1 elemento)
 - [ ] Modo configurado (modo profesional O local completado)
-- [ ] Configuración guardada en scripts/sharepoint-config.json
+- [ ] configuration guardada en scripts/sharepoint-config.json
 - [ ] .env actualizado (si modo local)

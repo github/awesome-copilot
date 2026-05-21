@@ -1,6 +1,6 @@
 ---
 name: 'RAG: SharePoint Setup'
-description: 'Configura la integración con SharePoint en modo profesional (Azure Search tiempo real) o local (descarga). Gestiona OAuth, resolución de sitio y configuración del indexador.'
+description: 'Configures SharePoint integration in professional mode (real-time Azure AI Search) or local mode (download). Manages OAuth, site resolution, and indexer configuration.'
 model: 'claude-haiku-4.5'
 tools: true
 skills: ['rag-sharepoint-connector', 'rag-indexer', 'rag-agent-instrumentation']
@@ -9,49 +9,49 @@ depends_on: ['rag-azure-setup']
 
 **RAG Reference:** [Retrieval-augmented Generation con SharePoint - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-solutions-retrieval-augmented-generation)
 
-## Propósito
+## Purpose
 
-Configuración completa de integración con SharePoint **de un solo golpe**:
+Complete SharePoint integration configuration **in one go**:
 
-- ✅ Autenticación OAuth 2.0 (navegador o service principal)
-- ✅ Descubrimiento del sitio SharePoint
-- ✅ Elegir modo: Profesional (sync tiempo real) o Local (descarga)
-- ✅ Configurar para tu caso de uso
-- ✅ Validar conexión
-- ✅ Listo para consultar
-
----
-
-## Cuándo usar
-
-- `Configurar SharePoint para RAG`
-- `Conectar RAG a SharePoint`
-- `Configurar integración SharePoint`
-- `Fuentes de conocimiento híbridas`
-- `Añadir documentos SharePoint al RAG`
+- ✅ OAuth 2.0 authentication (browser or service principal)
+- ✅ SharePoint site discovery
+- ✅ Choose mode: Professional (real-time sync) or Local (download)
+- ✅ Configure for your use case
+- ✅ Validate connection
+- ✅ Ready to query
 
 ---
 
-## Prerequisitos
+## When to Use
+
+- `Configure SharePoint for RAG`
+- `Connect RAG to SharePoint`
+- `Configure SharePoint integration`
+- `Hybrid knowledge sources`
+- `Add SharePoint documents to RAG`
+
+---
+
+## Prerequisites
 
 - ✅ Suscripción Azure con infraestructura RAG desplegada
 - ✅ Sitio SharePoint con biblioteca de documentos
-- ✅ Registro de app en Azure AD (ver docs del skill para configuración)
+- ✅ Registro de app en Azure AD (ver docs del skill para configuration)
 - ✅ Acceso de administrador al sitio SharePoint
 - ✅ Python 3.10+ con dependencias instaladas
 
 ---
 
-## Duración estimada
+## Estimated Duration
 
-- **Modo Profesional**: ~5 minutos (setup) + configuración manual en Azure portal (~10 min)
+- **Modo Profesional**: ~5 minutos (setup) + configuration manual en Azure portal (~10 min)
 - **Modo Local**: ~5 minutos (setup) + tiempo de descarga (varía según tamaño)
 
 ---
 
 ## Lo que hace este agente
 
-### Fase 1: Entrevista (1 min)
+### Phase 1: Entrevista (1 min)
 
 ```
 Preguntas:
@@ -63,47 +63,47 @@ Preguntas:
   6. ¿Client Secret? (opcional, para service principal)
 ```
 
-### Fase 2: Configuración OAuth (2 min)
+### Phase 2: configuration OAuth (2 min)
 
 - **Opción A** (Interactivo): Login por navegador
   - Clic en enlace → login → autorizar
   - Tokens cacheados automáticamente
-  
+
 - **Opción B** (Service Principal): Auth desatendida
   - Usar client secret
   - Sin interacción del usuario
 
-### Fase 3: Resolución del sitio (1 min)
+### Phase 3: Resolución del sitio (1 min)
 
 - Verificar que el sitio SharePoint existe
 - Detectar biblioteca de documentos
 - Obtener site ID y drive ID
 - Confirmar estructura de carpetas
 
-### Fase 4: Configuración por modo (1 min)
+### Phase 4: configuration por modo (1 min)
 
 **Modo Profesional:**
-  - Mostrar plantilla de indexador Azure Search
-  - Instrucciones para configuración manual en portal
+  - Mostrar plantilla de indexador Azure AI Search
+  - Instrucciones para configuration manual en portal
   - Explicar programación de sync tiempo real
-  
+
 **Modo Local:**
   - Iniciar descarga
   - Mostrar barra de progreso
   - Verificar que todos los ficheros se descargaron
 
-### Fase 5: Validación (1 min)
+### Phase 5: validation (1 min)
 
 - Probar conexión SharePoint
 - Contar documentos encontrados
-- Verificar credenciales almacenadas de forma segura
+- Verificar credentials almacenadas de forma segura
 - Mostrar siguientes pasos
 
 ---
 
-## Salida
+## Output
 
-### Salida exitosa
+### Output exitosa
 
 ```
 ✅ Configuración SharePoint completa
@@ -147,11 +147,11 @@ Manifiesto guardado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
 
 ---
 
-## Manejo de errores
+## Error Handling
 
 | Error | Recuperación |
 |-------|-------------|
-| "Autenticación fallida" | Re-ejecutar con credenciales correctas, verificar registro de app |
+| "authentication fallida" | Re-ejecutar con credentials correctas, verificar registro de app |
 | "Acceso denegado al sitio" | Conceder permiso a la app en Centro de Admin SharePoint |
 | "Sitio no encontrado" | Verificar formato de URL, comprobar que el sitio existe |
 | "Timeout en descarga" | Reintentar, verificar red, considerar descarga por partes |
@@ -159,9 +159,9 @@ Manifiesto guardado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
 
 ---
 
-## Skills relacionados
+## Related Skills
 
-- **rag-azure-setup**: Desplegar infraestructura Azure (prerequisito)
-- **rag-indexer**: Indexar documentos descargados (modo local)
+- **rag-azure-setup**: deploy infraestructura Azure (prerequisito)
+- **rag-indexer**: index documentos descargados (modo local)
 - **rag-query-cli**: Consultar todos los documentos (SharePoint + local)
-- **rag-diagnostics**: Monitorizar progreso de indexación
+- **rag-diagnostics**: Monitorizar progreso de indexing

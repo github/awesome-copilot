@@ -1,19 +1,19 @@
 ---
 name: 'rag-agent-instrumentation'
-description: 'Módulos Python reutilizables para instrumentar agentes: recolección de métricas, integración con Application Insights, logging con observabilidad. Usado por todos los agentes para capturar tokens, latencia, coste, errores.'
+description: 'Módulos Python reutilizables para instrumentar agentes: recolección de métricas, integration con Application Insights, logging con observability. Usado por todos los agentes para capturar tokens, latencia, coste, errores.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 **Assets incluidos**: `instrumentation.py`, `metrics_collector.py`
 
-## Propósito
+## Purpose
 
 Proporcionar utilidades Python reutilizables para instrumentar cualquier agente con:
 - Seguimiento de consumo de tokens
 - Medición de latencia
 - Cálculo de coste
-- Integración con Application Insights
+- integration con Application Insights
 - Logging estructurado
 
 ## Uso
@@ -50,4 +50,4 @@ def my_agent_function():
 - `rag-indexer-specialist.agent.md`
 - `rag-chat.agent.md`
 - `rag-clone-new-project.agent.md`
-- Cualquier agente personalizado que necesite observabilidad
+- Cualquier agente personalizado que necesite observability

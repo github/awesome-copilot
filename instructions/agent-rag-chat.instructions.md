@@ -3,7 +3,7 @@
 
 
 
-**Propósito:** RAG conversacional multi-turno con memoria de contexto. Modo interactivo.
+**Purpose:** RAG conversacional multi-turno con memoria de contexto. Modo interactivo.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-chat.agent.md`
 
@@ -211,7 +211,7 @@ Rewritten standalone question:"""
 
 ---
 
-## Función: Búsqueda RAG
+## Función: search RAG
 
 ```python
 from azure.search.documents import SearchClient
@@ -395,7 +395,7 @@ Latencia media: {conversation['stats']['average_latency_ms']:.0f}ms
 
 ---
 
-## Salida y Guardado de Sesión (Al salir)
+## Output y Guardado de Sesión (Al salir)
 
 ```python
 
@@ -427,7 +427,7 @@ exit(0)
 
 ---
 
-## Manejo de Errores
+## Error Handling
 
 ### Consulta del Usuario Demasiado Vaga
 ```
@@ -459,7 +459,7 @@ Nueva pregunta:
 Espera un momento e inténtalo de nuevo...
 ```
 
-### Conexión de Búsqueda Perdida
+### Conexión de search Perdida
 ```
 ❌ Se perdió la conexión con Azure Search
 

@@ -1,6 +1,6 @@
 ---
 name: rag-sharepoint-connector
-description: "Integración híbrida-profesional de SharePoint para RAG. Dos modos: Profesional (indexer Azure Search, sincronización en tiempo real, sin duplicación) o Local (descarga a knowledge/, coexiste con docs tradicionales)"
+description: "integration híbrida-profesional de SharePoint para RAG. Dos modos: Profesional (indexer Azure AI Search, sincronización en tiempo real, sin duplicación) o Local (descarga a knowledge/, coexiste con docs tradicionales)"
 version: "1.0.0"
 author: "RAG Framework"
 tags: ["sharepoint", "hybrid", "integration", "azure-search", "microsoft-graph"]
@@ -8,21 +8,21 @@ tags: ["sharepoint", "hybrid", "integration", "azure-search", "microsoft-graph"]
 
 # RAG: Conector SharePoint
 
-**Arquitectura híbrida-profesional para integración SharePoint**
+**Arquitectura híbrida-profesional para integration SharePoint**
 
 Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
-- **Profesional** (por defecto): Indexer de Azure Search sincroniza directamente desde SharePoint (tiempo real, sin duplicación)
+- **Profesional** (por defecto): Indexer de Azure AI Search sincroniza directamente desde SharePoint (tiempo real, sin duplicación)
 - **Local**: Descarga todos los documentos a `knowledge/sharepoint-{fecha}/` (funciona offline, coexiste con docs tradicionales)
 
 ---
 
 ## Características
 
-**Autenticación OAuth 2.0**
+**authentication OAuth 2.0**
 - Login interactivo en navegador (por defecto)
 - Service principal para automatización
 - Refresh de token y manejo de expiración
-- Almacenamiento seguro de credenciales
+- Storage seguro de credentials
 
 **Descubrimiento Recursivo de Documentos**
 - Escanea todas las carpetas anidadas en SharePoint
@@ -30,8 +30,8 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 - Seguimiento de progreso
 - Estimación de tamaño
 
-**Modo Profesional (Azure Search)**
-- Integración directa con indexer de Azure Search
+**Modo Profesional (Azure AI Search)**
+- integration directa con indexer de Azure AI Search
 - Sincronización en tiempo real (schedule configurable)
 - Sin duplicación de documentos
 - Cloud-native, escalable
@@ -58,7 +58,7 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 
 ## Inicio Rápido
 
-### Prerequisitos
+### Prerequisites
 
 ```bash
 # 1. App registration en Azure AD (ver sección Setup)
@@ -128,7 +128,7 @@ python .github/skills/rag-indexer/indexar.py
    - Microsoft Graph -> offline_access (Delegated)
    ```
 
-3. **Obtener credenciales**
+3. **Obtener credentials**
    ```
    Certificates & secrets:
    - Anota tu Client ID (desde Overview)
@@ -144,7 +144,7 @@ python .github/skills/rag-indexer/indexar.py
    - Concede acceso al sitio donde viven los documentos
    ```
 
-### Configuración de Environment
+### configuration de Environment
 
 ```bash
 # .env o establecer variables de entorno
@@ -177,7 +177,7 @@ config = connector.setup_professional_mode()
 print(config)  # Usar esto para crear indexer en Azure Portal
 ```
 
-### Patrón 2: Modo Local (Descargar e Indexar)
+### Patrón 2: Modo Local (Descargar e index)
 
 ```python
 from sharepoint_connector import setup_sharepoint_connector

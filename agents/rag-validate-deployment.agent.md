@@ -1,6 +1,6 @@
 ---
 name: 'RAG: Validate Deployment'
-description: 'Valida costes y arquitectura antes de desplegar infraestructura RAG. Previene errores costosos con análisis de costes y recomendaciones de tier.'
+description: 'Validates costs and architecture before deploying RAG infrastructure. Prevents costly errors with cost analysis and tier recommendations.'
 model: 'claude-opus-4.7'
 tools: true
 skills: ['rag-architecture-optimizer', 'rag-cost-analyst', 'rag-validator']
@@ -8,29 +8,29 @@ skills: ['rag-architecture-optimizer', 'rag-cost-analyst', 'rag-validator']
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-## Propósito
+## Purpose
 
-Ejecutar **ANTES** de `rag-azure-setup.agent.md` para validar:
-- ✅ El coste se ajusta al presupuesto
-- ✅ La arquitectura está bien dimensionada
-- ✅ Los modelos están disponibles en la región objetivo
-- ✅ Sin sobredimensionamiento
-- ✅ Optimizaciones recomendadas
-
----
-
-## Cuándo usar
-
-- `Validar coste del despliegue`
-- `Verificar si la configuración es óptima`
-- `Revisar arquitectura antes de desplegar`
-- `Encontrar ahorros de coste`
+Run **BEFORE** `rag-azure-setup.agent.md` to validate:
+- ✅ Cost fits within budget
+- ✅ Architecture is properly sized
+- ✅ Models are available in target region
+- ✅ No oversizing
+- ✅ Recommended optimizations
 
 ---
 
-## Workflow
+## When to Use
 
-### 1. Cargar configuración
+- `Validate deployment cost`
+- `Verify if configuration is optimal`
+- `Review architecture before deployment`
+- `Find cost savings`
+
+---
+
+## workflow
+
+### 1. Cargar configuration
 
 Desde `.env` o input del usuario:
 - `AZURE_REGION` (eastus, westus2, swedencentral…)
@@ -56,7 +56,7 @@ check = validate_region_models(["gpt-4o", "text-embedding-3-small"], region)
 - ¿Tier de OpenAI suficiente?
 - ¿Retención de AppInsights razonable?
 
-🔍 **Salida:** Recomendaciones de arquitectura
+🔍 **Output:** Recomendaciones de arquitectura
 
 ### 4. Analizar con Cost Analyst
 
@@ -97,4 +97,4 @@ Recomendación: Standard S1 requerido para búsqueda vectorial + semántica.
 ## Siguientes pasos
 
 ✅ Si aprobado: Ejecutar `rag-azure-setup.agent.md`
-❌ Si rechazado: Ajustar configuración y re-ejecutar validador
+❌ Si rechazado: Ajustar configuration y re-ejecutar validador

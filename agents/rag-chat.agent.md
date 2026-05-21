@@ -1,6 +1,6 @@
 ---
-name: 'RAG: Chat Conversacional'
-description: 'Chat RAG multi-turno conversacional. Mantiene contexto, reformula preguntas, permite seguimiento. Para exploración conversacional de documentos.'
+name: 'RAG: Conversational Chat'
+description: 'Multi-turn conversational RAG chat. Maintains context, reformulates questions, enables follow-ups. For conversational document exploration.'
 model: 'claude-opus-4.7'
 tools: true
 skills: ['rag-agent-instrumentation']
@@ -8,27 +8,27 @@ skills: ['rag-agent-instrumentation']
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-## Propósito
+## Purpose
 
-**Chat RAG multi-turno** con memoria de contexto. Perfecto para:
+**Multi-turn RAG chat** with context memory. Perfect for:
 
-- Conversaciones largas sobre documentación
-- Preguntas de seguimiento ("¿Por qué?" -> "¿Cómo cambio?")
-- Exploración iterativa de temas
-- Reformulación de preguntas complejas
+- Long conversations about documentation
+- Follow-up questions ("Why?" → "How do I change?")
+- Iterative topic exploration
+- Complex question reformulation
 
-## Cuándo usar
+## When to Use
 
 ```
 copilot-cli run .github/agents/rag-chat.agent.md
 ```
 
-Úsalo cuando necesites:
-- Conversar vs hacer queries puntuales
-- Razonamiento multi-paso
-- Contexto persistente entre preguntas
+Use this when you need:
+- Conversation vs. one-off queries
+- Multi-step reasoning
+- Persistent context across questions
 
-## Workflow
+## workflow
 
 ### 1. Inicializa Chat
 
@@ -94,7 +94,7 @@ y mantendrá la conversación fluida.
 
 - **Memoria de Contexto**: Recuerda preguntas anteriores
 - **Reformulación**: Interpreta preguntas ambiguas
-- **Búsqueda Semántica**: Extrae documentación relevante
+- **search Semántica**: Extrae documentación relevante
 - **Sugerencias Relacionadas**: Propone temas de seguimiento
 - **Métricas**: Registra latencia, tokens, coste en AppInsights
 
@@ -132,7 +132,7 @@ User Response + Suggestions
 
 ---
 
-## Configuración (`.env`)
+## configuration (`.env`)
 
 ```
 RAG_CHAT_MAX_HISTORY=10         # Mantener últimas 10 interacciones
@@ -178,6 +178,6 @@ Chat session guardada automáticamente:
 | Coste | $0.02 | $0.05 |
 | Queries | Puntuales | Conversación |
 | Contexto | Stateless | Multi-turno |
-| Uso | Búsquedas rápidas | Exploración profunda |
+| Uso | searches rápidas | Exploración profunda |
 
 **Elige Chat cuando necesites seguimiento y contexto.**

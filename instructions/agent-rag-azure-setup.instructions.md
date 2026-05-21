@@ -3,28 +3,28 @@
 
 
 
-**Propósito:** Desplegar infraestructura Azure (OpenAI, Search, AppInsights). Automático.
+**Purpose:** deploy infraestructura Azure (OpenAI, Search, AppInsights). Automático.
 
-**Invocado por:** rag-onboarding.agent.md (Fase 4) O manual: `copilot-cli run rag-azure-setup.agent.md`
+**Invocado por:** rag-onboarding.agent.md (Phase 4) O manual: `copilot-cli run rag-azure-setup.agent.md`
 
-**Duración estimada:** 10-15 minutos (totalmente automático, interacción mínima)
+**Estimated Duration:** 10-15 minutos (totalmente automático, interacción mínima)
 
 ---
 
-## ✅ Lista de verificación del despliegue
+## ✅ Lista de verificación del deployment
 
-- [ ] Validar prerequisitos (az CLI, sesión iniciada)
+- [ ] Validar Prerequisites (az CLI, sesión iniciada)
 - [ ] Verificar que existen las plantillas Bicep (infra/main.bicep)
 - [ ] Crear grupo de recursos de Azure
-- [ ] Desplegar OpenAI mediante Bicep
-- [ ] Desplegar AI Search mediante Bicep
-- [ ] Desplegar AppInsights mediante Bicep
-- [ ] Extraer credenciales del despliegue
-- [ ] Mostrar resumen del despliegue
+- [ ] deploy OpenAI mediante Bicep
+- [ ] deploy AI Search mediante Bicep
+- [ ] deploy AppInsights mediante Bicep
+- [ ] Extraer credentials del deployment
+- [ ] Mostrar resumen del deployment
 
 ---
 
-## Verificación de prerequisitos (1 min - AUTO)
+## Verificación de Prerequisites (1 min - AUTO)
 
 ```bash
 # Verificar CLI de Azure instalada
@@ -52,7 +52,7 @@ Ejecutando: az login
 
 ---
 
-## Obtener parámetros de despliegue
+## Obtener parámetros de deployment
 
 **Desde variables de entorno o desde .env:**
 
@@ -75,7 +75,7 @@ params = {
 
 ---
 
-## Fase 1: Crear grupo de recursos (2 min)
+## Phase 1: Crear grupo de recursos (2 min)
 
 ```bash
 #!/bin/bash
@@ -102,7 +102,7 @@ fi
 
 ---
 
-## Fase 2: Desplegar plantilla Bicep (8-10 min)
+## Phase 2: deploy plantilla Bicep (8-10 min)
 
 ```bash
 #!/bin/bash
@@ -152,7 +152,7 @@ fi
 
 ---
 
-## Fase 3: Extraer credenciales (2 min - AUTO)
+## Phase 3: Extraer credentials (2 min - AUTO)
 
 ```python
 import json
@@ -180,7 +180,7 @@ print("✅ Credenciales extraídas del despliegue")
 
 ---
 
-## Fase 4: Actualizar .env (1 min - AUTO)
+## Phase 4: Actualizar .env (1 min - AUTO)
 
 ```python
 env_content = f"""# Configuración RAG (Auto-generado: {timestamp})
@@ -216,7 +216,7 @@ print("✅ .env actualizado con las credenciales")
 
 ---
 
-## Fase 5: Guardar resumen del despliegue (1 min)
+## Phase 5: Guardar resumen del deployment (1 min)
 
 ```python
 summary = {
@@ -250,7 +250,7 @@ print(f"✅ Resumen del despliegue guardado en outputs/")
 
 ---
 
-## Manejo de errores
+## Error Handling
 
 ### El grupo de recursos ya existe
 ```
@@ -264,7 +264,7 @@ Opciones:
 ¿Tu elección? (A/B/C)
 ```
 
-### El despliegue falla
+### El deployment falla
 ```
 ❌ El despliegue Bicep ha fallado.
 
@@ -279,7 +279,7 @@ Sugerencias:
 ¿Reintentar con westus2? (S/n)
 ```
 
-### Fallo parcial en el despliegue de servicios
+### Fallo parcial en el deployment de servicios
 ```
 ⚠️ Despliegue parcialmente exitoso:
 
@@ -295,7 +295,7 @@ Opciones:
 ¿Tu elección? (A/B/C)
 ```
 
-### No se pueden extraer credenciales
+### No se pueden extraer credentials
 ```
 ❌ No se pudieron extraer las credenciales del despliegue.
 
@@ -311,7 +311,7 @@ Solución de problemas:
 
 ## Soporte de rollback
 
-Si el despliegue falla a mitad del proceso:
+Si el deployment falla a mitad del proceso:
 
 ```bash
 # Eliminar grupo de recursos completo
@@ -331,10 +331,10 @@ echo "✅ Grupo de recursos marcado para eliminación (tarda ~5 min)"
 
 ✅ Los 3 servicios desplegados (OpenAI, Search, AppInsights)
 
-✅ Credenciales extraídas y guardadas en `.env`
+✅ credentials extraídas y guardadas en `.env`
 
 ✅ Permisos de fichero asegurados (600)
 
-✅ Resumen del despliegue guardado en `outputs/`
+✅ Resumen del deployment guardado en `outputs/`
 
-✅ Usuario listo para la siguiente fase: Indexación
+✅ Usuario listo para la siguiente Phase: indexing

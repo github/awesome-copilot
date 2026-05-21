@@ -1,17 +1,17 @@
 ---
 name: 'rag-architecture-optimizer'
-description: 'Valida y optimiza la arquitectura de despliegue Azure para eficiencia de coste y rendimiento. Revisa tiers de servicio, escalado, redundancia, y recomienda right-sizing antes del despliegue.'
+description: 'Valida y optimiza la arquitectura de deployment Azure para eficiencia de coste y performance. Revisa tiers de servicio, escalado, redundancia, y recomienda right-sizing antes del deployment.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-## Propósito
+## Purpose
 
-Validación y optimización pre-despliegue de infraestructura Azure para prevenir sobre-provisioning o infra-dimensionamiento que pueda llevar a costes innecesarios o problemas de fiabilidad.
+validation y optimization pre-deployment de infraestructura Azure para prevenir sobre-provisioning o infra-dimensionamiento que pueda llevar a costes innecesarios o problemas de fiabilidad.
 
-## Cuándo Usar
+## When to Use
 
-- Antes de desplegar con `main.bicep`
+- Antes de deploy con `main.bicep`
 - Al evaluar diferentes opciones de tier (Standard vs Premium)
 - Al planificar para escala de producción
 - Cuando el coste es una restricción
@@ -20,12 +20,12 @@ Validación y optimización pre-despliegue de infraestructura Azure para preveni
 
 ### 1. Dimensionamiento de Tier de Servicio
 - **Azure OpenAI**: S0 (standard) es suficiente para la mayoría de cargas RAG. E0 (enterprise) innecesario salvo > 100 req/sec
-- **Azure Search**: Tier Standard mínimo. Premium solo si > 10M documentos o latencia p50 < 10ms requerida
+- **Azure AI Search**: Tier Standard mínimo. Premium solo si > 10M documentos o latencia p50 < 10ms requerida
 - **App Insights**: Retención estándar (30 días) cubre operaciones RAG baseline. Premium solo para gran escala multi-región
 
-### 2. Configuración de Escalado
+### 2. configuration de Escalado
 - **Réplicas**: 1 para RAG baseline, 3+ para HA en producción
-- **Particiones**: 1 para < 500GB, escalar solo si latencia de búsqueda > SLO
+- **Particiones**: 1 para < 500GB, escalar solo si latencia de search > SLO
 - **Instancias concurrentes**: Container App empieza en 1, auto-escala basado en métricas
 
 ### 3. Nivel de Redundancia
@@ -83,7 +83,7 @@ class AzureArchitectOptimizer:
         return findings
 ```
 
-## Checklist de Optimización
+## Checklist de optimization
 
 - [ ] Tier OpenAI acorde al volumen de tráfico
 - [ ] Réplicas Search escaladas apropiadamente (no siempre 3+)

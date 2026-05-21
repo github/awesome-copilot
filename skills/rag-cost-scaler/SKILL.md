@@ -12,16 +12,16 @@ metadata:
 
 Automatiza el cambio entre configuraciones de Azure RAG (minimal → standard → premium) con cálculo de costos en tiempo real y alertas de presupuesto.
 
-## Cuándo Usar Este Skill
+## When to Use Este Skill
 
 Usa este skill cuando necesites:
 
-- **Reducir costos** — pasar de Standard a Basic en Azure Search
+- **Reducir costos** — pasar de Standard a Basic en Azure AI Search
 - **Escalar arriba** — pasar de Basic a Standard/Premium para más volumen
 - **Optimizar logs** — ajustar retención en Log Analytics
 - **Crear alertas** — configurar presupuestos y notificaciones automáticas
 - **Comparar opciones** — ver costos estimados antes de cambiar
-- **Auditar configuración** — saber qué tier tienes actualmente
+- **Auditar configuration** — saber qué tier tienes actualmente
 
 ### Ejemplos de Uso
 
@@ -161,14 +161,14 @@ Configurando alertas...
 | `--create-alerts` | flag | Crear presupuesto y alertas |
 | `--update-alerts-only` | flag | Solo actualizar alertas, no cambiar config |
 | `--list-options` | flag | Mostrar tiers disponibles |
-| `--current` | flag | Ver configuración actual |
+| `--current` | flag | Ver configuration actual |
 | `--rg RG_NAME` | string | Resource Group (default: rag-defensa-rg) |
 | `--subscription SUB_ID` | string | Subscription ID (autodetecta si no se da) |
 
 ## Cambios Reversibles
 
 ### De Minimal a Standard
-- ✓ Azure Search se reescala (puede tardar 5-10 min)
+- ✓ Azure AI Search se reescala (puede tardar 5-10 min)
 - ✓ Logs se guardan por más tiempo automáticamente
 - ✓ No se pierden datos existentes
 
@@ -177,7 +177,7 @@ Configurando alertas...
 - ⚠️ Los logs más antiguos de 90+ días se purgarán
 - ✓ Los últimos 30 días se conservan
 
-## Monitoreo Post-Cambio
+## monitoring Post-Cambio
 
 Después de aplicar cambios, monitorea:
 
@@ -192,7 +192,7 @@ az monitor metrics list -g rag-defensa-rg --interval PT5M --metric "Percentage"
 ## Troubleshooting
 
 ### Error: "Cannot provision service while deletion in progress"
-**Causa:** Azure Search aún se está eliminando del cambio anterior  
+**Causa:** Azure AI Search aún se está eliminando del cambio anterior  
 **Solución:** Espera 2-5 minutos y vuelve a intentar
 ```bash
 # Esperar 5 minutos
@@ -201,7 +201,7 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 ```
 
 ### Error: "Subscription not found"
-**Causa:** Autenticación de Azure no configurada  
+**Causa:** authentication de Azure no configurada  
 **Solución:** 
 ```bash
 az login
@@ -225,12 +225,12 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 └── README.md                # Guía rápida
 ```
 
-## Configuración Global
+## configuration Global
 
 El skill automáticamente detecta:
 - ✓ Subscription activa
 - ✓ Resource Group principal
-- ✓ Configuración actual de cada servicio
+- ✓ configuration actual de cada servicio
 - ✓ Costos actuales por servicio
 
 Si necesitas cambiar RG:
@@ -240,11 +240,11 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --rg my-rg --current
 
 ## Roadmap Futuro
 
-- [ ] Integración con CI/CD (auto-scale en horarios)
+- [ ] integration con CI/CD (auto-scale en horarios)
 - [ ] Reportes semanales de costos
 - [ ] Predictores de costos basados en tendencias
-- [ ] Snapshots de configuración para rollback automático
-- [ ] Integración con Terraform (generar .tf automáticamente)
+- [ ] Snapshots de configuration para rollback automático
+- [ ] integration con Terraform (generar .tf automáticamente)
 
 ---
 

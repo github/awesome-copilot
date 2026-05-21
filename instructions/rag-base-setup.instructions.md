@@ -3,14 +3,14 @@
 
 
 
-Estándares para la configuración de rag-builder: onboarding claro, conciencia de costes, consistencia en observabilidad.
+Estándares para la configuration de rag-builder: onboarding claro, conciencia de costes, consistencia en observability.
 
 ## Lista rápida de verificación
 
 - [ ] Python 3.10+ instalado
-- [ ] `.env` configurado con credenciales de Azure
+- [ ] `.env` configurado con credentials de Azure
 - [ ] Azure CLI con sesión iniciada (`az login`)
-- [ ] Validador pre-despliegue ejecutado (verificar costes)
+- [ ] Validador pre-deployment ejecutado (verificar costes)
 - [ ] Infraestructura Azure desplegada
 - [ ] Documentos indexados en AI Search
 - [ ] Test de consulta RAG exitoso
@@ -19,7 +19,7 @@ Estándares para la configuración de rag-builder: onboarding claro, conciencia 
 
 ### 1. Conciencia de costes primero
 
-Siempre ejecutar el validador de costes ANTES de desplegar:
+Siempre ejecutar el validador de costes ANTES de deploy:
 ```bash
 copilot-cli run .github/agents/rag-validate-deployment.agent.md
 ```
@@ -29,7 +29,7 @@ Esto previene sorpresas de $1K+/mes por:
 - Retención excesiva de AppInsights
 - Tier incorrecto de modelo OpenAI
 
-### 2. Logging y observabilidad
+### 2. Logging y observability
 
 Todas las operaciones deben loguear en:
 - `./outputs/rag.log` (local)
@@ -37,14 +37,14 @@ Todas las operaciones deben loguear en:
 
 Capturar:
 - Input de query + respuesta
-- Latencia de búsqueda + conteo de documentos
+- Latencia de search + conteo de documentos
 - Latencia de inferencia + tokens
 - Coste por operación
 
-### 3. Manejo de errores
+### 3. Error Handling
 
 Cada agente/script debe:
-- Intentar pasos de configuración con mensajes de error claros
+- Intentar pasos de configuration con mensajes de error claros
 - Sugerir remediación ("¿Cuota de región llena? Prueba westus2")
 - Nunca fallar en silencio
 - Loguear todos los fallos
@@ -70,7 +70,7 @@ knowledge/
 
 **rag-onboarding.agent.md DEBE ejecutar estas fases con CERO intervención del usuario:**
 
-#### Fase 1: Entrevista al usuario (5 min)
+#### Phase 1: Entrevista al usuario (5 min)
 ```
 Preguntar SOLO estas 5 preguntas (ni más):
 1. ¿Nombre del proyecto? (ej: "rag-builder")
@@ -80,7 +80,7 @@ Preguntar SOLO estas 5 preguntas (ni más):
 5. ¿Región Azure preferida? (por defecto: eastus)
 ```
 
-#### Fase 2: Recomendar configuración (1 min - AUTOMÁTICO)
+#### Phase 2: Recomendar configuration (1 min - AUTOMÁTICO)
 ```
 Basado en tamaño de docs + presupuesto:
 
@@ -105,7 +105,7 @@ SI grande (>10GB):
 SIEMPRE mostrar recomendación + preguntar "¿Proceder?"
 ```
 
-#### Fase 3: Validar costes (1 min - AUTOMÁTICO)
+#### Phase 3: Validar costes (1 min - AUTOMÁTICO)
 ```
 Verificar:
 - Presupuesto del usuario >= configuración recomendada
@@ -121,7 +121,7 @@ SI problema de cuota:
   └─ BLOQUEAR hasta resolver
 ```
 
-#### Fase 4: Desplegar infraestructura (10 min - AUTOMÁTICO)
+#### Phase 4: deploy infraestructura (10 min - AUTOMÁTICO)
 ```
 Desplegar usando plantillas Bicep:
 1. Crear Grupo de Recursos
@@ -141,7 +141,7 @@ SI FALLO:
   └─ PERMITIR REINTENTO con otra región
 ```
 
-#### Fase 5: Indexar documentos (10-15 min - AUTOMÁTICO)
+#### Phase 5: index documentos (10-15 min - AUTOMÁTICO)
 ```
 Escanear carpeta knowledge/ + procesar TODOS los ficheros:
 
@@ -169,7 +169,7 @@ SI ERRORES:
   └─ Mostrar: "Indexados 2,100/2,130 chunks. 30 ficheros con errores. Ver logs."
 ```
 
-#### Fase 6: Configurar credenciales (1 min - AUTOMÁTICO)
+#### Phase 6: Configurar credentials (1 min - AUTOMÁTICO)
 ```
 Generar fichero .env con:
   AZURE_OPENAI_ENDPOINT=...
@@ -183,7 +183,7 @@ Generar fichero .env con:
 GUARDAR en: .env (en git-ignored)
 ```
 
-#### Fase 7: Probar conexiones (2 min - AUTOMÁTICO)
+#### Phase 7: Probar conexiones (2 min - AUTOMÁTICO)
 ```
 Verificar todos los servicios funcionando:
   ✅ OpenAI conectado (llamar endpoint /models)
@@ -195,7 +195,7 @@ SI ALGUNO FALLA:
   └─ OFRECER REINTENTO
 ```
 
-#### Fase 8: ¡Listo! (1 min - AUTOMÁTICO)
+#### Phase 8: ¡Listo! (1 min - AUTOMÁTICO)
 ```
 Mostrar instrucciones de uso:
 
@@ -219,9 +219,9 @@ MODO C: API REST (Para apps)
 Guardar resumen en: outputs/setup-summary-{timestamp}.json
 ```
 
-### 6. Manejo de errores y reanudación
+### 6. Error Handling y reanudación
 
-**Cada fase del agente debe:**
+**Cada Phase del agente debe:**
 - Loguear completación de pasos en: `outputs/wizard-checkpoint.json`
 - SI se interrumpe → reanudar desde último checkpoint
 - Ejemplo:
@@ -230,20 +230,20 @@ Guardar resumen en: outputs/setup-summary-{timestamp}.json
     "phase": 4,
     "status": "completed",
     "timestamp": "2026-05-13T10:30:00Z",
-    "next": "Fase 5: Indexar Documentos"
+    "next": "Phase 5: Indexar Documentos"
   }
   ```
 
 **Si el usuario reinicia el wizard:**
 ```
 Detectada configuración incompleta.
-¿Continuar desde Fase 5: Indexar Documentos? (S/n)
+¿Continuar desde Phase 5: Indexar Documentos? (S/n)
 ```
 
-### 7. Configuración
+### 7. configuration
 
 Toda la config a través de `.env`:
 - Sin endpoints/claves hardcodeados
 - Nombres de variables claros
 - Comentarios explicando cada ajuste
-- Validación al arrancar (`validate_setup.py`)
+- validation al arrancar (`validate_setup.py`)

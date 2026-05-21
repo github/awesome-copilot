@@ -10,13 +10,13 @@ tags: ["reporting", "executive-summary", "docx", "claude", "professional"]
 
 **Generación de Informes Ejecutivos con Contenido Potenciado por IA**
 
-Crea informes ejecutivos profesionales y de alto impacto que defienden tu implementación RAG ante clientes y stakeholders.
+Crea informes ejecutivos profesionales y de alto impacto que defienden tu implementation RAG ante clientes y stakeholders.
 
 ---
 
-## Propósito
+## Purpose
 
-Este skill **genera el documento final que defiendes ante el cliente** — un informe DOCX profesional que presenta resultados de implementación RAG con:
+Este skill **genera el documento final que defiendes ante el cliente** — un informe DOCX profesional que presenta resultados de implementation RAG con:
 
 - **Formato profesional** — Diseño corporativo, tipografía adecuada, colores de marca
 - **Contenido potenciado por IA** — Claude Opus 4.7 genera narrativas convincentes y síntesis de datos
@@ -32,7 +32,7 @@ Este skill **genera el documento final que defiendes ante el cliente** — un in
 - Resumen ejecutivo (2-3 párrafos, escrito por IA)
 - Sección de hallazgos (sintetizados desde datos)
 - Recomendaciones (estratégicas, priorizadas, costeadas)
-- Timeline de implementación (4 fases + detalles)
+- Timeline de implementation (4 fases + detalles)
 - Estrategias de mitigación de riesgos
 
 **Formato Profesional**
@@ -45,23 +45,23 @@ Este skill **genera el documento final que defiendes ante el cliente** — un in
 
 **Aseguramiento de Calidad**
 - Checklist de calidad de 25 puntos
-- Validación de tono (profesional, accesible)
+- validation de tono (profesional, accesible)
 - Verificación de métricas (sin claims vagos)
 - Verificaciones de gramática y ortografía
 - Consistencia de formato
 
 **Integraciones**
 - **Claude Opus 4.7** para contenido de alta calidad (razonamiento estratégico)
-- **Azure Search** métricas (conteo documentos, tamaño índice)
+- **Azure AI Search** métricas (conteo documentos, tamaño índice)
 - **Azure OpenAI** datos (deployment modelo, uso tokens)
-- **Application Insights** (métricas rendimiento)
+- **Application Insights** (métricas performance)
 - **Cost Analyzer** (cálculos ROI)
 
 ---
 
 ## Inicio Rápido
 
-### Prerequisitos
+### Prerequisites
 
 ```bash
 pip install python-docx openai
