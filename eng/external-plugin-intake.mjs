@@ -9,11 +9,17 @@ import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-v
 const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
+// Each entry is a Set of equivalent checklist item texts (new + legacy aliases).
+// A submission passes if the checked items contain at least one text from each Set.
 const REQUIRED_CHECKLIST_ITEMS = [
-  "The plugin lives in a public GitHub repository.",
-  "The ref and/or sha I provided is immutable (release tag and/or full 40-character commit SHA), not a branch.",
-  "This submission follows this repository's contribution, security, and responsible AI policies.",
-  "This plugin is not already listed in the Awesome Copilot marketplace.",
+  new Set(["The plugin lives in a public GitHub repository."]),
+  new Set([
+    "The ref and/or sha I provided is immutable (release tag and/or full 40-character commit SHA), not a branch.",
+    // Legacy text used in the original issue template
+    "The ref I provided is an immutable release tag or full 40-character commit SHA, not a branch.",
+  ]),
+  new Set(["This submission follows this repository's contribution, security, and responsible AI policies."]),
+  new Set(["This plugin is not already listed in the Awesome Copilot marketplace."]),
 ];
 
 const FIELD_TITLES = Object.freeze({
@@ -31,6 +37,11 @@ const FIELD_TITLES = Object.freeze({
   keywords: "Keywords",
   additionalNotes: "Additional notes for reviewers",
   submissionChecklist: "Submission checklist",
+});
+
+// Legacy field title used in the original issue template (before the ref/sha split)
+const LEGACY_FIELD_TITLES = Object.freeze({
+  immutableRef: "Immutable ref to review",
 });
 
 function normalizeMultilineText(value) {
@@ -233,7 +244,10 @@ export function parseExternalPluginIssueBody(body) {
   const pluginName = requiredField(FIELD_TITLES.pluginName);
   const shortDescription = requiredField(FIELD_TITLES.shortDescription);
   const repoInput = normalizeGitHubRepo(requiredField(FIELD_TITLES.githubRepository));
-  const immutableRef = stripNoResponse(sections.get(FIELD_TITLES.immutableRef));
+  // Support both the current field title and the legacy title used before the ref/sha split
+  const immutableRef = stripNoResponse(
+    sections.get(FIELD_TITLES.immutableRef) ?? sections.get(LEGACY_FIELD_TITLES.immutableRef),
+  );
   const immutableSha = stripNoResponse(sections.get(FIELD_TITLES.immutableSha));
   const version = requiredField(FIELD_TITLES.version);
   const license = requiredField(FIELD_TITLES.license);
@@ -250,9 +264,12 @@ export function parseExternalPluginIssueBody(body) {
     errors.push(`submission: one of "${FIELD_TITLES.immutableRef}" or "${FIELD_TITLES.immutableSha}" is required`);
   }
 
-  for (const item of REQUIRED_CHECKLIST_ITEMS) {
-    if (!checkedItems.has(item)) {
-      errors.push(`submission: checklist item must be checked: "${item}"`);
+  for (const equivalents of REQUIRED_CHECKLIST_ITEMS) {
+    const isChecked = [...equivalents].some((text) => checkedItems.has(text));
+    if (!isChecked) {
+      // Report using the canonical (first) text in each equivalents Set
+      const [canonical] = equivalents;
+      errors.push(`submission: checklist item must be checked: "${canonical}"`);
     }
   }
 
