@@ -55,6 +55,7 @@ client.traces.add_trace_annotation(
 )
 ```
 
+<<<<<<< HEAD
 ## Span Notes
 
 Notes are a special type of annotation for free-form text — useful for open coding, where reviewers leave qualitative observations on a span before any rubric exists. Later, those notes can be aggregated and distilled into structured labels or scores.
@@ -68,6 +69,8 @@ client.spans.add_span_note(
 )
 ```
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Session Annotations
 
 Feedback on multi-turn conversations:

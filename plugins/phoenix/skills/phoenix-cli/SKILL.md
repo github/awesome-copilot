@@ -1,11 +1,19 @@
 ---
 name: phoenix-cli
+<<<<<<< HEAD
 description: Debug LLM applications using the Phoenix CLI. Fetch traces, analyze errors, structure trace review with open coding and axial coding, inspect datasets, review experiments, query annotation configs, and use the GraphQL API. Use whenever the user is analyzing traces or spans, investigating LLM/agent failures, deciding what to do after instrumenting an app, building failure taxonomies, choosing what evals to write, or asking "what's going wrong", "what kinds of mistakes", or "where do I focus" — even without naming a technique.
+=======
+description: Debug LLM applications using the Phoenix CLI. Fetch traces, analyze errors, review experiments, inspect datasets, and query the GraphQL API. Use when debugging AI/LLM applications, analyzing trace data, working with Phoenix observability, or investigating LLM performance issues.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 license: Apache-2.0
 compatibility: Requires Node.js (for npx) or global install of @arizeai/phoenix-cli. Optionally requires jq for JSON processing.
 metadata:
   author: arize-ai
+<<<<<<< HEAD
   version: "3.3.0"
+=======
+  version: "2.0.0"
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 # Phoenix CLI
@@ -22,6 +30,7 @@ The CLI uses singular resource commands with subcommands like `list` and `get`:
 ```bash
 px trace list
 px trace get <trace-id>
+<<<<<<< HEAD
 px trace annotate <trace-id>
 px trace add-note <trace-id>
 px trace-annotations delete
@@ -46,6 +55,11 @@ px profile create <name>
 px profile use <name>
 px profile edit <name>
 px profile delete <name>
+=======
+px span list
+px dataset list
+px dataset get <name>
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ## Setup
@@ -58,6 +72,7 @@ export PHOENIX_API_KEY=your-api-key  # if auth is enabled
 
 Always use `--format raw --no-progress` when piping to `jq`.
 
+<<<<<<< HEAD
 ## Quick Reference
 
 | Task | Files |
@@ -126,11 +141,14 @@ px project get my-project --format raw --no-progress | jq -r '.id'  # extract pr
 
 `project get` exits with `ExitCode.FAILURE` (1) on a name miss and writes a `StructuredError` `{error, code: "FAILURE", hint}` to stderr in `--format json|raw`.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Traces
 
 ```bash
 px trace list --limit 20 --format raw --no-progress | jq .
 px trace list --last-n-minutes 60 --limit 20 --format raw --no-progress | jq '.[] | select(.status == "ERROR")'
+<<<<<<< HEAD
 px trace list --since 2025-01-15T00:00:00Z --limit 50 --format raw --no-progress | jq .
 px trace list --format raw --no-progress | jq 'sort_by(-.duration) | .[0:5]'
 px trace list --include-notes --format raw --no-progress | jq '.[].notes'
@@ -146,12 +164,46 @@ px trace-annotations delete --identifier "<coding-annotation-id>" --all -y      
 ```
 
 `px <entity>-annotations delete` requires `--all` or both `--start-time` and `--end-time` and emits `{deleted: true, target, filter}` on success.
+=======
+px trace list --format raw --no-progress | jq 'sort_by(-.duration) | .[0:5]'
+px trace get <trace-id> --format raw | jq .
+px trace get <trace-id> --format raw | jq '.spans[] | select(.status_code != "OK")'
+```
+
+## Spans
+
+```bash
+px span list --limit 20                                    # recent spans (table view)
+px span list --last-n-minutes 60 --limit 50                # spans from last hour
+px span list --span-kind LLM --limit 10                    # only LLM spans
+px span list --status-code ERROR --limit 20                # only errored spans
+px span list --name chat_completion --limit 10             # filter by span name
+px span list --trace-id <id> --format raw --no-progress | jq .   # all spans for a trace
+px span list --include-annotations --limit 10              # include annotation scores
+px span list output.json --limit 100                       # save to JSON file
+px span list --format raw --no-progress | jq '.[] | select(.status_code == "ERROR")'
+```
+
+### Span JSON shape
+
+```
+Span
+  name, span_kind ("LLM"|"CHAIN"|"TOOL"|"RETRIEVER"|"EMBEDDING"|"AGENT"|"RERANKER"|"GUARDRAIL"|"EVALUATOR"|"UNKNOWN")
+  status_code ("OK"|"ERROR"|"UNSET"), status_message
+  context.span_id, context.trace_id, parent_id
+  start_time, end_time
+  attributes (same as trace span attributes above)
+  annotations[] (with --include-annotations)
+    name, result { score, label, explanation }
+```
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### Trace JSON shape
 
 ```
 Trace
   traceId, status ("OK"|"ERROR"), duration (ms), startTime, endTime
+<<<<<<< HEAD
   annotations[] (with --include-annotations, excludes note)
     name, result { score, label, explanation }
   notes[] (with --include-notes)
@@ -162,6 +214,12 @@ Trace
     status_code ("OK"|"ERROR"|"UNSET"), parent_id, context.span_id
     notes[] (with --include-notes)
       name="note", result { explanation }
+=======
+  rootSpan  — top-level span (parent_id: null)
+  spans[]
+    name, span_kind ("LLM"|"CHAIN"|"TOOL"|"RETRIEVER"|"EMBEDDING"|"AGENT")
+    status_code ("OK"|"ERROR"), parent_id, context.span_id
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
     attributes
       input.value, output.value          — raw input/output
       llm.model_name, llm.provider
@@ -174,6 +232,7 @@ Trace
       exception.message                  — set if span errored
 ```
 
+<<<<<<< HEAD
 ## Spans
 
 ```bash
@@ -225,11 +284,14 @@ Span
     name="note", result { explanation }
 ```
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Sessions
 
 ```bash
 px session list --limit 10 --format raw --no-progress | jq .
 px session list --order asc --format raw --no-progress | jq '.[].session_id'
+<<<<<<< HEAD
 px session list --include-annotations --include-notes --format raw --no-progress | jq '.[].notes'
 px session get <session-id> --format raw | jq .
 px session get <session-id> --include-annotations --format raw | jq '.session.annotations'
@@ -240,6 +302,10 @@ px session annotate <session-id> --name reviewer --label pass --identifier "<cod
 px session add-note <session-id> --text "verified by agent"
 px session add-note <session-id> --text "verified by agent" --identifier "<coding-annotation-id>"  # tag + upsert on identifier
 px session-annotations delete --identifier "<coding-annotation-id>" --all -y              # nuke every annotation tied to this coding annotation identifier
+=======
+px session get <session-id> --format raw | jq .
+px session get <session-id> --include-annotations --format raw | jq '.annotations'
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ### Session JSON shape
@@ -248,6 +314,7 @@ px session-annotations delete --identifier "<coding-annotation-id>" --all -y    
 SessionData
   id, session_id, project_id
   start_time, end_time
+<<<<<<< HEAD
   token_count_prompt, token_count_completion, token_count_total  — cumulative across all LLM spans in the session (int, default 0)
   annotations[] (with --include-annotations, excludes note)
     name, result { score, label, explanation }
@@ -255,6 +322,15 @@ SessionData
     name="note", result { explanation }
   traces[]
     id, trace_id, start_time, end_time
+=======
+  traces[]
+    id, trace_id, start_time, end_time
+
+SessionAnnotation (with --include-annotations)
+  id, name, annotator_kind ("LLM"|"CODE"|"HUMAN"), session_id
+  result { label, score, explanation }
+  metadata, identifier, source, created_at, updated_at
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ## Datasets / Experiments / Prompts
@@ -262,14 +338,18 @@ SessionData
 ```bash
 px dataset list --format raw --no-progress | jq '.[].name'
 px dataset get <name> --format raw | jq '.examples[] | {input, output: .expected_output}'
+<<<<<<< HEAD
 px dataset get <name> --split train --format raw | jq .    # filter by split
 px dataset get <name> --version <version-id> --format raw | jq .
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 px experiment list --dataset <name> --format raw --no-progress | jq '.[] | {id, name, failed_run_count}'
 px experiment get <id> --format raw --no-progress | jq '.[] | select(.error != null) | {input, error}'
 px prompt list --format raw --no-progress | jq '.[].name'
 px prompt get <name> --format text --no-progress   # plain text, ideal for piping to AI
 ```
 
+<<<<<<< HEAD
 ## Annotation Configs
 
 ```bash
@@ -277,6 +357,8 @@ px annotation-config list                                           # list all c
 px annotation-config list --format raw --no-progress | jq '.[].name' # config names as JSON
 ```
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## GraphQL
 
 For ad-hoc queries not covered by the commands above. Output is `{"data": {...}}`.

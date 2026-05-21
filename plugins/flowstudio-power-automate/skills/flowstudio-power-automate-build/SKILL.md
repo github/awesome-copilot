@@ -9,6 +9,16 @@ description: >-
   JSON, update an existing flow's actions, patch a flow definition, add actions
   to a flow, wire up connections, or generate a workflow definition from scratch.
   Requires a FlowStudio MCP subscription — see https://mcp.flowstudio.app
+<<<<<<< HEAD
+=======
+metadata:
+  openclaw:
+    requires:
+      env:
+        - FLOWSTUDIO_MCP_TOKEN
+    primaryEnv: FLOWSTUDIO_MCP_TOKEN
+    homepage: https://mcp.flowstudio.app
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 # Build & Deploy Power Automate Flows with FlowStudio MCP
@@ -17,6 +27,7 @@ Step-by-step guide for constructing and deploying Power Automate cloud flows
 programmatically through the FlowStudio MCP server.
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
+<<<<<<< HEAD
 See the `flowstudio-power-automate-mcp` skill for connection setup.
 Subscribe at https://mcp.flowstudio.app
 
@@ -29,16 +40,29 @@ Workflow:
 6. Verify.
 7. Test.
 
+=======
+See the `flowstudio-power-automate-mcp` skill for connection setup.  
+Subscribe at https://mcp.flowstudio.app
+
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 ## Source of Truth
 
+<<<<<<< HEAD
 > **Always call `list_skills` / `tool_search` first** to confirm available tool
 > names and parameter schemas. Tool names and parameters may change between
 > server versions.
 > This skill covers response shapes, behavioral notes, and build patterns —
 > things tool schemas cannot tell you. If this document disagrees with
 > `tool_search` or a real API response, the API wins.
+=======
+> **Always call `tools/list` first** to confirm available tool names and their
+> parameter schemas. Tool names and parameters may change between server versions.
+> This skill covers response shapes, behavioral notes, and build patterns —
+> things `tools/list` cannot tell you. If this document disagrees with `tools/list`
+> or a real API response, the API wins.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -71,6 +95,7 @@ ENV = "<environment-id>"  # e.g. Default-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 ---
 
+<<<<<<< HEAD
 ## 0. Load the Current Build Tools
 
 For a brand-new flow, load the server's `create-flow` bundle. For editing an
@@ -92,10 +117,14 @@ mcp("tool_search", query="select:get_live_dynamic_properties")
 ---
 
 ## 1. Safety Check: Does the Flow Already Exist?
+=======
+## Step 1 — Safety Check: Does the Flow Already Exist?
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 Always look before you build to avoid duplicates:
 
 ```python
+<<<<<<< HEAD
 results = mcp("list_live_flows",
     environmentName=ENV,
     mode="owner",
@@ -103,6 +132,11 @@ results = mcp("list_live_flows",
     top=20)
 
 # list_live_flows returns { "flows": [...], "mode": "...", ... }
+=======
+results = mcp("list_live_flows", environmentName=ENV)
+
+# list_live_flows returns { "flows": [...] }
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 matches = [f for f in results["flows"]
            if "My New Flow".lower() in f["displayName"].lower()]
 
@@ -116,6 +150,7 @@ else:
     FLOW_ID = None
 ```
 
+<<<<<<< HEAD
 For very large environments, `list_live_flows` may return a continuation URL.
 Pass it back as `continuationUrl` with the same `mode` to retrieve the next
 batch. Use `mode="admin"` only when the user needs all environment flows and
@@ -124,6 +159,11 @@ the MCP identity has admin rights.
 ---
 
 ## 2. Obtain Connection References
+=======
+---
+
+## Step 2 — Obtain Connection References
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 Every connector action needs a `connectionName` that points to a key in the
 flow's `connectionReferences` map. That key links to an authenticated connection
@@ -133,6 +173,7 @@ in the environment.
 > user for connection names or GUIDs. The API returns the exact values you need.
 > Only prompt the user if the API confirms that required connections are missing.
 
+<<<<<<< HEAD
 ### 2a — Find active connections
 
 ```python
@@ -149,10 +190,29 @@ For a known connector, pass `search` to reduce output and get paste-ready
 sp_conns = mcp("list_live_connections",
     environmentName=ENV,
     search="shared_sharepointonline")
+=======
+### 2a — Always call `list_live_connections` first
+
+```python
+conns = mcp("list_live_connections", environmentName=ENV)
+
+# Filter to connected (authenticated) connections only
+active = [c for c in conns["connections"]
+          if c["statuses"][0]["status"] == "Connected"]
+
+# Build a lookup: connectorName → connectionName (id)
+conn_map = {}
+for c in active:
+    conn_map[c["connectorName"]] = c["id"]
+
+print(f"Found {len(active)} active connections")
+print("Available connectors:", list(conn_map.keys()))
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ### 2b — Determine which connectors the flow needs
 
+<<<<<<< HEAD
 Common connector API names: SharePoint `shared_sharepointonline`, Outlook
 `shared_office365`, Teams `shared_teams`, Approvals `shared_approvals`,
 OneDrive `shared_onedriveforbusiness`, Excel `shared_excelonlinebusiness`,
@@ -160,21 +220,64 @@ Dataverse `shared_commondataserviceforapps`, Forms `shared_microsoftforms`.
 
 Flows that need no connectors, such as Recurrence + Compose + HTTP only, can
 omit `connectionReferences`.
+=======
+Based on the flow you are building, identify which connectors are required.
+Common connector API names:
+
+| Connector | API name |
+|---|---|
+| SharePoint | `shared_sharepointonline` |
+| Outlook / Office 365 | `shared_office365` |
+| Teams | `shared_teams` |
+| Approvals | `shared_approvals` |
+| OneDrive for Business | `shared_onedriveforbusiness` |
+| Excel Online (Business) | `shared_excelonlinebusiness` |
+| Dataverse | `shared_commondataserviceforapps` |
+| Microsoft Forms | `shared_microsoftforms` |
+
+> **Flows that need NO connections** (e.g. Recurrence + Compose + HTTP only)
+> can skip the rest of Step 2 — omit `connectionReferences` from the deploy call.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### 2c — If connections are missing, guide the user
 
 ```python
 connectors_needed = ["shared_sharepointonline", "shared_office365"]  # adjust per flow
+<<<<<<< HEAD
 missing = [c for c in connectors_needed if c not in conn_map]
 if missing:
     # STOP: connections require browser OAuth consent.
     # Ask the user to create the missing connector connections in the
     # selected environment, then re-run list_live_connections.
     raise Exception(f"Missing active connections: {missing}")
+=======
+
+missing = [c for c in connectors_needed if c not in conn_map]
+
+if not missing:
+    print("✅ All required connections are available — proceeding to build")
+else:
+    # ── STOP: connections must be created interactively ──
+    # Connections require OAuth consent in a browser — no API can create them.
+    print("⚠️  The following connectors have no active connection in this environment:")
+    for c in missing:
+        friendly = c.replace("shared_", "").replace("onlinebusiness", " Online (Business)")
+        print(f"   • {friendly}  (API name: {c})")
+    print()
+    print("Please create the missing connections:")
+    print("  1. Open https://make.powerautomate.com/connections")
+    print("  2. Select the correct environment from the top-right picker")
+    print("  3. Click '+ New connection' for each missing connector listed above")
+    print("  4. Sign in and authorize when prompted")
+    print("  5. Tell me when done — I will re-check and continue building")
+    # DO NOT proceed to Step 3 until the user confirms.
+    # After user confirms, re-run Step 2a to refresh conn_map.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ### 2d — Build the connectionReferences block
 
+<<<<<<< HEAD
 ```python
 connection_references = {}
 host_templates = {}
@@ -199,6 +302,39 @@ from `get_live_flow`.
 ---
 
 ## 3. Build the Flow Definition
+=======
+Only execute this after 2c confirms no missing connectors:
+
+```python
+connection_references = {}
+for connector in connectors_needed:
+    connection_references[connector] = {
+        "connectionName": conn_map[connector],   # the GUID from list_live_connections
+        "source": "Invoker",
+        "id": f"/providers/Microsoft.PowerApps/apis/{connector}"
+    }
+```
+
+> **IMPORTANT — `host.connectionName` in actions**: When building actions in
+> Step 3, set `host.connectionName` to the **key** from this map (e.g.
+> `shared_teams`), NOT the connection GUID. The GUID only goes inside the
+> `connectionReferences` entry. The engine matches the action's
+> `host.connectionName` to the key to find the right connection.
+
+> **Alternative** — if you already have a flow using the same connectors,
+> you can extract `connectionReferences` from its definition:
+> ```python
+> ref_flow = mcp("get_live_flow", environmentName=ENV, flowName="<existing-flow-id>")
+> connection_references = ref_flow["properties"]["connectionReferences"]
+> ```
+
+See the `flowstudio-power-automate-mcp` skill's **connection-references.md** reference
+for the full connection reference structure.
+
+---
+
+## Step 3 — Build the Flow Definition
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 Construct the definition object. See [flow-schema.md](references/flow-schema.md)
 for the full schema and these action pattern references for copy-paste templates:
@@ -218,6 +354,7 @@ definition = {
 > See [build-patterns.md](references/build-patterns.md) for complete, ready-to-use
 > flow definitions covering Recurrence+SharePoint+Teams, HTTP triggers, and more.
 
+<<<<<<< HEAD
 ### Discover connector operations before guessing JSON
 
 For connector-backed triggers/actions, prefer the live connector describer over
@@ -284,6 +421,11 @@ SharePoint list item columns.
 ---
 
 ## 4. Deploy (Create or Update)
+=======
+---
+
+## Step 4 — Deploy (Create or Update)
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 `update_live_flow` handles both creation and updates in a single tool.
 
@@ -292,14 +434,22 @@ SharePoint list item columns.
 Omit `flowName` — the server generates a new GUID and creates via PUT:
 
 ```python
+<<<<<<< HEAD
 definition["description"] = "Weekly SharePoint → Teams notification flow, built by agent"
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 result = mcp("update_live_flow",
     environmentName=ENV,
     # flowName omitted → creates a new flow
     definition=definition,
     connectionReferences=connection_references,
+<<<<<<< HEAD
     displayName="Overdue Invoice Notifications"
+=======
+    displayName="Overdue Invoice Notifications",
+    description="Weekly SharePoint → Teams notification flow, built by agent"
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 )
 
 if result.get("error") is not None:
@@ -315,16 +465,24 @@ else:
 Provide `flowName` to PATCH:
 
 ```python
+<<<<<<< HEAD
 definition["description"] = (
     "Updated by agent on " + __import__('datetime').datetime.utcnow().isoformat()
 )
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 result = mcp("update_live_flow",
     environmentName=ENV,
     flowName=FLOW_ID,
     definition=definition,
     connectionReferences=connection_references,
+<<<<<<< HEAD
     displayName="My Updated Flow"
+=======
+    displayName="My Updated Flow",
+    description="Updated by agent on " + __import__('datetime').datetime.utcnow().isoformat()
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 )
 
 if result.get("error") is not None:
@@ -336,9 +494,13 @@ else:
 > ⚠️ `update_live_flow` always returns an `error` key.
 > `null` (Python `None`) means success — do not treat the presence of the key as failure.
 >
+<<<<<<< HEAD
 > ⚠️ Flow description lives at `definition["description"]`. The current server
 > appends `#flowstudio-mcp` for usage tracking. Do not pass a top-level
 > `description` argument unless `tool_search` shows one in the active schema.
+=======
+> ⚠️ `description` is required for both create and update.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### Common deployment errors
 
@@ -351,7 +513,11 @@ else:
 
 ---
 
+<<<<<<< HEAD
 ## 5. Verify the Deployment
+=======
+## Step 5 — Verify the Deployment
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ```python
 check = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
@@ -368,7 +534,11 @@ print("Actions:", list(acts.keys()))
 
 ---
 
+<<<<<<< HEAD
 ## 6. Test the Flow
+=======
+## Step 6 — Test the Flow
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 > **MANDATORY**: Before triggering any test run, **ask the user for confirmation**.
 > Running a flow has real side effects — it may send emails, post Teams messages,
@@ -399,10 +569,16 @@ than the original run. For verifying a fix, `resubmit_live_flow_run` is
 better because it uses the exact data that caused the failure.
 
 ```python
+<<<<<<< HEAD
 defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
 triggers = defn["properties"]["definition"]["triggers"]
 manual = next(iter(triggers.values()))
 print("Expected body:", manual.get("inputs", {}).get("schema"))
+=======
+schema = mcp("get_live_flow_http_schema",
+    environmentName=ENV, flowName=FLOW_ID)
+print("Expected body:", schema.get("requestSchema"))
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 result = mcp("trigger_live_flow",
     environmentName=ENV, flowName=FLOW_ID,
@@ -417,6 +593,7 @@ resubmit and no HTTP endpoint to call. This is the ONLY scenario where you
 need the temporary HTTP trigger approach below. **Deploy with a temporary
 HTTP trigger first, test the actions, then swap to the production trigger.**
 
+<<<<<<< HEAD
 Compact recipe:
 
 ```python
@@ -425,11 +602,32 @@ definition["triggers"] = {
     "manual": {"type": "Request", "kind": "Http", "inputs": {"schema": {}}}
 }
 
+=======
+#### 7a — Save the real trigger, deploy with a temporary HTTP trigger
+
+```python
+# Save the production trigger you built in Step 3
+production_trigger = definition["triggers"]
+
+# Replace with a temporary HTTP trigger
+definition["triggers"] = {
+    "manual": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+            "schema": {}
+        }
+    }
+}
+
+# Deploy (create or update) with the temp trigger
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 result = mcp("update_live_flow",
     environmentName=ENV,
     flowName=FLOW_ID,       # omit if creating new
     definition=definition,
     connectionReferences=connection_references,
+<<<<<<< HEAD
     displayName="Overdue Invoice Notifications")
 FLOW_ID = FLOW_ID or result["created"]
 
@@ -454,6 +652,74 @@ The trigger is only the entry point; testing through HTTP still exercises the
 same actions. If actions use `triggerBody()` or `triggerOutputs()`, pass a
 representative `trigger_live_flow.body` shaped like the production trigger
 payload.
+=======
+    displayName="Overdue Invoice Notifications",
+    description="Deployed with temp HTTP trigger for testing")
+
+if result.get("error") is not None:
+    print("Deploy failed:", result["error"])
+else:
+    if not FLOW_ID:
+        FLOW_ID = result["created"]
+    print(f"✅ Deployed with temp HTTP trigger: {FLOW_ID}")
+```
+
+#### 7b — Fire the flow and check the result
+
+```python
+# Trigger the flow
+test = mcp("trigger_live_flow",
+    environmentName=ENV, flowName=FLOW_ID)
+print(f"Trigger response status: {test['status']}")
+
+# Wait for the run to complete
+import time; time.sleep(15)
+
+# Check the run result
+runs = mcp("get_live_flow_runs",
+    environmentName=ENV, flowName=FLOW_ID, top=1)
+run = runs[0]
+print(f"Run {run['name']}: {run['status']}")
+
+if run["status"] == "Failed":
+    err = mcp("get_live_flow_run_error",
+        environmentName=ENV, flowName=FLOW_ID, runName=run["name"])
+    root = err["failedActions"][-1]
+    print(f"Root cause: {root['actionName']} → {root.get('code')}")
+    # Debug and fix the definition before proceeding
+    # See flowstudio-power-automate-debug skill for full diagnosis workflow
+```
+
+#### 7c — Swap to the production trigger
+
+Once the test run succeeds, replace the temporary HTTP trigger with the real one:
+
+```python
+# Restore the production trigger
+definition["triggers"] = production_trigger
+
+result = mcp("update_live_flow",
+    environmentName=ENV,
+    flowName=FLOW_ID,
+    definition=definition,
+    connectionReferences=connection_references,
+    description="Swapped to production trigger after successful test")
+
+if result.get("error") is not None:
+    print("Trigger swap failed:", result["error"])
+else:
+    print("✅ Production trigger deployed — flow is live")
+```
+
+> **Why this works**: The trigger is just the entry point — the actions are
+> identical regardless of how the flow starts. Testing via HTTP trigger
+> exercises all the same Compose, SharePoint, Teams, etc. actions.
+>
+> **Connector triggers** (e.g. "When an item is created in SharePoint"):
+> If actions reference `triggerBody()` or `triggerOutputs()`, pass a
+> representative test payload in `trigger_live_flow`'s `body` parameter
+> that matches the shape the connector trigger would produce.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -468,12 +734,15 @@ payload.
 | Checking `result["error"]` exists | Always present; true error is `!= null` | Use `result.get("error") is not None` |
 | Flow deployed but state is "Stopped" | Flow won't run on schedule | Call `set_live_flow_state` with `state: "Started"` — do **not** use `update_live_flow` for state changes |
 | Teams "Chat with Flow bot" recipient as object | 400 `GraphUserDetailNotFound` | Use plain string with trailing semicolon (see below) |
+<<<<<<< HEAD
 | Copilot/Skills flow not in a solution | Copilot Studio may not discover it as an agent tool | After deploy, call `add_live_flow_to_solution` with the target `solutionId` |
 | Button/Skills trigger used for MCP testing | MCP cannot directly fire the production trigger | Test the same actions through a temporary HTTP twin, then swap the trigger back |
 | Connector action missing `metadata.operationMetadataId` | Designer/run-only UI can behave inconsistently | Preserve existing IDs; add stable GUIDs for new connector actions |
 | Placeholder Excel `scriptId` | Dynamic validation fails at save time | Resolve the real Office Script ID before deploying |
 | SharePoint `PatchItem` omits required fields | Save can fail even if the field is not changing | Echo unchanged required fields such as `item/Title` |
 | Copilot Studio connector calls a draft agent | Connector invocation can fail or hit stale behavior | Publish the agent before testing/resubmitting the flow |
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### Teams `PostMessageToConversation` — Recipient Formats
 

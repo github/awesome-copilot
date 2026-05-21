@@ -9,6 +9,16 @@ description: >-
   fix a broken Power Automate flow, diagnose a timeout, trace a DynamicOperationRequestFailure,
   check connector auth errors, read error details from a run, or troubleshoot
   expression failures. Requires a FlowStudio MCP subscription — see https://mcp.flowstudio.app
+<<<<<<< HEAD
+=======
+metadata:
+  openclaw:
+    requires:
+      env:
+        - FLOWSTUDIO_MCP_TOKEN
+    primaryEnv: FLOWSTUDIO_MCP_TOKEN
+    homepage: https://mcp.flowstudio.app
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 # Power Automate Debugging with FlowStudio MCP
@@ -21,19 +31,31 @@ cloud flows through the FlowStudio MCP server.
 > [Null value crashes child flow](https://github.com/ninihen1/power-automate-mcp-skills/blob/main/examples/null-child-flow.md)
 
 **Prerequisite**: A FlowStudio MCP server must be reachable with a valid JWT.
+<<<<<<< HEAD
 See the `flowstudio-power-automate-mcp` skill for connection setup.
+=======
+See the `flowstudio-power-automate-mcp` skill for connection setup.  
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 Subscribe at https://mcp.flowstudio.app
 
 ---
 
 ## Source of Truth
 
+<<<<<<< HEAD
 > **Always call `list_skills` / `tool_search` first** to confirm available tool
 > names and parameter schemas. Tool names and parameters may change between
 > server versions.
 > This skill covers response shapes, behavioral notes, and diagnostic patterns —
 > things tool schemas cannot tell you. If this document disagrees with
 > `tool_search` or a real API response, the API wins.
+=======
+> **Always call `tools/list` first** to confirm available tool names and their
+> parameter schemas. Tool names and parameters may change between server versions.
+> This skill covers response shapes, behavioral notes, and diagnostic patterns —
+> things `tools/list` cannot tell you. If this document disagrees with `tools/list`
+> or a real API response, the API wins.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -155,8 +177,11 @@ detail = mcp("get_live_flow_run_action_outputs",
     runName=RUN_ID,
     actionName=root_action)
 
+<<<<<<< HEAD
 if len(detail) > 1:
     print(f"{root_action} returned {len(detail)} repetitions; inspect iteration indexes")
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 out = detail[0] if detail else {}
 print(f"Action: {out.get('actionName')}")
 print(f"Status: {out.get('status')}")
@@ -194,6 +219,7 @@ if out.get("inputs"):
 | `InvalidTemplate` | The exact expression that failed and the null/wrong-type value |
 | `BadRequest` | The request body that was sent and why the server rejected it |
 
+<<<<<<< HEAD
 ### Foreach iterations
 
 When `actionName` refers to an action inside a foreach, the output tool can
@@ -227,6 +253,8 @@ and a `Compose_*_Result` after it, with the result action allowed on both
 without requiring another deploy. Do not include secrets or long binary payloads
 in these bookends.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ### Example: HTTP action returning 500
 
 ```
@@ -288,9 +316,16 @@ for action_name in [root_action, "Compose_WeekEnd", "HTTP_Get_Data"]:
 > ⚠️ Output payloads from array-processing actions can be very large.
 > Always slice (e.g. `[:500]`) before printing.
 
+<<<<<<< HEAD
 > **Tip**: Omit `actionName` to list top-level actions when you're not sure
 > which action produced the bad data. Once you pick an action inside a foreach,
 > pass `iterationIndex` to avoid pulling every repetition into context.
+=======
+> **Tip**: Omit `actionName` to get ALL actions in a single call.
+> This returns every action's inputs/outputs — useful when you're not sure
+> which upstream action produced the bad data. But use 120s+ timeout as
+> the response can be very large.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -337,6 +372,7 @@ print(json.dumps(out['outputs']['body'], indent=2)[:500])
 Look for `ConnectionAuthorizationFailed` — the connection owner must match the
 service account running the flow. Cannot fix via API; fix in PA designer.
 
+<<<<<<< HEAD
 ### Outlook user-picker failures (`DynamicListValuesUndefinedOrInvalid`)
 Outlook actions like `GetEmailsV3` use parameters (`mailboxAddress`, `to`, `cc`,
 `from`) whose dropdown is backed by `builtInOperation:AadGraph.GetUsers` — which
@@ -352,6 +388,8 @@ For dynamic field schemas rather than dropdown options, use
 `get_live_dynamic_properties` with the metadata returned by
 `describe_live_connector`.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 ## Step 8 — Apply the Fix
@@ -420,6 +458,7 @@ For flows with a `Request` (HTTP) trigger, use `trigger_live_flow` when you
 need to send a **different** payload than the original run:
 
 ```python
+<<<<<<< HEAD
 # First inspect what the trigger expects — read directly from the flow definition
 defn = mcp("get_live_flow", environmentName=ENV, flowName=FLOW_ID)
 triggers = defn["properties"]["definition"]["triggers"]
@@ -431,6 +470,13 @@ print("Expected body schema:", request_schema)
 for name, act in defn["properties"]["definition"]["actions"].items():
     if act.get("type") == "Response":
         print(f"Response {name}:", act.get("inputs", {}).get("schema"))
+=======
+# First inspect what the trigger expects
+schema = mcp("get_live_flow_http_schema",
+    environmentName=ENV, flowName=FLOW_ID)
+print("Expected body schema:", schema.get("requestSchema"))
+print("Response schemas:", schema.get("responseSchemas"))
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 # Trigger with a test payload
 result = mcp("trigger_live_flow",
@@ -470,5 +516,9 @@ print(f"Status: {result['responseStatus']}, Body: {result.get('responseBody')}")
 
 ## Related Skills
 
+<<<<<<< HEAD
 - `flowstudio-power-automate-mcp` — Foundation skill: connection setup, MCP helper, tool discovery
+=======
+- `flowstudio-power-automate-mcp` — Core connection setup and operation reference
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 - `flowstudio-power-automate-build` — Build and deploy new flows

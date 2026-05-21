@@ -4,8 +4,11 @@ Creating and managing evaluation datasets.
 
 ## Creating Datasets
 
+<<<<<<< HEAD
 `create_dataset()` upserts: if a dataset with the same name already exists it is updated in-place; re-running with identical inputs is a no-op.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```python
 from phoenix.client import Client
 
@@ -23,6 +26,7 @@ dataset = client.datasets.create_dataset(
     ],
 )
 
+<<<<<<< HEAD
 # With stable example IDs for targeted updates across uploads
 dataset = client.datasets.create_dataset(
     name="qa-test-v1",
@@ -36,6 +40,8 @@ dataset = client.datasets.create_dataset(
     ],
 )
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 # From DataFrame
 dataset = client.datasets.create_dataset(
     dataframe=df,
@@ -43,8 +49,11 @@ dataset = client.datasets.create_dataset(
     input_keys=["question"],
     output_keys=["answer"],
     metadata_keys=["category"],
+<<<<<<< HEAD
     split_key="split",        # single split column (use this instead of deprecated split_keys)
     example_id_key="id",      # column containing stable example IDs
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 )
 ```
 
@@ -75,9 +84,12 @@ df = dataset.to_dataframe()
 | `input_keys` | Columns for task input |
 | `output_keys` | Columns for expected output |
 | `metadata_keys` | Additional context |
+<<<<<<< HEAD
 | `example_id_key` | Column with stable example IDs; server updates the matching row instead of inserting |
 | `split_key` | Single column for split assignment (replaces deprecated `split_keys`) |
 | `split_keys` | **Deprecated** — use `split_key` (singular) instead |
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ## Using Evaluators in Experiments
 
@@ -148,8 +160,14 @@ See `tutorials/evals/evals-2/evals_2.0_rag_demo.ipynb` for a full worked example
 
 ## Best Practices
 
+<<<<<<< HEAD
 - **Upsert by default**: Re-upload to the same name to update in-place; use `example_id_key` so the server targets specific rows instead of treating every upload as new data
 - **Versioning**: Version with tags or new names (e.g., `qa-test-v2`) when you want a clean snapshot, not just incremental edits
 - **Metadata**: Track source, category, difficulty
 - **Balance**: Ensure diverse coverage across categories
 - **Avoid `split_keys`**: Pass `split_key` (singular) — `split_keys` is deprecated and emits a `DeprecationWarning`
+=======
+- **Versioning**: Create new datasets (e.g., `qa-test-v2`), don't modify
+- **Metadata**: Track source, category, difficulty
+- **Balance**: Ensure diverse coverage across categories
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c

@@ -81,6 +81,7 @@ relevance = ClassificationEvaluator(
 ## Pre-Built
 
 ```python
+<<<<<<< HEAD
 from phoenix.client.experiments import create_evaluator
 from phoenix.evals.metrics import MatchesRegex
 
@@ -102,4 +103,13 @@ def json_parseable(output):
         return True
     except (json.JSONDecodeError, TypeError):
         return False
+=======
+from phoenix.experiments.evaluators import ContainsAnyKeyword, JSONParseable, MatchesRegex
+
+evaluators = [
+    ContainsAnyKeyword(keywords=["disclaimer"]),
+    JSONParseable(),
+    MatchesRegex(pattern=r"\d{4}-\d{2}-\d{2}"),
+]
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```

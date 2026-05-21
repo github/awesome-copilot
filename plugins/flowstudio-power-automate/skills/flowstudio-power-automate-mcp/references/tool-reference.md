@@ -2,10 +2,16 @@
 
 Response shapes and behavioral notes for the FlowStudio Power Automate MCP server.
 
+<<<<<<< HEAD
 > **For tool names and parameters**: Prefer `list_skills` and `tool_search`.
 > They return focused, up-to-date schemas without loading every MCP tool at once.
 > Use `tools/list` only as a low-level fallback when the meta-tools are not available.
 > This document covers what tool schemas do NOT tell you: **response shapes**
+=======
+> **For tool names and parameters**: Always call `tools/list` on the server.
+> It returns the authoritative, up-to-date schema for every tool.
+> This document covers what `tools/list` does NOT tell you: **response shapes**
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 > and **non-obvious behaviors** discovered through real usage.
 
 ---
@@ -15,11 +21,19 @@ Response shapes and behavioral notes for the FlowStudio Power Automate MCP serve
 | Priority | Source | Covers |
 |----------|--------|--------|
 | 1 | **Real API response** | Always trust what the server actually returns |
+<<<<<<< HEAD
 | 2 | **`list_skills` / `tool_search`** | Tool names, parameter names, types, required flags |
 | 3 | **This document** | Response shapes, behavioral notes, gotchas |
 
 > If this document disagrees with `tool_search`, `tools/list`, or real API
 > behavior, the API wins. Update this document accordingly.
+=======
+| 2 | **`tools/list`** | Tool names, parameter names, types, required flags |
+| 3 | **This document** | Response shapes, behavioral notes, gotchas |
+
+> If this document disagrees with `tools/list` or real API behavior,
+> the API wins. Update this document accordingly.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -64,6 +78,7 @@ Response: wrapper object with `connections` array.
       "id": "shared-office365-9f9d2c8e-55f1-49c9-9f9c-1c45d1fbbdce",
       "displayName": "user@contoso.com",
       "connectorName": "shared_office365",
+<<<<<<< HEAD
       "environment": "Default-26e65220-...",
       "createdBy": "User Name",
       "authenticatedUser": "user@contoso.com",
@@ -78,6 +93,11 @@ Response: wrapper object with `connections` array.
       "hostTemplate": {
         "connectionName": "shared_office365"
       }
+=======
+      "createdBy": "User Name",
+      "statuses": [{"status": "Connected"}],
+      "createdTime": "2024-03-12T21:23:55.206815Z"
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
     }
   ],
   "totalCount": 56,
@@ -90,6 +110,7 @@ Response: wrapper object with `connections` array.
 > **Key field**: `connectorName` maps to apiId:
 > `"/providers/Microsoft.PowerApps/apis/" + connectorName`
 >
+<<<<<<< HEAD
 > Filter by status: prefer `overallStatus == "Connected"` when present; otherwise
 > check `statuses[0].status == "Connected"`.
 >
@@ -100,6 +121,13 @@ Response: wrapper object with `connections` array.
 > Pass `search=<connector or account>` to narrow output and receive
 > `connectionReferenceTemplate` plus `hostTemplate` values that can be copied
 > directly into `update_live_flow`.
+=======
+> Filter by status: `statuses[0].status == "Connected"`.
+>
+> **Note**: `tools/list` marks `environmentName` as optional, but the server
+> returns `MissingEnvironmentFilter` (HTTP 400) if you omit it. Always pass
+> `environmentName`.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### `list_store_connections`
 
@@ -129,7 +157,10 @@ Response: wrapper object with `flows` array.
     }
   ],
   "totalCount": 100,
+<<<<<<< HEAD
   "nextLink": null,
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
   "error": null
 }
 ```
@@ -137,6 +168,7 @@ Response: wrapper object with `flows` array.
 > Access via `result["flows"]`. `id` is a plain UUID --- use directly as `flowName`.
 >
 > `mode` indicates the access scope used (`"owner"` or `"admin"`).
+<<<<<<< HEAD
 >
 > Parameters added in newer server versions:
 > - `search`: filter by display name server-side.
@@ -145,6 +177,8 @@ Response: wrapper object with `flows` array.
 > - `timeoutSeconds`: return partial results with `nextLink` instead of waiting
 >   on very large environments.
 > - `continuationUrl`: pass the previous `nextLink` to continue the same query.
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### `list_store_flows`
 
@@ -243,6 +277,7 @@ Response:
 >
 > On create: `created` is the new flow GUID (string). On update: `created` is `false`.
 >
+<<<<<<< HEAD
 > Required fields can vary by server version. Use `tool_search` with
 > `select:update_live_flow` before creating or patching a flow; if a description
 > is required, include either the new description or the existing one from
@@ -250,11 +285,15 @@ Response:
 >
 > The flow description is part of the workflow definition (`definition.description`),
 > not a top-level tool argument in current schemas.
+=======
+> `description` is **always required** (create and update).
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ### `add_live_flow_to_solution`
 
 Migrates a non-solution flow into a solution. Returns error if already in a solution.
 
+<<<<<<< HEAD
 Use this after creating a Copilot Studio Skills-triggered flow that must be
 discoverable as an agent tool. Pass `solutionId` for the target solution. If the
 server supports omitting `solutionId`, it uses the environment's default solution;
@@ -310,6 +349,8 @@ Useful parameters:
 - `propertyName`: request one field after inspecting the compact response.
 - `includeRaw`: include raw connector schema only when needed; it can be large.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 ## Run History & Monitoring
@@ -385,10 +426,15 @@ Response: array of action detail objects.
 ]
 ```
 
+<<<<<<< HEAD
 > **`actionName` is optional**: omit it to return top-level actions in the run.
 > Provide it for a specific action. If that action runs inside a foreach, the
 > tool can return every repetition of that action across iterations; pass
 > `iterationIndex` to pin to one zero-based iteration.
+=======
+> **`actionName` is optional**: omit it to return ALL actions in the run;
+> provide it to return a single-element array for that action only.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 >
 > Outputs can be very large (50 MB+) for bulk-data actions. Use 120s+ timeout.
 
@@ -413,9 +459,12 @@ Cancels a `Running` flow run.
 
 ### `get_live_flow_http_schema`
 
+<<<<<<< HEAD
 Deprecated. Prefer `get_live_flow` and inspect the `Request` trigger's
 `inputs.schema` plus any `Response` actions directly from the definition.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 Response keys:
 ```
 flowKey            - Flow GUID
@@ -435,9 +484,12 @@ responseSchemaCount - Number of Response actions that define output schemas
 
 ### `get_live_flow_trigger_url`
 
+<<<<<<< HEAD
 Deprecated. Prefer `trigger_live_flow` when you need to invoke an HTTP-triggered
 flow; it fetches the current callback URL internally.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 Returns the signed callback URL for HTTP-triggered flows. Response includes
 `flowKey`, `triggerName`, `triggerType`, `triggerKind`, `triggerMethod`, `triggerUrl`.
 
@@ -559,6 +611,7 @@ List all Power Apps canvas apps from the cache.
 ## Behavioral Notes
 
 Non-obvious behaviors discovered through real API usage. These are things
+<<<<<<< HEAD
 tool schemas cannot tell you.
 
 ### `get_live_flow_run_action_outputs`
@@ -571,6 +624,17 @@ tool schemas cannot tell you.
 - Required fields can vary by server version; confirm with `tool_search`
   (`select:update_live_flow`) before create/update. If `description` is required,
   preserve the existing description when patching.
+=======
+`tools/list` cannot tell you.
+
+### `get_live_flow_run_action_outputs`
+- **`actionName` is optional**: omit to get all actions, provide to get one.
+  This changes the response from N elements to 1 element (still an array).
+- Outputs can be 50 MB+ for bulk-data actions --- always use 120s+ timeout.
+
+### `update_live_flow`
+- `description` is **always required** (create and update modes).
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 - `error` key is **always present** in response --- `null` means success.
   Do NOT check `if "error" in result`; check `result.get("error") is not None`.
 - On create, `created` = new flow GUID (string). On update, `created` = `false`.
@@ -593,9 +657,12 @@ tool schemas cannot tell you.
 - `poster`: `"Flow bot"` for Workflows bot identity, `"User"` for user identity.
 
 ### `list_live_connections`
+<<<<<<< HEAD
 - For build workflows, pass `environmentName`; omitting it inventories
   connections across environments.
 - Use `search=<connector/account>` to get smaller output and paste-ready
   `connectionReferenceTemplate` / `hostTemplate` values.
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 - `id` is the value you need for `connectionName` in `connectionReferences`.
 - `connectorName` maps to apiId: `"/providers/Microsoft.PowerApps/apis/" + connectorName`.

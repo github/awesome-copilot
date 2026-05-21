@@ -73,6 +73,7 @@ const experiment = await runExperiment({
 });
 ```
 
+<<<<<<< HEAD
 ## Stability
 
 Single-run scores are noisy when either the task or the evaluator is non-deterministic — an LLM call, tool use, streaming output, an LLM-as-judge. On a small dataset, that per-run noise can swamp the signal from a prompt change.
@@ -100,6 +101,8 @@ Consider adding stability when:
 
 Repetitions are also what `repetitions: 1` (default) silently relies on — don't trust a tuning decision based on a single 10-example run.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Add Evaluations Later
 
 ```typescript

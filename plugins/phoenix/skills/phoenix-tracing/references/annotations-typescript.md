@@ -5,7 +5,11 @@ Add feedback to spans, traces, documents, and sessions using the TypeScript clie
 ## Client Setup
 
 ```typescript
+<<<<<<< HEAD
 import { createClient } from "@arizeai/phoenix-client";
+=======
+import { createClient } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 const client = createClient();  // Default: http://localhost:6006
 ```
 
@@ -14,7 +18,11 @@ const client = createClient();  // Default: http://localhost:6006
 Add feedback to individual spans:
 
 ```typescript
+<<<<<<< HEAD
 import { addSpanAnnotation } from "@arizeai/phoenix-client/spans";
+=======
+import { addSpanAnnotation } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 await addSpanAnnotation({
   client,
@@ -31,6 +39,7 @@ await addSpanAnnotation({
 });
 ```
 
+<<<<<<< HEAD
 ## Span Notes
 
 Notes are a special type of annotation for free-form text — useful for open coding, where reviewers leave qualitative observations on a span before any rubric exists. Later, those notes can be aggregated and distilled into structured labels or scores.
@@ -49,12 +58,18 @@ await addSpanNote({
 });
 ```
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Document Annotations
 
 Rate individual documents in RETRIEVER spans:
 
 ```typescript
+<<<<<<< HEAD
 import { addDocumentAnnotation } from "@arizeai/phoenix-client/spans";
+=======
+import { addDocumentAnnotation } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 await addDocumentAnnotation({
   client,
@@ -74,7 +89,11 @@ await addDocumentAnnotation({
 Feedback on entire traces:
 
 ```typescript
+<<<<<<< HEAD
 import { addTraceAnnotation } from "@arizeai/phoenix-client/traces";
+=======
+import { addTraceAnnotation } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 await addTraceAnnotation({
   client,
@@ -88,6 +107,7 @@ await addTraceAnnotation({
 });
 ```
 
+<<<<<<< HEAD
 ## Trace Notes
 
 Notes on entire traces (multiple notes allowed per trace):
@@ -104,12 +124,18 @@ await addTraceNote({
 });
 ```
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Session Annotations
 
 Feedback on multi-turn conversations:
 
 ```typescript
+<<<<<<< HEAD
 import { addSessionAnnotation } from "@arizeai/phoenix-client/sessions";
+=======
+import { addSessionAnnotation } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 await addSessionAnnotation({
   client,
@@ -126,9 +152,13 @@ await addSessionAnnotation({
 ## RAG Pipeline Example
 
 ```typescript
+<<<<<<< HEAD
 import { createClient } from "@arizeai/phoenix-client";
 import { logDocumentAnnotations, addSpanAnnotation } from "@arizeai/phoenix-client/spans";
 import { addTraceAnnotation } from "@arizeai/phoenix-client/traces";
+=======
+import { createClient, logDocumentAnnotations, addSpanAnnotation, addTraceAnnotation } from "phoenix-client";
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 const client = createClient();
 

@@ -337,6 +337,7 @@ walking a time range, polling until a status changes).
 
 ---
 
+<<<<<<< HEAD
 ### Agent Retry Loop
 
 When a flow calls an AI or Copilot-style agent until it reaches a terminal
@@ -354,6 +355,8 @@ outcome, keep the loop state explicit:
 
 ---
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ### Async Polling with RequestId Correlation
 
 When an API starts a long-running job asynchronously (e.g. Power BI dataset refresh,
@@ -503,6 +506,7 @@ Normalize before compare:  @replace(coalesce(outputs('Value'),''),'_',' ')
 Robust non-empty check:    @greater(length(trim(coalesce(string(outputs('Val')), ''))), 0)
 ```
 
+<<<<<<< HEAD
 ### Unsupported / Risky Expression Assumptions
 
 Power Automate expressions are Workflow Definition Language, not JavaScript.
@@ -516,6 +520,8 @@ expect:
 | Filter an array inline | `filter(...)` inside an expression | Data Operations `Filter array` action |
 | Find an array item index | `indexOf(array, item)` | Foreach with a counter variable, or build a keyed object map |
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ### Newlines in Expressions
 
 > **`\n` does NOT produce a newline inside Power Automate expressions.** It is

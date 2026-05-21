@@ -132,10 +132,13 @@ Result reference: `@body('Get_SP_Item')?['FieldName']`
 }
 ```
 
+<<<<<<< HEAD
 > `PatchItem` can validate required SharePoint columns even when you are not
 > changing those fields. Echo unchanged required fields from the trigger or a
 > prior Get Item action, for example `item/Title`, and use internal field names.
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 ### SharePoint — File Upsert (Create or Overwrite in Document Library)
@@ -290,10 +293,13 @@ SharePoint REST API via the `HttpRequest` operation:
 > The `HttpRequest` operation reuses the existing SharePoint connection — no extra
 > authentication needed. Use this when the standard Update Item connector can't
 > reach the target list (different site collection, or you need raw REST control).
+<<<<<<< HEAD
 > Keep the connector-specific parameter names exactly as shown:
 > `parameters/method`, `parameters/uri`, `parameters/headers`, and
 > `parameters/body`. The body is a JSON string, and `parameters/uri` is relative
 > to the SharePoint `dataset`.
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ---
 
@@ -348,6 +354,7 @@ the file; the flow downloads and filters it for before/after comparisons.
 
 ---
 
+<<<<<<< HEAD
 ## Excel Online
 
 ### Excel — Run Office Script
@@ -364,6 +371,8 @@ parameters.
 
 ---
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Outlook
 
 ### Outlook — Send Email
@@ -503,6 +512,7 @@ For 1:1 ("Chat with Flow bot"), use `"location": "Chat with Flow bot"` and set
 
 ---
 
+<<<<<<< HEAD
 ## Copilot Studio
 
 ### Copilot Studio — Invoke Agent
@@ -517,6 +527,8 @@ before changing the flow definition.
 
 ---
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Approvals
 
 ### Split Approval (Create → Wait)

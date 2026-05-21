@@ -17,6 +17,7 @@ x-api-key: <token>
 User-Agent: FlowStudio-MCP/1.0    ← required, or Cloudflare blocks you
 ```
 
+<<<<<<< HEAD
 ## Step 1 — Discover Tool Bundles
 
 Preferred cold-start call:
@@ -41,14 +42,22 @@ Use `query:"select:tool1,tool2"` to load exact tools and keyword search such as
 `query:"send email"` when the user intent is ambiguous.
 
 Fallback for very low-level MCP clients:
+=======
+## Step 1 — Discover Tools
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ```json
 POST {"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}
 ```
 
+<<<<<<< HEAD
 `tools/list` returns all tools with names, descriptions, and input schemas, but
 it is heavier and should not be the first choice for agents that know the
 FlowStudio meta-tools.
+=======
+Returns all tools with names, descriptions, and input schemas.
+Free — not counted against plan limits.
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ## Step 2 — Call a Tool
 
@@ -74,5 +83,9 @@ Always parse `result.content[0].text` as JSON to get the actual data.
   `list_live_environments`, `list_live_connections`, `list_store_flows`,
   `list_store_environments`, `list_store_makers`, `get_store_maker`,
   `list_store_power_apps`, `list_store_connections`
+<<<<<<< HEAD
 - When in doubt, check the `required` array in each tool's schema from
   `tool_search` (or `tools/list` as a fallback)
+=======
+- When in doubt, check the `required` array in each tool's schema from `tools/list`
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c

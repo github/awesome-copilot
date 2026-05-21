@@ -11,9 +11,15 @@ description: 'Create Spring Boot Java Project Skeleton'
   - Docker
   - Docker Compose
 
+<<<<<<< HEAD
 - If you need to custom the project name, please change the `artifactId` and the `packageName` in [download-spring-boot-project-template](#download-spring-boot-project-template)
 
 - If you need to update the Spring Boot version, please change the `bootVersion` in [download-spring-boot-project-template](#download-spring-boot-project-template)
+=======
+- If you need to custom the project name, please change the `artifactId` and the `packageName` in [download-spring-boot-project-template](./create-spring-boot-java-project.prompt.md#download-spring-boot-project-template)
+
+- If you need to update the Spring Boot version, please change the `bootVersion` in [download-spring-boot-project-template](./create-spring-boot-java-project.prompt.md#download-spring-boot-project-template)
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ## Check Java version
 

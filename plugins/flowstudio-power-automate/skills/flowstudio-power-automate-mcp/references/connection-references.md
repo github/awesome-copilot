@@ -14,7 +14,11 @@ connections in the Power Platform. They are required whenever you call
     "definition": { ... },
     "connectionReferences": {
       "shared_sharepointonline": {
+<<<<<<< HEAD
         "connectionName": "shared-sharepointonl-eeeeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+=======
+        "connectionName": "shared-sharepointonl-62599557c-1f33-4aec-b4c0-a6e4afcae3be",
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
         "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
         "displayName": "SharePoint"
       },
@@ -33,6 +37,7 @@ These match the `connectionName` field inside each action's `host` block.
 
 ---
 
+<<<<<<< HEAD
 ## Finding Connection References
 
 Preferred method: call `list_live_connections` in the target environment. Use
@@ -62,6 +67,9 @@ Use `host` as the action-side `inputs.host`. Use `conn_refs` as
 `update_live_flow(connectionReferences=conn_refs)`.
 
 Fallback method: copy from an existing flow.
+=======
+## Finding Connection GUIDs
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 Call `get_live_flow` on **any existing flow** that uses the same connection
 and copy the `connectionReferences` block. The GUID after the connector prefix is
@@ -71,7 +79,11 @@ the connection instance owned by the authenticating user.
 flow = mcp("get_live_flow", environmentName=ENV, flowName=EXISTING_FLOW_ID)
 conn_refs = flow["properties"]["connectionReferences"]
 # conn_refs["shared_sharepointonline"]["connectionName"]
+<<<<<<< HEAD
 # → "shared-sharepointonl-eeeeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"
+=======
+# → "shared-sharepointonl-62599557c-1f33-4aec-b4c0-a6e4afcae3be"
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 > ⚠️ Connection references are **user-scoped**. If a connection is owned
@@ -90,7 +102,11 @@ result = mcp("update_live_flow",
     definition=modified_definition,
     connectionReferences={
         "shared_sharepointonline": {
+<<<<<<< HEAD
             "connectionName": "shared-sharepointonl-eeeeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+=======
+            "connectionName": "shared-sharepointonl-62599557c-1f33-4aec-b4c0-a6e4afcae3be",
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
             "id": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
         }
     }

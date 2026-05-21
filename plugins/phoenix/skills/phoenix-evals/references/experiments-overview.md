@@ -14,10 +14,16 @@ EXPERIMENT  → Run task on all examples, score results
 ## Basic Usage
 
 ```python
+<<<<<<< HEAD
 from phoenix.client import Client
 
 client = Client()
 experiment = client.experiments.run_experiment(
+=======
+from phoenix.client.experiments import run_experiment
+
+experiment = run_experiment(
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
     dataset=my_dataset,
     task=my_task,
     evaluators=[accuracy, faithfulness],
@@ -41,6 +47,7 @@ print(experiment.aggregate_scores)
 Test setup before full execution:
 
 ```python
+<<<<<<< HEAD
 experiment = client.experiments.run_experiment(
     dataset=dataset,
     task=task,
@@ -63,6 +70,9 @@ experiment = await client.experiments.run_experiment(
     evaluators=[accuracy, faithfulness],
     experiment_name="improved-retrieval-v2",
 )
+=======
+experiment = run_experiment(dataset, task, evaluators, dry_run=3)  # Just 3 examples
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ```
 
 ## Best Practices

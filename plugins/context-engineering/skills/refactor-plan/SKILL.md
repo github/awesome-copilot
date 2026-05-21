@@ -1,10 +1,15 @@
 ---
 name: refactor-plan
+<<<<<<< HEAD
 description: 'Create a concrete plan before starting a multi-file refactor. Use when the user asks to plan, sequence, scope, or safely execute a refactor across multiple files; always investigate first, output the plan, and wait for confirmation before making code changes.'
+=======
+description: 'Plan a multi-file refactor with proper sequencing and rollback steps'
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ---
 
 # Refactor Plan
 
+<<<<<<< HEAD
 Create a detailed plan before making any code changes.
 
 ## Instructions
@@ -19,6 +24,21 @@ Create a detailed plan before making any code changes.
 8. Stop after the plan and ask for confirmation before implementing. If the user already asked you to implement, still produce the plan first and wait for confirmation unless they explicitly said to continue without review after the plan.
 
 If the request is too ambiguous to plan safely, ask concise clarifying questions instead of editing files.
+=======
+Create a detailed plan for this refactoring task.
+
+## Refactor Goal
+
+{{refactor_description}}
+
+## Instructions
+
+1. Search the codebase to understand current state
+2. Identify all affected files and their dependencies
+3. Plan changes in a safe sequence (types first, then implementations, then tests)
+4. Include verification steps between changes
+5. Consider rollback if something fails
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 ## Output Format
 
@@ -63,4 +83,8 @@ If something fails:
 - [Potential issue and mitigation]
 ```
 
+<<<<<<< HEAD
 After the plan, ask: "Shall I proceed with Phase 1?"
+=======
+Shall I proceed with Phase 1?
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c

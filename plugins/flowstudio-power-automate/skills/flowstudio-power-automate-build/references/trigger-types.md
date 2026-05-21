@@ -93,6 +93,7 @@ Access any field dynamically: `@triggerBody()?['anyField']`
 
 ---
 
+<<<<<<< HEAD
 ## Manual (Copilot Studio Skills)
 
 Use the Skills trigger when the flow is meant to be called by a Copilot Studio
@@ -127,6 +128,8 @@ the Skills trigger after the actions are verified.
 
 ---
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Automated (SharePoint Item Created)
 
 ```json

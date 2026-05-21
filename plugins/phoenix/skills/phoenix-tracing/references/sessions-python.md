@@ -5,7 +5,11 @@ Track multi-turn conversations by grouping traces with session IDs.
 ## Setup
 
 ```python
+<<<<<<< HEAD
 from phoenix.otel import using_session
+=======
+from openinference.instrumentation import using_session
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 with using_session(session_id="user_123_conv_456"):
     response = llm.invoke(prompt)
@@ -16,7 +20,11 @@ with using_session(session_id="user_123_conv_456"):
 **Bad: Only parent span gets session ID**
 
 ```python
+<<<<<<< HEAD
 from phoenix.otel import SpanAttributes
+=======
+from openinference.semconv.trace import SpanAttributes
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 from opentelemetry import trace
 
 span = trace.get_current_span()
@@ -51,7 +59,11 @@ Bad: `"session_1"`, `"test"`, empty string
 
 ```python
 import uuid
+<<<<<<< HEAD
 from phoenix.otel import using_session
+=======
+from openinference.instrumentation import using_session
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 session_id = str(uuid.uuid4())
 messages = []
@@ -73,7 +85,11 @@ def send_message(user_input: str) -> str:
 ## Additional Attributes
 
 ```python
+<<<<<<< HEAD
 from phoenix.otel import using_attributes
+=======
+from openinference.instrumentation import using_attributes
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 with using_attributes(
     user_id="user_123",

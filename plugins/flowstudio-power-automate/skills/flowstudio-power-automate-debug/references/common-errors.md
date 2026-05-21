@@ -149,6 +149,7 @@ iterations in parallel, causing write conflicts or undefined ordering.
 
 ---
 
+<<<<<<< HEAD
 ### Foreach Parent Failed After Handled Inner Failure
 
 **Symptom**: Inner actions have failure handlers, but the parent `Foreach` still
@@ -167,6 +168,8 @@ handle success/failure at the Scope boundary.
 
 ---
 
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 ## Update / Deploy Errors
 
 ### `update_live_flow` Returns No-Op
@@ -204,6 +207,7 @@ values override new_data for matching records.
 Before: @sort(union(outputs('Old_Array'), body('New_Array')), 'Date')
 After:  @sort(union(body('New_Array'), outputs('Old_Array')), 'Date')
 ```
+<<<<<<< HEAD
 
 ---
 
@@ -221,3 +225,5 @@ output length. Confirm the key is non-empty before trusting the filter result.
 
 **Fix**: Add a non-empty guard before the filter, normalize comparison values
 with `trim()`/`toLower()`, and branch explicitly when no match is found.
+=======
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c

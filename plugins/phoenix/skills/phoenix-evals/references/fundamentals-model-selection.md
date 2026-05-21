@@ -41,6 +41,7 @@ judge_cheap = ClassificationEvaluator(
 ## Don't Model Shop
 
 ```python
+<<<<<<< HEAD
 from phoenix.client import Client
 
 client = Client()
@@ -52,6 +53,11 @@ for model in ["gpt-4o", "claude-3", "gemini-pro"]:
         task=lambda input, _model=model: task(input, model=_model),
         evaluators=evaluators,
     )
+=======
+# BAD
+for model in ["gpt-4o", "claude-3", "gemini-pro"]:
+    results = run_experiment(dataset, task, model)
+>>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
 
 # GOOD
 failures = analyze_errors(results)
