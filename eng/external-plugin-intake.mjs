@@ -9,6 +9,10 @@ import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-v
 export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
 export const RERUN_INTAKE_COMMAND = "/rerun-intake";
+const RERUN_INTAKE_COMMAND_PATTERN = new RegExp(
+  `^\\s*${RERUN_INTAKE_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+  "m",
+);
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
 const REQUIRED_CHECKLIST_ITEMS = [
@@ -264,7 +268,7 @@ export function parseExternalPluginIssueBody(body) {
 }
 
 export function parseRerunIntakeCommand(body) {
-  return /^\s*\/rerun-intake\b/m.test(String(body ?? ""));
+  return RERUN_INTAKE_COMMAND_PATTERN.test(String(body ?? ""));
 }
 
 export async function evaluateExternalPluginIssue({ issue, token } = {}) {
