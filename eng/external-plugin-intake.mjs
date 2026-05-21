@@ -265,7 +265,13 @@ export function parseExternalPluginIssueBody(body) {
   }
 
   for (const equivalents of REQUIRED_CHECKLIST_ITEMS) {
-    const isChecked = [...equivalents].some((text) => checkedItems.has(text));
+    let isChecked = false;
+    for (const text of equivalents) {
+      if (checkedItems.has(text)) {
+        isChecked = true;
+        break;
+      }
+    }
     if (!isChecked) {
       // Report using the canonical (first) text in each equivalents Set
       const [canonical] = equivalents;
