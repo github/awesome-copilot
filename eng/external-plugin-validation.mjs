@@ -239,6 +239,10 @@ function validateImmutableRef(ref, prefix, errors) {
   if (ref.startsWith("refs/") && !ref.startsWith("refs/tags/")) {
     errors.push(`${prefix}: "source.ref" must be a tag ref or commit SHA`);
   }
+
+  if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
+    errors.push(`${prefix}: "source.ref" must be a full 40-character commit SHA when referencing a commit`);
+  }
 }
 
 function validateCommitSha(sha, prefix, errors) {
