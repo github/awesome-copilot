@@ -62,12 +62,6 @@
       "version": "1.0.0"
     },
     {
-      "name": "awesome-copilot",
-      "source": "awesome-copilot",
-      "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
-      "version": "1.1.0"
-    },
-    {
       "name": "azure",
       "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
       "version": "1.0.0",
@@ -91,12 +85,6 @@
         "repo": "microsoft/azure-skills",
         "path": ".github/plugins/azure-skills"
       }
-    },
-    {
-      "name": "azure-cloud-development",
-      "source": "azure-cloud-development",
-      "description": "Comprehensive Azure cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
-      "version": "1.0.1"
     },
     {
       "name": "cast-imaging",
@@ -142,12 +130,6 @@
       "version": "1.1.0"
     },
     {
-      "name": "context-engineering",
-      "source": "context-engineering",
-      "description": "Tools and techniques for maximizing GitHub Copilot effectiveness through better context management. Includes guidelines for structuring code, an agent for planning multi-file changes, and prompts for context-aware development.",
-      "version": "1.0.0"
-    },
-    {
       "name": "context-matic",
       "source": "context-matic",
       "description": "Coding agents hallucinate APIs. ContextMatic gives them curated, versioned API and SDK docs. Ask your agent to \"integrate the payments API\" and it guesses — falling back on outdated training data and generic patterns that don't match your actual SDK. ContextMatic solves this by giving the agent deterministic, version-aware, SDK-native context at the exact moment it's needed.",
@@ -160,15 +142,9 @@
       "version": "1.0.0"
     },
     {
-      "name": "csharp-dotnet-development",
-      "source": "csharp-dotnet-development",
-      "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
-      "version": "1.1.0"
-    },
-    {
-      "name": "database-data-management",
-      "source": "database-data-management",
-      "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
+      "name": "csharp-mcp-development",
+      "source": "csharp-mcp-development",
+      "description": "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
       "version": "1.0.0"
     },
     {
@@ -195,12 +171,6 @@
         "repo": "microsoft/Dataverse-skills",
         "path": ".github/plugins/dataverse"
       }
-    },
-    {
-      "name": "dataverse-sdk-for-python",
-      "source": "dataverse-sdk-for-python",
-      "description": "Comprehensive collection for building production-ready Python integrations with Microsoft Dataverse. Includes official documentation, best practices, advanced features, file operations, and code generation prompts.",
-      "version": "1.0.0"
     },
     {
       "name": "devops-oncall",
@@ -344,22 +314,10 @@
       }
     },
     {
-      "name": "flowstudio-power-automate",
-      "source": "flowstudio-power-automate",
-      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
-      "version": "2.0.0"
-    },
-    {
       "name": "frontend-web-dev",
       "source": "frontend-web-dev",
       "description": "Essential prompts, instructions, and chat modes for modern frontend web development including React, Angular, Vue, TypeScript, and CSS frameworks.",
       "version": "1.0.0"
-    },
-    {
-      "name": "gem-team",
-      "source": "gem-team",
-      "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.24.0"
     },
     {
       "name": "git-ape",
@@ -396,12 +354,6 @@
       "version": "1.0.0"
     },
     {
-      "name": "java-development",
-      "source": "java-development",
-      "description": "Comprehensive collection of prompts and instructions for Java development including Spring Boot, Quarkus, testing, documentation, and best practices.",
-      "version": "1.0.0"
-    },
-    {
       "name": "java-mcp-development",
       "source": "java-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol servers in Java using the official MCP Java SDK with reactive streams and Spring Boot integration.",
@@ -411,12 +363,6 @@
       "name": "kotlin-mcp-development",
       "source": "kotlin-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Kotlin using the official io.modelcontextprotocol:kotlin-sdk library. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "mcp-m365-copilot",
-      "source": "mcp-m365-copilot",
-      "description": "Comprehensive collection for building declarative agents with Model Context Protocol integration for Microsoft 365 Copilot",
       "version": "1.0.0"
     },
     {
@@ -607,6 +553,12 @@
       }
     },
     {
+      "name": "polyglot-test-agent",
+      "source": "polyglot-test-agent",
+      "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
+      "version": "1.0.0"
+    },
+    {
       "name": "power-apps-code-apps",
       "source": "power-apps-code-apps",
       "description": "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration.",
@@ -625,27 +577,21 @@
       "version": "1.0.0"
     },
     {
-      "name": "power-platform-mcp-connector-development",
-      "source": "power-platform-mcp-connector-development",
-      "description": "Complete toolkit for developing Power Platform custom connectors with Model Context Protocol integration for Microsoft Copilot Studio",
-      "version": "1.0.0"
-    },
-    {
       "name": "project-documenter",
       "source": "project-documenter",
       "description": "Generate professional project documentation with draw.io architecture diagrams and Word (.docx) output with embedded images. Automatically discovers any project's technology stack and produces Markdown, diagrams, PNG exports, and a formatted Word document.",
       "version": "1.0.0"
     },
     {
-      "name": "project-planning",
-      "source": "project-planning",
-      "description": "Tools and guidance for software project planning, feature breakdown, epic management, implementation planning, and task organization for development teams.",
-      "version": "1.0.0"
-    },
-    {
       "name": "python-mcp-development",
       "source": "python-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Python using the official SDK with FastMCP. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "rag-azure-builder",
+      "source": "rag-azure-builder",
+      "description": "Opinionated Azure RAG starter plugin with guided onboarding, indexing strategy, and grounded QA setup patterns.",
       "version": "1.0.0"
     },
     {
@@ -683,12 +629,6 @@
       "source": "rust-mcp-development",
       "description": "Build high-performance Model Context Protocol servers in Rust using the official rmcp SDK with async/await, procedural macros, and type-safe implementations.",
       "version": "1.0.0"
-    },
-    {
-      "name": "salesforce-development",
-      "source": "salesforce-development",
-      "description": "Complete Salesforce agentic development environment covering Apex & Triggers, Flow automation, Lightning Web Components, Aura components, and Visualforce pages.",
-      "version": "1.1.0"
     },
     {
       "name": "security-best-practices",
@@ -775,21 +715,9 @@
       "version": "1.0.0"
     },
     {
-      "name": "testing-automation",
-      "source": "testing-automation",
-      "description": "Comprehensive collection for writing tests, test automation, and test-driven development including unit tests, integration tests, and end-to-end testing strategies.",
-      "version": "1.0.0"
-    },
-    {
       "name": "typescript-mcp-development",
       "source": "typescript-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in TypeScript/Node.js using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "typespec-m365-copilot",
-      "source": "typespec-m365-copilot",
-      "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
       "version": "1.0.0"
     },
     {
@@ -874,6 +802,12 @@
         "repo": "microsoft/win-dev-skills",
         "path": "plugins/winui"
       }
+    },
+    {
+      "name": "winui3-development",
+      "source": "winui3-development",
+      "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
+      "version": "1.0.0"
     }
   ]
 }

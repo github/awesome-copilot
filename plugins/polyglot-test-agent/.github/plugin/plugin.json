@@ -1,0 +1,28 @@
+{
+  "name": "polyglot-test-agent",
+  "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "testing",
+    "unit-tests",
+    "polyglot",
+    "test-generation",
+    "multi-agent",
+    "tdd",
+    "csharp",
+    "typescript",
+    "python",
+    "go"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/polyglot-test-agent"
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "subscription": "8e6ace56-e0f2-4071-825a-a20363df34f8",
+  "resourceGroup": "rag-defensa-rg",
+  "tiers": {
+    "minimal": {
+      "name": "Minimal (Máximo Ahorro)",
+      "description": "Ideal para desarrollo, testing y MVP",
+      "monthlyBudget": 30,
+      "services": {
+        "search": {
+          "sku": "basic",
+          "displayName": "Azure Search Basic",
+          "monthlyEstimate": 20,
+          "limits": {
+            "documents": 1000000,
+            "partitions": 1,
+            "replicas": 3
+          },
+          "notes": "Max 1M docs, bueno para RAG pequeño/mediano"
+        },
+        "logAnalytics": {
+          "retentionDays": 30,
+          "displayName": "Log Analytics",
+          "monthlyEstimate": 5,
+          "notes": "30 días de logs, suficiente para debugging"
+        },
+        "appInsights": {
+          "retentionDays": 30,
+          "displayName": "Application Insights",
+          "monthlyEstimate": 1,
+          "notes": "30 días de telemetría"
+        },
+        "storage": {
+          "sku": "Standard_LRS",
+          "displayName": "Storage Account",
+          "monthlyEstimate": 0.01,
+          "notes": "LRS: replicación local"
+        },
+        "openAI": {
+          "sku": "S0",
+          "displayName": "Azure OpenAI",
+          "monthlyEstimate": 8,
+          "notes": "Necesario para RAG, tier estándar"
+        }
+      }
+    },
+    "standard": {
+      "name": "Standard (Balance)",
+      "description": "Ideal para producción con volumen moderado",
+      "monthlyBudget": 75,
+      "services": {
+        "search": {
+          "sku": "standard",
+          "displayName": "Azure Search Standard",
+          "monthlyEstimate": 55,
+          "limits": {
+            "documents": 15000000,
+            "partitions": 3,
+            "replicas": 12
+          },
+          "notes": "15M docs, 3 particiones, mejor rendimiento"
+        },
+        "logAnalytics": {
+          "retentionDays": 90,
+          "displayName": "Log Analytics",
+          "monthlyEstimate": 10,
+          "notes": "90 días de logs, análisis histórico"
+        },
+        "appInsights": {
+          "retentionDays": 90,
+          "displayName": "Application Insights",
+          "monthlyEstimate": 2,
+          "notes": "90 días de telemetría, SLA tracking"
+        },
+        "storage": {
+          "sku": "Standard_LRS",
+          "displayName": "Storage Account",
+          "monthlyEstimate": 0.01,
+          "notes": "LRS: replicación local"
+        },
+        "openAI": {
+          "sku": "S0",
+          "displayName": "Azure OpenAI",
+          "monthlyEstimate": 8,
+          "notes": "Necesario para RAG"
+        }
+      }
+    },
+    "premium": {
+      "name": "Premium (Máxima Escala)",
+      "description": "Ideal para producción crítica y multi-región",
+      "monthlyBudget": 250,
+      "services": {
+        "search": {
+          "sku": "standard",
+          "displayName": "Azure Search Standard (Premium Config)",
+          "monthlyEstimate": 180,
+          "limits": {
+            "documents": 15000000,
+            "partitions": 10,
+            "replicas": 12
+          },
+          "notes": "10 particiones, 12 replicas: máximo rendimiento"
+        },
+        "logAnalytics": {
+          "retentionDays": 365,
+          "displayName": "Log Analytics (1 año)",
+          "monthlyEstimate": 30,
+          "notes": "1 año de auditoría y compliance"
+        },
+        "appInsights": {
+          "retentionDays": 365,
+          "displayName": "Application Insights (1 año)",
+          "monthlyEstimate": 5,
+          "notes": "1 año de análisis histórico"
+        },
+        "storage": {
+          "sku": "Standard_GRS",
+          "displayName": "Storage Account GRS",
+          "monthlyEstimate": 0.05,
+          "notes": "GRS: replicación geográfica (DR)"
+        },
+        "openAI": {
+          "sku": "S0",
+          "displayName": "Azure OpenAI",
+          "monthlyEstimate": 8,
+          "notes": "Necesario para RAG"
+        }
+      }
+    }
+  },
+  "alerts": {
+    "enabled": true,
+    "thresholds": {
+      "warning": 0.75,
+      "critical": 1.0
+    },
+    "notificationRoles": ["Owner", "Contributor"]
+  },
+  "metadata": {
+    "createdDate": "2026-05-14",
+    "lastUpdated": "2026-05-14",
+    "version": "1.0.0"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "rag-azure-builder",
+  "description": "Opinionated Azure RAG starter plugin with guided onboarding, indexing strategy, and grounded QA setup patterns.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "rag",
+    "azure",
+    "azure-ai-search",
+    "azure-openai",
+    "retrieval",
+    "knowledge"
+  ],
+  "agents": [
+    "./agents/rag-azure-setup.agent.md",
+    "./agents/rag-chat.agent.md",
+    "./agents/rag-cost-scaler.agent.md",
+    "./agents/rag-generate-report.agent.md",
+    "./agents/rag-indexer-specialist.agent.md",
+    "./agents/rag-onboarding.agent.md",
+    "./agents/rag-sharepoint-setup.agent.md",
+    "./agents/rag-validate-deployment.agent.md"
+  ],
+  "skills": [
+    "./skills/rag-agent-instrumentation/",
+    "./skills/rag-api-server/",
+    "./skills/rag-architecture-optimizer/",
+    "./skills/rag-azure-setup/",
+    "./skills/rag-cost-analyst/",
+    "./skills/rag-cost-scaler/",
+    "./skills/rag-deployment-templates/",
+    "./skills/rag-diagnostics/",
+    "./skills/rag-indexer/",
+    "./skills/rag-orchestration/",
+    "./skills/rag-qa-engine/",
+    "./skills/rag-query-cli/",
+    "./skills/rag-report-generator/",
+    "./skills/rag-sharepoint-connector/",
+    "./skills/rag-storage-connector/",
+    "./skills/rag-validator/"
+  ]
+}
