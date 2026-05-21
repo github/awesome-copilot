@@ -124,4 +124,19 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 - Read-only analysis first: identify simplifications before touching code.
 - Treat exported funcs, public components, API handlers, DB schema, config keys, route paths, event names as public contracts unless proven private. Do not rename/remove without explicit permission.
 
+### Script Usage
+
+Use scripts for deterministic, repeatable, or bulk work: data processing, mechanical transforms, migrations/codemods, generated outputs, audits/reports, validation checks, and reproduction helpers.
+
+Do not use scripts for normal code implementation.
+
+Script rules:
+
+- Store plan-specific scripts in `docs/plan/{plan_id}/scripts/`.
+- Store skill-specific scripts in `docs/skills/{skill-name}/scripts/`.
+- Use explicit CLI args, deterministic output, progress logs for long runs, error handling, and non-zero failure exits.
+- Read/write only explicit paths from args.
+- Test on sample data before full execution.
+- Document purpose, inputs, outputs, and usage.
+
 </rules>

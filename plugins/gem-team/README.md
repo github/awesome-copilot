@@ -8,7 +8,7 @@
 
 Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.
 
-> **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows, built-in verification loops, knowledge-driven execution, and token efficiency. The team includes specialized agents; consult prioritized knowledge sources (PRD, codebase, AGENTS.md) and persist learnings to a self-validating memory tool. Gem Team is designed for high performance, quality, security, and intelligence in AI-assisted software engineering.
+> **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
 
 ## 🚀 Quick Start
 
@@ -68,6 +68,7 @@ See [all supported installation options](#installation) below.
 - **Intent vs. Compliance** — Shifts the burden from writing "perfect prompts" to enforcing strict, YAML-based approval gates
 - **Diagnose-then-Fix** — gem-debugger diagnoses → gem-implementer fixes → re-verifies
 - **Resumable** — Execution can be paused and resumed without losing context
+- **Scriptable** — Use scripts for deterministic, repeatable, or bulk work (data processing, mechanical transforms, migrations/codemods, generated outputs, audits/reports, validation checks, reproduction helpers)
 
 ### Token Efficiency
 
@@ -75,7 +76,7 @@ Optimized for reduced LLM token consumption without quality loss:
 
 - **Concise Output** — No preamble, no meta commentary, no verbose explanations
 - **File-Based** — Researcher/Planner save to YAML files (not all in JSON output)
-- **Memory Skip** — Agents skip redundant reads when cache has high-confidence findings
+- **Context Caching & Memory Management** — Self-validating cache prevents redundant work across sessions and agents
 
 ### Design
 
@@ -92,31 +93,67 @@ Raw reasoning isn't enough in single-pass chat. Gem-Team wraps your preferred LL
 
 ### Knowledge Layers
 
-| Type             | Storage         | 1-liner                                                                                                                                  |
-| :--------------- | :-------------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **Memory**       | memory tool     | Facts, preferences, research, diagnoses, decisions, patterns — self-validated and reused across sessions                                 |
-| **Memory Tiers** | /memories/      | Tier-1 (orchest/ researcher/ planner): Always read/write. Tier-2 (impl/debug/simplifier): On init. Tier-3 (reviewer/ critic/doc): Rarely |
-| **Skills**       | `docs/skills/`  | Reusable procedures with code examples, extracted from high-confidence patterns                                                          |
-| **PRD**          | `docs/PRD.yaml` | Product requirements spec — drives agent planning, implementation, and verification                                                      |
-| **AGENTS.md**    | `AGENTS.md`     | Static conventions, rules, and agent definitions (requires approval)                                                                     |
-
-### Skill Creation
-
-During the execution loop, the orchestrator reviews `learnings.patterns[]` from agent outputs:
-
-- **Implementer** persists high-confidence patterns to memory on each task exit
-- **`gem-skill-creator`** receives patterns → deduplicates against `docs/skills/` → creates `SKILL.md` with code examples, gotchas, and references
-
-Skills follow the [Agent Skills](https://agentskills.io) format for cross-tool portability.
+| Type             | Storage           | 1-liner                                                                                                  |
+| :--------------- | :---------------- | :------------------------------------------------------------------------------------------------------- |
+| **PRD**          | `docs/PRD.yaml`   | Product requirements spec — drives agent planning, implementation, and verification                      |
+| **AGENTS.md**    | `AGENTS.md`       | Static conventions, rules, and agent definitions (requires approval)                                     |
+| **Memory**       | memory tool       | Facts, preferences, research, diagnoses, decisions, patterns — self-validated and reused across sessions |
+| **Skills**       | `docs/skills/`    | Reusable procedures with code examples, extracted from high-confidence patterns                          |
+| **Derived Docs** | `docs/knowledge/` | Online documentation, LLM-generated text, and reference materials                                        |
 
 ---
+
+Agents build these knowledge layers over time while working with you, capturing patterns, decisions, and learnings that improve future execution.
 
 ## 🏗️ Architecture
 
 ```text
-User Goal → Orchestrator → [Simple: Research/Plan] or [Complex: Discuss → PRD → Research → Plan → Approve] → Execute (waves) → Summary → Final Review
-                ↓
-            Diagnose → Fix → Re-verify
+User Goal
+    ↓
+Orchestrator
+    ↓
+Phase 1: Init & Route
+    • Generate/load plan_id
+    • Read memory, detect effort (LOW/MEDIUM/HIGH)
+    • Route to appropriate path
+    ↓
+Phase 2: Research
+    • Check cache (confidence ≥ 0.85 → skip)
+    • Build context_envelope
+    • Bug-fix: Debugger diagnosis first
+    ↓
+Phase 3: Planning
+    • Delegate to planner
+    • Validation: MEDIUM (reviewer) / HIGH (reviewer+critic)
+    • Loop on failure (max 3x)
+    • Present for approval if HIGH
+    ↓
+Phase 4: Execution Loop
+    Pre-Wave: Check cache, add guards
+    ↓
+    ┌─ Wave Execution ──────────────┐
+    │ • Delegate tasks (≤4 concurrent)│
+    └─────────────┬─────────────────┘
+                  ↓
+    ┌─ Integration Check ──────────┐
+    │ • Reviewer(wave)             │
+    │ • UI: Designer(validate)     │
+    │ • If fail: Debugger → retry  │
+    └─────────────┬─────────────────┘
+                  ↓
+    ┌─ Persist Learnings ──────────┐
+    │ • Memory (deduped)           │
+    │ • Conventions → AGENTS.md    │
+    │ • Decisions → PRD            │
+    │ • Skills extraction          │
+    └──────────────────────────────┘
+                  ↓
+          Next wave? → No → Phase 5
+                  │Yes
+                  └────────┘
+    ↓
+Phase 5: Output
+    • Present final status
 ```
 
 ---
@@ -125,39 +162,55 @@ User Goal → Orchestrator → [Simple: Research/Plan] or [Complex: Discuss → 
 
 ### Core Agents
 
-| Agent            | Description                                                                      | Sources                        | Recommended LLM                                                                                           |
-| :--------------- | :------------------------------------------------------------------------------- | :----------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| **ORCHESTRATOR** | The team lead: Orchestrates research, planning, implementation, and verification | PRD, AGENTS.md                 | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** GLM-5, Kimi K2.5, Qwen3.5             |
-| **RESEARCHER**   | Codebase exploration — patterns, dependencies, architecture discovery            | PRD, codebase, AGENTS.md, docs | **Closed:** Gemini 3.1 Pro, GPT-5.4, Claude Sonnet 4.6<br>**Open:** GLM-5, Qwen3.5-9B, DeepSeek-V3.2      |
-| **PLANNER**      | DAG-based execution plans — task decomposition, wave scheduling, risk analysis   | PRD, codebase, AGENTS.md       | **Closed:** Gemini 3.1 Pro, Claude Sonnet 4.6, GPT-5.4<br>**Open:** Kimi K2.5, GLM-5, Qwen3.5             |
-| **IMPLEMENTER**  | TDD code implementation — features, bugs, refactoring. Never reviews own work    | codebase, AGENTS.md, DESIGN.md | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3- Coder-Next |
+| Agent            | Description                                                                      | Sources                        |
+| :--------------- | :------------------------------------------------------------------------------- | :----------------------------- |
+| **ORCHESTRATOR** | The team lead: Orchestrates research, planning, implementation, and verification | PRD, AGENTS.md                 |
+| **RESEARCHER**   | Codebase exploration — patterns, dependencies, architecture discovery            | PRD, codebase, AGENTS.md, docs |
+| **PLANNER**      | DAG-based execution plans — task decomposition, wave scheduling, risk analysis   | PRD, codebase, AGENTS.md       |
+| **IMPLEMENTER**  | TDD code implementation — features, bugs, refactoring. Never reviews own work    | codebase, AGENTS.md, DESIGN.md |
 
 ### Quality & Review
 
-| Role               | Description                                                                      | Sources                          | Recommended LLM                                                                                                      |
-| :----------------- | :------------------------------------------------------------------------------- | :------------------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| **REVIEWER**       | **Zero- Hallucination Filter** — Security auditing, code review, OWASP scanning  | PRD, codebase, AGENTS.md, OWASP  | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** Kimi K2.5, GLM-5, DeepSeek-V3.2                    |
-| **CRITIC**         | Challenges assumptions, finds edge cases, spots over- engineering and logic gaps | PRD, codebase, AGENTS.md         | **Closed:** Claude Sonnet 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** Kimi K2.5, GLM-5, Qwen3.5                        |
-| **DEBUGGER**       | Root-cause analysis, stack trace diagnosis, regression bisection                 | codebase, AGENTS.md, git history | **Closed:** Gemini 3.1 Pro, Claude Opus 4.6, GPT-5.4<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3- Coder-Next            |
-| **BROWSER TESTER** | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         | **Closed:** GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Flash<br>**Open:** Llama 4 Maverick, Qwen3.5- Flash, MiniMax M2.7 |
-| **SIMPLIFIER**     | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3- Coder-Next            |
+| Role               | Description                                                                      | Sources                          |
+| :----------------- | :------------------------------------------------------------------------------- | :------------------------------- |
+| **REVIEWER**       | **Zero- Hallucination Filter** — Security auditing, code review, OWASP scanning  | PRD, codebase, AGENTS.md, OWASP  |
+| **CRITIC**         | Challenges assumptions, finds edge cases, spots over- engineering and logic gaps | PRD, codebase, AGENTS.md         |
+| **DEBUGGER**       | Root-cause analysis, stack trace diagnosis, regression bisection                 | codebase, AGENTS.md, git history |
+| **BROWSER TESTER** | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         |
+| **SIMPLIFIER**     | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       |
 
 ### Skill Management
 
-| Role              | Description                                                                         | Sources                              | Recommended LLM                                                                                                    |
-| :---------------- | :---------------------------------------------------------------------------------- | :----------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| **SKILL CREATOR** | Pattern-to-skill extraction — creates SKILL.md files from high-confidence learnings | AGENTS.md, Memory patterns, SKILL.md | **Closed:** Claude Sonnet 4.6, Gemini 3.1 Flash, GPT-5.4 Mini<br>**Open:** Llama 4 Scout, Qwen3.5-9B, MiniMax M2.7 |
+| Role              | Description                                                                         | Sources                              |
+| :---------------- | :---------------------------------------------------------------------------------- | :----------------------------------- |
+| **SKILL CREATOR** | Pattern-to-skill extraction — creates SKILL.md files from high-confidence learnings | AGENTS.md, Memory patterns, SKILL.md |
 
 ### Specialized
 
-| Role                   | Description                                                      | Sources                  | Recommended LLM                                                                                                      |
-| :--------------------- | :--------------------------------------------------------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------- |
-| **DEVOPS**             | Infrastructure deployment, CI/CD pipelines, container management | AGENTS.md, infra configs | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3.5                    |
-| **DOCUMENTATION**      | Technical documentation, README files, API docs, diagrams        | AGENTS.md, source code   | **Closed:** Claude Sonnet 4.6, Gemini 3.1 Flash, GPT-5.4 Mini<br>**Open:** Llama 4 Scout, Qwen3.5-9B, MiniMax M2.7   |
-| **DESIGNER**           | UI/UX design — layouts, themes, color schemes, accessibility     | PRD, codebase, AGENTS.md | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** Qwen3.5, GLM-5, MiniMax M2.7                     |
-| **IMPLEMENTER-MOBILE** | Mobile implementation — React Native, Expo, Flutter              | codebase, AGENTS.md      | **Closed:** Claude Opus 4.6, GPT-5.4, Gemini 3.1 Pro<br>**Open:** DeepSeek-V3.2, GLM-5, Qwen3- Coder-Next            |
-| **DESIGNER-MOBILE**    | Mobile UI/UX — HIG, Material Design, safe areas                  | PRD, codebase, AGENTS.md | **Closed:** GPT-5.4, Gemini 3.1 Pro, Claude Sonnet 4.6<br>**Open:** Qwen3.5, GLM-5, MiniMax M2.7                     |
-| **MOBILE TESTER**      | Mobile E2E testing — Detox, Maestro, iOS/Android                 | PRD, AGENTS.md           | **Closed:** GPT-5.4, Claude Sonnet 4.6, Gemini 3.1 Flash<br>**Open:** Llama 4 Maverick, Qwen3.5- Flash, MiniMax M2.7 |
+| Role                   | Description                                                      | Sources                  |
+| :--------------------- | :--------------------------------------------------------------- | :----------------------- |
+| **DEVOPS**             | Infrastructure deployment, CI/CD pipelines, container management | AGENTS.md, infra configs |
+| **DOCUMENTATION**      | Technical documentation, README files, API docs, diagrams        | AGENTS.md, source code   |
+| **DESIGNER**           | UI/UX design — layouts, themes, color schemes, accessibility     | PRD, codebase, AGENTS.md |
+| **IMPLEMENTER-MOBILE** | Mobile implementation — React Native, Expo, Flutter              | codebase, AGENTS.md      |
+| **DESIGNER-MOBILE**    | Mobile UI/UX — HIG, Material Design, safe areas                  | PRD, codebase, AGENTS.md |
+| **MOBILE TESTER**      | Mobile E2E testing — Detox, Maestro, iOS/Android                 | PRD, AGENTS.md           |
+
+### Agent Selection Suggestions
+
+For **proprietary/closed models** (GPT-5.4, Claude, Gemini):
+
+- Research/Plan: Gemini 3.1 Pro, GPT-5.4
+- Implementation: Claude Opus, GPT-5.4
+- Review: Claude Opus, GPT-5.4
+
+For **open-source models** (Qwen, GLM, DeepSeek, Llama):
+
+- Research/Plan: GLM-5, Qwen3.5
+- Implementation: DeepSeek-V3.2, Qwen Coder
+- Review: Kimi K2.5, DeepSeek-V3.2
+
+> **Note:** These are suggestions only. Gem Team works with any LLM that supports structured output. Choose based on availability, cost, and your specific task requirements.
 
 ---
 
