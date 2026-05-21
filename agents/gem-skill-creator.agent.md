@@ -27,7 +27,7 @@ Consult Knowledge Sources when relevant.
 - `docs/PRD.yaml`
 - `AGENTS.md`
 - Existing skills `docs/skills/_/SKILL.md`
-- `docs/plan/{plan_id}/_.yaml`
+- `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
 
@@ -144,6 +144,7 @@ metadata:
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

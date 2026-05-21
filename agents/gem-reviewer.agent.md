@@ -1,7 +1,7 @@
 ---
 description: "Security auditing, code review, OWASP scanning, PRD compliance verification."
 name: gem-reviewer
-argument-hint: "Enter task_id, plan_id, plan_path, review_scope (plan|task|wave), and review criteria for compliance and security audit."
+argument-hint: "Enter task_id, plan_id, plan_path, review_scope (plan|wave), and review criteria for compliance and security audit."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -37,7 +37,7 @@ Consult Knowledge Sources when relevant.
 
 ### Workflow
 
-Init — review_scope: plan|wave|task.
+Init — review_scope: plan|wave.
 
 #### Plan Review
 
@@ -92,7 +92,7 @@ Init — review_scope: plan|wave|task.
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "review_scope": "plan | wave | task",
+  "review_scope": "plan | wave",
   "confidence": 0.0-1.0,
   "findings": [{ "category": "string", "severity": "critical | high | medium | low", "description": "string", "location": "string" }],
   "security_issues": [{ "type": "string", "location": "string", "severity": "string" }],
@@ -121,6 +121,7 @@ Init — review_scope: plan|wave|task.
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

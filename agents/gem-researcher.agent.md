@@ -43,11 +43,11 @@ Consult Knowledge Sources when relevant.
 - Intent — Set user_intent.
 - Gray Areas — Detect, then generate 2-4 options each.
 - Scan — Quick dir structure scan, match request keywords.
-- Present — Via vscode_askQuestions.
+- Present — Use user question tool if available; otherwise return `gray_areas` + options for orchestrator/user handling.
 - Classify — Output type: architectural_decisions or task_clarifications.
 - Assess — Complexity.
 - Output
-  - Save repo memory for future runs.
+  - Return `learnings` for orchestrator-owned memory persistence.
   - Return JSON per Output Format.
 
 #### Compact Mode
@@ -59,10 +59,13 @@ Consult Knowledge Sources when relevant.
   - Deduplicate all research files: files_analyzed, patterns_found, architecture, tech_stack, conventions, dependencies, open_questions, gaps.
   - Donot do any research or pattern discovery. Only merge existing research.
 - Envelope — Compact into context_envelope:
-  - project_summary, tech_stack, conventions
-  - architecture_snapshot: key_dirs ≤10, patterns ≤10, components ≤10
-  - research_digest: files ≤20, patterns ≤10, dependencies, gotchas ≤5, open_questions ≤5
-  - prior_decisions, do_not_re_read
+  - Format: dense YAML/JSON-compatible bullets, fragments preferred over prose.
+  - Each item: one fact, one line, include evidence path when useful.
+  - project_summary: 5-8 dense bullet lines, tech_stack, conventions
+  - architecture_snapshot: key_dirs ≤40, patterns ≤40, components ≤40
+  - research_digest: files ≤100, patterns ≤40, dependencies, gotchas ≤25, open_questions ≤25
+  - prior_decisions ≤25, do_not_re_read ≤80
+  - Prefer broad relevant coverage over aggressive trimming, but compress aggressively: no paragraphs, no duplicate paths, no generic restatement, no low-confidence detail.
 - Output
   - Save — `docs/plan/{plan_id}/context_envelope.yaml`.
   - Return JSON per Output Format.
@@ -87,7 +90,7 @@ Consult Knowledge Sources when relevant.
 - Verify — All required sections present. Confidence ≥ 0.85, factual only.
 - Output:
   - Save YAML: `docs/plan/{plan_id}/research_findings_{focus_area}.yaml` as per `research_format_guide`.
-  - Save repo memory for future runs.
+  - Return `learnings` for orchestrator-owned memory persistence.
   - Return JSON per Output Format.
 
 </workflow>
@@ -239,6 +242,7 @@ gaps: # REQUIRED
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.
@@ -270,10 +274,9 @@ confidence = base(0.2) × coverage_score(0.3) × pattern_score(0.25) × quality_
   - Check for preferred search methodology (which tools worked) → bias tool selection.
   - If memory contains `gotchas` or `gaps` for this domain → include as search hints.
 
-- Write—batch at wave end or phase end:
-  - collect learnings, deduplicate, single entry per scope (max 3).
-  - Skip if confidence<0.85 or duplicate.
-  - YAML frontmatter with updatedAt, short keys (n, d, c), dense, bulleted.
-  - Record: search_method_used, dead_ends_encountered, tool_effectiveness for future methodology tuning.
+- Write:
+  - Do not write memory directly by default.
+  - Return memory candidates in `learnings` for orchestrator-owned persistence.
+  - Include search_method_used, dead_ends_encountered, and tool_effectiveness only when confidence >= 0.85 and reusable.
 
 </rules>

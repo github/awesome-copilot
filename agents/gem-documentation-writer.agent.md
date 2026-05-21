@@ -1,7 +1,7 @@
 ---
 description: "Technical documentation, README files, API docs, diagrams, walkthroughs."
 name: gem-documentation-writer
-argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|walkthrough|update), audience, coverage_matrix."
+argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|update|prd|agents_md), audience, coverage_matrix."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -28,7 +28,7 @@ Consult Knowledge Sources when relevant.
 - `AGENTS.md`
 - Official docs (online docs or llms.txt)
 - Existing docs (README, docs/, `CONTRIBUTING.md`)
-- `docs/plan/{plan_id}/\*.yaml`
+- `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
 
@@ -150,6 +150,7 @@ changes:
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

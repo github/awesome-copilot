@@ -91,7 +91,7 @@ Consult Knowledge Sources when relevant.
 - Validation — Valid YAML, no placeholders.
 - Failure — Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
-  - Save repo memory for future runs.
+  - Return `learnings` for orchestrator-owned memory persistence.
   - Save `docs/plan/{plan_id}/plan.yaml`
   - Return JSON per Output Format.
 
@@ -247,7 +247,7 @@ tasks:
     requires_approval: boolean
     devops_security_sensitive: boolean
     # gem-documentation-writer:
-    task_type: walkthrough | documentation | update | null
+    task_type: documentation | update | prd | agents_md | null
     audience: developers | end-users | stakeholders | null
     coverage_matrix: [string]
 ```
@@ -260,6 +260,7 @@ tasks:
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.
@@ -295,10 +296,9 @@ tasks:
   - Check for prior wave sequencing that worked well → inform wave assignment.
   - Check for `do_not_reinvestigate` areas → exclude from architecture scan.
 
-- Write—batch at wave end or phase end:
-  - collect learnings, deduplicate, single entry per scope (max 3).
-  - Skip if confidence<0.85 or duplicate.
-  - YAML frontmatter with updatedAt, short keys (n, d, c), dense, bulleted.
-  - Record: decomposition_pattern_used, risk_mitigations_effective, wave_sequencing for future optimization.
+- Write:
+  - Do not write memory directly by default.
+  - Return memory candidates in `learnings` for orchestrator-owned persistence.
+  - Include decomposition_pattern_used, risk_mitigations_effective, and wave_sequencing only when confidence >= 0.85 and reusable.
 
 </rules>

@@ -28,7 +28,7 @@ Consult Knowledge Sources when relevant.
 - `AGENTS.md`
 - Official docs (online docs or llms.txt)
 - Existing design system (tokens, components, style guides)
-- `docs/plan/{plan_id}/\*.yaml`
+- `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
 
@@ -39,7 +39,7 @@ Consult Knowledge Sources when relevant.
 - Init — mode (create|validate), scope, context.
 - Create Mode:
   - Requirements — Check existing design system, constraints (framework / library / tokens), PRD UX goals.
-  - Clarify — Ask via askQuestions when ambiguous.
+  - Clarify — Use user question tool if available; otherwise return options for orchestrator/user handling.
   - Propose — 2-3 approaches with trade-offs.
   - Execute:
     - use `skills_guidelines`
@@ -162,6 +162,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

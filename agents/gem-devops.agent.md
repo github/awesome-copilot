@@ -30,7 +30,7 @@ Consult Knowledge Sources when relevant.
 - Official docs (online docs or llms.txt)
 - Cloud docs (AWS, GCP, Azure, Vercel)
 - Skills — Including `docs/skills/*/SKILL.md` if any
-- `docs/plan/{plan_id}/_.yaml`
+- `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
 
@@ -43,9 +43,10 @@ Consult Knowledge Sources when relevant.
   - Ensure idempotency.
 - Approval Gate:
   - IF requires_approval OR devops_security_sensitive OR environment = production:
-    - Present via vscode_askQuestions (target, env, changes, risk).
-    - Approve → execute.
-    - Deny → status = needs_approval with reason.
+    - Present via user approval tool if available; otherwise return `needs_approval` with target, env, changes, and risk.
+    - Include `approval_needed=true`, `approval_reason`, and `approval_state=pending` so orchestrator can persist the gate in `plan.yaml`.
+    - Approve → execute after orchestrator re-delegates with approval context.
+    - Deny → return `needs_approval` with `approval_state=denied` and reason.
   - Else → proceed.
 - Execute
   - Use `skills_guidelines`
@@ -134,6 +135,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "pipeline_status": { "stage": "string", "build_id": "string", "url": "string" },
   "approval_needed": "boolean",
   "approval_reason": "string",
+  "approval_state": "not_required | pending | approved | denied",
   "learnings": {
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
     "gotchas": ["string"]
@@ -149,6 +151,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 ### Execution
 
+- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.
