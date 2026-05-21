@@ -56,7 +56,7 @@
 
 # ratatui - Rust crate for terminal UI
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,ratatui
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ratatui
 
 # Skip certain files and directories
 
