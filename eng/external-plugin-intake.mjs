@@ -11,7 +11,7 @@ const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
 const REQUIRED_CHECKLIST_ITEMS = [
   "The plugin lives in a public GitHub repository.",
-  "The ref I provided is an immutable release tag or full 40-character commit SHA, not a branch.",
+  "The ref and/or sha I provided is immutable (release tag and/or full 40-character commit SHA), not a branch.",
   "This submission follows this repository's contribution, security, and responsible AI policies.",
   "This plugin is not already listed in the Awesome Copilot marketplace.",
 ];
@@ -21,7 +21,8 @@ const FIELD_TITLES = Object.freeze({
   shortDescription: "Short description",
   githubRepository: "GitHub repository",
   pluginPath: "Plugin path inside the repository",
-  immutableRef: "Immutable ref to review",
+  immutableRef: "Ref to review",
+  immutableSha: "Commit SHA to review",
   version: "Version",
   license: "License identifier",
   authorName: "Author name",
@@ -150,7 +151,7 @@ function encodeRepoPath(repo) {
   return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
 }
 
-async function validateRemoteRepository(repo, ref, errors, warnings, token) {
+async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, token) {
   const encodedRepo = encodeRepoPath(repo);
   const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
 
@@ -171,6 +172,15 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
     warnings.push(`submission: GitHub repository "${repo}" is archived`);
   }
 
+  if (sha) {
+    if (/^[0-9a-f]{40}$/i.test(sha)) {
+      const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(sha)}`, token);
+      if (!commitResponse.ok) {
+        errors.push(`submission: commit "${sha}" was not found in GitHub repository "${repo}"`);
+      }
+    }
+  }
+
   if (!ref) {
     return;
   }
@@ -183,6 +193,14 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
     return;
   }
 
+  if (ref.startsWith("refs/heads/") || ["main", "master", "develop", "development", "dev", "trunk"].includes(ref)) {
+    return;
+  }
+
+  if (ref.startsWith("refs/") && !ref.startsWith("refs/tags/")) {
+    return;
+  }
+
   const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
 
@@ -191,7 +209,7 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
   }
 
   if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
-    errors.push('submission: commit SHAs in "Immutable ref to review" must use the full 40-character SHA');
+    errors.push('submission: commit SHAs in "Ref to review" must use the full 40-character SHA or be submitted in "Commit SHA to review"');
     return;
   }
 
@@ -215,7 +233,8 @@ export function parseExternalPluginIssueBody(body) {
   const pluginName = requiredField(FIELD_TITLES.pluginName);
   const shortDescription = requiredField(FIELD_TITLES.shortDescription);
   const repoInput = normalizeGitHubRepo(requiredField(FIELD_TITLES.githubRepository));
-  const immutableRef = requiredField(FIELD_TITLES.immutableRef);
+  const immutableRef = stripNoResponse(sections.get(FIELD_TITLES.immutableRef));
+  const immutableSha = stripNoResponse(sections.get(FIELD_TITLES.immutableSha));
   const version = requiredField(FIELD_TITLES.version);
   const license = requiredField(FIELD_TITLES.license);
   const authorName = requiredField(FIELD_TITLES.authorName);
@@ -226,6 +245,10 @@ export function parseExternalPluginIssueBody(body) {
   const keywords = parseKeywords(sections.get(FIELD_TITLES.keywords));
   const additionalNotes = stripNoResponse(sections.get(FIELD_TITLES.additionalNotes));
   const checkedItems = parseChecklist(sections.get(FIELD_TITLES.submissionChecklist));
+
+  if (!immutableRef && !immutableSha) {
+    errors.push(`submission: one of "${FIELD_TITLES.immutableRef}" or "${FIELD_TITLES.immutableSha}" is required`);
+  }
 
   for (const item of REQUIRED_CHECKLIST_ITEMS) {
     if (!checkedItems.has(item)) {
@@ -250,6 +273,7 @@ export function parseExternalPluginIssueBody(body) {
       repo: repoInput,
       ...(pluginPath ? { path: pluginPath } : {}),
       ...(immutableRef ? { ref: immutableRef } : {}),
+      ...(immutableSha ? { sha: immutableSha } : {}),
     },
   };
 
@@ -287,8 +311,8 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
     }
   }
 
-  if (parsed.plugin?.source?.repo && parsed.plugin?.source?.ref) {
-    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source.ref, errors, warnings, token);
+  if (parsed.plugin?.source?.repo && (parsed.plugin?.source?.ref || parsed.plugin?.source?.sha)) {
+    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
   }
 
   const dedupedErrors = [...new Set(errors)];
@@ -314,7 +338,8 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         "",
         `- **Plugin:** ${parsed.plugin.name}`,
         `- **Repository:** ${parsed.plugin.repository}`,
-        `- **Ref:** ${parsed.plugin.source.ref}`,
+        parsed.plugin.source.ref ? `- **Ref:** ${parsed.plugin.source.ref}` : undefined,
+        parsed.plugin.source.sha ? `- **SHA:** ${parsed.plugin.source.sha}` : undefined,
         `- **Keywords:** ${normalizedKeywords}`,
         "",
         "### Canonical external.json payload",

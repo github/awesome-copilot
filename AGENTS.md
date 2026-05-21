@@ -164,7 +164,7 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 
 1. Do not open a direct PR that edits `plugins/external.json` for a public third-party plugin submission
 2. Public external plugin submissions use the external plugin issue workflow documented in [CONTRIBUTING.md](CONTRIBUTING.md#adding-external-plugins)
-3. In v1, only GitHub-hosted plugins are accepted for public submission, using a public repo plus an immutable `ref`
+3. In v1, only GitHub-hosted plugins are accepted for public submission, using a public repo plus an immutable `ref`, `sha`, or both
 4. The shared validator in `eng/external-plugin-validation.mjs` is the canonical source of truth for external plugin data rules; reuse it instead of duplicating checks in scripts or workflows
 5. Submission issues move through `external-plugin` + `awaiting-review` -> `ready-for-review` -> `approved` or `rejected`
 6. Maintainers make the decision with `/approve` or `/reject <reason>` issue comments; approved issues are closed and used as the six-month re-review anchor

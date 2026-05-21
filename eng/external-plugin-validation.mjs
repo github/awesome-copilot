@@ -11,7 +11,7 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
     requireRepository: true,
     requireKeywords: true,
     requireLicense: false,
-    requireImmutableRef: false,
+    requireImmutableLocator: false,
   }),
   publicSubmission: Object.freeze({
     allowedSourceTypes: ["github"],
@@ -19,7 +19,7 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
     requireRepository: true,
     requireKeywords: true,
     requireLicense: true,
-    requireImmutableRef: true,
+    requireImmutableLocator: true,
   }),
 });
 
@@ -241,7 +241,18 @@ function validateImmutableRef(ref, prefix, errors) {
   }
 }
 
-function validateGitHubSource(source, prefix, errors, requireImmutableRef) {
+function validateCommitSha(sha, prefix, errors) {
+  if (!isNonEmptyString(sha)) {
+    errors.push(`${prefix}: "source.sha" must be a non-empty string when provided`);
+    return;
+  }
+
+  if (!/^[0-9a-f]{40}$/i.test(sha)) {
+    errors.push(`${prefix}: "source.sha" must be a full 40-character commit SHA`);
+  }
+}
+
+function validateGitHubSource(source, prefix, errors, requireImmutableLocator) {
   if (!source || typeof source !== "object" || Array.isArray(source)) {
     errors.push(`${prefix}: "source" must be an object`);
     return;
@@ -263,8 +274,14 @@ function validateGitHubSource(source, prefix, errors, requireImmutableRef) {
 
   if (source.ref !== undefined) {
     validateImmutableRef(source.ref, prefix, errors);
-  } else if (requireImmutableRef) {
-    errors.push(`${prefix}: "source.ref" is required for public external plugin submissions`);
+  }
+
+  if (source.sha !== undefined) {
+    validateCommitSha(source.sha, prefix, errors);
+  }
+
+  if (requireImmutableLocator && source.ref === undefined && source.sha === undefined) {
+    errors.push(`${prefix}: one of "source.ref" or "source.sha" is required for public external plugin submissions`);
   }
 }
 
@@ -301,7 +318,7 @@ export function validateExternalPlugin(plugin, index, options = {}) {
   } else if (!policy.allowedSourceTypes.includes(plugin.source.source)) {
     errors.push(`${prefix}: "source.source" must be one of: ${policy.allowedSourceTypes.join(", ")}`);
   } else if (plugin.source.source === "github") {
-    validateGitHubSource(plugin.source, prefix, errors, policy.requireImmutableRef);
+    validateGitHubSource(plugin.source, prefix, errors, policy.requireImmutableLocator);
   }
 
   return { errors, warnings };
