@@ -1,0 +1,26 @@
+{
+  "name": "rag-azure-builder",
+  "description": "Opinionated Azure RAG starter plugin with guided onboarding, indexing strategy, and grounded QA setup patterns.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "rag",
+    "azure",
+    "azure-ai-search",
+    "azure-openai",
+    "retrieval",
+    "knowledge"
+  ],
+  "agents": [
+    "./agents/rag-onboarding.md"
+  ],
+  "skills": [
+    "./skills/rag-azure-setup/",
+    "./skills/rag-indexer/",
+    "./skills/rag-qa-engine/"
+  ]
+}
