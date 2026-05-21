@@ -25,8 +25,11 @@ export OPENINFERENCE_HIDE_INPUT_MESSAGES=true  # Hide LLM input messages
 export OPENINFERENCE_HIDE_OUTPUT_MESSAGES=true # Hide LLM output messages
 export OPENINFERENCE_HIDE_INPUT_IMAGES=true    # Hide image content
 export OPENINFERENCE_HIDE_INPUT_TEXT=true      # Hide embedding text
+export OPENINFERENCE_HIDE_LLM_TOOLS=true       # Hide tool definitions sent to the LLM (llm.tools.*)
 export OPENINFERENCE_BASE64_IMAGE_MAX_LENGTH=10000  # Limit image size
 ```
+
+> `OPENINFERENCE_HIDE_LLM_TOOLS` is also applied when `OPENINFERENCE_HIDE_INPUTS` is enabled, consistent with `OPENINFERENCE_HIDE_INPUT_MESSAGES` and `OPENINFERENCE_HIDE_LLM_PROMPTS`.
 
 **Python TraceConfig:**
 
@@ -37,7 +40,8 @@ from openinference.instrumentation import TraceConfig
 config = TraceConfig(
     hide_inputs=True,
     hide_outputs=True,
-    hide_input_messages=True
+    hide_input_messages=True,
+    hide_llm_tools=True,
 )
 register(trace_config=config)
 ```
