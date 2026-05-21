@@ -73,7 +73,6 @@
     "source": {
       "source": "github",
       "repo": "ChromeDevTools/chrome-devtools-mcp",
-      "path": ".github/plugin/plugin.json",
       "ref": "chrome-devtools-mcp-v1.0.1"
     }
   },
@@ -194,13 +193,7 @@
       "url": "https://www.figma.com"
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
-    "keywords": [
-      "figma",
-      "design",
-      "mcp",
-      "ui",
-      "code-connect"
-    ],
+    "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
@@ -272,14 +265,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/Build-CLI",
-    "keywords": [
-      "microsoft",
-      "build",
-      "ignite",
-      "events",
-      "sessions",
-      "learn"
-    ],
+    "keywords": ["microsoft", "build", "ignite", "events", "sessions", "learn"],
     "license": "Apache-2.0",
     "repository": "https://github.com/microsoft/Build-CLI",
     "source": {
@@ -296,12 +282,7 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": [
-      "modernization",
-      "upgrade",
-      "migration",
-      "dotnet"
-    ],
+    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
