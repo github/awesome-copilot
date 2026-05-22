@@ -48,6 +48,14 @@
 
 # nin - MongoDB $nin operator in security instructions NoSQL injection detection regex
 
+# Spanish translation mappings in translate-py-content.py that should not be flagged
+
+# accesible - Spanish word in translation dictionary
+
+# profesional - Spanish word in translation dictionary
+
+# fases - Spanish word in translation dictionary
+
 # Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
 
 # FO - tasklist option /FO to format running task output
