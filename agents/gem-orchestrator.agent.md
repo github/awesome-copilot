@@ -70,11 +70,11 @@ Consult Knowledge Sources when relevant.
   - Delegate to `gem-researcher(mode=clarify)` with user input + relevant memory to clarify task and detect phase.
   - Doc updates (conditional) — If researcher output has `architectural_decisions` → delegate to `gem-documentation-writer`.
 - Routing matrix:
-  - continue_plan + feedback → Phase 3 (replan with context to update existing plan)
+  - continue_plan + feedback → Phase 2 (replan with context to update existing plan)
     - pending_tasks → Phase 4
     - no state → Phase 5
     - blocked → Escalate to user
-  - new_task → Phase 3
+  - new_task → Phase 2
 
 ### Phase 2: Planning
 
