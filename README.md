@@ -561,7 +561,7 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ## 📚 Additional Resources
 
-- [TutorialSearch](https://tutorialsearch.io/) - Free cross-platform search engine indexing 50,000+ tutorials from Udemy, Skillshare, Pluralsight, and other major learning platforms across 45+ categories.
+- [TutorialSearch](https://tutorialsearch.io/browse/programming-languages/ai-copilot) - Free cross-platform search engine indexing 50,000+ tutorials from Udemy, Skillshare, Pluralsight, and other major learning platforms across 45+ categories.
 - [VS Code Copilot Customization Documentation](https://code.visualstudio.com/docs/copilot/copilot-customization) - Official Microsoft documentation
 - [GitHub Copilot Chat Documentation](https://code.visualstudio.com/docs/copilot/chat/copilot-chat) - Complete chat feature guide
 - [VS Code Settings](https://code.visualstudio.com/docs/getstarted/settings) - General VS Code configuration guide
