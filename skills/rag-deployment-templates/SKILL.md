@@ -1,6 +1,6 @@
 ---
 name: 'rag-deployment-templates'
-description: 'Plantillas Bicep IaC para deploy Azure OpenAI, AI Search y Application Insights. Reutilizables en cualquier proyecto RAG. Incluye main.bicep y orquestación deploy.sh.'
+description: 'Bicep IaC templates to deploy Azure OpenAI, AI Search, and Application Insights. Reusable across any RAG project. Includes main.bicep and deploy.sh orchestration.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)

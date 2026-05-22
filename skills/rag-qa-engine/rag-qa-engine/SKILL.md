@@ -1,6 +1,6 @@
 ---
 name: 'rag-qa-engine'
-description: 'Motor de consultas RAG conversacional interactivo para Q&A sobre documentos'
+description: 'Interactive conversational RAG query engine for Q&A over documents'
 applyTo: '**/*.agent.md'
 ---
 
