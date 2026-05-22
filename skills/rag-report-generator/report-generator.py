@@ -469,13 +469,13 @@ def create_sample_report(output_dir: Path = Path("outputs")) -> Path:
         document_count=2345,
         total_size_gb=15.3,
         key_findings=[
-            "Documentación bien estructurada",
-            "Alta calidad de contenido",
-            "Oportunidad de automatización",
+            "Well-structured documentation",
+            "High-quality content",
+            "Automation opportunity",
         ],
         recommendations=[
-            "Implementación de búsqueda híbrida",
-            "Integración con SharePoint",
+            "Hybrid search implementation",
+            "SharePoint integration",
         ],
     )
 
@@ -484,40 +484,40 @@ def create_sample_report(output_dir: Path = Path("outputs")) -> Path:
             "document_count": 2345,
             "total_size_gb": 15.3,
             "document_types": ["PDF", "DOCX", "XLSX", "SQL"],
-            "quality": "Alta",
+            "quality": "High",
         },
     )
 
     recommendations = gen.generate_recommendations(
-        context="Proyecto RAG de documentación interna con 2345 documentos"
+        context="Internal documentation RAG project with 2345 documents"
     )
 
     content = {
         "executive_summary": summary,
         "metrics": {
-            "Documentos indexados": "2,345",
-            "Tamaño total": "15.3 GB",
-            "Calidad de datos": "Alta",
-            "Disponibilidad": "99.9%",
+            "Indexed documents": "2,345",
+            "Total size": "15.3 GB",
+            "Data quality": "High",
+            "Availability": "99.9%",
         },
         "findings_text": findings,
         "recommendations_text": recommendations,
         "timeline": {
-            "Fase 1 - Setup Azure": "1-2 semanas",
-            "Fase 2 - Indexación": "1 semana",
-            "Fase 3 - UAT": "2 semanas",
-            "Fase 4 - Producción": "1 semana",
+            "Phase 1 - Setup Azure": "1-2 weeks",
+            "Phase 2 - Indexing": "1 week",
+            "Phase 3 - UAT": "2 weeks",
+            "Phase 4 - Production": "1 week",
         },
     }
 
     metadata = ReportMetadata(
-        title="RAG: Informe Ejecutivo de Implementación",
+        title="RAG: Executive Implementation Report",
         client_name="MENSADEF",
-        project_name="Sistema Inteligente de Búsqueda de Documentación",
+        project_name="Intelligent Documentation Search System",
         report_type=ReportType.RAG_IMPLEMENTATION,
     )
 
-    output_path = output_dir / f"informe-ejecutivo-{datetime.now().strftime('%Y%m%d')}.docx"
+    output_path = output_dir / f"executive-report-{datetime.now().strftime('%Y%m%d')}.docx"
 
     return gen.generate_report(metadata, content, output_path)
 
