@@ -103,19 +103,19 @@ Preguntar EXACTAMENTE estas 5 preguntas (ni más, ni menos):
 
 1️⃣  ¿Nombre del proyecto?
     Ejemplo: "rag-builder"
-    
+
 2️⃣  ¿Descripción del proyecto? (1-2 frases)
     Ejemplo: "Sistema de gestión de clients para banca minorista"
-    
+
 3️⃣  ¿Tamaño total de documentación?
-    Opciones: 
+    Opciones:
       - pequeño (< 1GB)
       - mediano (1-10GB)
       - grande (> 10GB)
-    
+
 4️⃣  ¿Presupuesto mensual en Azure?
     Por defecto: $2,000
-    
+
 5️⃣  ¿Región Azure preferida?
     Por defecto: eastus
     Opciones: eastus, westus2, northeurope, southeastasia
@@ -260,12 +260,12 @@ for doc_type, subdir in [
 ]:
     folder = f"{knowledge_path}/{subdir}"
     files = os.listdir(folder)
-    
+
     print(f"\n⏳ Indexando {doc_type}...")
-    
+
     for file in files:
         filepath = os.path.join(folder, file)
-        
+
         # Procesar fichero (OCR para PDFs, parsing para otros)
         if file.endswith('.pdf'):
             chunks = extract_pdf(filepath)
@@ -277,13 +277,13 @@ for doc_type, subdir in [
             chunks = extract_ppt(filepath)
         else:
             continue
-        
+
         # Generar embeddings
         embeddings = [generate_embedding(c) for c in chunks]
-        
+
         # Subir a Azure Search
         search_client.upload_documents([...])
-    
+
     print(f"   ✅ Indexados {len(files)} archivos de {doc_type}")
 
 print("\n✅ ¡Indexación completa!")
@@ -387,14 +387,14 @@ Elige tu modo de consulta:
 ═══════════════════════════════════════════════════════════
 
 🔹 MODO A: Consultas rápidas (CLI)
-   
+
    Uso:
    $ python .github/skills/rag-query-cli/consultar.py "¿Cuál es la política X?"
-   
+
    Ideal para: Preguntas rápidas, consultas puntuales
    Latencia: 2 segundos
    Coste: $0.02 por consulta
-   
+
    Ejemplo de salida:
    > Pregunta: ¿Cuál es la política de retención?
    > Respuesta: Según el documento 'data-retention.docx'...
@@ -404,15 +404,15 @@ Elige tu modo de consulta:
 ═══════════════════════════════════════════════════════════
 
 🔹 MODO B: Chat conversacional
-   
+
    Uso:
    $ copilot-cli run .github/agents/rag-chat.agent.md
-   
+
    Ideal para: Conversaciones multi-turno, seguimientos, exploración profunda
    Latencia: 5 segundos por turno
    Coste: $0.05 por turno
    Contexto: Recuerda las últimas 10 interacciones
-   
+
    Ejemplo de flujo:
    > P1: ¿Cómo despliego el sistema?
    < R1: Según deployment-guide.pdf...
@@ -422,15 +422,15 @@ Elige tu modo de consulta:
 ═══════════════════════════════════════════════════════════
 
 🔹 MODO C: API REST (Para integración con apps)
-   
+
    Uso:
    $ python .github/skills/rag-api-server/servidor-api.py --port 8000
-   
+
    Desde tu app:
    curl -X POST http://localhost:8000/query \
      -H "Content-Type: application/json" \
      -d '{"query": "¿Cuál es X?", "top_k": 5}'
-   
+
    Ideal para: Web apps, dashboards, workflows
    Latencia: 3 segundos por consulta
    Coste: $0.03 por consulta
@@ -457,7 +457,7 @@ Configuración guardada en: outputs/setup-summary-{timestamp}.json
 ⚠️ Carpeta knowledge/ no encontrada.
    Creando estructura...
    ✅ Creadas knowledge/{pdfs, procedimientos, codigo, presentaciones}
-   
+
 Por favor añade tus documentos y ejecuta el wizard de nuevo.
 ```
 

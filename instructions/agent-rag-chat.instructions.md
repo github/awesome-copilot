@@ -82,10 +82,10 @@ import time
 while True:
     # Leer entrada del usuario
     user_input = input("\n> ").strip()
-    
+
     if not user_input:
         continue
-    
+
     # Manejar Commands
     if user_input.lower() == "/quit":
         break
@@ -102,30 +102,30 @@ while True:
     elif user_input.lower() == "/help":
         show_help()
         continue
-    
+
     # Procesar consulta
     print("\n⏳ Buscando documentos...")
     start_time = time.time()
-    
+
     # 1. Buscar documentos con contexto de turnos anteriores
     query = reformulate_with_context(user_input, conversation["turns"])
     search_results = search_rag(query, top_k=5)
     search_latency = (time.time() - start_time) * 1000
-    
+
     print(f"   Se encontraron {len(search_results)} documentos relevantes ({search_latency:.0f}ms)")
-    
+
     # 2. Generar respuesta con contexto
     print("⏳ Generando respuesta...")
     start_time = time.time()
-    
+
     response, tokens_used, citations = generate_response_with_context(
         user_query=user_input,
         search_results=search_results,
         conversation_history=conversation["turns"][-5:]  # Últimos 5 turnos para contexto
     )
-    
+
     inference_latency = (time.time() - start_time) * 1000
-    
+
     # 3. Mostrar respuesta
     print(f"""
 🔍 Respuesta:
@@ -135,10 +135,10 @@ while True:
 """)
     for i, citation in enumerate(citations, 1):
         print(f"   {i}. {citation['file']} (p. {citation.get('page', '?')})")
-    
+
     print(f"\n⏱️  Latencia: {search_latency:.0f}ms (búsqueda) + {inference_latency:.0f}ms (inferencia) = {search_latency + inference_latency:.0f}ms total")
     print(f"💰 Coste: ${tokens_used * 0.0001:.4f}")
-    
+
     # 4. Guardar turno en history
     turn = {
         "turn_number": len(conversation["turns"]) + 1,
@@ -151,14 +151,14 @@ while True:
         "inference_latency_ms": inference_latency,
         "timestamp": datetime.now().isoformat()
     }
-    
+
     conversation["turns"].append(turn)
-    
+
     # 5. Actualizar estadísticas
     conversation["stats"]["total_questions"] += 1
     conversation["stats"]["total_tokens"] += tokens_used
     conversation["stats"]["total_cost"] += tokens_used * 0.0001
-    
+
     # Auto-guardar cada 5 turnos
     if conversation["stats"]["total_questions"] % 5 == 0:
         save_session(conversation, session_file)
@@ -175,16 +175,16 @@ while True:
 def reformulate_with_context(user_query, history):
     """
     Reformula la consulta del usuario para incluir contexto implícito de turnos anteriores.
-    
+
     Ejemplo:
     Turno 1: Q: "¿Cómo despliego el sistema?"
     Turno 2: Q: "¿Y si falla?"
     → Reformulado: "¿Qué pasa si falla el despliegue del sistema?"
     """
-    
+
     if not history:
         return user_query  # Primera pregunta, sin contexto
-    
+
     # Obtener pregunta + respuesta anterior
     last_turn = history[-1]
     previous_context = f"""
@@ -192,24 +192,24 @@ Previous question: {last_turn['user_query']}
 Previous answer: {last_turn['ai_response'][:200]}...
 Current question: {user_query}
 """
-    
+
     # Usar LLM para reformular
     from azure.openai import AzureOpenAI
     client = AzureOpenAI()
-    
+
     reformulation_prompt = f"""Given the conversation context, rewrite the user's question to be standalone and include all necessary context.
 
 {previous_context}
 
 Rewritten standalone question:"""
-    
+
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": reformulation_prompt}],
         max_tokens=100,
         temperature=0.0  # Determinístico
     )
-    
+
     reformulated = response.choices[0].message.content.strip()
     return reformulated
 ```
@@ -226,13 +226,13 @@ def search_rag(query, top_k=5):
     Búsqueda híbrida: semántica + palabras clave
     """
     from azure.search.documents.models import QueryType, QueryCaptionType
-    
+
     search_client = SearchClient(
         endpoint=os.getenv("AZURE_SEARCH_ENDPOINT"),
         index_name="rag-documents",
         credential=AzureKeyCredential(os.getenv("AZURE_SEARCH_API_KEY"))
     )
-    
+
     # Búsqueda híbrida (semántica + palabras clave)
     results = search_client.search(
         search_text=query,
@@ -243,7 +243,7 @@ def search_rag(query, top_k=5):
         search_fields=["content"],
         select=["content", "file", "file_type", "chunk_num", "source_url"]
     )
-    
+
     return list(results)
 ```
 
@@ -258,29 +258,29 @@ def generate_response_with_context(user_query, search_results, conversation_hist
     1. Documentos recuperados
     2. Turnos anteriores de conversación
     """
-    
+
     from azure.openai import AzureOpenAI
-    
+
     client = AzureOpenAI(
         api_key=os.getenv("AZURE_OPENAI_API_KEY"),
         api_version="2024-05-01-preview",
         azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
     )
-    
+
     # Construir contexto
     document_context = "\n\n".join([
         f"Document: {r.get('file', 'unknown')}\nContent:\n{r.get('content', '')}"
         for r in search_results[:5]
     ])
-    
+
     conversation_context = "\n".join([
         f"Q{i+1}: {turn['user_query']}\nA{i+1}: {turn['ai_response'][:100]}..."
         for i, turn in enumerate(conversation_history[-3:])  # Últimos 3 turnos
     ])
-    
+
     # Preparar prompt
-    system_prompt = """You are an expert RAG assistant. 
-    
+    system_prompt = """You are an expert RAG assistant.
+
 Use the provided documents to answer questions accurately.
 If information is not in documents, say "I don't find this info in the documents."
 Always cite your sources.
@@ -289,7 +289,7 @@ Maintain conversation context for follow-up questions.
 
 Language: Respond in Spanish unless user asks otherwise.
 """
-    
+
     user_prompt = f"""Based on these documents and previous conversation:
 
 DOCUMENTS:
@@ -302,7 +302,7 @@ USER QUESTION:
 {user_query}
 
 Provide a clear, concise answer with specific citations."""
-    
+
     # Llamar al LLM
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -314,11 +314,11 @@ Provide a clear, concise answer with specific citations."""
         max_tokens=1000,
         top_p=0.95
     )
-    
+
     # Extraer respuesta y tokens
     answer = response.choices[0].message.content
     tokens_used = response.usage.total_tokens
-    
+
     # Extraer citas de la respuesta
     citations = [
         {
@@ -329,7 +329,7 @@ Provide a clear, concise answer with specific citations."""
         }
         for r in search_results[:3]
     ]
-    
+
     return answer, tokens_used, citations
 ```
 
@@ -343,9 +343,9 @@ def show_history(conversation):
     if not conversation["turns"]:
         print("Aún no hay history de conversación.")
         return
-    
+
     print(f"\n📜 history de Conversación ({len(conversation['turns'])} turnos):\n")
-    
+
     for turn in conversation["turns"]:
         print(f"Turno {turn['turn_number']}:")
         print(f"  P: {turn['user_query']}")
@@ -374,21 +374,21 @@ def reset_context():
 ```python
 def save_session(conversation, filepath):
     """Guarda la conversación en JSON"""
-    
+
     # Crear directorio outputs si es necesario
     Path(filepath).parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Añadir hora de fin y estadísticas
     conversation["end_time"] = datetime.now().isoformat()
     conversation["stats"]["average_latency_ms"] = (
-        sum(t.get("search_latency_ms", 0) + t.get("inference_latency_ms", 0) 
+        sum(t.get("search_latency_ms", 0) + t.get("inference_latency_ms", 0)
             for t in conversation["turns"]) / len(conversation["turns"])
         if conversation["turns"] else 0
     )
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(conversation, f, indent=2, ensure_ascii=False)
-    
+
     print(f"""✅ ¡Sesión exportada!
 
 Archivo: {filepath}
@@ -421,7 +421,7 @@ print(f"""
    Tokens totales: {conversation['stats']['total_tokens']}
    Coste total: ${conversation['stats']['total_cost']:.2f}
    Latencia media: {conversation['stats']['average_latency_ms']:.0f}ms
-   
+
 Guardado en: {session_file}
 
 ¡Gracias por usar RAG Chat! 🙏
@@ -442,7 +442,7 @@ Intenta ser más específico:
   ❌ "¿Cuál es?" → Demasiado vago
   ✅ "¿Cuál es la política de retención de datos?" → Mejor
 
-Reintentar: 
+Reintentar:
 ```
 
 ### No Se Encontraron Documentos Relevantes

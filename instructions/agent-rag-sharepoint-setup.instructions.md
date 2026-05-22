@@ -63,7 +63,7 @@ q1 = ask_user(
 if q1 == "No" or q1 == "No lo sé":
     print("""
     ⚠ Configuración necesaria primero:
-    
+
     1. Ir a: https://portal.azure.com
     2. Buscar: "Registros de aplicaciones"
     3. Clic: "Nuevo registro"
@@ -79,7 +79,7 @@ if q1 == "No" or q1 == "No lo sé":
     8. Ir a: Certificados y secretos
     9. Copiar: "ID de aplicación (client)"
     10. Ir a: Azure AD → Propiedades, copiar "ID de directorio"
-    
+
     Luego vuelve y ejecuta este script de nuevo.
     """)
     exit(0)
@@ -201,29 +201,29 @@ if mode == "professional":
     print("\n" + "="*50)
     print("CONFIGURACIÓN MODO professional")
     print("="*50)
-    
+
     print("""
     ✅ El modo professional hará:
        • Crear indexador que sincroniza desde SharePoint en tiempo real
        • Actualizar Azure Search automáticamente (cada hora)
        • Sin duplicación de documentos
-    
+
     Siguientes pasos (MANUAL en Azure Portal):
     """)
-    
+
     # Generar config para configuración manual en el portal
     config = connector.setup_professional_mode()
-    
+
     config_file = Path("scripts/sharepoint-indexer-config.json")
     with open(config_file, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2)
-    
+
     print(f"""
     1. Abrir: https://portal.azure.com
     2. Ir a: Servicio de Search → Orígenes de datos
     3. Clic: "+ Agregar origen de datos"
     4. Rellenar formulario usando: {config_file}
-    
+
     5. Ir a: Indexadores
     6. Clic: "+ Crear indexador"
     7. Origen de datos: SharePoint (creado arriba)
@@ -231,18 +231,18 @@ if mode == "professional":
     9. Skillset: (opcional, usar si tienes uno)
     10. Programación: 1 hora (o personalizada)
     11. Guardar
-    
+
     12. Ejecutar indexador manualmente primero: Indexadores → {config['indexer']['name']} → Ejecutar
-    
+
     ✅ Verificar estado: Indexadores → Pestaña History
     """)
-    
+
     # Esperar confirmación del usuario
     confirm = ask_user(
         "¿Has creado el indexador en Azure Portal?",
         choices=["Sí", "No"],
     )
-    
+
     if confirm == "No":
         print("Configuración pausada. Vuelve cuando estés listo.")
         print(f"Config guardada: {config_file}")
@@ -256,20 +256,20 @@ else:  # modo local
     print("\n" + "="*50)
     print("CONFIGURACIÓN MODO LOCAL (DESCARGA)")
     print("="*50)
-    
+
     print(f"""
     ✅ El modo local hará:
        • Descargar los {len(items)} documentos a knowledge/sharepoint-*/
        • Preservar estructura de carpetas
        • Funcionar offline después de la descarga
        • Coexistir con documentos existentes en knowledge/
-       
+
     Descargando {total_size / 1024 / 1024 / 1024:.1f} GB...
     """)
-    
+
     knowledge_dir = Path("knowledge")
     download_dir = connector.setup_local_mode(knowledge_dir)
-    
+
     print(f"\n✅ ¡Descarga completa!")
     print(f"   Destino: {download_dir}")
     print(f"   Manifest: {download_dir / 'manifest.json'}")
@@ -282,13 +282,13 @@ if mode == "local":
     print("\n" + "="*50)
     print("INDEXACIÓN")
     print("="*50)
-    
+
     # Preguntar por indexación automática
     auto_index = ask_user(
         "¿Indexar documentos ahora?",
         choices=["Sí", "No"],
     )
-    
+
     if auto_index == "Sí":
         print("\nEjecutando rag-indexer.py...")
         import subprocess
@@ -296,7 +296,7 @@ if mode == "local":
             ["python", ".github/skills/rag-indexer/indexar.py"],
             cwd=Path("."),
         )
-        
+
         if result.returncode == 0:
             print("✅ ¡Indexación completa!")
         else:
@@ -394,12 +394,12 @@ if mode == "professional":
        - Usar config: scripts/sharepoint-indexer-config.json
        - Programar: Cada hora (o personalizado)
        - Ejecutar primera sincronización manualmente
-    
+
     2. Monitorizar: Azure Portal → Servicio Search → Indexadores → Estado
-    
+
     3. Consultar documentos:
        python .github/skills/rag-query-cli/consultar.py "tu pregunta"
-    
+
     4. Modo API:
        python .github/skills/rag-api-server/servidor-api.py --port 8000
        curl -X POST http://localhost:8000/query \\
@@ -409,16 +409,16 @@ if mode == "professional":
 else:  # local
     print("""
     1. ✓ Documentos descargados e indexados
-    
+
     2. Consultar documentos:
        python .github/skills/rag-query-cli/consultar.py "tu pregunta"
-    
+
     3. Modo API:
        python .github/skills/rag-api-server/servidor-api.py --port 8000
-    
+
     4. Monitorizar:
        python .github/skills/rag-diagnostics/estado-sistema.py
-    
+
     5. Programar sincronización diaria (opcional):
        - Añadir a cron o Programador de Tareas
        - O modificar scripts/sharepoint-sync.sh
@@ -484,7 +484,7 @@ Cuando el usuario tiene SharePoint en `rag-onboarding.agent.md`:
 if ask_user("¿Tienes documentos en SharePoint?") == "Sí":
     print("\n¡Genial! Nos encargamos de SharePoint.")
     mode = ask_user("¿Modo preferido?", choices=["professional", "Local"])
-    
+
     # Después, en Phase 5 (Indexación):
     call_agent("rag-sharepoint-setup", {
         "mode": mode.lower(),

@@ -117,27 +117,27 @@ print("⏳ Procesando PDFs...")
 
 for pdf_file in pdf_folder.rglob("*.pdf"):
     print(f"   Procesando: {pdf_file.name}")
-    
+
     try:
         # Extract text from PDF
         with open(pdf_file, "rb") as f:
             reader = PdfReader(f)
             full_text = ""
-            
+
             for page_num, page in enumerate(reader.pages):
                 # Try text extraction first
                 text = page.extract_text()
-                
+
                 # If text-less (scanned), use OCR
                 if not text.strip():
                     image = page.to_image()
                     text = pytesseract.image_to_string(image)
-                
+
                 full_text += f"\n[Página {page_num + 1}]\n{text}"
-        
+
         # Chunk text (500 chars per chunk, 50 char overlap)
         chunks = chunk_text(full_text, chunk_size=500, overlap=50)
-        
+
         # Add metadata
         for i, chunk in enumerate(chunks):
             processed_chunks.append({
@@ -147,9 +147,9 @@ for pdf_file in pdf_folder.rglob("*.pdf"):
                 "content": chunk,
                 "source_url": str(pdf_file)
             })
-        
+
         print(f"      ✅ {len(chunks)} fragmentos")
-        
+
     except Exception as e:
         print(f"      ❌ Error: {e}")
         continue
@@ -175,13 +175,13 @@ for file_path in proc_folder.rglob("*"):
     if not file_path.is_file():
         continue
     file_type = file_path.suffix.lower()
-    
+
     try:
         if file_type == ".docx":
             print(f"   Procesando: {file_path.name} (Word)")
             doc = Document(file_path)
             text = "\n".join([para.text for para in doc.paragraphs])
-            
+
         elif file_type == ".xlsx":
             print(f"   Procesando: {file_path.name} (Excel)")
             wb = load_workbook(file_path)
@@ -191,18 +191,18 @@ for file_path in proc_folder.rglob("*"):
                 text += f"\n[Hoja: {sheet}]\n"
                 for row in ws.iter_rows(values_only=True):
                     text += " | ".join(str(cell) if cell else "" for cell in row) + "\n"
-            
+
         elif file_type == ".md":
             print(f"   Procesando: {file_path.name} (Markdown)")
             with open(file_path) as f:
                 text = f.read()
-        
+
         else:
             continue
-        
+
         # Chunk
         chunks = chunk_text(text, chunk_size=500, overlap=50)
-        
+
         for i, chunk in enumerate(chunks):
             processed_chunks.append({
                 "file": file_path.name,
@@ -211,9 +211,9 @@ for file_path in proc_folder.rglob("*"):
                 "content": chunk,
                 "source_url": str(file_path)
             })
-        
+
         print(f"      ✅ {len(chunks)} fragmentos")
-        
+
     except Exception as e:
         print(f"      ❌ Error: {e}")
         continue
@@ -235,19 +235,19 @@ for code_file in code_folder.rglob("*"):
     if not code_file.is_file():
         continue
     lang = code_file.suffix.lower()
-    
+
     try:
         print(f"   Procesando: {code_file.name} ({lang})")
-        
+
         with open(code_file, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
-        
+
         # Syntax-aware chunking (don't split functions/procedures)
         if lang in [".sql", ".py", ".js"]:
             chunks = chunk_code(content, language=lang, chunk_size=800)
         else:
             chunks = chunk_text(content, chunk_size=500, overlap=50)
-        
+
         for i, chunk in enumerate(chunks):
             processed_chunks.append({
                 "file": code_file.name,
@@ -256,9 +256,9 @@ for code_file in code_folder.rglob("*"):
                 "content": chunk,
                 "source_url": str(code_file)
             })
-        
+
         print(f"      ✅ {len(chunks)} fragmentos")
-        
+
     except Exception as e:
         print(f"      ❌ Error: {e}")
         continue
@@ -280,19 +280,19 @@ print("⏳ Procesando Presentaciones...")
 for ppt_file in ppt_folder.rglob("*.pptx"):
     try:
         print(f"   Procesando: {ppt_file.name}")
-        
+
         prs = Presentation(ppt_file)
         text = ""
-        
+
         for slide_num, slide in enumerate(prs.slides):
             text += f"\n[Diapositiva {slide_num + 1}]\n"
-            
+
             for shape in slide.shapes:
                 if hasattr(shape, "text"):
                     text += shape.text + "\n"
-        
+
         chunks = chunk_text(text, chunk_size=500, overlap=50)
-        
+
         for i, chunk in enumerate(chunks):
             processed_chunks.append({
                 "file": ppt_file.name,
@@ -301,9 +301,9 @@ for ppt_file in ppt_folder.rglob("*.pptx"):
                 "content": chunk,
                 "source_url": str(ppt_file)
             })
-        
+
         print(f"      ✅ {len(chunks)} fragmentos")
-        
+
     except Exception as e:
         print(f"      ❌ Error: {e}")
         continue
@@ -335,9 +335,9 @@ print("⏳ Generando embeddings...")
 batch_size = 100
 for i in range(0, len(processed_chunks), batch_size):
     batch = processed_chunks[i:i+batch_size]
-    
+
     print(f"   Lote {i//batch_size + 1}: Procesando {len(batch)} fragmentos...")
-    
+
     for chunk in batch:
         try:
             response = client.embeddings.create(
@@ -364,7 +364,7 @@ print("⏳ Subiendo a Azure Search...")
 batch_size = 1000
 for i in range(0, len(processed_chunks), batch_size):
     batch = processed_chunks[i:i+batch_size]
-    
+
     try:
         results = search_client.upload_documents(batch)
         print(f"   Lote {i//batch_size + 1}: {len(results)} fragmentos subidos")
@@ -386,7 +386,7 @@ from azure.search.documents.indexes.models import (
 try:
     # Update index to enable semantic search
     index = index_client.get_index("rag-documents")
-    
+
     # Semantic search configuration
     index.semantic_config = SemanticConfiguration(
         name="default",
@@ -395,10 +395,10 @@ try:
             content_fields=[SemanticField(field_name="content")]
         )
     )
-    
+
     index_client.create_or_update_index(index)
     print("✅ Búsqueda semántica habilitada")
-    
+
 except Exception as e:
     print(f"⚠️  Aviso en configuración de búsqueda semántica: {e}")
 ```

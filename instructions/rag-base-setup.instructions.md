@@ -66,7 +66,7 @@ knowledge/
 └── presentaciones/     # PowerPoint (.pptx), diagrams, docs de arquitectura
 ```
 
-**Responsabilidad del agente:** 
+**Responsabilidad del agente:**
 - rag-onboarding.agent.md DEBE verificar que existe `knowledge/` con sus 4 subdirectorios
 - Si falta, CREARLOS + GUIAR al usuario a poblarlos
 - Si están vacíos, AVISAR pero continuar (se pueden añadir después)

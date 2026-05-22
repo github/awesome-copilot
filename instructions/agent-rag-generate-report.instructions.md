@@ -296,12 +296,12 @@ PRÓXIMOS PASOS:
    - Añadir logo de empresa
    - Ajustar colores
    - Actualizar encabezado/pie de página
-   
+
 3. Compartir con:
    - Stakeholders para revisión
    - client para presentación
    - Dirección para decisión
-   
+
 4. Usar como:
    - Resumen ejecutivo
    - Presentación a dirección
@@ -347,13 +347,13 @@ except Exception as e:
 
 La generación del informe se considera exitosa cuando:
 
-✅ El agente se completa sin errores  
-✅ Archivo DOCX creado en outputs/  
-✅ Las 25 comprobaciones de calidad superadas  
-✅ No se detecta lenguaje vago  
-✅ Métricas correctamente incluidas  
-✅ Formato professional aplicado  
-✅ Información del client correctamente rellenada  
+✅ El agente se completa sin errores
+✅ Archivo DOCX creado en outputs/
+✅ Las 25 comprobaciones de calidad superadas
+✅ No se detecta lenguaje vago
+✅ Métricas correctamente incluidas
+✅ Formato professional aplicado
+✅ Información del client correctamente rellenada
 
 **Has terminado cuando:**
 - El archivo está en outputs/informe-ejecutivo-{date}.docx

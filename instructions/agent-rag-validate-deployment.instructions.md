@@ -154,34 +154,34 @@ Estado: {"✅ DENTRO DEL PRESUPUESTO" if total <= user_budget else "⚠️ EXCEE
 ```
 SI total_cost <= user_budget:
   ✅ Validación APROBADA
-  
+
   Tu infraestructura se ajusta al presupuesto.
   ¿Listo para desplegar? (S/n)
 
 SI NO SI total_cost <= user_budget * 1.1:  # Dentro del 10%
   ⚠️ Validación AMARILLA
-  
+
   La configuración EXCEEDS el presupuesto en ${difference} (${percent}%).
-  
+
   Opciones:
     A) Continuar igualmente (ligero exceso)
     B) Reducir a tier más pequeño
     C) Cancelar
-  
+
   ¿Tu elección? (A/B/C)
 
 SI NO:  # Muy por encima del presupuesto
   ❌ Validación FALLIDA
-  
+
   La configuración cuesta ${difference} más que el presupuesto.
   Esto es un ${percent}% por encima.
-  
+
   Para ajustarse al presupuesto, necesitas UNA de:
     • Reducir tamaño de docs (mover docs fríos a archivo)
     • Aumentar presupuesto a ${total}
     • Usar región Azure más pequeña
     • Reducir alta disponibilidad (usar 1 réplica)
-  
+
   ¿Reintentar con otros parámetros? (S/n)
 ```
 
