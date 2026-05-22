@@ -1,0 +1,37 @@
+{
+  "1": {
+    "config": {
+      "executionHistory": [
+        {
+          "id": "1777306015681-q84iyc1q8",
+          "cellIndex": 1,
+          "languageId": "shellscript",
+          "code": "# Using Copilot CLI\ncopilot plugin install rug-agentic-workflow@awesome-copilot",
+          "output": "4/27/2026, 4:06:50 PM\ncopilot plugin install rug-agentic-workflow@awesome-copilot\nGitHub Copilot CLI requires Node.js v24 or higher. Currently using v18.19.1.\nGitHub Copilot CLI requires Node.js v24 or higher. Currently using v18.19.1.\n\n",
+          "status": "failure",
+          "timestamp": "2026-04-27T16:06:55.681Z",
+          "errorMessage": "Process exited with code 1",
+          "exitCode": 1,
+          "duration": 5432
+        }
+      ]
+    }
+  },
+  "3": {
+    "config": {
+      "executionHistory": [
+        {
+          "id": "1777306015695-16h4140yt",
+          "cellIndex": 3,
+          "languageId": "shellscript",
+          "code": "",
+          "output": "4/27/2026, 4:06:55 PM\n",
+          "status": "failure",
+          "timestamp": "2026-04-27T16:06:55.695Z",
+          "errorMessage": "something went wrong - please try your request again",
+          "duration": 12
+        }
+      ]
+    }
+  }
+}
