@@ -1,26 +1,26 @@
 # RAG Report Generator Skill
 
-**Generación Profesional de Informes Ejecutivos con Claude Opus 4.7**
+**Professional Executive Report Generation with Claude Opus 4.7**
 
-Genera informes DOCX de alto impacto que presentan implementaciones RAG a clientes y stakeholders con formato profesional, narrativas potenciadas por IA y métricas de impacto cuantificadas.
+Generates high-impact DOCX reports that present RAG implementations to clients and stakeholders with professional formatting, AI-powered narratives, and quantified impact metrics.
 
-## Archivos
+## Files
 
-### Implementación Core
+### Core Implementation
 
-1. **report-generator.py** (800+ líneas)
-   - Motor principal de generación de informes
-   - Clases: `ExecutiveReportGenerator`, `ReportMetadata`, `ReportType`
+1. **report-generator.py** (800+ lines)
+   - Main report generation engine
+   - Classes: `ExecutiveReportGenerator`, `ReportMetadata`, `ReportType`
    - Utilidades de formato DOCX profesional
    - Integración Claude Opus 4.7 para generación de contenido
    - Uso: Módulo principal importado por agentes
 
-2. **report-templates.py** (400+ líneas)
-   - Directrices de calidad y plantillas
-   - Mejores prácticas de contenido (resumen ejecutivo, recomendaciones, timeline)
-   - Ejemplos reales (bueno vs. malo)
-   - Checklist de calidad de 25 puntos
-   - Directrices de tono y estándares de contenido
+2. **report-templates.py** (400+ lines)
+   - Quality guidelines and templates
+   - Content best practices (executive summary, recommendations, timeline)
+   - Real examples (good vs. bad)
+   - 25-point quality checklist
+   - Tone guidelines and content standards
 
 3. **SKILL.md** (600+ líneas)
    - Documentación completa

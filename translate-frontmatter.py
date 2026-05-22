@@ -24,7 +24,7 @@ TRANSLATIONS = {
 
     'RAG: Executive Report Generator': 'RAG: Executive Report Generator',
     'Genera informes ejecutivos profesionales en formato DOCX usando Claude Opus 4.7. Crea narrativas convincentes de alto impacto con beneficios cuantificados y recomendaciones estratégicas. Perfecto para presentaciones a clientes y comunicación con stakeholders.':
-    'Generates professional executive reports in DOCX format using Claude Opus 4.7. Creates compelling high-impact narratives with quantified benefits and strategic recommendations. Perfect for client presentations and stakeholder communication.',
+    'Generates professional executive reports in DOCX format using Claude Opus 4.7. Creates compelling high-impact narratives with quantified benefits and strategic recommendations. Perfect for client presentations and stakeholder communication.',,
 
     'RAG: Especialista en Indexación': 'RAG: Indexing Specialist',
     'Indexa el conocimiento del proyecto en Azure AI Search para RAG. Fragmenta documentación, código y configs. Crea índices con búsqueda semántica y vectorial habilitada. Devuelve estadísticas del índice y métricas de calidad de búsqueda.':

@@ -20,9 +20,9 @@ Análisis de costes y optimization pre y post-deployment. Valida configuration c
 - Al identificar oportunidades de optimization
 - Antes de escalar a producción
 
-## Componentes de Coste Analizados
+## Cost Components Analyzed
 
-> Todos los precios son estimaciones en USD. Verificar en https://azure.microsoft.com/en-us/pricing/calculator/
+> All prices are USD estimates. Verify at https://azure.microsoft.com/en-us/pricing/calculator/
 
 ### 1. Azure OpenAI — Pago por Token (sin cuota mensual fija)
 
