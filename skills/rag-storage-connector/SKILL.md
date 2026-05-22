@@ -8,21 +8,21 @@ description: 'PowerShell helper for obtaining Azure Blob Storage credentials via
 **Helper basado en PowerShell para credentials de Azure Blob Storage.**
 
 > Este skill es **solo PowerShell** (sin Python). Es un helper ligero para obtener
-> connection strings via Azure CLI. La indexing/upload de documentos ocurre en `rag-indexer`
+> connection strings via Azure CLI. La indexing/upload de documents ocurre en `rag-indexer`
 > (que puede leer de carpetas locales o, con credentials de aquí, desde Blob).
 
-## Descripción General
+## Overview
 
-Utilidades helper para integration con Azure Blob Storage, usadas por indexers y pipelines de upload de documentos.
+Utilidades helper para integration con Azure Blob Storage, usadas por indexers y pipelines de upload de documents.
 
-## Características
+## Features
 
 - Gestión de connection strings
 - Listado de cuentas/contenedores
 - Compatibilidad PowerShell/Bash
 - Helpers de credentials
 
-## Requisitos
+## Requirements
 
 - Cuenta de Azure Storage
 - `.env` o credentials Azure CLI
@@ -49,7 +49,7 @@ AZURE_STORAGE_CONTAINER=documents
 
 ## Related Skills
 
-- [`rag-indexer`](../rag-indexer/SKILL.md) — Usa Storage como fuente de documentos
+- [`rag-indexer`](../rag-indexer/SKILL.md) — Usa Storage como fuente de documents
 - [`rag-api-server`](../rag-api-server/SKILL.md) — Endpoint de upload
 
 ## Ver También

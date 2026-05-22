@@ -7,19 +7,19 @@ description: 'Exposes RAG functionality as a REST API for external applications.
 
 **Expone RAG como API REST para aplicaciones externas.**
 
-## Descripción General
+## Overview
 
-Servidor API REST que envuelve la funcionalidad de consulta RAG, permitiendo a clientes HTTP buscar y consultar documentos.
+Servidor API REST que envuelve la funcionalidad de query RAG, permitiendo a clientes HTTP buscar y consultar documents.
 
-## Características
+## Features
 
 - REST API endpoints
 - Request/response JSON
 - Procesamiento async de queries
-- Métricas y monitorización
+- Métricas y monitoring
 - Soporte CORS
 
-## Requisitos
+## Requirements
 
 ```bash
 pip install -r .github/requirements.txt
@@ -47,7 +47,7 @@ El servidor corre en `http://localhost:8000`
 
 ### Endpoints API
 
-#### POST `/query` — Ejecutar Consulta RAG
+#### POST `/query` — Ejecutar Query RAG
 
 **Request:**
 ```json
@@ -86,7 +86,7 @@ El servidor corre en `http://localhost:8000`
 }
 ```
 
-## Clientes de Ejemplo
+## Clientes de Example
 
 ### cURL
 

@@ -98,8 +98,8 @@ Monitoring indexer: blob-indexer
 Press Ctrl+C to stop
 
 [14:23:45] Status: Running | Processed: 45 | Failed: 0
-[14:24:10] Estado: Running | Procesados: 89 | Fallidos: 1
-[14:24:35] Estado: Completed | Procesados: 113 | Fallidos: 0
+[14:24:10] Status: Running | Procesados: 89 | Fallidos: 1
+[14:24:35] Status: Completed | Procesados: 113 | Fallidos: 0
 ```
 
 ## Requirements

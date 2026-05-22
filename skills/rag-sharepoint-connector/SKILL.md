@@ -10,13 +10,13 @@ tags: ["sharepoint", "hybrid", "integration", "azure-search", "microsoft-graph"]
 
 **Arquitectura híbrida-profesional para integration SharePoint**
 
-Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
+Integra bibliotecas de documents SharePoint en RAG con dos modos flexibles:
 - **Profesional** (por defecto): Indexer de Azure AI Search sincroniza directamente desde SharePoint (tiempo real, sin duplicación)
-- **Local**: Descarga todos los documentos a `knowledge/sharepoint-{fecha}/` (funciona offline, coexiste con docs tradicionales)
+- **Local**: Descarga todos los documents a `knowledge/sharepoint-{fecha}/` (funciona offline, coexiste con docs tradicionales)
 
 ---
 
-## Características
+## Features
 
 **authentication OAuth 2.0**
 - Login interactivo en navegador (por defecto)
@@ -24,7 +24,7 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 - Refresh de token y manejo de expiración
 - Storage seguro de credentials
 
-**Descubrimiento Recursivo de Documentos**
+**Descubrimiento Recursivo de Documents**
 - Escanea todas las carpetas anidadas en SharePoint
 - Preserva estructura de carpetas
 - Seguimiento de progreso
@@ -33,14 +33,14 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 **Modo Profesional (Azure AI Search)**
 - integration directa con indexer de Azure AI Search
 - Sincronización en tiempo real (schedule configurable)
-- Sin duplicación de documentos
+- Sin duplicación de documents
 - Cloud-native, escalable
 
 **Modo Local (Descarga)**
 - Descarga todos los archivos con preservación de estructura
 - Carpetas con timestamp: `sharepoint-2026-05-14_14-30-45/`
 - Manifest with metadata and checksums
-- Coexiste con documentos knowledge tradicionales
+- Coexiste con documents knowledge tradicionales
 
 **Seguimiento de Metadatos**
 - Tracking de fuente (SharePoint vs. local)
@@ -62,7 +62,7 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 
 ```bash
 # 1. App registration en Azure AD (ver sección Setup)
-# 2. Sitio SharePoint con biblioteca de documentos
+# 2. Sitio SharePoint con biblioteca de documents
 # 3. Python 3.10+
 # 4. Dependencias
 pip install msal requests tqdm
@@ -101,7 +101,7 @@ python sharepoint-connector.py \
   --project-root /path/to/rag-mensadef
 
 # 2. Archivos descargados a: knowledge/sharepoint-2026-05-14_14-30-45/
-# 3. Manifiesto creado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
+# 3. Manifest creado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
 
 # 4. Indexar automáticamente con rag-indexer
 python .github/skills/rag-indexer/indexar.py
@@ -141,7 +141,7 @@ python .github/skills/rag-indexer/indexar.py
    ```
    SharePoint Admin Center -> Share Data Access -> Grant access
    - Selecciona tu app
-   - Concede acceso al sitio donde viven los documentos
+   - Concede acceso al sitio donde viven los documents
    ```
 
 ### configuration de Environment

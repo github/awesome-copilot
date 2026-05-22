@@ -5,8 +5,8 @@ description: 'Comprehensive Azure cost analysis, forecasting, and optimization r
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-**Estado:** Producción
-**Versión:** 1.0
+**Status:** Production
+**Version:** 1.0
 **Módulos:** `cost_analyzer.py`, `validator.py`
 
 ## Purpose
@@ -53,7 +53,7 @@ Add-on de search semántica: **1,000 queries gratis/mes**, luego **$5 por 1,000 
 - Después **$2.30/GB** ingestión
 - Uso típico RAG: <1 GB/mes -> efectivamente $0
 
-### 4. Storage (Blob, para documentos)
+### 4. Storage (Blob, para documents)
 - ~**$0.018/GB/mes** (tier Hot, LRS)
 
 ## Costes Típicos (números reales)
@@ -63,7 +63,7 @@ Add-on de search semántica: **1,000 queries gratis/mes**, luego **$5 por 1,000 
 OpenAI (gpt-4o):           ~$10/mes  (2K input + 500 output tokens/query)
 Embeddings (una vez):      ~$1      (one-time, al indexar)
 Search Standard S1 x1:     $295/mes
-Búsqueda semántica:        $0      (bajo 1K queries gratis)
+Search semántica:        $0      (bajo 1K queries gratis)
 App Insights:              $0      (bajo 5GB gratis)
 Storage (5GB):             $0.09/mes
 --------------------------------------
@@ -75,7 +75,7 @@ TOTAL:                     ~$305/mes
 OpenAI (gpt-4o):           ~$1,000/mes  (100K x $0.01/query avg)
 Embeddings (incremental):  ~$5/mes
 Search Standard S1 x2 HA:  $590/mes
-Búsqueda semántica:        $495/mes     ((100K-1K)/1K x $5)
+Search semántica:        $495/mes     ((100K-1K)/1K x $5)
 App Insights:              ~$10/mes
 Storage (25GB):            $0.45/mes
 --------------------------------------

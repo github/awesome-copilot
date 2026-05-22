@@ -5,8 +5,8 @@ description: 'Bicep IaC templates to deploy Azure OpenAI, AI Search, and Applica
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-**Estado:** Producción
-**Versión:** 1.0
+**Status:** Production
+**Version:** 1.0
 **Assets incluidos:** `main.bicep`, `deploy.sh`, `deployer.py`, `indexer_runner.py`, `document_indexer.py`
 
 ## Purpose
@@ -15,7 +15,7 @@ Plantillas Infrastructure-as-Code y orquestación de deployment para stack Azure
 - Azure Cognitive Services (OpenAI) con múltiples deployments de modelos
 - Azure AI Search (tier Standard para vector search)
 - Application Insights + Log Analytics
-- indexing de documentos y runners de deployment
+- indexing de documents y runners de deployment
 - Todo configurado, vinculado y automatizado
 
 ## Uso
@@ -49,13 +49,13 @@ az deployment group create \
 - `Azure OpenAI Service` (tier S0, pago por token)
   - Deployments: **gpt-4o** (GlobalStandard, capacidad 10), **text-embedding-3-small** (Standard, capacidad 50)
   - Nota: `gpt-4o-mini` **no** se despliega (por debajo de barra de calidad para RAG)
-  - Disponibilidad de modelos varía por región — verificar con `cost_analyzer.check_model_availability()`
+  - Disponibilidad de modelos varía por región — verify con `cost_analyzer.check_model_availability()`
 
 - `Azure AI Search` (Basic o Standard, configurable)
   - Basic: $25/mes — suficiente para PoC/Mínima (soporta indexers incluyendo SharePoint)
   - Standard S1: $295/mes por réplica — para volumen de producción
   - Vector + search semántica habilitada
-  - Índice: `rag-documents`
+  - Index: `rag-documents`
 
 - `Storage Account` (LRS o ZRS, configurable)
   - Blob container: `documents`
@@ -67,7 +67,7 @@ az deployment group create \
 
 ## Estimación de Coste por Tier
 
-> Todos los precios son estimaciones en USD. Verificar en https://azure.microsoft.com/en-us/pricing/calculator/
+> Todos los precios son estimaciones en USD. Verify en https://azure.microsoft.com/en-us/pricing/calculator/
 
 **Mínima (Basic Search, 1 réplica, LRS, 30d logs):**
 - OpenAI (pago por token): ~$5-10/mes

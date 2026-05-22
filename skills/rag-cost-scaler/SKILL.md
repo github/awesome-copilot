@@ -26,7 +26,7 @@ Usa este skill cuando necesites:
 ### Ejemplos de Uso
 
 ```bash
-# Ver configuración actual y opciones
+# Ver configuration actual y opciones
 python .github/skills/rag-cost-scaler/cost-scaler.py --list-options
 
 # Cambiar a tier minimal (máximo ahorro)
@@ -41,7 +41,7 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --budget 50 --create-alerts
 # Solo simular cambios sin aplicar
 python .github/skills/rag-cost-scaler/cost-scaler.py --tier premium --dry-run
 
-# Crear alertas sin cambiar configuración
+# Crear alertas sin cambiar configuration
 python .github/skills/rag-cost-scaler/cost-scaler.py --update-alerts-only
 ```
 
@@ -56,7 +56,7 @@ OpenAI:            S0 (necesario)
 Storage:           Standard LRS
 Budget Alert:      €30/mes
 ```
-**Ideal para:** Desarrollo, testing, MVP con pocos documentos
+**Ideal para:** Desarrollo, testing, MVP con pocos documents
 
 ### 🟡 STANDARD (€55-65/mes) — Balance
 ```
@@ -67,7 +67,7 @@ OpenAI:            S0
 Storage:           Standard LRS
 Budget Alert:      €75/mes
 ```
-**Ideal para:** Producción con volumen moderado de documentos
+**Ideal para:** Producción con volumen moderado de documents
 
 ### 🔴 PREMIUM (€150-200/mes) — Máxima escala
 ```
@@ -79,7 +79,7 @@ Storage:           Standard ZRS (redundancia zonal)
 Budget Alert:      €250/mes
 ```
 > **¿Por qué ZRS y no GRS?** Azure AI Search no soporta geo-replicación nativa.
-> GRS protegería los docs en otra región, pero el índice (Search) seguiría
+> GRS protegería los docs en otra región, pero el index (Search) seguiría
 > siendo single-region. ZRS protege contra fallo de zona dentro de la región,
 > que es el escenario real de DR para RAG.
 **Ideal para:** Producción crítica, múltiples índices, alta disponibilidad
@@ -152,7 +152,7 @@ Configurando alertas...
 
 ## Parámetros
 
-| Parámetro | Tipo | Descripción |
+| Parámetro | Tipo | Description |
 |-----------|------|-------------|
 | `--tier {minimal\|standard\|premium}` | string | Cambiar a este tier |
 | `--budget EUR` | float | Presupuesto mensual en EUR |
@@ -173,7 +173,7 @@ Configurando alertas...
 - ✓ No se pierden datos existentes
 
 ### De Standard a Minimal
-- ⚠️ Si tienes > 1M documentos en Search, necesitas migrar índices primero
+- ⚠️ Si tienes > 1M documents en Search, necesitas migrar índices primero
 - ⚠️ Los logs más antiguos de 90+ días se purgarán
 - ✓ Los últimos 30 días se conservan
 
@@ -182,7 +182,7 @@ Configurando alertas...
 Después de aplicar cambios, monitorea:
 
 ```bash
-# Ver estado actual cada minuto
+# Ver status actual cada minuto
 watch -n 60 "python .github/skills/rag-cost-scaler/cost-scaler.py --current"
 
 # Ver últimas alertas en Log Analytics
@@ -193,7 +193,7 @@ az monitor metrics list -g rag-defensa-rg --interval PT5M --metric "Percentage"
 
 ### Error: "Cannot provision service while deletion in progress"
 **Causa:** Azure AI Search aún se está eliminando del cambio anterior
-**Solución:** Espera 2-5 minutos y vuelve a intentar
+**Solution:** Espera 2-5 minutos y vuelve a intentar
 ```bash
 # Esperar 5 minutos
 sleep 300
@@ -202,15 +202,15 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 
 ### Error: "Subscription not found"
 **Causa:** authentication de Azure no configurada
-**Solución:**
+**Solution:**
 ```bash
 az login
 az account set --subscription 8e6ace56-e0f2-4071-825a-a20363df34f8
 ```
 
 ### Warning: "Documents exceed Basic tier limit"
-**Causa:** Tienes > 1M documentos en Search
-**Solución:** Migra a Standard o reduce documentos
+**Causa:** Tienes > 1M documents en Search
+**Solution:** Migra a Standard o reduce documents
 ```bash
 python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 ```
@@ -248,5 +248,5 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --rg my-rg --current
 
 ---
 
-**Última actualización:** Mayo 2026
+**Last Updated:** Mayo 2026
 **Mantenedor:** Avanade RAG Team

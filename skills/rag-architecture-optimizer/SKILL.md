@@ -20,7 +20,7 @@ Pre-deployment validation and optimization of Azure infrastructure to prevent ov
 
 ### 1. Dimensionamiento de Tier de Servicio
 - **Azure OpenAI**: S0 (standard) es suficiente para la mayoría de cargas RAG. E0 (enterprise) innecesario salvo > 100 req/sec
-- **Azure AI Search**: Tier Standard mínimo. Premium solo si > 10M documentos o latencia p50 < 10ms requerida
+- **Azure AI Search**: Tier Standard mínimo. Premium solo si > 10M documents o latencia p50 < 10ms requerida
 - **App Insights**: Retención estándar (30 días) cubre operaciones RAG baseline. Premium solo para gran escala multi-región
 
 ### 2. configuration de Escalado
@@ -54,7 +54,7 @@ class AzureArchitectOptimizer:
             'suggested_adjustments': {}
         }
 
-        # Verificar tier OpenAI
+        # Verify tier OpenAI
         openai_tier = bicep_config.get('openaiTier', 'S0')
         if openai_tier == 'E0' and bicep_config.get('expectedRPS', 0) < 50:
             findings['tier_recommendations'].append(
@@ -62,7 +62,7 @@ class AzureArchitectOptimizer:
             )
             findings['suggested_adjustments']['openaiTier'] = 'S0'
 
-        # Verificar tier Search
+        # Verify tier Search
         search_tier = bicep_config.get('searchTier', 'standard')
         search_replicas = bicep_config.get('searchReplicas', 1)
 
@@ -73,7 +73,7 @@ class AzureArchitectOptimizer:
             findings['suggested_adjustments']['searchTier'] = 'standard'
             findings['suggested_adjustments']['searchReplicas'] = 2
 
-        # Verificar App Insights
+        # Verify App Insights
         app_insights_retention = bicep_config.get('appInsightsRetention', 30)
         if app_insights_retention > 90:
             findings['cost_warnings'].append(
@@ -89,6 +89,6 @@ class AzureArchitectOptimizer:
 - [ ] Réplicas Search escaladas apropiadamente (no siempre 3+)
 - [ ] Particiones alineadas con tamaño de datos
 - [ ] Distribución regional justificada
-- [ ] Nivel de redundancia acorde a requisitos de SLA
+- [ ] Nivel de redundancia acorde a requirements de SLA
 - [ ] Políticas de auto-escalado definidas
 - [ ] Sin recursos sin usar (índices viejos, deployments extra)

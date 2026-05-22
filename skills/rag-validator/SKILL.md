@@ -8,13 +8,13 @@ applyTo: '**/*.agent.md, **/*.instructions.md, **/SKILL.md, **/*.py'
 
 **Status:** Production
 **Version:** 2.0
-**Última actualización:** Mayo 13, 2026
+**Last Updated:** Mayo 13, 2026
 
 ---
 
 ## Purpose
 
-Verificación automatizada de cumplimiento para asegurar que este repositorio se mantiene alineado con las mejores prácticas RAG de Microsoft y las convenciones de personalización de agentes/skills.
+Verificación automatizada de compliance para asegurar que este repositorio se mantiene alineado con las mejores prácticas RAG de Microsoft y las convenciones de personalización de agentes/skills.
 
 Este skill valida dos capas:
 
@@ -23,9 +23,9 @@ Este skill valida dos capas:
 - Archivos de documentación requeridos
 - Pureza del catálogo (`.github/agents` contiene solo `.agent.md`)
 
-**Capa 2 — Cumplimiento de calidad RAG (alineado con Microsoft Learn):**
+**Capa 2 — Compliance de calidad RAG (alineado con Microsoft Learn):**
 - implementation de search híbrida (keyword + semántica/vectorial)
-- configuration de ranking semántico
+- configuration de ranking semantic
 - Estrategia de chunking para gestión de restricciones de tokens
 - Tokenization/vectorization pipeline
 - Result limit (top-k) to prevent LLM token overflow
@@ -50,7 +50,7 @@ Based on [Microsoft RAG Guide](https://learn.microsoft.com/en-us/azure/search/re
 
 | Usar retrieval agéntico cuando... | Usar RAG clásico cuando... |
 |---|---|
-| El cliente es un agente o chatbot | Se requieren features solo GA |
+| El client es un agente o chatbot | Se requieren features solo GA |
 | Se necesita máxima relevancia y precisión | Simplicidad y velocidad son prioridad |
 | Queries complejas o conversacionales | Código de orquestación existente a preservar |
 | Se necesitan respuestas estructuradas con citas | Se necesita control fino del pipeline |
@@ -70,7 +70,7 @@ Referencias:
 
 - Antes de mergear cambios a `.github/agents`, `.github/instructions`, `.github/skills`
 - Antes de clonar este baseline en un nuevo proyecto
-- Después de modificar scripts de indexing o query, para verificar patrones de calidad RAG
+- Después de modificar scripts de indexing o query, para verify patrones de calidad RAG
 - Durante QA/revisión para prevenir drift estructural
 
 No usar este skill como health check runtime para recursos Azure.
@@ -101,25 +101,25 @@ python .github/skills/microsoft-guidelines-validator/guidelines_validator.py --r
 3. **agent_frontmatter** — Campos requeridos: `name`, `description`, `model`, `tools`, `skills`
 4. **instruction_pairing** — Cada `rag-*.agent.md` tiene un `agent-rag-*.instructions.md` correspondiente
 5. **skill_frontmatter** — Archivos `SKILL.md` contienen al menos `name` y `description`
-6. **microsoft_references** — Documentos clave incluyen links válidos `https://learn.microsoft.com/...`
+6. **microsoft_references** — Documents clave incluyen links válidos `https://learn.microsoft.com/...`
 7. **rag_reference_coverage** — Todos los agentes/instrucciones/skills enlazan al overview RAG oficial
 8. **naming_conventions** — Agentes siguen `rag-*.agent.md`, instrucciones siguen `agent-rag-*.instructions.md`
 
 ### Capa 2: Calidad RAG (Mejores Prácticas Microsoft)
 
 9. **hybrid_search** — Scripts de query usan `search_text` + `query_type="semantic"` o `vector_queries`
-10. **semantic_ranking** — `SemanticConfiguration` definida en schema del índice y activada en query time
-11. **chunking_strategy** — Scripts de indexing dividen documentos grandes en chunks
+10. **semantic_ranking** — `SemanticConfiguration` definida en schema del index y activada en query time
+11. **chunking_strategy** — Scripts de indexing dividen documents grandes en chunks
 12. **vectorization** — Pipeline genera vector embeddings requeridos para similarity search
 13. **token_limits** — Scripts de query configuran límites `top=` o `top_k` para prevenir overflow de tokens LLM
-14. **index_schema** — Definición del índice incluye campo key, campo content buscable, campo vector y config semántica
+14. **index_schema** — Definición del index incluye campo key, campo content buscable, campo vector y config semántica
 15. **rag_best_practices_content** — `rag-best-practices.md` cubre los 5 desafíos RAG de Microsoft
 
 ---
 
 ## Output
 
-Ejemplo de output JSON:
+Example de output JSON:
 
 ```json
 {
@@ -133,12 +133,12 @@ Ejemplo de output JSON:
     {
       "name": "hybrid_search",
       "status": "pass",
-      "details": "Scripts de query implementan búsqueda híbrida (keyword + semántica/vectorial)"
+      "details": "Scripts de query implementan search híbrida (keyword + semántica/vectorial)"
     },
     {
       "name": "semantic_ranking",
       "status": "pass",
-      "details": "Ranking semántico configurado en schema del índice y capa de query"
+      "details": "Ranking semantic configurado en schema del index y capa de query"
     },
     {
       "name": "chunking_strategy",
@@ -155,7 +155,7 @@ Ejemplo de output JSON:
 ```
 
 Códigos de Output:
-- `0` — cumplimiento (sin failures; `--strict` también requiere sin warnings)
+- `0` — compliance (sin failures; `--strict` también requiere sin warnings)
 - `1` — una o más verificaciones fallidas
 
 ---
@@ -168,4 +168,4 @@ Usar como gate preflight en pipelines de onboarding y revisión:
 python .github/skills/microsoft-guidelines-validator/guidelines_validator.py --root . --strict
 ```
 
-Si este comando falla, corregir los problemas reportados antes de continuar con deployment o clonado.
+Si este command falla, corregir los problemas reportados antes de continuar con deployment o clonado.
