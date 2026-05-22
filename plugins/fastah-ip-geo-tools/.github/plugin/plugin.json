@@ -20,6 +20,6 @@
     "ixp"
   ],
   "skills": [
-    "./skills/geofeed-tuner/"
+    "./skills/geofeed-tuner"
   ]
 }
