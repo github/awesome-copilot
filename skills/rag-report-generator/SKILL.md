@@ -6,60 +6,60 @@ author: "RAG Framework"
 tags: ["reporting", "executive-summary", "docx", "claude", "professional"]
 ---
 
-# RAG: Generador de Informes Profesional
+# RAG: Professional Report Generator
 
-**Generación de Informes Ejecutivos con Contenido Potenciado por IA**
+**Executive Report Generation with AI-Powered Content**
 
-Crea informes ejecutivos profesionales y de alto impacto que defienden tu implementation RAG ante clientes y stakeholders.
+Create professional and high-impact executive reports that defend your RAG implementation to clients and stakeholders.
 
 ---
 
 ## Purpose
 
-Este skill **genera el documento final que defiendes ante el cliente** — un informe DOCX profesional que presenta resultados de implementation RAG con:
+This skill **generates the final document you defend to the client** — a professional DOCX report that presents RAG implementation results with:
 
-- **Formato profesional** — Diseño corporativo, tipografía adecuada, colores de marca
-- **Contenido potenciado por IA** — Claude Opus 4.7 genera narrativas convincentes y síntesis de datos
-- **Impacto cuantificado** — Números, métricas, ROI (no promesas vagas)
-- **Recomendaciones estratégicas** — Próximos pasos accionables con timeline e inversión
-- **Tono ejecutivo** — Accesible para C-suite, pero creíble para stakeholders técnicos
-
----
-
-## Características
-
-**Generación de Contenido**
-- Resumen ejecutivo (2-3 párrafos, escrito por IA)
-- Sección de hallazgos (sintetizados desde datos)
-- Recomendaciones (estratégicas, priorizadas, costeadas)
-- Timeline de implementation (4 fases + detalles)
-- Estrategias de mitigación de riesgos
-
-**Formato Profesional**
-- Diseño corporativo con colores de marca
-- Tabla de contenidos y saltos de página
-- Fuentes profesionales (Calibri, dimensionado)
-- Cajas de información destacadas
-- Márgenes y espaciado adecuados
-- Soporte de logo empresa (opcional)
-
-**Aseguramiento de Calidad**
-- Checklist de calidad de 25 puntos
-- validation de tono (profesional, accesible)
-- Verificación de métricas (sin claims vagos)
-- Verificaciones de gramática y ortografía
-- Consistencia de formato
-
-**Integraciones**
-- **Claude Opus 4.7** para contenido de alta calidad (razonamiento estratégico)
-- **Azure AI Search** métricas (conteo documentos, tamaño índice)
-- **Azure OpenAI** datos (deployment modelo, uso tokens)
-- **Application Insights** (métricas performance)
-- **Cost Analyzer** (cálculos ROI)
+- **Professional formatting** — Corporate design, appropriate typography, brand colors
+- **AI-powered content** — Claude Opus 4.7 generates compelling narratives and data synthesis
+- **Quantified impact** — Numbers, metrics, ROI (not vague promises)
+- **Strategic recommendations** — Actionable next steps with timeline and investment
+- **Executive tone** — Accessible for C-suite, but credible for technical stakeholders
 
 ---
 
-## Inicio Rápido
+## Features
+
+**Content Generation**
+- Executive summary (2-3 paragraphs, AI-written)
+- Findings section (synthesized from data)
+- Recommendations (strategic, prioritized, costed)
+- Implementation timeline (4 phases + details)
+- Risk mitigation strategies
+
+**Professional Formatting**
+- Corporate design with brand colors
+- Table of contents and page breaks
+- Professional fonts (Calibri, sized)
+- Highlighted information boxes
+- Appropriate margins and spacing
+- Optional company logo support
+
+**Quality Assurance**
+- Quality checklist of 25 points
+- Tone validation (professional, accessible)
+- Metrics verification (no vague claims)
+- Grammar and spelling checks
+- Format consistency
+
+**Integrations**
+- **Claude Opus 4.7** for high-quality content (strategic reasoning)
+- **Azure AI Search** metrics (document count, index size)
+- **Azure OpenAI** data (model deployment, token usage)
+- **Application Insights** (performance metrics)
+- **Cost Analyzer** (ROI calculations)
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
@@ -67,64 +67,64 @@ Este skill **genera el documento final que defiendes ante el cliente** — un in
 pip install python-docx openai
 ```
 
-### Generar Informe (Simple)
+### Generate Report (Simple)
 
 ```python
 from report_generator import ExecutiveReportGenerator, ReportMetadata, ReportType
 from pathlib import Path
 
-# Inicializar
+# Initialize
 gen = ExecutiveReportGenerator()
 
-# Metadatos
+# Metadata
 metadata = ReportMetadata(
-    title="Informe Ejecutivo: Búsqueda Inteligente",
+    title="Executive Report: Intelligent Search",
     client_name="MENSADEF",
     project_name="RAG Implementation",
     report_type=ReportType.RAG_IMPLEMENTATION,
 )
 
-# Contenido
+# Content
 content = {
-    "executive_summary": "Resumen generado por IA aquí...",
+    "executive_summary": "AI-generated summary here...",
     "metrics": {
-        "Documentos": "2,345",
-        "Tamaño": "15.3 GB",
-        "Precisión": "97%",
+        "Documents": "2,345",
+        "Size": "15.3 GB",
+        "Accuracy": "97%",
     },
-    "findings_text": "Hallazgos generados por IA...",
-    "recommendations_text": "Recomendaciones generadas por IA...",
+    "findings_text": "AI-generated findings...",
+    "recommendations_text": "AI-generated recommendations...",
 }
 
-# Generar
-output = gen.generate_report(metadata, content, Path("outputs/informe.docx"))
+# Generate
+output = gen.generate_report(metadata, content, Path("outputs/report.docx"))
 ```
 
-### Generar Informe (Completo con IA)
+### Generate Report (Complete with AI)
 
 ```python
 gen = ExecutiveReportGenerator()
 
-# Claude Opus 4.7 genera resumen ejecutivo convincente
+# Claude Opus 4.7 generates compelling executive summary
 summary = gen.generate_executive_summary(
     project_name="RAG MENSADEF",
     document_count=2345,
     total_size_gb=15.3,
-    key_findings=["Docs alta calidad", "Bien estructurado", "Oportunidad automatización"],
-    recommendations=["Búsqueda híbrida", "Integración SharePoint"],
+    key_findings=["High quality docs", "Well structured", "Automation opportunity"],
+    recommendations=["Hybrid search", "SharePoint integration"],
 )
 
 findings = gen.generate_findings_section({
     "document_count": 2345,
     "total_size_gb": 15.3,
-    "quality": "Alta",
+    "quality": "High",
 })
 
 recommendations = gen.generate_recommendations(
-    context="Proyecto RAG con 2345 documentos"
+    context="RAG project with 2,345 documents"
 )
 
-# Ensamblar informe
+# Assemble report
 content = {
     "executive_summary": summary,
     "findings_text": findings,
@@ -133,48 +133,48 @@ content = {
     "timeline": {...},
 }
 
-report_path = gen.generate_report(metadata, content, Path("outputs/informe.docx"))
+report_path = gen.generate_report(metadata, content, Path("outputs/report.docx"))
 ```
 
 ---
 
-## Directrices de Calidad
+## Quality Guidelines
 
-### Resumen Ejecutivo
+### Executive Summary
 
-**REGLAS DE ORO:**
-- **2-3 párrafos MÁXIMO** (200-300 palabras)
-- **Números concretos** (2,345 docs, no "muchos")
-- **Una propuesta de valor por frase**
-- **Verbos activos** (no pasivos)
-- **Impacto de negocio primero, tecnología segundo**
+**GOLDEN RULES:**
+- **2-3 paragraphs MAXIMUM** (200-300 words)
+- **Concrete numbers** (2,345 docs, not "many")
+- **One value proposition per sentence**
+- **Active verbs** (not passive)
+- **Business impact first, technology second**
 
-**ESTRUCTURA:**
-
-```
-Párrafo 1: Contexto (Qué -> Cuándo)
-"Se ha implementado un sistema de búsqueda inteligente sobre 2,345 documentos
-de MENSADEF, integrando procedimientos, legislación y análisis técnico."
-
-Párrafo 2: Resultados (Cuánto mejora)
-"Reduce tiempo de búsqueda de 15 minutos a 30 segundos, beneficiando
-a 200+ usuarios. Precisión: 97% en primeros resultados."
-
-Párrafo 3: Next Steps (Qué sigue)
-"Sistema listo para producción Q2. Se recomienda: (1) Activar en sprint,
-(2) Integrar SharePoint Q3, (3) Análisis en Q4."
-```
-
-### Recomendaciones
-
-**FORMATO:**
+**STRUCTURE:**
 
 ```
-[#]. [Título de Acción]
+Paragraph 1: Context (What -> When)
+"An intelligent search system has been implemented across 2,345 MENSADEF documents,
+integrating procedures, legislation, and technical analysis."
 
-Descripción: [QUÉ - 1-2 frases]
-Beneficio: [IMPACTO - con números]
-Implementación: [TIMELINE - corto/medio/largo]
-Inversión: [COSTE - o "$0 (licencias existentes)"]
-Prioridad: [ALTA/MEDIA/BAJA]
+Paragraph 2: Results (How much improvement)
+"Reduces search time from 15 minutes to 30 seconds, benefiting 200+ users.
+Accuracy: 97% in top results."
+
+Paragraph 3: Next Steps (What's next)
+"System ready for production Q2. Recommendations: (1) Activate in sprint,
+(2) Integrate SharePoint Q3, (3) Analysis in Q4."
+```
+
+### Recommendations
+
+**FORMAT:**
+
+```
+[#]. [Action Title]
+
+Description: [WHAT - 1-2 sentences]
+Benefit: [IMPACT - with numbers]
+Implementation: [TIMELINE - short/medium/long]
+Investment: [COST - or "$0 (existing licenses)"]
+Priority: [HIGH/MEDIUM/LOW]
 ```
