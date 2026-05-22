@@ -35,11 +35,11 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 Init — review_scope: plan|wave.
 
-#### Plan Review
+### Plan Review
 
 - Read `plan.yaml` + `PRD.yaml` + research_findings.
 - Apply task_clarifications (resolved, don't re-question).
@@ -56,7 +56,7 @@ Init — review_scope: plan|wave.
   - No issues → completed.
   - Output JSON per Output Format.
 
-#### Wave Review
+### Wave Review
 
 - Read `plan.yaml`, identify completed wave.
 - If security_sensitive_tasks[] → full per-task scan (grep + semantic).

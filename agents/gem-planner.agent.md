@@ -55,44 +55,50 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Context:
-  - Parse objective + context_envelope.
+  - Parse objective/ context.
   - Mode: Initial, Replan, or Extension.
-  - Consume research_digest, architecture_snapshot, tech_stack, conventions from context_envelope.
-  - Don't re-scan discovered patterns.
-  - Lock clarifications into DAG constraints.
+- Research:
+  - Identify focus_areas from objective and task_clarifications.
+  - Search similar implementations → patterns_found.
+  - Discovery via semantic_search + grep_search, merge results.
+  - Relationship Discovery — Map dependencies, dependents, callers, callees.
 - Design:
+  - Lock clarifications into DAG constraints.
   - Synthesize DAG: atomic tasks (or NEW for extension).
   - Assign waves: no deps → wave 1, dep.wave + 1.
   - Create contracts between dependent tasks.
   - Capture research_metadata.confidence → `plan.yaml`.
   - Link each task to research sources.
 - Agent Assignment per table:
-  - implementer: TDD code, implementer-mobile: mobile, designer: UI a11y-first.
-  - tester: E2E, devops: CI/CD with approval, reviewer: security read-only.
-  - debugger: RCA, critic: edge cases, simplifier: refactor.
-  - doc-writer: docs, skill-creator: SKILL.md, researcher: factual only.
+  - implementer: TDD code
+  - implementer-mobile: mobile TDD code
+  - designer: UI a11y-first
+  - tester: E2E, devops: CI/CD with approval, reviewer: security read-only
+  - debugger: diagnose, debug, RCA
+  - critic: edge cases
+  - simplifier: refactor
+  - doc-writer: docs
+  - researcher: factual research only
 - Patterns:
   - Bug → debugger → implementer.
-  - UI → designer → implementer.
+  - UI/ UX → designer → implementer.
   - Security → reviewer → implementer.
 - New feature→add doc-writer task (final wave).
-- Sizing: ~100 lines/task, split if >300 (vertical/file/horizontal). Each task completable in single session.
 - Handoff: populate implementation_handoff for ALL tasks (do_not_reinvestigate, target_files, acceptance_checks).
-- Create `plan.yaml` as per `plan_format_guide`
+- Create plan `plan.yaml` as per `plan_format_guide`
   - focused, simple solutions, parallel execution, architectural.
-  - Validate tech via Context7.
-  - New features→add doc-writer (final wave).
-  - Calculate metrics (wave_1_count, deps, risk_score).
   - Assess PRD update need (new features, scope shifts, ADR deviations, new stories, AC changes→set prd_update_recommended).
-- Risk Analysis (complex only) — Pre-mortem: failure modes for high/medium tasks (≥1 each). Define mitigations, document assumptions.
-- Validation — Valid YAML, no placeholders.
+  - New features→add doc-writer task (final wave).
+  - Calculate metrics (wave_1_count, deps, risk_score).
+  - Save Plan `docs/plan/{plan_id}/plan.yaml`
+- Create context envelope `context_envelope.yaml` as per `context_envelope_format_guide`
+  - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.yaml`.
+- Validation — Verfiy as per `Plan Verification Criteria`.
 - Failure — Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
-  - Return `learnings` for orchestrator-owned memory persistence.
-  - Save `docs/plan/{plan_id}/plan.yaml`
   - Return JSON per Output Format.
 
 </workflow>
@@ -116,7 +122,8 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "learnings": {
     "risks": ["string"],
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }]
-  }
+  },
+  "context_envelope": "object (compact mode only — see context_envelope_format_guide)",
 }
 ```
 
@@ -254,13 +261,47 @@ tasks:
 
 </plan_format_guide>
 
+<context_envelope_format_guide>
+
+## Context Envelope Format Guide
+
+- Keep every field concise, bulleted, and dense
+- Evidence paths over explanation.
+- Preserve high-confidence, task-relevant context first
+- Omit boilerplate, duplicate paths, generic restatement, and low-confidence notes before trimming useful coverage.
+
+```jsonc
+{
+  "context_envelope": {
+    "project_summary": ["string — 5-8 dense bullet lines: product, architecture, current objective"],
+    "tech_stack": ["string"],
+    "conventions": ["string — terse naming/structure/pattern rule"],
+    "architecture_snapshot": {
+      "key_dirs": { "path": "terse purpose — up to 40 entries" },
+      "patterns": ["string — terse high-confidence architecture/pattern note, up to 40"],
+      "key_components": [{ "name": "string", "location": "string", "responsibility": "terse responsibility — up to 40 entries" }],
+    },
+    "research_digest": {
+      "relevant_files": [{ "path": "string", "purpose": "terse purpose — up to 100 files" }],
+      "patterns_found": [{ "name": "string", "category": "string", "example_location": "string — up to 40 entries" }],
+      "dependencies": { "internal": ["string"], "external": ["string"] },
+      "gotchas": ["string — terse gotcha + evidence path, up to 25"],
+      "open_questions": ["string — terse question + affected area, up to 25"],
+    },
+    "prior_decisions": [{ "decision": "string", "rationale": "terse rationale — up to 25 entries" }],
+    "do_not_re_read": ["string — path/area already summarized, up to 80"],
+  },
+}
+```
+
+</context_envelope_format_guide>
+
 <rules>
 
 ## Rules
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.
@@ -284,7 +325,6 @@ tasks:
 - DAG: No circular deps, all dep IDs exist
 - Contracts: Valid from_task/to_task IDs, interfaces defined
 - Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present, success_criteria defined when needed
-- Estimates: files ≤ 3, lines ≤ 300
 - Pre-mortem: overall_risk_level defined, critical_failure_modes present
 - Implementation spec: code_structure, affected_areas, component_details defined
 

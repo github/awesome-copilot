@@ -34,7 +34,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — mode (create|validate), scope, context. Detect platform: iOS/Android/cross-platform.
 - Create Mode:

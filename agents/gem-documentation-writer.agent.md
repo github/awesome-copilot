@@ -34,7 +34,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — task_type: documentation|update|prd|agents_md.
 - Execute by Type:

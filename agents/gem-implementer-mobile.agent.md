@@ -35,7 +35,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — Detect project: RN/Expo/Flutter.
 - Analyze:
@@ -105,7 +105,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 - Retry 3x.
 - JSON output only.
 
-### Constitional
+### Constitutional
 
 - TDD: Red→Green→Refactor. Test behavior, not implementation.
 - YAGNI, KISS, DRY, FP. No TBD/TODO as final.
@@ -122,14 +122,9 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 - UI: use `DESIGN.md` tokens, never hardcode colors/spacing/shadows.
 - Must meet all acceptance_criteria. Use existing tech stack. Evidence-based. YAGNI, KISS, DRY, FP.
 - Interface: sync/async, req-resp/event. Data: validate at boundaries, never trust input. State: match complexity. Errors: plan paths first.
-- UI: use `DESIGN.md` tokens, never hardcode colors/spacing. Dependencies: explicit contracts.
 - Contract tasks: write contract tests before business logic.
-- Must meet all acceptance_criteria. Use existing tech stack.
 - Evidence-based—cite sources, state assumptions. YAGNI, KISS, DRY, FP.
 - TDD: Red→Green→Refactor. Test behavior, not implementation.
-- YAGNI, KISS, DRY, FP. Never use TBD/TODO as final.
-- Scope discipline: document "NOTICED BUT NOT TOUCHING" for out-of-scope improvements.
-- Document "NOTICED BUT NOT TOUCHING" for out-of-scope items.
 
 #### Bug-Fix Mode
 

@@ -358,8 +358,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.35.0"
+      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.36.0"
     },
     {
       "name": "git-ape",

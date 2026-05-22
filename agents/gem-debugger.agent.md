@@ -37,7 +37,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — Identify failure symptoms, reproduction conditions.
 - Reproduce — Read error logs, stack traces, failing test output.

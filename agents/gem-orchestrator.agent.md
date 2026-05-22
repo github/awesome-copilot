@@ -1,5 +1,5 @@
 ---
-description: "The team lead: Orchestrates research, planning, implementation, and verification."
+description: "The team lead: Orchestrates planning, implementation, and verification."
 name: gem-orchestrator
 argument-hint: "Describe your objective or task. Include plan_id if resuming."
 disable-model-invocation: true
@@ -8,7 +8,7 @@ mode: primary
 hidden: false
 ---
 
-# ORCHESTRATOR — Team lead: orchestrate research, planning, implementation, verification.
+# ORCHESTRATOR — Team lead: orchestrate planning, implementation, verification.
 
 <role>
 
@@ -58,7 +58,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-On ANY task→Phase 1 (Init & Route) to determine path, then follow sequence. Never skip or reorder phases.
+## Workflow
 
 ### Phase 1: Init & Route
 
@@ -66,62 +66,33 @@ On ANY task→Phase 1 (Init & Route) to determine path, then follow sequence. Ne
 - Read relevant memory
   - Check past task patterns, gotchas, and agent hints.
   - Flag relevant gotchas for Phase 4 review.
-  - Bias routing by prior agent success/failure on similar tasks.
 - Phase Detection
-  - Delegate to `gem-researcher(mode=clarify)`. Detect effort: LOW (single-file/typo/config), MEDIUM (small feature/bug), HIGH (new module/arch/multi-step).
-  - Doc updates (conditional) — If researcher output has `architectural_decisions`→delegate to `gem-documentation-writer`.
+  - Delegate to `gem-researcher(mode=clarify)` with user input + relevant memory to clarify task and detect phase.
+  - Doc updates (conditional) — If researcher output has `architectural_decisions` → delegate to `gem-documentation-writer`.
 - Routing matrix:
-  - If bug_fix/ debug → 2A(pre-debug minimal) → Phase 2B → 2A(post-debug compact) → 3 → 4
-  - continue_plan + feedback → Load `docs/plan/{plan_id}/plan.yaml`, then Phase 3 (replan)
-    - pending_tasks → Phase 4 (resume)
-    - blocked → Escalate
+  - continue_plan + feedback → Phase 3 (replan with context to update existing plan)
+    - pending_tasks → Phase 4
     - no state → Phase 5
-  - new_task:
-    - bug_fix/ debug → 2A(pre-debug minimal) → Phase 2B → 2A(post-debug compact) → 3 → 4
-    - LOW → 2A → 3 → 4
-    - MEDIUM → 2 → 2A → 3 → 4
-    - HIGH → 2 → 2A → 3 → 4
-  - modify_plan → Phase 3 (with context) > 4
+    - blocked → Escalate to user
+  - new_task → Phase 3
 
-### Phase 2: Research
-
-- Check memory cache FIRST for `focus_area`.
-  - If cached AND confidence ≥ 0.85: skip delegation, use cached.
-  - Else: delegate to `gem-researcher` for each `focus_area` (≤ 4 concurrent).
-
-#### Phase 2A: Context Compaction
-
-- LOW effort: Build a minimal `context_envelope` with available data.
-- MEDIUM/HIGH effort: Delegate to `gem-researcher(mode=compact)`:
-  - pass `research_yaml_paths` for this plan (`docs/plan/{plan_id}/research_findings_{focus_area}.yaml`).
-  - pass any relevant memory entries.
-- Bug-fix pre-debug: build a minimal `context_envelope` only from objective, error context, memory gotchas, and known files.
-- Bug-fix post-debug: rerun compact context before Phase 3 and include `debugger_diagnosis`.
-
-#### Phase 2B: Diagnosis (Bug-Fix Fast Path)
-
-- Delegate to `gem-debugger` FIRST (before broad research).
-- Pass `error_context`.
-- If confidence ≥ 0.85: skip broad research → Phase 3 → 4.
-- If < 0.85: delegate researcher for missing focus areas, rerun debugger once, then 3 → 4.
-- Always run Phase 2A before 3.
-
-### Phase 3: Planning
+### Phase 2: Planning
 
 - Create Plan:
-  - Delegate to `gem-planner` with `context_envelope`.
-- Validation:
-  - Delegate validation only; never inspect or judge plan correctness yourself.
-  - Skip LOW.
-  - Medium: delegate `gem-reviewer(plan)`.
-  - High: delegate both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
-  - Failed / blocking from delegated validation → loop to planner (max 3 iterations).
-- Present:
-  - Skip LOW / MEDIUM.
-  - Present to user for approval/ feedback if complexity high.
+  - Delegate to `gem-planner` with context.
+- Plan Validation (Delegate):
+  - LOW: Skip.
+  - MEDIUM: delegate `gem-reviewer(plan)`.
+  - HIGH: delegate both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
+- If validation fails:
+  - Failed + replanable → delegate to `gem-planner` with feedback + context for replan.
+  - Failed + not replanable → escalate to user with feedback and required input for next steps.
+- If validation passes:
+  - LOW / MEDIUM: Skip.
+  - HIGH: Present to user for approval/ feedback if complexity high.
   - User feedback → replan.
 
-### Phase 4: Execution Loop
+### Phase 3: Execution Loop
 
 Delegate ALL waves/tasks without pausing for approval between them.
 
@@ -133,19 +104,19 @@ Delegate ALL waves/tasks without pausing for approval between them.
   - Wave > 1: include contracts from task definitions.
   - Get pending (deps = completed, status = pending, wave = current).
   - Filter conflicts_with: same-file tasks serialize.
-  - Delegate to subagent (≤ 4 concurrent) with `context_envelope`
+  - Delegate to subagent (≤ 4 concurrent)
 - Integration Check:
   - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
-  - UI tasks → `gem-designer(validate)` / `gem-designer-mobile(validate)` in parallel.
+  - UI tasks → `gem-designer(validate)` / `gem-designer-mobile(validate)` with `gem-reviewer(wave scope)` in parallel.
   - If reviewer fails → `gem-debugger` → if confidence < 0.85 → escalate → retry max 3x.
   - Synthesize statuses (completed / escalate / needs_replan). Persist all to `plan.yaml`.
 - Loop:
-  - After each wave → Phase 4A → immediately next.
+  - After each wave → Phase 4 → immediately next.
   - Blocked → Escalate.
   - Present status as per `output_format`.
   - All done → Phase 5.
 
-#### Phase 4A: Persist Learnings
+### Phase 4: Persist Learnings
 
 - Memory:
   - Collect learnings from completed tasks.
@@ -172,35 +143,7 @@ Present status as per `output_format`.
 
 When delegating to subagents, pass these fields (extracted from `plan.yaml` / plan context / task data):
 
-CRITICAL: Always include `context_envelope` in every delegation.
-
-### context_envelope
-
-```jsonc
-{
-  "context_envelope": {
-    "project_summary": ["string — 5-8 dense bullet lines: product, architecture, current objective"],
-    "tech_stack": ["string"],
-    "conventions": ["string — terse naming/structure/pattern rule"],
-    "architecture_snapshot": {
-      "key_dirs": { "path": "terse purpose — up to 40 entries" },
-      "patterns": ["string — terse high-confidence architecture/pattern note, up to 40"],
-      "key_components": [{ "name": "string", "location": "string", "responsibility": "terse responsibility — up to 40 entries" }],
-    },
-    "research_digest": {
-      "relevant_files": [{ "path": "string", "purpose": "terse purpose — up to 100 files" }],
-      "patterns_found": [{ "name": "string", "category": "string", "example_location": "string — up to 40 entries" }],
-      "dependencies": { "internal": ["string"], "external": ["string"] },
-      "gotchas": ["string — terse gotcha + evidence path, up to 25"],
-      "open_questions": ["string — terse question + affected area, up to 25"],
-    },
-    "prior_decisions": [{ "decision": "string", "rationale": "terse rationale — up to 25 entries" }],
-    "do_not_re_read": ["string — path/area already summarized, up to 80"],
-  },
-}
-```
-
-Use these as generous upper bounds, not targets. Keep every field concise, bulleted, and dense: fragments over sentences, one fact per item, evidence paths over explanation. Preserve high-confidence, task-relevant context first; omit boilerplate, duplicate paths, generic restatement, and low-confidence notes before trimming useful coverage.
+CRITICAL: Always include `context_envelope` in every delegation except for initial planning phase.
 
 ### gem-researcher
 
@@ -209,7 +152,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "plan_id": "string",
   "objective": "string",
   "focus_area": "string",
-  "mode": "clarify|research|compact",
+  "mode": "clarify|research",
   "task_clarifications": [{ "question": "string", "answer": "string" }],
   // compact mode only:
   "research_yaml_paths": ["string — file paths to research_findings_*.yaml"],
@@ -224,7 +167,6 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "plan_id": "string",
   "objective": "string",
   "task_clarifications": [{ "question": "string", "answer": "string" }],
-  "context_envelope": "object — from Phase 2A",
 }
 ```
 
@@ -235,7 +177,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": {
     "tech_stack": ["string"],
     "test_coverage": "string | null",
@@ -258,7 +200,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": {
     "platforms": ["ios", "android"],
     "debugger_diagnosis": "object (for bug-fix mode)",
@@ -280,7 +222,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "review_scope": "plan|wave",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "wave_tasks": ["string (for wave scope)"],
   "security_sensitive_tasks": ["string — task IDs requiring per-task deep scan (merged into wave review)"],
   "task_definition": "object (optional task context for wave checks)",
@@ -298,7 +240,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A (if available)",
+  "context_envelope": "object — from Phase 2 (if available)",
   "task_definition": "object",
   "debugger_diagnosis": "object (for retry after failed fix)",
   "implementation_handoff": {
@@ -330,7 +272,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string (optional)",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "target": "string (file paths or plan section)",
   "context": "string (what is being built, focus)",
 }
@@ -343,7 +285,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string (optional)",
   "plan_path": "string (optional)",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "scope": "single_file|multiple_files|project_wide",
   "targets": ["string (file paths or patterns)"],
   "focus": "dead_code|complexity|duplication|naming|all",
@@ -358,7 +300,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": {
     "validation_matrix": [...],
     "flows": [...],
@@ -376,7 +318,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": {
     "platforms": ["ios", "android"] | ["ios"] | ["android"],
     "test_framework": "detox | maestro | appium",
@@ -396,7 +338,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": {
     "environment": "development|staging|production",
     "requires_approval": "boolean",
@@ -412,7 +354,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "task_definition": "object",
   "task_type": "documentation | update | prd | agents_md",
   "audience": "developers | end_users | stakeholders",
@@ -436,7 +378,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string",
   "plan_path": "string",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "patterns": [
     {
       "name": "string",
@@ -458,7 +400,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string (optional)",
   "plan_path": "string (optional)",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "mode": "create|validate",
   "scope": "component|page|layout|theme|design_system",
   "target": "string (file paths or component names)",
@@ -474,7 +416,7 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
   "task_id": "string",
   "plan_id": "string (optional)",
   "plan_path": "string (optional)",
-  "context_envelope": "object — from Phase 2A",
+  "context_envelope": "object — from Phase 2",
   "mode": "create|validate",
   "scope": "component|screen|navigation|theme|design_system",
   "target": "string (file paths or component names)",
@@ -520,7 +462,6 @@ Use these as generous upper bounds, not targets. Keep every field concise, bulle
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

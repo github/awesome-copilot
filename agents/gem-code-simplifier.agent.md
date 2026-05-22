@@ -35,7 +35,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — scope, objective, constraints.
 - Analyze:

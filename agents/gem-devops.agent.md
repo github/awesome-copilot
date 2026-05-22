@@ -36,7 +36,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Preflight:
   - Verify env: docker, kubectl, permissions, resources.

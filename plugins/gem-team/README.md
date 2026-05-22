@@ -75,7 +75,7 @@ See [all supported installation options](#installation) below.
 Optimized for reduced LLM token consumption without quality loss:
 
 - **Concise Output** — No preamble, no meta commentary, no verbose explanations
-- **File-Based** — Researcher/Planner save to YAML files (not all in JSON output)
+- **File-Based** — Researcher/Planner save to YAML files (for reusable context)
 - **Context Caching & Memory Management** — Self-validating cache prevents redundant work across sessions and agents
 
 ### Design
@@ -117,18 +117,13 @@ Phase 1: Init & Route
     • Read memory, detect effort (LOW/MEDIUM/HIGH)
     • Route to appropriate path
     ↓
-Phase 2: Research
-    • Check cache (confidence ≥ 0.85 → skip)
-    • Build context_envelope
-    • Bug-fix: Debugger diagnosis first
-    ↓
-Phase 3: Planning
+Phase 2: Planning
     • Delegate to planner
     • Validation: MEDIUM (reviewer) / HIGH (reviewer+critic)
     • Loop on failure (max 3x)
     • Present for approval if HIGH
     ↓
-Phase 4: Execution Loop
+Phase 3: Execution Loop
     Pre-Wave: Check cache, add guards
     ↓
     ┌─ Wave Execution ──────────────┐
@@ -151,6 +146,10 @@ Phase 4: Execution Loop
           Next wave? → No → Phase 5
                   │Yes
                   └────────┘
+    ↓
+Phase 4: Persist Learnings
+    • PRD updates (decisions, contracts, requirements)
+    • AGENTS.md updates (new conventions, rules)
     ↓
 Phase 5: Output
     • Present final status

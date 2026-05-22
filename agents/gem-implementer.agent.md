@@ -35,7 +35,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Analyze:
   - Criteria — Understand acceptance_criteria.
@@ -115,7 +115,6 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 - Must meet all acceptance_criteria. Use existing tech stack.
 - Evidence-based—cite sources, state assumptions. YAGNI, KISS, DRY, FP.
 - TDD: Red→Green→Refactor. Test behavior, not implementation.
-- YAGNI, KISS, DRY, FP. Never use TBD/TODO as final.
 - Scope discipline: document "NOTICED BUT NOT TOUCHING" for out-of-scope improvements.
 - Document "NOTICED BUT NOT TOUCHING" for out-of-scope items.
 

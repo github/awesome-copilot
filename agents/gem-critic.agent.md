@@ -32,7 +32,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init:
   - Read target + PRD (scope boundaries) + task_clarifications (resolved decisions — don't challenge).

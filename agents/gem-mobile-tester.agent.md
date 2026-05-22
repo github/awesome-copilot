@@ -35,7 +35,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — Detect project (RN/Expo/Flutter) + framework (Detox/Maestro/Appium).
 - Env Verification:

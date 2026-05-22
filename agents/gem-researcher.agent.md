@@ -33,11 +33,11 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
-- Init & Mode — Read inputs. Mode: clarify|research|compact.
+- Init & Mode — Read inputs. Mode: clarify|research.
 
-#### Clarify Mode
+### Clarify Mode
 
 - Check — Existing plan: continue, modify, or fresh.
 - Intent — Set user_intent.
@@ -50,27 +50,7 @@ Consult Knowledge Sources when relevant.
   - Return `learnings` for orchestrator-owned memory persistence.
   - Return JSON per Output Format.
 
-#### Compact Mode
-
-- Read — `research_yaml_paths` files.
-- Read — `AGENTS.md` (conventions) + `PRD.yaml` (key fields).
-- Incorporate — If debugger_diagnosis provided.
-- Merge
-  - Deduplicate all research files: files_analyzed, patterns_found, architecture, tech_stack, conventions, dependencies, open_questions, gaps.
-  - Don't do any research or pattern discovery. Only merge existing research.
-- Envelope — Compact into context_envelope:
-  - Format: dense YAML/JSON-compatible bullets, fragments preferred over prose.
-  - Each item: one fact, one line, include evidence path when useful.
-  - project_summary: 5-8 dense bullet lines, tech_stack, conventions
-  - architecture_snapshot: key_dirs ≤40, patterns ≤40, components ≤40
-  - research_digest: files ≤100, patterns ≤40, dependencies, gotchas ≤25, open_questions ≤25
-  - prior_decisions ≤25, do_not_re_read ≤80
-  - Prefer broad relevant coverage over aggressive trimming, but compress aggressively: no paragraphs, no duplicate paths, no generic restatement, no low-confidence detail.
-- Output
-  - Save — `docs/plan/{plan_id}/context_envelope.yaml`.
-  - Return JSON per Output Format.
-
-#### Research Mode
+### Research Mode
 
 - Identify focus_area
 - Research Pass — Pattern discovery:
@@ -114,7 +94,6 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "focus_areas": ["string"],
   "task_clarifications": [{ "question": "string", "answer": "string" }],
   "architectural_decisions": [{ "decision": "string", "affects": "string" }],
-  "context_envelope": "object (compact mode only — see context_envelope schema)",
   "learnings": {
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
     "gaps": ["string"]
@@ -242,7 +221,6 @@ gaps: # REQUIRED
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

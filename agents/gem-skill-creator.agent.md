@@ -33,7 +33,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Init — patterns[], source_task_id.
 - Evaluate & Deduplicate — Per pattern:

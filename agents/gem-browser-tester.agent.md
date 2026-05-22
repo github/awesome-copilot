@@ -35,7 +35,7 @@ Consult Knowledge Sources when relevant.
 
 <workflow>
 
-### Workflow
+## Workflow
 
 - Parse — Read validation_matrix/flows. Identify scenarios, steps, expectations, evidence needs.
 - Setup — Create fixtures per task_definition.fixtures.
