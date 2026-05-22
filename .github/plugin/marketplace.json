@@ -11,6 +11,12 @@
   },
   "plugins": [
     {
+      "name": "42crunch-api-security-testing",
+      "source": "42crunch-api-security-testing",
+      "description": "Automate API security directly in GitHub Copilot with 42Crunch - automatically audit OpenAPI specs, detect vulnerabilities aligned with OWASP API Security risks (including BOLA/BFLA), and apply AI-powered fixes. Designed for AI-assisted development workflows, it provides continuous guardrails through an audit->scan->remediate->validate loop, ensuring APIs meet enterprise security standards before deployment.",
+      "version": "1.0.0"
+    },
+    {
       "name": "acreadiness-cockpit",
       "source": "acreadiness-cockpit",
       "description": "Drive Microsoft AgentRC from Copilot chat: assess AI readiness, generate Copilot instructions (flat or nested with applyTo globs for monorepos), and manage policies. Produces a self-contained static HTML dashboard at reports/index.html.",

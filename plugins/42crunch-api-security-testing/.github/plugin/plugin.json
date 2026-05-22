@@ -1,0 +1,29 @@
+{
+  "name": "42crunch-api-security-testing",
+  "description": "Automate API security directly in GitHub Copilot with 42Crunch - automatically audit OpenAPI specs, detect vulnerabilities aligned with OWASP API Security risks (including BOLA/BFLA), and apply AI-powered fixes. Designed for AI-assisted development workflows, it provides continuous guardrails through an audit->scan->remediate->validate loop, ensuring APIs meet enterprise security standards before deployment.",
+  "version": "1.0.0",
+  "author": {
+    "name": "42Crunch",
+    "email": "support@42crunch.com"
+  },
+  "skills": [
+    "./skills/42crunch-api-security-testing/",
+    "./skills/42crunch-audit/",
+    "./skills/42crunch-code-to-oas/",
+    "./skills/42crunch-scan/",
+    "./skills/42crunch-setup/"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "openapi",
+    "api-security",
+    "audit",
+    "scan",
+    "remediation",
+    "vulnerability",
+    "compliance",
+    "owasp",
+    "ai",
+    "devsecops"
+  ]
+}
