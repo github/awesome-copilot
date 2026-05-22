@@ -1,3 +1,8 @@
+---
+description: 'Configure complete SharePoint integration for RAG applications with minimal manual intervention'
+applyTo: 'rag-sharepoint-setup.agent.md'
+---
+
 **RAG Reference:** [Retrieval-augmented Generation con SharePoint - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-solutions-retrieval-augmented-generation)
 
 **Purpose:** Configurar la integration completa con SharePoint (ambos modos) sin intervención manual excepto configuration opcional en el portal de Azure.

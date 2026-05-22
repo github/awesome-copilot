@@ -1,3 +1,8 @@
+---
+description: 'Deploy Azure infrastructure for RAG applications including OpenAI, Search, and AppInsights'
+applyTo: 'rag-azure-setup.agent.md'
+---
+
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 

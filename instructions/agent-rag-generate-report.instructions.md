@@ -1,3 +1,8 @@
+---
+description: 'Generate structured executive reports from RAG data sources with professional formatting'
+applyTo: 'rag-generate-report.agent.md'
+---
+
 **RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
 
 **Purpose:** Generar un informe ejecutivo professional escrito por IA (DOCX) que venda tu implementation RAG a los stakeholders.

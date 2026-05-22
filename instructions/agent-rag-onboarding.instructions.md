@@ -1,3 +1,8 @@
+---
+description: 'Onboard and configure RAG applications with step-by-step setup phases'
+applyTo: 'rag-onboarding.agent.md'
+---
+
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 
