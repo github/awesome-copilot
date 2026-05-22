@@ -151,7 +151,7 @@ After the table, include:
 - If the project uses Language X, skills for Language Y are No (unless the skill is language-agnostic)
 - Platform-specific skills (AWS, GCP) are No for projects on a different cloud
 - When uncertain, default to No with reasoning "Not directly applicable — {gap}"
-- Always fetch the latest skill catalog rather than relying on cached/memorized lists
+- Prefer fetching the latest skill catalog rather than relying on cached/memorized lists; if browsing/fetching is unavailable or the catalog cannot be retrieved, ask the user to paste the catalog contents or provide a local file path, then evaluate from that source
 - Output the full table — do not truncate or summarize with "and N more..."
 
 ## Example Invocations
