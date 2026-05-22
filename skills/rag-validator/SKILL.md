@@ -6,8 +6,8 @@ applyTo: '**/*.agent.md, **/*.instructions.md, **/SKILL.md, **/*.py'
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-**Estado:** Producción
-**Versión:** 2.0
+**Status:** Production
+**Version:** 2.0
 **Última actualización:** Mayo 13, 2026
 
 ---
@@ -27,26 +27,26 @@ Este skill valida dos capas:
 - implementation de search híbrida (keyword + semántica/vectorial)
 - configuration de ranking semántico
 - Estrategia de chunking para gestión de restricciones de tokens
-- Pipeline de vectorización
-- Límite de resultados (top-k) para prevenir overflow de tokens LLM
-- Completitud del schema del índice (key, content, vector, semantic config)
-- Cobertura de los 5 desafíos RAG en `rag-best-practices.md`
+- Tokenization/vectorization pipeline
+- Result limit (top-k) to prevent LLM token overflow
+- Index schema completeness (key, content, vector, semantic config)
+- Coverage of the 5 RAG challenges in `rag-best-practices.md`
 
 ---
 
-## Dimensiones de Cumplimiento RAG
+## RAG Compliance Dimensions
 
-Basado en [guía RAG de Microsoft](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos), este validador verifica cada una de las 5 dimensiones de desafíos RAG:
+Based on [Microsoft RAG Guide](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos), this validator verifies each of the 5 RAG challenge dimensions:
 
-| Desafío | Recomendación Microsoft | Verificación del Validador |
+| Challenge | Microsoft Recommendation | Validator Check |
 |---|---|---|
-| **Comprensión de consulta** | Queries híbridas (keyword + vector) + ranking semántico | `hybrid_search`, `semantic_ranking` |
-| **Restricciones de tokens** | Chunking en tiempo de indexing, límites top-k en tiempo de query | `chunking_strategy`, `token_limits` |
-| **Datos multi-fuente** | Indexers desde Azure Blob, SharePoint, bases de datos | `rag_best_practices_content` |
-| **Tiempo de respuesta** | Queries single-shot (clásico) o subqueries paralelas (agéntico) | `index_schema` |
-| **security y gobernanza** | Security trimming a nivel de documento, filtros Entra ID | `rag_best_practices_content` |
+| **Query Understanding** | Hybrid queries (keyword + vector) + semantic ranking | `hybrid_search`, `semantic_ranking` |
+| **Token Constraints** | Chunking at indexing time, top-k limits at query time | `chunking_strategy`, `token_limits` |
+| **Multi-source Data** | Indexers from Azure Blob, SharePoint, databases | `rag_best_practices_content` |
+| **Response Time** | Single-shot queries (classic) or parallel subqueries (agentic) | `index_schema` |
+| **Security and Governance** | Document-level security trimming, Entra ID filters | `rag_best_practices_content` |
 
-### Retrieval Agéntico vs RAG Clásico
+### Agentic Retrieval vs Classic RAG
 
 | Usar retrieval agéntico cuando... | Usar RAG clásico cuando... |
 |---|---|

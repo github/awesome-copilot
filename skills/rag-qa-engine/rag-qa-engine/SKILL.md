@@ -6,41 +6,41 @@ applyTo: '**/*.agent.md'
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
-**Estado:** Producción
-**Versión:** 1.0
-**Última actualización:** Mayo 13, 2026
+**Status:** Production
+**Version:** 1.0
+**Last Updated:** May 13, 2026
 
 ---
 
-## Propósito
+## Purpose
 
-Proporciona interfaz conversacional interactiva para consultar documentos via RAG. Los usuarios hacen preguntas en lenguaje natural y reciben respuestas de su base de conocimiento indexada con atribución de fuentes.
+Provides an interactive conversational interface for querying documents via RAG. Users ask questions in natural language and receive answers from their indexed knowledge base with source attribution.
 
-Este skill:
-- **Loop Interactivo**: Interfaz tipo chat para conversaciones multi-turno
-- **Atribución de Fuentes**: Muestra documentos fuente y puntuaciones de confianza
-- **Seguimiento de Tokens**: Monitoriza uso de tokens OpenAI por consulta
-- **Manejo de Errores**: Gestión elegante de problemas con servicios Azure
-- **Soporte UTF-8**: Chat multiplataforma (Windows, Linux, Mac)
-- **Extensible**: Fácil de inyectar APIs reales de Azure OpenAI/Search
+This skill:
+- **Interactive Loop**: Chat-like interface for multi-turn conversations
+- **Source Attribution**: Shows source documents and confidence scores
+- **Token Tracking**: Monitors Azure OpenAI token usage per query
+- **Error Handling**: Graceful handling of Azure service issues
+- **UTF-8 Support**: Cross-platform chat (Windows, Linux, Mac)
+- **Extensible**: Easy to inject real Azure OpenAI/Search APIs
 
 ---
 
-## Casos de Uso
+## Use Cases
 
-### Cuándo usar este skill
+### When to use this skill
 
-- **Q&A de Documentos**: Usuarios preguntando sobre documentación indexada
-- **Validación Interactiva**: PoC/validación de capacidades RAG
-- **Chat Base de Conocimiento**: Wiki empresa, manuales de procedimientos, runbooks
-- **Conversaciones Multi-turno**: Preguntas de seguimiento, preservación de contexto
-- **Integración**: Wrapper API para interfaces web/móvil de chat
+- **Document Q&A**: Users asking about indexed documentation
+- **Interactive Validation**: PoC/validation of RAG capabilities
+- **Knowledge Base Chat**: Company wiki, procedure manuals, runbooks
+- **Multi-turn Conversations**: Follow-up questions, context preservation
+- **Integration**: API wrapper for web/mobile chat interfaces
 
-### Cuándo NO usar
+### When NOT to use
 
-- Consultas batch/no interactivas (usar REST API)
-- Respuestas en streaming real-time (implementación diferente)
-- Consultas no textuales (imágenes, audio)
+- Batch/non-interactive queries (use REST API)
+- Real-time streaming responses (different implementation)
+- Non-text queries (images, audio)
 
 ---
 

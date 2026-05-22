@@ -3,27 +3,27 @@ name: 'rag-query-cli'
 description: 'Interactive CLI for searching and querying documents indexed in a RAG system using Azure AI Search and Azure OpenAI. Supports hybrid search, source tracking, response generation, and UTF-8 compatibility on Windows.'
 ---
 
-# RAG Query CLI — search Interactiva de Documentos
+# RAG Query CLI — Interactive Document Search
 
-**Consulta tu sistema RAG interactivamente desde línea de comandos.**
+**Query your RAG system interactively from the command line.**
 
-## Descripción General
+## Overview
 
-CLI interactivo para buscar y consultar documentos indexados en tu sistema RAG usando Azure AI Search + Azure OpenAI.
+Interactive CLI for searching and querying documents indexed in your RAG system using Azure AI Search + Azure OpenAI.
 
-## Características
+## Features
 
-- search híbrida (keyword + ranking semántico)
-- Recuperación de documentos con seguimiento de fuentes
-- Generación de respuestas con contexto
-- Métricas de performance
-- Manejo de caracteres especiales UTF-8 (compatible Windows)
+- Hybrid search (keyword + semantic ranking)
+- Document retrieval with source tracking
+- Response generation with context
+- Performance metrics
+- Handling of special UTF-8 characters (Windows compatible)
 
-## Requisitos
+## Requirements
 
-- Cuenta Azure OpenAI con modelo desplegado
-- Instancia Azure AI Search con documentos indexados
-- Archivo `.env` con credentials:
+- Azure OpenAI account with model deployed
+- Azure AI Search instance with indexed documents
+- `.env` file with credentials:
   - `AZURE_OPENAI_KEY`
   - `AZURE_OPENAI_ENDPOINT`
   - `AZURE_SEARCH_ENDPOINT`
@@ -31,36 +31,36 @@ CLI interactivo para buscar y consultar documentos indexados en tu sistema RAG u
   - `AZURE_SEARCH_INDEX`
   - `AZURE_OPENAI_MODEL`
 
-## Instalación
+## Installation
 
 ```bash
-# Dependencias en ../.../requirements.txt
+# Dependencies in ../.../requirements.txt
 pip install -r .github/requirements.txt
 ```
 
-## Uso
+## Usage
 
-### Consulta Interactiva (Recomendado)
+### Interactive Query (Recommended)
 
 ```bash
-# Desde la raíz del proyecto
-python .github/skills/rag-query-cli/consultar.py "Tu pregunta aquí"
+# From the project root
+python .github/skills/rag-query-cli/query.py "Your question here"
 
-# Ejemplo
-python .github/skills/rag-query-cli/consultar.py "What is the user onboarding process?"
+# Example
+python .github/skills/rag-query-cli/query.py "What is the user onboarding process?"
 ```
 
-### Ejecución Directa
+### Direct Execution
 
 ```python
-from consultar import RAGExecutor
+from query import RAGExecutor
 
 executor = RAGExecutor()
-result = executor.execute("tu pregunta", verbose=True)
+result = executor.execute("your question", verbose=True)
 
 print(result['response'])
-print("Fuentes:", result['sources'])
-print("Métricas:", result['metrics'])
+print("Sources:", result['sources'])
+print("Metrics:", result['metrics'])
 ```
 
 ## Output
@@ -68,18 +68,18 @@ print("Métricas:", result['metrics'])
 ```
 [QUERY] What is the user onboarding process?
 
-[SEARCHING] Buscando documentos...
-[OK] Encontrados 5 documentos relevantes
+[SEARCHING] Searching documents...
+[OK] Found 5 relevant documents
 
-[GENERATING] Generando respuesta...
-[OK] Respuesta generada
+[GENERATING] Generating response...
+[OK] Response generated
 
 [RESPONSE]
-Basado en la documentación, el proceso de onboarding de usuario implica...
+Based on documentation, the user onboarding process involves...
 
 [SOURCES]
    - knowledge/pdfs/Onboarding_Manual.pdf
-   - knowledge/procedimientos/User_Setup.docx
+   - knowledge/procedures/User_Setup.docx
 
 [METRICS]
    Search: 234ms
@@ -88,18 +88,18 @@ Basado en la documentación, el proceso de onboarding de usuario implica...
    Tokens: 412
 ```
 
-## Opciones Avanzadas
+## Advanced Options
 
-### Top-K Personalizado
+### Custom Top-K
 
 ```bash
-# Recuperar más contexto (por defecto es 5)
-python .github/skills/rag-query-cli/consultar.py "pregunta" --top 10
+# Retrieve more context (default is 5)
+python .github/skills/rag-query-cli/query.py "question" --top 10
 ```
 
-### Modo Silencioso
+### Quiet Mode
 
 ```bash
-# Solo output de la respuesta
-python .github/skills/rag-query-cli/consultar.py "pregunta" --quiet
+# Only answer output
+python .github/skills/rag-query-cli/query.py "question" --quiet
 ```
