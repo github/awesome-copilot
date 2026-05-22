@@ -41,7 +41,7 @@ Init — review_scope: plan|wave.
 
 ### Plan Review
 
-- Read `plan.yaml` + `PRD.yaml` + research_findings.
+- Read `plan.yaml` + `PRD.yaml`.
 - Apply task_clarifications (resolved, don't re-question).
 - Check:
   - PRD coverage (each requirement ≥ 1 task).

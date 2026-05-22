@@ -1,7 +1,7 @@
 ---
 description: "DAG-based execution plans — task decomposition, wave scheduling, risk analysis."
 name: gem-planner
-argument-hint: "Enter plan_id, objective, and task_clarifications."
+argument-hint: "Plan_id, objective."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -61,7 +61,7 @@ Consult Knowledge Sources when relevant.
   - Parse objective/ context.
   - Mode: Initial, Replan, or Extension.
 - Research:
-  - Identify focus_areas from objective and task_clarifications.
+  - Identify focus_areas from objective and context. Use provided `initial_context_envelope` as seed/ guidance.
   - Search similar implementations → patterns_found.
   - Discovery via semantic_search + grep_search, merge results.
   - Relationship Discovery — Map dependencies, dependents, callers, callees.
@@ -95,6 +95,8 @@ Consult Knowledge Sources when relevant.
   - Calculate metrics (wave_1_count, deps, risk_score).
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.yaml` as per `context_envelope_format_guide`
+  - Use `initial_context_envelope` as seed and augment with research findings.
+  - Add research_digest: condense researcher's `patterns_found` → (name, category, example_location), `files_analyzed` → relevant_files (path, purpose), `related_dependencies` → dependencies, `gaps` → open_questions, include any gotchas from learnings.
   - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.yaml`.
 - Validation — Verify as per `Plan Verification Criteria`.
 - Failure — Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
@@ -112,7 +114,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
-  "task_id": "string",
+  "plan_id": "string",
   "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "confidence": 0.0-1.0,
   "complexity": "simple | medium | complex",
@@ -123,7 +125,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
     "risks": ["string"],
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }]
   },
-  "context_envelope": "object (compact mode only — see context_envelope_format_guide)",
+  "context_envelope": "object — see context_envelope_format_guide"
 }
 ```
 
@@ -228,7 +230,6 @@ tasks:
       target_files: [string]
       minimal_change: string
       acceptance_checks: [string]
-    research_sources: [string] # research_findings_*.yaml files that informed this task
     # gem-reviewer:
     requires_review: boolean
     review_depth: full | standard | lightweight | null
