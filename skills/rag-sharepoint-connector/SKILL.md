@@ -6,7 +6,7 @@ author: "RAG Framework"
 tags: ["sharepoint", "hybrid", "integration", "azure-search", "microsoft-graph"]
 ---
 
-# RAG: Conector SharePoint
+# RAG: SharePoint Connector
 
 **Arquitectura híbrida-profesional para integration SharePoint**
 
@@ -39,7 +39,7 @@ Integra bibliotecas de documentos SharePoint en RAG con dos modos flexibles:
 **Modo Local (Descarga)**
 - Descarga todos los archivos con preservación de estructura
 - Carpetas con timestamp: `sharepoint-2026-05-14_14-30-45/`
-- Manifiesto con metadatos y checksums
+- Manifest with metadata and checksums
 - Coexiste con documentos knowledge tradicionales
 
 **Seguimiento de Metadatos**

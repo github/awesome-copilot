@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Diagnóstico: Verifica qué componentes están configurados en Azure AI Search
+Diagnostic: Verifies which components are configured in Azure AI Search
 
-Responde a: ¿Por qué solo se rellena Indexes?
+Answers: Why is only Indexes being populated?
 """
 
 import os
@@ -14,24 +14,24 @@ load_dotenv()
 
 def diagnose():
     """Check all RAG components in Azure AI Search"""
-    
+
     endpoint = os.getenv('AZURE_SEARCH_ENDPOINT')
     key = os.getenv('AZURE_SEARCH_KEY')
     index_name = os.getenv('AZURE_SEARCH_INDEX')
-    
+
     if not all([endpoint, key, index_name]):
         print("❌ Faltan credenciales en .env")
         return
-    
+
     index_client = SearchIndexClient(endpoint, AzureKeyCredential(key))
     indexer_client = SearchIndexerClient(endpoint, AzureKeyCredential(key))
-    
+
     print("""
 ╔═══════════════════════════════════════════════════════════════╗
 ║  DIAGNÓSTICO: Componentes de RAG en Azure AI Search           ║
 ╚═══════════════════════════════════════════════════════════════╝
 """)
-    
+
     # 1. Indexes
     print("1️⃣  INDEXES (Índices de búsqueda)")
     print("   ─────────────────────────────")
@@ -44,7 +44,7 @@ def diagnose():
             print(f"      - Vectores: {'✅' if has_vectors else '❌'}")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     # 2. Data Sources
     print("\n2️⃣  DATA SOURCES (Dónde vienen los documentos)")
     print("   ────────────────────────────────────────────")
@@ -60,7 +60,7 @@ def diagnose():
             print("      → Necesitas agregar uno (Azure Blob, SharePoint, etc.)")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     # 3. Skillsets
     print("\n3️⃣  SKILLSETS (Chunking, Vectorización, OCR)")
     print("   ──────────────────────────────────────────")
@@ -78,7 +78,7 @@ def diagnose():
             print("      → Necesitas: SplitSkill, AzureOpenAIEmbeddingSkill, OcrSkill")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     # 4. Indexers
     print("\n4️⃣  INDEXERS (Orquestación automática)")
     print("   ────────────────────────────────────")
@@ -98,31 +98,31 @@ def diagnose():
             print("      → Necesitas crear indexer (Blob → Skillset → Index)")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-    
+
     print("\n" + "="*63)
     print("\n📊 RESUMEN (¿POR QUÉ SOLO INDEXES?)\n")
-    
+
     data_sources_count = len(list(indexer_client.get_data_source_connections()))
     skillsets_count = len(list(indexer_client.get_skillsets()))
     indexers_count = len(list(indexer_client.get_indexers()))
-    
+
     if data_sources_count == 0:
         print("❌ PROBLEMA 1: No hay Data Sources")
         print("   → Tus documentos no están conectados")
         print("   → Solución: Agregar data source (Azure Blob)")
-    
+
     if skillsets_count == 0:
         print("❌ PROBLEMA 2: No hay Skillsets")
         print("   → No hay chunking automático")
         print("   → No hay vectorización automática")
         print("   → Solución: Crear skillset con skills")
-    
+
     if indexers_count == 0:
         print("❌ PROBLEMA 3: No hay Indexers")
         print("   → No hay orquestación automática")
         print("   → Debes indexar manualmente (push API)")
         print("   → Solución: Crear indexer")
-    
+
     print("\n" + "="*63)
     print("\n✅ SOLUCIÓN: Ejecutar setup data-plane de Search\n")
     print("""

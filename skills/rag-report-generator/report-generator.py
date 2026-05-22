@@ -369,7 +369,7 @@ Format: bullet points with subtitle."""
         table.style = 'Light Grid Accent 1'
 
         cells = table.rows[0].cells
-        cells[0].text = "Cliente"
+        cells[0].text = "Client"
         cells[1].text = metadata.client_name
 
         cells = table.rows[1].cells
@@ -381,7 +381,7 @@ Format: bullet points with subtitle."""
         cells[1].text = metadata.version
 
         cells = table.rows[3].cells
-        cells[0].text = "Autor"
+        cells[0].text = "Author"
         cells[1].text = metadata.author
 
         cells = table.rows[4].cells
