@@ -57,7 +57,7 @@ Consult Knowledge Sources when relevant.
 - Incorporate — If debugger_diagnosis provided.
 - Merge
   - Deduplicate all research files: files_analyzed, patterns_found, architecture, tech_stack, conventions, dependencies, open_questions, gaps.
-  - Donot do any research or pattern discovery. Only merge existing research.
+  - Don't do any research or pattern discovery. Only merge existing research.
 - Envelope — Compact into context_envelope:
   - Format: dense YAML/JSON-compatible bullets, fragments preferred over prose.
   - Each item: one fact, one line, include evidence path when useful.
