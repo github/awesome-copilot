@@ -121,7 +121,7 @@ User Input
     ↓
 [Search Agent] → Búsqueda semántica en Azure Search
     ↓
-[Context Builder] → Recupera documentos relevants + histórico
+[Context Builder] → Recupera documentos relevant + histórico
     ↓
 [OpenAI Completion] → Genera respuesta conversacional
     ↓

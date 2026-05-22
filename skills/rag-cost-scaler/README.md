@@ -16,7 +16,7 @@ chmod +x cost-scaler.py
 python cost-scaler.py --list-options
 ```
 
-### 2. Simular cambio a Minimal (máximo ahorro)
+### 2. Simulate change to Minimal (maximum savings)
 ```bash
 python cost-scaler.py --tier minimal --dry-run
 ```
@@ -54,7 +54,7 @@ python cost-scaler.py --budget 50 --create-alerts
 ```
 --tier {minimal|standard|premium}    Cambiar a este tier
 --apply                              Aplicar cambios reales
---dry-run                            Solo simular
+--dry-run                            Simulate only
 --budget EUR                         Presupuesto en EUR
 --create-alerts                      Crear alertas
 --list-options                       Ver tiers disponibles

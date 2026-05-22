@@ -162,7 +162,7 @@ Mostrar diagrama de arquitectura:
     │  Coste: $0.001 por consulta     │
     └─────────────────────────────────┘
                  │
-                 │ (2) Chunks relevants + Consulta original
+                 │ (2) Chunks relevant + Consulta original
                  ↓
     ┌─────────────────────────────────┐
     │  Generación: Azure OpenAI       │
@@ -480,17 +480,17 @@ Coste mensual: efectivamente $0 (no se puede agor)
 
 #### Escenario B: Con RAG (TU ELECCIÓN) ✅
 
-Cada consulta recupera SOLO chunks relevants:
+Cada consulta recupera SOLO chunks relevant:
 ```
 ⚠️  Precios approximados en USD.
 
 Consulta: "¿Cuál es el daño del movimiento X?"
 
-Paso 1: Búsqueda encuentra 5 chunks relevants (50KB = ~12K tokens)
+Paso 1: Búsqueda encuentra 5 chunks relevant (50KB = ~12K tokens)
   Velocidad: 200-500ms
   Coste: ~$0
 
-Paso 2: Enviar solo chunks relevants + consulta a gpt-4o
+Paso 2: Enviar solo chunks relevant + consulta a gpt-4o
   Entrada: 12,000 tokens × $2.50/1M  = $0.030
   Output: 500 tokens   × $10.00/1M = $0.005
   Total por consulta: ~$0.035

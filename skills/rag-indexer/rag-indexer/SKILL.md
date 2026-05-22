@@ -4,7 +4,7 @@
 
 ## Descripción General
 
-Indexa masivamente documentos de varios formatos (PDF, DOCX, SQL, TXT, MD) en Azure AI Search con chunking automático y extracción de metadatos.
+Bulk indexes documents of various formats (PDF, DOCX, SQL, TXT, MD) in Azure AI Search with automatic chunking and metadata extraction.
 
 ## Características
 
@@ -46,7 +46,7 @@ pip install -r .github/requirements.txt
 python .github/skills/rag-indexer/indexar.py
 ```
 
-### Qué Hace
+### What It Does
 
 1. **Crea índice** si no existe
 2. **Escanea carpetas**:
