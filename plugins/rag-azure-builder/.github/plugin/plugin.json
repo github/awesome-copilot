@@ -16,14 +16,14 @@
     "knowledge"
   ],
   "agents": [
-    "./agents/rag-azure-setup.agent.md",
-    "./agents/rag-chat.agent.md",
-    "./agents/rag-cost-scaler.agent.md",
-    "./agents/rag-generate-report.agent.md",
-    "./agents/rag-indexer-specialist.agent.md",
-    "./agents/rag-onboarding.agent.md",
-    "./agents/rag-sharepoint-setup.agent.md",
-    "./agents/rag-validate-deployment.agent.md"
+    "./agents/rag-azure-setup.md",
+    "./agents/rag-chat.md",
+    "./agents/rag-cost-scaler.md",
+    "./agents/rag-generate-report.md",
+    "./agents/rag-indexer-specialist.md",
+    "./agents/rag-onboarding.md",
+    "./agents/rag-sharepoint-setup.md",
+    "./agents/rag-validate-deployment.md"
   ],
   "skills": [
     "./skills/rag-agent-instrumentation/",
