@@ -166,12 +166,6 @@
       "version": "1.1.0"
     },
     {
-      "name": "csharp-mcp-development",
-      "source": "csharp-mcp-development",
-      "description": "Complete toolkit for building Model Context Protocol (MCP) servers in C# using the official SDK. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
-      "version": "1.0.0"
-    },
-    {
       "name": "database-data-management",
       "source": "database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
@@ -613,12 +607,6 @@
       }
     },
     {
-      "name": "polyglot-test-agent",
-      "source": "polyglot-test-agent",
-      "description": "Multi-agent pipeline for generating comprehensive unit tests across any programming language. Orchestrates research, planning, and implementation phases using specialized agents to produce tests that compile, pass, and follow project conventions.",
-      "version": "1.0.0"
-    },
-    {
       "name": "power-apps-code-apps",
       "source": "power-apps-code-apps",
       "description": "Complete toolkit for Power Apps Code Apps development including project scaffolding, development standards, and expert guidance for building code-first applications with Power Platform integration.",
@@ -892,12 +880,6 @@
         "repo": "microsoft/win-dev-skills",
         "path": "plugins/winui"
       }
-    },
-    {
-      "name": "winui3-development",
-      "source": "winui3-development",
-      "description": "WinUI 3 and Windows App SDK development agent, instructions, and migration guide. Prevents common UWP API misuse and guides correct WinUI 3 patterns for desktop Windows apps.",
-      "version": "1.0.0"
     }
   ]
 }
