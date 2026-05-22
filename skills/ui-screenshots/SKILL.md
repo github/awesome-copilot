@@ -147,11 +147,11 @@ def capture_window(title_contains, output_path):
     user32.GetWindowRect(hwnd, byref(rect))
     w, h = rect.right - rect.left, rect.bottom - rect.top
 
-    sct = mss.MSS()
-    shot = sct.grab({'left': rect.left, 'top': rect.top, 'width': w, 'height': h})
-    img = Image.frombytes('RGB', shot.size, shot.rgb)
-    img.save(output_path)
-    return img
+    with mss.mss() as sct:
+        shot = sct.grab({'left': rect.left, 'top': rect.top, 'width': w, 'height': h})
+        img = Image.frombytes('RGB', shot.size, shot.rgb)
+        img.save(output_path)
+        return img
 
 # Usage:
 capture_window('Visual Studio Code', 'vscode-capture.png')

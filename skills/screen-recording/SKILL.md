@@ -148,17 +148,17 @@ import time
 
 def record_gif(output_path, region=None, duration=5, fps=8):
     """Record screen region to GIF. region = {left, top, width, height} or None for full screen."""
-    sct = mss.MSS()
-    if region is None:
-        region = sct.monitors[1]  # primary monitor
+    with mss.mss() as sct:
+        if region is None:
+            region = sct.monitors[1]  # primary monitor
 
-    frames = []
-    t_end = time.time() + duration
-    while time.time() < t_end:
-        t0 = time.time()
-        shot = sct.grab(region)
-        frames.append(Image.frombytes('RGB', shot.size, shot.rgb))
-        time.sleep(max(0, 1 / fps - (time.time() - t0)))
+        frames = []
+        t_end = time.time() + duration
+        while time.time() < t_end:
+            t0 = time.time()
+            shot = sct.grab(region)
+            frames.append(Image.frombytes('RGB', shot.size, shot.rgb))
+            time.sleep(max(0, 1 / fps - (time.time() - t0)))
 
     frames[0].save(output_path, save_all=True, append_images=frames[1:],
                    duration=int(1000 / fps), loop=0, optimize=True)
@@ -175,12 +175,16 @@ Tested: 3s at 8fps → 24 frames, ~31KB. Keep fps ≤ 10 for reasonable file siz
 
 ```python
 # Find window rect, then record it as a GIF
-from ui_capture import find_window  # see ui-screenshots skill
+# Reuse find_window() from the ui-screenshots skill
 import ctypes
-from ctypes import c_int, Structure, byref
+from ctypes import c_int, Structure, byref, windll
 
-rect = Structure()  # RECT struct
-ctypes.windll.user32.GetWindowRect(find_window('My App')[0][0], ctypes.byref(rect))
+class RECT(Structure):
+    _fields_ = [('left', c_int), ('top', c_int), ('right', c_int), ('bottom', c_int)]
+
+hwnd = find_window('My App')[0][0]
+rect = RECT()
+windll.user32.GetWindowRect(hwnd, byref(rect))
 region = {'left': rect.left, 'top': rect.top,
           'width': rect.right - rect.left, 'height': rect.bottom - rect.top}
 record_gif('app-demo.gif', region=region, duration=5, fps=8)

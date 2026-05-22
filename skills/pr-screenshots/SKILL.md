@@ -78,7 +78,7 @@ $token = az account get-access-token `
     --resource "499b84ac-1321-427f-aa17-267ca6975798" `
     --query accessToken -o tsv
 
-$base = "https://{org}.visualstudio.com/{projectGUID}/_apis/git/repositories/{repoId}"
+$base = "https://{org}.visualstudio.com/{projectId}/_apis/git/repositories/{repoId}"
 $url = "$base/pullRequests/{prId}/attachments/screenshot.png?api-version=7.1-preview.1"
 
 # Use HttpClient — Invoke-RestMethod can corrupt binary data
