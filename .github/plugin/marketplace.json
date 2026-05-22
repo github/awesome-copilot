@@ -793,6 +793,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "visual-pr",
+      "source": "visual-pr",
+      "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",
+      "version": "1.0.0"
+    },
+    {
       "name": "whatidid",
       "description": "Turn your Copilot sessions into proof of impact — research-grounded HTML reports with effort estimation, skills analysis, and ROI metrics from local session logs.",
       "version": "1.0.0",
