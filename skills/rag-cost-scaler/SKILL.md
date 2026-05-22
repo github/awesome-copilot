@@ -1,6 +1,6 @@
 ---
 name: rag-cost-scaler
-description: "Escalar o reducir configuraciones de Azure RAG (Search, Log Analytics, Insights) y gestionar presupuestos/alertas automáticamente. Cambios reversibles con cálculo de costos antes de aplicar."
+description: "Scale up or scale down Azure RAG configurations (Search, Log Analytics, Insights) and manage budgets/alerts automatically. Reversible changes with cost calculation before applying."
 license: MIT
 metadata:
   author: Avanade RAG Team
@@ -112,7 +112,7 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --dry-run
   ✓ Azure Search: Basic → Standard (€31/mes más)
   ✓ Log Analytics: 30 → 90 días (€5/mes más)
   ✓ App Insights: 30 → 90 días (€1/mes más)
-  
+
 Costo actual: €24/mes
 Costo nuevo:  €61/mes
 Diferencia:   +€37/mes
@@ -192,7 +192,7 @@ az monitor metrics list -g rag-defensa-rg --interval PT5M --metric "Percentage"
 ## Troubleshooting
 
 ### Error: "Cannot provision service while deletion in progress"
-**Causa:** Azure AI Search aún se está eliminando del cambio anterior  
+**Causa:** Azure AI Search aún se está eliminando del cambio anterior
 **Solución:** Espera 2-5 minutos y vuelve a intentar
 ```bash
 # Esperar 5 minutos
@@ -201,15 +201,15 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 ```
 
 ### Error: "Subscription not found"
-**Causa:** authentication de Azure no configurada  
-**Solución:** 
+**Causa:** authentication de Azure no configurada
+**Solución:**
 ```bash
 az login
 az account set --subscription 8e6ace56-e0f2-4071-825a-a20363df34f8
 ```
 
 ### Warning: "Documents exceed Basic tier limit"
-**Causa:** Tienes > 1M documentos en Search  
+**Causa:** Tienes > 1M documentos en Search
 **Solución:** Migra a Standard o reduce documentos
 ```bash
 python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
@@ -248,5 +248,5 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --rg my-rg --current
 
 ---
 
-**Última actualización:** Mayo 2026  
+**Última actualización:** Mayo 2026
 **Mantenedor:** Avanade RAG Team

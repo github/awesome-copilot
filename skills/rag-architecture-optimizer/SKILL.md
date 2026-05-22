@@ -1,13 +1,13 @@
 ---
 name: 'rag-architecture-optimizer'
-description: 'Valida y optimiza la arquitectura de deployment Azure para eficiencia de coste y performance. Revisa tiers de servicio, escalado, redundancia, y recomienda right-sizing antes del deployment.'
+description: 'Validates and optimizes Azure RAG deployment architecture for cost efficiency and performance. Reviews service tiers, scaling, redundancy, and recommends right-sizing before deployment.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 ## Purpose
 
-validation y optimization pre-deployment de infraestructura Azure para prevenir sobre-provisioning o infra-dimensionamiento que pueda llevar a costes innecesarios o problemas de fiabilidad.
+Pre-deployment validation and optimization of Azure infrastructure to prevent over-provisioning or under-dimensioning that could lead to unnecessary costs or reliability issues.
 
 ## When to Use
 
