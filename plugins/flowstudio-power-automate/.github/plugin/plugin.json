@@ -1,6 +1,6 @@
 {
   "name": "flowstudio-power-automate",
-  "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
+  "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale ΓÇö action-level inputs and outputs, not just status codes.",
   "version": "2.0.0",
   "author": {
     "name": "Awesome Copilot Community"
@@ -19,18 +19,10 @@
     "governance"
   ],
   "skills": [
-<<<<<<< HEAD
-    "./skills/flowstudio-power-automate-build",
-    "./skills/flowstudio-power-automate-debug",
-    "./skills/flowstudio-power-automate-governance",
-    "./skills/flowstudio-power-automate-mcp",
-    "./skills/flowstudio-power-automate-monitoring"
-=======
-    "./skills/flowstudio-power-automate-mcp",
-    "./skills/flowstudio-power-automate-debug",
-    "./skills/flowstudio-power-automate-build",
-    "./skills/flowstudio-power-automate-monitoring",
-    "./skills/flowstudio-power-automate-governance"
->>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
+    "./skills/flowstudio-power-automate-build/",
+    "./skills/flowstudio-power-automate-debug/",
+    "./skills/flowstudio-power-automate-governance/",
+    "./skills/flowstudio-power-automate-mcp/",
+    "./skills/flowstudio-power-automate-monitoring/"
   ]
 }

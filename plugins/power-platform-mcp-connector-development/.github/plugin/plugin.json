@@ -15,15 +15,10 @@
     "json-rpc"
   ],
   "agents": [
-    "./agents"
+    "./agents/power-platform-mcp-integration-expert.md"
   ],
   "skills": [
-<<<<<<< HEAD
-    "./skills/mcp-copilot-studio-server-generator",
-    "./skills/power-platform-mcp-connector-suite"
-=======
-    "./skills/power-platform-mcp-connector-suite",
-    "./skills/mcp-copilot-studio-server-generator"
->>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
+    "./skills/mcp-copilot-studio-server-generator/",
+    "./skills/power-platform-mcp-connector-suite/"
   ]
 }

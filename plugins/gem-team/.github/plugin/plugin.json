@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
   "name": "gem-team",
   "version": "1.24.0",
   "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-=======
-  "agents": [
-    "./agents"
-  ],
->>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
   "author": {
     "name": "mubaidr",
     "email": "mubaidr@gmail.com",

@@ -16,14 +16,8 @@
     "microsoft-365"
   ],
   "skills": [
-<<<<<<< HEAD
-    "./skills/typespec-api-operations",
-    "./skills/typespec-create-agent",
-    "./skills/typespec-create-api-plugin"
-=======
-    "./skills/typespec-create-agent",
-    "./skills/typespec-create-api-plugin",
-    "./skills/typespec-api-operations"
->>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
+    "./skills/typespec-api-operations/",
+    "./skills/typespec-create-agent/",
+    "./skills/typespec-create-api-plugin/"
   ]
 }

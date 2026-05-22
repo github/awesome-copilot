@@ -16,16 +16,11 @@
     "adaptive-cards"
   ],
   "agents": [
-    "./agents"
+    "./agents/mcp-m365-agent-expert.md"
   ],
   "skills": [
-<<<<<<< HEAD
-    "./skills/mcp-create-adaptive-cards",
-    "./skills/mcp-create-declarative-agent",
-=======
-    "./skills/mcp-create-declarative-agent",
-    "./skills/mcp-create-adaptive-cards",
->>>>>>> 8fbf6c4a798df51d1d1d8fd37a1aa7e94203109c
-    "./skills/mcp-deploy-manage-agents"
+    "./skills/mcp-create-adaptive-cards/",
+    "./skills/mcp-create-declarative-agent/",
+    "./skills/mcp-deploy-manage-agents/"
   ]
 }
