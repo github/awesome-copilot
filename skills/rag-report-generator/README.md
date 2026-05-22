@@ -11,7 +11,7 @@ Generates high-impact DOCX reports that present RAG implementations to clients a
 1. **report-generator.py** (800+ lines)
    - Main report generation engine
    - Classes: `ExecutiveReportGenerator`, `ReportMetadata`, `ReportType`
-   - Utilidades de formato DOCX profesional
+   - Professional DOCX formatting utilities
    - Integración Claude Opus 4.7 para generación de contenido
    - Uso: Módulo principal importado por agentes
 
@@ -71,10 +71,10 @@ content = {
     "findings_text": "Hallazgos generados por IA...",
     "recommendations_text": "Recomendaciones generadas por IA...",
     "timeline": {
-        "Fase 1": "1-2 semanas",
-        "Fase 2": "2-4 semanas",
-        "Fase 3": "1-2 semanas",
-        "Fase 4": "1 semana",
+        "Phase 1": "1-2 weeks",
+        "Phase 2": "2-4 weeks",
+        "Phase 3": "1-2 weeks",
+        "Phase 4": "1 week",
     }
 }
 
