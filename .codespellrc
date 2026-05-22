@@ -48,21 +48,13 @@
 
 # nin - MongoDB $nin operator in security instructions NoSQL injection detection regex
 
-# Spanish translation mappings in translate-py-content.py that should not be flagged
-
-# accesible - Spanish word in translation dictionary
-
-# profesional - Spanish word in translation dictionary
-
-# fases - Spanish word in translation dictionary
-
 # Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
 
 # FO - tasklist option /FO to format running task output
 
 # CAF - Microsoft Cloud Adoption Framework acronym
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,accesible,profesional,fases,diagrama
 
 # Skip certain files and directories
 
