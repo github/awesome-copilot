@@ -1,3 +1,8 @@
+---
+name: 'rag-api-server'
+description: 'Exposes RAG functionality as a REST API for external applications. Provides HTTP endpoints for document search and query with JSON request/response, async processing, CORS support, and observability metrics.'
+---
+
 # RAG API Server — Interfaz REST
 
 **Expone RAG como API REST para aplicaciones externas.**
@@ -111,9 +116,9 @@ print(result['response'])
 fetch('http://localhost:8000/query', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ 
+  body: JSON.stringify({
     query: 'user onboarding',
-    top_k: 5 
+    top_k: 5
   })
 })
 .then(r => r.json())

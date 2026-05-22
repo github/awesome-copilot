@@ -1,3 +1,8 @@
+---
+name: 'rag-storage-connector'
+description: 'PowerShell helper for obtaining Azure Blob Storage credentials via Azure CLI. Provides connection strings used by RAG indexers and document upload pipelines to access Blob Storage.'
+---
+
 # RAG Storage Connector — integration Azure Blob
 
 **Helper basado en PowerShell para credentials de Azure Blob Storage.**
