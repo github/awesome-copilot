@@ -1,4 +1,4 @@
-﻿---
+---
 description: 'Mejores prácticas RAG de Microsoft Learn: retrieval agéntico vs RAG clásico, preparación de contenido, ajuste de relevancia'
 ---
 

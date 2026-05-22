@@ -1,4 +1,4 @@
-﻿---
+---
 description: 'Estándares de configuration RAG para observability, Error Handling y consistencia de logging en agentes y scripts.'
 applyTo: '**/*.py, **/*.agent.md'
 ---

@@ -1,4 +1,4 @@
-﻿**RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
+**RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
 
 **Purpose:** Generar un informe ejecutivo professional escrito por IA (DOCX) que venda tu implementation RAG a los stakeholders.
 
