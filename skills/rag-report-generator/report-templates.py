@@ -15,29 +15,29 @@ class ToneGuideline(Enum):
     """Tone guidelines for professional reports"""
     
     EXECUTIVE = """
-    • Profesional y confiado sin ser presuntuoso
-    • Datos concretos, no especulación
-    • Enfoque en valor de negocio, no tecnología
-    • Frases cortas (máx 20 palabras)
-    • Verbos activos (no pasiva)
-    • Números siempre: "2,345 documentos" no "muchos documentos"
-    • Evita: Jerga técnica, puntos grises, disclaimers
-    • Incluye: Riesgos/oportunidades, timeline, ROI
+    • Professional and confident without being presumptuous
+    • Concrete data, not speculation
+    • Focus on business value, not technology
+    • Short sentences (max 20 words)
+    • Active verbs (not passive)
+    • Always numbers: "2,345 documents" not "many documents"
+    • Avoid: Technical jargon, gray areas, disclaimers
+    • Include: Risks/opportunities, timeline, ROI
     """
     
     TECHNICAL = """
-    • Preciso y completo
-    • Diagramas y ejemplos de código
-    • Transparencia sobre limitaciones
-    • Referencias a Azure best practices
-    • Opciones alternativas cuando proceda
+    • Precise and complete
+    • Diagrams and code examples
+    • Transparency about limitations
+    • References to Azure best practices
+    • Alternative options when appropriate
     """
     
     BALANCED = """
-    • Mezcla datos duros + contexto de negocio
-    • Accesible para no-técnicos
-    • Soportado con ejemplos reales
-    • Destaca impacto en operaciones
+    • Mix hard data + business context
+    • Accessible for non-technical users
+    • Supported with real examples
+    • Highlight operational impact
     """
 
 
@@ -48,86 +48,86 @@ class ReportTemplate:
     def RAG_IMPLEMENTATION() -> Dict[str, Any]:
         """Template for RAG implementation report"""
         return {
-            "title": "Informe Ejecutivo: Implementación de Búsqueda Inteligente",
+            "title": "Executive Report: Intelligent Search Implementation",
             "sections": [
                 {
-                    "name": "Resumen Ejecutivo",
+                    "name": "Executive Summary",
                     "guidelines": """
-                    - 2-3 párrafos máximo
-                    - Responda: Qué, cuándo, valor
-                    - Incluya: Número de documentos, plazo, beneficio principal
-                    - Tono: Profesional, orientado a resultados
-                    - Ejemplo: "Se han indexado 2,345 documentos en Azure Search,
-                      permitiendo búsqueda instantánea que reduce el tiempo de consulta
-                      de 15 minutos a 30 segundos."
+                    - 2-3 paragraphs max
+                    - Answer: What, when, value
+                    - Include: Number of documents, timeline, main benefit
+                    - Tone: Professional, results-oriented
+                    - Example: "2,345 documents indexed in Azure Search,
+                      enabling instant search that reduces query time
+                      from 15 minutes to 30 seconds."
                     """,
                     "min_words": 150,
                     "max_words": 300,
                 },
                 {
-                    "name": "Situación Actual",
+                    "name": "Current Situation",
                     "guidelines": """
-                    - Describe el estado antes de la solución
-                    - Incluya: Volumen de documentos, desafíos, costos actuales
-                    - Tono: Neutral, basado en hechos
-                    - Use bullets para claridad
+                    - Describe the state before the solution
+                    - Include: Document volume, challenges, current costs
+                    - Tone: Neutral, fact-based
+                    - Use bullets for clarity
                     """,
                     "bullets": 4,
                 },
                 {
-                    "name": "Solución Propuesta",
+                    "name": "Proposed Solution",
                     "guidelines": """
-                    - Explique QUÉ se construyó, no CÓMO (nivel ejecutivo)
-                    - Incluya: Arquitectura conceptual, integraciones
-                    - Opcional: Diagrama simple
-                    - Destaque: Escalabilidad, seguridad, cumplimiento
+                    - Explain WHAT was built, not HOW (executive level)
+                    - Include: Conceptual architecture, integrations
+                    - Optional: Simple diagram
+                    - Highlight: Scalability, security, compliance
                     """,
                 },
                 {
-                    "name": "Beneficios Cuantificables",
+                    "name": "Quantifiable Benefits",
                     "guidelines": """
-                    - SIEMPRE números concretos
-                    - Formato: "X% reducción en tiempo de búsqueda"
-                    - Incluya: Productividad, costos, satisfacción
-                    - Mínimo 3 beneficios clave
-                    - Opcional: ROI (si datos disponibles)
+                    - ALWAYS concrete numbers
+                    - Format: "X% reduction in search time"
+                    - Include: Productivity, costs, satisfaction
+                    - Minimum 3 key benefits
+                    - Optional: ROI (if data available)
                     """,
                 },
                 {
-                    "name": "Recomendaciones",
+                    "name": "Recommendations",
                     "guidelines": """
-                    - 4-5 recomendaciones máximo
-                    - Estructura: [Recomendación] - [Beneficio] - [Timeline]
-                    - Priorícelas: Alta/Media/Baja
-                    - Incluya costos estimados
-                    - Horizonte: Corto (1mes)/Medio (3-6m)/Largo (6-12m)
+                    - 4-5 recommendations max
+                    - Structure: [Recommendation] - [Benefit] - [Timeline]
+                    - Prioritize: High/Medium/Low
+                    - Include estimated costs
+                    - Horizon: Short (1mo)/Medium (3-6mo)/Long (6-12mo)
                     """,
                 },
                 {
-                    "name": "Plan de Implementación",
+                    "name": "Implementation Plan",
                     "guidelines": """
-                    - Timeline: Fases claras con duración
-                    - Mínimo: 4 fases (Setup, Indexación, UAT, Producción)
-                    - Incluya: Dependencias, entregables, responsables
-                    - Tono: Realista (mejor estimar pesimista)
+                    - Timeline: Clear phases with duration
+                    - Minimum: 4 phases (Setup, Indexing, UAT, Production)
+                    - Include: Dependencies, deliverables, owners
+                    - Tone: Realistic (better to estimate pessimistically)
                     """,
                 },
                 {
-                    "name": "Riesgos & Mitigaciones",
+                    "name": "Risks & Mitigations",
                     "guidelines": """
-                    - Ábrase sobre riesgos (genera confianza)
-                    - Cada riesgo: descripción + impacto + mitigación
-                    - Ejemplo: "Riesgo: Documentos sin indexar. Mitigación: 
-                      Validación de formato, pre-procesamiento automático"
+                    - Be open about risks (builds confidence)
+                    - Each risk: description + impact + mitigation
+                    - Example: "Risk: Unindexed documents. Mitigation: 
+                      Format validation, automatic pre-processing"
                     """,
                 },
                 {
-                    "name": "Anexos",
+                    "name": "Appendices",
                     "guidelines": """
-                    - Detalles técnicos, logs, ejemplos de queries
-                    - Arquitectura detallada (si hay espacio)
-                    - Matriz de características
-                    - Glosario de términos (si es necesario)
+                    - Technical details, logs, query examples
+                    - Detailed architecture (if space available)
+                    - Feature matrix
+                    - Glossary of terms (if needed)
                     """,
                 },
             ],
@@ -138,39 +138,39 @@ class ReportTemplate:
         """Quality checklist before finalizing report"""
         return [
             # Content quality
-            "☑ ¿Cada afirmación está soportada por datos?",
-            "☑ ¿Se incluyen números concretos (no 'muchos', 'varios')?",
-            "☑ ¿El resumen ejecutivo tiene máx 300 palabras?",
-            "☑ ¿Hay al menos 3 beneficios cuantificables?",
-            "☑ ¿Las recomendaciones son accionables (no vagas)?",
+            "☑ Is each statement supported by data?",
+            "☑ Are concrete numbers included (not 'many', 'several')?",
+            "☑ Is the executive summary max 300 words?",
+            "☑ Are there at least 3 quantifiable benefits?",
+            "☑ Are recommendations actionable (not vague)?",
             
             # Tone & language
-            "☑ ¿El tono es profesional pero accesible?",
-            "☑ ¿Se evita jerga técnica (o está explicada)?",
-            "☑ ¿Los párrafos tienen máx 4 líneas?",
-            "☑ ¿Se usan verbos activos?",
-            "☑ ¿Los bullet points son paralelos (misma estructura)?",
+            "☑ Is the tone professional yet accessible?",
+            "☑ Is technical jargon avoided (or explained)?",
+            "☑ Do paragraphs have max 4 lines?",
+            "☑ Are active verbs used?",
+            "☑ Are bullet points parallel (same structure)?",
             
             # Structure
-            "☑ ¿Hay introducción con contexto?",
-            "☑ ¿Hay conclusión clara con next steps?",
-            "☑ ¿Las secciones tienen transiciones?",
-            "☑ ¿Hay al menos 1 diagrama/tabla?",
-            "☑ ¿Los títulos son descriptivos?",
+            "☑ Is there introduction with context?",
+            "☑ Is there clear conclusion with next steps?",
+            "☑ Do sections have transitions?",
+            "☑ Is there at least 1 diagram/table?",
+            "☑ Are titles descriptive?",
             
             # Professional appearance
-            "☑ ¿Hay 0 errores de ortografía?",
-            "☑ ¿Hay 0 errores de puntuación?",
-            "☑ ¿El formato está consistente (fuentes, tamaños)?",
-            "☑ ¿Las tablas están bien formateadas?",
-            "☑ ¿El documento tiene página de portada?",
+            "☑ Are there 0 spelling errors?",
+            "☑ Are there 0 punctuation errors?",
+            "☑ Is formatting consistent (fonts, sizes)?",
+            "☑ Are tables well formatted?",
+            "☑ Does the document have a cover page?",
             
             # Specific to RAG
-            "☑ ¿Se menciona el número de documentos indexados?",
-            "☑ ¿Se menciona el tiempo de respuesta (mejora)?",
-            "☑ ¿Se justifica la tecnología Azure (no genérico)?",
-            "☑ ¿Hay referencia a security/compliance?",
-            "☑ ¿El ROI o beneficio final está claro?",
+            "☑ Is the number of indexed documents mentioned?",
+            "☑ Is response time (improvement) mentioned?",
+            "☑ Is Azure technology justified (not generic)?",
+            "☑ Is there security/compliance reference?",
+            "☑ Is ROI or final benefit clear?",
         ]
 
 
@@ -178,96 +178,96 @@ class ContentGuidelines:
     """Specific content guidelines"""
     
     EXECUTIVE_SUMMARY = """
-    ESTRUCTURA RECOMENDADA (2-3 párrafos):
+    RECOMMENDED STRUCTURE (2-3 paragraphs):
     
-    Párrafo 1 - Contexto:
-    "El cliente tenía [problema/oportunidad] con [X documentos/proceso].
-    Se implementó [solución] usando [tecnología clave]."
+    Paragraph 1 - Context:
+    "The client had [problem/opportunity] with [X documents/process].  
+    Implemented [solution] using [key technology]."
     
-    Párrafo 2 - Resultados:
-    "Como resultado, [métrica de impacto 1], [métrica de impacto 2],
-    y [métrica de impacto 3]. El ROI es de [X]% en [timeframe]."
+    Paragraph 2 - Results:
+    "As a result, [impact metric 1], [impact metric 2],
+    and [impact metric 3]. ROI is [X]% in [timeframe]."
     
-    Párrafo 3 - Siguiente:
-    "Se recomienda [acción principal] para [objetivo]. Esto requiere
-    [recursos] y [timeline]. El cliente está listo para [next phase]."
+    Paragraph 3 - Next:
+    "Recommend [main action] for [objective]. This requires
+    [resources] and [timeline]. Client is ready for [next phase]."
     
-    MÉTRICAS A INCLUIR:
-    • Documentos indexados: [número]
-    • Tiempo de búsqueda: [antes] → [después]
-    • Disponibilidad: [%]
-    • Usuarios impactados: [número]
-    • Costo anual: [cantidad] (si aplica)
+    METRICS TO INCLUDE:
+    • Indexed documents: [número]
+    • Search time: [before] → [after]
+    • Availability: [%]
+    • Impacted users: [number]
+    • Annual cost: [amount] (if applicable)
     
-    TONO:
-    - Confianza sin arrogancia
-    - Hechos, no promesas
-    - Enfoque en valor, no en tecnología
-    - Referencia a estándares (Azure, ISO, etc.)
+    TONE:
+    - Confidence without arrogance
+    - Facts, not promises
+    - Focus on value, not technology
+    - Reference to standards (Azure, ISO, etc.)
     """
     
     RECOMMENDATIONS = """
-    ESTRUCTURA POR RECOMENDACIÓN:
+    STRUCTURE PER RECOMMENDATION:
     
-    [Número]. [Título de Recomendación]
+    [Number]. [Recommendation Title]
     
-    Descripción: [1-2 frases sobre QUÉ]
+    Description: [1-2 sentences about WHAT]
     
-    Beneficio: [Impacto concreto - use números si es posible]
+    Benefit: [Concrete impact - use numbers if possible]
     
-    Implementación: [Timeline corto/medio/largo]
+    Implementation: [Short/medium/long timeline]
     
-    Inversión estimada: [Si disponible]
+    Estimated investment: [If available]
     
-    Prioridad: [Alta/Media/Baja]
+    Priority: [High/Medium/Low]
     
     EJEMPLO BIEN HECHO:
-    1. Integrar SharePoint con búsqueda
+    1. Integrate SharePoint with search
     
-    Descripción: Conectar automáticamente nuevos documentos de
-    SharePoint a la búsqueda inteligente, eliminando uploads manuales.
+    Description: Automatically connect new documents from
+    SharePoint to intelligent search, eliminating manual uploads.
     
-    Beneficio: Reduce tiempo de indexación de 1 hora a 10 minutos,
-    garantiza documentos siempre actualizados, elimina punto de fallo manual.
+    Benefit: Reduces indexing time from 1 hour to 10 minutes,
+    ensures documents always updated, eliminates manual failure point.
     
-    Implementación: 2-3 semanas (corto plazo)
+    Implementation: 2-3 weeks (short term)
     
-    Inversión: $0 (aprovecha licencias existentes)
+    Investment: $0 (leverages existing licenses)
     
-    Prioridad: Alta
+    Priority: High
     
     EJEMPLO MAL HECHO (evitar):
-    "Mejorar el sistema" ← vago, no accionable
-    "Considerar opciones futuras" ← no concreto
-    "Optimizar según necesidades" ← no específico
+    "Improve the system" ← vague, not actionable
+    "Consider future options" ← not concrete
+    "Optimize per needs" ← not specific
     """
     
     TIMELINE = """
-    FASES ESTÁNDAR PARA RAG:
+    STANDARD PHASES FOR RAG:
     
-    Fase 1: Preparación (1-2 semanas)
-    - Setup Azure, creación de recursos
-    - Preparación de documentos
-    - Entrenamiento de equipo
+    Fase 1: Preparación (1-2 weeks)
+    - Setup Azure, create resources
+    - Prepare documents
+    - Team training
     
-    Fase 2: Implementación (2-4 semanas)
-    - Indexación de documentos
-    - Configuración de búsqueda
-    - Tuning de parámetros
+    Phase 2: Implementation (2-4 weeks)
+    - Document indexing
+    - Search configuration
+    - Parameter tuning
     
-    Fase 3: Validación (1-2 semanas)
-    - UAT con usuarios
-    - Ajustes según feedback
-    - Documentación final
+    Fase 3: Validación (1-2 weeks)
+    - UAT with users
+    - Adjustments per feedback
+    - Final documentation
     
-    Fase 4: Producción (1 semana)
+    Fase 4: Producción (1 week)
     - Go-live
-    - Monitoreo inicial
-    - Handover a soporte
+    - Initial monitoring
+    - Handover to support
     
-    TOTAL TÍPICO: 4-8 semanas
+    TYPICAL TOTAL: 4-8 weeks
     
-    REGLA: Siempre estima pesimista (+20%)
+    RULE: Always estimate pessimistically (+20%)
     """
 
 
@@ -275,27 +275,27 @@ class ExampleReports:
     """Real example content (redacted/anonymized)"""
     
     GOOD_SUMMARY = """
-    Se ha implementado un sistema inteligente de búsqueda sobre 2,345 documentos
-    internos de MENSADEF, que cubre procedimientos, legislación, casos de uso y
-    análisis técnico. Utilizando Azure OpenAI y Azure Search, el sistema permite
-    búsqueda semántica instantánea que reduce el tiempo de consulta de 15 minutos
-    a 30 segundos, beneficiando a más de 200 usuarios.
+    Implemented an intelligent search system over 2,345 documents
+    internal to MENSADEF, covering procedures, legislation, use cases and
+    technical analysis. Using Azure OpenAI and Azure Search, the system enables
+    instant semantic search reducing query time from 15 minutes
+    to 30 seconds, benefiting 200+ users.
     
-    Los resultados iniciales muestran que el 94% de las búsquedas devuelven el
-    documento correcto en el primer resultado. Se han validado 500+ casos de uso
-    reales, con una precisión del 97%. El sistema está listo para producción y
-    puede escalarse a 5,000+ documentos sin cambios arquitectónicos.
+    Initial results show 94% of searches return the
+    correct document on first result. Validated 500+ use cases
+    with 97% precision. System is production-ready and
+    scales to 5,000+ documents without architectural changes.
     
-    Se recomienda: (1) activar búsqueda en producción en la próxima sprint,
-    (2) integrar SharePoint en Q3 para documentos corporativos, (3) expandir a
-    análisis de tendencias en Q4. La inversión inicial de $15K generará $120K en
-    ahorros anuales por reducción de tiempo de búsqueda.
+    Recommend: (1) activate search in production next sprint,
+    (2) integrate SharePoint in Q3 for corporate documents, (3) expand to
+    trend analysis in Q4. Initial $15K investment generates $120K in
+    annual savings from search time reduction.
     """
     
     BAD_SUMMARY = """
-    Hemos implementado un sistema de IA usando ML y NLP. Se indexaron documentos
-    en la nube. El sistema funciona bien y es escalable. Se pueden hacer muchas
-    cosas con esto. Recomendamos implementarlo pronto. Será útil para los usuarios.
+    Implemented an AI system using ML and NLP. Indexed documents
+    in the cloud. System works well and is scalable. Can do many
+    things with this. Recommend implementing soon. Will be useful to users.
     """
     
     @staticmethod
@@ -303,21 +303,21 @@ class ExampleReports:
         """Why GOOD is better than BAD"""
         return {
             "GOOD": [
-                "✅ Números concretos (2,345, 15min→30s, 200 users, 94%, 97%)",
-                "✅ Beneficio específico (reducción de tiempo de búsqueda)",
-                "✅ Métrica de éxito (94% en primer resultado)",
-                "✅ Escalabilidad demostrada (5,000 docs)",
-                "✅ ROI cuantificado ($120K savings)",
-                "✅ Next steps concretos (sprint, Q3, Q4)",
-                "✅ Tono: Confianza sin arrogancia",
+                "✅ Concrete numbers (2,345, 15min→30s, 200 users, 94%, 97%)",
+                "✅ Specific benefit (search time reduction)",
+                "✅ Success metric (94% on first result)",
+                "✅ Demonstrated scalability (5,000 docs)",
+                "✅ Quantified ROI ($120K savings)",
+                "✅ Concrete next steps (sprint, Q3, Q4)",
+                "✅ Tone: Confidence without arrogance",
             ],
             "BAD": [
-                "❌ Jerga sin contexto (ML, NLP, ML)",
-                "❌ Adjetivos sin datos (bien, escalable, útil)",
-                "❌ Vaguedad total (muchas cosas, pronto)",
-                "❌ Sin métricas de éxito",
-                "❌ Sin números concretos",
-                "❌ Sin ROI o valor",
-                "❌ Tono: Poco profesional, poco convincente",
+                "❌ Jargon without context (ML, NLP, ML)",
+                "❌ Adjectives without data (good, scalable, useful)",
+                "❌ Total vagueness (many things, soon)",
+                "❌ No success metrics",
+                "❌ No concrete numbers",
+                "❌ No ROI or value",
+                "❌ Tone: Unprofessional, unconvincing",
             ],
         }

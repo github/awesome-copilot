@@ -391,7 +391,7 @@ Format: bullet points with subtitle."""
         doc.add_page_break()
 
         # === EXECUTIVE SUMMARY ===
-        DocumentFormatting.add_heading(doc, "Resumen Ejecutivo", 1)
+        DocumentFormatting.add_heading(doc, "Executive Summary", 1)
 
         summary = content.get("executive_summary", "")
         if summary:
@@ -418,7 +418,7 @@ Format: bullet points with subtitle."""
         doc.add_paragraph()
 
         # === RECOMMENDATIONS ===
-        DocumentFormatting.add_heading(doc, "Recomendaciones", 1)
+        DocumentFormatting.add_heading(doc, "Recommendations", 1)
 
         recommendations = content.get("recommendations_text", "")
         if recommendations:
@@ -435,7 +435,7 @@ Format: bullet points with subtitle."""
 
         # === TIMELINE ===
         if "timeline" in content:
-            DocumentFormatting.add_heading(doc, "Plan de Implementación", 1)
+            DocumentFormatting.add_heading(doc, "Implementation Plan", 1)
             for phase, duration in content["timeline"].items():
                 DocumentFormatting.add_bullet(doc, f"{phase}: {duration}")
 
