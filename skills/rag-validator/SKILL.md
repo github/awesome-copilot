@@ -1,6 +1,6 @@
 ---
 name: 'rag-validator'
-description: 'Validador experto RAG: verifica que agentes, instrucciones, skills e implementation RAG cumplen con mejores prácticas Microsoft RAG y directrices del repositorio.'
+description: 'Expert RAG validator: verifies that agents, instructions, skills, and RAG implementations comply with Microsoft RAG best practices and repository guidelines.'
 applyTo: '**/*.agent.md, **/*.instructions.md, **/SKILL.md, **/*.py'
 ---
 

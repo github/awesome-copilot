@@ -1,6 +1,6 @@
 ---
 name: 'rag-agent-instrumentation'
-description: 'Módulos Python reutilizables para instrumentar agentes: recolección de métricas, integration con Application Insights, logging con observability. Usado por todos los agentes para capturar tokens, latencia, coste, errores.'
+description: 'Reusable Python modules for agent instrumentation: metrics collection, Application Insights integration, observability logging. Used by all agents to capture tokens, latency, cost, errors.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)

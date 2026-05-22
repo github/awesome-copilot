@@ -1,6 +1,6 @@
 ---
 name: 'rag-orchestration'
-description: 'Orquestador completo automatizado de setup RAG en 8 fases para nuevos proyectos'
+description: 'Complete automated RAG setup orchestrator in 8 phases for new projects'
 applyTo: '**/*.agent.md'
 ---
 

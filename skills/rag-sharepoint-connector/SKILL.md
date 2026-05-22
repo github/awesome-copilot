@@ -1,6 +1,6 @@
 ---
 name: rag-sharepoint-connector
-description: "integration híbrida-profesional de SharePoint para RAG. Dos modos: Profesional (indexer Azure AI Search, sincronización en tiempo real, sin duplicación) o Local (descarga a knowledge/, coexiste con docs tradicionales)"
+description: "Hybrid-professional SharePoint integration for RAG. Two modes: Professional (Azure Search indexer, real-time sync, no duplication) or Local (download to knowledge/, coexists with traditional docs)"
 version: "1.0.0"
 author: "RAG Framework"
 tags: ["sharepoint", "hybrid", "integration", "azure-search", "microsoft-graph"]
@@ -133,7 +133,7 @@ python .github/skills/rag-indexer/indexar.py
    Certificates & secrets:
    - Anota tu Client ID (desde Overview)
    - Crea Client Secret (copia el valor inmediatamente)
-   
+
    Tu tenant ID: Azure Portal -> Azure Active Directory -> Properties
    ```
 

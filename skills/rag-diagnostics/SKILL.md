@@ -3,30 +3,30 @@ name: 'rag-diagnostics'
 description: 'Monitors, diagnoses and troubleshoots RAG system health. Verifies Azure AI Search connectivity, index status, configuration, and provides real-time monitoring with actionable error reports.'
 ---
 
-# RAG Diagnostics — Salud del Sistema y Monitorización
+# RAG Diagnostics — System Health and Monitoring
 
-**Monitoriza, diagnostica y soluciona problemas de tu sistema RAG.**
+**Monitor, diagnose and troubleshoot your RAG system.**
 
-## Descripción General
+## Overview
 
-Colección de herramientas de diagnóstico y monitorización para verificar la salud de Azure AI Search, estado del índice y configuration del sistema.
+Collection of diagnostic and monitoring tools to verify Azure AI Search health, index status, and system configuration.
 
-## Características
+## Features
 
-- Informe de estado del sistema (todos los componentes)
-- Diagnósticos del índice (documentos, campos, salud)
-- Verificación de configuration
-- Monitorización en tiempo real
-- Informes de error con soluciones
+- System status report (all components)
+- Index diagnostics (documents, fields, health)
+- Configuration verification
+- Real-time monitoring
+- Error reports with solutions
 
-## Herramientas Incluidas
+## Included Tools
 
-### 1. **estado-sistema.py** — Estado Completo del Sistema
+### 1. **system-status.py** — Complete System Status
 
-Verificar salud general del RAG y estado de componentes.
+Check the general health of the RAG and status of components.
 
 ```bash
-python .github/skills/rag-diagnostics/estado-sistema.py
+python .github/skills/rag-diagnostics/system-status.py
 ```
 
 **Output:**
@@ -35,130 +35,130 @@ python .github/skills/rag-diagnostics/estado-sistema.py
   RAG SYSTEM STATUS REPORT
 ========================================================================
 
-  FASE 1: Búsqueda Keyword + Semántica
-   Estado: Running
-   Items procesados: 113
-   Items fallidos: 0
-   Duración: 245000 ms
-   Índice: rag-documents
+  PHASE 1: Keyword + Semantic Search
+   Status: Running
+   Items processed: 113
+   Items failed: 0
+   Duration: 245000 ms
+   Index: rag-documents
 
-  FASE 2: Búsqueda Vectorial
-   Estado: Running
-   Items procesados: 86
-   Items fallidos: 0
-   Duración: 123000 ms
-   Índice: rag-documents-vectors
+  PHASE 2: Vector Search
+   Status: Running
+   Items processed: 86
+   Items failed: 0
+   Duration: 123000 ms
+   Index: rag-documents-vectors
 
-  ESTADÍSTICAS DEL ÍNDICE
-   rag-documents: 113 documentos
-   rag-documents-vectors: 86 documentos
+  INDEX STATISTICS
+   rag-documents: 113 documents
+   rag-documents-vectors: 86 documents
 ```
 
-### 2. **diagnosticar.py** — Diagnósticos Detallados
+### 2. **diagnose.py** — Detailed Diagnostics
 
-Análisis profundo de configuration Azure AI Search y problemas.
+Deep analysis of Azure AI Search configuration and issues.
 
 ```bash
-python .github/skills/rag-diagnostics/diagnosticar.py
+python .github/skills/rag-diagnostics/diagnose.py
 ```
 
 **Output:**
 ```
 1  INDEXES
    rag-documents
-      - Campos: 7
-      - Vectores: No
+      - Fields: 7
+      - Vectors: No
 
 2  DATA SOURCES
    blob-storage
-      - Tipo: AzureBlobStorage
+      - Type: AzureBlobStorage
 
 3  SKILLSETS
    ocr-skillset
       - Skills: 4
-      - Tipos: OcrSkill, SplitSkill, MergeSkill
+      - Types: OcrSkill, SplitSkill, MergeSkill
 
 4  INDEXERS
    blob-indexer
-      - Estado: Running
+      - Status: Running
       - Schedule: Every hour
 ```
 
-### 3. **monitorear.py** — Monitorización en Tiempo Real
+### 3. **monitor.py** — Real-Time Monitoring
 
-Monitorización continua de actividad del indexer.
+Continuous monitoring of indexer activity.
 
 ```bash
-python .github/skills/rag-diagnostics/monitorear.py
+python .github/skills/rag-diagnostics/monitor.py
 ```
 
 **Output:**
 ```
-Monitorizando indexer: blob-indexer
-Pulsa Ctrl+C para detener
+Monitoring indexer: blob-indexer
+Press Ctrl+C to stop
 
-[14:23:45] Estado: Running | Procesados: 45 | Fallidos: 0
+[14:23:45] Status: Running | Processed: 45 | Failed: 0
 [14:24:10] Estado: Running | Procesados: 89 | Fallidos: 1
 [14:24:35] Estado: Completed | Procesados: 113 | Fallidos: 0
 ```
 
-## Requisitos
+## Requirements
 
 ```bash
 pip install -r .github/requirements.txt
 ```
 
-- `.env` con credentials Azure AI Search:
+- `.env` with Azure AI Search credentials:
   - `AZURE_SEARCH_ENDPOINT`
   - `AZURE_SEARCH_KEY`
 
-## Ejemplos de Uso
+## Usage Examples
 
-### Verificar Salud del Sistema
-
-```bash
-python .github/skills/rag-diagnostics/estado-sistema.py
-```
-
-### Diagnosticar Problemas del Indexer
+### Check System Health
 
 ```bash
-python .github/skills/rag-diagnostics/diagnosticar.py
+python .github/skills/rag-diagnostics/system-status.py
 ```
 
-### Monitorizar Progreso en Vivo
+### Diagnose Indexer Issues
 
 ```bash
-# Ver indexación en tiempo real
-python .github/skills/rag-diagnostics/monitorear.py
+python .github/skills/rag-diagnostics/diagnose.py
 ```
 
-## Problemas Comunes y Soluciones
+### Monitor Live Progress
 
-| Problema | Diagnóstico | Solución |
+```bash
+# View indexing in real time
+python .github/skills/rag-diagnostics/monitor.py
+```
+
+## Common Issues and Solutions
+
+| Issue | Diagnosis | Solution |
 |---|---|---|
-| Índice vacío | `estado-sistema.py` muestra 0 docs | Ejecutar skill `rag-indexer` |
-| Indexer fallido | `diagnosticar.py` muestra status: Failed | Verificar credentials `.env` |
-| search semántica no funciona | Índice sin config semántica | Recrear índice con semántica habilitada |
-| indexing lenta | `monitorear.py` muestra bajo throughput | Aumentar tier Search o batch size |
+| Empty index | `system-status.py` shows 0 docs | Run `rag-indexer` skill |
+| Indexer failed | `diagnose.py` shows status: Failed | Verify credentials in `.env` |
+| Semantic search not working | Index missing semantic config | Recreate index with semantic enabled |
+| Indexing slow | `monitor.py` shows low throughput | Increase Search tier or batch size |
 
-## integration
+## Integration
 
-### En Scripts
+### In Scripts
 
 ```python
-from estado_sistema import check_status
+from system_status import check_status
 
 status = check_status()
 if status['index_count'] == 0:
-    print("No hay documentos indexados aún")
+    print("No documents indexed yet")
 else:
-    print(f"{status['index_count']} documentos listos")
+    print(f"{status['index_count']} documents ready")
 ```
 
-### En CI/CD
+### In CI/CD
 
 ```bash
-# Health check antes del despliegue
-python .github/skills/rag-diagnostics/diagnosticar.py || exit 1
+# Health check before deployment
+python .github/skills/rag-diagnostics/diagnose.py || exit 1
 ```

@@ -1,6 +1,6 @@
 ---
 name: rag-report-generator
-description: "Generación profesional de informes ejecutivos usando Claude Opus 4.7. Genera informes DOCX de alta calidad con formato profesional, narrativas convincentes y métricas de impacto cuantificadas. Perfecto para presentaciones a clientes y comunicación con stakeholders."
+description: "Professional executive report generation using Claude Opus 4.7. Generates high-quality DOCX reports with professional formatting, compelling narratives, and quantified impact metrics. Perfect for client presentations and stakeholder communication."
 version: "1.0.0"
 author: "RAG Framework"
 tags: ["reporting", "executive-summary", "docx", "claude", "professional"]

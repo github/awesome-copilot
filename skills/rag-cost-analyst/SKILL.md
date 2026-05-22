@@ -1,6 +1,6 @@
 ---
 name: 'rag-cost-analyst'
-description: 'Análisis exhaustivo de costes Azure, previsiones y recomendaciones de optimization. Analiza costes de infraestructura, costes de inferencia de modelos, e identifica oportunidades de ahorro.'
+description: 'Comprehensive Azure cost analysis, forecasting, and optimization recommendations. Analyzes infrastructure costs, model inference costs, and identifies savings opportunities.'
 ---
 
 **RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
