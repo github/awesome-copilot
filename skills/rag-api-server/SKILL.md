@@ -9,7 +9,7 @@ description: 'Exposes RAG functionality as a REST API for external applications.
 
 ## Overview
 
-Servidor API REST que envuelve la funcionalidad de query RAG, permitiendo a clientes HTTP buscar y consultar documents.
+Servidor API REST que envuelve la funcionalidad de query RAG, permitiendo a clients HTTP buscar y consultar documents.
 
 ## Features
 
@@ -86,7 +86,7 @@ El servidor corre en `http://localhost:8000`
 }
 ```
 
-## Clientes de Example
+## Clients de Example
 
 ### cURL
 

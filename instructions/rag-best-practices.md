@@ -15,7 +15,7 @@ description: 'Mejores prácticas RAG de Microsoft Learn: retrieval agéntico vs 
 ### 1. Comprensión de consultas
 
 **El problema:**  
-Los usuarios hacen preguntas conversacionales, complejas o vagas:
+Los usuarios agon preguntas conversacionales, complejas o vagas:
 > "¿Cuáles son las políticas de PTO para empleados remotos contratados después de 2023?"
 
 Pero los documentos dicen:

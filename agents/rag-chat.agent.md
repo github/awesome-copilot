@@ -94,7 +94,7 @@ y mantendrá la conversación fluida.
 
 - **Memoria de Contexto**: Recuerda preguntas anteriores
 - **Reformulación**: Interpreta preguntas ambiguas
-- **search Semántica**: Extrae documentación relevante
+- **search Semántica**: Extrae documentación relevant
 - **Sugerencias Relacionadas**: Propone temas de seguimiento
 - **Métricas**: Registra latencia, tokens, coste en AppInsights
 
@@ -121,7 +121,7 @@ User Input
     ↓
 [Search Agent] → Búsqueda semántica en Azure Search
     ↓
-[Context Builder] → Recupera documentos relevantes + histórico
+[Context Builder] → Recupera documentos relevants + histórico
     ↓
 [OpenAI Completion] → Genera respuesta conversacional
     ↓

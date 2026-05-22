@@ -38,7 +38,7 @@ python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --apply
 # Cambiar presupuesto a €50/mes e crear alertas
 python .github/skills/rag-cost-scaler/cost-scaler.py --budget 50 --create-alerts
 
-# Solo simular cambios sin aplicar
+# Solo simulate cambios sin aplicar
 python .github/skills/rag-cost-scaler/cost-scaler.py --tier premium --dry-run
 
 # Crear alertas sin cambiar configuration
@@ -102,7 +102,7 @@ CONFIGURACIÓN ACTUAL: minimal
 └────────────────┴──────────────┴────────────────────────────────┘
 ```
 
-### 2️⃣ Simular Cambios (Dry-Run)
+### 2️⃣ Simulate Cambios (Dry-Run)
 ```bash
 python .github/skills/rag-cost-scaler/cost-scaler.py --tier standard --dry-run
 ```
@@ -157,7 +157,7 @@ Configurando alertas...
 | `--tier {minimal\|standard\|premium}` | string | Cambiar a este tier |
 | `--budget EUR` | float | Presupuesto mensual en EUR |
 | `--apply` | flag | Aplicar cambios reales (sin esto es dry-run) |
-| `--dry-run` | flag | Solo simular, no aplicar |
+| `--dry-run` | flag | Solo simulate, no aplicar |
 | `--create-alerts` | flag | Crear presupuesto y alertas |
 | `--update-alerts-only` | flag | Solo actualizar alertas, no cambiar config |
 | `--list-options` | flag | Mostrar tiers disponibles |

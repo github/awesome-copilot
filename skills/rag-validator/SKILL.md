@@ -50,7 +50,7 @@ Based on [Microsoft RAG Guide](https://learn.microsoft.com/en-us/azure/search/re
 
 | Usar retrieval agéntico cuando... | Usar RAG clásico cuando... |
 |---|---|
-| El client es un agente o chatbot | Se requieren features solo GA |
+| El client es un agente o chatbot | Se requiresn features solo GA |
 | Se necesita máxima relevancia y precisión | Simplicidad y velocidad son prioridad |
 | Queries complejas o conversacionales | Código de orquestación existente a preservar |
 | Se necesitan respuestas estructuradas con citas | Se necesita control fino del pipeline |
@@ -102,7 +102,7 @@ python .github/skills/microsoft-guidelines-validator/guidelines_validator.py --r
 4. **instruction_pairing** — Cada `rag-*.agent.md` tiene un `agent-rag-*.instructions.md` correspondiente
 5. **skill_frontmatter** — Archivos `SKILL.md` contienen al menos `name` y `description`
 6. **microsoft_references** — Documents clave incluyen links válidos `https://learn.microsoft.com/...`
-7. **rag_reference_coverage** — Todos los agentes/instrucciones/skills enlazan al overview RAG oficial
+7. **rag_reference_coverage** — Todos los agentes/instrucciones/skills enlazan al overview RAG official
 8. **naming_conventions** — Agentes siguen `rag-*.agent.md`, instrucciones siguen `agent-rag-*.instructions.md`
 
 ### Capa 2: Calidad RAG (Mejores Prácticas Microsoft)
@@ -155,7 +155,7 @@ Example de output JSON:
 ```
 
 Códigos de Output:
-- `0` — compliance (sin failures; `--strict` también requiere sin warnings)
+- `0` — compliance (sin failures; `--strict` también requires sin warnings)
 - `1` — una o más verificaciones fallidas
 
 ---

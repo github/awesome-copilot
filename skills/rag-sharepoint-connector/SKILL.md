@@ -120,9 +120,9 @@ python .github/skills/rag-indexer/indexar.py
    Redirect URI: http://localhost:8000 (para auth interactiva)
    ```
 
-2. **Añadir permisos**
+2. **Añadir permyos**
    ```
-   API Permissions:
+   API Permysions:
    - Microsoft Graph -> Sites.Read.All (Delegated + Application)
    - Microsoft Graph -> Files.Read.All (Delegated + Application)
    - Microsoft Graph -> offline_access (Delegated)
@@ -137,7 +137,7 @@ python .github/skills/rag-indexer/indexar.py
    Tu tenant ID: Azure Portal -> Azure Active Directory -> Properties
    ```
 
-4. **Conceder permisos SharePoint**
+4. **Conceder permyos SharePoint**
    ```
    SharePoint Admin Center -> Share Data Access -> Grant access
    - Selecciona tu app

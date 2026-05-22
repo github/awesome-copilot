@@ -162,7 +162,7 @@ Mostrar diagrama de arquitectura:
     │  Coste: $0.001 por consulta     │
     └─────────────────────────────────┘
                  │
-                 │ (2) Chunks relevantes + Consulta original
+                 │ (2) Chunks relevants + Consulta original
                  ↓
     ┌─────────────────────────────────┐
     │  Generación: Azure OpenAI       │
@@ -196,7 +196,7 @@ Mostrar diagrama de arquitectura:
 - Busca en 10,000+ chunks en <500ms
 - search híbrida: keyword + semántica
 - Reduce el contexto del LLM en un 99%
-- **Beneficio de coste:** Solo pagas $250/mes vs contexto completo (IMPOSIBLE a escala)
+- **Beneficio de coste:** Solo pagas $250/mes vs contexto completo (IMPOSSIBLE a escala)
 
 🧠 **Azure OpenAI (gpt-4o)** — Respuestas inteligentes
 - Genera respuestas naturales y precisas
@@ -225,7 +225,7 @@ El MVP ya da el 80% de la calidad final al 40% del precio.
 ┌─────────────────────────────────────────────────────────────┐
 │  CONFIGURACIÓN MVP                                          │
 │                                                             │
-│  ⚠️  Todos los precios aproximados en USD.                 │
+│  ⚠️  Todos los precios approximados en USD.                 │
 │     Verificar: https://azure.microsoft.com/pricing/calculator │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -280,10 +280,10 @@ ROI a nivel MVP:
 ```
 MENÚ DE UPGRADES
 
-Activa solo lo que necesitas. Se puede añadir en cualquier momento sin redesplegar.
+Activa solo lo que necesitas. Se puede añadir en cualquier moment sin redesplegar.
 
 ┌───────────────────────────────────────────────────────────────┐
-│  ⚠️  Todos los precios aproximados en USD.                   │
+│  ⚠️  Todos los precios approximados en USD.                   │
 │     Verificar: https://azure.microsoft.com/pricing/calculator │
 │                                                               │
 │  UPGRADE                    BENEFICIO              +USD/mes   │
@@ -297,7 +297,7 @@ Activa solo lo que necesitas. Se puede añadir en cualquier momento sin redesple
 │                              ✅ 1,000 consultas GRATIS/mes    │
 │                                                               │
 │  🔁 Alta Disponibilidad     Sin downtime                     │
-│     2ª réplica Search        Si 1 nodo falla, el 2º asume.   │
+│     2ª réplica Search        Si 1 nodo falla, el 2º assume.   │
 │                              Necesario para cargas producción.│
 │                              ✅ 99.9% uptime SLA       +$295  │
 │                              ✅ Despliegues sin downtime      │
@@ -329,7 +329,7 @@ Activa solo lo que necesitas. Se puede añadir en cualquier momento sin redesple
 │                                                               │
 └───────────────────────────────────────────────────────────────┘
 
-RUTAS DE UPGRADE RECOMENDADAS (USD/mes aprox):
+RUTAS DE UPGRADE RECOMENDADAS (USD/mes approx):
 
   Prueba de concepto / Demo:     Solo MVP              ~$92
   Herramienta equipo interno:    MVP + Semántica + HA  ~$390
@@ -411,7 +411,7 @@ Mostrar coste final basado en MVP + upgrades seleccionados:
 ```
 TU CONFIGURACIÓN FINAL
 
-⚠️  Todos los precios aproximados en USD. Verificar en https://azure.microsoft.com/pricing/calculator
+⚠️  Todos los precios approximados en USD. Verificar en https://azure.microsoft.com/pricing/calculator
 
 Basado en: MVP + upgrades seleccionados (Búsqueda Semántica + Alta Disponibilidad)
 
@@ -454,7 +454,7 @@ Basado en: MVP + upgrades seleccionados (Búsqueda Semántica + Alta Disponibili
 
 Cada consulta envía TODOS los documentos a OpenAI:
 ```
-⚠️  Todos los precios aproximados en USD, modelo gpt-4o.
+⚠️  Todos los precios approximados en USD, modelo gpt-4o.
     Verificar en https://azure.microsoft.com/pricing/calculator
 
 Consulta: "¿Cuál es el daño del movimiento X?"
@@ -467,30 +467,30 @@ Entrada a OpenAI:
 
 Coste para 1,000 consultas/mes: ~$3,000
 Latencia: límite de contexto del modelo excedido → ERROR (gpt-4o = 128K token limit)
-Calidad: IMPOSIBLE — 5GB >> límite de 128K tokens
+Calidad: IMPOSSIBLE — 5GB >> límite de 128K tokens
 
-Coste mensual: efectivamente $0 (no se puede hacer)
+Coste mensual: efectivamente $0 (no se puede agor)
 
 ❌ Problemas:
-  - Excede límite de contexto del modelo — la consulta falla completamente
+  - Exceed límite de contexto del modelo — la consulta falla completamente
   - Incluso con chunking manual: $3/consulta × 1,000 = $3,000/mes
-  - 30-60 segundos por consulta si fuera posible
+  - 30-60 segundos por consulta si fuera possible
   - El modelo pierde foco con contexto masivo
 ```
 
 #### Escenario B: Con RAG (TU ELECCIÓN) ✅
 
-Cada consulta recupera SOLO chunks relevantes:
+Cada consulta recupera SOLO chunks relevants:
 ```
-⚠️  Precios aproximados en USD.
+⚠️  Precios approximados en USD.
 
 Consulta: "¿Cuál es el daño del movimiento X?"
 
-Paso 1: Búsqueda encuentra 5 chunks relevantes (50KB = ~12K tokens)
+Paso 1: Búsqueda encuentra 5 chunks relevants (50KB = ~12K tokens)
   Velocidad: 200-500ms
   Coste: ~$0
 
-Paso 2: Enviar solo chunks relevantes + consulta a gpt-4o
+Paso 2: Enviar solo chunks relevants + consulta a gpt-4o
   Entrada: 12,000 tokens × $2.50/1M  = $0.030
   Output: 500 tokens   × $10.00/1M = $0.005
   Total por consulta: ~$0.035
@@ -532,12 +532,12 @@ Coste mensual: $0
 **RESUMEN COMPARACIÓN DE COSTES (1,000 consultas/mes):**
 
 ```
-⚠️  USD aproximados. Verificar en https://azure.microsoft.com/pricing/calculator
+⚠️  USD approximados. Verificar en https://azure.microsoft.com/pricing/calculator
 
 ┌─────────────────────────────────────────────────┐
 │ Escenario        Infra    Uso      Total/mes    │
 ├─────────────────────────────────────────────────┤
-│ A: Ctx-Completo  $0      $3,000+  IMPOSIBLE    │ ❌ (límite contexto)
+│ A: Ctx-Completo  $0      $3,000+  IMPOSSIBLE    │ ❌ (límite contexto)
 │ B: RAG (tuyo)   $174     $35      ~$209        │ ✅ MEJOR
 │ C: Manual        $0       $0       $0          │ ❌ (no escalable)
 └─────────────────────────────────────────────────┘
@@ -671,7 +671,7 @@ Extrayendo credenciales
 
 Escribiendo archivo .env
   ✅ Guardado en: rag-pokemon/.env
-  ✅ Permisos: 600 (seguro)
+  ✅ Permyos: 600 (seguro)
 
 🎉 ¡Infraestructura desplegada con éxito!
 ```
@@ -843,7 +843,7 @@ Este agente:
 
 🎯 Siguientes pasos
 
-1. Añadir más documentos a knowledge/ en cualquier momento
+1. Añadir más documentos a knowledge/ en cualquier moment
    $ cp *.pdf rag-pokemon/knowledge/pdfs/
    $ python .github/skills/rag-indexer/index.py
 

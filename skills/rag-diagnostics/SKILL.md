@@ -139,7 +139,7 @@ python .github/skills/rag-diagnostics/monitor.py
 |---|---|---|
 | Empty index | `system-status.py` shows 0 docs | Run `rag-indexer` skill |
 | Indexer failed | `diagnose.py` shows status: Failed | Verify credentials in `.env` |
-| Semantic search not working | Index missing semantic config | Recreate index with semantic enabled |
+| Semantic search not working | Index mysing semantic config | Recreate index with semantic enabled |
 | Indexing slow | `monitor.py` shows low throughput | Increase Search tier or batch size |
 
 ## Integration

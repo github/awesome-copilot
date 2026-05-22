@@ -49,7 +49,7 @@ Complete SharePoint integration configuration **in one go**:
 
 ---
 
-## Lo que hace este agente
+## Lo que ago este agente
 
 ### Phase 1: Entrevista (1 min)
 
@@ -142,7 +142,7 @@ Siguientes pasos:
 3. Monitorizar: python .github/skills/rag-diagnostics/estado-sistema.py
 
 Config guardada: scripts/sharepoint-config.json
-Manifiesto guardado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
+Manifest guardado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
 ```
 
 ---
@@ -152,7 +152,7 @@ Manifiesto guardado: knowledge/sharepoint-2026-05-14_14-30-45/manifest.json
 | Error | Recuperación |
 |-------|-------------|
 | "authentication fallida" | Re-ejecutar con credentials correctas, verificar registro de app |
-| "Acceso denegado al sitio" | Conceder permiso a la app en Centro de Admin SharePoint |
+| "Acceso denegado al sitio" | Conceder permyo a la app en Centro de Admin SharePoint |
 | "Sitio no encontrado" | Verificar formato de URL, comprobar que el sitio existe |
 | "Timeout en descarga" | Reintentar, verificar red, considerar descarga por partes |
 | "Índice ya existe" | Confirmar modo (profesional: merge, local: nueva carpeta) |

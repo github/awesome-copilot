@@ -49,7 +49,7 @@ skills: ['rag-report-generator', 'rag-agent-instrumentation']
 
 ---
 
-## Lo que hace este agente
+## Lo que ago este agente
 
 ### Phase 1: Collect information (2 min - INTERACTIVE)
 
@@ -100,7 +100,7 @@ Using Claude Opus 4.7 (production-tested), generates:
 
 ### Phase 4: Crear DOCX profesional (2 min - AUTO)
 
-- Portada (cliente, fecha, nombre del proyecto)
+- Portada (client, fecha, nombre del proyecto)
 - Título y subtítulo formateados
 - Tabla de metadatos
 - Saltos de página
@@ -129,7 +129,7 @@ Imprimir:
 
 Archivo: outputs/informe-ejecutivo-20260514.docx
 Páginas: [n]
-Cliente: [nombre]
+Client: [nombre]
 Métricas: [n] recomendaciones, [conteo docs] docs, [ROI]
 
 Siguientes pasos:
@@ -137,7 +137,7 @@ Siguientes pasos:
 2. Personalizar logo/colores (opcional)
 3. Compartir con stakeholders
 4. Atender feedback (re-ejecutar si necesario)
-5. Presentar al cliente
+5. Presentar al client
 ```
 
 ---
@@ -151,7 +151,7 @@ Siguientes pasos:
 
 Archivo: outputs/informe-ejecutivo-20260514.docx
 Tamaño: [n] páginas
-Cliente: MENSADEF
+Client: MENSADEF
 Proyecto: Búsqueda Inteligente
 
 Contenido:
@@ -159,7 +159,7 @@ Contenido:
   • Métricas: 2,345 docs, 97% precisión, búsqueda en 30seg
   • Hallazgos: 5 logros clave
   • Recomendaciones: 4 acciones estratégicas (1 Alta, 2 Media, 1 Baja)
-  • Cronograma: 4 fases, 8 semanas total
+  • Cronograma: 4 phases, 8 semanas total
   • Riesgos: 3 identificados + mitigaciones
 
 Calidad: ✅ Los 25 checks pasados
@@ -173,7 +173,7 @@ SIGUIENTES PASOS:
 1. Abrir informe en Microsoft Word
 2. Personalizar: logo, colores, encabezado/pie (opcional)
 3. Compartir con equipo de revisión o stakeholder
-4. Usar en: reunión de dirección, presentación a cliente, resumen ejecutivo
+4. Usar en: reunión de dirección, presentación a client, resumen ejecutivo
 5. Refinamientos: Ejecutar agente de nuevo con feedback
 
 El informe está listo para producción y puede compartirse inmediatamente.
@@ -203,8 +203,8 @@ Cada informe pasa:
 
 ## FAQ
 
-**P: ¿Puedo usarlo para diferentes clientes?**
-R: Sí. Solo re-ejecuta el agente con diferente nombre de cliente, proyecto y métricas.
+**P: ¿Puedo usarlo para diferentes clients?**
+R: Sí. Solo re-ejecuta el agente con diferente nombre de client, proyecto y métricas.
 
 **P: ¿Con qué frecuencia debería regenerar?**
 R: Una vez al completar el proyecto. Si las métricas cambian significativamente, regenerar con nuevos datos.

@@ -90,7 +90,7 @@ Actual:           ✓
 **El sistema pregunta:**
 
 ```
-¿Qué te gustaría hacer?
+¿Qué the gustaría agor?
 
 1. Ver costes actuales
 2. Escalar a MÍNIMO (€30/mes) — ahorrar dinero
@@ -232,7 +232,7 @@ Alertas de presupuesto activas:
 |---|---|---|
 | Servicio Search no encontrado | Aún no desplegado | Ejecutar agente `rag-azure-setup` primero |
 | Cuota insuficiente | Límite de suscripción Azure | Solicitar aumento de cuota o probar otra región |
-| Permiso RBAC denegado | Sin rol Contributor | Pedir al admin que conceda rol Contributor |
+| Permyo RBAC denegado | Sin rol Contributor | Pedir al admin que conceda rol Contributor |
 | Timeout de re-indexing | Conjunto de documentos grande | Reintento manual o contactar soporte |
 | Alerta de presupuesto ya existe | Umbral duplicado | Eliminar alerta antigua primero |
 
@@ -277,20 +277,20 @@ python cost-scaler-wrapper.py --action CreateAlerts --resource-group rag-defensa
 
 ## FAQ
 
-**P: ¿Se eliminarán mis documentos?**
+**P: ¿Se eliminarán my documentos?**
 R: No. Todos los datos se preservan y re-indexan automáticamente. Cero pérdida de datos.
 
 **P: ¿Cuánto tarda?**
 R: 5-10 minutos para cambio de tier + re-indexing, dependiendo del volumen de documentos.
 
 **P: ¿Puedo volver a Mínimo?**
-R: ¡Sí! Puedes escalar abajo en cualquier momento. Los costes bajan inmediatamente.
+R: ¡Sí! Puedes escalar abajo en cualquier moment. Los costes bajan inmediatamente.
 
 **P: ¿Y si escalo arriba y me arrepiento?**
-R: Escala de vuelta abajo. Solo se te cobra por el tier actual a partir del siguiente ciclo de facturación.
+R: Escala de vuelta abajo. Solo se the cobra por el tier actual a partir del siguiente ciclo de facturación.
 
 **P: ¿Hay otros tiers?**
-R: Solo 3 tiers predefinidos. SKUs personalizados disponibles vía portal Azure (requiere configuration manual).
+R: Solo 3 tiers predefinidos. SKUs personalizados disponibles vía portal Azure (requires configuration manual).
 
 ---
 

@@ -20,7 +20,7 @@ This skill **generates the final document you defend to the client** — a profe
 
 - **Professional formatting** — Corporate design, appropriate typography, brand colors
 - **AI-powered content** — Claude Opus 4.7 generates compelling narratives and data synthesis
-- **Quantified impact** — Numbers, metrics, ROI (not vague promises)
+- **Quantified impact** — Numbers, metrics, ROI (not vague promyes)
 - **Strategic recommendations** — Actionable next steps with timeline and investment
 - **Executive tone** — Accessible for C-suite, but credible for technical stakeholders
 
