@@ -19,10 +19,10 @@
     "governance"
   ],
   "skills": [
-    "./skills/flowstudio-power-automate-build/",
-    "./skills/flowstudio-power-automate-debug/",
-    "./skills/flowstudio-power-automate-governance/",
-    "./skills/flowstudio-power-automate-mcp/",
-    "./skills/flowstudio-power-automate-monitoring/"
+    "./skills/flowstudio-power-automate-build",
+    "./skills/flowstudio-power-automate-debug",
+    "./skills/flowstudio-power-automate-governance",
+    "./skills/flowstudio-power-automate-mcp",
+    "./skills/flowstudio-power-automate-monitoring"
   ]
 }
