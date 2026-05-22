@@ -20,6 +20,6 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "skills": [
-    "./skills/generate-image/"
+    "./skills/generate-image"
   ]
 }
