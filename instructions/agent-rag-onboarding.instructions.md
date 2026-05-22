@@ -1,4 +1,4 @@
-**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
+﻿**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 
 
@@ -100,7 +100,7 @@ Preguntar EXACTAMENTE estas 5 preguntas (ni más, ni menos):
     Ejemplo: "rag-builder"
     
 2️⃣  ¿Descripción del proyecto? (1-2 frases)
-    Ejemplo: "Sistema de gestión de clientes para banca minorista"
+    Ejemplo: "Sistema de gestión de clients para banca minorista"
     
 3️⃣  ¿Tamaño total de documentación?
     Opciones: 
@@ -153,7 +153,7 @@ print(f"""
    TOTAL:         ${config['total']}/mes
 
 Presupuesto declarado: ${budget}/mes
-Estado: {"✅ DENTRO DEL PRESUPUESTO" if config['total'] <= budget else "⚠️  EXCEDE PRESUPUESTO"}
+Estado: {"✅ DENTRO DEL PRESUPUESTO" if config['total'] <= budget else "⚠️  EXCEEDS PRESUPUESTO"}
 """)
 
 print("¿Proceder con esta configuración? (S/n)")
@@ -164,7 +164,7 @@ print("¿Proceder con esta configuración? (S/n)")
 ```python
 if config_cost > user_budget:
     print(f"""
-⚠️  La configuración (${config_cost}) excede el presupuesto (${user_budget}).
+⚠️  La configuración (${config_cost}) EXCEEDS el presupuesto (${user_budget}).
 
 Opciones:
   A) Continuar igualmente (los costes se acumularán)
@@ -525,7 +525,7 @@ Al reiniciar:
 ```
 🔄 Detectada configuración incompleta del 2026-05-13 10:30
 
-Última fase: Phase 5 (Indexar Documentos)
+Última phase: Phase 5 (Indexar Documentos)
 Progreso: 1,250 / 2,130 chunks indexados
 
 ¿Reanudar desde la Phase 5? (S/n)
@@ -535,7 +535,7 @@ Progreso: 1,250 / 2,130 chunks indexados
 
 ## Criterios de éxito
 
-✅ El usuario ve UNO de estos 3 comandos y puede ejecutarlo inmediatamente:
+✅ El usuario ve UNO de estos 3 commands y puede ejecutarlo inmediatamente:
 ```bash
 python .github/skills/rag-query-cli/consultar.py "¿Cuál es X?"
 copilot-cli run .github/agents/rag-chat.agent.md

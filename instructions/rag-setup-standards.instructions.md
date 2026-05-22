@@ -1,4 +1,4 @@
----
+﻿---
 description: 'Estándares de configuration RAG para observability, Error Handling y consistencia de logging en agentes y scripts.'
 applyTo: '**/*.py, **/*.agent.md'
 ---
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 logger.debug("Información detallada de ejecución")   # Troubleshooting dev
 logger.info("Paso completado")                       # Progreso normal
-logger.warning("Problema potencial")                 # No bloqueante
+logger.warning("Problema potential")                 # No bloqueante
 logger.error("Operación fallida, puede recuperarse") # Recuperable
 ```
 
@@ -84,7 +84,7 @@ logger.info(f"Agente summary ejecutado en {latency_ms}ms")
 
 - Usar type hints: `def execute(query: str, context: str) -> Dict[str, Any]`
 - Docstrings para todas las funciones
-- Nombres de clases: `PascalCase` (ej: `MonolithicAgent`)
+- Nombres de classes: `PascalCase` (ej: `MonolithicAgent`)
 - Nombres de funciones: `snake_case` (ej: `execute_agent`)
 - Constantes: `UPPER_CASE` (ej: `MAX_RETRIES`)
 

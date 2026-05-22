@@ -1,4 +1,4 @@
-**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
+﻿**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 
 
@@ -11,7 +11,7 @@
 
 ---
 
-## Qué hace este agente
+## Qué does este agente
 
 Valida que la configuration se ajuste al presupuesto del usuario + restricciones de Azure ANTES de cualquier deployment.
 
@@ -136,12 +136,12 @@ Costes de servicios (mensual):
 │                                         │
 ├─────────────────────────────────────────┤
 │ TOTAL MENSUAL: ${total}/mes               │
-│ Anual: ${total * 12}                    │
+│ Annual: ${total * 12}                    │
 └─────────────────────────────────────────┘
 
 Tu presupuesto: ${user_budget}/mes
 Diferencia: ${difference}
-Estado: {"✅ DENTRO DEL PRESUPUESTO" if total <= user_budget else "⚠️ EXCEDE PRESUPUESTO"}
+Estado: {"✅ DENTRO DEL PRESUPUESTO" if total <= user_budget else "⚠️ EXCEEDS PRESUPUESTO"}
 ```
 
 ### Paso 5: Resultado de validation (30 seg)
@@ -156,7 +156,7 @@ SI total_cost <= user_budget:
 SI NO SI total_cost <= user_budget * 1.1:  # Dentro del 10%
   ⚠️ Validación AMARILLA
   
-  La configuración excede el presupuesto en ${difference} (${percent}%).
+  La configuración EXCEEDS el presupuesto en ${difference} (${percent}%).
   
   Opciones:
     A) Continuar igualmente (ligero exceso)
@@ -213,9 +213,9 @@ print(f"✅ Informe guardado en outputs/validation-report-{timestamp}.json")
 
 ## Escenarios de error
 
-### Excede presupuesto
+### EXCEEDS presupuesto
 ```
-❌ La configuración ($2,750/mes) excede el presupuesto ($2,000/mes)
+❌ La configuración ($2,750/mes) EXCEEDS el presupuesto ($2,000/mes)
 
 Para ajustar al presupuesto, prueba:
   1. Marcar algunos docs como "archivo" (tier inferior)
@@ -254,7 +254,7 @@ Recomendaciones:
 
 ## integration con el wizard
 
-Después de que la validation PASE, el wizard puede continuar:
+Después de que la validation PASS, el wizard puede continuar:
 
 ```
 ✅ Validación APROBADA

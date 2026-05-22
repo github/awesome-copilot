@@ -1,4 +1,4 @@
-**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
+﻿**RAG Reference:** [Retrieval-augmented Generation (RAG) in Azure AI Search - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/retrieval-augmented-generation-overview?tabs=videos)
 
 
 
@@ -10,7 +10,7 @@ Estándares para la configuration de rag-builder: onboarding claro, conciencia d
 - [ ] Python 3.10+ instalado
 - [ ] `.env` configurado con credentials de Azure
 - [ ] Azure CLI con sesión iniciada (`az login`)
-- [ ] Validador pre-deployment ejecutado (verificar costes)
+- [ ] Validator pre-deployment ejecutado (verificar costes)
 - [ ] Infraestructura Azure desplegada
 - [ ] Documentos indexados en AI Search
 - [ ] Test de consulta RAG exitoso
@@ -19,7 +19,7 @@ Estándares para la configuration de rag-builder: onboarding claro, conciencia d
 
 ### 1. Conciencia de costes primero
 
-Siempre ejecutar el validador de costes ANTES de deploy:
+Siempre ejecutar el Validator de costes ANTES de deploy:
 ```bash
 copilot-cli run .github/agents/rag-validate-deployment.agent.md
 ```
@@ -58,7 +58,7 @@ knowledge/
 ├── pdfs/               # PDFs (manuales, políticas, guías, especificaciones)
 ├── procedimientos/     # Word (.docx), Excel (.xlsx), Markdown (.md) docs procedimentales
 ├── codigo/             # SQL, Python, JavaScript, ficheros de configuración (YAML, JSON)
-└── presentaciones/     # PowerPoint (.pptx), diagramas, docs de arquitectura
+└── presentaciones/     # PowerPoint (.pptx), diagrams, docs de arquitectura
 ```
 
 **Responsabilidad del agente:** 
@@ -68,7 +68,7 @@ knowledge/
 
 ### 5. Flujo de automatización del wizard (TOTALMENTE AUTOMÁTICO)
 
-**rag-onboarding.agent.md DEBE ejecutar estas fases con CERO intervención del usuario:**
+**rag-onboarding.agent.md DEBE ejecutar estas phases con CERO intervención del usuario:**
 
 #### Phase 1: Entrevista al usuario (5 min)
 ```
@@ -112,7 +112,7 @@ Verificar:
 - La región tiene cuota disponible (az vm list-skus)
 - La suscripción tiene cuota para OpenAI + Search
 
-SI excede presupuesto:
+SI exceeds presupuesto:
   └─ SUGERIR: "Prueba config más pequeña o solicita aumento de cuota Azure"
   └─ PERMITIR OVERRIDE: "¿Continuar igualmente? (S/n)"
 

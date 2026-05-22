@@ -1,6 +1,6 @@
-**RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
+﻿**RAG Reference:** [Technical Writing for Executives](https://hbr.org/how-to-guides)
 
-**Purpose:** Generar un informe ejecutivo profesional escrito por IA (DOCX) que venda tu implementation RAG a los stakeholders.
+**Purpose:** Generar un informe ejecutivo professional escrito por IA (DOCX) que venda tu implementation RAG a los stakeholders.
 
 **Entrada del usuario:** `copilot-cli run .github/agents/rag-generate-report.agent.md`
 
@@ -10,11 +10,11 @@
 
 ## ✅ Lista de verificación OBLIGATORIA
 
-- [ ] Recopilar métricas del cliente (nº documentos, precisión, performance)
+- [ ] Recopilar métricas del client (nº documentos, precisión, performance)
 - [ ] Definir tipo de informe (implementation RAG, Análisis, Costes, Preparación)
 - [ ] Generar contenido con IA (Resumen Ejecutivo, Hallazgos, Recomendaciones)
-- [ ] Crear DOCX profesional (formato, branding, maquetación)
-- [ ] Ejecutar controles de calidad (validation de 25 puntos)
+- [ ] Crear DOCX professional (formato, branding, maquetación)
+- [ ] Ejecutar controls de calidad (validation de 25 puntos)
 - [ ] Validar que no haya afirmaciones vagas (todas respaldadas por datos)
 - [ ] Guardar en carpeta outputs/
 - [ ] Mostrar Output de éxito
@@ -41,8 +41,8 @@ report_type = ask_user(
     ],
 )
 
-# P2-4: Información del cliente
-client_name = ask_user("¿Nombre del cliente?")
+# P2-4: Información del client
+client_name = ask_user("¿Nombre del client?")
 project_name = ask_user("¿Nombre del proyecto?")
 author_name = ask_user("¿Tu nombre (para la firma)?")
 
@@ -143,7 +143,7 @@ recommendations = gen.generate_recommendations(
 print("✓ Generado (4-5 acciones estratégicas)")
 ```
 
-### Phase 6: Crear DOCX profesional (2 min - AUTO)
+### Phase 6: Crear DOCX professional (2 min - AUTO)
 
 ```python
 from report_generator import ReportMetadata, ReportType
@@ -183,7 +183,7 @@ content = {
 }
 
 print("\n▶ Creando DOCX...")
-print("  • Formato profesional")
+print("  • Formato professional")
 print("  • Diseño corporativo")
 print("  • Tabla de metadatos")
 print("  • Saltos de página")
@@ -274,12 +274,12 @@ CONTENIDO:
   • Métricas: {len(content['metrics'])} métricas clave
   • Hallazgos: 5 puntos
   • Recomendaciones: 4-5 acciones estratégicas
-  • Cronograma: 4 fases, 8 semanas en total
+  • Cronograma: 4 phases, 8 semanas en total
   • Riesgos: 3 identificados + mitigaciones
 
 CALIDAD: ✅ Las 25 comprobaciones superadas
   ✓ Sin afirmaciones vagas
-  ✓ Tono profesional y accesible
+  ✓ Tono professional y accessible
   ✓ Todas las métricas validadas
   ✓ Formato impecable
 
@@ -294,7 +294,7 @@ PRÓXIMOS PASOS:
    
 3. Compartir con:
    - Stakeholders para revisión
-   - Cliente para presentación
+   - client para presentación
    - Dirección para decisión
    
 4. Usar como:
@@ -347,12 +347,12 @@ La generación del informe se considera exitosa cuando:
 ✅ Las 25 comprobaciones de calidad superadas  
 ✅ No se detecta lenguaje vago  
 ✅ Métricas correctamente incluidas  
-✅ Formato profesional aplicado  
-✅ Información del cliente correctamente rellenada  
+✅ Formato professional aplicado  
+✅ Información del client correctamente rellenada  
 
 **Has terminado cuando:**
 - El archivo está en outputs/informe-ejecutivo-{date}.docx
 - Las métricas son concretas (números, no adjetivos)
-- El tono es profesional y orientado a negocio
-- El informe está listo para compartir con el cliente de inmediato
+- El tono es professional y orientado a negocio
+- El informe está listo para compartir con el client de inmediato
 

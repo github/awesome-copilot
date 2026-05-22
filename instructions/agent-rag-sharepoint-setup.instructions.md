@@ -1,4 +1,4 @@
-**RAG Reference:** [Retrieval-augmented Generation con SharePoint - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-solutions-retrieval-augmented-generation)
+﻿**RAG Reference:** [Retrieval-augmented Generation con SharePoint - Microsoft Learn](https://learn.microsoft.com/en-us/azure/search/search-solutions-retrieval-augmented-generation)
 
 **Purpose:** Configurar la integration completa con SharePoint (ambos modos) sin intervención manual excepto configuration opcional en el portal de Azure.
 
@@ -15,7 +15,7 @@
 - [ ] URL del sitio SharePoint identificada
 - [ ] (Opcional) Client Secret para service principal
 - [ ] (Modo local) Suficiente espacio en disco para la descarga
-- [ ] (Modo profesional) Instancia de Azure AI Search desplegada
+- [ ] (Modo professional) Instancia de Azure AI Search desplegada
 
 ---
 
@@ -72,7 +72,7 @@ if q1 == "No" or q1 == "No lo sé":
        - Microsoft Graph → offline_access
     7. Clic: "Conceder consentimiento del administrador"
     8. Ir a: Certificados y secretos
-    9. Copiar: "ID de aplicación (cliente)"
+    9. Copiar: "ID de aplicación (client)"
     10. Ir a: Azure AD → Propiedades, copiar "ID de directorio"
     
     Luego vuelve y ejecuta este script de nuevo.
@@ -82,9 +82,9 @@ if q1 == "No" or q1 == "No lo sé":
 # Pregunta 2: Selección de modo
 mode = ask_user(
     "¿Qué modo?",
-    choices=["Profesional (tiempo real, recomendado)", "Local (descarga)"],
+    choices=["professional (tiempo real, recomendado)", "Local (descarga)"],
 )
-mode = "professional" if "Profesional" in mode else "local"
+mode = "professional" if "professional" in mode else "local"
 
 # Pregunta 3: URL de SharePoint
 sharepoint_url = ask_user("URL del sitio SharePoint:")
@@ -189,16 +189,16 @@ if len(items) > 10000:
 
 ### Phase 6: configuration específica por modo
 
-#### MODO PROFESIONAL (2-3 min)
+#### MODO professional (2-3 min)
 
 ```python
 if mode == "professional":
     print("\n" + "="*50)
-    print("CONFIGURACIÓN MODO PROFESIONAL")
+    print("CONFIGURACIÓN MODO professional")
     print("="*50)
     
     print("""
-    ✅ El modo profesional hará:
+    ✅ El modo professional hará:
        • Crear indexador que sincroniza desde SharePoint en tiempo real
        • Actualizar Azure Search automáticamente (cada hora)
        • Sin duplicación de documentos
@@ -229,7 +229,7 @@ if mode == "professional":
     
     12. Ejecutar indexador manualmente primero: Indexadores → {config['indexer']['name']} → Ejecutar
     
-    ✅ Verificar estado: Indexadores → Pestaña Historial
+    ✅ Verificar estado: Indexadores → Pestaña History
     """)
     
     # Esperar confirmación del usuario
@@ -267,7 +267,7 @@ else:  # modo local
     
     print(f"\n✅ ¡Descarga completa!")
     print(f"   Destino: {download_dir}")
-    print(f"   Manifiesto: {download_dir / 'manifest.json'}")
+    print(f"   Manifest: {download_dir / 'manifest.json'}")
 ```
 
 ### Phase 7: index documentos (solo modo local)
@@ -348,7 +348,7 @@ print("="*50)
 
 tests = {
     "Autenticación": check_auth_token(),
-    "SharePoint accesible": check_sharepoint_connection(),
+    "SharePoint accessible": check_sharepoint_connection(),
     "Configuración guardada": config_file.exists(),
 }
 
@@ -464,7 +464,7 @@ except requests.Timeout:
     print("  - Throttling de SharePoint")
     print("\nReintentar o:")
     print("  - Dividir documentos en biblioteca más pequeña")
-    print("  - Usar modo profesional en su lugar")
+    print("  - Usar modo professional en su lugar")
     exit(1)
 ```
 
@@ -478,7 +478,7 @@ Cuando el usuario tiene SharePoint en `rag-onboarding.agent.md`:
 # En rag-onboarding agente Phase 2 (Entrevista):
 if ask_user("¿Tienes documentos en SharePoint?") == "Sí":
     print("\n¡Genial! Nos encargamos de SharePoint.")
-    mode = ask_user("¿Modo preferido?", choices=["Profesional", "Local"])
+    mode = ask_user("¿Modo preferido?", choices=["professional", "Local"])
     
     # Después, en Phase 5 (Indexación):
     call_agent("rag-sharepoint-setup", {
@@ -494,6 +494,6 @@ if ask_user("¿Tienes documentos en SharePoint?") == "Sí":
 - [ ] Usuario autenticado (tokens obtenidos)
 - [ ] Sitio SharePoint resuelto (drive ID encontrado)
 - [ ] Documentos descubiertos (al menos 1 elemento)
-- [ ] Modo configurado (modo profesional O local completado)
+- [ ] Modo configurado (modo professional O local completado)
 - [ ] configuration guardada en scripts/sharepoint-config.json
 - [ ] .env actualizado (si modo local)

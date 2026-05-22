@@ -1,4 +1,4 @@
----
+﻿---
 description: 'Mejores prácticas RAG de Microsoft Learn: retrieval agéntico vs RAG clásico, preparación de contenido, ajuste de relevancia'
 ---
 
@@ -48,7 +48,7 @@ Los LLMs aceptan tokens limitados (~128K para gpt-4o):
 - Enviar todo desperdicia tokens y degrada la calidad
 - El tiempo de respuesta se vuelve inaceptable
 
-**Tu sistema de recuperación debe devolver resultados altamente relevantes y concisos — no volcados exhaustivos de documentos.**
+**Tu sistema de recuperación debe devolver resultados altamente relevant y concisos — no volcados exhaustivos de documentos.**
 
 ---
 
@@ -64,8 +64,8 @@ Los usuarios esperan respuestas potenciadas por IA en **3-5 segundos**, no minut
 ### 5. security y gobernanza
 
 **El problema:**  
-Abrir contenido privado a LLMs requiere control de acceso granular:
-- Los datos financieros solo deben ser accesibles para el equipo de finanzas
+Abrir contenido privado a LLMs requires control de acceso granular:
+- Los datos financieros solo deben ser accessibles para el equipo de finanzas
 - Incluso cuando un ejecutivo pregunta al chatbot
 - Los usuarios solo deben recuperar contenido autorizado
 
@@ -78,8 +78,8 @@ Abrir contenido privado a LLMs requiere control de acceso granular:
 #### 1. **Retrieval Agéntico** (Recomendado para proyectos nuevos)
 
 **Usar cuando:**
-- Tu cliente es un agente o chatbot
-- Necesitas la mayor relevancia y precisión posible
+- Tu client es un agente o chatbot
+- Necesitas la mayor relevancia y precisión possible
 - Tus consultas son complejas o conversacionales
 - Quieres respuestas estructuradas con citas y detalles de consulta
 - Estás construyendo nuevas implementaciones RAG
@@ -93,7 +93,7 @@ LLM analiza consulta → genera múltiples sub-consultas
     ↓
 Ejecución paralela de todas las sub-consultas
     ↓
-Ejecución paralela (no secuencial)
+Ejecución paralela (no sequential)
     ↓
 Respuesta estructurada con datos de fundamentación
     ↓
@@ -105,7 +105,7 @@ Síntesis de respuesta opcional (usa respuesta formulada por LLM)
 ```
 
 **Características:**
-- Planificación de consultas con contexto usando historial de conversación
+- Planificación de consultas con contexto usando history de conversación
 - Ejecución paralela de múltiples sub-consultas enfocadas
 - Respuestas estructuradas con datos de fundamentación, citas, metadatos de ejecución
 - Ranking semántico integrado para relevancia óptima
@@ -121,7 +121,7 @@ Acción Retrieve (llamada desde código del agente como tool)
     ↓
 Razonamiento agéntico LLM
     ↓
-El agente responde al usuario
+El agente responds al usuario
 ```
 
 **Ejemplo de workflow:**
@@ -222,7 +222,7 @@ response = llm.generate(
 #### 1. **Estrategia de chunking**
 
 **Problema:**  
-Documentos grandes (50+ páginas) no funcionan bien en search vectorial. Los resultados devuelven documentos enteros en vez de secciones relevantes.
+Documentos grandes (50+ páginas) no funcionan bien en search vectorial. Los resultados devuelven documentos enteros en vez de secciones relevant.
 
 **Solución:**  
 Dividir documentos en chunks semánticos (200-500 tokens cada uno):
@@ -240,7 +240,7 @@ Chunk N: "Sección 8.5: Procedimientos de terminación" (275 tokens)
 
 **Mejores prácticas:**
 - Preservar fronteras semánticas (no dividir a mitad de frase/sección)
-- Incluir metadatos del documento padre (título, fuente, autor)
+- Incluir metadatos del documento padre (título, fuente, author)
 - Solapar chunks ligeramente (20-50 tokens) para contexto
 - Usar división syntax-aware para archivos de código
 
@@ -276,9 +276,9 @@ Consulta del usuario: "Política PTO"
     ↓
 Generar embedding: [0.245, -0.885, 0.131, ..., 0.571]
     ↓
-Encontrar vectores similares (similitud coseno)
+Encontrar vectors similares (similitud coseno)
     ↓
-Recuperar chunks relevantes
+Recuperar chunks relevant
 ```
 
 **Mejores prácticas:**
@@ -393,7 +393,7 @@ resource ocrSkill 'Microsoft.Search/searchServices/skillsets@2023-11-01' = {
 
 - [ ] **Documentos grandes:** Divididos en chunks (200-500 tokens cada uno)
 - [ ] **Vectorización:** Todos los chunks tienen embeddings
-- [ ] **Metadatos:** Fuente, fecha, autor, tipo de documento extraídos
+- [ ] **Metadatos:** Fuente, fecha, author, tipo de documento extraídos
 - [ ] **Idioma:** Analizador apropiado configurado
 - [ ] **PDFs/Imágenes:** OCR aplicado
 - [ ] **Sinónimos:** Mapas de sinónimos para diferencias terminológicas (PTO = "días libres", "vacaciones")
@@ -440,7 +440,7 @@ results = client.search(
 ### 2. Ranking semántico
 
 **Problema:**  
-Los resultados top de search híbrida pueden no ser semánticamente relevantes.
+Los resultados top de search híbrida pueden no ser semánticamente relevant.
 
 ```
 Top 3 Resultados:
@@ -459,7 +459,7 @@ Ranking original (score BM25):
 3. "Manual nóminas" - Score: 6.1
 
 Después de re-ranking semántico:
-1. "Beneficios trabajo remoto" - Score semántico: 2.8 (más relevante)
+1. "Beneficios trabajo remoto" - Score semántico: 2.8 (más relevant)
 2. "Política PTO empresa" - Score semántico: 2.1
 3. "Manual nóminas" - Score semántico: 0.4
 ```
@@ -554,7 +554,7 @@ results = client.search(
 ### Retrieval agéntico: Estrategia multi-consulta
 
 **Problema:**  
-El usuario hace una pregunta compleja que no puede responderse con una sola consulta.
+El usuario does una pregunta compleja que no puede respondsrse con una sola consulta.
 
 **Consulta del usuario:**
 > "¿Cuáles son las políticas de vacaciones para empleados remotos contratados después de 2023 que trabajan en el sector de Defensa?"
@@ -571,18 +571,18 @@ Consulta original:
 "¿Cuáles son las políticas de vacaciones para empleados remotos 
  contratados después de 2023 que trabajan en el sector de Defensa?"
     ↓
-Generación de sub-consultas por LLM (usando historial de conversación para contexto)
+Generación de sub-consultas por LLM (usando history de conversación para contexto)
     ├─► Sub-consulta 1: "Políticas de vacaciones empleados remotos"
     ├─► Sub-consulta 2: "Requisitos para empleados nuevos 2023"
     └─► Sub-consulta 3: "Especificaciones sector Defensa"
     ↓
-Ejecución de búsqueda paralela (¡mucho más rápido que secuencial!)
+Ejecución de búsqueda paralela (¡mucho más rápido que sequential!)
     ├─► Búsqueda 1: Resultados [chunk-1, chunk-2, chunk-3, ...]
     ├─► Búsqueda 2: Resultados [chunk-4, chunk-5, chunk-6, ...]
     └─► Búsqueda 3: Resultados [chunk-7, chunk-8, chunk-9, ...]
     ↓
 Re-ranking semántico (todos los resultados)
-    └─► Top 5 más relevantes de todas las búsquedas
+    └─► Top 5 más relevant de todas las búsquedas
     ↓
 Síntesis de respuesta
     └─► LLM formula respuesta comprensiva con citas

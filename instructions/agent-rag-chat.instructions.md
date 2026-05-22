@@ -13,14 +13,14 @@
 
 ## ✅ Checklist del Modo Chat
 
-- [ ] Cargar historial de conversación (si existe)
+- [ ] Cargar history de conversación (si existe)
 - [ ] Mostrar mensaje de bienvenida
 - [ ] Entrar en bucle de chat (leer entrada del usuario)
 - [ ] Para cada mensaje:
   - [ ] Buscar documentos
   - [ ] Generar respuesta con contexto
   - [ ] Mostrar respuesta + fuentes
-  - [ ] Guardar en historial
+  - [ ] Guardar en history
 - [ ] Permitir cambio de contexto ("reset", "export", "quit")
 - [ ] Guardar sesión final en outputs/
 
@@ -56,14 +56,14 @@ conversation = {
 print(f"""
 🤖 RAG Chat Iniciado (Sesión: {session_id})
 
-Comandos:
-  • /history    - Mostrar historial de conversación
+Commands:
+  • /history    - Mostrar history de conversación
   • /reset      - Limpiar contexto de conversación
   • /export     - Guardar sesión
   • /help       - Mostrar ayuda
   • /quit       - Salir
 
-Escribe tu pregunta o comando:
+Escribe tu pregunta o Command:
 """)
 ```
 
@@ -81,7 +81,7 @@ while True:
     if not user_input:
         continue
     
-    # Manejar comandos
+    # Manejar Commands
     if user_input.lower() == "/quit":
         break
     elif user_input.lower() == "/history":
@@ -134,7 +134,7 @@ while True:
     print(f"\n⏱️  Latencia: {search_latency:.0f}ms (búsqueda) + {inference_latency:.0f}ms (inferencia) = {search_latency + inference_latency:.0f}ms total")
     print(f"💰 Coste: ${tokens_used * 0.0001:.4f}")
     
-    # 4. Guardar turno en historial
+    # 4. Guardar turno en history
     turn = {
         "turn_number": len(conversation["turns"]) + 1,
         "user_query": user_input,
@@ -330,16 +330,16 @@ Provide a clear, concise answer with specific citations."""
 
 ---
 
-## Comando: Mostrar Historial
+## Command: Mostrar history
 
 ```python
 def show_history(conversation):
-    """Muestra el historial de conversación"""
+    """Muestra el history de conversación"""
     if not conversation["turns"]:
-        print("Aún no hay historial de conversación.")
+        print("Aún no hay history de conversación.")
         return
     
-    print(f"\n📜 Historial de Conversación ({len(conversation['turns'])} turnos):\n")
+    print(f"\n📜 history de Conversación ({len(conversation['turns'])} turnos):\n")
     
     for turn in conversation["turns"]:
         print(f"Turno {turn['turn_number']}:")
@@ -351,7 +351,7 @@ def show_history(conversation):
 
 ---
 
-## Comando: Reiniciar Contexto
+## Command: Reiniciar Contexto
 
 ```python
 def reset_context():
@@ -364,7 +364,7 @@ def reset_context():
 
 ---
 
-## Comando: Exportar Sesión
+## Command: Exportar Sesión
 
 ```python
 def save_session(conversation, filepath):
@@ -456,7 +456,7 @@ Nueva pregunta:
 ```
 ❌ Error de API de OpenAI: Límite de tasa excedido
 
-Espera un momento e inténtalo de nuevo...
+Espera un moment e inténtalo de nuevo...
 ```
 
 ### Conexión de search Perdida
@@ -485,7 +485,7 @@ Solución de problemas:
 
 ✅ La sesión se guarda automáticamente
 
-✅ El usuario puede exportar/revisar el historial
+✅ El usuario puede exportar/revisar el history
 
 ✅ La latencia es de 4-6 segundos por turno
 
