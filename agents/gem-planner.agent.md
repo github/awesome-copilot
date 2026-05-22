@@ -96,7 +96,7 @@ Consult Knowledge Sources when relevant.
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.yaml` as per `context_envelope_format_guide`
   - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.yaml`.
-- Validation — Verfiy as per `Plan Verification Criteria`.
+- Validation — Verify as per `Plan Verification Criteria`.
 - Failure — Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return JSON per Output Format.
