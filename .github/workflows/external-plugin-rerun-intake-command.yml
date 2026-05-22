@@ -1,0 +1,124 @@
+name: External Plugin Rerun Intake Commands
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: external-plugin-intake-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  handle-command:
+    runs-on: ubuntu-latest
+    if: >-
+      !github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/rerun-intake')
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Re-run external plugin intake
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+
+            const commentAuthor = context.payload.comment.user?.login;
+            if (!commentAuthor || context.payload.comment.user?.type === 'Bot' || commentAuthor === 'github-actions[bot]') {
+              core.info('Ignoring /rerun-intake from a bot or unknown actor.');
+              return;
+            }
+
+            if (!intake.parseRerunIntakeCommand(context.payload.comment.body)) {
+              core.info('No supported /rerun-intake command was found.');
+              return;
+            }
+
+            const { data: currentIssue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const labelNames = new Set((currentIssue.labels || []).map((label) => label.name));
+            const isExternalPluginIssue =
+              labelNames.has('external-plugin') ||
+              String(currentIssue.body || '').includes(intake.ISSUE_FORM_MARKER);
+            if (!isExternalPluginIssue) {
+              core.info('Ignoring /rerun-intake because the issue is not an external plugin submission.');
+              return;
+            }
+
+            if (labelNames.has('approved') || labelNames.has('re-review-due') || labelNames.has('re-review-follow-up')) {
+              core.info('Ignoring /rerun-intake because the issue is already approved or in the six-month re-review flow.');
+              return;
+            }
+
+            const issueAuthor = currentIssue.user?.login;
+            const isIssueAuthor = Boolean(issueAuthor && commentAuthor === issueAuthor);
+
+            let hasWriteAccess = false;
+            if (!isIssueAuthor) {
+              const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: commentAuthor
+              });
+              hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            }
+
+            if (!isIssueAuthor && !hasWriteAccess) {
+              core.info(`Ignoring /rerun-intake because ${commentAuthor} is neither the issue author nor a maintainer.`);
+              return;
+            }
+
+            const canRerunFromCurrentState = currentIssue.state === 'open' || labelNames.has('rejected');
+            if (!canRerunFromCurrentState) {
+              core.info('Ignoring /rerun-intake because the issue is closed outside the intake/rejection flow.');
+              return;
+            }
+
+            const evaluation = await intake.evaluateExternalPluginIssue({
+              issue: currentIssue,
+              token: process.env.GITHUB_TOKEN
+            });
+
+            await intakeState.applyExternalPluginIntakeEvaluation({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              evaluation
+            });
+
+            if (evaluation.valid && currentIssue.state === 'closed' && labelNames.has('rejected')) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'open'
+              });
+              return;
+            }
+
+            if (!evaluation.valid && currentIssue.state === 'open') {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'closed'
+              });
+            }
