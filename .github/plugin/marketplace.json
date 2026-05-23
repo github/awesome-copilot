@@ -126,7 +126,6 @@
       "source": {
         "source": "github",
         "repo": "ChromeDevTools/chrome-devtools-mcp",
-        "path": ".github/plugin/plugin.json",
         "ref": "chrome-devtools-mcp-v1.0.1"
       }
     },
@@ -475,7 +474,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1119-preview1",
+      "version": "1.0.1133-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -578,6 +577,34 @@
       "source": "php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
       "version": "1.0.0"
+    },
+    {
+      "name": "pm-skills",
+      "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
+      "version": "2.1.0",
+      "author": {
+        "name": "Parth Sangani",
+        "url": "https://github.com/Avyayalaya"
+      },
+      "repository": "https://github.com/Avyayalaya/pm-skills-arsenal",
+      "license": "MIT",
+      "keywords": [
+        "product-management",
+        "competitive-analysis",
+        "specification-writing",
+        "product-strategy",
+        "go-to-market",
+        "metrics",
+        "discovery-research",
+        "narrative",
+        "stakeholder-alignment",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Avyayalaya/pm-skills-arsenal",
+        "ref": "refs/tags/v2.1.0"
+      }
     },
     {
       "name": "power-apps-code-apps",

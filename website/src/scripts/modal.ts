@@ -1055,7 +1055,7 @@ async function openPluginModal(
 function getExternalPluginUrl(plugin: Plugin): string {
   if (plugin.source?.source === "github" && plugin.source.repo) {
     const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path
+    return plugin.source.path && plugin.source.path !== "/"
       ? `${base}/tree/main/${plugin.source.path}`
       : base;
   }
