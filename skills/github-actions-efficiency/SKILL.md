@@ -1,89 +1,75 @@
 ---
 name: github-actions-efficiency
-description: 'Audit and improve GitHub Actions workflow efficiency. Use this skill when a user wants to reduce CI minutes, cancel redundant runs, add dependency caching, narrow workflow triggers with path filters, reduce matrix breadth, or optimize job parallelism.'
+description: 'Audit GitHub Actions workflow efficiency and recommend fixes to reduce CI minutes and costs.'
 ---
 
 # GitHub Actions Efficiency
 
-Use this skill as a lean entrypoint for GitHub Actions efficiency work. Keep the hot path small: inspect the repo, identify the waste source, then load only the reference material needed for the current task.
+Use this skill as a lean entrypoint for GitHub Actions efficiency work. Inspect the repo, identify the waste source, and load only the reference material needed for the current task.
+
+If no workflows exist yet, load [`references/actions.md`](./references/actions.md) and define a baseline before proceeding with the steps below.
+
+**If shell or `gh` CLI access is unavailable:** ask the user to paste `.github/workflows/` contents and `gh run list --limit 10` output. If only partial files are provided, note it: "Audit based on provided files only; some insights may be incomplete." Begin responses from files alone with: "**Static-only analysis** (not confirmed with live runs)."
 
 ## Use This Skill When
 
 - The user wants to reduce GitHub Actions runtime, CI cost, or wasted workflow runs.
-- The repo has `.github/workflows/*.yml` and explicit GitHub Actions configuration questions.
+- The repo has existing workflows in `.github/workflows/` or explicit GitHub Actions configuration questions.
 - The user asks for caching, concurrency, path filters, matrix reduction, job optimization, or workflow-specific fixes.
+- The user needs help creating a new GitHub Actions workflow or CI baseline from scratch.
 
 ## Load Only What You Need
 
-Start with the repo configuration, then load references selectively:
-
-- Read [`references/actions.md`](./references/actions.md) for GitHub Actions audits, job gating, matrix reduction, live validation, and workflow-specific fixes.
-- Read [`references/reporting.md`](./references/reporting.md) when the user asks what changed, wants a before/after efficiency report, or wants another review pass over the remaining expensive jobs.
-- Read [`references/patterns.md`](./references/patterns.md) only when you need concrete YAML or configuration examples during implementation.
-
-If the task is Codespaces-related, use the `github-codespaces-efficiency` skill instead.
+- [`references/actions.md`](./references/actions.md) — audits, job gating, matrix reduction, live validation, and workflow-specific fixes.
+- [`references/reporting.md`](./references/reporting.md) — when the user asks for a before/after efficiency report.
+- [`references/patterns.md`](./references/patterns.md) — full YAML examples when inline audit commands are not enough.
 
 ## Core Workflow
 
 ### 1. Measure first
 
-Inspect the current configuration before proposing changes:
-
-- Workflow triggers and whether repeated pushes waste runs
-- Dependency installation and cache behavior
-- Whether docs-only or config-only changes trigger heavy validation
-- Whether matrix breadth matches the actual decision being made
-- Job parallelism and critical path analysis
-
-Start with a compact repo audit like this:
-
 ```bash
 rg -n "on:|concurrency:|paths:|paths-ignore:|strategy:|matrix:|cache:" .github/workflows
 gh run list --limit 10
-gh run view --log-failed
+run_id=$(gh run list --limit 1 --json databaseId --jq '.[0].databaseId')
+gh run view "$run_id" --log-failed
 ```
 
-### 2. Rank fixes by payoff
+Look for: missing dependency caches, missing `concurrency` cancellation, over-broad triggers, duplicate workflow coverage, and expensive jobs that run on every change regardless of scope.
 
-Prefer this order unless repo context says otherwise:
+### 2. Apply guardrails
+
+Check each proposed fix against these rules before recommending it:
+
+1. Does not hide required validation — drop any fix that removes release, schema, migration, or shared-library checks.
+2. Does not reduce parallelism without justification — drop unless the user prioritised cost over latency *and* the new critical path stays within 1.25× the original.
+3. Preserves only documented matrix legs — drop matrix legs with no explicit version or platform commitment.
+4. Write-back jobs use opt-in triggers — flag (do not drop) formatter or bot jobs that run automatically; recommend an opt-in trigger instead.
+5. Repo changes stay separate from org settings — split any fix that mixes repo-editable YAML with org-level or GitHub-account settings into two distinct recommendations.
+
+### 3. Select the top 3 fixes
+
+From the six candidates below, keep only those supported by audit evidence from step 1 *and* passing all guardrails from step 2. Rank survivors by estimated daily CI minutes saved (per-run savings × runs per day). Select all candidates that meet both criteria, up to a maximum of 3.
 
 1. Add dependency caching with lockfile-based keys
 2. Add or correct `concurrency` cancellation
-3. Remove duplicate workflow coverage before merging jobs together
+3. Remove duplicate workflow coverage before merging jobs
 4. Narrow workflow or job triggers safely
 5. Reduce matrix breadth to match risk and event type
-6. Optimize job parallelism while preserving critical path
+6. Parallelize independent jobs on the critical path
 
-### 3. Keep changes conservative
+### 4. Verify
 
-- Do not hide required release, schema, migration, or shared-library validation behind overly-broad filters.
-- Do not assume fewer jobs means faster PR feedback; preserve parallelism unless runner cost matters more and the critical path stays acceptable.
-- Treat compatibility matrices as policy, not default ceremony.
-- Prefer opt-in triggers for nonessential write-back jobs such as formatting bots.
-- Separate repo-editable changes from GitHub/org settings recommendations.
-
-### 4. Verify in GitHub when possible
-
-YAML lint is necessary but not sufficient.
-
-- Validate trigger behavior with live runs when possible.
-- Use a low-scope change, such as a workflow-only or docs-only update, to prove heavy jobs actually skip.
+- If `gh` CLI access is available, validate path-gating and concurrency cancellation with a live test push on a non-protected branch.
+- If live validation is not possible, state that explicitly in the output.
 - Treat unexpected live behavior as a real bug even when the YAML looks correct.
 
-## Required Output Shape
+## Required Output
 
-When using this skill, keep the response compact and structured around these four sections:
-
-1. `Waste sources`: the top cost or latency drivers you found
-2. `Proposed fixes`: the small set of highest-confidence changes
-3. `Validation`: what was proven live, what was only checked locally, and any remaining risk
-4. `Impact`: expected savings separately from measured savings
-
-For measured impact, separate:
-
-- PR wall-clock time
-- Total runner time across jobs
-- Jobs or matrix legs avoided entirely
+1. **Waste sources** — top cost or latency drivers found in step 1
+2. **Proposed fixes** — top 3 (or all remaining) with supporting audit evidence
+3. **Validation** — what was proven live, what was checked locally only, and any remaining risk
+4. **Impact** — expected savings vs. measured savings; separate PR wall-clock time from total runner time
 
 ## References
 

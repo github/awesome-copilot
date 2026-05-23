@@ -2,13 +2,18 @@
 
 Load this reference only when the task involves GitHub Actions or CI workflow efficiency.
 
+If the repo is onboarding GitHub Actions for the first time, define a minimal baseline workflow first, then optimize using the rest of this guide.
+
 ## Audit Order
 
 Inspect in this order:
 
-1. `.github/workflows/*.yml`
-2. Docs describing CI expectations
-3. Existing reports or run history if the user wants measured impact
+1. If `.github/workflows/` is missing or empty, gather baseline requirements first: triggering events, required checks, runtime versions, and repository-specific validation policy.
+2. `.github/workflows/*.yml`
+3. Docs describing CI expectations
+4. Existing reports or run history if the user wants measured impact
+
+For new setups, start with a small workflow that proves core checks, then add matrix breadth or additional jobs only when needed.
 
 Start with common, low-risk waste:
 
