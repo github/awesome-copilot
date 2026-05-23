@@ -60,26 +60,26 @@ Consult Knowledge Sources when relevant.
 
 ### Phase 0: Init & Clarify
 
-- Intent Detection:
+- Delegate to a generic subagent for intent detection with following instructions:
   - Analyze user input + memory for intent, hints, context, patterns, gotchas etc. Check for feedback keywords and classify task type.
   - Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
-- Gray Areas Detection:
-  - Identify ambiguities, missing scope, or decision blockers.
-  - Identify focus_areas from request keywords.
-  - Generate clarification options if needed.
-  - Ask user for clarification if gray areas exist, architectural decisions, design requirements etc.
-  - If architectural preferences → delegate to `gem-documentation-writer`.
-- Complexity Assessment:
-  - LOW: single file/small change, known patterns. Minimal blast radius.
-  - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
-  - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
-- Build initial_context_envelope:
-  - project_summary: 5-8 bullet lines (product, architecture, current objective)
-  - tech_stack: known tech stack
-  - conventions: naming/structure/pattern rules
-  - architecture_snapshot: key_dirs, patterns, key_components (if available)
-  - prior_decisions: past architectural decisions (if relevant)
-  - do_not_re_read: areas already summarized (to avoid re-reading)
+  - Gray Areas Detection:
+    - Identify ambiguities, missing scope, or decision blockers.
+    - Identify focus_areas from request keywords.
+    - Generate clarification options if needed.
+    - Ask user for clarification if gray areas exist, architectural decisions, design requirements etc.
+  - Complexity Assessment:
+    - LOW: single file/small change, known patterns. Minimal blast radius.
+    - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
+    - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
+  - Build initial_context_envelope:
+    - project_summary: 5-8 bullet lines (product, architecture, current objective)
+    - tech_stack: known tech stack
+    - conventions: naming/structure/pattern rules
+    - architecture_snapshot: key_dirs, patterns, key_components (if available)
+    - prior_decisions: past architectural decisions (if relevant)
+    - do_not_re_read: areas already summarized (to avoid re-reading)
+- If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
 
 > **Note:** `initial_context_envelope` is for `gem-planner` only. All subsequent subagent calls shall use the planner's enriched `context_envelope`.
 
@@ -95,12 +95,11 @@ Routing matrix:
 
 - Create Plan:
   - Delegate to `gem-planner` with `initial_context_envelope` + `task_clarifications`.
-  - Planner enriches `initial_context_envelope` into an expanded `context_envelope` with research findings, DAG structure, and task contracts.
   - Use `context_envelope` from planner output for all subsequent subagent calls.
 - Plan Validation:
-  - Complexity=LOW: Skip.
-  - Complexity=MEDIUM: delegate `gem-reviewer(plan)`.
-  - Complexity=HIGH: delegate both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
+  - Complexity=LOW: Skip validation.
+  - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
+  - Complexity=HIGH: delegate to both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
 - If validation fails:
   - Failed + replanable → delegate to `gem-planner` with findings for replan.
   - Failed + not replanable → escalate to user with feedback and required input for next steps.
@@ -137,16 +136,13 @@ Delegate ALL waves/tasks without pausing for approval between them.
 ### Phase 4: Persist Learnings
 
 - Memory:
-  - Collect learnings from completed tasks.
-  - Write at wave/phase end only after strict dedupe by scope + objective + affected files + pattern name.
-  - Skip noisy entries: confidence < 0.85, duplicates, one-off facts, or outcomes without future routing value.
-  - Include `routing_reasoning`, `agent_performance`, `task_outcome` so future runs can benefit.
+  - For all learnings from completed waves/ tasks.
 - Conventions:
   - If conventions found: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
 - Architectural Decisions:
   - If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
 - Skills:
-  - If pattern ≥ 0.85 AND non-trivial: delegate to `gem-skill-creator`.
+  - If confidence ≥ 0.85 AND non-trivial: delegate to `gem-skill-creator`.
 
 ### Phase 5: Output
 

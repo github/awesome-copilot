@@ -125,10 +125,13 @@ User Goal
     ↓
 Orchestrator
     ↓
-Phase 1: Init & Route
+Phase 0: Init & Clarify
     • Generate/load plan_id
     • Read memory, detect effort (LOW/MEDIUM/HIGH)
     • Route to appropriate path
+    ↓
+Phase 1: Route
+    • Routing matrix based on effort, task type, and context
     ↓
 Phase 2: Planning
     • Delegate to planner
