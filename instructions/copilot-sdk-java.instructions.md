@@ -1,5 +1,5 @@
 ---
-applyTo: '**.java, **/pom.xml'
+applyTo: '**/*.java, **/pom.xml'
 description: 'This file provides guidance on building Java applications using GitHub Copilot SDK for Java.'
 name: 'GitHub Copilot SDK Java Instructions'
 ---
@@ -7,7 +7,7 @@ name: 'GitHub Copilot SDK Java Instructions'
 ## Core Principles
 
 - The SDK is in public preview and may have breaking changes
-- Requires Java 17 or later. **Java 25 or later highly recommended**.
+- Requires Java 17 or later for baseline SDK usage. Some examples use newer JDK features and therefore require JDK 21 or later (for example, virtual threads via `Executors.newVirtualThreadPerTaskExecutor()` and `switch` pattern matching). **Java 25 or later highly recommended**.
 - Requires GitHub Copilot CLI installed and in PATH
 - Uses `CompletableFuture` for all async operations
 - Implements `AutoCloseable` for resource cleanup (try-with-resources)
@@ -44,7 +44,7 @@ try (var client = new CopilotClient()) {
 
 ### Virtual Threads (JDK 25+)
 
-On JDK 25+, use a virtual-thread executor for significantly better scalability. The SDK's async operations will run on virtual threads instead of the default `ForkJoinPool`:
+Virtual threads were introduced in JDK 21, but significant performance bugs were not fixed until JDK 25, making JDK 25 the minimum recommended version for production use of virtual threads. On JDK 25+, use a virtual-thread executor for significantly better scalability. The SDK's async operations will run on virtual threads instead of the default `ForkJoinPool`:
 
 ```java
 var options = new CopilotClientOptions()
@@ -202,6 +202,8 @@ done.get();
 Use the typed `on()` overload for compile-time safety:
 
 ```java
+var done = new java.util.concurrent.CompletableFuture<Void>();
+
 session.on(AssistantMessageEvent.class, msg -> {
     System.out.println(msg.getData().content());
 });
@@ -282,6 +284,8 @@ var session = client.createSession(new SessionConfig()
 ### Handling Streaming Events
 
 Handle both delta events (incremental) and final events:
+
+Requires Java 21+, but 25 preferred.
 
 ```java
 var done = new CompletableFuture<Void>();
