@@ -42,16 +42,15 @@ Consult Knowledge Sources when relevant.
   - Context — Use context_envelope: research_digest, conventions, tech_stack.
   - Read — PRD sections, `DESIGN.md` tokens, skills, plan research.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red — Write/update test for expected behavior. Don't run yet.
+  - Red — Write/update test for new & correct expected behavior.
   - Green — Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
     - Run test — must pass.
-    - Before modifying shared components: vscode_listCodeUsages.
-  - Refactor — Clean up naming, structure, duplication. Tests still pass.
-  - Verify — get_errors (syntax), verify against acceptance_criteria.
+    - Before modifying shared components: verify symbol/ variable etc. usages.
+  - Verify — get_errors or language server errors (syntax), verify against acceptance_criteria.
 
 - Failure:
-  - Retry transient tool failures 2x (not failed fix strategies).
+  - Retry transient tool failures 3x (not failed fix strategies).
   - Failed fix strategies → return failed/needs_revision with evidence.
   - Log to `docs/plan/{plan_id}/logs/`.
 - Output — JSON per Output Format.

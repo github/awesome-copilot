@@ -43,13 +43,12 @@ Consult Knowledge Sources when relevant.
   - Context — Use context_envelope: research_digest, conventions, tech_stack.
   - Read — PRD, `DESIGN.md` tokens, skills, plan research.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red — Write/update test. Don't run yet.
+  - Red — Write/update test for new & correct expected behavior.
   - Green — Minimal code to pass.
     - Surgical only. Remove extra code (YAGNI).
     - Before shared components: vscode_listCodeUsages.
     - Run test — must pass.
-  - Refactor — Clean naming, structure, duplication. Tests still pass.
-  - Verify — get_errors, acceptance_criteria, platform sanity (Metro clean, no redbox).
+  - Verify — get_errors or language server errors (syntax), verify against acceptance_criteria.
 - Error Recovery:
   - Metro — Error → `npx expo start --clear`.
   - iOS — Check Xcode logs, deps, rebuild.
