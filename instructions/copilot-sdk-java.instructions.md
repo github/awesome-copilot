@@ -7,10 +7,11 @@ name: 'GitHub Copilot SDK Java Instructions'
 ## Core Principles
 
 - The SDK is in public preview and may have breaking changes
-- Requires Java 17 or later
+- Requires Java 17 or later. **Java 25 or later highly recommended**.
 - Requires GitHub Copilot CLI installed and in PATH
 - Uses `CompletableFuture` for all async operations
 - Implements `AutoCloseable` for resource cleanup (try-with-resources)
+- Getters on configuration classes return `Optional<T>` (or `OptionalInt`/`OptionalDouble`) to distinguish "not set" from explicit values; setters accept raw types and return `this` for chaining. Use the `clear` methods to unset values if needed.
 
 ## Installation
 
@@ -41,6 +42,20 @@ try (var client = new CopilotClient()) {
 }
 ```
 
+### Virtual Threads (JDK 25+)
+
+On JDK 25+, use a virtual-thread executor for significantly better scalability. The SDK's async operations will run on virtual threads instead of the default `ForkJoinPool`:
+
+```java
+var options = new CopilotClientOptions()
+    .setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+
+try (var client = new CopilotClient(options)) {
+    client.start().get();
+    // Use client...
+}
+```
+
 ### Client Configuration Options
 
 When creating a CopilotClient, use `CopilotClientOptions`:
@@ -58,6 +73,11 @@ When creating a CopilotClient, use `CopilotClientOptions`:
 - `gitHubToken` - GitHub token for authentication
 - `useLoggedInUser` - Use logged-in `gh` CLI auth (default: true unless token provided)
 - `onListModels` - Custom model list handler for BYOK scenarios
+- `remote` - Enable Mission Control / cloud session integration (default: false)
+- `telemetry` - `TelemetryConfig` for OpenTelemetry export (since 1.2.0)
+- `sessionIdleTimeoutSeconds` - Idle timeout before session auto-closes (since 1.3.0)
+- `executor` - Custom `Executor` for async operations (default: ForkJoinPool)
+- `tcpConnectionToken` - Security token for TCP transport authentication
 
 ```java
 var options = new CopilotClientOptions()
@@ -144,13 +164,16 @@ var session = client.resumeSession(sessionId, new ResumeSessionConfig()
 ### Session Operations
 
 - `session.getSessionId()` - Get session identifier
-- `session.send(prompt)` / `session.send(MessageOptions)` - Send message, returns message ID
+- `session.send(prompt)` / `session.send(MessageOptions)` - Send message, returns `CompletableFuture<String>` (the message ID, useful for correlation)
 - `session.sendAndWait(prompt)` / `session.sendAndWait(MessageOptions)` - Send and wait for response (60s timeout)
 - `session.sendAndWait(options, timeoutMs)` - Send and wait with custom timeout
 - `session.abort()` - Abort current processing
 - `session.getMessages()` - Get all events/messages
 - `session.setModel(modelId)` - Switch to a different model
+- `session.setModel(modelId, reasoningEffort)` - Switch model with reasoning effort ("low", "medium", "high", "xhigh")
+- `session.setModel(modelId, reasoningEffort, modelCapabilities)` - Switch model with `ModelCapabilitiesOverride` (since 1.3.0)
 - `session.log(message)` / `session.log(message, "warning", false)` / `session.log(message, "error", false)` - Log to session timeline with level `"info"`, `"warning"`, or `"error"`
+- `session.log(message, level, ephemeral, url)` - Log with a clickable URL link
 - `session.close()` - Clean up resources
 
 ## Event Handling
@@ -237,6 +260,10 @@ session.setEventErrorHandler(ex -> {
 // Or set the error propagation policy
 session.setEventErrorPolicy(EventErrorPolicy.SUPPRESS_AND_LOG_ERRORS);
 ```
+
+`EventErrorPolicy` values:
+- `PROPAGATE_AND_LOG_ERRORS` - Stop event dispatch on error (default)
+- `SUPPRESS_AND_LOG_ERRORS` - Continue dispatch, log the error
 
 ## Streaming Responses
 
@@ -350,6 +377,19 @@ var override = ToolDefinition.createOverride(
     "Custom description",
     Map.of("type", "object", "properties", Map.of(...)),
     invocation -> CompletableFuture.completedFuture("custom result")
+);
+```
+
+### Skipping Permission Checks (since 1.2.0)
+
+Use `createSkipPermission()` to define a tool that bypasses the CLI's permission request flow:
+
+```java
+var tool = ToolDefinition.createSkipPermission(
+    "safe_read_only_tool",
+    "A tool that needs no permission confirmation",
+    Map.of("type", "object", "properties", Map.of(...)),
+    invocation -> CompletableFuture.completedFuture("result")
 );
 ```
 
@@ -538,6 +578,18 @@ for (var metadata : sessions) {
 }
 ```
 
+### Filtering Sessions
+
+Use `SessionListFilter` to narrow results by working directory, git root, repository, or branch:
+
+```java
+var filter = new SessionListFilter()
+    .setRepository("owner/repo")
+    .setBranch("main");
+
+var sessions = client.listSessions(filter).get();
+```
+
 ### Deleting Sessions
 
 ```java
@@ -558,6 +610,16 @@ AutoCloseable subscription = client.onLifecycle(event -> {
 });
 // Later...
 subscription.close();
+```
+
+### Filtered Lifecycle Events
+
+Subscribe to specific lifecycle event types:
+
+```java
+AutoCloseable subscription = client.onLifecycle("session.created", event -> {
+    System.out.println("New session created");
+});
 ```
 
 ## Error Handling
@@ -744,13 +806,81 @@ var session = client.createSession(new SessionConfig()
     .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
     .setHooks(new SessionHooks()
         .setOnPreToolUse((input, invocation) -> {
-            System.out.println("About to execute tool: " + input);
-            var decision = new PreToolUseHookOutput().setKind("allow");
-            return CompletableFuture.completedFuture(decision);
+            System.out.println("About to execute tool: " + input.getToolName());
+            // Use static factory methods on PreToolUseHookOutput:
+            // PreToolUseHookOutput.allow()
+            // PreToolUseHookOutput.deny()
+            // PreToolUseHookOutput.deny("reason")
+            // PreToolUseHookOutput.ask()
+            return CompletableFuture.completedFuture(PreToolUseHookOutput.allow());
         })
         .setOnPostToolUse((output, invocation) -> {
             System.out.println("Tool execution complete: " + output);
             return CompletableFuture.completedFuture(null);
+        })
+        .setOnUserPromptSubmitted((prompt, invocation) -> {
+            // Intercept user prompts before processing
+            return CompletableFuture.completedFuture(null);
+        })
+        .setOnSessionStart((event, invocation) -> {
+            return CompletableFuture.completedFuture(null);
+        })
+        .setOnSessionEnd((event, invocation) -> {
+            return CompletableFuture.completedFuture(null);
         }))
+).get();
+```
+
+## MCP Server Configuration
+
+Configure Model Context Protocol servers via `SessionConfig.setMcpServers()`:
+
+### Stdio-Based MCP Server
+
+```java
+var mcpServers = Map.of(
+    "my-server", new McpStdioServerConfig()
+        .setCommand("node")
+        .setArgs(List.of("path/to/server.js"))
+);
+
+var session = client.createSession(new SessionConfig()
+    .setModel("gpt-5")
+    .setMcpServers(mcpServers)
+    .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
+).get();
+```
+
+### HTTP/SSE MCP Server
+
+```java
+var mcpServers = Map.of(
+    "remote-server", new McpHttpServerConfig()
+        .setUrl("https://my-mcp-server.example.com/sse")
+);
+
+var session = client.createSession(new SessionConfig()
+    .setModel("gpt-5")
+    .setMcpServers(mcpServers)
+    .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
+).get();
+```
+
+## Model Capabilities Override (since 1.3.0)
+
+Override model capabilities for BYOK or custom providers:
+
+```java
+var capabilities = new ModelCapabilitiesOverride()
+    .setSupports(new ModelCapabilitiesOverride.Supports()
+        .setVision(true)
+        .setReasoningEffort(true))
+    .setLimits(new ModelCapabilitiesOverride.Limits()
+        .setMaxPromptTokens(128000));
+
+var session = client.createSession(new SessionConfig()
+    .setModel("custom-model")
+    .setModelCapabilities(capabilities)
+    .setOnPermissionRequest(PermissionHandler.APPROVE_ALL)
 ).get();
 ```
