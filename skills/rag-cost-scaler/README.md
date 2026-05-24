@@ -12,31 +12,37 @@ chmod +x cost-scaler.py
 ## Uso Rápido
 
 ### 1. Ver opciones disponibles
+
 ```bash
 python cost-scaler.py --list-options
 ```
 
 ### 2. Simulate change to Minimal (maximum savings)
+
 ```bash
 python cost-scaler.py --tier minimal --dry-run
 ```
 
 ### 3. Aplicar cambio a Minimal
+
 ```bash
 python cost-scaler.py --tier minimal --apply
 ```
 
 ### 4. Cambiar a Standard (producción)
+
 ```bash
 python cost-scaler.py --tier standard --apply
 ```
 
 ### 5. Ver configuración actual
+
 ```bash
 python cost-scaler.py --current
 ```
 
 ### 6. Crear/actualizar alertas de presupuesto
+
 ```bash
 python cost-scaler.py --budget 50 --create-alerts
 ```
@@ -78,14 +84,18 @@ watch -n 30 "python cost-scaler.py --current"
 ## Troubleshooting
 
 ### Error: "Cannot provision service while deletion in progress"
+
 Espera 3-5 minutos y vuelve a intentar:
+
 ```bash
 sleep 300
 python cost-scaler.py --tier standard --apply
 ```
 
 ### Error: "Subscription not found"
+
 Autentícate con Azure:
+
 ```bash
 az login
 az account set --subscription 8e6ace56-e0f2-4071-825a-a20363df34f8

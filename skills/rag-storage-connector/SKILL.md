@@ -49,9 +49,9 @@ AZURE_STORAGE_CONTAINER=documents
 
 ## Related Skills
 
-- [`rag-indexer`](../rag-indexer/SKILL.md) — Usa Storage como fuente de documents
-- [`rag-api-server`](../rag-api-server/SKILL.md) — Endpoint de upload
+- **rag-indexer** — Usa Storage como fuente de documents
+- **rag-api-server** — Endpoint de upload
 
 ## Ver También
 
-- [.github/README.md](../../README.md) — Arquitectura
+- **RAG Azure Builder Architecture** — Documentación principal
