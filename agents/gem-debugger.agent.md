@@ -39,7 +39,8 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init — Identify failure symptoms, reproduction conditions.
+- Init
+  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache. Then identify failure symptoms and reproduction conditions.
 - Reproduce — Read error logs, stack traces, failing test output.
 - Diagnose:
   - Stack trace — Parse entry → propagation → failure location, map to source.
@@ -140,7 +141,6 @@ ESLint recommendations: (general recurring patterns only):
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

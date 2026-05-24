@@ -34,7 +34,8 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init — Read inputs.
+- Init
+  - Read `docs/plan/{plan_id}/context_envelope.json` at start when it exists; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache.
 - Identify focus_area
 - Research Pass — Pattern discovery:
   - Search similar implementations → patterns_found.

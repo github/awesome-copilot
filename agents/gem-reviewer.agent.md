@@ -37,11 +37,12 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-Init — review_scope: plan|wave.
+- Init
+  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache. Then parse review_scope: plan|wave.
+  - Read `plan.yaml` + `PRD.yaml`.
 
 ### Plan Review
 
-- Read `plan.yaml` + `PRD.yaml`.
 - Apply task_clarifications (resolved, don't re-question).
 - Check:
   - PRD coverage (each requirement ≥ 1 task).
@@ -58,7 +59,6 @@ Init — review_scope: plan|wave.
 
 ### Wave Review
 
-- Read `plan.yaml`, identify completed wave.
 - If security_sensitive_tasks[] → full per-task scan (grep + semantic).
 - Integration checks:
   - Contracts (from → to satisfied).
@@ -125,7 +125,6 @@ Init — review_scope: plan|wave.
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

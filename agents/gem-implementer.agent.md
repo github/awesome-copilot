@@ -37,10 +37,11 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
+- Init
+  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache.
+  - Read — PRD sections, `DESIGN.md` tokens
 - Analyze:
   - Criteria — Understand acceptance_criteria.
-  - Context — Use context_envelope: research_digest, conventions, tech_stack.
-  - Read — PRD sections, `DESIGN.md` tokens, skills, plan research.
 - TDD Cycle (Red → Green → Refactor → Verify):
   - Red — Write/update test for new & correct expected behavior.
   - Green — Write minimal code to pass.
@@ -99,7 +100,6 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 ### Execution
 
-- Context Envelope First: If `context_envelope` is provided, read it before raw source files. Use `research_digest.relevant_files`, `patterns_found`, `gotchas`, `prior_decisions`, and `do_not_re_read` to avoid duplicate exploration. Only open source files needed for the assigned task, verification, or contradiction checks.
 - Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.

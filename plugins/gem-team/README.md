@@ -142,7 +142,7 @@ Phase 2: Planning
     • Present for approval if HIGH
     ↓
 Phase 3: Execution Loop
-    Pre-Wave: Check cache, add guards
+    Pre-Wave: Check memory for failure_modes/gotchas → add guards
     ↓
     ┌─ Wave Execution ──────────────┐
     │ • Delegate tasks (≤4 concurrent)│
@@ -154,20 +154,18 @@ Phase 3: Execution Loop
     │ • If fail: Debugger → retry  │
     └─────────────┬─────────────────┘
                   ↓
-    ┌─ Persist Learnings ──────────┐
+    ┌─ Phase 4: Persist Learnings ─┐
+    │ • Collect & merge learnings  │
     │ • Memory (deduped)           │
+    │ • Context Envelope update    │
     │ • Conventions → AGENTS.md    │
     │ • Decisions → PRD            │
     │ • Skills extraction          │
-    └──────────────────────────────┘
+    └─────────────┬─────────────────┘
                   ↓
           Next wave? → No → Phase 5
                   │Yes
-                  └────────┘
-    ↓
-Phase 4: Persist Learnings
-    • PRD updates (decisions, contracts, requirements)
-    • AGENTS.md updates (new conventions, rules)
+                  └─────────────────┘
     ↓
 Phase 5: Output
     • Present final status

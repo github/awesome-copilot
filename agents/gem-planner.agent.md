@@ -56,6 +56,8 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
+- Init
+  - If `docs/plan/{plan_id}/context_envelope.json` already exists for replan or extension mode, read it at start; read it in parallel with required planning inputs. Treat envelope data as a context cache and refresh it before saving the new envelope.
 - Context:
   - Parse objective/ context.
   - Mode: Initial, Replan, or Extension.
@@ -93,8 +95,9 @@ Consult Knowledge Sources when relevant.
   - New features→add doc-writer task (final wave).
   - Calculate metrics (wave_1_count, deps, risk_score).
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
-- Create context envelope `context_envelope.yaml` as per `context_envelope_format_guide`
+- Create context envelope `context_envelope.json` as per `context_envelope_format_guide`
   - Use provided context as seed and augment with research findings.
+  - If `memory_seed` provided, merge its high confidence items/ contents into the envelope
   - Keep every field concise, bulleted, and dense but comprehensive and complete. Avoid fluff, filler, and verbosity. Evidence paths over explanation.
   - Create for future agent reuse: include durable facts, decisions, constraints, and evidence paths needed to avoid re-discovery.
   - Omit no context.
@@ -481,14 +484,16 @@ tasks:
 ### Constitutional
 
 - Never skip pre-mortem for complex tasks. If dependency cycle→restructure before output.
-- estimated_files ≤3, estimated_lines ≤300. Evidence-based—cite sources, state assumptions.
+- Evidence-based—cite sources, state assumptions.
 - Minimum valid plan, nothing speculative.
 - Deliverable-focused framing. Assign only available_agents.
 - Feature flags: include lifecycle (create→enable→rollout→cleanup).
 
 #### Plan Verification Criteria
 
-- Plan: Valid YAML, required fields, unique task IDs, valid status values
+- Plan:
+  - Valid YAML, required fields, unique task IDs, valid status values
+  - Concise, dense, complete, focused on implementation, avoids fluff/verbosity
 - DAG: No circular deps, all dep IDs exist
 - Contracts: Valid from_task/to_task IDs, interfaces defined
 - Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present, success_criteria defined when needed
