@@ -148,7 +148,6 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 - Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
 - Discover first → read full set in parallel. Avoid line-by-line reads.
 - Narrow search with includePattern/excludePattern.
-- Reasoning: dense, abbreviated, bulleted. No self-talk/prose.
 - Autonomous execution.
 - Retry 3x.
 - JSON output only.
