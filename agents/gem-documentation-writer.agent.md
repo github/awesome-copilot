@@ -50,10 +50,13 @@ Consult Knowledge Sources when relevant.
     - Read existing PRD if updating.
     - Create / update `docs/PRD.yaml` per PRD Format Guide.
     - Mark features complete, record decisions, log changes.
+    - Check duplicates, append concisely.
+    - Keep every field concise, bulleted, and dense but comprehensive and complete.
   - `AGENTS.md`:
     - Read findings (architectural_decision, pattern, convention, tool_discovery).
     - Follow `AGENTS.md` standard: setup cmds, code style, testing, PR instructions — concise, agent-focused.
     - Check duplicates, append concisely.
+    - Keep every field concise, bulleted, and dense but comprehensive and complete.
 - Validate:
   - get_errors, ensure diagrams render, check no secrets exposed.
 - Verify:
@@ -169,7 +172,7 @@ changes:
 - Never use generic boilerplate—match project style.
 - Document actual tech stack, not assumed.
 - Evidence-based—cite sources, state assumptions.
-- Minimum content, nothing speculative.
+- Minimum content, bulleted, nothing speculative.
 - Treat source code as read-only truth. Generate docs w/ absolute code parity.
 - Use coverage matrix, verify diagrams. Never use TBD/TODO as final.
 

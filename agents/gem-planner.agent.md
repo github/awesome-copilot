@@ -60,7 +60,7 @@ Consult Knowledge Sources when relevant.
   - Parse objective/ context.
   - Mode: Initial, Replan, or Extension.
 - Research:
-  - Identify focus_areas from objective and context. Use provided `initial_context_envelope` as seed/ guidance.
+  - Identify focus_areas from objective and context.
   - Search similar implementations → patterns_found.
   - Discovery via semantic_search + grep_search, merge results.
   - Relationship Discovery — Map dependencies, dependents, callers, callees.
@@ -94,7 +94,7 @@ Consult Knowledge Sources when relevant.
   - Calculate metrics (wave_1_count, deps, risk_score).
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.yaml` as per `context_envelope_format_guide`
-  - Use `initial_context_envelope` as seed and augment with research findings.
+  - Use provided context as seed and augment with research findings.
   - Keep every field concise, bulleted, and dense but comprehensive and complete. Avoid fluff, filler, and verbosity. Evidence paths over explanation.
   - Create for future agent reuse: include durable facts, decisions, constraints, and evidence paths needed to avoid re-discovery.
   - Omit no context.
@@ -276,7 +276,10 @@ tasks:
   "context_envelope": {
     "meta": {
       "plan_id": "string",
+      "created_at": "ISO-8601 string",
       "last_updated": "ISO-8601 string",
+      "version": "number",
+      "previous_version_fields_changed": ["string"],
       "source": ["string"],
     },
     "scope": {
@@ -284,13 +287,26 @@ tasks:
       "applies_to": ["string"],
       "non_goals": ["string"],
     },
-    "project_summary": ["string"],
-    "tech_stack": ["string"],
+    "project_summary": {
+      "business_domain": "string",
+      "primary_users": ["string"],
+      "key_features": ["string"],
+      "current_phase": "string",
+    },
+    "tech_stack": [
+      {
+        "name": "string",
+        "version": "string",
+        "usage_context": "string",
+        "config_files": ["string"],
+      },
+    ],
     "conventions": ["string"],
     "constraints": {
       "hard": ["string"],
       "soft": ["string"],
       "compatibility": ["string"],
+      "security_requirements": ["string"],
     },
     "architecture_snapshot": {
       "key_dirs": {
@@ -302,21 +318,102 @@ tasks:
           "name": "string",
           "location": "string",
           "responsibility": ["string"],
+          "confidence": "number (0.0-1.0)",
         },
       ],
     },
+    "quality_metrics": {
+      "test_coverage_overall": "number (0.0-1.0)",
+      "test_coverage_by_component": [{ "component": "string", "coverage": "number (0.0-1.0)" }],
+      "known_test_gaps": ["string"],
+      "cyclomatic_complexity_avg": "number",
+      "code_duplication_percent": "number",
+    },
+    "operations": {
+      "environments": [
+        {
+          "name": "string",
+          "url": "string",
+          "deployment_frequency": "string",
+          "rollback_procedure": "string",
+          "health_check_endpoint": "string",
+        },
+      ],
+      "ci_cd": {
+        "pipeline_path": "string",
+        "approval_required": ["string"],
+        "automated_tests": ["string"],
+      },
+      "monitoring": {
+        "tools": ["string"],
+        "key_metrics": ["string"],
+        "alert_channels": ["string"],
+      },
+    },
+    "data_model": {
+      "core_entities": [
+        {
+          "name": "string",
+          "fields": [{ "name": "string", "type": "string", "constraints": ["string"] }],
+          "relationships": ["string"],
+        },
+      ],
+      "api_contracts": [
+        {
+          "endpoint": "string",
+          "method": "string",
+          "auth": "string",
+          "request_schema": "string",
+          "response_schema": "string",
+          "error_codes": ["number"],
+        },
+      ],
+    },
+    "performance": {
+      "slas": {
+        "api_response_p95_ms": "number",
+        "api_throughput_rps": "number",
+      },
+      "bottlenecks_known": ["string"],
+      "resource_usage": {
+        "memory_per_request_mb": "number",
+        "cpu_per_request_cores": "number",
+      },
+      "scaling": "horizontal | vertical | both",
+      "caching_strategy": "string",
+    },
+    "domain": {
+      "primary_users": [{ "persona": "string", "goals": ["string"] }],
+      "business_concepts": [{ "term": "string", "definition": "string", "owner": "string" }],
+      "compliance": ["string"],
+      "priority_weights": { "string": "string" },
+    },
+    "system_assertions": [
+      {
+        "description": "string",
+        "predicate": "string (machine-checkable expression)",
+        "expected_value": "any",
+        "last_checked": "ISO-8601 string (optional)",
+      },
+    ],
     "research_digest": {
       "relevant_files": [
         {
           "path": "string",
           "purpose": ["string"],
           "why_relevant": ["string"],
+          "security_sensitivity": "none | internal | confidential | secret",
+          "contains_secrets": "boolean",
+          "reliability": "codebase | docs | assumption",
+          "confidence": "number (0.0-1.0)",
         },
       ],
       "patterns_found": [
         {
           "name": "string",
           "category": "string",
+          "confidence": "number (0.0-1.0)",
+          "source": "codebase_analysis | doc | assumption",
           "example_location": ["string"],
         },
       ],
@@ -324,14 +421,29 @@ tasks:
         "internal": ["string"],
         "external": ["string"],
       },
-      "gotchas": ["string"],
-      "open_questions": ["string"],
+      "gotchas": [
+        {
+          "text": "string",
+          "confidence": "number (0.0-1.0)",
+        },
+      ],
+      "open_questions": [
+        {
+          "question": "string",
+          "context": "string",
+          "type": "decision_blocker | research | nice_to_know",
+          "affects": ["string"],
+        },
+      ],
     },
     "prior_decisions": [
       {
         "decision": "string",
         "rationale": ["string"],
         "evidence": ["path:string"],
+        "confidence": "number (0.0-1.0)",
+        "linked_constraints": ["string"],
+        "linked_patterns": ["string"],
       },
     ],
     "evidence_map": [

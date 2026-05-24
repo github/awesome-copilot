@@ -72,16 +72,7 @@ Consult Knowledge Sources when relevant.
     - LOW: single file/small change, known patterns. Minimal blast radius.
     - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
     - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
-  - Build initial_context_envelope:
-    - project_summary: 5-8 bullet lines (product, architecture, current objective)
-    - tech_stack: known tech stack
-    - conventions: naming/structure/pattern rules
-    - architecture_snapshot: key_dirs, patterns, key_components (if available)
-    - prior_decisions: past architectural decisions (if relevant)
-    - do_not_re_read: areas already summarized (to avoid re-reading)
 - If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
-
-> **Note:** `initial_context_envelope` is for `gem-planner` only. All subsequent subagent calls shall use the planner's enriched `context_envelope`.
 
 ### Phase 1: Route
 
@@ -94,8 +85,7 @@ Routing matrix:
 ### Phase 2: Planning
 
 - Create Plan:
-  - Delegate to `gem-planner` with `initial_context_envelope` + `task_clarifications`.
-  - Use `context_envelope` from planner output for all subsequent subagent calls.
+  - Delegate to `gem-planner` with `task_clarifications` and all available context.
 - Plan Validation:
   - Complexity=LOW: Skip validation.
   - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
@@ -119,7 +109,7 @@ Delegate ALL waves/tasks without pausing for approval between them.
   - Wave > 1: include contracts from task definitions.
   - Get pending (deps = completed, status = pending, wave = current).
   - Filter conflicts_with: same-file tasks serialize.
-  - Delegate to subagents (max 4 concurrent)
+  - Delegate to subagents (max 4 concurrent) as per `agent_input_reference`.
 - Integration Check:
   - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
   - UI tasks → `gem-designer(validate)` / `gem-designer-mobile(validate)` with `gem-reviewer(wave scope)` in parallel.
@@ -136,8 +126,7 @@ Delegate ALL waves/tasks without pausing for approval between them.
 ### Phase 4: Persist Learnings
 
 - Collect & Merge:
-  - Gather `learnings` from all completed tasks in the wave.
-  - Also collect planner's `learnings` from `context_envelope.json` + `plan.yaml` (pre_mortem, gaps, decisions from planning phase).
+  - Gather `learnings` from all completed tasks in the wave including `context_envelope` data.
   - Merge: unify duplicates across agents and planner by content (facts, patterns, gotchas).
   - Cross-reference: when a `gotcha` matches a `failure_mode` symptom, link them.
   - Promote: `gotchas` recurring ≥ 3× across plans → `patterns`. `failure_modes` recurring ≥ 2× → elevate severity.
@@ -160,7 +149,7 @@ Present status as per `output_format`.
 
 ## Agent Input Reference
 
-When delegating to subagents, use these input contracts. Always include `context_envelope` to provide necessary context for subagents.:
+IMPORTANT: When delegating to subagents, use these input contracts. Always include `context_envelope` to provide necessary context for subagents.
 
 ### gem-researcher
 
@@ -178,7 +167,6 @@ When delegating to subagents, use these input contracts. Always include `context
 {
   "plan_id": "string",
   "objective": "string",
-  "initial_context_envelope": "object",
 }
 ```
 
@@ -510,15 +498,5 @@ When a failure occurs, classify it as one of the following failure types and app
     - Use to bias routing, feed cache checks, inform pre-wave guards.
   - Tier-2 (implementer/debugger/simplifier): on init.
   - Tier-3 (reviewer/critic/doc-writer): as needed.
-
-- Write—orchestrator-owned, batch at wave end or phase end:
-  - collect subagent `learnings`, merge across agents, deduplicate by content.
-  - Skip if confidence<0.85 or duplicate.
-  - Skip one-off facts and low-value outcomes that will not improve future routing, guards, or cache decisions.
-  - Process `failure_modes` into pre-wave guard cache for future Phase 3.
-  - Process `decisions` → route to PRD update.
-  - Process `conventions` → route to AGENTS.md update.
-  - YAML frontmatter with updatedAt, short keys (n, d, c), dense, bulleted.
-  - Include routing_reasoning and agent_performance data so future init reads can bias decisions.
 
 </rules>
