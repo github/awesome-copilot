@@ -346,7 +346,7 @@
     {
       "name": "flowstudio-power-automate",
       "source": "flowstudio-power-automate",
-      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale ΓÇö action-level inputs and outputs, not just status codes.",
+      "description": "Give your AI agent full visibility into Power Automate cloud flows via the FlowStudio MCP server. Connect, debug, build, monitor health, and govern flows at scale — action-level inputs and outputs, not just status codes.",
       "version": "2.0.0"
     },
     {
