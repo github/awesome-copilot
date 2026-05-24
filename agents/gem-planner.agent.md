@@ -73,20 +73,19 @@ Consult Knowledge Sources when relevant.
   - Create contracts between dependent tasks.
   - Capture research_metadata.confidence → `plan.yaml`.
   - Link each task to research sources.
-- Agent Assignment per table:
-  - implementer: TDD code
-  - implementer-mobile: mobile TDD code
-  - designer: UI a11y-first
-  - tester: E2E, devops: CI/CD with approval, reviewer: security read-only
-  - debugger: diagnose, debug, RCA
-  - critic: edge cases
-  - simplifier: refactor
-  - doc-writer: docs
-  - researcher: factual research only
-- Patterns:
-  - Bug → debugger → implementer.
-  - UI/ UX → designer → implementer.
-  - Security → reviewer → implementer.
+- Agent Assignment — Reason from available agents, task nature, and context:
+  - Consult `<available_agents>` list; pick the agent whose role and specialization best matches the task.
+  - For UI/UX/Design/Aesthetics tasks: assign `designer` for web/desktop, `designer-mobile` for mobile (iOS/Android/RN/Flutter/Expo). If cross-platform, split into separate web + mobile tasks.
+  - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1).
+  - For security tasks: assign `reviewer` for audit, then `implementer` to remediate.
+  - For refactoring/simplification tasks: assign `code-simplifier`.
+  - For documentation: assign `doc-writer`.
+  - For testing: assign `browser-tester` (web E2E) or `mobile-tester` (mobile E2E).
+  - For infrastructure/ci/cd/deployment: assign `devops`.
+  - For implementation/code: assign `implementer` (web/general) or `implementer-mobile` (mobile).
+  - For design validation or edge-case analysis: assign `designer`/`designer-mobile` or `critic` as appropriate.
+  - Default to `implementer` when no specialized agent fits.
+  - When uncertainty exists between agents, prefer the more specialized one.
 - New feature→add doc-writer task (final wave).
 - Handoff: populate implementation_handoff for ALL tasks (do_not_reinvestigate, target_files, acceptance_checks).
 - Create plan `plan.yaml` as per `plan_format_guide`

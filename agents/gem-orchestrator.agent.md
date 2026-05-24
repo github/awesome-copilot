@@ -113,7 +113,7 @@ Delegate ALL waves/tasks without pausing for approval between them.
   - Delegate to subagents (max 4 concurrent) as per `agent_input_reference`.
 - Integration Check:
   - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
-  - ui|ux|design|interface|a11y tasks → `gem-designer(validate)` / `gem-designer-mobile(validate)` with `gem-reviewer(wave scope)` in parallel.
+  - ui|ux|design|interface|a11y tasks → validate with the designer agent matching the task's assigned agent (if task.agent is `designer-mobile`, use `gem-designer-mobile(validate)`; otherwise use `gem-designer(validate)`), run in parallel with `gem-reviewer(wave scope)`.
   - If reviewer fails → `gem-debugger` to diagnose:
     - If debugger confidence ≥ 0.85 → delegate to `gem-implementer` with diagnosis → re-verify.
     - If debugger confidence < 0.85 → escalate to user (cannot reliably diagnose).
