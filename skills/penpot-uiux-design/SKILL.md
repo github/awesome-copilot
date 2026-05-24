@@ -33,36 +33,51 @@ The Penpot MCP tools require the `penpot/penpot-mcp` server running locally. For
 
 ### Quick Start (Only If Not Installed)
 
+**Option A — Remote MCP (recommended, no local server needed):**
+1. In Penpot → **Your account → Integrations → MCP Server** → enable
+2. Generate your MCP key (shown once — store it securely)
+3. Copy the server URL: `https://<your-penpot-domain>/mcp/stream?userToken=YOUR_MCP_KEY`
+4. Add to your MCP client config (see VS Code / Claude Code configs below)
+5. Open a design file → **File → MCP Server → Connect**
+
+**Option B — Local MCP (gives extra file-system access for import/export):**
 ```bash
-# Clone and install
-git clone https://github.com/penpot/penpot-mcp.git
-cd penpot-mcp
-npm install
-
-# Build and start servers
-npm run bootstrap
+npx @penpot/mcp@stable   # keep this running in a terminal
 ```
-
 Then in Penpot:
 1. Open a design file
 2. Go to **Plugins** → **Load plugin from URL**
 3. Enter: `http://localhost:4400/manifest.json`
 4. Click **"Connect to MCP server"** in the plugin UI
 
-### VS Code Configuration
+### Client Configuration
 
-Add to `settings.json`:
+**VS Code** — add to `settings.json`:
 ```json
 {
   "mcp": {
     "servers": {
       "penpot": {
-        "url": "http://localhost:4401/sse"
+        "url": "http://localhost:4401/mcp"
       }
     }
   }
 }
 ```
+
+**Claude Code** — add to `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "penpot": {
+      "transport": "http",
+      "url": "http://localhost:4401/mcp"
+    }
+  }
+}
+```
+
+> For Remote MCP, replace the local URL with your `https://<penpot-domain>/mcp/stream?userToken=...` URL in all configs above. See [ar27111994/penpot-mcp](https://github.com/ar27111994/penpot-mcp) for a comprehensive skill covering both modes with full workflow recipes.
 
 ### Troubleshooting (If Server Is Installed But Not Working)
 
@@ -73,6 +88,8 @@ Add to `settings.json`:
 | Tools not appearing in client | Restart VS Code/Claude completely after config changes |
 | Tool execution fails/times out | Ensure Penpot plugin UI is open and shows "Connected" |
 | "WebSocket connection failed" | Check firewall allows ports 4400, 4401, 4402 |
+| Remote MCP key not working | Regenerate key in Penpot → Integrations; update all client configs |
+| Remote MCP: image import fails | `import_image` requires local MCP — switch to Option B for asset-heavy work |
 
 ## Quick Reference
 
