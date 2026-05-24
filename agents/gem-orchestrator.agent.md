@@ -113,7 +113,7 @@ Routing matrix:
 Delegate ALL waves/tasks without pausing for approval between them.
 
 - Pre-Wave:
-  - Check memory for known failure modes of similar tasks → add guards to task definition.
+  - Check memory for known `failure_modes` and `gotchas` of similar tasks → add guards to task definition.
 - Execute Waves:
   - Get unique waves sorted.
   - Wave > 1: include contracts from task definitions.
@@ -135,14 +135,20 @@ Delegate ALL waves/tasks without pausing for approval between them.
 
 ### Phase 4: Persist Learnings
 
+- Collect & Merge:
+  - Gather `learnings` from all completed tasks in the wave.
+  - Also collect planner's `learnings` from `context_envelope.json` + `plan.yaml` (pre_mortem, gaps, decisions from planning phase).
+  - Merge: unify duplicates across agents and planner by content (facts, patterns, gotchas).
+  - Cross-reference: when a `gotcha` matches a `failure_mode` symptom, link them.
+  - Promote: `gotchas` recurring ≥ 3× across plans → `patterns`. `failure_modes` recurring ≥ 2× → elevate severity.
 - Memory:
-  - For all learnings from completed waves/ tasks.
+  - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` to memory tool.
 - Conventions:
-  - If conventions found: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
-- Architectural Decisions:
-  - If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
+  - If `conventions` found: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
+- Decisions:
+  - If `decisions` found: delegate to `gem-documentation-writer` → create/update `PRD`
 - Skills:
-  - If confidence ≥ 0.85 AND non-trivial: delegate to `gem-skill-creator`.
+  - If `patterns` with confidence ≥ 0.85 AND non-trivial: delegate to `gem-skill-creator`.
 
 ### Phase 5: Output
 
@@ -506,9 +512,12 @@ When a failure occurs, classify it as one of the following failure types and app
   - Tier-3 (reviewer/critic/doc-writer): as needed.
 
 - Write—orchestrator-owned, batch at wave end or phase end:
-  - collect subagent `learnings`, deduplicate by scope + objective + affected files + pattern name, single entry per scope (max 3).
+  - collect subagent `learnings`, merge across agents, deduplicate by content.
   - Skip if confidence<0.85 or duplicate.
   - Skip one-off facts and low-value outcomes that will not improve future routing, guards, or cache decisions.
+  - Process `failure_modes` into pre-wave guard cache for future Phase 3.
+  - Process `decisions` → route to PRD update.
+  - Process `conventions` → route to AGENTS.md update.
   - YAML frontmatter with updatedAt, short keys (n, d, c), dense, bulleted.
   - Include routing_reasoning and agent_performance data so future init reads can bias decisions.
 

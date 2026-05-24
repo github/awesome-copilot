@@ -79,8 +79,11 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "test_results": { "total": "number", "passed": "number", "failed": "number", "coverage": "string" },
   "platform_verification": { "ios": "pass | fail | skipped", "android": "pass | fail | skipped", "metro_output": "string" },
   "learnings": {
-    "facts": ["string"],
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
+    "gotchas": ["string"],
+    "facts": [{ "statement": "string", "category": "string" }],
+    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
+    "decisions": [{ "decision": "string", "rationale": ["string"] }],
     "conventions": ["string"]
   }
 }

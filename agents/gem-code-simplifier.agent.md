@@ -91,7 +91,11 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "assumptions": ["string"],
   "learnings": {
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"]
+    "gotchas": ["string"],
+    "facts": [{ "statement": "string", "category": "string" }],
+    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
+    "decisions": [{ "decision": "string", "rationale": ["string"] }],
+    "conventions": ["string"]
   }
 }
 ```

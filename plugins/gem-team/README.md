@@ -23,6 +23,8 @@ Self-Learning Multi-agent orchestration framework for spec-driven development an
 
 > **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
 
+> **Recommended Models:** Use a cost-efficient fast model as the default, and a stronger reasoning model for planner/debugger/critical review agents, e.g. `default=deepseek-v4-flash`, `planner,debugger,critic/reviewer=deepseek-v4-pro`. This gives you **80-90%** cost savings without sacrificing quality on complex tasks.
+
 ## 🚀 Quick Start
 
 ```bash
@@ -210,22 +212,6 @@ Phase 5: Output
 | **IMPLEMENTER-MOBILE** | Mobile implementation — React Native, Expo, Flutter              | codebase, AGENTS.md      |
 | **DESIGNER-MOBILE**    | Mobile UI/UX — HIG, Material Design, safe areas                  | PRD, codebase, AGENTS.md |
 | **MOBILE TESTER**      | Mobile E2E testing — Detox, Maestro, iOS/Android                 | PRD, AGENTS.md           |
-
-### Agent Selection Suggestions
-
-For **proprietary/closed models** (GPT-5.4, Claude, Gemini):
-
-- Research/Plan: Gemini 3.1 Pro, GPT-5.4
-- Implementation: Claude Opus, GPT-5.4
-- Review: Claude Opus, GPT-5.4
-
-For **open-source models** (Qwen, GLM, DeepSeek, Llama):
-
-- Research/Plan: GLM-5, Qwen3.5
-- Implementation: DeepSeek-V3.2, Qwen Coder
-- Review: Kimi K2.5, DeepSeek-V3.2
-
-> **Note:** These are suggestions only. Gem Team works with any LLM that supports structured output. Choose based on availability, cost, and your specific task requirements.
 
 ---
 

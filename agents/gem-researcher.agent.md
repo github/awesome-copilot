@@ -26,7 +26,6 @@ Consult Knowledge Sources when relevant.
 
 - `docs/PRD.yaml`
 - `AGENTS.md`
-- Memory
 - Official docs (online docs or llms.txt) + online search
 
 </knowledge_sources>
@@ -211,14 +210,12 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
     }
   ],
   "learnings": {
-    "patterns": [
-      {
-        "name": "string",
-        "description": "string",
-        "confidence": 0.0-1.0
-      }
-    ],
-    "gaps": ["string"]
+    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
+    "gotchas": ["string"],
+    "facts": [{ "statement": "string", "category": "string" }],
+    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
+    "decisions": [{ "decision": "string", "rationale": ["string"] }],
+    "conventions": ["string"]
   }
 }
 ```
@@ -253,18 +250,5 @@ confidence = base(0.2) × coverage_score(0.3) × pattern_score(0.25) × quality_
 - pattern_score = min(patterns_found_count / 5, 1.0)
 - quality_score: has_architecture(+0.2) + has_dependencies(+0.2) + has_open_questions(+0.1)
   Early exit: confidence≥0.85 OR (confidence≥0.8 AND decision_blockers resolved).
-
-### Memory
-
-- Read on init:
-  - Check for prior research findings on same focus_area → skip re-research if fresh (< 7d).
-  - Check for known dead-ends (prior searches that returned low confidence) → exclude from search scope.
-  - Check for preferred search methodology (which tools worked) → bias tool selection.
-  - If memory contains `gotchas` or `gaps` for this domain → include as search hints.
-
-- Write:
-  - Do not write memory directly by default.
-  - Return memory candidates in `learnings` for orchestrator-owned persistence.
-  - Include search_method_used, dead_ends_encountered, and tool_effectiveness only when confidence >= 0.85 and reusable.
 
 </rules>
