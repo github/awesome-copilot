@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/github/v/release/mubaidr/gem-team?style=flat-square&color=important" alt="Version">
   <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
+  <img src="https://img.shields.io/badge/Maintained%3F-yes-green?style=flat-square" alt="Maintained">
 </p>
 
 Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.
@@ -24,6 +25,8 @@ Self-Learning Multi-agent orchestration framework for spec-driven development an
 > **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
 
 > **Recommended Models:** Use a cost-efficient fast model as the default, and a stronger reasoning model for planner/debugger/critical review agents, e.g. `default=deepseek-v4-flash`, `planner,debugger,critic/reviewer=deepseek-v4-pro`. This gives you **80-90%** cost savings without sacrificing quality on complex tasks.
+
+> **Crafted from years of personal experience** — This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows.
 
 ## 🚀 Quick Start
 

@@ -14,7 +14,7 @@ hidden: false
 
 ## Role
 
-Orchestrate multi-agent workflows: detect phases, route to agents, synthesize results. Never execute or validate work directly—always delegate. Strictly follow workflow from `Phase 0: Init & Clarify`, never skip phases.
+Orchestrate multi-agent workflows: detect phases, route to agents, synthesize results. Never execute or validate work directly—always delegate. Strictly follow workflow starting from `Phase 0: Init & Clarify`, never skip or reorder phases.
 
 Consult Knowledge Sources when relevant.
 
@@ -58,9 +58,9 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-### Phase 0: Init & Clarify
-
 IMPORTANT: On receiving user input, immediately announce and execute the following steps in order:
+
+### Phase 0: Init & Clarify
 
 - Delegate to a generic subagent for intent detection with following instructions:
   - Analyze user input + memory for intent, hints, context, patterns, gotchas etc. Check for feedback keywords and classify task type.
@@ -161,7 +161,7 @@ Present status as per `output_format`.
 {
   "plan_id": "string",
   "objective": "string",
-  "focus_area": "string"
+  "focus_area": "string",
 }
 ```
 
@@ -177,8 +177,8 @@ Present status as per `output_format`.
     "gotchas": ["string"],
     "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
     "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  }
+    "conventions": ["string"],
+  },
 }
 ```
 
@@ -198,9 +198,9 @@ Present status as per `output_format`.
       "required_test_first": "string",
       "target_files": ["string"],
       "minimal_change": "string",
-      "acceptance_checks": ["string"]
-    }
-  }
+      "acceptance_checks": ["string"],
+    },
+  },
 }
 ```
 
@@ -219,9 +219,9 @@ Present status as per `output_format`.
       "required_test_first": "string",
       "target_files": ["string"],
       "minimal_change": "string",
-      "acceptance_checks": ["string"]
-    }
-  }
+      "acceptance_checks": ["string"],
+    },
+  },
 }
 ```
 
@@ -236,7 +236,7 @@ Present status as per `output_format`.
   "security_sensitive_tasks": ["string — task IDs requiring per-task deep scan (merged into wave review)"],
   "task_definition": "object (optional task context for wave checks)",
   "review_depth": "full|standard|lightweight",
-  "review_security_sensitive": "boolean"
+  "review_security_sensitive": "boolean",
 }
 ```
 
@@ -254,7 +254,7 @@ Present status as per `output_format`.
     "required_test_first": "string",
     "target_files": ["string"],
     "minimal_change": "string",
-    "acceptance_checks": ["string"]
+    "acceptance_checks": ["string"],
   },
   "error_context": {
     "error_message": "string",
@@ -266,8 +266,8 @@ Present status as per `output_format`.
     "step_index": "number (optional)",
     "evidence": ["string (optional)"],
     "browser_console": ["string (optional)"],
-    "network_failures": ["string (optional)"]
-  }
+    "network_failures": ["string (optional)"],
+  },
 }
 ```
 
@@ -279,7 +279,7 @@ Present status as per `output_format`.
   "plan_id": "string",
   "plan_path": "string",
   "target": "string (file paths or plan section)",
-  "context": "string (what is being built, focus)"
+  "context": "string (what is being built, focus)",
 }
 ```
 
@@ -293,7 +293,7 @@ Present status as per `output_format`.
   "scope": "single_file|multiple_files|project_wide",
   "targets": ["string (file paths or patterns)"],
   "focus": "dead_code|complexity|duplication|naming|all",
-  "constraints": { "preserve_api": "boolean", "run_tests": "boolean", "max_changes": "number" }
+  "constraints": { "preserve_api": "boolean", "run_tests": "boolean", "max_changes": "number" },
 }
 ```
 
@@ -341,8 +341,8 @@ Present status as per `output_format`.
   "task_definition": {
     "environment": "development|staging|production",
     "requires_approval": "boolean",
-    "devops_security_sensitive": "boolean"
-  }
+    "devops_security_sensitive": "boolean",
+  },
 }
 ```
 
@@ -391,10 +391,10 @@ Present status as per `output_format`.
       "code_example": "string",
       "anti_pattern": "string",
       "context": "string",
-      "confidence": "number"
-    }
+      "confidence": "number",
+    },
   ],
-  "source_task_id": "string"
+  "source_task_id": "string",
 }
 ```
 
@@ -409,7 +409,7 @@ Present status as per `output_format`.
   "scope": "component|page|layout|theme|design_system",
   "target": "string (file paths or component names)",
   "context": { "framework": "string", "library": "string", "existing_design_system": "string", "requirements": "string" },
-  "constraints": { "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" }
+  "constraints": { "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" },
 }
 ```
 
@@ -424,7 +424,7 @@ Present status as per `output_format`.
   "scope": "component|screen|navigation|theme|design_system",
   "target": "string (file paths or component names)",
   "context": { "framework": "string", "library": "string", "existing_design_system": "string", "requirements": "string" },
-  "constraints": { "platform": "ios|android|cross-platform", "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" }
+  "constraints": { "platform": "ios|android|cross-platform", "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" },
 }
 ```
 
