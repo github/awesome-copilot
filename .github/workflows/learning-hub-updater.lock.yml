@@ -131,6 +131,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github
+            .gitmodules
             .agents
             .claude
             .codex
