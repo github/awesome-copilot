@@ -1,0 +1,4 @@
+[submodule "RAG-Azure-Builder-src"]
+	path = RAG-Azure-Builder-src
+	url = https://github.com/Sertxito/RAG-Azure-Builder.git
+	branch = main
