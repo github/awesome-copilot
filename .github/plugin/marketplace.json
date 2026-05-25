@@ -358,8 +358,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.24.0"
+      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.42.0"
     },
     {
       "name": "git-ape",
@@ -753,7 +753,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "b1492121b8591fba7dc477392ae0ea6be924fb31"
+        "ref": "v2.0.0"
       }
     },
     {
@@ -790,6 +790,12 @@
       "name": "typespec-m365-copilot",
       "source": "typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "visual-pr",
+      "source": "visual-pr",
+      "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",
       "version": "1.0.0"
     },
     {
