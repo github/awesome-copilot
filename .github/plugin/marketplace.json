@@ -793,6 +793,36 @@
       "version": "1.0.0"
     },
     {
+      "name": "vercel-plugin",
+      "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
+      "version": "0.43.0",
+      "author": {
+        "name": "Vercel",
+        "url": "https://github.com/vercel"
+      },
+      "repository": "https://github.com/vercel/vercel-plugin",
+      "homepage": "https://vercel.com/docs/agent-resources/vercel-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "vercel",
+        "nextjs",
+        "ai-sdk",
+        "turborepo",
+        "turbopack",
+        "workflow",
+        "deployment",
+        "edge-functions",
+        "serverless",
+        "ai-gateway"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "vercel/vercel-plugin",
+        "path": "/",
+        "ref": "6e51924cb249e2941de005d59f1ac6f768477b98"
+      }
+    },
+    {
       "name": "visual-pr",
       "source": "visual-pr",
       "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",
