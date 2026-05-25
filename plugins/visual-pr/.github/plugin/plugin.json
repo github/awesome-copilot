@@ -12,13 +12,15 @@
     "screen-recording",
     "visual"
   ],
-  "author": { "name": "Awesome Copilot Community" },
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "skills": [
-    "./skills/image-annotations/",
-    "./skills/pr-screenshots/",
-    "./skills/screen-recording/",
-    "./skills/ui-screenshots/"
+    "./skills/image-annotations",
+    "./skills/pr-screenshots",
+    "./skills/screen-recording",
+    "./skills/ui-screenshots"
   ]
 }
