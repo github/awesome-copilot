@@ -56,9 +56,7 @@
 
 # mane - intentional (unicorn anatomy reference in agents/ada-marie.agent.md)
 
-# Parth - proper name (Parth Sangani, contributor — pm-skills external plugin)
-
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,mane,Parth
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,mane
 
 # Skip certain files and directories
 
