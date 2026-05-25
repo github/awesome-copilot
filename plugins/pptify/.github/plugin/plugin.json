@@ -1,0 +1,21 @@
+{
+    "name":  "pptify",
+    "description":  "Generate production-ready PowerPoint decks with pptify skills, source ingestion, design-context selection, coordinate-explicit slide specs, visual assets, runtime tooling, and audit-driven quality gates.",
+    "version":  "1.0.0",
+    "author":  {
+                   "name":  "PPTify maintainers"
+               },
+    "repository":  "https://github.com/kimtth/agent-pptify-kit",
+    "license":  "MIT",
+    "keywords":  [
+                     "pptify",
+                     "powerpoint",
+                     "pptx",
+                     "presentations",
+                     "deck-generation",
+                     "slides",
+                     "design-context",
+                     "visual-assets",
+                     "quality-gates"
+                 ]
+}
