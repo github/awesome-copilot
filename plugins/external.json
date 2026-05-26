@@ -382,7 +382,7 @@
     "source": {
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
-      "ref": "v2.0.0"
+      "ref": "2.0.0"
     }
   },
   {
