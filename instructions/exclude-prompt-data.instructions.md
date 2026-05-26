@@ -26,7 +26,7 @@ than as intended file content:
 - Inline rationale or motivation (`"because the old behavior caused..."`)
 - References to the prompt itself (`"as requested"`, `"per the prompt"`,
  `"the new feature has been added as"`)
-- Meta-commentary about the update 
+- Meta-commentary about the update
  (`"This section has been updated to reflect..."`)
 - Code comments that narrate a change rather than describe the code
  (`"// Added email validation as requested"`,
