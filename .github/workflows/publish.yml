@@ -62,6 +62,8 @@ jobs:
           marketplace_worktree_dir="$(mktemp -d)"
           main_publish_ref="refs/heads/publish-${LEGACY_PUBLISHED_BRANCH}"
           marketplace_publish_ref="refs/heads/publish-${MARKETPLACE_BRANCH}"
+          main_base_sha=""
+          marketplace_base_sha=""
 
           cleanup() {
             git worktree remove --force "${main_worktree_dir}" 2>/dev/null || true
@@ -81,8 +83,10 @@ jobs:
             local branch="$1"
             local worktree_dir="$2"
             local publish_ref="$3"
+            local base_sha=""
 
             git fetch origin "${branch}"
+            base_sha="$(git rev-parse "origin/${branch}")"
             git worktree add --force --detach "${worktree_dir}" "origin/${branch}"
 
             rsync -a --delete \
@@ -97,10 +101,24 @@ jobs:
               git commit -m "chore: publish from ${SOURCE_BRANCH}" --allow-empty
               git update-ref "${publish_ref}" HEAD
             )
+
+            if [[ "${branch}" == "${LEGACY_PUBLISHED_BRANCH}" ]]; then
+              main_base_sha="${base_sha}"
+            elif [[ "${branch}" == "${MARKETPLACE_BRANCH}" ]]; then
+              marketplace_base_sha="${base_sha}"
+            fi
           }
 
           publish_branch "${LEGACY_PUBLISHED_BRANCH}" "${main_worktree_dir}" "${main_publish_ref}"
           publish_branch "${MARKETPLACE_BRANCH}" "${marketplace_worktree_dir}" "${marketplace_publish_ref}"
+
+          git fetch origin "${LEGACY_PUBLISHED_BRANCH}" "${MARKETPLACE_BRANCH}"
+          current_main_tip="$(git rev-parse "origin/${LEGACY_PUBLISHED_BRANCH}")"
+          current_marketplace_tip="$(git rev-parse "origin/${MARKETPLACE_BRANCH}")"
+          if [[ "${current_main_tip}" != "${main_base_sha}" || "${current_marketplace_tip}" != "${marketplace_base_sha}" ]]; then
+            echo "Remote branch tip changed after publish commit preparation. Please rerun the publish workflow."
+            exit 1
+          fi
 
           git push origin --atomic \
             "${main_publish_ref}:${LEGACY_PUBLISHED_BRANCH}" \
