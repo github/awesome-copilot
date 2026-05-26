@@ -438,7 +438,7 @@ resp = ctx.submit_order(
     side=OrderSide.Buy,
     submitted_quantity=Decimal(200),
     time_in_force=TimeInForceType.Day,
-    submitted_price=Decimal("50.00"),  # required for LO/ELO/ALO/ODD  # codespell:ignore ALO
+    submitted_price=Decimal("50.00"),  # required for LO/ELO/ALO/ODD  # codespell:ignore alo
     remark="my order",                 # optional, max 64 chars
 )
 # resp.order_id: str
@@ -448,7 +448,7 @@ resp = ctx.submit_order(
 
 | Parameter | Required for |
 |-----------|-------------|
-| `submitted_price` | LO, ELO, ALO, ODD, LIT |  <!-- codespell:ignore ALO -->
+| `submitted_price` | LO, ELO, ALO, ODD, LIT |  <!-- codespell:ignore alo -->
 | `trigger_price` | LIT, MIT |
 | `limit_offset` | TSLPAMT, TSLPPCT |
 | `trailing_amount` | TSLPAMT |
@@ -662,7 +662,7 @@ OrderType.LO       # Limit Order (price required)
 OrderType.ELO      # Enhanced Limit Order (HK only)
 OrderType.MO       # Market Order
 OrderType.AO       # At-Auction Order
-OrderType.ALO      # At-Auction Limit Order  # codespell:ignore ALO
+OrderType.ALO      # At-Auction Limit Order  # codespell:ignore alo
 OrderType.ODD      # Odd Lots Order
 OrderType.LIT      # Limit If Touched (price + trigger_price)
 OrderType.MIT      # Market If Touched (trigger_price)

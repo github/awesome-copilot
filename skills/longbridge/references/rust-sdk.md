@@ -797,7 +797,7 @@ OrderType::LO        // Limit Order
 OrderType::ELO       // Enhanced Limit Order (HK only)
 OrderType::MO        // Market Order
 OrderType::AO        // At-Auction Order
-OrderType::ALO       // At-Auction Limit Order  // codespell:ignore ALO
+OrderType::ALO       // At-Auction Limit Order  // codespell:ignore alo
 OrderType::ODD       // Odd Lots Order
 OrderType::LIT       // Limit If Touched
 OrderType::MIT       // Market If Touched
