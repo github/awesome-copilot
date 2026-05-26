@@ -1,1 +1,0 @@
-"""Document ingestion helpers for pptify plugins."""
