@@ -83,7 +83,7 @@ jobs:
             local publish_ref="$3"
 
             git fetch origin "${branch}"
-            git worktree add --detach "${worktree_dir}" "origin/${branch}"
+            git worktree add --force --detach "${worktree_dir}" "origin/${branch}"
 
             rsync -a --delete \
               --exclude '.git' \
