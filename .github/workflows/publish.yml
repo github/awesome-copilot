@@ -125,7 +125,7 @@ jobs:
             drift_detected=true
           fi
           if [[ "${drift_detected}" == true ]]; then
-            echo "Please rerun the publish workflow."
+            echo "Concurrent branch update detected during publish. Please rerun the publish workflow."
             exit 1
           fi
 
