@@ -302,8 +302,8 @@ function generateInstructionsSection(instructionsDir) {
     return { file, filePath, title };
   });
 
-  // Sort by title alphabetically
-  instructionEntries.sort((a, b) => a.title.localeCompare(b.title));
+  // Sort by title alphabetically with a fixed locale so generated output is stable across OSes.
+  instructionEntries.sort((a, b) => a.title.localeCompare(b.title, "en"));
 
   console.log(`Found ${instructionEntries.length} instruction files`);
 
