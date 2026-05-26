@@ -42,7 +42,7 @@ If the workspace root belongs to another project, ask the user before cloning. S
 | `pptify-plugin/documents/document_to_markdown.py` | plugins | Convert PDF, DOCX, HTML, or plain text to markdown for source prep |
 | `pptify-plugin/documents/document_to_raptor_tree.py` | plugins | Build a RAPTOR hierarchical summary tree from a markdown source |
 | `pptify-plugin/design/design_context_catalog.py` | plugins | List and load pptify-design profiles; returns style context for spec authoring |
-| `pptify-plugin/images/web_image_search.py` | plugins | Search the web for candidate images (SerpAPI or DuckDuckGo fallback) |
+| `pptify-plugin/images/web_image_search.py` | plugins | Search the web for candidate images without required API keys |
 | `pptify-plugin/images/iconfy_search.py` | plugins | Search Iconify icon library for SVG icons by query, collection, and hex color |
 | `pptify-plugin/images/raster_image_to_svg.py` | plugins | Convert raster images to SVG wrappers; optional vector trace mode |
 | `pptify-plugin/images/text_prompt_to_infographic.py` | plugins | Generate infographic images via OpenAI or Azure OpenAI (no local fallback) |
@@ -73,15 +73,6 @@ AZURE_AI_FOUNDRY_MODEL=
 ```
 
 Use `az login` when managed identity or CLI auth is preferred over an API key.
-
-## Optional API Keys
-
-| Variable | Required for |
-|---|---|
-| `SERPAPI_API_KEY` | Web image search via SerpAPI (falls back to DuckDuckGo without it) |
-| `ICONIFY_API_KEY` | Large-volume Iconify icon queries |
-
-Place these in `.env` alongside the image provider settings.
 
 ## Verification After Install
 
