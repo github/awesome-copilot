@@ -15,7 +15,7 @@
     "architecture"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/context-map",

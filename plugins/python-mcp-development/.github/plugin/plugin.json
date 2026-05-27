@@ -15,7 +15,7 @@
     "server-development"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/python-mcp-server-generator"

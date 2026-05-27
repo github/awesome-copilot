@@ -15,7 +15,7 @@
     "agents"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/suggest-awesome-github-copilot-agents",

@@ -17,7 +17,7 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/react-audit-grep-patterns",

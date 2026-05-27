@@ -14,7 +14,7 @@
     "azure"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/azure-resource-health-diagnose",

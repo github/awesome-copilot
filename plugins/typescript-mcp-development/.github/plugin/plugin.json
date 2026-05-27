@@ -15,7 +15,7 @@
     "server-development"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/typescript-mcp-server-generator"

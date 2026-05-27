@@ -18,7 +18,7 @@
     "nunit"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/ai-prompt-engineering-safety-review",

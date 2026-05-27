@@ -19,7 +19,7 @@
     "salesforce-dx"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/salesforce-apex-quality",

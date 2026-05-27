@@ -20,7 +20,7 @@
     "async-await"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/swift-mcp-server-generator"

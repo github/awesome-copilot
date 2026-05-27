@@ -16,7 +16,7 @@
     "adaptive-cards"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/mcp-create-adaptive-cards",

@@ -14,7 +14,7 @@
     "testing"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/aspnet-minimal-api-openapi",

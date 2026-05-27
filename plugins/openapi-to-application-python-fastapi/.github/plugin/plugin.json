@@ -15,7 +15,7 @@
     "fastapi"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/openapi-to-application-code"

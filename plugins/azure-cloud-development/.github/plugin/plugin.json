@@ -18,7 +18,7 @@
     "devops"
   ],
   "agents": [
-    "."
+    "./agents"
   ],
   "skills": [
     "./skills/az-cost-optimize",
