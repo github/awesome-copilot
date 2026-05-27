@@ -49,7 +49,7 @@ export function sortPlugins<T extends RenderablePlugin>(
 function getExternalPluginUrl(plugin: RenderablePlugin): string {
   if (plugin.source?.source === 'github' && plugin.source.repo) {
     const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path ? `${base}/tree/main/${plugin.source.path}` : base;
+    return plugin.source.path && plugin.source.path !== '/' ? `${base}/tree/main/${plugin.source.path}` : base;
   }
 
   return sanitizeUrl(plugin.repository || plugin.homepage);

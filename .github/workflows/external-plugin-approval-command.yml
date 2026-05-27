@@ -118,7 +118,7 @@ jobs:
               '',
               '### Required fixes',
               '',
-              ...(errors.length > 0 ? errors.map((error) => `- ${error}`) : ['- Re-run intake validation by updating the issue details.'])
+              ...(errors.length > 0 ? errors.map((error) => `- ${error}`) : ['- Edit the issue details and let intake rerun automatically, or comment `/rerun-intake` to trigger it again on demand.'])
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -493,7 +493,7 @@ jobs:
               '',
               reason,
               '',
-              'If you address the feedback, open a new external plugin submission issue with the updated details.'
+              'If you address the feedback, edit this issue with the updated details and have the issue author or a maintainer comment `/rerun-intake` to re-run automated intake.'
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
