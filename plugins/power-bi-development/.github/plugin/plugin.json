@@ -18,15 +18,12 @@
     "business-intelligence"
   ],
   "agents": [
-    "./agents/power-bi-data-modeling-expert.md",
-    "./agents/power-bi-dax-expert.md",
-    "./agents/power-bi-performance-expert.md",
-    "./agents/power-bi-visualization-expert.md"
+    "./agents"
   ],
   "skills": [
-    "./skills/power-bi-dax-optimization/",
-    "./skills/power-bi-model-design-review/",
-    "./skills/power-bi-performance-troubleshooting/",
-    "./skills/power-bi-report-design-consultation/"
+    "./skills/power-bi-dax-optimization",
+    "./skills/power-bi-model-design-review",
+    "./skills/power-bi-performance-troubleshooting",
+    "./skills/power-bi-report-design-consultation"
   ]
 }
