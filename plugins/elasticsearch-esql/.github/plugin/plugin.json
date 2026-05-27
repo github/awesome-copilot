@@ -1,0 +1,25 @@
+{
+  "name": "elasticsearch-esql",
+  "description": "Elasticsearch ES|QL plugin for GitHub Copilot. Translates natural language to ES|QL queries, discovers indices and schemas, executes queries, and analyzes results. Powered by the official Elastic ES|QL skill.",
+  "version": "1.0.0",
+  "author": {
+    "name": "gregorycrist"
+  },
+  "repository": "https://github.com/gregorycrist/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "elasticsearch",
+    "esql",
+    "elastic",
+    "query",
+    "natural-language",
+    "observability",
+    "logs",
+    "metrics",
+    "analytics",
+    "data"
+  ],
+  "skills": [
+    "./skills/elasticsearch-esql/"
+  ]
+}
