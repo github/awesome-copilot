@@ -18,9 +18,9 @@
   "repository": "https://github.com/github/awesome-copilot",
   "license": "MIT",
   "skills": [
-    "./skills/image-annotations",
-    "./skills/pr-screenshots",
-    "./skills/screen-recording",
-    "./skills/ui-screenshots"
+    "./skills/image-annotations/",
+    "./skills/pr-screenshots/",
+    "./skills/screen-recording/",
+    "./skills/ui-screenshots/"
   ]
 }
