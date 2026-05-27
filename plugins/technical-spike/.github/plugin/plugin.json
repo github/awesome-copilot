@@ -14,7 +14,7 @@
     "research"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/create-technical-spike"

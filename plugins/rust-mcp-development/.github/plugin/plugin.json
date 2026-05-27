@@ -19,7 +19,7 @@
     "rmcp"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/rust-mcp-server-generator"

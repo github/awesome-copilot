@@ -17,7 +17,7 @@
     "gem"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/ruby-mcp-server-generator"

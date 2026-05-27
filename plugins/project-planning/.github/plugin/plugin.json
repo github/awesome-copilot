@@ -18,7 +18,7 @@
     "technical-spike"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/breakdown-epic-arch",

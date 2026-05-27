@@ -18,7 +18,7 @@
     "business-intelligence"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/power-bi-dax-optimization",

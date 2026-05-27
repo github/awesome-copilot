@@ -19,7 +19,7 @@
     "vue"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/playwright-explore-website",

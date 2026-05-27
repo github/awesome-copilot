@@ -14,7 +14,7 @@
   ],
   "license": "MIT",
   "agents": [
-    "./agents"
+    "."
   ],
   "mcpServers": {
     "appmod-mcp-server": {

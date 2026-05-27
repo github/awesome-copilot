@@ -19,7 +19,7 @@
     "auto-discovery"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/drawio",

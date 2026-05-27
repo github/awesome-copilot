@@ -16,7 +16,7 @@
     "developer-experience"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/from-the-other-side-vega"

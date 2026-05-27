@@ -16,7 +16,7 @@
     "safety"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/doublecheck"

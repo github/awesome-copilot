@@ -13,7 +13,7 @@
     "interactive-programming"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/remember-interactive-programming"

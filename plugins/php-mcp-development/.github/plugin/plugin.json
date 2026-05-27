@@ -17,7 +17,7 @@
     "composer"
   ],
   "agents": [
-    "./agents"
+    "."
   ],
   "skills": [
     "./skills/php-mcp-server-generator"
