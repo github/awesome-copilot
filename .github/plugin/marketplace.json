@@ -759,7 +759,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "v2.0.0"
+        "ref": "2.0.0"
       }
     },
     {
@@ -825,7 +825,7 @@
         "source": "github",
         "repo": "vercel/vercel-plugin",
         "path": "/",
-        "ref": "6e51924cb249e2941de005d59f1ac6f768477b98"
+        "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
       }
     },
     {
