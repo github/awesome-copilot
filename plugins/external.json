@@ -292,6 +292,25 @@
     }
   },
   {
+    "name": "modernize-java",
+    "description": "AI-powered Java modernization and upgrade assistant. Helps upgrade Java and Spring Boot applications to the latest versions.",
+    "version": "1.19.2",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://www.microsoft.com"
+    },
+    "homepage": "https://github.com/microsoft/modernize-java",
+    "keywords": ["java", "modernization", "upgrade", "migration", "spring-boot"],
+    "license": "MIT",
+    "repository": "https://github.com/microsoft/modernize-java",
+    "source": {
+      "source": "github",
+      "repo": "microsoft/modernize-java",
+      "path": "plugins/modernize-java",
+      "ref": "b570196c070bf1eb9d7ad34a263b228ef16034a0"
+    }
+  },
+  {
     "name": "pm-skills",
     "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
     "version": "2.1.0",
