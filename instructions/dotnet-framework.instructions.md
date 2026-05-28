@@ -10,20 +10,25 @@ applyTo: '**/*.csproj, **/*.cs'
 
 ## Project File Management
 
-### Non-SDK Style Project Structure
-.NET Framework projects use the legacy project format, which differs significantly from modern SDK-style projects:
+### Legacy and SDK-Style Project Structure
+Many .NET Framework projects use the legacy non-SDK project format, which differs significantly from modern SDK-style projects. However, SDK-style project files can also target .NET Framework, such as `net48` or `net472`. Check the `.csproj` format before applying project-file guidance:
 
-- **Explicit File Inclusion**: All new source files **MUST** be explicitly added to the project file (`.csproj`) using a `<Compile>` element
-  - .NET Framework projects do not automatically include files in the directory like SDK-style projects
+- **Legacy non-SDK projects**: All new source files **MUST** be explicitly added to the project file (`.csproj`) using a `<Compile>` element
+  - Legacy non-SDK projects do not automatically include files in the directory like SDK-style projects
   - Example: `<Compile Include="Path\To\NewFile.cs" />`
 
-- **No Implicit Imports**: Unlike SDK-style projects, .NET Framework projects do not automatically import common namespaces or assemblies
+- **SDK-style projects**: If the project file has an `Sdk` attribute, use SDK-style conventions even when it targets .NET Framework
+  - Example: `<Project Sdk="Microsoft.NET.Sdk">`
+  - Uses `<TargetFramework>` instead of `<TargetFrameworkVersion>`
+  - Example: `<TargetFramework>net48</TargetFramework>`
+
+- **No Implicit Imports in legacy projects**: Unlike SDK-style projects, legacy non-SDK projects do not automatically import common namespaces or assemblies
  
-- **Build Configuration**: Contains explicit `<PropertyGroup>` sections for Debug/Release configurations
+- **Build Configuration in legacy projects**: Contains explicit `<PropertyGroup>` sections for Debug/Release configurations
 
-- **Output Paths**: Explicit `<OutputPath>` and `<IntermediateOutputPath>` definitions
+- **Output Paths in legacy projects**: Explicit `<OutputPath>` and `<IntermediateOutputPath>` definitions
 
-- **Target Framework**: Uses `<TargetFrameworkVersion>` instead of `<TargetFramework>`
+- **Target Framework in legacy projects**: Uses `<TargetFrameworkVersion>` instead of `<TargetFramework>`
   - Example: `<TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>`
 
 ## NuGet Package Management
