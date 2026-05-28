@@ -58,11 +58,16 @@ function resolveFetchSpec(pluginSource) {
     throw new Error("source.ref or source.sha is required for quality gates");
   }
 
-  if (pluginSource.ref.startsWith("refs/")) {
-    return pluginSource.ref;
+  const ref = String(pluginSource.ref).trim();
+  if (!ref) {
+    throw new Error("source.ref or source.sha is required for quality gates");
   }
 
-  return `refs/tags/${pluginSource.ref}`;
+  if (ref.startsWith("refs/")) {
+    return ref;
+  }
+
+  return ref;
 }
 
 function classifySmokeFailure(output) {
