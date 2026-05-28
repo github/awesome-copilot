@@ -72,7 +72,24 @@ function resolveFetchSpec(pluginSource) {
 
 function classifySmokeFailure(output) {
   const normalized = String(output ?? "").toLowerCase();
-  if (normalized.includes("auth") || normalized.includes("token") || normalized.includes("login")) {
+  const infraPatterns = [
+    /\b401\b/,
+    /\b403\b/,
+    /authentication (required|failed|error)/,
+    /unauthenticated/,
+    /unauthorized/,
+    /not logged in/,
+    /please (log in|authenticate|sign in)/,
+    /invalid (access |auth )?token/,
+    /credentials? (are )?expired/,
+    /dns.*(resolve|lookup|fail)/,
+    /network.*unreachable/,
+    /connection (refused|timed? out|reset)/,
+    /enotfound/,
+    /econnrefused/,
+    /etimedout/,
+  ];
+  if (infraPatterns.some((pattern) => pattern.test(normalized))) {
     return "infra_error";
   }
 
