@@ -81,7 +81,7 @@ jobs:
   sync-state:
     runs-on: ubuntu-latest
     needs: [evaluate-submission, quality-gates]
-    if: needs.evaluate-submission.outputs.should-sync == 'true'
+    if: always() && needs.evaluate-submission.outputs.should-sync == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
