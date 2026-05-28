@@ -9,8 +9,13 @@ import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-v
 export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
 export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
 export const RERUN_INTAKE_COMMAND = "/rerun-intake";
+export const MARK_READY_FOR_REVIEW_COMMAND = "/mark-ready-for-review";
 const RERUN_INTAKE_COMMAND_PATTERN = new RegExp(
   `^\\s*${RERUN_INTAKE_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+  "m",
+);
+const MARK_READY_FOR_REVIEW_COMMAND_PATTERN = new RegExp(
+  `^\\s*${MARK_READY_FOR_REVIEW_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
   "m",
 );
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
@@ -318,6 +323,168 @@ export function parseRerunIntakeCommand(body) {
   return RERUN_INTAKE_COMMAND_PATTERN.test(String(body ?? ""));
 }
 
+export function parseMarkReadyForReviewCommand(body) {
+  const text = String(body ?? "");
+  if (!MARK_READY_FOR_REVIEW_COMMAND_PATTERN.test(text)) {
+    return undefined;
+  }
+
+  const commandLine = text.split(/\r?\n/).find((line) => MARK_READY_FOR_REVIEW_COMMAND_PATTERN.test(line));
+  const reason = commandLine?.replace(MARK_READY_FOR_REVIEW_COMMAND_PATTERN, "").trim();
+
+  return {
+    command: MARK_READY_FOR_REVIEW_COMMAND,
+    reason: reason || undefined,
+  };
+}
+
+function normalizeQualityGateResult(rawResult) {
+  const defaults = {
+    overall_status: "not_run",
+    skill_validator_status: "not_run",
+    smoke_status: "not_run",
+    failure_class: "none",
+    summary: "",
+    skill_validator_output: "",
+    smoke_output: "",
+  };
+
+  if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
+    return defaults;
+  }
+
+  return {
+    ...defaults,
+    ...rawResult,
+  };
+}
+
+function buildQualityGatesCommentSection(qualityResult) {
+  const skillState = qualityResult.skill_validator_status || "not_run";
+  const smokeState = qualityResult.smoke_status || "not_run";
+  const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
+
+  const sections = [
+    "### Quality gate summary",
+    "",
+    "| Gate | Status |",
+    "|---|---|",
+    `| skill-validator | ${skillState} |`,
+    `| install smoke test | ${smokeState} |`,
+    "",
+    summaryText,
+  ];
+
+  const skillOutput = String(qualityResult.skill_validator_output || "").trim();
+  if (skillOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>skill-validator output</summary>",
+      "",
+      "```text",
+      skillOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const smokeOutput = String(qualityResult.smoke_output || "").trim();
+  if (smokeOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Install smoke test output</summary>",
+      "",
+      "```text",
+      smokeOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  return sections.join("\n");
+}
+
+function getIntakeStateFromQualityResult(baseResult, qualityResult) {
+  if (!baseResult.valid) {
+    return "rejected";
+  }
+
+  if (qualityResult.failure_class === "submitter_fixes") {
+    return "requires-submitter-fixes";
+  }
+
+  if (qualityResult.failure_class === "infra") {
+    return "awaiting-review";
+  }
+
+  return "ready-for-review";
+}
+
+function buildMergedIntakeComment(baseResult, qualityResult) {
+  if (!baseResult.valid) {
+    return baseResult.commentBody;
+  }
+
+  const marker = baseResult.commentMarker ?? EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
+  const qualitySection = buildQualityGatesCommentSection(qualityResult);
+
+  const intro =
+    qualityResult.failure_class === "submitter_fixes"
+      ? "## ⚠️ External plugin intake requires submitter fixes"
+      : qualityResult.failure_class === "infra"
+        ? "## ⚠️ External plugin intake could not complete quality checks"
+        : "## ✅ External plugin intake passed";
+
+  const statusLine =
+    qualityResult.failure_class === "submitter_fixes"
+      ? "This submission passed metadata validation, but quality gates found issues that must be fixed before it can move to maintainer review. Update the issue details or source plugin and then comment `/rerun-intake`."
+      : qualityResult.failure_class === "infra"
+        ? "This submission passed metadata validation, but the automated quality checks hit an infrastructure issue. A maintainer should rerun intake or use the explicit override command after review."
+        : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
+
+  return [
+    marker,
+    intro,
+    "",
+    statusLine,
+    "",
+    `- **Plugin:** ${baseResult.plugin?.name ?? "unknown"}`,
+    `- **Repository:** ${baseResult.plugin?.repository ?? "unknown"}`,
+    baseResult.plugin?.source?.ref ? `- **Ref:** ${baseResult.plugin.source.ref}` : undefined,
+    baseResult.plugin?.source?.sha ? `- **SHA:** ${baseResult.plugin.source.sha}` : undefined,
+    "",
+    qualitySection,
+    "",
+    "### Canonical external.json payload",
+    "",
+    "```json",
+    JSON.stringify(baseResult.plugin ?? {}, null, 2),
+    "```",
+    baseResult.warnings?.length
+      ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
+      : "",
+  ].filter(Boolean).join("\n");
+}
+
+export function applyQualityGateResult(baseEvaluation, qualityGateResult) {
+  const baseResult = typeof baseEvaluation === "string" ? JSON.parse(baseEvaluation) : baseEvaluation;
+  const qualityResult = normalizeQualityGateResult(
+    typeof qualityGateResult === "string" ? JSON.parse(qualityGateResult) : qualityGateResult,
+  );
+  const intakeState = getIntakeStateFromQualityResult(baseResult, qualityResult);
+
+  return {
+    ...baseResult,
+    qualityGates: qualityResult,
+    intakeState,
+    commentBody: buildMergedIntakeComment(baseResult, qualityResult),
+  };
+}
+
 export async function evaluateExternalPluginIssue({ issue, token } = {}) {
   const issueBody = issue?.body ?? "";
   const parsed = parseExternalPluginIssueBody(issueBody);
@@ -403,6 +570,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
 
   return {
     valid,
+    intakeState: valid ? "ready-for-review" : "rejected",
     markerPresent: parsed.markerPresent,
     errors: dedupedErrors,
     warnings: dedupedWarnings,

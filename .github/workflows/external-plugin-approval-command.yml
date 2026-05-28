@@ -4,6 +4,10 @@ on:
   issue_comment:
     types: [created]
 
+concurrency:
+  group: external-plugin-intake-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   issues: write
@@ -269,6 +273,10 @@ jobs:
                 color: '0E8A16',
                 description: 'Submission passed intake validation and is ready for maintainer review'
               },
+              'requires-submitter-fixes': {
+                color: 'D93F0B',
+                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
+              },
               'approved': {
                 color: '1D76DB',
                 description: 'Submission was approved by a maintainer'
@@ -428,6 +436,10 @@ jobs:
                 color: '0E8A16',
                 description: 'Submission passed intake validation and is ready for maintainer review'
               },
+              'requires-submitter-fixes': {
+                color: 'D93F0B',
+                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
+              },
               'approved': {
                 color: '1D76DB',
                 description: 'Submission was approved by a maintainer'
@@ -479,6 +491,7 @@ jobs:
 
             await removeLabel('awaiting-review');
             await removeLabel('ready-for-review');
+            await removeLabel('requires-submitter-fixes');
             await removeLabel('approved');
 
             const marker = '<!-- external-plugin-rejection -->';

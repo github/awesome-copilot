@@ -230,11 +230,16 @@ The public-submission policy builds on those rules and also requires `license` p
 
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are closed with a comment explaining what must be fixed before resubmitting.
-3. **Ready for maintainer review**: if the issue passes intake validation, automation removes `awaiting-review` and adds `ready-for-review`.
-4. **Requesting another intake pass**: after updating the issue body, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake on demand. Open issues still re-trigger intake automatically on edit, but closed rejected issues need `/rerun-intake`.
-5. **Maintainer decision**: a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
-6. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
-7. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
+3. **Automated quality gates** run after metadata validation:
+   - `skill-validator check --plugin` against the submitted plugin path/ref/sha
+   - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
+4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
+5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
+6. **Requesting another intake pass**: after updating the issue body or source plugin, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates on demand. Open issues still re-trigger intake automatically on edit, but closed rejected issues need `/rerun-intake`.
+7. **Maintainer override path**: a maintainer with write access can comment `/mark-ready-for-review [optional reason]` to explicitly move a `requires-submitter-fixes` issue to `ready-for-review`.
+8. **Maintainer decision**: once in `ready-for-review`, a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
+9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
+10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
 
 ##### Maintainer review responsibilities
 
@@ -251,6 +256,7 @@ Maintainers are responsible for confirming that the submission:
 - `external-plugin`: applied to every public external plugin submission and retained on approved issues so scheduled review automation can find them later
 - `awaiting-review`: initial intake state before automation finishes validating the issue
 - `ready-for-review`: the issue passed automated intake checks and is waiting on a maintainer decision
+- `requires-submitter-fixes`: metadata validation passed but automated quality gates failed; submitter updates are required before human review
 - `approved`: the issue was approved, closed, and can be used as the source of truth for six-month re-review
 - `rejected`: the issue was rejected and closed without being added to the marketplace
 - `re-review-due`: the approved issue reached the six-month review threshold and is waiting on a maintainer re-review decision
