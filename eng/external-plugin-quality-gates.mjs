@@ -8,6 +8,25 @@ import { spawnSync } from "child_process";
 const MAX_OUTPUT_LENGTH = 12000;
 const SKILL_VALIDATOR_ARCHIVE_URL = "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz";
 
+const INFRA_ERROR_PATTERNS = [
+  /\b401\b/,
+  /\b403\b/,
+  /authentication (required|failed|error)/,
+  /unauthenticated/,
+  /unauthorized/,
+  /not logged in/,
+  /please (log in|authenticate|sign in)/,
+  /invalid (access |auth )?token/,
+  /credentials? (are )?expired/,
+  /dns.*(resolve|lookup|fail)/,
+  /network.*unreachable/,
+  /connection (refused|reset)/,
+  /\btimeout\b/,
+  /enotfound/,
+  /econnrefused/,
+  /etimedout/,
+];
+
 function truncateOutput(value) {
   const normalized = String(value ?? "").replace(/\x1b\[[0-9;]*m/g, "").trim();
   if (normalized.length <= MAX_OUTPUT_LENGTH) {
@@ -72,24 +91,7 @@ function resolveFetchSpec(pluginSource) {
 
 function classifySmokeFailure(output) {
   const normalized = String(output ?? "").toLowerCase();
-  const infraPatterns = [
-    /\b401\b/,
-    /\b403\b/,
-    /authentication (required|failed|error)/,
-    /unauthenticated/,
-    /unauthorized/,
-    /not logged in/,
-    /please (log in|authenticate|sign in)/,
-    /invalid (access |auth )?token/,
-    /credentials? (are )?expired/,
-    /dns.*(resolve|lookup|fail)/,
-    /network.*unreachable/,
-    /connection (refused|timed? out|reset)/,
-    /enotfound/,
-    /econnrefused/,
-    /etimedout/,
-  ];
-  if (infraPatterns.some((pattern) => pattern.test(normalized))) {
+  if (INFRA_ERROR_PATTERNS.some((pattern) => pattern.test(normalized))) {
     return "infra_error";
   }
 
