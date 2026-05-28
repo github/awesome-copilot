@@ -124,7 +124,7 @@ jobs:
   apply-state:
     runs-on: ubuntu-latest
     needs: [parse-command, quality-gates]
-    if: needs.parse-command.outputs.should-run == 'true'
+    if: always() && needs.parse-command.outputs.should-run == 'true'
     steps:
       - name: Checkout staged branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
