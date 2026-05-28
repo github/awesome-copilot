@@ -121,6 +121,7 @@ Invoke-Pester -TagFilter 'Unit' -ExcludeTagFilter 'Slow'
 - **`-Skip`**: Available on `Describe`, `Context`, and `It` to skip tests
 - **Conditional**: Use `-Skip:$condition` for dynamic skipping
 - **Runtime Skip**: Use `Set-ItResult -Skipped` during test execution (setup/teardown still run)
+- **Ends the test body**: `Set-ItResult -Skipped`/`-Inconclusive` throws internally to end the `It` block, so code after it does not run; a trailing `return` is unreachable and should not be added
 
 ```powershell
 It 'Should work on Windows' -Skip:(-not $IsWindows) { }
