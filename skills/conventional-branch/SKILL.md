@@ -74,7 +74,9 @@ feature/issue-123-new-login
 
 ## Workflow
 
-### 1. Determine Branch Type
+**Follow these steps:**
+
+**Step 1 — Determine Branch Type**
 
 Ask the user (if not already clear):
 
@@ -83,7 +85,7 @@ Ask the user (if not already clear):
 
 If the user mentions a ticket or issue number, include it in the description (e.g., `feature/issue-123-add-oauth`).
 
-### 2. Validate the Name
+**Step 2 — Validate the Name**
 
 Check the assembled name against the **Naming Rules** above. If any rule fails, fix it:
 
@@ -92,7 +94,7 @@ Check the assembled name against the **Naming Rules** above. If any rule fails, 
 - Collapse consecutive hyphens
 - Strip leading/trailing hyphens
 
-### 3. Detect the Base Branch
+**Step 3 — Detect the Base Branch**
 
 Different repos use different trunk branches. Detect which one this repo uses:
 
@@ -109,7 +111,7 @@ for b in develop main master; do
 done
 ```
 
-### 4. Create and Checkout
+**Step 4 — Create and Checkout**
 
 ```bash
 git checkout <base>
@@ -117,7 +119,7 @@ git pull origin <base>
 git checkout -b <type>/<description>
 ```
 
-### 5. Confirm
+**Step 5 — Confirm**
 
 Tell the user:
 - The branch name that was created
