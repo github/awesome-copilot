@@ -28,6 +28,14 @@ jobs:
           persist-credentials: false
           submodules: false
 
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
       - name: Run external plugin quality gates
         id: quality
         env:
