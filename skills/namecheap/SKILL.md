@@ -79,6 +79,27 @@ python3 namecheap.py domains.ns.getInfo --domain example.com --nameserver ns1.ex
 python3 namecheap.py domains.ns.update --domain example.com --nameserver ns1.example.com --old-ip 1.2.3.4 --ip 5.6.7.8
 ```
 
+### JSON file formats
+
+`domains.dns.setHosts --hosts records.json` expects an array of objects with Namecheap API field names:
+
+```json
+[
+  { "HostName": "@", "RecordType": "A", "Address": "1.2.3.4", "TTL": 1800 },
+  { "HostName": "www", "RecordType": "CNAME", "Address": "@", "TTL": 1800 },
+  { "HostName": "@", "RecordType": "MX", "Address": "mail.example.com.", "TTL": 1800, "MXPref": 10 }
+]
+```
+
+`domains.dns.setEmailForwarding --forwards forwards.json` expects an array of mailbox rules:
+
+```json
+[
+  { "MailBox": "info", "ForwardTo": "team@example.net" },
+  { "MailBox": "sales", "ForwardTo": "owner@example.net" }
+]
+```
+
 ## Behavior
 
 - **Always check credentials first.** Before any API operation, verify `~/.namecheap-api` exists and is readable. If not, run the setup flow.
