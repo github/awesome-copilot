@@ -137,6 +137,12 @@ else:
 - **GUID strings vs `System.Guid`.** `rhinoscriptsyntax` accepts either; RhinoCommon wants `System.Guid`. Convert with `System.Guid(str_id)` if needed.
 - **Don’t call `doc.Views.Redraw()` inside a tight loop.** Toggle redraw once outside the loop.
 - **`.rvb` is just `.vbs` renamed** with a Rhino-specific extension so Rhino’s `LoadScript` recognizes it. Same VBScript engine.
+- **`Rhino.RhinoApp.IsHeadless` may not exist on older Rhino 8 builds.** Use `getattr(Rhino.RhinoApp, "IsHeadless", None)` and check for `None` before using. Fall back to a heuristic (e.g. `sc.doc.Views.Count == 0`) or assume GUI present.
+- **`RhinoMath` is at `Rhino.RhinoMath`, not `Rhino.DocObjects.RhinoMath`.** Accessing `Rhino.DocObjects.RhinoMath` raises `AttributeError`.
+- **`doc.Objects.AddBrep()` returns `System.Guid.Empty` on failure.** In Rhino 8 CPython the `System` namespace may not be directly importable; check the return value as a string: `str(obj_id) == "00000000-0000-0000-0000-000000000000"`.
+- **`rhinoscriptsyntax` has no type stubs.** Static analysers (Pylance/Pyright) flag `import rhinoscriptsyntax as rs` as unresolvable. Suppress with `# type: ignore` on the import line; the module is always available at Rhino runtime.
+- **Never name a script after a Python standard-library module** (e.g. `random.py`, `math.py`, `os.py`). IronPython 2.7 (`_-RunPythonScript`) resolves the script directory before stdlib, so any `import random` inside the stdlib (e.g. `tempfile` imports `random` internally) will find your file instead and fail with `Cannot import name <X>`. CPython 3 (`rhinocode`) is unaffected because it resolves stdlib first. Rename the script or avoid importing modules that pull in the shadowed name.
+- **Em dashes and other non-ASCII characters silently break `_-RunPythonScript` (IronPython 2.7).** `rhinocode script` uses CPython 3 (UTF-8 by default) so the same file works there, making the failure non-obvious. IronPython 2.7 raises `SyntaxError: Non-ASCII character '\xe2'` at the first offending byte. The most common culprit is the **em dash** (`--` auto-converted to `--` by many editors). Add `# -*- coding: utf-8 -*-` as line 1 of every script that must run under both runtimes, and replace typographic characters with ASCII equivalents: em dash `--`, arrow `->`, multiplication `x`.
 
 ## Troubleshooting
 
@@ -150,6 +156,10 @@ else:
 | Undo undoes only the last object of a batch | Wrap the batch in `BeginUndoRecord` / `EndUndoRecord`. |
 | Script works alone but fails as a startup script | Startup runs before any document is open — return early or skip document-dependent work when `sc.doc is None`. |
 | `rs.Command("...")` returns `False` | The macro string is malformed. Prefix with `!` and `-`, end every prompt with `_Enter` or a value. |
+| `AttributeError: type object 'RhinoApp' has no attribute 'IsHeadless'` | Property added in a later Rhino 8 build. Use `getattr(Rhino.RhinoApp, "IsHeadless", None)` and guard against `None`. |
+| `rhinocode script` ignores arguments after the script path | rhinocode concatenates extra tokens onto the file URI. Pass data via a temp file or a Rhino dialog instead. See `references/macros-and-loading.md`. |
+| `Cannot import name <X>` inside stdlib (e.g. `tempfile`, `os`) when using `_-RunPythonScript` | Script filename shadows a stdlib module (e.g. `random.py` shadows `random`). IronPython 2.7 searches the script directory before stdlib. Rename the script, or remove the `import` that pulls in the shadowed module and replace it with a direct alternative (e.g. read `%TEMP%` via `os.environ` instead of `import tempfile`). |
+| `SyntaxError: Non-ASCII character '\xe2' ... but no encoding declared` | IronPython 2.7 (`_-RunPythonScript`) hit an em dash or similar character. Add `# -*- coding: utf-8 -*-` as line 1, or replace the character: em dash `--`, arrow `->`. The same file runs fine under `rhinocode` (CPython 3), which hides the problem. |
 
 ## References
 

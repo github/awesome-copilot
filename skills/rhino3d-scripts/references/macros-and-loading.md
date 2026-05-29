@@ -93,3 +93,56 @@ rs.Command("! _-Line 0,0,0 10,0,0", echo=False)
 ```
 
 `echo=False` suppresses command-history output but does **not** suppress prompts — always use `-` and complete every prompt within the macro string.
+
+## rhinocode CLI (Rhino 8)
+
+`rhinocode` is the Rhino 8 command-line tool for running scripts and commands against a running Rhino instance from an external terminal.
+
+### Basic commands
+
+```text
+rhinocode script "C:\path\to\MyScript.py"            # run a Python script
+rhinocode command "_Circle 0,0,0 5 _Enter"           # run a Rhino command
+rhinocode --rhino <instance-id> script "MyScript.py" # target a specific instance
+```
+
+`<instance-id>` looks like `rhinocode_remotepipe_75029`. Find the ID in Rhino's title bar or
+by running `StartScriptServer` in Rhino, which prints the pipe name to the command line.
+
+### Architecture — pipe server
+
+rhinocode does **not** spawn a new Rhino process. It connects to a persistent server that Rhino
+exposes (`StartScriptServer`). Scripts execute inside that server process, which means:
+
+- **Environment variables are isolated.** Variables set in the calling shell (`set FOO=bar`)
+  are NOT visible inside the script via `os.environ`. The server was started before your shell.
+- **`os.getcwd()` is the server's working directory**, not the directory you called rhinocode
+  from. Do not rely on it for output paths; pass the path explicitly.
+- **`print()` output IS piped back** to the calling terminal — use it freely for status messages.
+
+### Passing data into a script
+
+rhinocode does not support positional arguments after the script path — any extra tokens are
+concatenated onto the file URI, causing a "file does not exist" error. Workarounds:
+
+|Channel|How|Notes|
+|---|---|---|
+|Temp file|Caller writes a file to a known location; script reads and deletes it.|Use a path derived from `__file__` (see below), not `%TEMP%` — the server may resolve a different temp dir.|
+|Rhino dialog|Script calls `rhinoscriptsyntax.ListBox` / `GetString`|Always works; user sees a prompt in Rhino.|
+
+### `__file__` is a URI
+
+When running via rhinocode, `__file__` is set as a `file:///` URI with URL-encoded characters
+(spaces become `%20`). Decode it before using it as a filesystem path:
+
+```python
+import os, sys, urllib.parse
+
+def _script_dir():
+    raw = __file__
+    if raw.startswith("file:///"):
+        raw = urllib.parse.unquote(raw[len("file:///"):])
+        if sys.platform == "win32":
+            raw = raw.replace("/", os.sep)
+    return os.path.dirname(os.path.abspath(raw))
+```
