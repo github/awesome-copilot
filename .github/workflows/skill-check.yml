@@ -58,45 +58,56 @@ jobs:
       - name: Detect changed skills and agents
         id: detect
         run: |
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          declare -A SEEN_SKILL_DIRS=()
+          declare -A SEEN_AGENT_FILES=()
+          SKILL_DIRS=()
+          AGENT_FILES=()
 
-          # Extract unique skill directories that were touched
-          SKILL_DIRS=$(echo "$CHANGED_FILES" | grep -oP '^skills/[^/]+' | sort -u || true)
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              skills/*)
+                skill_dir="${file#skills/}"
+                skill_dir="skills/${skill_dir%%/*}"
+                if [ -d "$skill_dir" ] && [ -z "${SEEN_SKILL_DIRS[$skill_dir]+x}" ]; then
+                  SEEN_SKILL_DIRS["$skill_dir"]=1
+                  SKILL_DIRS+=("$skill_dir")
+                fi
+                ;;
+              plugins/*/skills/*)
+                IFS='/' read -r seg1 seg2 seg3 seg4 _ <<< "$file"
+                skill_dir="$seg1/$seg2/$seg3/$seg4"
+                if [ -d "$skill_dir" ] && [ -z "${SEEN_SKILL_DIRS[$skill_dir]+x}" ]; then
+                  SEEN_SKILL_DIRS["$skill_dir"]=1
+                  SKILL_DIRS+=("$skill_dir")
+                fi
+                ;;
+            esac
 
-          # Extract agent files that were touched
-          AGENT_FILES=$(echo "$CHANGED_FILES" | grep -oP '^agents/[^/]+\.agent\.md$' | sort -u || true)
+            case "$file" in
+              agents/*.agent.md|plugins/*/agents/*.agent.md)
+                if [ -f "$file" ] && [ -z "${SEEN_AGENT_FILES[$file]+x}" ]; then
+                  SEEN_AGENT_FILES["$file"]=1
+                  AGENT_FILES+=("$file")
+                fi
+                ;;
+            esac
+          done < <(git diff --name-only -z "origin/${{ github.base_ref }}...HEAD")
 
-          # Extract plugin skill directories
-          PLUGIN_SKILL_DIRS=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/skills/[^/]+' | sort -u || true)
-
-          # Extract plugin agent files
-          PLUGIN_AGENT_FILES=$(echo "$CHANGED_FILES" | grep -oP '^plugins/[^/]+/agents/[^/]+\.agent\.md$' | sort -u || true)
-
-          # Build CLI arguments for --skills
-          SKILL_ARGS=""
-          for dir in $SKILL_DIRS $PLUGIN_SKILL_DIRS; do
-            if [ -d "$dir" ]; then
-              SKILL_ARGS="$SKILL_ARGS $dir"
-            fi
-          done
-
-          # Build CLI arguments for --agents
-          AGENT_ARGS=""
-          for f in $AGENT_FILES $PLUGIN_AGENT_FILES; do
-            if [ -f "$f" ]; then
-              AGENT_ARGS="$AGENT_ARGS $f"
-            fi
-          done
-
-          SKILL_COUNT=$(echo "$SKILL_ARGS" | xargs -n1 2>/dev/null | wc -l || echo 0)
-          AGENT_COUNT=$(echo "$AGENT_ARGS" | xargs -n1 2>/dev/null | wc -l || echo 0)
+          SKILL_COUNT=${#SKILL_DIRS[@]}
+          AGENT_COUNT=${#AGENT_FILES[@]}
           TOTAL=$((SKILL_COUNT + AGENT_COUNT))
 
-          echo "skill_args=$SKILL_ARGS" >> "$GITHUB_OUTPUT"
-          echo "agent_args=$AGENT_ARGS" >> "$GITHUB_OUTPUT"
-          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
-          echo "skill_count=$SKILL_COUNT" >> "$GITHUB_OUTPUT"
-          echo "agent_count=$AGENT_COUNT" >> "$GITHUB_OUTPUT"
+          {
+            echo "total=$TOTAL"
+            echo "skill_count=$SKILL_COUNT"
+            echo "agent_count=$AGENT_COUNT"
+            echo "skill_dirs<<EOF"
+            printf '%s\n' "${SKILL_DIRS[@]}"
+            echo "EOF"
+            echo "agent_files<<EOF"
+            printf '%s\n' "${AGENT_FILES[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
           echo "Found $SKILL_COUNT skill dir(s) and $AGENT_COUNT agent file(s) to check."
 
@@ -104,25 +115,42 @@ jobs:
       - name: Run skill-validator check
         id: check
         if: steps.detect.outputs.total != '0'
+        env:
+          SKILL_DIRS_RAW: ${{ steps.detect.outputs.skill_dirs }}
+          AGENT_FILES_RAW: ${{ steps.detect.outputs.agent_files }}
         run: |
-          SKILL_ARGS="${{ steps.detect.outputs.skill_args }}"
-          AGENT_ARGS="${{ steps.detect.outputs.agent_args }}"
+          SKILL_DIRS=()
+          AGENT_FILES=()
 
-          CMD=".skill-validator/skill-validator check --verbose"
-
-          if [ -n "$SKILL_ARGS" ]; then
-            CMD="$CMD --skills $SKILL_ARGS"
+          if [ -n "$SKILL_DIRS_RAW" ]; then
+            while IFS= read -r dir; do
+              [ -n "$dir" ] && SKILL_DIRS+=("$dir")
+            done <<< "$SKILL_DIRS_RAW"
           fi
 
-          if [ -n "$AGENT_ARGS" ]; then
-            CMD="$CMD --agents $AGENT_ARGS"
+          if [ -n "$AGENT_FILES_RAW" ]; then
+            while IFS= read -r file; do
+              [ -n "$file" ] && AGENT_FILES+=("$file")
+            done <<< "$AGENT_FILES_RAW"
           fi
 
-          echo "Running: $CMD"
+          CMD=(.skill-validator/skill-validator check --verbose)
+
+          if [ ${#SKILL_DIRS[@]} -gt 0 ]; then
+            CMD+=(--skills "${SKILL_DIRS[@]}")
+          fi
+
+          if [ ${#AGENT_FILES[@]} -gt 0 ]; then
+            CMD+=(--agents "${AGENT_FILES[@]}")
+          fi
+
+          printf 'Running: '
+          printf '%q ' "${CMD[@]}"
+          echo
 
           # Capture output; don't fail the workflow (warn-only mode)
           set +e
-          OUTPUT=$($CMD 2>&1)
+          OUTPUT=$("${CMD[@]}" 2>&1)
           EXIT_CODE=$?
           set -e
 
