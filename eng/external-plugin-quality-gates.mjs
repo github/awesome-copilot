@@ -230,8 +230,13 @@ function runInstallSmokeGate(workDir, plugin) {
     }
 
     const installedPluginPath = path.join(homeDir, ".copilot", "installed-plugins", "external-plugin-intake", plugin.name);
-    const pluginManifestPath = path.join(installedPluginPath, ".github", "plugin", "plugin.json");
-    if (!fs.existsSync(installedPluginPath) || !fs.existsSync(pluginManifestPath)) {
+    const candidatePaths = [
+      path.join(installedPluginPath, "plugin.json"),
+      path.join(installedPluginPath, ".github", "plugin", "plugin.json"),
+      path.join(installedPluginPath, ".plugin", "plugin.json"),
+    ];
+    const pluginManifestPath = candidatePaths.find((p) => fs.existsSync(p));
+    if (!fs.existsSync(installedPluginPath) || !pluginManifestPath) {
       return {
         status: "fail",
         output: `Plugin installed but expected files were missing at ${installedPluginPath}`,
