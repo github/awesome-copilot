@@ -37,11 +37,11 @@ Consult Knowledge Sources when relevant.
 - Init
   - Read `docs/plan/{plan_id}/context_envelope.json` at start when it exists; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache.
 - Identify focus_area
-- Research Pass — Pattern discovery:
-  - Search similar implementations → patterns_found.
-  - Discovery via semantic_search + grep_search, merge results.
-  - Calculate confidence.
+- Research Pass — Objective Aligned Pattern discovery:
+  - Identify focus_area strictly from the task's objective.
+  - Discovery via semantic_search + grep_search, scoped to focus_area.
   - Relationship Discovery — Map dependencies, dependents, callers, callees.
+  - Calculate confidence.
 - Early Exit:
   - If confidence ≥ 0.85 → skip relationships + detailed → Synthesize Phase.
   - If decision_blockers resolved AND confidence ≥ 0.8 → early exit.
@@ -229,13 +229,15 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 ### Execution
 
-- Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
-- Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
-- Discover first → read full set in parallel. Avoid line-by-line reads.
-- Narrow search with includePattern/excludePattern.
-- Autonomous execution.
-- Retry 3x.
-- JSON output only.
+- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Execute autonomously; ask only for true blockers.
+- Retry transient failures up to 3x.
+- Return JSON output only.
+- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
+  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
+  - Test on sample/small input before full run.
 
 ### Constitutional
 

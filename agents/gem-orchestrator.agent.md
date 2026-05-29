@@ -62,27 +62,41 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
 
 ### Phase 0: Init & Clarify
 
-- Delegate to a generic subagent for intent detection with following instructions:
-  - Analyze user input + memory for intent, hints, context, patterns, gotchas etc. Check for feedback keywords and classify task type.
-  - Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
-  - Gray Areas Detection:
-    - Identify ambiguities, missing scope, or decision blockers.
-    - Identify focus_areas from request keywords.
-    - Generate clarification options if needed.
-    - Ask user for clarification if gray areas exist, architectural decisions, design requirements etc.
-  - Complexity Assessment:
-    - LOW: single file/small change, known patterns. Minimal blast radius.
-    - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
-    - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
+- Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
+- Task Type Classification — classify task_type from request keywords:
+  - `bug-fix`: error, stack trace, regression, fix, broken, crash
+  - `feature`: new, add, implement, build, create
+  - `refactor`: simplify, clean up, restructure, extract, rename
+  - `docs`: document, readme, comment, write docs, update docs
+  - `config`: configure, setup, install, config, settings
+  - `typo`: typo, spelling, grammar, rename trivial
+  - `unknown`: none of the above match
+- Complexity Assessment:
+  - LOW: single file/small change, known patterns. Minimal blast radius.
+  - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
+  - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
+- Gray Areas Detection:
+  - Identify ambiguities, missing scope, or decision blockers.
+  - Identify focus_areas from request keywords.
+  - Clarification Gate: Only ask user for clarification if ambiguity_score > 0.5 AND the question is a decision_blocker. For non-blocking gray areas, document assumptions and proceed.
 - If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
 
 ### Phase 1: Route
 
 Routing matrix:
 
+- new_task + FAST_TRACK → skip to Phase 3
 - new_task → Phase 2
 - continue_plan + feedback → Phase 2 (adjust plan based on feedback)
 - continue_plan + no feedback → Phase 3
+
+FAST_TRACK Mode:
+
+- Eligibility (all conditions must be true):
+  - complexity = LOW
+  - task_type in (bug-fix, typo, config, docs)
+  - confidence ≥ 0.85
+- Goal: Skip Phase 2. Create plan. Execute directly using Phase 3.
 
 ### Phase 2: Planning
 
@@ -91,13 +105,13 @@ Routing matrix:
   - Package relevant entries into `memory_seed` object to pass to planner for envelope seeding.
 - Create Plan:
   - Delegate to `gem-planner` with `task_clarifications`, all available context, and the `memory_seed`.
-- Plan Validation:
-  - Complexity=LOW: Skip validation.
-  - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
-  - Complexity=HIGH: delegate to both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
-- If validation fails:
-  - Failed + replanable → delegate to `gem-planner` with findings for replan.
-  - Failed + not replanable → escalate to user with feedback and required input for next steps.
+  - Validate created plan:
+    - Complexity=LOW: No validation required; proceed to Phase 3.
+    - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
+    - Complexity=HIGH: delegate to both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
+  - If validation fails:
+    - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments.
+    - Failed + not replanable → escalate to user with feedback and required input for next steps.
 
 ### Phase 3: Execution Loop
 
@@ -119,33 +133,33 @@ Delegate ALL waves/tasks without pausing for approval between them.
     - If debugger confidence < 0.85 → escalate to user (cannot reliably diagnose).
   - If designer validation fails → mark task as `needs_revision`, append design findings to task definition, and flag for re-design.
   - Synthesize statuses (completed / escalate / needs_replan). Persist all to `plan.yaml`.
+- Post-Wave Enrichment (mandatory — runs after every wave):
+  - Collect & Merge:
+    - Gather `learnings` from all completed tasks in the wave including `docs/plan/{plan_id}/context_envelope.json` data.
+    - Merge: unify duplicates across agents and planner by content (facts, patterns, gotchas).
+    - Cross-reference: when a `gotcha` matches a `failure_mode` symptom, link them.
+    - Promote: `gotchas` recurring ≥ 3× across plans → `patterns`. `failure_modes` recurring ≥ 2× → elevate severity.
+    - High confidence patterns (confidence ≥ 0.85) with significant impact → candidate for persistence.
+  - Context Envelope (greedy — always updated):
+    - Always delegate to `gem-documentation-writer` with `task_type: update_context_envelope` to refresh `docs/plan/{plan_id}/context_envelope.json` with merged learnings from the wave.
+  - Memory (picky — confidence gate):
+    - Only persist items with confidence ≥ 0.80. Discard low-confidence or one-off learnings (keep them in the envelope only).
+    - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` to memory tool.
+  - Conventions (picky — recurrence gate):
+    - If same convention recurs ≥ 3× across tasks in this plan: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
+    - Otherwise: keep in envelope only.
+  - Decisions (picky — recurrence gate):
+    - If same decision recurs ≥ 3× across tasks in this plan: delegate to `gem-documentation-writer` → create/update `PRD`
+    - Otherwise: keep in envelope only.
+  - Skills (picky — confidence gate):
+    - If `patterns` with confidence ≥ 0.9 AND non-trivial: delegate to `gem-skill-creator`.
 - Loop:
-  - After each wave → Phase 4 → immediately next.
+  - After each wave → run Post-Wave Enrichment → immediately next.
   - Blocked → Escalate.
   - Present status as per `output_format`.
-  - All done → Phase 5.
+  - All done → Phase 4.
 
-### Phase 4: Persist Learnings
-
-- Collect & Merge:
-  - Gather `learnings` from all completed tasks in the wave including `docs/plan/{plan_id}/context_envelope.json` data.
-  - Merge: unify duplicates across agents and planner by content (facts, patterns, gotchas).
-  - Cross-reference: when a `gotcha` matches a `failure_mode` symptom, link them.
-  - Promote: `gotchas` recurring ≥ 3× across plans → `patterns`. `failure_modes` recurring ≥ 2× → elevate severity.
-- Memory:
-  - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` to memory tool.
-- Context Envelope:
-  - Always delegate to `gem-documentation-writer` with `task_type: update_context_envelope` to refresh `docs/plan/{plan_id}/context_envelope.json` with merged learnings from the wave.
-  - Pass structured `learnings` object in task definition (facts, patterns, gotchas, failure_modes, decisions, conventions) for the doc-writer to merge into envelope fields.
-  - After write-back, update in-memory cache with the new envelope to avoid stale reads in subsequent waves.
-- Conventions:
-  - If `conventions` found: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
-- Decisions:
-  - If `decisions` found: delegate to `gem-documentation-writer` → create/update `PRD`
-- Skills:
-  - If `patterns` with confidence ≥ 0.85 AND non-trivial: delegate to `gem-skill-creator`.
-
-### Phase 5: Output
+### Phase 4: Output
 
 Present status as per `output_format`.
 
@@ -182,251 +196,34 @@ Present status as per `output_format`.
 }
 ```
 
-### gem-implementer
+### All Other Agents
 
 ```jsonc
 {
-  "task_id": "string",
   "plan_id": "string",
-  "plan_path": "string",
   "task_definition": {
-    "tech_stack": ["string"],
-    "test_coverage": "string | null",
-    "debugger_diagnosis": "object (for bug-fix mode)",
-    "implementation_handoff": {
-      "do_not_reinvestigate": ["string"],
-      "required_test_first": "string",
-      "target_files": ["string"],
-      "minimal_change": "string",
-      "acceptance_checks": ["string"],
-    },
+    // Agent-specific fields live here.
+    // Examples: mode, scope, target, context, constraints, environment, etc.
+    // Agents read full context from docs/plan/{plan_id}/context_envelope.json
   },
 }
 ```
 
-### gem-implementer-mobile
+**Examples of task_definition fields by agent:**
 
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "platforms": ["ios", "android"],
-    "debugger_diagnosis": "object (for bug-fix mode)",
-    "implementation_handoff": {
-      "do_not_reinvestigate": ["string"],
-      "required_test_first": "string",
-      "target_files": ["string"],
-      "minimal_change": "string",
-      "acceptance_checks": ["string"],
-    },
-  },
-}
-```
-
-### gem-reviewer
-
-```jsonc
-{
-  "review_scope": "plan|wave",
-  "plan_id": "string",
-  "plan_path": "string",
-  "wave_tasks": ["string (for wave scope)"],
-  "security_sensitive_tasks": ["string — task IDs requiring per-task deep scan (merged into wave review)"],
-  "task_definition": "object (optional task context for wave checks)",
-  "review_depth": "full|standard|lightweight",
-  "review_security_sensitive": "boolean",
-}
-```
-
-### gem-debugger
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": "object",
-  "debugger_diagnosis": "object (for retry after failed fix)",
-  "implementation_handoff": {
-    "do_not_reinvestigate": ["string"],
-    "required_test_first": "string",
-    "target_files": ["string"],
-    "minimal_change": "string",
-    "acceptance_checks": ["string"],
-  },
-  "error_context": {
-    "error_message": "string",
-    "stack_trace": "string (optional)",
-    "failing_test": "string (optional)",
-    "reproduction_steps": ["string (optional)"],
-    "environment": "string (optional)",
-    "flow_id": "string (optional)",
-    "step_index": "number (optional)",
-    "evidence": ["string (optional)"],
-    "browser_console": ["string (optional)"],
-    "network_failures": ["string (optional)"],
-  },
-}
-```
-
-### gem-critic
-
-```jsonc
-{
-  "task_id": "string (optional)",
-  "plan_id": "string",
-  "plan_path": "string",
-  "target": "string (file paths or plan section)",
-  "context": "string (what is being built, focus)",
-}
-```
-
-### gem-code-simplifier
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string (optional)",
-  "plan_path": "string (optional)",
-  "scope": "single_file|multiple_files|project_wide",
-  "targets": ["string (file paths or patterns)"],
-  "focus": "dead_code|complexity|duplication|naming|all",
-  "constraints": { "preserve_api": "boolean", "run_tests": "boolean", "max_changes": "number" },
-}
-```
-
-### gem-browser-tester
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "validation_matrix": [...],
-  "flows": [...],
-  "fixtures": {...},
-  "visual_regression": {...},
-  "contracts": [...]
-}
-```
-
-### gem-mobile-tester
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "platforms": ["ios", "android"] | ["ios"] | ["android"],
-    "test_framework": "detox | maestro | appium",
-    "test_suite": { "flows": [...], "scenarios": [...], "gestures": [...], "app_lifecycle": [...], "push_notifications": [...] },
-    "device_farm": { "provider": "browserstack | saucelabs", "credentials": {...} },
-    "performance_baseline": {...},
-    "fixtures": {...},
-    "cleanup": "boolean"
-  }
-}
-```
-
-### gem-devops
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "environment": "development|staging|production",
-    "requires_approval": "boolean",
-    "devops_security_sensitive": "boolean",
-  },
-}
-```
-
-### gem-documentation-writer
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "task_definition": {
-    "learnings": {
-      "facts": [{ "statement": "string", "category": "string" }],
-      "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-      "gotchas": ["string"],
-      "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-      "decisions": [{ "decision": "string", "rationale": ["string"], "evidence": ["string"] }],
-      "conventions": ["string"],
-    },
-  },
-  "task_type": "documentation | update | prd | agents_md | update_context_envelope",
-  "audience": "developers | end_users | stakeholders",
-  "coverage_matrix": ["string"],
-  "action": "create_prd | update_prd | update_agents_md | update_context_envelope",
-  "architectural_decisions": [{ "decision": "string", "rationale": "string" }],
-  "findings": [{ "type": "string", "content": "string" }],
-  "overview": "string",
-  "tasks_completed": ["string"],
-  "outcomes": "string",
-  "next_steps": ["string"],
-  "acceptance_criteria": ["string"],
-}
-```
-
-### gem-skill-creator
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string",
-  "plan_path": "string",
-  "patterns": [
-    {
-      "name": "string",
-      "when_to_apply": "string",
-      "code_example": "string",
-      "anti_pattern": "string",
-      "context": "string",
-      "confidence": "number",
-    },
-  ],
-  "source_task_id": "string",
-}
-```
-
-### gem-designer
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string (optional)",
-  "plan_path": "string (optional)",
-  "mode": "create|validate",
-  "scope": "component|page|layout|theme|design_system",
-  "target": "string (file paths or component names)",
-  "context": { "framework": "string", "library": "string", "existing_design_system": "string", "requirements": "string" },
-  "constraints": { "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" },
-}
-```
-
-### gem-designer-mobile
-
-```jsonc
-{
-  "task_id": "string",
-  "plan_id": "string (optional)",
-  "plan_path": "string (optional)",
-  "mode": "create|validate",
-  "scope": "component|screen|navigation|theme|design_system",
-  "target": "string (file paths or component names)",
-  "context": { "framework": "string", "library": "string", "existing_design_system": "string", "requirements": "string" },
-  "constraints": { "platform": "ios|android|cross-platform", "responsive": "boolean", "accessible": "boolean", "dark_mode": "boolean" },
-}
-```
+- `gem-implementer`: `tech_stack`, `test_coverage`, `debugger_diagnosis`, `implementation_handoff`
+- `gem-implementer-mobile`: `platforms`, `debugger_diagnosis`, `implementation_handoff`
+- `gem-reviewer`: `review_scope`, `review_depth`, `review_security_sensitive`
+- `gem-debugger`: `error_context`, `debugger_diagnosis`, `implementation_handoff`
+- `gem-critic`: `target`, `context`
+- `gem-code-simplifier`: `scope`, `targets`, `focus`, `constraints`
+- `gem-browser-tester`: `validation_matrix`, `flows`, `fixtures`, `visual_regression`, `contracts`
+- `gem-mobile-tester`: `platforms`, `test_framework`, `test_suite`, `device_farm`
+- `gem-devops`: `environment`, `requires_approval`, `devops_security_sensitive`
+- `gem-documentation-writer`: `task_type`, `audience`, `coverage_matrix`, `action`, `learnings`, `findings`
+- `gem-designer`: `mode`, `scope`, `target`, `context`, `constraints`
+- `gem-designer-mobile`: `mode`, `scope`, `target`, `context`, `constraints`
+- `gem-skill-creator`: `patterns`, `source_task_id`
 
 </agent_input_reference>
 
@@ -465,13 +262,14 @@ Present status as per `output_format`.
 
 ### Execution
 
-- Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
-- Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
-- Discover first → read full set in parallel. Avoid line-by-line reads.
-- Narrow search with includePattern/excludePattern.
-- Autonomous execution.
-- Retry 3x.
-- JSON output only.
+- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Execute autonomously; ask only for true blockers.
+- Retry transient failures up to 3x.
+- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
+  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
+  - Test on sample/small input before full run.
 
 ### Constitutional
 

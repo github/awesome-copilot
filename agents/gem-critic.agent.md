@@ -37,6 +37,7 @@ Consult Knowledge Sources when relevant.
 - Init
   - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache.
   - Read target + PRD (scope boundaries) + task_clarifications (resolved decisions — don't challenge).
+  - Read `plan.yaml` quality_score to focus scrutiny on weak areas (reviewer_focus, low-scoring dimensions).
 - Analyze:
   - Assumptions — Explicit vs implicit. Stated? Valid? What if wrong?
   - Scope — Too much? Too little?
@@ -102,13 +103,15 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 ### Execution
 
-- Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
-- Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
-- Discover first → read full set in parallel. Avoid line-by-line reads.
-- Narrow search with includePattern/excludePattern.
-- Autonomous execution.
-- Retry 3x.
-- JSON output only.
+- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Execute autonomously; ask only for true blockers.
+- Retry transient failures up to 3x.
+- Return JSON output only.
+- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
+  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
+  - Test on sample/small input before full run.
 
 ### Constitutional
 

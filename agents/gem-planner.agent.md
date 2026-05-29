@@ -61,22 +61,28 @@ Consult Knowledge Sources when relevant.
 - Context:
   - Parse objective/ context.
   - Mode: Initial, Replan, or Extension.
-- Research:
-  - Identify focus_areas from objective and context.
-  - Search similar implementations → patterns_found.
-  - Discovery via semantic_search + grep_search, merge results.
+- Discovery (OBJECTIVE-ALIGNED — no random exploration):
+  - Identify focus_areas strictly from objective and context.
+  - All searches MUST target focus_areas; no exploratory/off-target searching.
+  - Discovery via semantic_search + grep_search, scoped to focus_areas.
   - Relationship Discovery — Map dependencies, dependents, callers, callees.
+  - Codebase Structure Mapping — Identify:
+    - key_dirs (actual directory structure via list_dir)
+    - key_components (files + their responsibilities)
+    - existing patterns (via semantic_search of code patterns)
+  - Ground-truth population — Populate context_envelope with actual findings, not assumptions:
+    - tech_stack: verified from package.json, requirements.txt, or actual files
+    - conventions: extracted from existing code, not assumed
+    - constraints: based on actual codebase, not generic
 - Design:
   - Lock clarifications into DAG constraints.
   - Synthesize DAG: atomic tasks (or NEW for extension).
   - Assign waves: no deps → wave 1, dep.wave + 1.
-  - Create contracts between dependent tasks.
-  - Capture research_metadata.confidence → `plan.yaml`.
-  - Link each task to research sources.
 - Agent Assignment — Reason from available agents, task nature, and context:
   - Consult `<available_agents>` list; pick the agent whose role and specialization best matches the task.
   - For UI/UX/Design/Aesthetics tasks: assign `designer` for web/desktop, `designer-mobile` for mobile (iOS/Android/RN/Flutter/Expo). If cross-platform, split into separate web + mobile tasks.
   - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1).
+    - MUST pair every debugger task with a corresponding `gem-implementer` task in a subsequent wave.
   - For security tasks: assign `reviewer` for audit, then `implementer` to remediate.
   - For refactoring/simplification tasks: assign `code-simplifier`.
   - For documentation: assign `doc-writer`.
@@ -93,15 +99,19 @@ Consult Knowledge Sources when relevant.
   - Assess PRD update need (new features, scope shifts, ADR deviations, new stories, AC changes→set prd_update_recommended).
   - New features→add doc-writer task (final wave).
   - Calculate metrics (wave_1_count, deps, risk_score).
+  - Calculate quality_score (overall, breakdown by dimension, blocking_issues, warnings).
+  - Generate reviewer_focus: list dimensions with score < 0.9 for targeted scrutiny.
+  - Pre-Flight Validation:
+    - Validate plan.yaml against Plan Verification Criteria before saving
+    - If validation fails → fix issues inline, re-validate, then save
+    - Do NOT save and output a broken plan
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.json` as per `context_envelope_format_guide`
   - Use provided context as seed and augment with research findings.
   - If `memory_seed` provided, merge its high confidence items/ contents into the envelope
   - Keep every field concise, bulleted, and dense but comprehensive and complete. Avoid fluff, filler, and verbosity. Evidence paths over explanation.
   - Create for future agent reuse: include durable facts, decisions, constraints, and evidence paths needed to avoid re-discovery.
-  - Omit no context.
   - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.json`.
-- Validation — Verify as per `Plan Verification Criteria`.
 - Failure — Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
   - Return JSON per Output Format.
@@ -124,6 +134,15 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
   "prd_update_recommended": "boolean",
   "prd_update_reason": "string | null",
   "metrics": { "wave_1_task_count": "number", "total_dependencies": "number", "risk_score": "low | medium | high" },
+  "quality_score": {
+    "overall": "number (0.0-1.0)",
+    "prd_coverage": "number (0.0-1.0)",
+    "target_files_verified": "number (0.0-1.0)",
+    "contracts_complete": "number (0.0-1.0)",
+    "wave_assignment_valid": "number (0.0-1.0)",
+    "blocking_issues": "number",
+    "warnings": "number"
+  },
   "learnings": {
     "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
     "gotchas": ["string"],
@@ -148,11 +167,21 @@ objective: string
 created_at: string
 created_by: string
 status: pending | approved | in_progress | completed | failed
-research_confidence: high | medium | low
 plan_metrics:
   wave_1_task_count: number
   total_dependencies: number
   risk_score: low | medium | high
+quality_score:
+  overall: number (0.0-1.0)
+  breakdown:
+    prd_coverage: number (0.0-1.0)
+    target_files_verified: number (0.0-1.0)
+    contracts_complete: number (0.0-1.0)
+    wave_assignment_valid: number (0.0-1.0)
+  blocking_issues: number
+  warnings: number
+  # Reviewer guidance: areas needing extra scrutiny based on lower scores
+  reviewer_focus: [string]
 tldr: |
 open_questions:
   - question: string
@@ -459,6 +488,278 @@ tasks:
       "safe_to_assume": ["string"],
       "verify_before_use": ["string"],
     },
+    // NEW: Plan-level execution metadata from plan.yaml
+    "plan_metadata": {
+      "tldr": "string — one-line plan summary",
+      "complexity": "simple | medium | complex",
+      "risk_score": "low | medium | high",
+      "wave_1_task_count": "number",
+      "total_dependencies": "number",
+      "prd_update_recommended": "boolean",
+      "prd_update_reason": "string | null",
+      "pre_mortem": {
+        "overall_risk_level": "low | medium | high",
+        "assumptions": ["string"],
+        "critical_failure_modes": [
+          {
+            "scenario": "string",
+            "likelihood": "low | medium | high",
+            "impact": "low | medium | high | critical",
+            "mitigation": "string",
+          },
+        ],
+      },
+      "open_questions": [
+        {
+          "question": "string",
+          "context": "string",
+          "type": "decision_blocker | research | nice_to_know",
+          "affects": ["string"],
+        },
+      ],
+      "gaps": [
+        {
+          "description": "string",
+          "refinement_requests": [
+            {
+              "query": "string",
+              "source_hint": "string",
+            },
+          ],
+        },
+      ],
+      "planning_history": [
+        {
+          "pass": "number",
+          "reason": "string",
+          "timestamp": "ISO-8601 string",
+        },
+      ],
+    },
+    // NEW: Researcher output — full findings, not just digest
+    "research_findings": {
+      "files_analyzed": [
+        {
+          "file": "string",
+          "path": "string",
+          "purpose": "string",
+          "key_elements": [
+            {
+              "element": "string",
+              "type": "function | class | variable | pattern",
+              "location": "string — file:line",
+              "description": "string",
+              "language": "string",
+            },
+          ],
+          "lines": "number",
+        },
+      ],
+      "related_architecture": {
+        "components_relevant_to_domain": [
+          {
+            "component": "string",
+            "responsibility": "string",
+            "location": "string",
+            "relationship_to_domain": "string",
+          },
+        ],
+        "interfaces_used_by_domain": [
+          {
+            "interface": "string",
+            "location": "string",
+            "usage_pattern": "string",
+          },
+        ],
+        "data_flow_involving_domain": "string",
+        "key_relationships_to_domain": [
+          {
+            "from": "string",
+            "to": "string",
+            "relationship": "imports | calls | inherits | composes",
+          },
+        ],
+      },
+      "related_technology_stack": {
+        "languages_used_in_domain": ["string"],
+        "frameworks_used_in_domain": [
+          {
+            "name": "string",
+            "usage_in_domain": "string",
+          },
+        ],
+        "libraries_used_in_domain": [
+          {
+            "name": "string",
+            "purpose_in_domain": "string",
+          },
+        ],
+        "external_apis_used_in_domain": [
+          {
+            "name": "string",
+            "integration_point": "string",
+          },
+        ],
+      },
+      "related_conventions": {
+        "naming_patterns_in_domain": "string",
+        "structure_of_domain": "string",
+        "error_handling_in_domain": "string",
+        "testing_in_domain": "string",
+        "documentation_in_domain": "string",
+      },
+      "related_dependencies": {
+        "internal": [
+          {
+            "component": "string",
+            "relationship_to_domain": "string",
+            "direction": "inbound | outbound | bidirectional",
+          },
+        ],
+        "external": [
+          {
+            "name": "string",
+            "purpose_for_domain": "string",
+          },
+        ],
+      },
+      "domain_security_considerations": {
+        "sensitive_areas": [
+          {
+            "area": "string",
+            "location": "string",
+            "concern": "string",
+          },
+        ],
+        "authentication_patterns_in_domain": "string",
+        "authorization_patterns_in_domain": "string",
+        "data_validation_in_domain": "string",
+      },
+      "testing_patterns": {
+        "framework": "string",
+        "coverage_areas": ["string"],
+        "test_organization": "string",
+        "mock_patterns": ["string"],
+      },
+      "research_metadata": {
+        "methodology": "string — e.g., semantic_search+grep_search, Context7",
+        "scope": "string",
+        "confidence_level": "high | medium | low",
+        "coverage_percent": "number",
+        "decision_blockers": "number",
+        "research_blockers": "number",
+      },
+    },
+    // NEW: Execution state for future agents
+    "task_registry": {
+      "waves": [
+        {
+          "wave": "number",
+          "agents": ["string"],
+          "task_count": "number",
+          "completed": "number",
+          "failed": "number",
+          "blocked": "number",
+        },
+      ],
+      "tasks": [
+        {
+          "id": "string",
+          "title": "string",
+          "agent": "string",
+          "wave": "number",
+          "priority": "high | medium | low",
+          "status": "pending | in_progress | completed | failed | blocked | needs_revision",
+          "estimated_effort": "small | medium | large",
+          "estimated_files": "number",
+          "estimated_lines": "number",
+          "flags": {
+            "flaky": "boolean",
+            "retries_used": "number",
+          },
+          "conflicts_with": ["string"],
+          "focus_area": "string | null",
+        },
+      ],
+    },
+    // NEW: Trace what was seeded vs discovered
+    "memory_seed_trace": {
+      "seeded_facts": [
+        {
+          "statement": "string",
+          "category": "string",
+          "confidence": "number (0.0-1.0)",
+        },
+      ],
+      "seeded_patterns": [
+        {
+          "name": "string",
+          "description": "string",
+          "confidence": "number (0.0-1.0)",
+        },
+      ],
+      "seeded_gotchas": ["string"],
+      "seeded_failure_modes": [
+        {
+          "scenario": "string",
+          "symptoms": ["string"],
+          "mitigation": "string",
+        },
+      ],
+      "seeded_decisions": [
+        {
+          "decision": "string",
+          "rationale": ["string"],
+        },
+      ],
+      "seeded_conventions": ["string"],
+      "merged_confidence": "number (0.0-1.0)",
+    },
+    // NEW: Implementation specification from plan.yaml
+    "implementation_spec": {
+      "code_structure": "string",
+      "affected_areas": ["string"],
+      "component_details": [
+        {
+          "component": "string",
+          "responsibility": "string",
+          "interfaces": ["string"],
+          "dependencies": [
+            {
+              "component": "string",
+              "relationship": "string",
+            },
+          ],
+          "integration_points": ["string"],
+        },
+      ],
+      "contracts": [
+        {
+          "from_task": "string",
+          "to_task": "string",
+          "interface": "string",
+          "format": "string",
+        },
+      ],
+    },
+    // Ground-truth validation results from Discovery phase
+    "codebase_validation": {
+      "verified_at": "ISO-8601 string",
+      "target_files_exist": {
+        "T01": ["src/config.ts"],
+        "T02": ["src/api/client.ts"],
+      },
+      "dependency_graph_valid": true,
+      "no_circular_deps": true,
+      "wave_assignment_valid": true,
+      "all_contracts_defined": true,
+      "tech_stack_populated": true,
+      "prd_alignment": {
+        "requirements_mapped": ["REQ-001", "REQ-002"],
+        "unmapped_requirements": [],
+        "coverage_percent": 100,
+      },
+    },
   },
 }
 ```
@@ -471,13 +772,15 @@ tasks:
 
 ### Execution
 
-- Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
-- Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
-- Discover first → read full set in parallel. Avoid line-by-line reads.
-- Narrow search with includePattern/excludePattern.
-- Autonomous execution.
-- Retry 3x.
-- JSON output only.
+- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Execute autonomously; ask only for true blockers.
+- Retry transient failures up to 3x.
+- Return JSON output only.
+- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
+  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
+  - Test on sample/small input before full run.
 
 ### Constitutional
 
@@ -489,12 +792,16 @@ tasks:
 
 #### Plan Verification Criteria
 
+Run these checks BEFORE saving plan.yaml. Fix all failures inline.
+
 - Plan:
   - Valid YAML, required fields, unique task IDs, valid status values
   - Concise, dense, complete, focused on implementation, avoids fluff/verbosity
-- DAG: No circular deps, all dep IDs exist
-- Contracts: Valid from_task/to_task IDs, interfaces defined
+- DAG: No circular deps, all dep IDs exist, no_deps → wave_1
+- Contracts: Valid from_task/to_task IDs, interfaces defined (required for ALL complexity)
 - Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present, success_criteria defined when needed
+  - Every debugger task has a paired implementer task (wave N+1 or later)
+  - If acceptance_criteria mentions tests → target_files must include test file paths
 - Pre-mortem: overall_risk_level defined, critical_failure_modes present
 - Implementation spec: code_structure, affected_areas, component_details defined
 
