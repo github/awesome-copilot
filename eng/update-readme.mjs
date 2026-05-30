@@ -303,7 +303,7 @@ function generateInstructionsSection(instructionsDir) {
   });
 
   // Sort by title alphabetically
-  instructionEntries.sort((a, b) => a.title.localeCompare(b.title));
+  instructionEntries.sort((a, b) => a.title.localeCompare(b.title, "en"));
 
   console.log(`Found ${instructionEntries.length} instruction files`);
 
@@ -673,7 +673,7 @@ function generateUnifiedModeSection(cfg) {
     return { file, filePath, title: extractTitle(filePath) };
   });
 
-  entries.sort((a, b) => a.title.localeCompare(b.title));
+  entries.sort((a, b) => a.title.localeCompare(b.title, "en"));
   console.log(
     `Unified mode generator: ${entries.length} files for extension ${extension}`
   );

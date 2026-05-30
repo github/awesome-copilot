@@ -3,6 +3,12 @@ name: External Plugin Approval Commands
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: external-plugin-intake-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -13,6 +19,7 @@ jobs:
   handle-command:
     runs-on: ubuntu-latest
     if: >-
+      github.event_name == 'issue_comment' &&
       !github.event.issue.pull_request &&
       (contains(github.event.comment.body, '/approve') || contains(github.event.comment.body, '/reject'))
     steps:
@@ -118,7 +125,7 @@ jobs:
               '',
               '### Required fixes',
               '',
-              ...(errors.length > 0 ? errors.map((error) => `- ${error}`) : ['- Re-run intake validation by updating the issue details.'])
+              ...(errors.length > 0 ? errors.map((error) => `- ${error}`) : ['- Edit the issue details and let intake rerun automatically, or comment `/rerun-intake` to trigger it again on demand.'])
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -269,6 +276,10 @@ jobs:
                 color: '0E8A16',
                 description: 'Submission passed intake validation and is ready for maintainer review'
               },
+              'requires-submitter-fixes': {
+                color: 'D93F0B',
+                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
+              },
               'approved': {
                 color: '1D76DB',
                 description: 'Submission was approved by a maintainer'
@@ -407,6 +418,65 @@ jobs:
               });
             }
 
+  sync-merged-pr-labels:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'external-plugin')
+    steps:
+      - name: Normalize merged external plugin PR labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const staleLabels = ['awaiting-review', 'awaiting-approval', 'ready-for-review', 'rejected'];
+
+            try {
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'approved',
+                color: '1D76DB',
+                description: 'Submission was approved by a maintainer'
+              });
+            } catch (error) {
+              if (error.status !== 422) {
+                throw error;
+              }
+            }
+
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+            const labelNames = new Set(currentLabels.map((label) => label.name));
+
+            if (!labelNames.has('approved')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['approved']
+              });
+            }
+
+            for (const labelName of staleLabels) {
+              if (!labelNames.has(labelName)) {
+                continue;
+              }
+
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: labelName
+              });
+            }
+
       - name: Finalize rejection
         if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'reject'
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
@@ -427,6 +497,10 @@ jobs:
               'ready-for-review': {
                 color: '0E8A16',
                 description: 'Submission passed intake validation and is ready for maintainer review'
+              },
+              'requires-submitter-fixes': {
+                color: 'D93F0B',
+                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
               },
               'approved': {
                 color: '1D76DB',
@@ -479,6 +553,7 @@ jobs:
 
             await removeLabel('awaiting-review');
             await removeLabel('ready-for-review');
+            await removeLabel('requires-submitter-fixes');
             await removeLabel('approved');
 
             const marker = '<!-- external-plugin-rejection -->';
@@ -493,7 +568,7 @@ jobs:
               '',
               reason,
               '',
-              'If you address the feedback, open a new external plugin submission issue with the updated details.'
+              'If you address the feedback, edit this issue with the updated details and have the issue author or a maintainer comment `/rerun-intake` to re-run automated intake.'
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({

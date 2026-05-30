@@ -202,7 +202,8 @@ The external plugin issue form will collect these fields:
 - Short description
 - GitHub repository in `owner/repo` format
 - Plugin path inside the repository (optional when the plugin is at the repository root)
-- Immutable ref to review (`ref`), using a release tag or full commit SHA rather than a branch
+- Ref to review (`ref`), using a release tag or tag ref rather than a branch
+- Commit SHA to review (`sha`), using a full 40-character commit SHA
 - Plugin version
 - License identifier
 - Author name
@@ -210,7 +211,7 @@ The external plugin issue form will collect these fields:
 - Homepage URL (optional)
 - Keywords/tags
 - Additional notes for reviewers (optional)
-- Confirmation checkboxes that the repository is public, the ref is immutable, the submission follows this repository's policies, and the plugin is not a duplicate listing
+- Confirmation checkboxes that the repository is public, the submitted ref and/or sha is immutable, the submission follows this repository's policies, and the plugin is not a duplicate listing
 
 The repository's canonical validation rules live in `eng/external-plugin-validation.mjs`. Build scripts reuse the `marketplace` policy from that module, and the issue intake automation uses the stricter `publicSubmission` policy so the JSON contract and workflow checks stay aligned.
 
@@ -221,25 +222,31 @@ For entries committed to `plugins/external.json`, the current marketplace valida
 - `repository` as an HTTPS GitHub URL
 - `keywords` as lowercase hyphenated tags
 - `source.source: "github"` plus `source.repo` in `owner/repo` format
-- optional `source.path` values to stay relative to the repository root
+- optional `source.path` values of `/` for repository root, or a repository-relative folder where the plugin structure starts (do not point to `plugin.json` directly)
 
-The public-submission policy builds on those rules and also requires `license` plus an immutable `source.ref`.
+The public-submission policy builds on those rules and also requires `license` plus at least one immutable source locator: `source.ref`, `source.sha`, or both.
 
 ##### Review workflow
 
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are closed with a comment explaining what must be fixed before resubmitting.
-3. **Ready for maintainer review**: if the issue passes intake validation, automation removes `awaiting-review` and adds `ready-for-review`.
-4. **Maintainer decision**: a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
-5. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
-6. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. Submitters can open a new issue after addressing the feedback.
+3. **Automated quality gates** run after metadata validation:
+   - `skill-validator check --plugin` against the submitted plugin path/ref/sha
+   - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
+4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
+5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
+6. **Requesting another intake pass**: after updating the issue body or source plugin, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates on demand. Open issues still re-trigger intake automatically on edit, but closed rejected issues need `/rerun-intake`.
+7. **Maintainer override path**: a maintainer with write access can comment `/mark-ready-for-review [optional reason]` to explicitly move a `requires-submitter-fixes` issue to `ready-for-review`.
+8. **Maintainer decision**: once in `ready-for-review`, a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
+9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
+10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
 
 ##### Maintainer review responsibilities
 
 Maintainers are responsible for confirming that the submission:
 
 - Clearly fits the Awesome Copilot collection and adds value beyond existing listings
-- Uses a public GitHub repository and an immutable ref that can be reviewed reliably
+- Uses a public GitHub repository and an immutable ref and/or SHA that can be reviewed reliably
 - Includes the required metadata for `plugins/external.json` (`name`, `description`, `version`, `author.name`, `repository`, `keywords`, and `source`), plus any supplied homepage/license fields
 - Does not obviously duplicate an existing marketplace entry
 - Continues to meet this repository's content, security, and responsible AI policies
@@ -249,6 +256,7 @@ Maintainers are responsible for confirming that the submission:
 - `external-plugin`: applied to every public external plugin submission and retained on approved issues so scheduled review automation can find them later
 - `awaiting-review`: initial intake state before automation finishes validating the issue
 - `ready-for-review`: the issue passed automated intake checks and is waiting on a maintainer decision
+- `requires-submitter-fixes`: metadata validation passed but automated quality gates failed; submitter updates are required before human review
 - `approved`: the issue was approved, closed, and can be used as the source of truth for six-month re-review
 - `rejected`: the issue was rejected and closed without being added to the marketplace
 - `re-review-due`: the approved issue reached the six-month review threshold and is waiting on a maintainer re-review decision
@@ -283,7 +291,8 @@ Approved submissions are converted into `plugins/external.json` entries followin
       "source": "github",
       "repo": "owner/plugin-repo",
       "path": ".github/plugins/my-external-plugin",
-      "ref": "v1.0.0"
+      "ref": "v1.0.0",
+      "sha": "0123456789abcdef0123456789abcdef01234567"
     }
   }
 ]

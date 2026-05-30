@@ -6,14 +6,31 @@ import { fileURLToPath } from "url";
 import { ROOT_FOLDER } from "./constants.mjs";
 import { readExternalPlugins, validateExternalPlugin } from "./external-plugin-validation.mjs";
 
-const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
+export const ISSUE_FORM_MARKER = "<!-- external-plugin-submission -->";
+export const EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER = "<!-- external-plugin-intake -->";
+export const RERUN_INTAKE_COMMAND = "/rerun-intake";
+export const MARK_READY_FOR_REVIEW_COMMAND = "/mark-ready-for-review";
+const RERUN_INTAKE_COMMAND_PATTERN = new RegExp(
+  `^\\s*${RERUN_INTAKE_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+  "m",
+);
+const MARK_READY_FOR_REVIEW_COMMAND_PATTERN = new RegExp(
+  `^\\s*${MARK_READY_FOR_REVIEW_COMMAND.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+  "m",
+);
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
+// Each entry is a Set of equivalent checklist item texts (new + legacy aliases).
+// A submission passes if the checked items contain at least one text from each Set.
 const REQUIRED_CHECKLIST_ITEMS = [
-  "The plugin lives in a public GitHub repository.",
-  "The ref I provided is an immutable release tag or full 40-character commit SHA, not a branch.",
-  "This submission follows this repository's contribution, security, and responsible AI policies.",
-  "This plugin is not already listed in the Awesome Copilot marketplace.",
+  new Set(["The plugin lives in a public GitHub repository."]),
+  new Set([
+    "The ref and/or sha I provided is immutable (release tag and/or full 40-character commit SHA), not a branch.",
+    // Legacy text used in the original issue template
+    "The ref I provided is an immutable release tag or full 40-character commit SHA, not a branch.",
+  ]),
+  new Set(["This submission follows this repository's contribution, security, and responsible AI policies."]),
+  new Set(["This plugin is not already listed in the Awesome Copilot marketplace."]),
 ];
 
 const FIELD_TITLES = Object.freeze({
@@ -21,7 +38,8 @@ const FIELD_TITLES = Object.freeze({
   shortDescription: "Short description",
   githubRepository: "GitHub repository",
   pluginPath: "Plugin path inside the repository",
-  immutableRef: "Immutable ref to review",
+  immutableRef: "Ref to review",
+  immutableSha: "Commit SHA to review",
   version: "Version",
   license: "License identifier",
   authorName: "Author name",
@@ -30,6 +48,11 @@ const FIELD_TITLES = Object.freeze({
   keywords: "Keywords",
   additionalNotes: "Additional notes for reviewers",
   submissionChecklist: "Submission checklist",
+});
+
+// Legacy field title used in the original issue template (before the ref/sha split)
+const LEGACY_FIELD_TITLES = Object.freeze({
+  immutableRef: "Immutable ref to review",
 });
 
 function normalizeMultilineText(value) {
@@ -150,7 +173,7 @@ function encodeRepoPath(repo) {
   return `${encodeURIComponent(owner ?? "")}/${encodeURIComponent(name ?? "")}`;
 }
 
-async function validateRemoteRepository(repo, ref, errors, warnings, token) {
+async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, token) {
   const encodedRepo = encodeRepoPath(repo);
   const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
 
@@ -171,6 +194,15 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
     warnings.push(`submission: GitHub repository "${repo}" is archived`);
   }
 
+  if (sha) {
+    if (/^[0-9a-f]{40}$/i.test(sha)) {
+      const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(sha)}`, token);
+      if (!commitResponse.ok) {
+        errors.push(`submission: commit "${sha}" was not found in GitHub repository "${repo}"`);
+      }
+    }
+  }
+
   if (!ref) {
     return;
   }
@@ -183,6 +215,14 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
     return;
   }
 
+  if (ref.startsWith("refs/heads/") || ["main", "master", "develop", "development", "dev", "trunk"].includes(ref)) {
+    return;
+  }
+
+  if (ref.startsWith("refs/") && !ref.startsWith("refs/tags/")) {
+    return;
+  }
+
   const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
 
@@ -191,7 +231,7 @@ async function validateRemoteRepository(repo, ref, errors, warnings, token) {
   }
 
   if (/^[0-9a-f]+$/i.test(ref) && ref.length !== 40) {
-    errors.push('submission: commit SHAs in "Immutable ref to review" must use the full 40-character SHA');
+    errors.push('submission: commit SHAs in "Ref to review" must use the full 40-character SHA or be submitted in "Commit SHA to review"');
     return;
   }
 
@@ -215,7 +255,11 @@ export function parseExternalPluginIssueBody(body) {
   const pluginName = requiredField(FIELD_TITLES.pluginName);
   const shortDescription = requiredField(FIELD_TITLES.shortDescription);
   const repoInput = normalizeGitHubRepo(requiredField(FIELD_TITLES.githubRepository));
-  const immutableRef = requiredField(FIELD_TITLES.immutableRef);
+  // Support both the current field title and the legacy title used before the ref/sha split
+  const immutableRef = stripNoResponse(
+    sections.get(FIELD_TITLES.immutableRef) ?? sections.get(LEGACY_FIELD_TITLES.immutableRef),
+  );
+  const immutableSha = stripNoResponse(sections.get(FIELD_TITLES.immutableSha));
   const version = requiredField(FIELD_TITLES.version);
   const license = requiredField(FIELD_TITLES.license);
   const authorName = requiredField(FIELD_TITLES.authorName);
@@ -227,9 +271,22 @@ export function parseExternalPluginIssueBody(body) {
   const additionalNotes = stripNoResponse(sections.get(FIELD_TITLES.additionalNotes));
   const checkedItems = parseChecklist(sections.get(FIELD_TITLES.submissionChecklist));
 
-  for (const item of REQUIRED_CHECKLIST_ITEMS) {
-    if (!checkedItems.has(item)) {
-      errors.push(`submission: checklist item must be checked: "${item}"`);
+  if (!immutableRef && !immutableSha) {
+    errors.push(`submission: one of "${FIELD_TITLES.immutableRef}" or "${FIELD_TITLES.immutableSha}" is required`);
+  }
+
+  for (const equivalents of REQUIRED_CHECKLIST_ITEMS) {
+    let isChecked = false;
+    for (const text of equivalents) {
+      if (checkedItems.has(text)) {
+        isChecked = true;
+        break;
+      }
+    }
+    if (!isChecked) {
+      // Report using the canonical (first) text in each equivalents Set
+      const [canonical] = equivalents;
+      errors.push(`submission: checklist item must be checked: "${canonical}"`);
     }
   }
 
@@ -250,6 +307,7 @@ export function parseExternalPluginIssueBody(body) {
       repo: repoInput,
       ...(pluginPath ? { path: pluginPath } : {}),
       ...(immutableRef ? { ref: immutableRef } : {}),
+      ...(immutableSha ? { sha: immutableSha } : {}),
     },
   };
 
@@ -258,6 +316,172 @@ export function parseExternalPluginIssueBody(body) {
     errors,
     plugin,
     additionalNotes,
+  };
+}
+
+export function parseRerunIntakeCommand(body) {
+  return RERUN_INTAKE_COMMAND_PATTERN.test(String(body ?? ""));
+}
+
+export function parseMarkReadyForReviewCommand(body) {
+  const text = String(body ?? "");
+  if (!MARK_READY_FOR_REVIEW_COMMAND_PATTERN.test(text)) {
+    return undefined;
+  }
+
+  const commandLine = text.split(/\r?\n/).find((line) => MARK_READY_FOR_REVIEW_COMMAND_PATTERN.test(line));
+  const reason = commandLine?.replace(MARK_READY_FOR_REVIEW_COMMAND_PATTERN, "").trim();
+
+  return {
+    command: MARK_READY_FOR_REVIEW_COMMAND,
+    reason: reason || undefined,
+  };
+}
+
+function normalizeQualityGateResult(rawResult) {
+  const defaults = {
+    overall_status: "not_run",
+    skill_validator_status: "not_run",
+    smoke_status: "not_run",
+    failure_class: "none",
+    summary: "",
+    skill_validator_output: "",
+    smoke_output: "",
+  };
+
+  if (!rawResult || typeof rawResult !== "object" || Array.isArray(rawResult)) {
+    return defaults;
+  }
+
+  return {
+    ...defaults,
+    ...rawResult,
+  };
+}
+
+function buildQualityGatesCommentSection(qualityResult) {
+  const skillState = qualityResult.skill_validator_status || "not_run";
+  const smokeState = qualityResult.smoke_status || "not_run";
+  const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
+
+  const sections = [
+    "### Quality gate summary",
+    "",
+    "| Gate | Status |",
+    "|---|---|",
+    `| skill-validator | ${skillState} |`,
+    `| install smoke test | ${smokeState} |`,
+    "",
+    summaryText,
+  ];
+
+  const skillOutput = String(qualityResult.skill_validator_output || "").trim();
+  if (skillOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>skill-validator output</summary>",
+      "",
+      "```text",
+      skillOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  const smokeOutput = String(qualityResult.smoke_output || "").trim();
+  if (smokeOutput) {
+    sections.push(
+      "",
+      "<details>",
+      "<summary>Install smoke test output</summary>",
+      "",
+      "```text",
+      smokeOutput,
+      "```",
+      "",
+      "</details>",
+    );
+  }
+
+  return sections.join("\n");
+}
+
+function getIntakeStateFromQualityResult(baseResult, qualityResult) {
+  if (!baseResult.valid) {
+    return "rejected";
+  }
+
+  if (qualityResult.failure_class === "submitter_fixes") {
+    return "requires-submitter-fixes";
+  }
+
+  if (qualityResult.failure_class === "infra") {
+    return "awaiting-review";
+  }
+
+  return "ready-for-review";
+}
+
+function buildMergedIntakeComment(baseResult, qualityResult) {
+  if (!baseResult.valid) {
+    return baseResult.commentBody;
+  }
+
+  const marker = baseResult.commentMarker ?? EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
+  const qualitySection = buildQualityGatesCommentSection(qualityResult);
+
+  const intro =
+    qualityResult.failure_class === "submitter_fixes"
+      ? "## ⚠️ External plugin intake requires submitter fixes"
+      : qualityResult.failure_class === "infra"
+        ? "## ⚠️ External plugin intake could not complete quality checks"
+        : "## ✅ External plugin intake passed";
+
+  const statusLine =
+    qualityResult.failure_class === "submitter_fixes"
+      ? "This submission passed metadata validation, but quality gates found issues that must be fixed before it can move to maintainer review. Update the issue details or source plugin and then comment `/rerun-intake`."
+      : qualityResult.failure_class === "infra"
+        ? "This submission passed metadata validation, but the automated quality checks hit an infrastructure issue. A maintainer should rerun intake or use the explicit override command after review."
+        : "This submission passed automated intake validation and quality checks and is ready for maintainer review.";
+
+  return [
+    marker,
+    intro,
+    "",
+    statusLine,
+    "",
+    `- **Plugin:** ${baseResult.plugin?.name ?? "unknown"}`,
+    `- **Repository:** ${baseResult.plugin?.repository ?? "unknown"}`,
+    baseResult.plugin?.source?.ref ? `- **Ref:** ${baseResult.plugin.source.ref}` : undefined,
+    baseResult.plugin?.source?.sha ? `- **SHA:** ${baseResult.plugin.source.sha}` : undefined,
+    "",
+    qualitySection,
+    "",
+    "### Canonical external.json payload",
+    "",
+    "```json",
+    JSON.stringify(baseResult.plugin ?? {}, null, 2),
+    "```",
+    baseResult.warnings?.length
+      ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
+      : "",
+  ].filter(Boolean).join("\n");
+}
+
+export function applyQualityGateResult(baseEvaluation, qualityGateResult) {
+  const baseResult = typeof baseEvaluation === "string" ? JSON.parse(baseEvaluation) : baseEvaluation;
+  const qualityResult = normalizeQualityGateResult(
+    typeof qualityGateResult === "string" ? JSON.parse(qualityGateResult) : qualityGateResult,
+  );
+  const intakeState = getIntakeStateFromQualityResult(baseResult, qualityResult);
+
+  return {
+    ...baseResult,
+    qualityGates: qualityResult,
+    intakeState,
+    commentBody: buildMergedIntakeComment(baseResult, qualityResult),
   };
 }
 
@@ -287,14 +511,14 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
     }
   }
 
-  if (parsed.plugin?.source?.repo && parsed.plugin?.source?.ref) {
-    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source.ref, errors, warnings, token);
+  if (parsed.plugin?.source?.repo && (parsed.plugin?.source?.ref || parsed.plugin?.source?.sha)) {
+    await validateRemoteRepository(parsed.plugin.source.repo, parsed.plugin.source, errors, warnings, token);
   }
 
   const dedupedErrors = [...new Set(errors)];
   const dedupedWarnings = [...new Set(warnings)];
   const valid = dedupedErrors.length === 0;
-  const marker = "<!-- external-plugin-intake -->";
+  const marker = EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
   const normalizedKeywords = parsed.plugin?.keywords?.length ? parsed.plugin.keywords.join(", ") : "_None provided_";
   const notes = parsed.additionalNotes ?? "_No additional notes provided._";
   const payload = parsed.plugin
@@ -314,7 +538,8 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         "",
         `- **Plugin:** ${parsed.plugin.name}`,
         `- **Repository:** ${parsed.plugin.repository}`,
-        `- **Ref:** ${parsed.plugin.source.ref}`,
+        parsed.plugin.source.ref ? `- **Ref:** ${parsed.plugin.source.ref}` : undefined,
+        parsed.plugin.source.sha ? `- **SHA:** ${parsed.plugin.source.sha}` : undefined,
         `- **Keywords:** ${normalizedKeywords}`,
         "",
         "### Canonical external.json payload",
@@ -333,7 +558,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         "## ❌ External plugin intake failed",
         "",
         "This submission did not pass automated intake validation, so the issue has been closed.",
-        "Update the issue form, then reopen the issue to run intake validation again.",
+        `Edit the issue form to address the fixes below, then have the issue author or a maintainer comment \`${RERUN_INTAKE_COMMAND}\` to re-run intake for this closed submission.`,
         "",
         "### Required fixes",
         "",
@@ -345,6 +570,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
 
   return {
     valid,
+    intakeState: valid ? "ready-for-review" : "rejected",
     markerPresent: parsed.markerPresent,
     errors: dedupedErrors,
     warnings: dedupedWarnings,

@@ -4,19 +4,49 @@ on:
   issues:
     types: [opened, edited, reopened]
 
+concurrency:
+  group: external-plugin-intake-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   issues: write
 
 jobs:
-  validate-submission:
+  evaluate-submission:
     runs-on: ubuntu-latest
     if: >-
       contains(github.event.issue.labels.*.name, 'external-plugin') ||
       contains(github.event.issue.body, '<!-- external-plugin-submission -->')
+    outputs:
+      evaluation: ${{ steps.evaluation.outputs.result }}
+      should-sync: ${{ steps.guard.outputs.should-sync }}
+      issue-state: ${{ steps.guard.outputs.issue-state }}
+      issue-action: ${{ steps.guard.outputs.issue-action }}
+      issue-labels: ${{ steps.guard.outputs.issue-labels }}
+      plugin-json: ${{ steps.evaluation.outputs.plugin-json }}
+      valid: ${{ steps.evaluation.outputs.valid }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Evaluate issue guard rails
+        id: guard
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const issueState = context.payload.issue.state;
+            const action = context.payload.action;
+            const labels = (context.payload.issue.labels || []).map((label) => label.name);
+            const isApproved = labels.includes('approved');
+            const isClosedWithoutReopen = issueState === 'closed' && action !== 'reopened';
+
+            core.setOutput('issue-state', issueState);
+            core.setOutput('issue-action', action);
+            core.setOutput('issue-labels', JSON.stringify(labels));
+            core.setOutput('should-sync', (!isApproved && !isClosedWithoutReopen) ? 'true' : 'false');
 
       - name: Evaluate submission
         id: evaluation
@@ -30,143 +60,101 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Sync labels and comment
+          valid=$(node -e "const data = JSON.parse(process.argv[1]); process.stdout.write(data.valid ? 'true' : 'false');" "$result")
+          plugin=$(node -e "const data = JSON.parse(process.argv[1]); process.stdout.write(JSON.stringify(data.plugin || {}));" "$result")
+          echo "valid=$valid" >> "$GITHUB_OUTPUT"
+          {
+            echo 'plugin-json<<EOF'
+            echo "$plugin"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+  quality-gates:
+    needs: evaluate-submission
+    if: >-
+      needs.evaluate-submission.outputs.should-sync == 'true' &&
+      needs.evaluate-submission.outputs.valid == 'true'
+    uses: ./.github/workflows/external-plugin-quality-gates.yml
+    with:
+      plugin-json: ${{ needs.evaluate-submission.outputs.plugin-json }}
+
+  sync-state:
+    runs-on: ubuntu-latest
+    needs: [evaluate-submission, quality-gates]
+    if: always() && needs.evaluate-submission.outputs.should-sync == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Merge evaluation and sync labels/comments
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
-          RESULT_JSON: ${{ steps.evaluation.outputs.result }}
+          BASE_RESULT_JSON: ${{ needs.evaluate-submission.outputs.evaluation }}
+          BASE_VALID: ${{ needs.evaluate-submission.outputs.valid }}
+          QUALITY_RESULT_JSON: ${{ needs.quality-gates.outputs.quality-result }}
+          QUALITY_JOB_RESULT: ${{ needs.quality-gates.result }}
+          ISSUE_STATE: ${{ needs.evaluate-submission.outputs.issue-state }}
+          ISSUE_LABELS: ${{ needs.evaluate-submission.outputs.issue-labels }}
         with:
           script: |
-            const managedLabels = {
-              'external-plugin': {
-                color: 'FEF2C0',
-                description: 'Public external plugin submission'
-              },
-              'awaiting-review': {
-                color: 'FBCA04',
-                description: 'Submission is waiting for automated intake validation'
-              },
-              'ready-for-review': {
-                color: '0E8A16',
-                description: 'Submission passed intake validation and is ready for maintainer review'
-              },
-              'approved': {
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              },
-              'rejected': {
-                color: 'B60205',
-                description: 'Submission was rejected or failed intake validation'
-              }
-            };
+            const path = require('path');
+            const { pathToFileURL } = require('url');
 
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
 
-            async function syncManagedLabels(issueNumber, desiredLabels) {
-              await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
+            const baseResult = JSON.parse(process.env.BASE_RESULT_JSON);
+            let finalResult = baseResult;
 
-              const managedForSync = ['external-plugin', 'awaiting-review', 'ready-for-review', 'rejected'];
-              const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                per_page: 100
-              });
-
-              const currentManagedLabels = currentLabels
-                .map((label) => label.name)
-                .filter((name) => managedForSync.includes(name));
-
-              const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
-              const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
-
-              if (labelsToAdd.length > 0) {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  labels: labelsToAdd
-                });
+            if (process.env.BASE_VALID === 'true') {
+              let qualityResult;
+              if (process.env.QUALITY_JOB_RESULT === 'failure' || process.env.QUALITY_JOB_RESULT === 'cancelled') {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  skill_validator_status: 'infra_error',
+                  smoke_status: 'infra_error',
+                  failure_class: 'infra',
+                  summary: 'Quality-gate workflow failed unexpectedly. Re-run intake to retry.',
+                };
+              } else if (process.env.QUALITY_RESULT_JSON) {
+                qualityResult = JSON.parse(process.env.QUALITY_RESULT_JSON);
+              } else {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  skill_validator_status: 'infra_error',
+                  smoke_status: 'infra_error',
+                  failure_class: 'infra',
+                  summary: 'Quality-gate workflow did not return results. Re-run intake to retry.',
+                };
               }
 
-              for (const name of labelsToRemove) {
-                await github.rest.issues.removeLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber,
-                  name
-                });
-              }
+              finalResult = intake.applyQualityGateResult(baseResult, qualityResult);
             }
 
-            const result = JSON.parse(process.env.RESULT_JSON);
-            const issueNumber = context.issue.number;
-            const issueState = context.payload.issue.state;
-            const action = context.payload.action;
-            const existingLabelNames = (context.payload.issue.labels || []).map((label) => label.name);
-
-            if (existingLabelNames.includes('approved')) {
-              core.info('Issue is already approved; skipping intake synchronization.');
-              return;
-            }
-
-            if (issueState === 'closed' && action !== 'reopened') {
-              core.info('Issue is closed; waiting for reopen before rerunning intake synchronization.');
-              return;
-            }
-
-            const desiredLabels = result.valid
-              ? new Set(['external-plugin', 'ready-for-review'])
-              : new Set(['external-plugin', 'rejected']);
-
-            await syncManagedLabels(issueNumber, desiredLabels);
-
-            const { data: comments } = await github.rest.issues.listComments({
+            await intakeState.applyExternalPluginIntakeEvaluation({
+              github,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: issueNumber,
-              per_page: 100
+              issueNumber: context.issue.number,
+              evaluation: finalResult
             });
 
-            const existingComment = comments.find((comment) =>
-              comment.user?.login === 'github-actions[bot]' &&
-              comment.body?.includes(result.commentMarker)
-            );
-
-            if (existingComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existingComment.id,
-                body: result.commentBody
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issueNumber,
-                body: result.commentBody
-              });
-            }
-
-            if (!result.valid && issueState === 'open') {
+            const issueState = process.env.ISSUE_STATE;
+            const labels = new Set(JSON.parse(process.env.ISSUE_LABELS || '[]'));
+            if (finalResult.intakeState === 'rejected' && issueState === 'open') {
               await github.rest.issues.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: issueNumber,
+                issue_number: context.issue.number,
                 state: 'closed'
+              });
+            } else if (finalResult.intakeState !== 'rejected' && issueState === 'closed' && labels.has('rejected')) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'open'
               });
             }

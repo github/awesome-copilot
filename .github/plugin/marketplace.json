@@ -126,7 +126,6 @@
       "source": {
         "source": "github",
         "repo": "ChromeDevTools/chrome-devtools-mcp",
-        "path": ".github/plugin/plugin.json",
         "ref": "chrome-devtools-mcp-v1.0.1"
       }
     },
@@ -359,8 +358,8 @@
     {
       "name": "gem-team",
       "source": "gem-team",
-      "description": "Self-Learning Multi-agent orchestration harness for spec-driven development and automated verification.",
-      "version": "1.24.0"
+      "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
+      "version": "1.42.0"
     },
     {
       "name": "git-ape",
@@ -475,7 +474,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1119-preview1",
+      "version": "1.0.1146-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"
@@ -578,6 +577,34 @@
       "source": "php-mcp-development",
       "description": "Comprehensive resources for building Model Context Protocol servers using the official PHP SDK with attribute-based discovery, including best practices, project generation, and expert assistance",
       "version": "1.0.0"
+    },
+    {
+      "name": "pm-skills",
+      "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
+      "version": "2.1.0",
+      "author": {
+        "name": "Parth Sangani",
+        "url": "https://github.com/Avyayalaya"
+      },
+      "repository": "https://github.com/Avyayalaya/pm-skills-arsenal",
+      "license": "MIT",
+      "keywords": [
+        "product-management",
+        "competitive-analysis",
+        "specification-writing",
+        "product-strategy",
+        "go-to-market",
+        "metrics",
+        "discovery-research",
+        "narrative",
+        "stakeholder-alignment",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Avyayalaya/pm-skills-arsenal",
+        "ref": "v2.1.0"
+      }
     },
     {
       "name": "power-apps-code-apps",
@@ -726,7 +753,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "b1492121b8591fba7dc477392ae0ea6be924fb31"
+        "ref": "2.0.0"
       }
     },
     {
@@ -763,6 +790,42 @@
       "name": "typespec-m365-copilot",
       "source": "typespec-m365-copilot",
       "description": "Comprehensive collection of prompts, instructions, and resources for building declarative agents and API plugins using TypeSpec for Microsoft 365 Copilot extensibility.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "vercel-plugin",
+      "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
+      "version": "0.43.0",
+      "author": {
+        "name": "Vercel",
+        "url": "https://github.com/vercel"
+      },
+      "repository": "https://github.com/vercel/vercel-plugin",
+      "homepage": "https://vercel.com/docs/agent-resources/vercel-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "vercel",
+        "nextjs",
+        "ai-sdk",
+        "turborepo",
+        "turbopack",
+        "workflow",
+        "deployment",
+        "edge-functions",
+        "serverless",
+        "ai-gateway"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "vercel/vercel-plugin",
+        "path": "/",
+        "sha": "6e51924cb249e2941de005d59f1ac6f768477b98"
+      }
+    },
+    {
+      "name": "visual-pr",
+      "source": "visual-pr",
+      "description": "Capture, annotate, and embed screenshots and animated GIF demos in pull request descriptions. Includes Playwright-based UI capture, PIL image annotations, PR embedding workflows for GitHub and Azure DevOps, and screen recording with variable timing.",
       "version": "1.0.0"
     },
     {
