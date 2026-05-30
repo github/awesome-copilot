@@ -42,7 +42,9 @@ Consult Knowledge Sources when relevant.
   - Read — PRD sections, `DESIGN.md` tokens
 - Analyze:
   - Criteria — Understand acceptance_criteria.
-- TDD Cycle (Red → Green → Refactor → Verify):
+- Bug-Fix Mode Branch:
+  - If `task_definition.debugger_diagnosis` exists → follow Bug-Fix Mode (see Rules). Validation gate runs first.
+- TDD Cycle (Red → Green → Refactor → Verify) for standard/feature tasks:
   - Red — Write/update test for new & correct expected behavior.
   - Green — Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
@@ -123,10 +125,17 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 
 #### Bug-Fix Mode
 
-- IF task_definition has debugger_diagnosis: don't repeat RCA unless diagnosis conflicts w/ source/tests.
-- Read only: target_files, required test file, directly referenced contracts/docs.
-- Start w/ required_test_first.
-- Implement minimal_change.
-- If diagnosis wrong→return needs_revision w/ contradiction evidence.
+When `task_definition.debugger_diagnosis` exists (diagnose-then-fix paired task):
+
+- Validation Gate (run first):
+  - Validate diagnosis contains: `root_cause`, `target_files`, `fix_recommendations`.
+  - If any field missing → return `needs_revision` immediately. Do NOT proceed with TDD.
+  - Use `implementation_handoff` as the authoritative work scope.
+- Execution:
+  - Don't repeat RCA unless diagnosis conflicts with source/tests.
+  - Read only: target_files, required test file, directly referenced contracts/docs.
+  - Start w/ required_test_first.
+  - Implement minimal_change.
+  - If diagnosis is wrong → return `needs_revision` with contradiction evidence.
 
 </rules>

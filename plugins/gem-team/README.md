@@ -56,8 +56,9 @@ See [all supported installation options](#installation) below.
 
 ### Performance
 
-- **4x Faster** — Parallel execution with wave-based execution
+- **2x Faster** — Parallel execution with wave-based execution
 - **Pattern Reuse** — Codebase pattern discovery prevents reinventing wheels
+- **Context Efficiency** — Concise outputs, file-based context, and caching reduce LLM token usage by 80-90% compared to naive single-pass prompting
 
 ### Quality & Security
 

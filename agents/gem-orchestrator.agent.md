@@ -70,7 +70,9 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
   - `docs`: document, readme, comment, write docs, update docs
   - `config`: configure, setup, install, config, settings
   - `typo`: typo, spelling, grammar, rename trivial
+  - `research`: research, investigate, explore, analyze, compare, evaluate, explain, understand
   - `unknown`: none of the above match
+  - If `unknown`: confidence ≥ 0.85 → default to `feature`; confidence < 0.85 → escalate to user with clarification
 - Complexity Assessment:
   - LOW: single file/small change, known patterns. Minimal blast radius.
   - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
@@ -124,10 +126,10 @@ Delegate ALL waves/tasks without pausing for approval between them.
   - Wave > 1: include contracts from task definitions.
   - Get pending (deps = completed, status = pending, wave = current).
   - Filter conflicts_with: same-file tasks serialize.
-  - Delegate to subagents (max 4 concurrent) as per `agent_input_reference`.
+  - Delegate to subagents (max 2 concurrent).
 - Integration Check:
   - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
-  - ui|ux|design|interface|a11y tasks → validate with the designer agent matching the task's assigned agent (if task.agent is `designer-mobile`, use `gem-designer-mobile(validate)`; otherwise use `gem-designer(validate)`), run in parallel with `gem-reviewer(wave scope)`.
+  - Tasks with `flags.requires_design_validation: true` → validate with the designer agent matching the task's assigned agent (if task.agent is `designer-mobile`, use `gem-designer-mobile(validate)`; otherwise use `gem-designer(validate)`), run in parallel with `gem-reviewer(wave scope)`.
   - If reviewer fails → `gem-debugger` to diagnose:
     - If debugger confidence ≥ 0.85 → delegate to `gem-implementer` with diagnosis → re-verify.
     - If debugger confidence < 0.85 → escalate to user (cannot reliably diagnose).

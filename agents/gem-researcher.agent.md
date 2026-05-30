@@ -60,7 +60,8 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
-  "task_id": "string | omit if unknown",
+  "task_id": "string | null", // optional — researcher can run standalone before task exists
+  "plan_id": "string",
   "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "confidence": 0.0-1.0,
   "complexity": "simple | medium | complex",

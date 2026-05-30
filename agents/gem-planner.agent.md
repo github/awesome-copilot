@@ -83,6 +83,7 @@ Consult Knowledge Sources when relevant.
   - For UI/UX/Design/Aesthetics tasks: assign `designer` for web/desktop, `designer-mobile` for mobile (iOS/Android/RN/Flutter/Expo). If cross-platform, split into separate web + mobile tasks.
   - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1).
     - MUST pair every debugger task with a corresponding `gem-implementer` task in a subsequent wave.
+    - The implementer task MUST include `debugger_diagnosis` field (populated from debugger's output) in its task_definition.
   - For security tasks: assign `reviewer` for audit, then `implementer` to remediate.
   - For refactoring/simplification tasks: assign `code-simplifier`.
   - For documentation: assign `doc-writer`.
@@ -183,17 +184,17 @@ quality_score:
   # Reviewer guidance: areas needing extra scrutiny based on lower scores
   reviewer_focus: [string]
 tldr: |
-open_questions:
+open_questions: # Optional for LOW complexity; required for MEDIUM/HIGH
   - question: string
     context: string
     type: decision_blocker | research | nice_to_know
     affects: [string]
-gaps:
+gaps: # Optional for LOW complexity; required for MEDIUM/HIGH
   - description: string
     refinement_requests:
       - query: string
         source_hint: string
-pre_mortem:
+pre_mortem: # Optional for LOW complexity; required for MEDIUM/HIGH
   overall_risk_level: low | medium | high
   critical_failure_modes:
     - scenario: string
@@ -201,7 +202,7 @@ pre_mortem:
       impact: low | medium | high | critical
       mitigation: string
   assumptions: [string]
-implementation_specification:
+implementation_specification: # Optional for LOW complexity; required for MEDIUM/HIGH
   code_structure: string
   affected_areas: [string]
   component_details:
@@ -212,7 +213,7 @@ implementation_specification:
         - component: string
           relationship: string
       integration_points: [string]
-contracts:
+contracts: # Optional for LOW/MEDIUM; required for HIGH complexity
   - from_task: string
     to_task: string
     interface: string
@@ -230,6 +231,7 @@ tasks:
     flags:
       flaky: boolean
       retries_used: number
+      requires_design_validation: boolean # set true for ui/ux/design/a11y/style related tasks
     dependencies: [string]
     conflicts_with: [string]
     context_files:
@@ -259,7 +261,7 @@ tasks:
     # gem-implementer:
     tech_stack: [string]
     test_coverage: string | null
-    debugger_diagnosis: object | null # from bug-fix fast path
+    debugger_diagnosis: object | null # REQUIRED when paired with a debugger task; null otherwise
     implementation_handoff:
       do_not_reinvestigate: [string]
       required_test_first: string
