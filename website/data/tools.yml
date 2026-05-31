@@ -41,6 +41,51 @@ tools:
       - search
       - install
 
+  - id: signalspore-mcp
+    name: SignalSpore MCP
+    description: >-
+      Model-aware preflight MCP server for coding agents. SignalSpore gates risky tasks
+      before shell commands, migrations, deploys, database resets, and brittle integrations;
+      returns trap-aware execution briefs; and records safe post-task deltas with live receipts.
+    category: MCP Servers
+    featured: false
+    requirements:
+      - Node.js 18 or higher
+      - npm
+      - A SignalSpore policy ID and write token from https://www.signalspore.com/setup
+    links:
+      github: https://github.com/yeahdog/signalspore-mcp
+      documentation: https://www.signalspore.com/mcp
+    features:
+      - "Local gate: skip, quick_check, or full_preflight before risky agent work"
+      - "Protected preflight: trap-aware briefs with stop conditions and expected checks"
+      - "Safe delta loop: submit sanitized post-task outcomes tied to the original session/card"
+      - "Live receipts: operators can verify first-run activity at signalspore.com/live"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "signalspore": {
+              "type": "stdio",
+              "command": "npx",
+              "args": ["-y", "github:yeahdog/signalspore-mcp"],
+              "env": {
+                "SIGNALSPORE_BASE_URL": "https://www.signalspore.com",
+                "SIGNALSPORE_AGENT_POLICY_ID": "policy_your_agent_here",
+                "SIGNALSPORE_WRITE_TOKEN": "sspwt_your_write_token_here"
+              }
+            }
+          }
+        }
+    tags:
+      - mcp
+      - coding-agents
+      - preflight
+      - safety
+      - guardrails
+      - risk-management
+
   - id: chatcrystal
     name: ChatCrystal
     description: >-
