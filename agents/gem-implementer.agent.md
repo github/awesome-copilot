@@ -65,8 +65,8 @@ Consult Knowledge Sources when relevant.
   - Red — Write/update test for new & correct expected behavior.
   - Green — Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
+    - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
     - Run test — must pass.
-    - Before modifying shared components: verify symbol/ variable etc. usages.
   - Verify — get_errors or language server errors (syntax), verify against acceptance_criteria.
 
 - Failure:

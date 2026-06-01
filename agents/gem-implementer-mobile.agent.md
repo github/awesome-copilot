@@ -63,9 +63,10 @@ Consult Knowledge Sources when relevant.
   - Red — Write/update test for new & correct expected behavior.
   - Green — Minimal code to pass.
     - Surgical only. Remove extra code (YAGNI).
-    - Before shared components: vscode_listCodeUsages.
+    - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
     - Run test — must pass.
   - Verify — get_errors or language server errors (syntax), verify against acceptance_criteria.
+
 - Error Recovery:
   - Metro — Error → `npx expo start --clear`.
   - iOS — Check Xcode logs, deps, rebuild.
