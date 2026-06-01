@@ -146,7 +146,7 @@ Delegate ALL waves/tasks without pausing for approval between them.
     - Always delegate to `gem-documentation-writer` with `task_type: update_context_envelope` to refresh `docs/plan/{plan_id}/context_envelope.json` with merged learnings from the wave.
   - Memory (picky — confidence gate):
     - Only persist items with confidence ≥ 0.80. Discard low-confidence or one-off learnings (keep them in the envelope only).
-    - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` to memory tool.
+    - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` or other items to memory tool, which can help during future planning/ execution.
   - Conventions (picky — recurrence gate):
     - If same convention recurs ≥ 3× across tasks in this plan: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
     - Otherwise: keep in envelope only.

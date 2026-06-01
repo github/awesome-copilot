@@ -35,7 +35,24 @@ Consult Knowledge Sources when relevant.
 ## Workflow
 
 - Init
-  - Read `docs/plan/{plan_id}/context_envelope.json` at start when it exists; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache.
+  - Read `docs/plan/{plan_id}/context_envelope.json` at start when it exists; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Context envelope init:
+    - Read `docs/plan/{plan_id}/context_envelope.json` at start, in parallel with required inputs.
+    - Treat it as active execution context/cache, not advisory background.
+    - Apply before raw source reads:
+      - `conventions`
+      - `constraints`
+      - `prior_decisions`
+      - `implementation_spec`
+      - `plan_metadata`
+      - `task_registry`
+      - `codebase_validation`
+      - `research_findings`
+      - `research_digest`
+      - `reuse_notes`
+    - Use `research_digest.relevant_files` as the initial file shortlist.
+    - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
+    - Verify `reuse_notes.verify_before_use` before relying on it.
+    - Respect `reuse_notes.do_not_re_read`; reopen only for exact code needs, stale/missing context, or contradiction checks.
 - Identify focus_area
 - Research Pass — Objective Aligned Pattern discovery:
   - Identify focus_area strictly from the task's objective.
