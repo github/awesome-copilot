@@ -23,17 +23,17 @@ safe-outputs:
 
 # Check for Awesome GitHub Copilot Updates
 
-You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. Your job is to check for recent updates to GitHub Copilot and determine if the Learning Hub pages in `website/learning-hub` need updating.
+You are a documentation maintainer for the Awesome GitHub Copilot Learning Hub. Your job is to check for recent updates to GitHub Copilot and determine if the Learning Hub pages in `website/src/content/docs/learning-hub` need updating.
 
 ## Step 1 — Gather recent Copilot updates
 
 Use `web-fetch` to read the following pages and extract the latest entries from the past 7 days:
 
-- https://github.blog/changelog/label/copilot/ — official changelog
-- https://github.com/github/copilot-cli/blob/main/changelog.md — CLI changelog
-- https://github.blog/ai-and-ml/github-copilot/ — blog posts
-- https://code.visualstudio.com/updates - VS Code release notes (filter for Copilot-related updates)
-- https://nishanil.github.io/copilot-guide/ - community-maintained guide (check for recent commits or updates)
+- <https://github.blog/changelog/label/copilot/> — official changelog
+- <https://github.com/github/copilot-cli/blob/main/changelog.md> — CLI changelog
+- <https://github.blog/ai-and-ml/github-copilot/> — blog posts
+- <https://code.visualstudio.com/updates> - VS Code release notes (filter for Copilot-related updates)
+- <https://nishanil.github.io/copilot-guide/> - community-maintained guide (check for recent commits or updates)
 
 Also use `gh` CLI to check the latest releases and commits in the `github/copilot-cli` repo.
 
@@ -61,17 +61,17 @@ If there is nothing new or everything is already up to date, stop here and repor
 
 If updates are needed, make a decision on whether a new page needs to be added (e.g., for a major new feature) or if existing pages can be updated with new sections.
 
-### For new pages:
+### For new pages
 
 A new page should be created for major features or capabilities that warrant their own documentation (e.g., a new feature of Copilot, a new pattern for working with Copilot, etc.).
 
 To create a new page:
 
-1. Create a new markdown file in the appropriate section of `website/learning-hub` (e.g., `website/learning-hub/agents/new-agent.md`).
+1. Create a new markdown file in the appropriate section of `website/src/content/docs/learning-hub` (e.g., `website/src/content/docs/learning-hub/new-topic.md`).
 2. Write a summary of the new feature, how it works, and its use cases.
 3. Add a "Further Reading" section with links to official documentation, blog posts, and relevant community resources.
 
-### For updates to existing pages:
+### For updates to existing pages
 
 If the new information can be added to existing pages, edit those pages to include refinements, new sections, or updated information as needed. Make sure to update any relevant links in the "Further Reading" sections.
 

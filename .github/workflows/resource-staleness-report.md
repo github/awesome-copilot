@@ -1,5 +1,5 @@
 ---
-description: Weekly report identifying stale and aging resources across agents, prompts, instructions, hooks, and skills folders
+description: Weekly report identifying stale and aging resources across agents, instructions, hooks, skills, workflows, and plugins folders
 on:
   schedule: weekly
 permissions:
@@ -23,10 +23,11 @@ You are an AI agent that audits the resources in this repository to identify one
 Analyze all files in the following directories to determine when each file last had a **major** (substantive) change committed:
 
 - `agents/` (`.agent.md` files)
-- `prompts/` (`.prompt.md` files)
 - `instructions/` (`.instructions.md` files)
-- `hooks/` (folders — check the folder's files)
 - `skills/` (folders — check the folder's files)
+- `hooks/` (folders — check the folder's files)
+- `workflows/` (`.md` files)
+- `plugins/` (folders — check `.github/plugin/plugin.json` inside each)
 
 ### What Counts as a Major Change
 
@@ -53,7 +54,7 @@ This gives the most recent commit that **modified** (not just renamed) the file.
 git log -1 --format="%H %ai" --diff-filter=A -- <filepath>
 ```
 
-For hook and skill folders, check all files within the folder and use the **most recent** major change date across any file in that folder.
+For hook, skill, and plugin folders, check all files within the folder and use the **most recent** major change date across any file in that folder.
 
 ### Classification
 
@@ -106,7 +107,7 @@ Organize the issue body as follows:
 
 | Resource | Type | Last Major Change | Days Ago |
 |----------|------|-------------------|----------|
-| `prompts/example.prompt.md` | Prompt | 2025-02-01 | 20 |
+| `workflows/example.md` | Workflow | 2025-02-01 | 20 |
 
 ### Deep Review: 10 Oldest Stale Resources
 
@@ -128,8 +129,8 @@ Use `<details>` blocks to collapse sections with more than 15 entries.
 
 ## Guidelines
 
-- Process all resource types: agents, prompts, instructions, hooks, and skills.
-- For **hooks** and **skills**, treat the entire folder as one resource. Report it by folder name and use the most recent change date of any file within.
+- Process all resource types: agents, instructions, skills, hooks, workflows, and plugins.
+- For **hooks**, **skills**, and **plugins**, treat the entire folder as one resource. Report it by folder name and use the most recent change date of any file within.
 - Sort tables by "Days Ago" descending (oldest first).
 - After building the stale table, inspect the **10 oldest stale resources** in more depth and include the deeper review section.
 - In the deeper review, prefer **high-signal issues**: outdated version assumptions, deprecated APIs, misleading instructions, harmful heuristics, unsafe defaults, or instructions that are scoped too broadly.

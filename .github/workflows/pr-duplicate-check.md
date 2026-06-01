@@ -1,5 +1,5 @@
 ---
-description: 'Checks PRs for potential duplicate agents, instructions, skills, and workflows already in the repository'
+description: 'Checks PRs for potential duplicate agents, instructions, skills, hooks, workflows, and plugins already in the repository'
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -34,10 +34,12 @@ Filter for files in these resource directories:
 - `agents/` (`.agent.md` files)
 - `instructions/` (`.instructions.md` files)
 - `skills/` (folders — the SKILL.md inside each folder is the resource)
+- `hooks/` (folders — the README.md inside each folder is the resource)
 - `workflows/` (`.md` files)
+- `plugins/` (folders — the `.github/plugin/plugin.json` inside each folder is the resource)
 
 If **no files** from these directories were modified, call `noop` with the message:
-"No agent, instruction, skill, or workflow files were changed in this PR — no duplicate check needed."
+"No agent, instruction, skill, hook, workflow, or plugin files were changed in this PR — no duplicate check needed."
 
 ## Step 2: Read Metadata for the PR's New Resources
 
@@ -57,7 +59,9 @@ Read all existing resources in the repository (excluding files that are part of 
 - `agents/` (`.agent.md` files)
 - `instructions/` (`.instructions.md` files)
 - `skills/` (folders — read `SKILL.md` inside each)
+- `hooks/` (folders — read `README.md` inside each)
 - `workflows/` (`.md` files)
+- `plugins/` (folders — read `.github/plugin/plugin.json` inside each)
 
 For each, extract the same metadata: file path, description, name field, and first ~20 lines.
 
@@ -71,6 +75,7 @@ Compare the PR's new resources against the existing repository resources. Flag p
 - **Cross-type overlap** — an agent and an instruction (or skill) that cover the same topic so thoroughly that one may make the other redundant
 
 Be pragmatic. Resources that cover related but distinct topics are **not** duplicates:
+
 - `react.instructions.md` (general React coding standards) and `react-testing.agent.md` (React testing agent) → **not** duplicates
 - `python-fastapi.instructions.md` and `python-flask.instructions.md` → **not** duplicates (different frameworks)
 - `code-review.agent.md` and `code-review.instructions.md` that both enforce the same style rules → **potential** duplicate
@@ -92,8 +97,8 @@ This PR adds resources that may be similar to existing ones in the repository. P
 
 | Resource | Type | Description |
 |----------|------|-------------|
-| `<new file from this PR>` | <Agent/Instruction/Skill/Workflow> | <description> |
-| `<existing file in repo>` | <Agent/Instruction/Skill/Workflow> | <description> |
+| `<new file from this PR>` | <Agent/Instruction/Skill/Hook/Workflow/Plugin> | <description> |
+| `<existing file in repo>` | <Agent/Instruction/Skill/Hook/Workflow/Plugin> | <description> |
 
 **Why flagged:** <Brief explanation of the similarity>
 
@@ -117,4 +122,6 @@ Call `noop` with the message: "No potential duplicate resources detected in this
 - Sort groups by confidence: strongest duplicate signal first.
 - Limit the report to the top **5** most likely duplicate groups to keep feedback actionable.
 - For skills, report by folder name (e.g., `skills/my-skill/`) using the description from `SKILL.md`.
+- For hooks, report by folder name (e.g., `hooks/my-hook/`) using the description from `README.md`.
+- For plugins, report by folder name (e.g., `plugins/my-plugin/`) using the description from `.github/plugin/plugin.json`.
 - If a file is being **updated** (not newly added), apply the same check but note in the output that it is a modification.

@@ -1,5 +1,5 @@
 ---
-description: Weekly scan of agents, instructions, and skills to identify potential duplicate resources and report them for review
+description: Weekly scan of agents, instructions, skills, hooks, and workflows to identify potential duplicate resources and report them for review
 on:
   schedule: weekly
 permissions:
@@ -28,6 +28,9 @@ Scan all resources in the following directories and identify groups of resources
 - `agents/` (`.agent.md` files)
 - `instructions/` (`.instructions.md` files)
 - `skills/` (folders — check `SKILL.md` inside each)
+- `hooks/` (folders — check `README.md` inside each)
+- `workflows/` (`.md` files)
+- `plugins/` (folders — check `.github/plugin/plugin.json` inside each)
 
 ### Step 1: Gather Resource Metadata
 
@@ -38,7 +41,7 @@ For each resource, extract:
 3. **Front matter `name`** field (if present)
 4. **First ~20 lines of body content** (the markdown after the front matter)
 
-Use bash to read files efficiently. For skills, read `skills/<name>/SKILL.md`.
+Use bash to read files efficiently. For skills, read `skills/<name>/SKILL.md`. For hooks, read `hooks/<name>/README.md`. For workflows, read the `.md` files directly in the `workflows/` directory. For plugins, read `.github/plugin/plugin.json` inside each plugin folder.
 
 ### Step 2: Identify Potential Duplicates
 
@@ -50,6 +53,7 @@ Compare resources and flag groups that look like potential duplicates. Consider 
 - **Cross-type overlap** — an agent and an instruction (or instruction and skill) that cover the same topic so thoroughly that one may make the other redundant
 
 Be pragmatic. Resources that cover related but distinct topics are NOT duplicates. For example:
+
 - `react.instructions.md` (general React coding standards) and `react-testing.agent.md` (React testing agent) are **not** duplicates — they serve different purposes.
 - `python-fastapi.instructions.md` and `python-flask.instructions.md` are **not** duplicates — they target different frameworks.
 - `code-review.agent.md` and `code-review.instructions.md` that both do the same style of code review **are** potential duplicates worth flagging.
@@ -63,6 +67,7 @@ Search for issues with label "duplicate-review" that are closed
 ```
 
 Read the comments and body of those past issues to find any pairs or groups that reviewers have explicitly marked as **"accepted"** or **"not duplicates"**. Look for phrases like:
+
 - "accepted as-is"
 - "not duplicates"
 - "intentionally separate"
@@ -123,4 +128,6 @@ Use `<details>` blocks to collapse groups if there are more than 10.
 - Include cross-type duplicates (e.g., an agent and an instruction doing the same thing).
 - Limit the report to the top 20 most likely duplicate groups to keep it actionable.
 - For skills, use the folder name and description from `SKILL.md`.
+- For hooks, use the folder name and description from `README.md`.
+- For plugins, use the folder name and description from `.github/plugin/plugin.json`.
 - Process resources in batches to stay within time limits — prioritize name and description comparison, then spot-check content for top candidates.
