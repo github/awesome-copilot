@@ -1,7 +1,7 @@
 ---
 description: "Act as implementation planner for your AWS Terraform Infrastructure as Code task."
 model: 'Claude Sonnet 4.6'
-name: "AWS Terraform Infrastructure Planner"
+name: terraform-aws-planning
 tools: [read/readFile, read/viewImage, edit/editFiles, search, web/fetch, todo]
 ---
 

@@ -1,7 +1,7 @@
 ---
 description: "Provide expert AWS Principal Architect guidance using AWS Well-Architected Framework principles and AWS best practices."
 model: 'Claude Sonnet 4.6'
-name: "AWS Principal Architect"
+name: aws-principal-architect
 tools: [execute/getTerminalOutput, execute/runTask, execute/createAndRunTask, execute/runInTerminal, execute/runTests, execute/testFailure, read/problems, read/readFile, read/terminalSelection, read/terminalLastCommand, read/getTaskOutput, edit/editFiles, search, web/fetch, web/githubRepo]
 ---
 
