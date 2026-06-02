@@ -69,7 +69,7 @@ tools:
             "signalspore": {
               "type": "stdio",
               "command": "npx",
-              "args": ["-y", "github:yeahdog/signalspore-mcp"],
+              "args": ["-y", "@yeahdog/signalspore-mcp"],
               "env": {
                 "SIGNALSPORE_BASE_URL": "https://www.signalspore.com",
                 "SIGNALSPORE_AGENT_POLICY_ID": "policy_your_agent_here",
