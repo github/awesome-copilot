@@ -8,7 +8,7 @@ on:
 jobs:
   report-traffic:
     runs-on: ubuntu-latest
-    if: github.repository == 'github/awesome-copilot'
+    if: github.repository == vars.UPSTREAM_REPOSITORY
 
     permissions:
       actions: none
@@ -60,19 +60,19 @@ jobs:
           API_KEY: ${{ secrets.REPORTING_API_KEY }}
         run: |
           echo "📤 Sending traffic data to reporting endpoint..."
-          
+
           # Validate that REPORTING_URL is set
           if [ -z "${REPORTING_URL}" ]; then
             echo "❌ Error: REPORTING_URL environment variable is not set. Please configure vars.REPORTING_POST_URL."
             exit 1
           fi
-          
+
           # Validate that REPORTING_URL uses HTTPS
           if [[ ! "${REPORTING_URL}" =~ ^https:// ]]; then
             echo "❌ Error: REPORTING_URL must start with https:// to ensure secure transmission of sensitive traffic data."
             exit 1
           fi
-          
+
           # Send POST request with API key header, reading file directly
           HTTP_STATUS=$(curl -f --max-time 30 --retry 3 -s -o /dev/null -w "%{http_code}" \
             -X POST \
@@ -80,9 +80,9 @@ jobs:
             -H "X-API-KEY: ${API_KEY}" \
             --data-binary "@${RUNNER_TEMP}/traffic_data.json" \
             "${REPORTING_URL}")
-          
+
           echo "HTTP Status Code: ${HTTP_STATUS}"
-          
+
           if [ "${HTTP_STATUS}" -ge 200 ] && [ "${HTTP_STATUS}" -lt 300 ]; then
             echo "✅ Traffic data sent successfully!"
           else
