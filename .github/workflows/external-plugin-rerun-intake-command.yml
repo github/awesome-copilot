@@ -63,9 +63,14 @@ jobs:
             });
 
             const labelNames = new Set((currentIssue.labels || []).map((label) => label.name));
+            const issueTitle = String(currentIssue.title || '').trim();
+            const hasExternalPluginTitle =
+              issueTitle.startsWith('[External Plugin]:') ||
+              issueTitle.startsWith('[External Plugin Submission]');
             const isExternalPluginIssue =
               labelNames.has('external-plugin') ||
-              String(currentIssue.body || '').includes(intake.ISSUE_FORM_MARKER);
+              String(currentIssue.body || '').includes(intake.ISSUE_FORM_MARKER) ||
+              hasExternalPluginTitle;
             if (!isExternalPluginIssue) {
               core.info('Ignoring /rerun-intake because the issue is not an external plugin submission.');
               return;

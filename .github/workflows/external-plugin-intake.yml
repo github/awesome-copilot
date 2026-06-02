@@ -2,7 +2,7 @@ name: External Plugin Intake
 
 on:
   issues:
-    types: [opened, edited, reopened]
+    types: [opened, edited, reopened, labeled]
 
 concurrency:
   group: external-plugin-intake-${{ github.event.issue.number }}
@@ -17,7 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       contains(github.event.issue.labels.*.name, 'external-plugin') ||
-      contains(github.event.issue.body, '<!-- external-plugin-submission -->')
+      contains(github.event.issue.body, '<!-- external-plugin-submission -->') ||
+      startsWith(github.event.issue.title, '[External Plugin]:') ||
+      startsWith(github.event.issue.title, '[External Plugin Submission]')
     outputs:
       evaluation: ${{ steps.evaluation.outputs.result }}
       should-sync: ${{ steps.guard.outputs.should-sync }}
