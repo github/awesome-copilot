@@ -376,8 +376,22 @@ jobs:
             console.log(`Closed ${closedCount} report discussion(s) older than ${RETENTION_DAYS} days.`);
 
       # ── Create Discussion (preferred) or Issue (fallback) ────────
+      - name: Detect report publishing capabilities
+        id: repo-capabilities
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const { data: repo } = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            core.setOutput('has_discussions', repo.has_discussions ? 'true' : 'false');
+            core.setOutput('has_issues', repo.has_issues ? 'true' : 'false');
+
       - name: Create Discussion
         id: create-discussion
+        if: steps.repo-capabilities.outputs.has_discussions == 'true'
         continue-on-error: true
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
@@ -451,7 +465,7 @@ jobs:
             }
 
       - name: Fallback — Create Issue
-        if: steps.create-discussion.outcome == 'failure'
+        if: steps.repo-capabilities.outputs.has_issues == 'true' && (steps.repo-capabilities.outputs.has_discussions != 'true' || steps.create-discussion.outcome == 'failure')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -471,3 +485,8 @@ jobs:
               echo "Posted detail comment $((i+1))/${COMMENT_COUNT}"
             fi
           done
+
+      - name: Skip report publication when discussions and issues are disabled
+        if: steps.repo-capabilities.outputs.has_discussions != 'true' && steps.repo-capabilities.outputs.has_issues != 'true'
+        run: |
+          echo "Discussions and issues are disabled for this repository; skipping report publication."
