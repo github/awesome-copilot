@@ -70,6 +70,7 @@ run-name: "Duplicate Resource Detector"
 jobs:
   activation:
     runs-on: ubuntu-slim
+    if: github.repository == 'github/awesome-copilot'
     permissions:
       actions: read
       contents: read

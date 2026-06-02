@@ -70,6 +70,7 @@ run-name: "Resource Staleness Report"
 jobs:
   activation:
     runs-on: ubuntu-slim
+    if: github.repository == 'github/awesome-copilot'
     permissions:
       actions: read
       contents: read
