@@ -11,6 +11,7 @@ interface Manifest {
     hooks: number;
     workflows: number;
     plugins: number;
+    extensions: number;
     tools: number;
   };
 }
@@ -27,6 +28,7 @@ export async function initHomepage(): Promise<void> {
       "hooks",
       "workflows",
       "plugins",
+      "extensions",
       "tools",
     ] as const;
     countKeys.forEach((key) => {
