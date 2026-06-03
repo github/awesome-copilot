@@ -322,6 +322,7 @@ jobs:
   agent:
     needs: activation
     runs-on: ubuntu-latest
+    if: github.repository == vars.UPSTREAM_REPOSITORY
     permissions:
       contents: read
     concurrency:
