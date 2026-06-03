@@ -58,8 +58,8 @@ Ask using these options:
 - `use<ComponentName>.tsx`
 - `presentation.tsx`
 - `types.ts`
-- `presentation.stories.tsx` (when needed)
-- `presentation.module.scss` (when needed)
+- `presentation.stories.tsx`
+- `presentation.module.scss`
 
 ## Storybook Minimum
 
