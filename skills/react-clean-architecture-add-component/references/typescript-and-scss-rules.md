@@ -15,14 +15,15 @@ This reference defines coding rules required by the `add-component` skill.
 
 - Use color variables from `src/styles/theme.scss`.
 - Use animation variables from `src/styles/animation.scss`.
-- Do not hardcode z-index values; use variables from `src/styles/z-index.scss`.
+- Define z-index tokens in `src/styles/z-index.scss` and consume those tokens in component styles.
+- In component SCSS, do not hardcode z-index values (for example, avoid `z-index: 10;` and use a z-index token instead).
 
 ### Style Constraints
 
-- Prefer Mantine first; use SCSS for gaps only.
+- Prefer Mantine first; use SCSS only when complementing Mantine styles is necessary.
 - Do not use negative margins.
 - Prefer unitless `line-height`.
 - Prefer `letter-spacing` in `em`.
 - When margin is needed, only `margin-top` and `margin-left` are allowed.
 - Do not set `margin` or `position` on root elements.
-- Keep z-index values in 50-step scale (100, 150, ...).
+- The numeric values inside `src/styles/z-index.scss` must follow a 50-step scale (100, 150, ...).
