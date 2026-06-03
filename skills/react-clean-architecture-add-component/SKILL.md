@@ -67,7 +67,7 @@ Question requirements:
 
 6. Validate
 
-- Run `npm run build && npm run lint` for added/updated files and confirm whether errors exist.
+- Run build and lint commands, and ensure both pass; if issues are introduced by newly added or updated files, fix them.
 - Follow `Storybook Minimum` in `references/component-architecture.md` for story state decisions.
 - Ask the user via `vscode_askQuestions` whether to run a Storybook check (for example: "Run" / "Skip for now").
 - Run `npm run storybook` only if the user selects "Run".
