@@ -156,10 +156,66 @@ function downloadSkillValidator(workDir) {
   return binaryPath;
 }
 
+function buildSkillValidatorArgs(pluginRoot) {
+  // External plugins (and the Copilot CLI) use the .github/plugin/plugin.json convention,
+  // but skill-validator --plugin expects plugin.json at the plugin root. Read the manifest
+  // ourselves and pass --skills / --agents so the validator sees the right paths.
+  const pluginJsonPath = path.join(pluginRoot, ".github", "plugin", "plugin.json");
+  if (!fs.existsSync(pluginJsonPath)) {
+    // Fallback: let the validator try --plugin directly (handles non-standard layouts).
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  let pluginJson;
+  try {
+    pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+  } catch {
+    // Malformed plugin.json — let the validator surface the error via --plugin.
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  const args = ["check", "--verbose"];
+
+  // Use [].concat() to handle both array and scalar string values in plugin.json.
+  const skillPaths = [].concat(pluginJson.skills ?? [])
+    .map((s) => path.resolve(pluginRoot, s))
+    .filter((p) => fs.existsSync(p));
+
+  // Agent entries may be directory paths or explicit file paths; normalise to directories
+  // so AgentDiscovery.DiscoverAgentsInDirectory can discover agents within them.
+  // Deduplicate in case multiple file entries share the same parent directory.
+  const agentPaths = [...new Set(
+    [].concat(pluginJson.agents ?? [])
+      .map((a) => {
+        const resolved = path.resolve(pluginRoot, a);
+        if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+          return path.dirname(resolved);
+        }
+        return resolved;
+      })
+      .filter((p) => fs.existsSync(p))
+  )];
+
+  if (skillPaths.length > 0) {
+    args.push("--skills", ...skillPaths);
+  }
+  if (agentPaths.length > 0) {
+    args.push("--agents", ...agentPaths);
+  }
+
+  if (skillPaths.length === 0 && agentPaths.length === 0) {
+    // Nothing to validate via --skills/--agents; fall back to --plugin.
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  return args;
+}
+
 function runSkillValidatorGate(workDir, pluginRoot) {
   try {
     const validatorBinary = downloadSkillValidator(workDir);
-    const check = runCommand(validatorBinary, ["check", "--verbose", "--plugin", pluginRoot]);
+    const args = buildSkillValidatorArgs(pluginRoot);
+    const check = runCommand(validatorBinary, args);
 
     if (check.exitCode === 0) {
       return { status: "pass", output: check.output };
