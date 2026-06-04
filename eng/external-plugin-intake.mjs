@@ -359,12 +359,10 @@ function normalizeQualityGateResult(rawResult) {
   };
 }
 
-function buildQualityGatesCommentSection(qualityResult, runId, owner, repo) {
+function buildQualityGatesCommentSection(qualityResult) {
   const skillState = qualityResult.skill_validator_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
-
-  const runLink = runId && owner && repo ? ` [View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})` : "";
 
   const sections = [
     "### Quality gate summary",
@@ -375,7 +373,6 @@ function buildQualityGatesCommentSection(qualityResult, runId, owner, repo) {
     `| install smoke test | ${smokeState} |`,
     "",
     summaryText,
-    runLink ? `\n_${runLink}_` : "",
   ];
 
   const skillOutput = String(qualityResult.skill_validator_output || "").trim();
@@ -433,7 +430,8 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
   }
 
   const marker = baseResult.commentMarker ?? EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
-  const qualitySection = buildQualityGatesCommentSection(qualityResult, runId, owner, repo);
+  const qualitySection = buildQualityGatesCommentSection(qualityResult);
+  const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
 
   const intro =
     qualityResult.failure_class === "submitter_fixes"
@@ -470,6 +468,7 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
     baseResult.warnings?.length
       ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
       : "",
+    runLink ? `\n${runLink}` : "",
   ].filter(Boolean).join("\n");
 }
 
@@ -532,7 +531,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
       ].join("\n")
     : "```json\n{}\n```";
 
-  const runLink = runId && owner && repo ? ` [View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})` : "";
+  const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
 
   const commentBody = valid
     ? [
@@ -554,10 +553,10 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
         "### Reviewer notes",
         "",
         notes,
-        runLink ? `\n_${runLink}_` : "",
         dedupedWarnings.length > 0
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
+        runLink ? `\n${runLink}` : "",
       ].filter(Boolean).join("\n")
     : [
         marker,
@@ -569,10 +568,10 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
         "### Required fixes",
         "",
         ...dedupedErrors.map((error) => `- ${error}`),
-        runLink ? `\n_${runLink}_` : "",
         dedupedWarnings.length > 0
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
+        runLink ? `\n${runLink}` : "",
       ].filter(Boolean).join("\n");
 
   return {

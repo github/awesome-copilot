@@ -138,8 +138,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issueNumber: context.issue.number,
-              evaluation: finalResult,
-              runId: context.runId
+              evaluation: finalResult
             });
 
             const issueState = process.env.ISSUE_STATE;

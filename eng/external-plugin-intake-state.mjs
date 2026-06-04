@@ -142,7 +142,6 @@ export async function applyExternalPluginIntakeEvaluation({
   repo,
   issueNumber,
   evaluation,
-  runId,
 }) {
   const state = evaluation.intakeState ?? (evaluation.valid ? "ready-for-review" : "rejected");
   const desiredLabelsByState = {
