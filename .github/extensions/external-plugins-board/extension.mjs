@@ -8,11 +8,51 @@ let workspacePath = null;
 
 // Example demo issues to show the board layout
 const DEMO_ISSUES = [
-    { number: 1908, title: "GitHub Copilot Modernization Plugin", labels: [{ name: 'ready-for-review' }], pr_url: null },
-    { number: 1901, title: "Add 42Crunch API Security Testing plugin", labels: [{ name: 'approved' }], pr_url: "https://github.com/github/awesome-copilot/pull/1234" },
-    { number: 1890, title: "UI5 Plugin for TypeScript conversion", labels: [{ name: 'requires-submitter-fixes' }], pr_url: null },
-    { number: 1889, title: "UI5 Plugin for coding best practices", labels: [{ name: 'ready-for-review' }], pr_url: null },
-    { number: 1881, title: "Trident", labels: [{ name: 'rejected' }], pr_url: null },
+    {
+        number: 1908,
+        title: "GitHub Copilot Modernization Plugin",
+        body: "This plugin modernizes the Copilot experience with new UI components and improved interactivity. It includes support for the latest SDK features and improves compatibility with recent GitHub features.",
+        labels: [{ name: 'ready-for-review' }],
+        pr_url: null,
+        created_at: "2024-01-15T10:30:00Z",
+        updated_at: "2024-03-20T15:45:00Z"
+    },
+    {
+        number: 1901,
+        title: "Add 42Crunch API Security Testing plugin",
+        body: "Integrates 42Crunch API Security Testing into GitHub Copilot, enabling developers to identify and fix API security vulnerabilities directly in their workflow. Includes comprehensive documentation and examples.",
+        labels: [{ name: 'approved' }],
+        pr_url: "https://github.com/github/awesome-copilot/pull/1234",
+        created_at: "2024-02-01T08:00:00Z",
+        updated_at: "2024-03-18T14:20:00Z"
+    },
+    {
+        number: 1890,
+        title: "UI5 Plugin for TypeScript conversion",
+        body: "A plugin to assist with converting SAP UI5 JavaScript code to TypeScript. Requires additional tests and documentation updates before it can be approved.",
+        labels: [{ name: 'requires-submitter-fixes' }],
+        pr_url: null,
+        created_at: "2024-01-20T12:15:00Z",
+        updated_at: "2024-03-22T09:30:00Z"
+    },
+    {
+        number: 1889,
+        title: "UI5 Plugin for coding best practices",
+        body: "Provides linting and best practice suggestions for SAP UI5 development. The implementation is complete and ready for community review.",
+        labels: [{ name: 'ready-for-review' }],
+        pr_url: null,
+        created_at: "2024-01-22T14:00:00Z",
+        updated_at: "2024-03-19T11:45:00Z"
+    },
+    {
+        number: 1881,
+        title: "Trident",
+        body: "This submission did not meet the plugin guidelines and was rejected. It requires significant rework to align with the repository standards.",
+        labels: [{ name: 'rejected' }],
+        pr_url: null,
+        created_at: "2023-12-10T16:30:00Z",
+        updated_at: "2024-02-05T10:00:00Z"
+    },
 ];
 
 // Using demo mode by default - can be extended to use live gh data when available
@@ -66,19 +106,152 @@ function renderHtml() {
         border: 1px solid var(--border-color-default, #d0d7de);
         border-radius: 6px;
         padding: 0.75rem;
-        cursor: move;
+        cursor: grab;
+        transition: all 0.2s;
       }
+      .issue-card:hover {
+        border-color: #0969da;
+        box-shadow: 0 0 8px rgba(9, 105, 218, 0.2);
+      }
+      .issue-card.dragging { opacity: 0.5; }
       .issue-number { font-weight: 600; color: var(--text-color-muted, #656d76); font-size: 12px; }
       .issue-title { margin: 0.25rem 0; font-size: 12px; }
       .issue-link { color: #0969da; text-decoration: none; margin-top: 0.5rem; font-size: 12px; }
       .issue-link:hover { text-decoration: underline; }
       .loading { text-align: center; padding: 2rem; color: var(--text-color-muted, #656d76); }
       .error { color: #cf222e; padding: 1rem; background: var(--background-color-secondary, #f6f8fa); border-radius: 6px; }
+      
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.open {
+        display: flex;
+      }
+      .modal-content {
+        background: var(--background-color-default, #ffffff);
+        border: 1px solid var(--border-color-default, #d0d7de);
+        border-radius: 8px;
+        padding: 1.5rem;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+      }
+      .modal-title {
+        font-size: var(--text-title-medium, 20px);
+        font-weight: var(--font-weight-semibold, 600);
+      }
+      .modal-number {
+        color: var(--text-color-muted, #656d76);
+        font-size: 12px;
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-color-default, #1f2328);
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+      }
+      .close-btn:hover {
+        background: var(--background-color-secondary, #f6f8fa);
+      }
+      .modal-body {
+        margin-bottom: 1.5rem;
+      }
+      .modal-description {
+        color: var(--text-color-default, #1f2328);
+        margin-bottom: 1rem;
+        line-height: var(--leading-body-medium, 20px);
+      }
+      .modal-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 12px;
+        color: var(--text-color-muted, #656d76);
+        margin-bottom: 1rem;
+      }
+      .modal-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .modal-labels {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+      }
+      .label-badge {
+        background: #f0f6ff;
+        color: #0969da;
+        padding: 0.25rem 0.5rem;
+        border-radius: 3px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .label-badge.requires { background: #fef2f1; color: #cf222e; }
+      .label-badge.ready { background: #f0f6ff; color: #0969da; }
+      .label-badge.approved { background: #f0f6ff; color: #1a7f34; }
+      .label-badge.rejected { background: #f6f8fa; color: var(--text-color-muted, #656d76); }
+      .modal-pr {
+        border-top: 1px solid var(--border-color-default, #d0d7de);
+        padding-top: 1rem;
+      }
+      .pr-link {
+        color: #0969da;
+        text-decoration: none;
+        font-weight: 500;
+      }
+      .pr-link:hover {
+        text-decoration: underline;
+      }
     </style>
   </head>
   <body>
     <h1>External Plugins Board</h1>
     <div id="content"><div class="loading">Loading issues...</div></div>
+    
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <div class="modal-number" id="modalNumber"></div>
+            <div class="modal-title" id="modalTitle"></div>
+          </div>
+          <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-description" id="modalDescription"></div>
+          <div class="modal-meta" id="modalMeta"></div>
+          <div class="modal-labels" id="modalLabels"></div>
+          <div class="modal-pr" id="modalPR" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+    
     <script>
       const STATES = [
         { key: 'requires-submitter-fixes', label: 'Requires Submitter Fixes' },
@@ -87,12 +260,67 @@ function renderHtml() {
         { key: 'rejected', label: 'Rejected' }
       ];
       let draggedIssue = null;
+      let allIssues = [];
+
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      }
+
+      function getLabelClass(labelName) {
+        if (labelName.includes('requires')) return 'requires';
+        if (labelName.includes('ready')) return 'ready';
+        if (labelName.includes('approved')) return 'approved';
+        if (labelName.includes('rejected')) return 'rejected';
+        return '';
+      }
+
+      function showIssueModal(issueNumber) {
+        const issue = allIssues.find(i => i.number === issueNumber);
+        if (!issue) return;
+
+        document.getElementById('modalNumber').textContent = '#' + issue.number;
+        document.getElementById('modalTitle').textContent = issue.title;
+        document.getElementById('modalDescription').textContent = issue.body;
+        
+        const metaHtml = \`
+          <div class="modal-meta-item">
+            <span style="color: var(--text-color-muted);">Created</span>
+            <span>\${formatDate(issue.created_at)}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span style="color: var(--text-color-muted);">Updated</span>
+            <span>\${formatDate(issue.updated_at)}</span>
+          </div>
+        \`;
+        document.getElementById('modalMeta').innerHTML = metaHtml;
+
+        const labelsHtml = (issue.labels || []).map(l => 
+          \`<span class="label-badge \${getLabelClass(l.name)}">\${l.name.replace(/-/g, ' ')}</span>\`
+        ).join('');
+        document.getElementById('modalLabels').innerHTML = labelsHtml;
+
+        const prDiv = document.getElementById('modalPR');
+        if (issue.pr_url) {
+          prDiv.innerHTML = \`<a href="\${issue.pr_url}" target="_blank" class="pr-link">View generated PR →</a>\`;
+          prDiv.style.display = 'block';
+        } else {
+          prDiv.style.display = 'none';
+        }
+
+        document.getElementById('modal').classList.add('open');
+      }
+
+      function closeModal() {
+        document.getElementById('modal').classList.remove('open');
+      }
 
       async function loadIssues() {
         try {
           const response = await fetch('/api/issues');
           const data = await response.json();
           if (!response.ok) throw new Error(data.error || 'Failed to load');
+          allIssues = data;
           render(data);
         } catch (err) {
           document.getElementById('content').innerHTML = '<div class="error">Error: ' + err.message + '</div>';
@@ -145,12 +373,18 @@ function renderHtml() {
               card.appendChild(link);
             }
             
+            card.addEventListener('click', (e) => {
+              if (e.target.tagName !== 'A') {
+                showIssueModal(issue.number);
+              }
+            });
+            
             card.addEventListener('dragstart', () => {
               draggedIssue = issue.number;
-              card.style.opacity = '0.5';
+              card.classList.add('dragging');
             });
             card.addEventListener('dragend', () => {
-              card.style.opacity = '1';
+              card.classList.remove('dragging');
             });
             
             issuesContainer.appendChild(card);
@@ -185,6 +419,11 @@ function renderHtml() {
           }
           draggedIssue = null;
         }
+      });
+
+      // Close modal when clicking outside
+      document.getElementById('modal').addEventListener('click', (e) => {
+        if (e.target.id === 'modal') closeModal();
       });
 
       loadIssues();
