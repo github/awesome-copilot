@@ -9,9 +9,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import {
   AGENTS_DIR,
   COOKBOOK_DIR,
+  EXTENSIONS_DIR,
   HOOKS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
@@ -62,6 +64,68 @@ function extractTitle(filePath, frontmatter) {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+/**
+ * Convert kebab/snake names into readable titles.
+ */
+function formatDisplayName(value) {
+  const acronymMap = new Map([
+    ["ai", "AI"],
+    ["api", "API"],
+    ["cli", "CLI"],
+    ["css", "CSS"],
+    ["html", "HTML"],
+    ["json", "JSON"],
+    ["llm", "LLM"],
+    ["mcp", "MCP"],
+    ["ui", "UI"],
+    ["ux", "UX"],
+    ["vscode", "VS Code"],
+  ]);
+
+  return value
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => {
+      const lower = part.toLowerCase();
+      if (acronymMap.has(lower)) {
+        return acronymMap.get(lower);
+      }
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+/**
+ * Find the latest git-modified date for any file under a directory.
+ */
+function getDirectoryLastUpdated(gitDates, relativeDirPath) {
+  const prefix = `${relativeDirPath}/`;
+  let latestDate = null;
+  let latestTime = 0;
+
+  for (const [filePath, date] of gitDates.entries()) {
+    if (!filePath.startsWith(prefix)) continue;
+    const timestamp = Date.parse(date);
+    if (!Number.isNaN(timestamp) && timestamp > latestTime) {
+      latestTime = timestamp;
+      latestDate = date;
+    }
+  }
+
+  return latestDate;
+}
+
+/**
+ * Get the current commit SHA for the checked-out repository.
+ */
+function getCurrentCommitSha() {
+  return execSync("git --no-pager rev-parse HEAD", {
+    cwd: ROOT_FOLDER,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
 }
 
 /**
@@ -604,6 +668,38 @@ function generatePluginsData(gitDates) {
 }
 
 /**
+ * Generate canvas extensions metadata
+ */
+function generateExtensionsData(gitDates, commitSha) {
+  const extensions = [];
+
+  if (!fs.existsSync(EXTENSIONS_DIR)) {
+    return { items: [] };
+  }
+
+  const extensionDirs = fs
+    .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory());
+
+  for (const dir of extensionDirs) {
+    const relPath = `extensions/${dir.name}`;
+    extensions.push({
+      id: dir.name,
+      name: formatDisplayName(dir.name),
+      path: relPath,
+      ref: commitSha,
+      lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+    });
+  }
+
+  const sortedExtensions = extensions.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  return { items: sortedExtensions };
+}
+
+/**
  * Generate tools metadata from website/data/tools.yml
  */
 function generateToolsData() {
@@ -893,12 +989,22 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "instructions/", "hooks/", "workflows/", "skills/", "plugins/"],
+    [
+      "agents/",
+      "instructions/",
+      "hooks/",
+      "workflows/",
+      "skills/",
+      "extensions/",
+      "plugins/",
+    ],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
 
   // Generate all data
+  const commitSha = getCurrentCommitSha();
+
   const agentsData = generateAgentsData(gitDates);
   const agents = agentsData.items;
   console.log(
@@ -932,6 +1038,10 @@ async function main() {
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
+
+  const extensionsData = generateExtensionsData(gitDates, commitSha);
+  const extensions = extensionsData.items;
+  console.log(`✓ Generated ${extensions.length} extensions`);
 
   const toolsData = generateToolsData();
   const tools = toolsData.items;
@@ -992,6 +1102,11 @@ async function main() {
   );
 
   fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "extensions.json"),
+    JSON.stringify(extensionsData, null, 2)
+  );
+
+  fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "tools.json"),
     JSON.stringify(toolsData, null, 2)
   );
@@ -1016,6 +1131,7 @@ async function main() {
       hooks: hooks.length,
       workflows: workflows.length,
       plugins: plugins.length,
+      extensions: extensions.length,
       tools: tools.length,
       contributors: contributorCount,
       samples: samplesData.totalRecipes,

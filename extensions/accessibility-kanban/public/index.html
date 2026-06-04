@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Accessibility Kanban</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #ffffff;
+  --outer: #f1f5f9;
+  --text: #111827;
+  --muted: #6b7280;
+  --meta: #94a3b8;
+  --border: #e5e7eb;
+  --coral: #ff7f50;
+  --azure: #0ea5e9;
+  --sage: #84cc16;
+  --violet: #a78bfa;
+  --radius: 6px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--outer);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.board-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+header .breadcrumb {
+  font-size: 12px;
+  color: var(--meta);
+  font-weight: 400;
+}
+
+header .breadcrumb .sep {
+  margin: 0 5px;
+  color: var(--border);
+}
+
+header .breadcrumb .current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+header .spacer { flex: 1; }
+
+header .reset-btn {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--meta);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+header .reset-btn:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
+.board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  overflow: hidden;
+}
+
+.column {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  border-top: 2px solid var(--border);
+}
+
+.column:last-child { border-right: none; }
+
+.col-backlog { border-top-color: var(--meta); }
+.col-plan { border-top-color: var(--azure); }
+.col-ready { border-top-color: var(--sage); }
+.col-implement { border-top-color: var(--coral); }
+.col-done { border-top-color: var(--violet); }
+
+.column-header {
+  padding: 10px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.column-header h2 {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+}
+
+.column-header .count {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--meta);
+  margin-left: auto;
+}
+
+.card-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  cursor: grab;
+  transition: border-color 0.12s ease;
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--meta);
+}
+
+.card.dragging {
+  opacity: 0.35;
+}
+
+.card .issue-title {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card .issue-title .num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--meta);
+  margin-right: 4px;
+}
+
+/* Agent status line */
+.card .agent-status {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--azure);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card .agent-status .pulse {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--azure);
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Glowing border for active agent work */
+.card.agent-active {
+  border-color: rgba(14, 165, 233, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(14, 165, 233, 0.15),
+    0 0 12px rgba(14, 165, 233, 0.1);
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(14, 165, 233, 0.15),
+      0 0 12px rgba(14, 165, 233, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(14, 165, 233, 0.3),
+      0 0 18px rgba(14, 165, 233, 0.15);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Log button */
+.card .log-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 16px; height: 16px;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  color: var(--meta);
+  font-size: 10px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+
+.card .log-btn:hover {
+  background: rgba(14,165,233,0.08);
+  color: var(--azure);
+}
+
+.card.agent-active .log-btn { display: flex; }
+.card.has-logs:hover .log-btn { display: flex; }
+
+/* Drop target highlight */
+.column.drop-target {
+  background: rgba(14,165,233,0.02);
+}
+
+/* Ghost (drag preview) */
+.ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.85;
+  transform: rotate(1.5deg) scale(1.01);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+/* Log Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--bg);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 480px;
+  max-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  border: 1px solid var(--border);
+}
+
+.modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.modal-header button {
+  border: none;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.modal-header button:hover { background: var(--border); }
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+
+.log-entry {
+  display: flex;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.log-entry:last-child { border-bottom: none; }
+
+.log-entry .ts {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--meta);
+  white-space: nowrap;
+  padding-top: 2px;
+  min-width: 48px;
+}
+
+.log-entry .msg {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.empty-log {
+  font-size: 11px;
+  color: var(--meta);
+  text-align: center;
+  padding: 20px;
+}
+</style>
+</head>
+<body>
+<div class="board-wrap">
+<header>
+  <div class="breadcrumb">
+    SignalBox<span class="sep">/</span><span class="current">Accessibility Sprint</span>
+  </div>
+  <span class="spacer"></span>
+  <button class="reset-btn" id="reset-btn">Reset</button>
+</header>
+<div class="board" id="board"></div>
+</div>
+
+<!-- Log Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Agent Log</h3>
+      <button id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const COLUMNS = ["backlog", "plan", "ready", "implement", "done"];
+const COL_LABELS = { backlog: "Backlog", plan: "Plan", ready: "Ready", implement: "Implement", done: "Done" };
+
+let state = { issues: [] };
+let dragState = null;
+
+// ─── Rendering ───
+
+function render() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  COLUMNS.forEach((col) => {
+    const issues = state.issues
+      .filter((i) => i.column === col)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const colEl = document.createElement("div");
+    colEl.className = `column col-${col}`;
+    colEl.dataset.column = col;
+
+    colEl.innerHTML = `
+      <div class="column-header">
+        <h2>${COL_LABELS[col]}</h2>
+        <span class="count">${issues.length}</span>
+      </div>
+      <div class="card-list" data-column="${col}"></div>
+    `;
+
+    const list = colEl.querySelector(".card-list");
+    issues.forEach((issue) => {
+      const card = document.createElement("div");
+      const hasLogs = issue.logs && issue.logs.length > 0;
+      let cls = "card";
+      if (issue.agentActive) cls += " agent-active";
+      if (hasLogs) cls += " has-logs";
+      card.className = cls;
+      card.dataset.issueNumber = issue.number;
+
+      let statusHtml = "";
+      if (issue.agentStatus) {
+        statusHtml = `<div class="agent-status">${issue.agentActive ? '<span class="pulse"></span>' : ''}${escHtml(issue.agentStatus)}</div>`;
+      }
+
+      card.innerHTML = `
+        <button class="log-btn" title="View agent log">&#x25A3;</button>
+        <div class="issue-title"><span class="num">#${issue.number}</span>${escHtml(issue.title)}</div>
+        ${statusHtml}
+      `;
+
+      // Log button click
+      const logBtn = card.querySelector(".log-btn");
+      if (logBtn) {
+        logBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openLogModal(issue);
+        });
+      }
+
+      // Pointer drag
+      card.addEventListener("pointerdown", (e) => startDrag(e, card, issue));
+      list.appendChild(card);
+    });
+
+    board.appendChild(colEl);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ─── Log Modal ───
+
+function openLogModal(issue) {
+  const overlay = document.getElementById("modal-overlay");
+  const title = document.getElementById("modal-title");
+  const body = document.getElementById("modal-body");
+
+  title.textContent = `#${issue.number} — Agent Log`;
+
+  if (!issue.logs || issue.logs.length === 0) {
+    body.innerHTML = '<div class="empty-log">No agent activity logged yet.</div>';
+  } else {
+    body.innerHTML = issue.logs.map((l) => `
+      <div class="log-entry">
+        <span class="ts">${formatTime(l.timestamp)}</span>
+        <span class="msg">${escHtml(l.message)}</span>
+      </div>
+    `).join("");
+    body.scrollTop = body.scrollHeight;
+  }
+
+  overlay.classList.add("open");
+}
+
+function formatTime(ts) {
+  try {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch { return ""; }
+}
+
+document.getElementById("modal-close").addEventListener("click", () => {
+  document.getElementById("modal-overlay").classList.remove("open");
+});
+
+document.getElementById("modal-overlay").addEventListener("click", (e) => {
+  if (e.target === e.currentTarget) {
+    e.currentTarget.classList.remove("open");
+  }
+});
+
+// ─── Pointer Drag & Drop ───
+
+function startDrag(e, cardEl, issue) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  cardEl.setPointerCapture(e.pointerId);
+
+  const rect = cardEl.getBoundingClientRect();
+  const ghost = cardEl.cloneNode(true);
+  ghost.className = "card ghost";
+  ghost.style.width = rect.width + "px";
+  ghost.style.left = rect.left + "px";
+  ghost.style.top = rect.top + "px";
+  document.body.appendChild(ghost);
+  cardEl.classList.add("dragging");
+
+  dragState = {
+    issue,
+    ghost,
+    cardEl,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    pointerId: e.pointerId,
+  };
+
+  cardEl.addEventListener("pointermove", onDragMove);
+  cardEl.addEventListener("pointerup", onDragEnd);
+}
+
+function onDragMove(e) {
+  if (!dragState) return;
+  dragState.ghost.style.left = (e.clientX - dragState.offsetX) + "px";
+  dragState.ghost.style.top = (e.clientY - dragState.offsetY) + "px";
+
+  // Highlight drop target
+  document.querySelectorAll(".column").forEach((col) => {
+    const r = col.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right) {
+      col.classList.add("drop-target");
+    } else {
+      col.classList.remove("drop-target");
+    }
+  });
+}
+
+function onDragEnd(e) {
+  if (!dragState) return;
+  const { issue, ghost, cardEl } = dragState;
+
+  cardEl.classList.remove("dragging");
+  cardEl.releasePointerCapture(dragState.pointerId);
+  cardEl.removeEventListener("pointermove", onDragMove);
+  cardEl.removeEventListener("pointerup", onDragEnd);
+  ghost.remove();
+
+  document.querySelectorAll(".column.drop-target").forEach((col) => {
+    col.classList.remove("drop-target");
+  });
+
+  // Find target column
+  const targetCol = document.elementFromPoint(e.clientX, e.clientY)?.closest(".column");
+  if (targetCol && targetCol.dataset.column !== issue.column) {
+    moveIssue(issue.number, targetCol.dataset.column);
+  }
+
+  dragState = null;
+}
+
+// ─── API ───
+
+async function moveIssue(issueNumber, column) {
+  try {
+    const resp = await fetch("/api/move", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ issue_number: issueNumber, column }),
+    });
+    const data = await resp.json();
+    state = data.state;
+    render();
+  } catch (err) {
+    console.error("Move failed:", err);
+  }
+}
+
+// ─── SSE ───
+
+function connectSSE() {
+  const es = new EventSource("/events");
+  es.addEventListener("state", (e) => {
+    try {
+      state = JSON.parse(e.data);
+      render();
+    } catch {}
+  });
+  es.addEventListener("connected", () => {});
+  es.onerror = () => {
+    es.close();
+    setTimeout(connectSSE, 2000);
+  };
+}
+
+// ─── Init ───
+
+async function init() {
+  try {
+    const resp = await fetch("/api/state");
+    state = await resp.json();
+  } catch {}
+  render();
+  connectSSE();
+
+  document.getElementById("reset-btn").addEventListener("click", async () => {
+    if (!confirm("Reset all issues to backlog?")) return;
+    try {
+      const resp = await fetch("/api/reset", { method: "POST" });
+      state = await resp.json();
+      render();
+    } catch (err) {
+      console.error("Reset failed:", err);
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>
