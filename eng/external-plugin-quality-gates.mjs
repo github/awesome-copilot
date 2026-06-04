@@ -156,13 +156,32 @@ function downloadSkillValidator(workDir) {
   return binaryPath;
 }
 
+// Ordered list of candidate locations for plugin.json, from most to least specific.
+// The skill-validator --plugin mode expects plugin.json at the plugin root, but
+// both the Copilot CLI and many external repos use nested conventions. We read the
+// manifest ourselves so skill/agent paths can be resolved from the plugin root
+// consistently, regardless of where the manifest lives.
+const PLUGIN_JSON_CANDIDATES = [
+  [".github", "plugin", "plugin.json"],
+  [".plugins", "plugin.json"],
+  ["plugin.json"],
+];
+
+function findPluginJson(pluginRoot) {
+  for (const segments of PLUGIN_JSON_CANDIDATES) {
+    const candidate = path.join(pluginRoot, ...segments);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function buildSkillValidatorArgs(pluginRoot) {
-  // External plugins (and the Copilot CLI) use the .github/plugin/plugin.json convention,
-  // but skill-validator --plugin expects plugin.json at the plugin root. Read the manifest
-  // ourselves and pass --skills / --agents so the validator sees the right paths.
-  const pluginJsonPath = path.join(pluginRoot, ".github", "plugin", "plugin.json");
-  if (!fs.existsSync(pluginJsonPath)) {
-    // Fallback: let the validator try --plugin directly (handles non-standard layouts).
+  const pluginJsonPath = findPluginJson(pluginRoot);
+  if (!pluginJsonPath) {
+    // No recognised plugin.json location found — let the validator fail with its
+    // own diagnostic (covers exotic layouts and surfaces the real error to submitters).
     return ["check", "--verbose", "--plugin", pluginRoot];
   }
 
@@ -170,13 +189,14 @@ function buildSkillValidatorArgs(pluginRoot) {
   try {
     pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
   } catch {
-    // Malformed plugin.json — let the validator surface the error via --plugin.
+    // Malformed plugin.json — let the validator surface the parse error.
     return ["check", "--verbose", "--plugin", pluginRoot];
   }
 
   const args = ["check", "--verbose"];
 
-  // Use [].concat() to handle both array and scalar string values in plugin.json.
+  // Paths in plugin.json are relative to the plugin root regardless of where
+  // plugin.json itself lives. Use [].concat() to accept both string and array values.
   const skillPaths = [].concat(pluginJson.skills ?? [])
     .map((s) => path.resolve(pluginRoot, s))
     .filter((p) => fs.existsSync(p));
@@ -204,7 +224,8 @@ function buildSkillValidatorArgs(pluginRoot) {
   }
 
   if (skillPaths.length === 0 && agentPaths.length === 0) {
-    // Nothing to validate via --skills/--agents; fall back to --plugin.
+    // plugin.json found but no resolvable skills/agents — fall back to --plugin so the
+    // validator can surface the specific validation error to the submitter.
     return ["check", "--verbose", "--plugin", pluginRoot];
   }
 
