@@ -20,7 +20,7 @@ This reference defines coding rules required by the `add-component` skill.
 
 ### Style Constraints
 
-- Prefer Mantine first; use SCSS only when complementing Mantine styles is necessary.
+- Prefer Mantine or other UI libraries first; use SCSS only when complementing library styles is necessary.
 - Do not use negative margins.
 - Prefer unitless `line-height`.
 - Prefer `letter-spacing` in `em`.

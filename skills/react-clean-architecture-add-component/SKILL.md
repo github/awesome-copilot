@@ -34,7 +34,7 @@ Question requirements:
 
 - Provide the type as options (`ui`, `features`)
 - Require the component name to be in PascalCase
-- For `ui`, ask whether direct Mantine usage in existing `features` should be replaced with the new component
+- For `ui`, ask whether direct usage of Mantine or other UI libraries in existing `features` should be replaced with the new component
 
 ## Procedure
 
@@ -63,7 +63,7 @@ Question requirements:
 
 5. Replace existing usages (only when creating `ui`)
 
-- Only when the user approves, replace equivalent direct Mantine implementations in existing `features` with the new `ui` component.
+- Only when the user approves, replace equivalent direct implementations using Mantine or other UI libraries in existing `features` with the new `ui` component.
 
 6. Validate
 

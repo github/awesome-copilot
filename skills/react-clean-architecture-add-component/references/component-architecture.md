@@ -30,7 +30,7 @@ Ask using these options:
 - Keep components stateless.
 - Accept data and callbacks via props.
 - Do not add side effects or data fetching.
-- Prefer Mantine primitives first; use custom JSX/SCSS only when needed.
+- Prefer primitives from Mantine or other UI libraries first; use custom JSX/SCSS only when needed.
 
 ### features
 
