@@ -1,121 +1,60 @@
 import { createServer } from "node:http";
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawnSync, execSync } from "node:child_process";
 import { dirname } from "node:path";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
 
 const servers = new Map();
 let workspacePath = null;
+let lastError = null;
 
-// Fallback demo issues for when gh CLI isn't accessible from the extension subprocess
-const DEMO_ISSUES = [
-    {
-        number: 1908,
-        title: "[External Plugin]: GitHub Copilot Modernization – Multi-Agent Application Modernization Plugin",
-        body: "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices).",
-        labels: [{ name: 'ready-for-review' }],
-        pr_url: null,
-        created_at: "2024-01-15T10:30:00Z",
-        updated_at: "2024-03-20T15:45:00Z"
-    },
-    {
-        number: 1901,
-        title: "[External Plugin]: Add 42Crunch API Security Testing plugin",
-        body: "Integrates 42Crunch API Security Testing into GitHub Copilot, enabling developers to identify and fix API security vulnerabilities directly in their workflow. Includes comprehensive documentation and examples.\n[Generated PR](https://github.com/github/awesome-copilot/pull/1234)",
-        labels: [{ name: 'approved' }],
-        pr_url: "https://github.com/github/awesome-copilot/pull/1234",
-        created_at: "2024-02-01T08:00:00Z",
-        updated_at: "2024-03-18T14:20:00Z"
-    },
-    {
-        number: 1890,
-        title: "[External Plugin]: UI5 Plugin for TypeScript conversion",
-        body: "A plugin to assist with converting SAP UI5 JavaScript code to TypeScript. Requires additional tests and documentation updates before it can be approved.",
-        labels: [{ name: 'requires-submitter-fixes' }],
-        pr_url: null,
-        created_at: "2024-01-20T12:15:00Z",
-        updated_at: "2024-03-22T09:30:00Z"
-    },
-    {
-        number: 1889,
-        title: "[External Plugin]: UI5 Plugin for coding best practices",
-        body: "Provides linting and best practice suggestions for SAP UI5 development. The implementation is complete and ready for community review.",
-        labels: [{ name: 'ready-for-review' }],
-        pr_url: null,
-        created_at: "2024-01-22T14:00:00Z",
-        updated_at: "2024-03-19T11:45:00Z"
-    },
-    {
-        number: 1881,
-        title: "[External Plugin]: Trident",
-        body: "This submission did not meet the plugin guidelines and was rejected. It requires significant rework to align with the repository standards.",
-        labels: [{ name: 'rejected' }],
-        pr_url: null,
-        created_at: "2023-12-10T16:30:00Z",
-        updated_at: "2024-02-05T10:00:00Z"
-    },
-];
-
-// Try to fetch live issues from gh CLI
+// Fetch live issues from GitHub REST API instead of gh CLI subprocess
 async function fetchLiveIssues(cwd) {
     try {
-        // Try to find gh in common locations (using forward slashes for better compatibility)
-        const ghPaths = [
-            "C:/Users/aapowell/AppData/Local/copilot-desktop-gh-2.93.0/gh.exe",
-            "C:/Program Files/GitHub CLI/gh.exe",
-            "C:/Program Files (x86)/GitHub CLI/gh.exe"
-        ];
+        // Use GitHub REST API to fetch issues
+        // This avoids the subprocess execution restriction
+        const owner = "github";
+        const repo = "awesome-copilot";
+        const label = "external-plugin";
         
-        let result = null;
+        // Get authentication token from environment or use public access
+        const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
         
-        for (const ghPath of ghPaths) {
-            try {
-                result = spawnSync(ghPath, [
-                    "issue", "list",
-                    "--label", "external-plugin",
-                    "--json", "number,title,labels,body,createdAt,updatedAt",
-                    "--limit", "100"
-                ], {
-                    cwd,
-                    encoding: "utf-8",
-                    stdio: ["pipe", "pipe", "pipe"],
-                    timeout: 15000
-                });
-                
-                if (result && !result.error && result.status === 0) {
-                    break;
-                }
-            } catch (e) {
-                // Try next path
-            }
+        const headers = {
+            "Accept": "application/vnd.github.v3+json"
+        };
+        
+        if (token) {
+            headers["Authorization"] = `token ${token}`;
         }
         
-        if (!result || result.error || result.status !== 0) {
-            // gh CLI not accessible from subprocess - fall back to demo data
-            return DEMO_ISSUES;
+        // Fetch issues with external-plugin label
+        const response = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/issues?labels=${label}&state=open&per_page=100`,
+            { headers }
+        );
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`GitHub API error ${response.status}: ${error.substring(0, 200)}`);
         }
         
-        if (!result.stdout) {
-            return DEMO_ISSUES;
-        }
+        const issues = await response.json();
         
-        try {
-            const issues = JSON.parse(result.stdout);
-            return issues.map(issue => ({
+        // Filter to only external-plugin labeled issues and map to our format
+        return issues
+            .filter(issue => issue.labels && issue.labels.some(l => l.name === label))
+            .map(issue => ({
                 number: issue.number,
                 title: issue.title,
                 body: issue.body || "",
                 labels: (issue.labels || []).map(l => ({ name: l.name })),
                 pr_url: issue.body?.match(/\[Generated PR\]\(([^)]+)\)/)?.[1],
-                created_at: issue.createdAt,
-                updated_at: issue.updatedAt
+                created_at: issue.created_at,
+                updated_at: issue.updated_at
             }));
-        } catch (e) {
-            // JSON parse error - fall back to demo data
-            return DEMO_ISSUES;
-        }
     } catch (err) {
-        // Any other error - fall back to demo data
-        return DEMO_ISSUES;
+        lastError = err.message;
+        throw err;
     }
 }
 
@@ -180,7 +119,17 @@ function renderHtml() {
       .issue-link { color: #0969da; text-decoration: none; margin-top: 0.5rem; font-size: 12px; }
       .issue-link:hover { text-decoration: underline; }
       .loading { text-align: center; padding: 2rem; color: var(--text-color-muted, #656d76); }
-      .error { color: #cf222e; padding: 1rem; background: var(--background-color-secondary, #f6f8fa); border-radius: 6px; }
+      .error { 
+        color: #cf222e; 
+        padding: 1.5rem; 
+        background: var(--background-color-secondary, #f6f8fa); 
+        border: 1px solid #da3633;
+        border-radius: 6px; 
+        white-space: pre-wrap;
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        line-height: 1.5;
+      }
       
       .modal {
         display: none;
