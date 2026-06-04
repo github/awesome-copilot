@@ -102,7 +102,10 @@ jobs:
 
             const baseResult = await intake.evaluateExternalPluginIssue({
               issue: currentIssue,
-              token: process.env.GITHUB_TOKEN
+              token: process.env.GITHUB_TOKEN,
+              runId: context.runId,
+              owner: context.repo.owner,
+              repo: context.repo.repo
             });
 
             core.setOutput('should-run', 'true');
@@ -173,7 +176,7 @@ jobs:
                 };
               }
 
-              finalResult = intake.applyQualityGateResult(baseResult, qualityResult);
+              finalResult = intake.applyQualityGateResult(baseResult, qualityResult, context.runId, context.repo.owner, context.repo.repo);
             }
 
             await intakeState.applyExternalPluginIntakeEvaluation({
@@ -181,7 +184,8 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issueNumber: context.issue.number,
-              evaluation: finalResult
+              evaluation: finalResult,
+              runId: context.runId
             });
 
             const issueState = process.env.ISSUE_STATE;
