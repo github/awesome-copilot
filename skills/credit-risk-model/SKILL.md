@@ -26,9 +26,10 @@ Hard gate: the first response after this skill is triggered must clarify the mod
    - If not, suggest choices based on business goal, available labels, vintage, overdue roll rate, MOB window, and reject/exclusion logic.
    - Confirm target value direction: `1 = bad/risk event` unless the user says otherwise.
 4. Sample split:
-   - OOT defaults to the nearest/latest complete month.
-   - Validation can be a nearby month or a stratified random split from non-OOT data.
-   - Confirm whether training excludes validation and OOT.
+   - If a usable time/observation field exists, OOT defaults to the nearest/latest complete period, monthly when possible.
+   - Validation can be a nearby period or a stratified random split from non-OOT data.
+   - If no usable time field exists, default to a stratified random split of training `75%`, validation `15%`, and OOT/holdout proxy `10%`.
+   - Confirm whether training excludes validation and OOT/holdout.
    - If an institution/channel field exists, ask whether an institution/channel OOS sample is needed in addition to time OOT.
 5. Parameter tuning:
    - Ask whether to run a default baseline only, light tuning, or deeper hyperparameter search.
@@ -53,6 +54,8 @@ Hard gate: the first response after this skill is triggered must clarify the mod
 3. If the user provides a prior model report, scorecard sheet, development-flow diagram, or report template, use it as reference for naming, score bands, and report format. For scorecard model validation reports, the scorecard model development validation report template is the default required format when available; match it exactly. If not provided, use the default credit-risk development workflow and report structure for non-scorecard reports or draft scorecard outputs only.
 4. Split samples before feature selection:
    - Use the user-specified OOT month or time window exactly.
+   - If the user does not specify OOT and a usable time field exists, use the nearest/latest complete period as OOT.
+   - If no usable time field exists, create a stratified random split of training `75%`, validation `15%`, and OOT/holdout proxy `10%`.
    - Draw validation from the remaining non-OOT sample, stratified by target when random validation is requested.
    - Fit bins, encoders, scalers, feature selection, and model parameters on training only.
    - Keep OOT untouched for final validation, not model choice.
@@ -73,6 +76,7 @@ Hard gate: the first response after this skill is triggered must clarify the mod
 
 - Treat time leakage as the main failure mode. Any feature computed after the application/observation point must be excluded or shifted.
 - For monthly OOT, default to the nearest/latest available complete month unless the user specifies another time window. Use exact calendar months such as `2025-09`, not relative labels, in outputs.
+- If no usable time field exists, use a stratified random `75% / 15% / 10%` train/validation/OOT split. Label the final 10% as an OOT/holdout proxy in reports so reviewers understand it is not a true time-out sample.
 - Validation can be either a nearby month/time window or a stratified random sample from the non-OOT data. Prefer the user’s requested validation mode; otherwise choose the mode that best matches sample size and time stability needs, and state the choice.
 - Before final splitting, mark abnormal months with too few total samples or too few bad samples. Report them and their reason; do not automatically filter them unless the user explicitly approves.
 - If an institution/channel field exists, support institution/channel OOS in addition to time OOT. Clearly separate time OOT, institution/channel OOS, validation, and training in reports.
