@@ -23,6 +23,26 @@ Use `get_compliance_by_state` for the event state: minimum wage, overtime rules,
 and state-specific quirks (California, New York, and Washington have materially
 stricter regimes than most states).
 
+### Example: state compliance lookup
+
+```json
+// get_compliance_by_state — CA
+{
+  "name": "California",
+  "min_wage": 16.50,
+  "overtime_weekly": 40,
+  "overtime_daily": 8,
+  "unique_rules": [
+    "Daily overtime after 8 hours",
+    "Double-time after 12 hours/day",
+    "Mandatory meal break by 5th hour",
+    "10-min paid rest break per 4 hours",
+    "Seventh-day overtime"
+  ]
+}
+// Action: flag daily OT risk on any shift >8 hours; verify break compliance on multi-day events
+```
+
 ## Core risk checks
 
 1. **Classification** — Event staff on set shifts, in assigned uniforms, under event-day direction fail most states' independent-contractor tests.
