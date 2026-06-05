@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Feedback Themes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #ffffff;
+  --outer: #f8fafc;
+  --text: #111827;
+  --muted: #6b7280;
+  --meta: #94a3b8;
+  --border: #e5e7eb;
+  --radius: 8px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --high: #ef4444;
+  --high-bg: #fef2f2;
+  --medium: #f59e0b;
+  --medium-bg: #fffbeb;
+  --low: #22c55e;
+  --low-bg: #f0fdf4;
+  --accent: #3b82f6;
+  --accent-bg: #eff6ff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--outer);
+  color: var(--text);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+header {
+  margin-bottom: 24px;
+}
+
+header h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+header .subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat .value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stat .label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--meta);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.theme-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease;
+}
+
+.theme-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.theme-header {
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.theme-header:hover {
+  background: var(--outer);
+}
+
+.impact-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.impact-dot.high { background: var(--high); }
+.impact-dot.medium { background: var(--medium); }
+.impact-dot.low { background: var(--low); }
+
+.theme-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.theme-label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.theme-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.theme-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.meta-badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--meta);
+  background: var(--outer);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.signal-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+  color: var(--meta);
+}
+
+.theme-card.expanded .chevron {
+  transform: rotate(180deg);
+}
+
+.theme-body {
+  display: none;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+}
+
+.theme-card.expanded .theme-body {
+  display: block;
+}
+
+.signal-item {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: var(--outer);
+}
+
+.signal-item:last-child {
+  margin-bottom: 0;
+}
+
+.signal-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.signal-desc {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.signal-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.impact-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.impact-badge.high { background: var(--high-bg); color: var(--high); }
+.impact-badge.medium { background: var(--medium-bg); color: var(--medium); }
+.impact-badge.low { background: var(--low-bg); color: var(--low); }
+
+.source-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--muted);
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.customer-badge {
+  font-size: 9px;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 14px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.explore-btn:hover {
+  background: #dbeafe;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.explore-btn:active {
+  transform: scale(0.97);
+}
+
+.explore-btn.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.explore-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-state .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Feedback Themes</h1>
+    <p class="subtitle">Synthetic signals grouped by theme · click to explore</p>
+  </header>
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><span class="value" id="stat-signals">—</span><span class="label">Signals</span></div>
+    <div class="stat"><span class="value" id="stat-themes">—</span><span class="label">Themes</span></div>
+    <div class="stat"><span class="value" id="stat-high">—</span><span class="label">High Impact</span></div>
+  </div>
+  <div id="themes-container">
+    <div class="empty-state"><div class="spinner"></div><p>Loading themes…</p></div>
+  </div>
+</div>
+
+<script>
+const container = document.getElementById('themes-container');
+
+function sourceLabel(s) {
+  return s.replace(/-/g, ' ');
+}
+
+function renderState(state) {
+  document.getElementById('stat-signals').textContent = state.totalSignals;
+  document.getElementById('stat-themes').textContent = state.totalThemes;
+  const highCount = state.themes.filter(t => t.maxImpact === 'high').length;
+  document.getElementById('stat-high').textContent = highCount;
+
+  container.innerHTML = '';
+  for (const theme of state.themes) {
+    const card = document.createElement('div');
+    card.className = 'theme-card';
+    card.innerHTML = `
+      <div class="theme-header" data-theme-id="${theme.id}">
+        <div class="impact-dot ${theme.maxImpact}"></div>
+        <div class="theme-info">
+          <div class="theme-label">${theme.label}</div>
+          <div class="theme-desc">${theme.description}</div>
+          <div class="theme-meta">
+            ${theme.sources.map(s => `<span class="meta-badge">${sourceLabel(s)}</span>`).join('')}
+          </div>
+        </div>
+        <div class="signal-count">
+          <span>${theme.signalCount}</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="theme-body">
+        ${theme.signals.map(s => `
+          <div class="signal-item">
+            <div class="signal-title">${s.title}</div>
+            <div class="signal-desc">${s.description}</div>
+            <div class="signal-meta">
+              <span class="impact-badge ${s.impact}">${s.impact}</span>
+              <span class="source-badge">${sourceLabel(s.source)}</span>
+              <span class="customer-badge">${s.customer}</span>
+            </div>
+          </div>
+        `).join('')}
+        <button class="explore-btn" data-theme-id="${theme.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Explore this theme
+        </button>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+
+  // Toggle expand
+  container.querySelectorAll('.theme-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.parentElement.classList.toggle('expanded');
+    });
+  });
+
+  // Explore button
+  container.querySelectorAll('.explore-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const themeId = btn.dataset.themeId;
+      btn.classList.add('loading');
+      btn.textContent = 'Starting session…';
+      try {
+        await fetch('/api/explore-theme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ themeId }),
+        });
+      } catch (err) {
+        console.error('Failed to start exploration:', err);
+      }
+      setTimeout(() => {
+        btn.classList.remove('loading');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Explore this theme`;
+      }, 2000);
+    });
+  });
+}
+
+// SSE connection
+const evtSource = new EventSource('/events');
+evtSource.addEventListener('state', (e) => {
+  renderState(JSON.parse(e.data));
+});
+evtSource.onerror = () => {
+  // Reconnect handled by browser
+};
+</script>
+</body>
+</html>

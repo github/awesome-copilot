@@ -171,10 +171,31 @@ const base = import.meta.env.BASE_URL;
             </div>
           </a>
           <a
+            href={`${base}extensions/`}
+            class="card card-with-count card-category-extension"
+            id="card-extensions"
+            style="--animation-delay: 300ms;"
+          >
+            <div class="card-icon" aria-hidden="true">
+              <Icon name="plug" size={40} />
+            </div>
+            <div class="card-content">
+              <h3>Canvas Extensions</h3>
+              <p>Interactive canvas extensions for Copilot app experiences</p>
+            </div>
+            <div
+              class="card-count"
+              data-count="extensions"
+              aria-label="Extension count"
+            >
+              -
+            </div>
+          </a>
+          <a
             href={`${base}tools/`}
             class="card card-with-count card-category-dev"
             id="card-tools"
-            style="--animation-delay: 300ms;"
+            style="--animation-delay: 350ms;"
           >
             <div class="card-icon" aria-hidden="true">
               <Icon name="wrench" size={40} />
@@ -191,7 +212,7 @@ const base = import.meta.env.BASE_URL;
             href={`${base}learning-hub/`}
             class="card card-with-count card-category-learn"
             id="card-learning-hub"
-            style="--animation-delay: 350ms;"
+            style="--animation-delay: 400ms;"
           >
             <div class="card-icon" aria-hidden="true">
               <Icon name="book" size={40} />
