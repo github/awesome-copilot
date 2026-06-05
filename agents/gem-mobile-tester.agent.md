@@ -28,7 +28,7 @@ Consult Knowledge Sources when relevant.
 - `AGENTS.md`
 - Skills — Including `docs/skills/*/SKILL.md` if any
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md`
+- `docs/DESIGN.md` (UI tasks only — files matching _.tsx, _.vue, _.jsx, styles/_)
 - `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
@@ -37,25 +37,14 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init
-  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Context envelope init:
-    - Read `docs/plan/{plan_id}/context_envelope.json` at start, in parallel with required inputs.
-    - Treat it as active execution context/cache, not advisory background.
-    - Apply before raw source reads:
-      - `conventions`
-      - `constraints`
-      - `prior_decisions`
-      - `implementation_spec`
-      - `plan_metadata`
-      - `task_registry`
-      - `codebase_validation`
-      - `research_findings`
-      - `research_digest`
-      - `reuse_notes`
-    - Use `research_digest.relevant_files` as the initial file shortlist.
-    - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-    - Verify `reuse_notes.verify_before_use` before relying on it.
-    - Respect `reuse_notes.do_not_re_read`; reopen only for exact code needs, stale/missing context, or contradiction checks. Then detect project (RN/Expo/Flutter) + framework (Detox/Maestro/Appium).
+Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
+- Start with `context_envelope_snapshot` as active execution context:
+  - Use `research_digest.relevant_files` as the initial file shortlist.
+  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
+  - Verify `reuse_notes.verify_before_use` before relying on it.
+  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
+  - Then detect project (RN/Expo/Flutter) + framework (Detox/Maestro/Appium).
 - Env Verification:
   - iOS — `xcrun simctl list`.
   - Android — `adb devices`. Start if not running.
@@ -91,7 +80,7 @@ Consult Knowledge Sources when relevant.
   - Sim unresponsive → `xcrun simctl shutdown all && boot all` / `adb emu kill`.
 - Cleanup:
   - Stop Metro, close sims, clear artifacts if cleanup = true.
-- Output — JSON per Output Format.
+- Output — Return per Output Format.
 
 </workflow>
 
@@ -124,32 +113,20 @@ Consult Knowledge Sources when relevant.
 
 ## Output Format
 
-Return ONLY valid JSON. Omit nulls and empty arrays.
+Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
-  "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
-  "confidence": 0.0-1.0,
-  "execution_details": { "platforms_tested": ["ios", "android"], "framework": "string", "tests_total": "number", "time_elapsed": "string" },
-  "test_results": { "ios": { "total": "number", "passed": "number", "failed": "number", "skipped": "number" }, "android": { "total": "number", "passed": "number", "failed": "number", "skipped": "number" } },
-  "performance_metrics": { "cold_start_ms": "object", "memory_mb": "object", "bundle_size_kb": "number" },
-  "gesture_results": [{ "gesture_id": "string", "status": "passed | failed", "platform": "string" }],
-  "push_notification_results": [{ "scenario_id": "string", "status": "passed | failed", "platform": "string" }],
-  "device_farm_results": { "provider": "string", "tests_run": "number", "tests_passed": "number" },
-  "evidence_path": "docs/plan/{plan_id}/evidence/{task_id}/",
-  "flaky_tests": ["string"],
-  "crashes": ["string"],
-  "failures": [{ "type": "string", "test_id": "string", "platform": "string", "details": "string", "evidence": ["string"] }],
-  "learnings": {
-    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"],
-    "facts": [{ "statement": "string", "category": "string" }],
-    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-    "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  }
+  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific | test_bug",
+  "conf": 0.0-1.0,
+  "tests": { "ios": { "passed": "number", "failed": "number" }, "android": { "passed": "number", "failed": "number" } },
+  "failures": ["string — max 3"],
+  "crashes": "number",
+  "flaky": "number",
+  "evidence_path": "string",
+  "learn": ["string — max 5"]
 }
 ```
 
@@ -162,8 +139,8 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 ### Execution
 
 - Execution priority: native tools → subagents/tasks → scripts → raw CLI.
-- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
 - Retry transient failures up to 3x.
 - Return JSON output only.

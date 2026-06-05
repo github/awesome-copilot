@@ -24,7 +24,7 @@ Self-Learning Multi-agent orchestration framework for spec-driven development an
 
 > **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
 
-> **Recommended Models:** Use a cost-efficient fast model as the default, and a stronger reasoning model for planner/debugger/critical review agents, e.g. `default=deepseek-v4-flash`, `planner,debugger,critic/reviewer=deepseek-v4-pro`. This gives you **80-90%** cost savings without sacrificing quality on complex tasks.
+> **Recommended Models:** Use a cost-efficient fast model as the default, and a stronger reasoning model for planner/debugger/critical review agents, e.g. `default=mimoi-2.5/deepseek-v4-flash`, `planner,debugger,critic/reviewer=mimoi-2.5-pro/deepseek-v4-pro`. This gives you **80-90%** cost savings without sacrificing quality on complex tasks.
 
 > **Crafted from years of personal experience** — This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows.
 
@@ -88,6 +88,10 @@ See [all supported installation options](#installation) below.
 - **Diagnose-then-Fix** — gem-debugger diagnoses → gem-implementer fixes → re-verifies
 - **Resumable** — Execution can be paused and resumed without losing context
 - **Scriptable** — Use scripts for deterministic, repeatable, or bulk work (data processing, mechanical transforms, migrations/codemods, generated outputs, audits/reports, validation checks, reproduction helpers)
+- **Fast-Path Modes** — MICRO_TRACK (trivial typo fixes) and FAST_TRACK (low-complexity tasks) skip phases for efficiency
+- **Task Classification** — Automatic 7-type classification (bug-fix, feature, refactor, docs, config, typo, research) with complexity assessment (LOW/MEDIUM/HIGH)
+- **Smart Routing** — Research tasks skip to output; bug-fix/typo/docs with LOW complexity use FAST_TRACK; trivial typos use MICRO_TRACK
+- **Context Envelope** — Progressive cache enriched after each wave; all agents receive snapshot for consistent context
 
 ### Token Efficiency
 
@@ -149,7 +153,7 @@ Phase 3: Execution Loop
     Pre-Wave: Check memory for failure_modes/gotchas → add guards
     ↓
     ┌─ Wave Execution ──────────────┐
-    │ • Delegate tasks (≤4 concurrent)│
+    │ • Delegate tasks (≤2 concurrent)│
     └─────────────┬─────────────────┘
                   ↓
     ┌─ Integration Check ──────────┐
@@ -181,22 +185,22 @@ Phase 5: Output
 
 ### Core Agents
 
-| Agent            | Description                                                                      | Sources                        |
-| :--------------- | :------------------------------------------------------------------------------- | :----------------------------- |
-| **ORCHESTRATOR** | The team lead: Orchestrates research, planning, implementation, and verification | PRD, AGENTS.md                 |
-| **RESEARCHER**   | Codebase exploration — patterns, dependencies, architecture discovery            | PRD, codebase, AGENTS.md, docs |
-| **PLANNER**      | DAG-based execution plans — task decomposition, wave scheduling, risk analysis   | PRD, codebase, AGENTS.md       |
-| **IMPLEMENTER**  | TDD code implementation — features, bugs, refactoring. Never reviews own work    | codebase, AGENTS.md, DESIGN.md |
+| Agent            | Description                                                                      | Sources                               |
+| :--------------- | :------------------------------------------------------------------------------- | :------------------------------------ |
+| **ORCHESTRATOR** | The team lead: Orchestrates research, planning, implementation, and verification | PRD, AGENTS.md, Memory                |
+| **RESEARCHER**   | Codebase exploration — patterns, dependencies, architecture discovery            | PRD, codebase, AGENTS.md, docs        |
+| **PLANNER**      | DAG-based execution plans — task decomposition, wave scheduling, risk analysis   | PRD, codebase, AGENTS.md, Memory seed |
+| **IMPLEMENTER**  | TDD code implementation — features, bugs, refactoring. Never reviews own work    | codebase, AGENTS.md, DESIGN.md        |
 
 ### Quality & Review
 
-| Role               | Description                                                                      | Sources                          |
-| :----------------- | :------------------------------------------------------------------------------- | :------------------------------- |
-| **REVIEWER**       | **Zero- Hallucination Filter** — Security auditing, code review, OWASP scanning  | PRD, codebase, AGENTS.md, OWASP  |
-| **CRITIC**         | Challenges assumptions, finds edge cases, spots over- engineering and logic gaps | PRD, codebase, AGENTS.md         |
-| **DEBUGGER**       | Root-cause analysis, stack trace diagnosis, regression bisection                 | codebase, AGENTS.md, git history |
-| **BROWSER TESTER** | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         |
-| **SIMPLIFIER**     | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       |
+| Role                | Description                                                                      | Sources                          |
+| :------------------ | :------------------------------------------------------------------------------- | :------------------------------- |
+| **REVIEWER**        | **Zero- Hallucination Filter** — Security auditing, code review, OWASP scanning  | PRD, codebase, AGENTS.md, OWASP  |
+| **CRITIC**          | Challenges assumptions, finds edge cases, spots over- engineering and logic gaps | PRD, codebase, AGENTS.md         |
+| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection                 | codebase, AGENTS.md, git history |
+| **BROWSER TESTER**  | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         |
+| **CODE SIMPLIFIER** | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       |
 
 ### Skill Management
 

@@ -359,7 +359,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.48.0"
+      "version": "1.50.0"
     },
     {
       "name": "git-ape",

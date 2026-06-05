@@ -36,25 +36,14 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init
-  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Context envelope init:
-    - Read `docs/plan/{plan_id}/context_envelope.json` at start, in parallel with required inputs.
-    - Treat it as active execution context/cache, not advisory background.
-    - Apply before raw source reads:
-      - `conventions`
-      - `constraints`
-      - `prior_decisions`
-      - `implementation_spec`
-      - `plan_metadata`
-      - `task_registry`
-      - `codebase_validation`
-      - `research_findings`
-      - `research_digest`
-      - `reuse_notes`
-    - Use `research_digest.relevant_files` as the initial file shortlist.
-    - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-    - Verify `reuse_notes.verify_before_use` before relying on it.
-    - Respect `reuse_notes.do_not_re_read`; reopen only for exact code needs, stale/missing context, or contradiction checks. Then parse mode (create|validate), scope, context.
+Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
+- Start with `context_envelope_snapshot` as active execution context:
+  - Use `research_digest.relevant_files` as the initial file shortlist.
+  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
+  - Verify `reuse_notes.verify_before_use` before relying on it.
+  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
+  - Then parse mode (create|validate), scope, context.
 - Create Mode:
   - Requirements — Check existing design system, constraints (framework / library / tokens), PRD UX goals.
   - Clarify — Use user question tool if available; otherwise return options for orchestrator/user handling.
@@ -87,7 +76,7 @@ Consult Knowledge Sources when relevant.
   - Accessibility conflicts → prioritize a11y.
   - Existing system incompatible → document gap, propose extension.
   - Log to `docs/plan/{plan_id}/logs/`.
-- Output — `docs/DESIGN.md` + JSON per Output Format.
+- Output — `docs/DESIGN.md` + Return per Output Format.
 
 </workflow>
 
@@ -145,34 +134,20 @@ Asymmetric CSS Grid, overlapping elements (negative margins, z-index), Bento gri
 
 ## Output Format
 
-Return ONLY valid JSON. Omit nulls and empty arrays.
+Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
-  "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "conf": 0.0-1.0,
   "mode": "create | validate",
-  "confidence": 0.0-1.0,
-  "deliverables": { "specs": "string", "code_snippets": ["string"], "tokens": "object" },
-  "validation_findings": {
-    "passed": "boolean",
-    "issues": [{ "severity": "critical | high | medium | low", "category": "string", "description": "string", "location": "string", "recommendation": "string" }]
-  },
-  "accessibility": {
-    "contrast_check": "pass | fail",
-    "keyboard_navigation": "pass | fail | partial",
-    "screen_reader": "pass | fail | partial",
-    "reduced_motion": "pass | fail | partial"
-  },
-  "learnings": {
-    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"],
-    "facts": [{ "statement": "string", "category": "string" }],
-    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-    "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  }
+  "a11y_pass": "boolean",
+  "validation_passed": "boolean",
+  "critical_issues": ["string — max 3"],
+  "design_path": "string",
+  "learn": ["string — max 5"]
 }
 ```
 
@@ -185,8 +160,7 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 ### Execution
 
 - Execution priority: native tools → subagents/tasks → scripts → raw CLI.
-- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
 - Retry transient failures up to 3x.
 - Return JSON output only.

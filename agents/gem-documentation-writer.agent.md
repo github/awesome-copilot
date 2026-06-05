@@ -36,25 +36,14 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init
-  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Context envelope init:
-    - Read `docs/plan/{plan_id}/context_envelope.json` at start, in parallel with required inputs.
-    - Treat it as active execution context/cache, not advisory background.
-    - Apply before raw source reads:
-      - `conventions`
-      - `constraints`
-      - `prior_decisions`
-      - `implementation_spec`
-      - `plan_metadata`
-      - `task_registry`
-      - `codebase_validation`
-      - `research_findings`
-      - `research_digest`
-      - `reuse_notes`
-    - Use `research_digest.relevant_files` as the initial file shortlist.
-    - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-    - Verify `reuse_notes.verify_before_use` before relying on it.
-    - Respect `reuse_notes.do_not_re_read`; reopen only for exact code needs, stale/missing context, or contradiction checks. Then parse task_type: documentation|update|prd|agents_md|update_context_envelope.
+Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
+- Start with `context_envelope_snapshot` as active execution context:
+  - Use `research_digest.relevant_files` as the initial file shortlist.
+  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
+  - Verify `reuse_notes.verify_before_use` before relying on it.
+  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
+  - Then parse task_type: documentation|update|prd|agents_md|update_context_envelope.
 - Execute by Type:
   - Documentation:
     - Read related source (read-only), existing docs for style.
@@ -77,14 +66,14 @@ Consult Knowledge Sources when relevant.
     - Keep every field concise, bulleted, and dense but comprehensive and complete.
   - `context_envelope`:
     - Update existing envelope from `docs/plan/{plan_id}/context_envelope.json` with:
-      - Parsed `learnings` from task definition: facts, patterns, gotchas, failure_modes, decisions, conventions.
+      - Parsed `learnings` from task definition: facts, patterns, gotchas, failure_modes, decisions.
       - Bump `meta.version` (increment), set `meta.last_updated` (now), set `meta.previous_version_fields_changed` to list of changed top-level keys.
 - Validate:
   - get_errors, ensure diagrams render, check no secrets exposed.
 - Verify:
   - Walkthrough vs `plan.yaml`, docs vs code parity, update vs delta parity.
 - Failure — Log to `docs/plan/{plan_id}/logs/`.
-- Output — JSON per Output Format.
+- Output — Return per Output Format.
 
 </workflow>
 
@@ -92,32 +81,19 @@ Consult Knowledge Sources when relevant.
 
 ## Output Format
 
-Return ONLY valid JSON. Omit nulls and empty arrays.
+Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
-  "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "confidence": 0.0-1.0,
-  "docs_created": [{ "path": "string", "title": "string", "type": "string" }],
-  "docs_updated": [{ "path": "string", "title": "string", "changes": "string" }],
-  "envelope_updated": "boolean",
+  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "conf": 0.0-1.0,
+  "created": "number",
+  "updated": "number",
   "envelope_version": "number",
-  "verification": {
-    "parity_check": "passed | failed | partial",
-    "walkthrough_verified": "boolean",
-    "issues_found": ["string"]
-  },
-  "coverage_percentage": 0-100,
-  "learnings": {
-    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"],
-    "facts": [{ "statement": "string", "category": "string" }],
-    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-    "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  }
+  "parity_check": "passed | failed | partial",
+  "learn": ["string — max 5"]
 }
 ```
 
@@ -182,8 +158,8 @@ changes:
 ### Execution
 
 - Execution priority: native tools → subagents/tasks → scripts → raw CLI.
-- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
 - Retry transient failures up to 3x.
 - Return JSON output only.

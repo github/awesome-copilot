@@ -58,12 +58,14 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
+Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
 IMPORTANT: On receiving user input, immediately announce and execute the following steps in order:
 
 ### Phase 0: Init & Clarify
 
 - Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
-- Task Type Classification — classify task_type from request keywords:
+- Quick Task Type Classification — classify task_type from request keywords:
   - `bug-fix`: error, stack trace, regression, fix, broken, crash
   - `feature`: new, add, implement, build, create
   - `refactor`: simplify, clean up, restructure, extract, rename
@@ -77,7 +79,7 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
   - LOW: single file/small change, known patterns. Minimal blast radius.
   - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
   - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
-- Gray Areas Detection:
+- Gray Areas Detection (Optional/ Quick):
   - Identify ambiguities, missing scope, or decision blockers.
   - Identify focus_areas from request keywords.
   - Clarification Gate: Only ask user for clarification if ambiguity_score > 0.5 AND the question is a decision_blocker. For non-blocking gray areas, document assumptions and proceed.
@@ -87,7 +89,9 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
 
 Routing matrix:
 
-- new_task + FAST_TRACK → skip to Phase 3
+- new_task + task_type = research → delegate to `gem-researcher` → skip to Phase 4 (research output is final)
+- new_task + MICRO_TRACK → apply change directly → skip to Phase 4
+- new_task + FAST_TRACK → skip to Phase 3 → skip Integration Check → Phase 4
 - new_task → Phase 2
 - continue_plan + feedback → Phase 2 (adjust plan based on feedback)
 - continue_plan + no feedback → Phase 3
@@ -99,6 +103,20 @@ FAST_TRACK Mode:
   - task_type in (bug-fix, typo, config, docs)
   - confidence ≥ 0.85
 - Goal: Skip Phase 2. Create plan. Execute directly using Phase 3.
+- Skipped: reviewer, designer, envelope update, memory persist (FAST_TRACK tasks rarely produce learnings)
+
+MICRO_TRACK Mode:
+
+- Eligibility (all conditions must be true):
+  - complexity = TRIVIAL (single word/phrase change in one file)
+  - task_type = typo
+  - confidence ≥ 0.95
+  - known file location (no search needed)
+- Goal: Skip Phase 2 and Phase 3 entirely. Edit directly, then output.
+- Applies to: typo fixes in comments/docs, trivial renames in single file, single-line config changes with known value, truth-table toggles.
+- Restrictions: No file creation. No test changes. No structural changes.
+- Process: Classify → edit file directly → output status.
+- Skipped: all subagents, planner, reviewer, designer, envelope, memory, enrichment.
 
 ### Phase 2: Planning
 
@@ -110,10 +128,9 @@ FAST_TRACK Mode:
   - Validate created plan:
     - Complexity=LOW: No validation required; proceed to Phase 3.
     - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
-    - Complexity=HIGH: delegate to both `gem-reviewer(plan)` + `gem-critic(plan)` in parallel.
-  - If validation fails:
-    - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments.
-    - Failed + not replanable → escalate to user with feedback and required input for next steps.
+    - Complexity=HIGH: delegate to `gem-reviewer(plan)`. Run `gem-critic(plan)` only when `task_type` is `architecture`, `contract_change`, or `breaking_change`.
+  - If validation fails: - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments. - Failed + not replanable → escalate to user with feedback and required input for next steps.
+  - Read Context Envelope (canonical cache): After plan validation, read `docs/plan/{plan_id}/context_envelope.json`. All delegation snapshots derive from this copy.
 
 ### Phase 3: Execution Loop
 
@@ -127,34 +144,29 @@ Delegate ALL waves/tasks without pausing for approval between them.
   - Get pending (deps = completed, status = pending, wave = current).
   - Filter conflicts_with: same-file tasks serialize.
   - Delegate to subagents (max 2 concurrent).
-- Integration Check:
-  - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
-  - Tasks with `flags.requires_design_validation: true` → validate with the designer agent matching the task's assigned agent (if task.agent is `designer-mobile`, use `gem-designer-mobile(validate)`; otherwise use `gem-designer(validate)`), run in parallel with `gem-reviewer(wave scope)`.
+- Integration Check (SKIP for FAST_TRACK):
+  - FAST_TRACK tasks skip this entire section → proceed directly to batch enrichment.
+  - For non-FAST_TRACK:
+    - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
   - If reviewer fails → `gem-debugger` to diagnose:
     - If debugger confidence ≥ 0.85 → delegate to `gem-implementer` with diagnosis → re-verify.
     - If debugger confidence < 0.85 → escalate to user (cannot reliably diagnose).
+  - Designer validation is owned by the planner: `flags.requires_design_validation` is set during planning and is the single source of truth.
+  - Only delegate to `gem-designer` / `gem-designer-mobile` when `flags.requires_design_validation == true`; otherwise skip designer validation and continue.
   - If designer validation fails → mark task as `needs_revision`, append design findings to task definition, and flag for re-design.
   - Synthesize statuses (completed / escalate / needs_replan). Persist all to `plan.yaml`.
-- Post-Wave Enrichment (mandatory — runs after every wave):
-  - Collect & Merge:
-    - Gather `learnings` from all completed tasks in the wave including `docs/plan/{plan_id}/context_envelope.json` data.
-    - Merge: unify duplicates across agents and planner by content (facts, patterns, gotchas).
-    - Cross-reference: when a `gotcha` matches a `failure_mode` symptom, link them.
-    - Promote: `gotchas` recurring ≥ 3× across plans → `patterns`. `failure_modes` recurring ≥ 2× → elevate severity.
-    - High confidence patterns (confidence ≥ 0.85) with significant impact → candidate for persistence.
-  - Context Envelope (greedy — always updated):
-    - Always delegate to `gem-documentation-writer` with `task_type: update_context_envelope` to refresh `docs/plan/{plan_id}/context_envelope.json` with merged learnings from the wave.
-  - Memory (picky — confidence gate):
-    - Only persist items with confidence ≥ 0.80. Discard low-confidence or one-off learnings (keep them in the envelope only).
-    - Persist deduped `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions` or other items to memory tool, which can help during future planning/ execution.
-  - Conventions (picky — recurrence gate):
-    - If same convention recurs ≥ 3× across tasks in this plan: delegate to `gem-documentation-writer` → create/update `AGENTS.md`
-    - Otherwise: keep in envelope only.
-  - Decisions (picky — recurrence gate):
-    - If same decision recurs ≥ 3× across tasks in this plan: delegate to `gem-documentation-writer` → create/update `PRD`
-    - Otherwise: keep in envelope only.
-  - Skills (picky — confidence gate):
-    - If `patterns` with confidence ≥ 0.9 AND non-trivial: delegate to `gem-skill-creator`.
+- After each wave, batch enrichment updates:
+  - Merge and dedupe wave `learnings` plus `docs/plan/{plan_id}/context_envelope.json`.
+  - Promote recurring signals:
+    - `gotchas` ≥3× across plans → `patterns`
+    - `failure_modes` ≥2× → raise severity
+    - high-impact `patterns` with confidence ≥0.85 → persistence candidates
+  - Update envelope when useful via `gem-documentation-writer` using `task_type: update_context_envelope`.
+  - Persist only reusable, deduped items with confidence ≥0.80: `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions`, etc. Keep low-confidence/one-off items in envelope only.
+  - Update durable docs only on recurrence within the plan:
+    - `conventions` ≥3× → update `AGENTS.md`
+    - `decisions` ≥3× → update PRD
+  - Create skills only for non-trivial `patterns` with confidence ≥0.90 via `gem-skill-creator`.
 - Loop:
   - After each wave → run Post-Wave Enrichment → immediately next.
   - Blocked → Escalate.
@@ -193,12 +205,13 @@ Present status as per `output_format`.
     "gotchas": ["string"],
     "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
     "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"],
   },
 }
 ```
 
 ### All Other Agents
+
+Must include all fields from `task_definition` and `context_envelope_snapshot` as relevant to the agent type. See below for required fields by agent type.:
 
 ```jsonc
 {
@@ -206,12 +219,16 @@ Present status as per `output_format`.
   "task_definition": {
     // Agent-specific fields live here.
     // Examples: mode, scope, target, context, constraints, environment, etc.
-    // Agents read full context from docs/plan/{plan_id}/context_envelope.json
+    // See: `task_definition` fields by agent type in the reference section below.
+  },
+  "context_envelope_snapshot": {
+    // Subset of context_envelope.json fields the target agent needs.
+    // See: `context_envelope_snapshot` fields by agent type in the reference section below.
   },
 }
 ```
 
-**Examples of task_definition fields by agent:**
+### `task_definition` Fields By Agent Type:
 
 - `gem-implementer`: `tech_stack`, `test_coverage`, `debugger_diagnosis`, `implementation_handoff`
 - `gem-implementer-mobile`: `platforms`, `debugger_diagnosis`, `implementation_handoff`
@@ -227,6 +244,20 @@ Present status as per `output_format`.
 - `gem-designer-mobile`: `mode`, `scope`, `target`, `context`, `constraints`
 - `gem-skill-creator`: `patterns`, `source_task_id`
 
+### Context Envelope Snapshot Fields By Agent Type:
+
+- `implementer`, `implementer-mobile`: `tech_stack`, `constraints`, `reuse_notes`, `research_digest`
+- `reviewer`: `constraints`, `plan_summary`
+- `debugger`: `constraints`, `reuse_notes`, `research_digest`
+- `designer`, `designer-mobile`: `constraints`, `architecture_snapshot`, `tech_stack`
+- `researcher`: `tech_stack`, `architecture_snapshot`
+- `browser-tester`, `mobile-tester`: `tech_stack`, `constraints`, `research_digest`
+- `devops`: `constraints`, `tech_stack`
+- `critic`: `constraints`, `plan_summary`
+- `code-simplifier`: `constraints`, `tech_stack`, `reuse_notes`
+- `documentation-writer`: `constraints`, `plan_summary`, `conventions`
+- `skill-creator`: `conventions`, `reuse_notes`
+
 </agent_input_reference>
 
 <output_format>
@@ -236,16 +267,16 @@ Present status as per `output_format`.
 ```md
 ## Plan Status
 
-**Plan:** `{plan_id}` | `{plan_objective}`
+Plan: `{plan_id}` | `{plan_objective}`
 
-**Progress:** `{completed}/{total}` tasks completed (`{percent}%`)
+Progress: `{completed}/{total}` tasks completed (`{percent}%`)
 
-**Waves:** Wave `{n}` (`{completed}/{total}`)
+Waves: Wave `{n}` (`{completed}/{total}`)
 
-**Blocked:** `{count}`
+Blocked: `{count}`
 `{list_task_ids_if_any}`
 
-**Next:** Wave `{n+1}` (`{pending_count}` tasks)
+Next: Wave `{n+1}` (`{pending_count}` tasks)
 
 ## Blocked Tasks
 
@@ -265,8 +296,8 @@ Present status as per `output_format`.
 ### Execution
 
 - Execution priority: native tools → subagents/tasks → scripts → raw CLI.
-- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
 - Retry transient failures up to 3x.
 - Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.

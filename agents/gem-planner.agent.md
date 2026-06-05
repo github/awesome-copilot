@@ -56,28 +56,14 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init
-  - If `docs/plan/{plan_id}/context_envelope.json` already exists for replan or extension mode, read it at start; read it in parallel with required planning inputs. Context envelope init:
-    - Read `docs/plan/{plan_id}/context_envelope.json` at start, in parallel with required inputs.
-    - Treat it as active execution context/cache, not advisory background.
-    - Apply before raw source reads:
-      - `conventions`
-      - `constraints`
-      - `prior_decisions`
-      - `implementation_spec`
-      - `plan_metadata`
-      - `task_registry`
-      - `codebase_validation`
-      - `research_findings`
-      - `research_digest`
-      - `reuse_notes`
-    - Use `research_digest.relevant_files` as the initial file shortlist.
-    - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-    - Verify `reuse_notes.verify_before_use` before relying on it.
-    - Respect `reuse_notes.do_not_re_read`; reopen only for exact code needs, stale/missing context, or contradiction checks.
-- Context:
-  - Parse objective/ context.
-  - Mode: Initial, Replan, or Extension.
+Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
+- Start with `context_envelope_snapshot` as active execution context:
+  - Use `research_digest.relevant_files` as the initial file shortlist.
+  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
+  - Verify `reuse_notes.verify_before_use` before relying on it.
+  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
+  - Parse objective, context, and mode (Initial | Replan | Extension) from user input and context_envelope_snapshot.
 - Discovery (OBJECTIVE-ALIGNED — no random exploration):
   - Identify focus_areas strictly from objective and context.
   - All searches MUST target focus_areas; no exploratory/off-target searching.
@@ -95,9 +81,14 @@ Consult Knowledge Sources when relevant.
   - Lock clarifications into DAG constraints.
   - Synthesize DAG: atomic tasks (or NEW for extension).
   - Assign waves: no deps → wave 1, dep.wave + 1.
+- Acceptance Criteria Injection:
+  - For each task, extract acceptance criteria from PRD/requirements relevant to that task's scope.
+  - Populate `task_definition.acceptance_criteria` with the extracted criteria (array of strings).
+  - If no PRD exists or criteria cannot be determined, leave as empty array and note in task definition.
 - Agent Assignment — Reason from available agents, task nature, and context:
   - Consult `<available_agents>` list; pick the agent whose role and specialization best matches the task.
   - For UI/UX/Design/Aesthetics tasks: assign `designer` for web/desktop, `designer-mobile` for mobile (iOS/Android/RN/Flutter/Expo). If cross-platform, split into separate web + mobile tasks.
+  - Set `flags.requires_design_validation` to `true` only for new UI, major redesigns, style/token/a11y work, or mobile visual changes; set it to `false` for backend-only, config-only, text-only, and trivial tweaks.
   - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1).
     - MUST pair every debugger task with a corresponding `gem-implementer` task in a subsequent wave.
     - The implementer task MUST include `debugger_diagnosis` field (populated from debugger's output) in its task_definition.
@@ -119,13 +110,13 @@ Consult Knowledge Sources when relevant.
   - Calculate metrics (wave_1_count, deps, risk_score).
   - Calculate quality_score (overall, breakdown by dimension, blocking_issues, warnings).
   - Generate reviewer_focus: list dimensions with score < 0.9 for targeted scrutiny.
-  - Pre-Flight Validation:
-    - Validate plan.yaml against Plan Verification Criteria before saving
-    - If validation fails → fix issues inline, re-validate, then save
-    - Do NOT save and output a broken plan
+  - Schema Validation (syntax check only — semantic validation is delegated to `gem-reviewer(plan)`):
+    - Validate plan.yaml: valid YAML, all required top-level fields non-null, task IDs unique, wave numbers are integers, no circular deps
+    - If schema invalid → fix inline and re-validate
+    - Semantic checks (PRD coverage, agent validity, contracts, quality scoring) are the reviewer's responsibility
   - Save Plan `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.json` as per `context_envelope_format_guide`
-  - Use provided context as seed and augment with research findings.
+  - Use provided context as seed and augment with research findings from plan.
   - If `memory_seed` provided, merge its high confidence items/ contents into the envelope
   - Keep every field concise, bulleted, and dense but comprehensive and complete. Avoid fluff, filler, and verbosity. Evidence paths over explanation.
   - Create for future agent reuse: include durable facts, decisions, constraints, and evidence paths needed to avoid re-discovery.
@@ -140,36 +131,22 @@ Consult Knowledge Sources when relevant.
 
 ## Output Format
 
-Return ONLY valid JSON. Omit nulls and empty arrays.
+Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
+  "task_id": "string",
+  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
+  "conf": 0.0-1.0,
   "plan_id": "string",
-  "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "confidence": 0.0-1.0,
   "complexity": "simple | medium | complex",
+  "task_count": "number",
+  "wave_count": "number",
   "prd_update_recommended": "boolean",
-  "prd_update_reason": "string | null",
-  "metrics": { "wave_1_task_count": "number", "total_dependencies": "number", "risk_score": "low | medium | high" },
-  "quality_score": {
-    "overall": "number (0.0-1.0)",
-    "prd_coverage": "number (0.0-1.0)",
-    "target_files_verified": "number (0.0-1.0)",
-    "contracts_complete": "number (0.0-1.0)",
-    "wave_assignment_valid": "number (0.0-1.0)",
-    "blocking_issues": "number",
-    "warnings": "number"
-  },
-  "learnings": {
-    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"],
-    "facts": [{ "statement": "string", "category": "string" }],
-    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-    "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  },
-  "context_envelope": "object — see context_envelope_format_guide"
+  "quality_overall": "number (0.0-1.0)",
+  "envelope_path": "string",
+  "learn": ["string — max 5"]
 }
 ```
 
@@ -180,11 +157,19 @@ Return ONLY valid JSON. Omit nulls and empty arrays.
 ## Plan Format Guide
 
 ```yaml
+# ═══════════════════════════════════════════════════════════════════════════
+# PLAN METADATA (always present)
+# ═══════════════════════════════════════════════════════════════════════════
 plan_id: string
 objective: string
 created_at: string
 created_by: string
 status: pending | approved | in_progress | completed | failed
+tldr: |
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PLAN-LEVEL METRICS (populated by planner)
+# ═══════════════════════════════════════════════════════════════════════════
 plan_metrics:
   wave_1_task_count: number
   total_dependencies: number
@@ -198,20 +183,24 @@ quality_score:
     wave_assignment_valid: number (0.0-1.0)
   blocking_issues: number
   warnings: number
-  # Reviewer guidance: areas needing extra scrutiny based on lower scores
-  reviewer_focus: [string]
-tldr: |
-open_questions: # Optional for LOW complexity; required for MEDIUM/HIGH
+  reviewer_focus: [string] # areas needing extra scrutiny based on lower scores
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PLANNING ANALYSIS (complexity-dependent)
+# LOW: not required | MEDIUM/HIGH: required for open_questions, gaps, pre_mortem
+# HIGH: also requires implementation_specification, contracts
+# ═══════════════════════════════════════════════════════════════════════════
+open_questions: # Optional for LOW; required for MEDIUM/HIGH
   - question: string
     context: string
     type: decision_blocker | research | nice_to_know
     affects: [string]
-gaps: # Optional for LOW complexity; required for MEDIUM/HIGH
+gaps: # Optional for LOW; required for MEDIUM/HIGH
   - description: string
     refinement_requests:
       - query: string
         source_hint: string
-pre_mortem: # Optional for LOW complexity; required for MEDIUM/HIGH
+pre_mortem: # Optional for LOW; required for MEDIUM/HIGH
   overall_risk_level: low | medium | high
   critical_failure_modes:
     - scenario: string
@@ -219,7 +208,7 @@ pre_mortem: # Optional for LOW complexity; required for MEDIUM/HIGH
       impact: low | medium | high | critical
       mitigation: string
   assumptions: [string]
-implementation_specification: # Optional for LOW complexity; required for MEDIUM/HIGH
+implementation_specification: # Optional for LOW/MEDIUM; required for HIGH
   code_structure: string
   affected_areas: [string]
   component_details:
@@ -230,30 +219,47 @@ implementation_specification: # Optional for LOW complexity; required for MEDIUM
         - component: string
           relationship: string
       integration_points: [string]
-contracts: # Optional for LOW/MEDIUM; required for HIGH complexity
+contracts: # Optional for LOW/MEDIUM; required for HIGH
   - from_task: string
     to_task: string
     interface: string
     format: string
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TASKS (each task is delegated to one agent)
+# ═══════════════════════════════════════════════════════════════════════════
 tasks:
-  - id: string
+  - # ───────────────────────────────────────────────────────────────────────
+    # IDENTITY (always present)
+    # ───────────────────────────────────────────────────────────────────────
+    id: string
     title: string
     description: string
     wave: number
     agent: string
     prototype: boolean
-    covers: [string]
     priority: high | medium | low
     status: pending | in_progress | completed | failed | blocked | needs_revision
-    flags:
-      flaky: boolean
-      retries_used: number
-      requires_design_validation: boolean # set true for ui/ux/design/a11y/style related tasks
+
+    # ───────────────────────────────────────────────────────────────────────
+    # CONTEXT (populated by planner)
+    # ───────────────────────────────────────────────────────────────────────
+    covers: [string]
     dependencies: [string]
     conflicts_with: [string]
     context_files:
       - path: string
         description: string
+    estimated_effort: small | medium | large
+    focus_area: string | null # set only when task spans multiple focus areas
+
+    # ───────────────────────────────────────────────────────────────────────
+    # EXECUTION CONTROL (populated during runtime)
+    # ───────────────────────────────────────────────────────────────────────
+    flags:
+      flaky: boolean
+      retries_used: number
+      requires_design_validation: boolean # true for new UI, major redesigns, style/a11y/token work
     diagnosis:
       root_cause: string
       fix_recommendations: string
@@ -263,33 +269,40 @@ tasks:
       - pass: number
         reason: string
         timestamp: string
-    estimated_effort: small | medium | large
-    estimated_files: number # max 3
-    estimated_lines: number # max 300
-    focus_area: string | null
+
+    # ───────────────────────────────────────────────────────────────────────
+    # QUALITY GATES (verification criteria)
+    # ───────────────────────────────────────────────────────────────────────
     verification: [string]
-    acceptance_criteria: [string]
-    success_criteria: [string] # machine-checkable predicates (e.g., "test_results.failed === 0", "coverage >= 80%")
+    ac: [string]
+    success_criteria: [string] # machine-checkable predicates (e.g., "test_results.failed === 0")
     failure_modes:
       - scenario: string
         likelihood: low | medium | high
         impact: low | medium | high
         mitigation: string
-    # gem-implementer:
+
+    # ───────────────────────────────────────────────────────────────────────
+    # AGENT-SPECIFIC HANDOFFS (populated based on task agent)
+    # ───────────────────────────────────────────────────────────────────────
+
+    # gem-implementer fields:
     tech_stack: [string]
     test_coverage: string | null
-    debugger_diagnosis: object | null # REQUIRED when paired with a debugger task; null otherwise
-    implementation_handoff:
+    diag: object | null # REQUIRED when paired with debugger task; null otherwise
+    handoff:
       do_not_reinvestigate: [string]
       required_test_first: string
       target_files: [string]
       minimal_change: string
       acceptance_checks: [string]
-    # gem-reviewer:
+
+    # gem-reviewer fields:
     requires_review: boolean
     review_depth: full | standard | lightweight | null
     review_security_sensitive: boolean
-    # gem-browser-tester:
+
+    # gem-browser-tester fields:
     validation_matrix:
       - scenario: string
         steps: [string]
@@ -305,11 +318,13 @@ tasks:
     test_data: [...]
     cleanup: boolean
     visual_regression: { ... }
-    # gem-devops:
+
+    # gem-devops fields:
     environment: development | staging | production | null
     requires_approval: boolean
     devops_security_sensitive: boolean
-    # gem-documentation-writer:
+
+    # gem-documentation-writer fields:
     task_type: documentation | update | prd | agents_md | null
     audience: developers | end-users | stakeholders | null
     coverage_matrix: [string]
@@ -320,6 +335,8 @@ tasks:
 <context_envelope_format_guide>
 
 ## Context Envelope Format Guide
+
+Design Principle: Cache-worthy, cross-session reusable context. Pure duplicates of plan.yaml are removed — agents read plan.yaml directly for task registry, implementation spec, validation status, and detailed planning history.
 
 ```jsonc
 {
@@ -372,86 +389,22 @@ tasks:
         },
       ],
     },
-    "quality_metrics": {
-      "test_coverage_overall": "number (0.0-1.0)",
-      "test_coverage_by_component": [{ "component": "string", "coverage": "number (0.0-1.0)" }],
-      "known_test_gaps": ["string"],
-      "cyclomatic_complexity_avg": "number",
-      "code_duplication_percent": "number",
-    },
-    "operations": {
-      "environments": [
-        {
-          "name": "string",
-          "url": "string",
-          "deployment_frequency": "string",
-          "rollback_procedure": "string",
-          "health_check_endpoint": "string",
-        },
-      ],
-      "ci_cd": {
-        "pipeline_path": "string",
-        "approval_required": ["string"],
-        "automated_tests": ["string"],
-      },
-      "monitoring": {
-        "tools": ["string"],
-        "key_metrics": ["string"],
-        "alert_channels": ["string"],
-      },
-    },
-    "data_model": {
-      "core_entities": [
-        {
-          "name": "string",
-          "fields": [{ "name": "string", "type": "string", "constraints": ["string"] }],
-          "relationships": ["string"],
-        },
-      ],
-      "api_contracts": [
-        {
-          "endpoint": "string",
-          "method": "string",
-          "auth": "string",
-          "request_schema": "string",
-          "response_schema": "string",
-          "error_codes": ["number"],
-        },
-      ],
-    },
-    "performance": {
-      "slas": {
-        "api_response_p95_ms": "number",
-        "api_throughput_rps": "number",
-      },
-      "bottlenecks_known": ["string"],
-      "resource_usage": {
-        "memory_per_request_mb": "number",
-        "cpu_per_request_cores": "number",
-      },
-      "scaling": "horizontal | vertical | both",
-      "caching_strategy": "string",
-    },
-    "domain": {
-      "primary_users": [{ "persona": "string", "goals": ["string"] }],
-      "business_concepts": [{ "term": "string", "definition": "string", "owner": "string" }],
-      "compliance": ["string"],
-      "priority_weights": { "string": "string" },
-    },
-    "system_assertions": [
-      {
-        "description": "string",
-        "predicate": "string (machine-checkable expression)",
-        "expected_value": "any",
-        "last_checked": "ISO-8601 string (optional)",
-      },
-    ],
+    // Cache-worthy research summary — enriched after each wave
     "research_digest": {
       "relevant_files": [
         {
           "path": "string",
           "purpose": ["string"],
           "why_relevant": ["string"],
+          "key_elements": [
+            // Cache-worthy: avoids re-parsing
+            {
+              "element": "string",
+              "type": "function | class | variable | pattern",
+              "location": "string — file:line",
+              "description": "string",
+            },
+          ],
           "security_sensitivity": "none | internal | confidential | secret",
           "contains_secrets": "boolean",
           "reliability": "codebase | docs | assumption",
@@ -477,6 +430,24 @@ tasks:
           "confidence": "number (0.0-1.0)",
         },
       ],
+      // Cache-worthy domain context — helps future agents avoid re-research
+      "domain_context": {
+        "security_considerations": [
+          {
+            "area": "string",
+            "location": "string",
+            "concern": "string",
+          },
+        ],
+        "testing_patterns": {
+          "framework": "string",
+          "coverage_areas": ["string"],
+          "test_organization": "string",
+          "mock_patterns": ["string"],
+        },
+        "error_handling": "string",
+        "data_flow": "string",
+      },
       "open_questions": [
         {
           "question": "string",
@@ -507,278 +478,20 @@ tasks:
       "safe_to_assume": ["string"],
       "verify_before_use": ["string"],
     },
-    // NEW: Plan-level execution metadata from plan.yaml
-    "plan_metadata": {
+    // Cache-worthy plan summary — quick context without reading full plan.yaml
+    "plan_summary": {
       "tldr": "string — one-line plan summary",
       "complexity": "simple | medium | complex",
-      "risk_score": "low | medium | high",
-      "wave_1_task_count": "number",
-      "total_dependencies": "number",
-      "prd_update_recommended": "boolean",
-      "prd_update_reason": "string | null",
-      "pre_mortem": {
-        "overall_risk_level": "low | medium | high",
-        "assumptions": ["string"],
-        "critical_failure_modes": [
-          {
-            "scenario": "string",
-            "likelihood": "low | medium | high",
-            "impact": "low | medium | high | critical",
-            "mitigation": "string",
-          },
-        ],
-      },
-      "open_questions": [
-        {
-          "question": "string",
-          "context": "string",
-          "type": "decision_blocker | research | nice_to_know",
-          "affects": ["string"],
-        },
-      ],
-      "gaps": [
-        {
-          "description": "string",
-          "refinement_requests": [
-            {
-              "query": "string",
-              "source_hint": "string",
-            },
-          ],
-        },
-      ],
-      "planning_history": [
-        {
-          "pass": "number",
-          "reason": "string",
-          "timestamp": "ISO-8601 string",
-        },
-      ],
+      "risk_level": "low | medium | high",
+      "key_assumptions": ["string"], // Cache-worthy: helps validate if plan still applies
+      "critical_risks": ["string"], // Cache-worthy: focus areas for future work
     },
-    // NEW: Researcher output — full findings, not just digest
-    "research_findings": {
-      "files_analyzed": [
-        {
-          "file": "string",
-          "path": "string",
-          "purpose": "string",
-          "key_elements": [
-            {
-              "element": "string",
-              "type": "function | class | variable | pattern",
-              "location": "string — file:line",
-              "description": "string",
-              "language": "string",
-            },
-          ],
-          "lines": "number",
-        },
-      ],
-      "related_architecture": {
-        "components_relevant_to_domain": [
-          {
-            "component": "string",
-            "responsibility": "string",
-            "location": "string",
-            "relationship_to_domain": "string",
-          },
-        ],
-        "interfaces_used_by_domain": [
-          {
-            "interface": "string",
-            "location": "string",
-            "usage_pattern": "string",
-          },
-        ],
-        "data_flow_involving_domain": "string",
-        "key_relationships_to_domain": [
-          {
-            "from": "string",
-            "to": "string",
-            "relationship": "imports | calls | inherits | composes",
-          },
-        ],
-      },
-      "related_technology_stack": {
-        "languages_used_in_domain": ["string"],
-        "frameworks_used_in_domain": [
-          {
-            "name": "string",
-            "usage_in_domain": "string",
-          },
-        ],
-        "libraries_used_in_domain": [
-          {
-            "name": "string",
-            "purpose_in_domain": "string",
-          },
-        ],
-        "external_apis_used_in_domain": [
-          {
-            "name": "string",
-            "integration_point": "string",
-          },
-        ],
-      },
-      "related_conventions": {
-        "naming_patterns_in_domain": "string",
-        "structure_of_domain": "string",
-        "error_handling_in_domain": "string",
-        "testing_in_domain": "string",
-        "documentation_in_domain": "string",
-      },
-      "related_dependencies": {
-        "internal": [
-          {
-            "component": "string",
-            "relationship_to_domain": "string",
-            "direction": "inbound | outbound | bidirectional",
-          },
-        ],
-        "external": [
-          {
-            "name": "string",
-            "purpose_for_domain": "string",
-          },
-        ],
-      },
-      "domain_security_considerations": {
-        "sensitive_areas": [
-          {
-            "area": "string",
-            "location": "string",
-            "concern": "string",
-          },
-        ],
-        "authentication_patterns_in_domain": "string",
-        "authorization_patterns_in_domain": "string",
-        "data_validation_in_domain": "string",
-      },
-      "testing_patterns": {
-        "framework": "string",
-        "coverage_areas": ["string"],
-        "test_organization": "string",
-        "mock_patterns": ["string"],
-      },
-      "research_metadata": {
-        "methodology": "string — e.g., semantic_search+grep_search, Context7",
-        "scope": "string",
-        "confidence_level": "high | medium | low",
-        "coverage_percent": "number",
-        "decision_blockers": "number",
-        "research_blockers": "number",
-      },
-    },
-    // NEW: Execution state for future agents
-    "task_registry": {
-      "waves": [
-        {
-          "wave": "number",
-          "agents": ["string"],
-          "task_count": "number",
-          "completed": "number",
-          "failed": "number",
-          "blocked": "number",
-        },
-      ],
-      "tasks": [
-        {
-          "id": "string",
-          "title": "string",
-          "agent": "string",
-          "wave": "number",
-          "priority": "high | medium | low",
-          "status": "pending | in_progress | completed | failed | blocked | needs_revision",
-          "estimated_effort": "small | medium | large",
-          "estimated_files": "number",
-          "estimated_lines": "number",
-          "flags": {
-            "flaky": "boolean",
-            "retries_used": "number",
-          },
-          "conflicts_with": ["string"],
-          "focus_area": "string | null",
-        },
-      ],
-    },
-    // NEW: Trace what was seeded vs discovered
-    "memory_seed_trace": {
-      "seeded_facts": [
-        {
-          "statement": "string",
-          "category": "string",
-          "confidence": "number (0.0-1.0)",
-        },
-      ],
-      "seeded_patterns": [
-        {
-          "name": "string",
-          "description": "string",
-          "confidence": "number (0.0-1.0)",
-        },
-      ],
-      "seeded_gotchas": ["string"],
-      "seeded_failure_modes": [
-        {
-          "scenario": "string",
-          "symptoms": ["string"],
-          "mitigation": "string",
-        },
-      ],
-      "seeded_decisions": [
-        {
-          "decision": "string",
-          "rationale": ["string"],
-        },
-      ],
-      "seeded_conventions": ["string"],
-      "merged_confidence": "number (0.0-1.0)",
-    },
-    // NEW: Implementation specification from plan.yaml
-    "implementation_spec": {
-      "code_structure": "string",
-      "affected_areas": ["string"],
-      "component_details": [
-        {
-          "component": "string",
-          "responsibility": "string",
-          "interfaces": ["string"],
-          "dependencies": [
-            {
-              "component": "string",
-              "relationship": "string",
-            },
-          ],
-          "integration_points": ["string"],
-        },
-      ],
-      "contracts": [
-        {
-          "from_task": "string",
-          "to_task": "string",
-          "interface": "string",
-          "format": "string",
-        },
-      ],
-    },
-    // Ground-truth validation results from Discovery phase
-    "codebase_validation": {
-      "verified_at": "ISO-8601 string",
-      "target_files_exist": {
-        "T01": ["src/config.ts"],
-        "T02": ["src/api/client.ts"],
-      },
-      "dependency_graph_valid": true,
-      "no_circular_deps": true,
-      "wave_assignment_valid": true,
-      "all_contracts_defined": true,
-      "tech_stack_populated": true,
-      "prd_alignment": {
-        "requirements_mapped": ["REQ-001", "REQ-002"],
-        "unmapped_requirements": [],
-        "coverage_percent": 100,
-      },
-    },
+    // REMOVED (read from plan.yaml directly):
+    // - task_registry → docs/plan/{plan_id}/plan.yaml
+    // - implementation_spec → docs/plan/{plan_id}/plan.yaml
+    // - codebase_validation → docs/plan/{plan_id}/plan.yaml
+    // - plan_metadata (detailed) → docs/plan/{plan_id}/plan.yaml
+    // - research_findings (absorbed into research_digest)
   },
 }
 ```
@@ -792,8 +505,8 @@ tasks:
 ### Execution
 
 - Execution priority: native tools → subagents/tasks → scripts → raw CLI.
-- Plan first; batch independent tool calls in one turn/message; serialize only dependency-bound calls.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel-read the full relevant file set.
+- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
+- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
 - Retry transient failures up to 3x.
 - Return JSON output only.
