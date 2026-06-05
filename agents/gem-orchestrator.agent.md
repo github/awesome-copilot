@@ -65,17 +65,9 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
 ### Phase 0: Init & Clarify
 
 - Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
-- Quick Task Type Classification — classify task_type from request keywords:
-  - `bug-fix`: error, stack trace, regression, fix, broken, crash
-  - `feature`: new, add, implement, build, create
-  - `refactor`: simplify, clean up, restructure, extract, rename
-  - `docs`: document, readme, comment, write docs, update docs
-  - `config`: configure, setup, install, config, settings
-  - `typo`: typo, spelling, grammar, rename trivial
-  - `research`: research, investigate, explore, analyze, compare, evaluate, explain, understand
-  - `unknown`: none of the above match
-  - If `unknown`: confidence ≥ 0.85 → default to `feature`; confidence < 0.85 → escalate to user with clarification
-- Complexity Assessment:
+- Read all provided external/error/context refs.
+- Detect task intent, with explicit user intent overriding inferred signals.
+- Complexity Assessment (Quick):
   - LOW: single file/small change, known patterns. Minimal blast radius.
   - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
   - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
@@ -89,12 +81,10 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
 
 Routing matrix:
 
-- new_task + task_type = research → delegate to `gem-researcher` → skip to Phase 4 (research output is final)
 - new_task + MICRO_TRACK → apply change directly → skip to Phase 4
 - new_task + FAST_TRACK → skip to Phase 3 → skip Integration Check → Phase 4
-- new_task → Phase 2
-- continue_plan + feedback → Phase 2 (adjust plan based on feedback)
 - continue_plan + no feedback → Phase 3
+- Any other task → Phase 2
 
 FAST_TRACK Mode:
 
