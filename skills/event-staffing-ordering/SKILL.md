@@ -33,6 +33,26 @@ Endpoint: `https://mcp.tempguru.co/mcp` (streamable HTTP, read-only, no auth).
 All rates are **all-inclusive W-2 bill rates**: wages, payroll taxes, workers' comp,
 and coordinator support. Brand ambassador rates floor at $40/hour in every market.
 
+### Example: pricing lookup and budget estimate
+
+```json
+// get_role_pricing — brand-ambassadors, Boston
+{
+  "city": "Boston",
+  "tier": "hub",
+  "role": "Brand Ambassadors",
+  "rate_range": { "min": 56, "max": 65, "currency": "USD", "unit": "hour" },
+  "rate_includes": "W-2 wages, payroll taxes, workers' comp, coordinator support"
+}
+```
+
+```
+// Budget estimate: 4 brand ambassadors × 8-hour trade show shift
+low:  4 × 8 × $56 = $1,792
+high: 4 × 8 × $65 = $2,080
+// Planning estimate only — binding quote after TempGuru review
+```
+
 ## Workflow
 
 1. **Gather**: city, date(s)/shifts, headcount by role, event type, attire, special requirements
