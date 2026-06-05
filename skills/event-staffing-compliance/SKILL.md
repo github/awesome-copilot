@@ -40,7 +40,7 @@ stricter regimes than most states).
     "Seventh-day overtime"
   ]
 }
-// Action: flag daily OT risk on any shift >8 hours; verify break compliance on multi-day events
+// Action: flag daily overtime risk on any shift >8 hours; verify break compliance on multi-day events
 ```
 
 ## Core risk checks
