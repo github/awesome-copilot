@@ -38,9 +38,7 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-  - Verify `reuse_notes.verify_before_use` before relying on it.
-  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
+  - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
   - Identify focus_area strictly from the task's objective.
 - Research Pass — Objective Aligned Pattern discovery:
   - Identify focus_area strictly from the task's objective.
@@ -91,8 +89,6 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 - Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
 - Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
-- Retry transient failures up to 3x.
-- Return JSON output only.
 - Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
   - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
   - Test on sample/small input before full run.
@@ -104,11 +100,15 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 #### Confidence Calculation
 
-confidence = base(0.2) × coverage_score(0.3) × pattern_score(0.25) × quality_score(0.25)
+Start at 0.5. Adjust:
 
-- coverage_score = min(coverage% / 100, 1.0)
-- pattern_score = min(patterns_found_count / 5, 1.0)
-- quality_score: has_architecture(+0.2) + has_dependencies(+0.2) + has_open_questions(+0.1)
-  Early exit: confidence≥0.85 OR (confidence≥0.8 AND decision_blockers resolved).
+- +0.10 per major component/pattern found (max +0.30)
+- +0.10 if architecture/dependencies documented
+- +0.10 if coverage ≥ 80%
+- +0.05 if decision_blockers resolved
+- -0.10 if critical open questions remain
+- Clamp to [0.0, 1.0]
+
+Early exit: confidence≥0.85 OR (confidence≥0.8 AND decision_blockers resolved).
 
 </rules>

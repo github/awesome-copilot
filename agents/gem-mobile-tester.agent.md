@@ -41,10 +41,8 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Trust `reuse_notes.safe_to_assume` unless source evidence contradicts it.
-  - Verify `reuse_notes.verify_before_use` before relying on it.
-  - Honor `reuse_notes.do_not_re_read` by skipping listed files by default; re-read only for stale/missing context recovery or contradiction checks.
-  - Then detect project (RN/Expo/Flutter) + framework (Detox/Maestro/Appium).
+  - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
+  - Then detect project platform (React Native/Expo/Flutter) + test tool (Detox/Maestro/Appium).
 - Env Verification:
   - iOS — `xcrun simctl list`.
   - Android — `adb devices`. Start if not running.
@@ -142,8 +140,6 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 - Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
 - Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
-- Retry transient failures up to 3x.
-- Return JSON output only.
 - Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
   - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
   - Test on sample/small input before full run.

@@ -64,17 +64,17 @@ IMPORTANT: On receiving user input, immediately announce and execute the followi
 
 ### Phase 0: Init & Clarify
 
-- Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
-- Read all provided external/error/context refs.
-- Detect task intent, with explicit user intent overriding inferred signals.
-- Complexity Assessment (Quick):
-  - LOW: single file/small change, known patterns. Minimal blast radius.
-  - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
-  - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
-- Gray Areas Detection (Optional/ Quick):
-  - Identify ambiguities, missing scope, or decision blockers.
-  - Identify focus_areas from request keywords.
-  - Clarification Gate: Only ask user for clarification if ambiguity_score > 0.5 AND the question is a decision_blocker. For non-blocking gray areas, document assumptions and proceed.
+- Quick Assessment (single pass):
+  - Plan ID — If not provided, generate `YYYYMMDD-kebab-case`. If `plan_id` provided → validate existence of `docs/plan/{plan_id}/plan.yaml` → continue_plan; else → new_task
+  - Read all provided external/error/context refs.
+  - Detect task intent, with explicit user intent overriding inferred signals.
+  - Complexity — Based on scope:
+    - LOW: single file/small change, known patterns. Minimal blast radius.
+    - MEDIUM: multiple files, new patterns, moderate scope. Some blast radius.
+    - HIGH: architectural change, multiple domains, unknown patterns. Significant blast radius.
+  - Gray Areas — Identify ambiguities, missing scope, decision blockers.
+  - Focus Areas — Extract from request keywords.
+  - Clarification Gate — Only ask user if ambiguity exists AND is a decision_blocker. Document assumptions for non-blocking gray areas and proceed.
 - If architectural_decisions found: delegate to `gem-documentation-writer` → create/update `PRD`
 
 ### Phase 1: Route
@@ -91,7 +91,6 @@ FAST_TRACK Mode:
 - Eligibility (all conditions must be true):
   - complexity = LOW
   - task_type in (bug-fix, typo, config, docs)
-  - confidence ≥ 0.85
 - Goal: Skip Phase 2. Create plan. Execute directly using Phase 3.
 - Skipped: reviewer, designer, envelope update, memory persist (FAST_TRACK tasks rarely produce learnings)
 
@@ -100,7 +99,6 @@ MICRO_TRACK Mode:
 - Eligibility (all conditions must be true):
   - complexity = TRIVIAL (single word/phrase change in one file)
   - task_type = typo
-  - confidence ≥ 0.95
   - known file location (no search needed)
 - Goal: Skip Phase 2 and Phase 3 entirely. Edit directly, then output.
 - Applies to: typo fixes in comments/docs, trivial renames in single file, single-line config changes with known value, truth-table toggles.
@@ -120,48 +118,18 @@ MICRO_TRACK Mode:
     - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
     - Complexity=HIGH: delegate to `gem-reviewer(plan)`. Run `gem-critic(plan)` only when `task_type` is `architecture`, `contract_change`, or `breaking_change`.
   - If validation fails: - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments. - Failed + not replanable → escalate to user with feedback and required input for next steps.
-  - Read Context Envelope (canonical cache): After plan validation, read `docs/plan/{plan_id}/context_envelope.json`. All delegation snapshots derive from this copy.
+  - Read Context Envelope (canonical cache): Read `docs/plan/{plan_id}/context_envelope.json`. All delegation snapshots derive from this copy.
 
 ### Phase 3: Execution Loop
 
 Delegate ALL waves/tasks without pausing for approval between them.
 
-- Pre-Wave:
-  - Check memory for known `failure_modes` and `gotchas` of similar tasks → add guards to task definition.
-- Execute Waves:
-  - Get unique waves sorted.
-  - Wave > 1: include contracts from task definitions.
-  - Get pending (deps = completed, status = pending, wave = current).
-  - Filter conflicts_with: same-file tasks serialize.
-  - Delegate to subagents (max 2 concurrent).
-- Integration Check (SKIP for FAST_TRACK):
-  - FAST_TRACK tasks skip this entire section → proceed directly to batch enrichment.
-  - For non-FAST_TRACK:
-    - Delegate to `gem-reviewer(wave scope)` for integration + security scan.
-  - If reviewer fails → `gem-debugger` to diagnose:
-    - If debugger confidence ≥ 0.85 → delegate to `gem-implementer` with diagnosis → re-verify.
-    - If debugger confidence < 0.85 → escalate to user (cannot reliably diagnose).
-  - Designer validation is owned by the planner: `flags.requires_design_validation` is set during planning and is the single source of truth.
-  - Only delegate to `gem-designer` / `gem-designer-mobile` when `flags.requires_design_validation == true`; otherwise skip designer validation and continue.
-  - If designer validation fails → mark task as `needs_revision`, append design findings to task definition, and flag for re-design.
-  - Synthesize statuses (completed / escalate / needs_replan). Persist all to `plan.yaml`.
-- After each wave, batch enrichment updates:
-  - Merge and dedupe wave `learnings` plus `docs/plan/{plan_id}/context_envelope.json`.
-  - Promote recurring signals:
-    - `gotchas` ≥3× across plans → `patterns`
-    - `failure_modes` ≥2× → raise severity
-    - high-impact `patterns` with confidence ≥0.85 → persistence candidates
-  - Update envelope when useful via `gem-documentation-writer` using `task_type: update_context_envelope`.
-  - Persist only reusable, deduped items with confidence ≥0.80: `facts`, `patterns`, `gotchas`, `failure_modes`, `decisions`, `conventions`, etc. Keep low-confidence/one-off items in envelope only.
-  - Update durable docs only on recurrence within the plan:
-    - `conventions` ≥3× → update `AGENTS.md`
-    - `decisions` ≥3× → update PRD
-  - Create skills only for non-trivial `patterns` with confidence ≥0.90 via `gem-skill-creator`.
-- Loop:
-  - After each wave → run Post-Wave Enrichment → immediately next.
-  - Blocked → Escalate.
-  - Present status as per `output_format`.
-  - All done → Phase 4.
+- Wave Execution Block:
+  - Execute: Get waves sorted; include contracts for Wave > 1; get pending tasks (deps=completed, status=pending, wave=current); filter `conflicts_with`; delegate to subagents (max 2 concurrent).
+- Integrate: FAST_TRACK → skip Enrich; else delegate `gem-reviewer(wave scope)` for integration + security; if fails → `gem-debugger`; confidence ≥ 0.85 → delegate `gem-implementer` with diagnosis → re-verify; confidence < 0.85 → escalate; if `flags.requires_design_validation` or prior `needs_revision` → delegate designer; if fails → mark `needs_revision`, append findings, re-delegate for re-design.
+  - Synthesize statuses (completed/escalate/needs_replan). Persist to `plan.yaml`.
+- Enrich: Merge/dedupe `learnings` with envelope; promote signals (`gotchas` ≥3× → `patterns`, `failure_modes` ≥2× → raise severity, patterns confidence ≥0.85 → persistence); delegate `gem-documentation-writer` with `task_type: update_context_envelope`; persist reusable items confidence ≥0.80; update docs on recurrence (`conventions` ≥3× → `AGENTS.md`, `decisions` ≥3× → PRD`); create skills for patterns confidence ≥0.90 via `gem-skill-creator`.
+- Loop: Enrichment complete → next wave; Blocked → Escalate; Present status; All done → Phase 4.
 
 ### Phase 4: Output
 
