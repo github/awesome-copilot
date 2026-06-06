@@ -17,5 +17,19 @@
   "yaml.schemas": {
     "./.schemas/collection.schema.json": "*.collection.yml",
     "./.schemas/tools.schema.json": "website/data/tools.yml",
+  },
+  "chat.mcp.serverSampling": {
+    "awesome-copilot/.vscode/mcp.json: github-agentic-workflows": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilotcli/claude-haiku-4.5",
+        "claude-code/claude-haiku-4.5",
+        "copilotcli/gpt-4.1",
+        "copilot/gpt-5-mini",
+        "copilotcli/gpt-5-mini",
+        "copilot/oswe-vscode-prime"
+      ]
+    }
   }
 }
