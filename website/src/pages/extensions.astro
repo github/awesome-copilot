@@ -1,0 +1,57 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import extensionsData from '../../public/data/extensions.json';
+import ContributeCTA from '../components/ContributeCTA.astro';
+import EmbeddedPageData from '../components/EmbeddedPageData.astro';
+import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
+import { renderExtensionsHtml, sortExtensions } from '../scripts/pages/extensions-render';
+
+const initialItems = sortExtensions(extensionsData.items, 'title');
+---
+
+<StarlightPage frontmatter={{ title: 'Canvas Extensions', description: 'Canvas extensions for GitHub Copilot app experiences', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <div id="main-content" class="extensions-page">
+    <PageHeader title="Canvas Extensions" description="Canvas extensions for GitHub Copilot app experiences" icon="plug" />
+
+    <div class="page-content">
+      <div class="container">
+        <div class="listing-toolbar">
+          <div class="listing-toolbar-row">
+            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} extensions</div>
+            <details class="listing-controls">
+              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort</summary>
+              <div class="listing-controls-panel">
+                <div class="filters-bar" id="filters-bar">
+                  <div class="filter-group">
+                    <label for="sort-select">Sort:</label>
+                    <select id="sort-select" aria-label="Sort extensions">
+                      <option value="title">Name (A-Z)</option>
+                      <option value="lastUpdated">Recently Updated</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+        <div class="resource-list" id="resource-list" role="list" set:html={renderExtensionsHtml(initialItems)}></div>
+        <ContributeCTA resourceType="extensions" />
+      </div>
+    </div>
+  </div>
+
+  <BackToTop />
+  <EmbeddedPageData filename="extensions.json" data={extensionsData} />
+
+  <script>
+    import '../scripts/listing-flyouts';
+    import '../scripts/pages/extensions';
+  </script>
+
+  <style>
+    .extensions-page .resource-preview {
+      cursor: default;
+    }
+  </style>
+</StarlightPage>
