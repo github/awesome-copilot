@@ -1,7 +1,7 @@
 ---
 description: "Codebase exploration — patterns, dependencies, architecture discovery."
 name: gem-researcher
-argument-hint: "Objective, focus_area (optional)"
+argument-hint: "Enter plan_id, objective, focus_area (optional), and context_envelope_snapshot."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -46,8 +46,8 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - Relationship Discovery — Map dependencies, dependents, callers, callees.
   - Calculate confidence.
 - Early Exit:
-  - If confidence ≥ 0.85 → skip relationships + detailed → Synthesize Phase.
-  - If decision_blockers resolved AND confidence ≥ 0.8 → early exit.
+  - If confidence ≥ 0.70 → skip relationships + detailed → Synthesize Phase.
+  - If decision_blockers resolved AND confidence ≥ 0.60 AND no critical open questions → early exit.
   - Else → continue.
 - Output:
   - Return JSON per Output Format.
@@ -63,10 +63,10 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
-  "task_id": "string | null",
+  "task_id": "string",
   "plan_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "conf": 0.0-1.0,
+  "confidence": 0.0-1.0,
   "complexity": "simple | medium | complex",
   "tldr": "string — dense bullet summary",
   "coverage_percent": "number (0-100)",
@@ -109,6 +109,6 @@ Start at 0.5. Adjust:
 - -0.10 if critical open questions remain
 - Clamp to [0.0, 1.0]
 
-Early exit: confidence≥0.85 OR (confidence≥0.8 AND decision_blockers resolved).
+Early exit: confidence≥0.70 OR (confidence≥0.60 AND decision_blockers resolved AND no critical open questions).
 
 </rules>

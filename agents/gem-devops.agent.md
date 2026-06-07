@@ -129,10 +129,10 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ```json
 {
-  "status": "completed | failed | in_progress | needs_revision | needs_approval",
+  "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "conf": 0.0-1.0,
+  "confidence": 0.0-1.0,
   "environment": "development | staging | production",
   "approval_needed": "boolean",
   "approval_reason": "string",

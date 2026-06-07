@@ -1,7 +1,7 @@
 ---
 description: "Technical documentation, README files, API docs, diagrams, walkthroughs."
 name: gem-documentation-writer
-argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|update|prd|agents_md), audience, coverage_matrix."
+argument-hint: "Enter task_id, plan_id, plan_path, task_definition with task_type (documentation|update|prd|agents_md|update_context_envelope), audience, coverage_matrix."
 disable-model-invocation: false
 user-invocable: false
 mode: subagent
@@ -87,7 +87,7 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "conf": 0.0-1.0,
+  "confidence": 0.0-1.0,
   "created": "number",
   "updated": "number",
   "envelope_version": "number",

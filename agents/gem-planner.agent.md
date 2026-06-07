@@ -134,7 +134,7 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 {
   "status": "completed | failed | in_progress | needs_revision",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "conf": 0.0-1.0,
+  "confidence": 0.0-1.0,
   "plan_id": "string",
   "complexity": "simple | medium | complex",
   "task_count": "number",
@@ -175,7 +175,7 @@ quality_score:
   breakdown:
     prd_coverage: number (0.0-1.0)
     target_files_verified: number (0.0-1.0)
-    contracts_complete: number (0.0-1.0)
+    contracts_complete: number (0.0-1.0) # N/A for LOW/MEDIUM complexity
     wave_assignment_valid: number (0.0-1.0)
   blocking_issues: number
   warnings: number
@@ -256,8 +256,9 @@ tasks:
       flaky: boolean
       retries_used: number
       requires_design_validation: boolean # true for new UI, major redesigns, style/a11y/token work
-    diagnosis:
-      root_cause: string
+debugger_diagnosis:
+  root_cause: string
+  target_files: [string]
       fix_recommendations: string
       injected_at: string
     planning_pass: number
@@ -269,9 +270,8 @@ tasks:
     # ───────────────────────────────────────────────────────────────────────
     # QUALITY GATES (verification criteria)
     # ───────────────────────────────────────────────────────────────────────
-    verification: [string]
-    ac: [string]
-    success_criteria: [string] # machine-checkable predicates (e.g., "test_results.failed === 0")
+        acceptance_criteria: [string]
+    success_criteria: [string] # unified verification: human steps + machine-checkable predicates (e.g., "test_results.failed === 0")
     failure_modes:
       - scenario: string
         likelihood: low | medium | high
@@ -524,7 +524,7 @@ Run these checks BEFORE saving plan.yaml. Fix all failures inline.
   - Valid YAML, required fields, unique task IDs, valid status values
   - Concise, dense, complete, focused on implementation, avoids fluff/verbosity
 - DAG: No circular deps, all dep IDs exist, no_deps → wave_1
-- Contracts: Valid from_task/to_task IDs, interfaces defined (required for ALL complexity)
+- Contracts: Valid from_task/to_task IDs, interfaces defined (required for HIGH complexity)
 - Tasks: Valid agent assignments, failure_modes for high/medium tasks, verification present, success_criteria defined when needed
   - Every debugger task has a paired implementer task (wave N+1 or later)
   - If acceptance_criteria mentions tests → target_files must include test file paths

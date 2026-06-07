@@ -59,7 +59,7 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - Report missing test files as non-critical findings.
   - PRD alignment, valid agents.
   - Tech stack: context_envelope.tech_stack exists and is non-empty.
-  - Contracts: Every dependency edge must have a contract.
+  - Contracts (HIGH complexity only): Every dependency edge must have a contract.
   - Diagnose-then-fix: every debugger task has a paired implementer task in a later wave.
 - Status:
   - Critical → failed.
@@ -103,12 +103,12 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "conf": 0.0-1.0,
+  "confidence": 0.0-1.0,
   "scope": "plan | wave",
   "critical_findings": ["SEVERITY file:line — issue"],
   "files_reviewed": "number",
-  "ac_met": "number",
-  "ac_missing": "number",
+  "acceptance_criteria_met": "number",
+  "acceptance_criteria_missing": "number",
   "prd_score": "number (0-100)",
   "learn": ["string — max 5"]
 }
