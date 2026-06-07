@@ -121,7 +121,7 @@ Export SVGs/icons from Figma, then optimize them (e.g. SVGO) before committing â
 
 ```bash
 # Flag raw hex / rgb / px / 3-digit font-weight literals in added lines.
-git diff --unified=0 | grep -nE '^\+' \
+git diff --unified=0 | grep -nE '^\+[^+]' \
   | grep -iE '#[0-9a-f]{3,8}\b|rgba?\(|[^a-z-][0-9]+px|font-weight:\s*[0-9]{3}' \
   && echo "raw values found â€” map them to tokens" || echo "clean"
 ```

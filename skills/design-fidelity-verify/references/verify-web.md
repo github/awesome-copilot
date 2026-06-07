@@ -1,4 +1,4 @@
-# Verify backend — Web
+# Verify UI — Web
 
 The web mechanics for steps **B2 (capture)** and **B5 (numeric pass)** of the verify loop. The loop itself lives in `../SKILL.md`.
 
@@ -54,6 +54,7 @@ Then for each spec-table row:
 - **Spacing / radius / font-size:** compare the `px` numbers directly to the spec.
 - **Gap:** read `gap` (or `rowGap`/`columnGap`) on the flex/grid *container*, not the children.
 - **Sizing / placement:** use `getBoundingClientRect()` width/height and x/y.
+- **Tolerance:** `getBoundingClientRect()` returns *fractional* pixels (zoom / devicePixelRatio / sub-pixel layout), so a literal `123.5 === 124` check produces noisy FAILs. Compare box/position values with a small tolerance — round to the nearest px, or allow ±1px — rather than exact equality. Apply the same rounding to spacing/gap deltas.
 - **Token check (bonus):** if your app exposes CSS custom properties, read `getComputedStyle(document.documentElement).getPropertyValue('--primary-500')` and confirm the element actually resolved to the *token*, not a hardcoded literal.
 
 ## Graceful degradation

@@ -1,4 +1,4 @@
-# Verify backend — Mobile (iOS / Android)
+# Verify UI — Mobile (iOS / Android)
 
 The mobile mechanics for steps **B2 (capture)** and **B5 (numeric pass)** of the verify loop. The loop itself lives in `../SKILL.md`.
 

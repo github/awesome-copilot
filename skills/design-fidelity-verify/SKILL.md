@@ -13,7 +13,7 @@ compatibility: Portable markdown body usable in any MCP-capable agent. Native sk
 
 ## Upstream: the spec table
 
-This skill **consumes the design-spec table produced by [`figma-design-extract`](../figma-design-extract/SKILL.md)** — rows of `element | property | exact value | repo token | source component`. If you don't have one yet, run that skill first. The spec is your pass/fail checklist; without it you're back to eyeballing.
+This skill **consumes the design-spec table produced by [`figma-design-extract`](https://github.com/jeltehomminga/figma-design-skills/blob/main/skills/figma-design-extract/SKILL.md)** — rows of `element | property | exact value | repo token | source component`. If you don't have one yet, run that skill first. The spec is your pass/fail checklist; without it you're back to eyeballing.
 
 ## Why this exists (two failure modes)
 
@@ -26,7 +26,7 @@ Trigger phrases: "verify the design", "is this pixel-perfect", "check against Fi
 
 ---
 
-## Pick your backend (then load the matching reference)
+## Pick your platform (then load the matching reference)
 
 The loop below is **identical for web and mobile**. Only two steps differ — how you capture full-res, and how you read rendered values. **Read the one reference file for your platform before the numeric pass (B5)**; ignore the other.
 
