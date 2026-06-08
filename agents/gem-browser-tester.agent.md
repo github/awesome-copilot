@@ -43,6 +43,11 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
   - Parse task_definition inline: identify validation_matrix/flows, scenarios, steps, expectations, and evidence needs.
+  - Apply config settings — Read `config_snapshot` for:
+    - `quality.visual_regression_enabled` → enable/disable screenshot comparison
+    - `quality.visual_diff_threshold` → set diff sensitivity
+    - `quality.a11y_audit_level` → determine audit depth (none/basic/full)
+    - `testing.screenshot_on_failure` → capture evidence on failures
 - Setup — Create fixtures per task_definition.fixtures.
 - Execute — For each scenario:
   - Open — Navigate to target page.

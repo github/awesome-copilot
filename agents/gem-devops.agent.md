@@ -43,6 +43,10 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
+  - Apply config settings — Read `config_snapshot` for:
+    - `devops.approval_required_for` → check if current env requires approval
+    - `devops.deployment_strategy` → default strategy (rolling/blue_green/canary)
+    - `devops.auto_rollback_on_failure` → whether to auto-revert on failure
 - Preflight:
   - Verify env: docker, kubectl, permissions, resources.
 - Approval Gate:

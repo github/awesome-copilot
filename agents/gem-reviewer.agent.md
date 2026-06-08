@@ -44,6 +44,8 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
   - Then parse review_scope: plan|wave.
   - Use quality_score.reviewer_focus to prioritize scrutiny on weak areas.
+  - Apply config settings — Read `config_snapshot` for:
+    - `quality.a11y_audit_level` → determine accessibility scan depth (none/basic/full)
 
 ### Plan Review
 

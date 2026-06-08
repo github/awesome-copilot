@@ -15,18 +15,19 @@
 <p align="center">
   <img src="https://img.shields.io/badge/APM-mubaidr/gem--team-blue?style=flat-square" alt="APM">
   <img src="https://img.shields.io/github/v/release/mubaidr/gem-team?style=flat-square&color=important" alt="Version">
+  <img src="https://img.shields.io/github/actions/workflow/status/mubaidr/gem-team/Release.yml?style=flat-square" alt="CI">
   <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome">
   <img src="https://img.shields.io/badge/Maintained%3F-yes-green?style=flat-square" alt="Maintained">
 </p>
 
-Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.
+> Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.
 
-> **TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
+**TLDR:** Gem Team is a multi-agent framework that orchestrates LLM agents for software development tasks. It emphasizes spec-driven workflows with persistent learnings, built-in verification loops, knowledge-driven execution, and token efficiency.
 
-> **Recommended Models:** Use a cost-efficient fast model as the default, and a stronger reasoning model for planner/debugger/critical review agents, e.g. `default=mimoi-2.5/deepseek-v4-flash`, `planner,debugger,critic/reviewer=mimoi-2.5-pro/deepseek-v4-pro`. This gives you **80-90%** cost savings without sacrificing quality on complex tasks.
+This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows. Crafted from years of personal experience
 
-> **Crafted from years of personal experience** — This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows.
+**Tip:** Customize gem-team behavior by creating a `.gem-team.yaml` file. See [Configuration](#configuration) for available settings.
 
 ## 🚀 Quick Start
 
@@ -46,8 +47,9 @@ See [all supported installation options](#installation) below.
 - [🎯 Why Gem Team?](#why-gem-team)
 - [🧠 Core Concepts](#core-concepts)
 - [🏗️ Architecture](#architecture)
-- [� The Agent Team](#the-agent-team)
+- [👥 The Agent Team](#the-agent-team)
 - [📦 Installation](#installation)
+- [⚙️ Configuration](#configuration)
 - [🤝 Contributing](#contributing)
 
 ---
@@ -183,6 +185,17 @@ Phase 5: Output
 
 ## 👥 The Agent Team
 
+### Recommended Models
+
+Use a **cost-efficient fast model** as the default, and a **stronger reasoning model** for agents that do complex planning, debugging, or critical review:
+
+| Role                                   | Example Model                   | Why                                                                                        |
+| :------------------------------------- | :------------------------------ | :----------------------------------------------------------------------------------------- |
+| **Default** (most agents)              | `mimoi-2.5/deepseek-v4-flash`   | Handles routine tasks at low cost and high speed                                           |
+| **Planner, Debugger, Critic/Reviewer** | `mimoi-2.5-pro/deepseek-v4-pro` | Stronger reasoning for complex analysis, root-cause diagnosis, and compliance verification |
+
+This mix typically yields **80–90% cost savings** without sacrificing quality on complex tasks.
+
 ### Core Agents
 
 | Agent            | Description                                                                      | Sources                               |
@@ -194,13 +207,13 @@ Phase 5: Output
 
 ### Quality & Review
 
-| Role                | Description                                                                      | Sources                          |
-| :------------------ | :------------------------------------------------------------------------------- | :------------------------------- |
-| **REVIEWER**        | **Zero- Hallucination Filter** — Security auditing, code review, OWASP scanning  | PRD, codebase, AGENTS.md, OWASP  |
-| **CRITIC**          | Challenges assumptions, finds edge cases, spots over- engineering and logic gaps | PRD, codebase, AGENTS.md         |
-| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection                 | codebase, AGENTS.md, git history |
-| **BROWSER TESTER**  | E2E browser testing, UI/UX validation, visual regression                         | PRD, AGENTS.md, fixtures         |
-| **CODE SIMPLIFIER** | Refactoring specialist — removes dead code, reduces complexity                   | codebase, AGENTS.md, tests       |
+| Role                | Description                                                      | Sources                          |
+| :------------------ | :--------------------------------------------------------------- | :------------------------------- |
+| **REVIEWER**        | Security auditing, code review, OWASP scanning                   | PRD, codebase, AGENTS.md, OWASP  |
+| **CRITIC**          | Challenges assumptions, finds edge cases, spots over-engineering | PRD, codebase, AGENTS.md         |
+| **DEBUGGER**        | Root-cause analysis, stack trace diagnosis, regression bisection | codebase, AGENTS.md, git history |
+| **BROWSER TESTER**  | E2E browser testing, UI/UX validation, visual regression         | PRD, AGENTS.md, fixtures         |
+| **CODE SIMPLIFIER** | Refactoring specialist — removes dead code, reduces complexity   | codebase, AGENTS.md, tests       |
 
 ### Skill Management
 
@@ -391,6 +404,52 @@ apm view gem-team
 copilot plugin list          # GitHub Copilot CLI
 /plugin list                 # Claude Code
 ```
+
+## ⚙️ Configuration
+
+gem-team can be configured via a `.gem-team.yaml` file in your project root. This file controls orchestrator behavior, planning settings, quality thresholds, devops rules, and testing preferences.
+
+### Available Settings
+
+#### Orchestrator Behavior
+
+| Setting                                     | Type   | Default | Description                                     |
+| ------------------------------------------- | ------ | ------- | ----------------------------------------------- |
+| `orchestrator.max_concurrent_agents`        | number | 2       | Maximum parallel agent executions               |
+| `orchestrator.default_complexity_threshold` | enum   | auto    | Force complexity (auto/TRIVIAL/LOW/MEDIUM/HIGH) |
+
+#### Planning & Workflow
+
+| Setting                      | Type   | Default | Description                                |
+| ---------------------------- | ------ | ------- | ------------------------------------------ |
+| `planning.enable_critic_for` | enum[] | [HIGH]  | Run gem-critic for these complexity levels |
+
+#### Quality & Verification
+
+| Setting                             | Type    | Default | Description                                 |
+| ----------------------------------- | ------- | ------- | ------------------------------------------- |
+| `quality.visual_regression_enabled` | boolean | true    | Enable screenshot comparison tests          |
+| `quality.visual_diff_threshold`     | number  | 0.95    | Screenshot diff threshold (0.0-1.0)         |
+| `quality.a11y_audit_level`          | enum    | basic   | Accessibility audit depth (none/basic/full) |
+
+#### DevOps & Deployment
+
+| Setting                           | Type    | Default      | Description                              |
+| --------------------------------- | ------- | ------------ | ---------------------------------------- |
+| `devops.approval_required_for`    | enum[]  | [production] | Environments requiring explicit approval |
+| `devops.auto_rollback_on_failure` | boolean | false        | Auto-rollback on deployment failure      |
+
+#### Testing
+
+| Setting                         | Type    | Default | Description                          |
+| ------------------------------- | ------- | ------- | ------------------------------------ |
+| `testing.screenshot_on_failure` | boolean | true    | Capture screenshots on test failures |
+
+### Default Settings File
+
+A fully commented default settings file is available at [`.gem-team.yaml`](.gem-team.yaml) in the project root.
+
+---
 
 ## 🤝 Contributing
 

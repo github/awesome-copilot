@@ -62,6 +62,9 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
   - Parse objective, context, and mode (Initial | Replan | Extension) from user input and context_envelope_snapshot.
+  - Apply config settings — Read `config_snapshot` for:
+    - `planning.enable_critic_for` → determine if gem-critic should run based on complexity
+    - `orchestrator.default_complexity_threshold` → override complexity classification if set
 - Discovery (OBJECTIVE-ALIGNED — no random exploration):
   - Identify focus_areas strictly from objective and context.
   - All searches MUST target focus_areas; no exploratory/off-target searching.
