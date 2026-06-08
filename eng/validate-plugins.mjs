@@ -77,10 +77,15 @@ function sortPluginEntries(entries) {
   return [...entries].sort((left, right) => left.localeCompare(right));
 }
 
+function hasOnlyStringEntries(entries) {
+  return entries.every((entry) => typeof entry === "string");
+}
+
 function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
     agents: { prefix: "./agents/", suffix: ".md", repoDir: "agents", repoSuffix: ".agent.md" },
+    commands: { prefix: "./commands/", suffix: ".md", repoDir: "commands", repoSuffix: ".md" },
     skills: { prefix: "./skills/", suffix: "/", repoDir: "skills", repoFile: "SKILL.md" },
   };
 
@@ -91,7 +96,7 @@ function validateSpecPaths(plugin) {
       errors.push(`${field} must be an array`);
       continue;
     }
-    if (!arraysEqual(arr, sortPluginEntries(arr))) {
+    if (hasOnlyStringEntries(arr) && !arraysEqual(arr, sortPluginEntries(arr))) {
       errors.push(`${field} must be sorted alphabetically`);
     }
     for (let i = 0; i < arr.length; i++) {
