@@ -27,7 +27,7 @@
 
 This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows. Crafted from years of personal experience
 
-**Tip:** Customize gem-team behavior by creating a `.gem-team.yaml` file. See [Configuration](#configuration) for available settings.
+**Tip:** Customize gem-team behavior by creating a `.gem-team.yaml` file. See [Configuration](#-configuration) for available settings.
 
 ## 🚀 Quick Start
 
@@ -37,20 +37,22 @@ apm install -g mubaidr/gem-team
 
 APM auto-detects your tools and deploys gem-team agents everywhere — VS Code, Claude Code, Cursor, OpenCode, Codex CLI, Gemini CLI, Windsurf, and GitHub Copilot CLI. See the [compatible tools table](#compatible-tools) for details.
 
-See [all supported installation options](#installation) below.
+See [all supported installation options](#-installation) below.
 
 ---
 
 ## 📚 Contents
 
-- [🚀 Quick Start](#quick-start)
-- [🎯 Why Gem Team?](#why-gem-team)
-- [🧠 Core Concepts](#core-concepts)
-- [🏗️ Architecture](#architecture)
-- [👥 The Agent Team](#the-agent-team)
-- [📦 Installation](#installation)
-- [⚙️ Configuration](#configuration)
-- [🤝 Contributing](#contributing)
+- [🚀 Quick Start](#-quick-start)
+- [🎯 Why Gem Team?](#-why-gem-team)
+- [🧠 Core Concepts](#-core-concepts)
+- [🏗️ Architecture](#-architecture)
+- [👥 The Agent Team](#-the-agent-team)
+- [📦 Installation](#-installation)
+- [⚙️ Configuration](#-configuration)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [💬 Support](#-support)
 
 ---
 
@@ -194,7 +196,7 @@ Use a **cost-efficient fast model** as the default, and a **stronger reasoning m
 | **Default** (most agents)              | `mimoi-2.5/deepseek-v4-flash`   | Handles routine tasks at low cost and high speed                                           |
 | **Planner, Debugger, Critic/Reviewer** | `mimoi-2.5-pro/deepseek-v4-pro` | Stronger reasoning for complex analysis, root-cause diagnosis, and compliance verification |
 
-This mix typically yields **80–90% cost savings** without sacrificing quality on complex tasks.
+This mix typically yields **80-90% cost savings** without sacrificing quality on complex tasks.
 
 ### Core Agents
 
