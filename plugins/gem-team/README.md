@@ -27,7 +27,7 @@
 
 This framework is shaped by real-world usage patterns, battle-tested and refined through countless hours of hands-on development workflows. Crafted from years of personal experience
 
-**Tip:** Customize gem-team behavior by creating a `.gem-team.yaml` file. See [Configuration](#-configuration) for available settings.
+**Tip:** Customize gem-team behavior by creating a `.gem-team.yaml` file. See [Configuration](#configuration) for available settings.
 
 ## 🚀 Quick Start
 
@@ -37,26 +37,26 @@ apm install -g mubaidr/gem-team
 
 APM auto-detects your tools and deploys gem-team agents everywhere — VS Code, Claude Code, Cursor, OpenCode, Codex CLI, Gemini CLI, Windsurf, and GitHub Copilot CLI. See the [compatible tools table](#compatible-tools) for details.
 
-See [all supported installation options](#-installation) below.
+See [all supported installation options](#installation) below.
 
 ---
 
 ## 📚 Contents
 
-- [🚀 Quick Start](#-quick-start)
-- [🎯 Why Gem Team?](#-why-gem-team)
-- [🧠 Core Concepts](#-core-concepts)
-- [🏗️ Architecture](#-architecture)
-- [👥 The Agent Team](#-the-agent-team)
-- [📦 Installation](#-installation)
-- [⚙️ Configuration](#-configuration)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [💬 Support](#-support)
+- [🚀 Quick Start](#quick-start)
+- [🎯 Why Gem Team?](#why-gem-team)
+- [🧠 Core Concepts](#core-concepts)
+- [🏗️ Architecture](#architecture)
+- [👥 The Agent Team](#the-agent-team)
+- [📦 Installation](#installation)
+- [⚙️ Configuration](#configuration)
+- [🤝 Contributing](#contributing)
+- [📄 License](#license)
+- [💬 Support](#support)
 
 ---
 
-## 🎯 Why Gem Team?
+## Why Gem Team?
 
 ### Performance
 
@@ -112,7 +112,7 @@ Optimized for reduced LLM token consumption without quality loss:
 
 ---
 
-## 🧠 Core Concepts
+## Core Concepts
 
 ### The "System-IQ" Multiplier
 
@@ -132,7 +132,7 @@ Raw reasoning isn't enough in single-pass chat. Gem-Team wraps your preferred LL
 
 Agents build these knowledge layers over time while working with you, capturing patterns, decisions, and learnings that improve future execution.
 
-## 🏗️ Architecture
+## Architecture
 
 ```text
 User Goal
@@ -185,7 +185,7 @@ Phase 5: Output
 
 ---
 
-## 👥 The Agent Team
+## The Agent Team
 
 ### Recommended Models
 
@@ -236,7 +236,7 @@ This mix typically yields **80-90% cost savings** without sacrificing quality on
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Install APM First
 
@@ -407,7 +407,7 @@ copilot plugin list          # GitHub Copilot CLI
 /plugin list                 # Claude Code
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 gem-team can be configured via a `.gem-team.yaml` file in your project root. This file controls orchestrator behavior, planning settings, quality thresholds, devops rules, and testing preferences.
 
@@ -453,14 +453,14 @@ A fully commented default settings file is available at [`.gem-team.yaml`](.gem-
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. [CONTRIBUTING](./CONTRIBUTING.md) for detailed guidelines on commit message formatting, branching strategy, and code standards.
 
-## 📄 License
+## License
 
 This project is licensed under the Apache License 2.0.
 
-## 💬 Support
+## Support
 
 If you encounter any issues or have questions, please [open an issue](https://github.com/mubaidr/gem-team/issues) on GitHub.
