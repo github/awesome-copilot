@@ -1,0 +1,34 @@
+# skillcheck configuration for the awesome-copilot skill collection.
+# https://github.com/moonrunnerkc/skillcheck
+#
+# Why `references.broken-link` is ignored
+# ---------------------------------------
+# Our SKILL.md files routinely document paths that are NOT files bundled next
+# to the skill, and that a static reference checker cannot tell apart from a
+# real broken link:
+#   * target-repo conventions the skill operates on, e.g.
+#       .github/copilot-instructions.md, .github/instructions/*.instructions.md
+#   * files the skill GENERATES at run time, e.g.
+#       reports/index.html, ./run/data/report-data.json
+#   * illustrative example paths, e.g.
+#       infrastructure/bicep/modules/app-service.bicep, docs/sprint-N/plan.md
+# These are legitimate documentation, so we silence the broken-link rule rather
+# than mangle the prose. The upstream over-flagging of npm specifiers, MIME
+# types, CIDR suffixes, globs, and absolute/home paths is fixed in the checker
+# itself (rules/references.py::_is_probable_file_ref), so this only covers the
+# irreducibly ambiguous, extension-bearing relative paths above.
+#
+# `references.escape` is deliberately LEFT ON: it is a security check
+# (path traversal / symlink escape, CWE-59) and produces no false positives
+# against this collection.
+ignore = ["references.broken-link"]
+
+# Why dirname checking is skipped
+# -------------------------------
+# The source of truth lives under skills/ where related skills are organised
+# into nested folders (e.g. skills/qdrant-monitoring/debugging/SKILL.md), while
+# each skill's `name` is the flattened, canonical identifier it ships under
+# after CI materialises it (qdrant-monitoring-debugging). The directory name
+# therefore equals `name` only in the materialised plugins/*/skills/ tree, not
+# in the nested source tree, so the dirname check does not apply pre-build.
+skip-dirname-check = true
