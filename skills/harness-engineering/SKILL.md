@@ -68,6 +68,15 @@ Then summarize:
 
 ## Adoption Workflow
 
+Follow this sequence:
+
+1. Choose the harness surface that fits the target repository.
+2. Write target-specific agent instructions.
+3. Add enforceable checks for high-value rules.
+4. Record failure memory for high-risk or recurring failures.
+5. Add drift checks for guidance that can silently become stale.
+6. Report the adoption with evidence, assumptions, and follow-up.
+
 ### 1. Choose the Harness Surface
 
 Pick only the surfaces that fit the target repository:
