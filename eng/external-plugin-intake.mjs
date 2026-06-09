@@ -141,31 +141,94 @@ function toSubmissionError(message) {
   return message.replace(/^external\.json\[0\]:\s*/, "submission: ");
 }
 
+function isGitHubRateLimitResponse(response, data) {
+  if (response.status === 429 || response.status === 503) {
+    return true;
+  }
+
+  if (response.status !== 403) {
+    return false;
+  }
+
+  const message = String(data?.message ?? "").toLowerCase();
+  return (
+    response.headers.get("retry-after") !== null ||
+    response.headers.get("x-ratelimit-remaining") === "0" ||
+    message.includes("rate limit") ||
+    message.includes("secondary rate limit")
+  );
+}
+
+function getGitHubApiErrorReason(response, data) {
+  const message = String(data?.message ?? "").toLowerCase();
+
+  if (response.status === 429) {
+    return "rate limited";
+  }
+
+  if (response.status === 503) {
+    if (message.includes("secondary rate limit")) {
+      return "secondary rate limited";
+    }
+    return "service unavailable";
+  }
+
+  if (response.status === 403 && isGitHubRateLimitResponse(response, data)) {
+    if (message.includes("secondary rate limit")) {
+      return "secondary rate limited";
+    }
+    return "rate limited";
+  }
+
+  if (response.status === 0) {
+    return "network error";
+  }
+
+  return response.statusText || `HTTP ${response.status}`;
+}
+
 async function fetchGitHubJson(apiPath, token) {
-  const response = await fetch(`https://api.github.com${apiPath}`, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "User-Agent": "awesome-copilot-external-plugin-intake",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  if (response.status === 404) {
-    return { ok: false, status: 404, data: null };
-  }
-
-  let data = null;
   try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
+    const response = await fetch(`https://api.github.com${apiPath}`, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "awesome-copilot-external-plugin-intake",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
 
-  return {
-    ok: response.ok,
-    status: response.status,
-    data,
-  };
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
+    if (response.ok) {
+      return { kind: "found", ok: true, status: response.status, data };
+    }
+
+    if (response.status === 404) {
+      return { kind: "notFound", ok: false, status: 404, data: null };
+    }
+
+    return {
+      kind: "apiError",
+      ok: false,
+      status: response.status,
+      data,
+      reason: getGitHubApiErrorReason(response, data),
+    };
+  } catch (error) {
+    return {
+      kind: "apiError",
+      ok: false,
+      status: 0,
+      data: null,
+      reason: "network error",
+      error,
+    };
+  }
 }
 
 function encodeRepoPath(repo) {
@@ -177,12 +240,16 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   const encodedRepo = encodeRepoPath(repo);
   const repositoryResponse = await fetchGitHubJson(`/repos/${encodedRepo}`, token);
 
-  if (!repositoryResponse.ok) {
-    if (repositoryResponse.status === 404) {
-      errors.push(`submission: GitHub repository "${repo}" was not found`);
-    } else {
-      errors.push(`submission: could not inspect GitHub repository "${repo}" (HTTP ${repositoryResponse.status})`);
-    }
+  if (repositoryResponse.kind === "notFound") {
+    errors.push(`submission: GitHub repository "${repo}" was not found`);
+    return;
+  }
+
+  if (repositoryResponse.kind === "apiError") {
+    const statusText = repositoryResponse.status ? `HTTP ${repositoryResponse.status}` : "network error";
+    warnings.push(
+      `submission: could not verify GitHub repository "${repo}" (${statusText}${repositoryResponse.reason ? ` — ${repositoryResponse.reason}` : ""}); a maintainer should re-run intake`,
+    );
     return;
   }
 
@@ -196,9 +263,14 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
 
   if (sha) {
     if (/^[0-9a-f]{40}$/i.test(sha)) {
-      const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(sha)}`, token);
-      if (!commitResponse.ok) {
+      const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/commits/${encodeURIComponent(sha)}`, token);
+      if (commitResponse.kind === "notFound") {
         errors.push(`submission: commit "${sha}" was not found in GitHub repository "${repo}"`);
+      } else if (commitResponse.kind === "apiError") {
+        const statusText = commitResponse.status ? `HTTP ${commitResponse.status}` : "network error";
+        warnings.push(
+          `submission: could not verify commit "${sha}" in GitHub repository "${repo}" (${statusText}${commitResponse.reason ? ` — ${commitResponse.reason}` : ""}); a maintainer should re-run intake`,
+        );
       }
     }
   }
@@ -208,9 +280,14 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   }
 
   if (/^[0-9a-f]{40}$/i.test(ref)) {
-    const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/commits/${encodeURIComponent(ref)}`, token);
-    if (!commitResponse.ok) {
+    const commitResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/commits/${encodeURIComponent(ref)}`, token);
+    if (commitResponse.kind === "notFound") {
       errors.push(`submission: commit "${ref}" was not found in GitHub repository "${repo}"`);
+    } else if (commitResponse.kind === "apiError") {
+      const statusText = commitResponse.status ? `HTTP ${commitResponse.status}` : "network error";
+      warnings.push(
+        `submission: could not verify commit "${ref}" in GitHub repository "${repo}" (${statusText}${commitResponse.reason ? ` — ${commitResponse.reason}` : ""}); a maintainer should re-run intake`,
+      );
     }
     return;
   }
@@ -226,7 +303,7 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
   const tagName = ref.startsWith("refs/tags/") ? ref.slice("refs/tags/".length) : ref;
   const tagResponse = await fetchGitHubJson(`/repos/${encodedRepo}/git/ref/tags/${encodeURIComponent(tagName)}`, token);
 
-  if (tagResponse.ok) {
+  if (tagResponse.kind === "found") {
     return;
   }
 
@@ -235,8 +312,13 @@ async function validateRemoteRepository(repo, { ref, sha }, errors, warnings, to
     return;
   }
 
-  if (!tagResponse.ok) {
+  if (tagResponse.kind === "notFound") {
     errors.push(`submission: tag "${ref}" was not found in GitHub repository "${repo}"`);
+  } else if (tagResponse.kind === "apiError") {
+    const statusText = tagResponse.status ? `HTTP ${tagResponse.status}` : "network error";
+    warnings.push(
+      `submission: could not verify tag "${ref}" in GitHub repository "${repo}" (${statusText}${tagResponse.reason ? ` — ${tagResponse.reason}` : ""}); a maintainer should re-run intake`,
+    );
   }
 }
 
@@ -460,7 +542,9 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
     "",
     qualitySection,
     "",
+    "",
     "### Canonical external.json payload",
+    "",
     "",
     "```json",
     JSON.stringify(baseResult.plugin ?? {}, null, 2),
@@ -546,11 +630,14 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
         parsed.plugin.source.sha ? `- **SHA:** ${parsed.plugin.source.sha}` : undefined,
         `- **Keywords:** ${normalizedKeywords}`,
         "",
+        "",
         "### Canonical external.json payload",
+        "",
         "",
         payload,
         "",
         "### Reviewer notes",
+        "",
         "",
         notes,
         dedupedWarnings.length > 0

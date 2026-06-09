@@ -79,6 +79,13 @@ jobs:
               return;
             }
 
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+
             await intakeState.syncExternalPluginIntakeLabels({
               github,
               owner: context.repo.owner,
