@@ -161,6 +161,7 @@ function downloadSkillValidator(workDir) {
 // both the Copilot CLI and many external repos use nested conventions. We read the
 // manifest ourselves so skill/agent paths can be resolved from the plugin root
 // consistently, regardless of where the manifest lives.
+// NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
 const PLUGIN_JSON_CANDIDATES = [
   [".github", "plugin", "plugin.json"],
   [".plugins", "plugin.json"],
@@ -307,11 +308,17 @@ function runInstallSmokeGate(workDir, plugin) {
     }
 
     const installedPluginPath = path.join(homeDir, ".copilot", "installed-plugins", "external-plugin-intake", plugin.name);
-    const pluginManifestPath = path.join(installedPluginPath, ".github", "plugin", "plugin.json");
-    if (!fs.existsSync(installedPluginPath) || !fs.existsSync(pluginManifestPath)) {
+    if (!fs.existsSync(installedPluginPath)) {
       return {
         status: "fail",
-        output: `Plugin installed but expected files were missing at ${installedPluginPath}`,
+        output: `Plugin installed but install directory was not found at ${installedPluginPath}`,
+      };
+    }
+    const pluginManifestPath = findPluginJson(installedPluginPath);
+    if (!pluginManifestPath) {
+      return {
+        status: "fail",
+        output: `Plugin installed but no plugin.json was found in any recognized location under ${installedPluginPath}`,
       };
     }
 
