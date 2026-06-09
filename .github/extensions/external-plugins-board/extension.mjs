@@ -1,7 +1,11 @@
 import { createServer } from "node:http";
 import { execFileSync, spawnSync, execSync } from "node:child_process";
 import { dirname } from "node:path";
+import { createRequire } from "node:module";
 import { joinSession, createCanvas } from "@github/copilot-sdk/extension";
+
+const require = createRequire(import.meta.url);
+const { marked } = require("marked");
 
 const servers = new Map();
 let workspacePath = null;
@@ -47,6 +51,7 @@ async function fetchLiveIssues(cwd) {
                 number: issue.number,
                 title: issue.title,
                 body: issue.body || "",
+                bodyHtml: marked.parse(issue.body || ""),
                 labels: (issue.labels || []).map(l => ({ name: l.name })),
                 pr_url: issue.body?.match(/\[Generated PR\]\(([^)]+)\)/)?.[1],
                 created_at: issue.created_at,
@@ -196,6 +201,56 @@ function renderHtml() {
         margin-bottom: 1rem;
         line-height: var(--leading-body-medium, 20px);
       }
+      .modal-description h1, .modal-description h2, .modal-description h3 {
+        font-weight: var(--font-weight-semibold, 600);
+        margin: 1rem 0 0.5rem;
+        border-bottom: 1px solid var(--border-color-default, #d1d9e0);
+        padding-bottom: 0.25rem;
+      }
+      .modal-description h1 { font-size: 1.2em; }
+      .modal-description h2 { font-size: 1.1em; }
+      .modal-description h3 { font-size: 1em; }
+      .modal-description p { margin: 0.5rem 0; }
+      .modal-description ul, .modal-description ol {
+        padding-left: 1.5rem;
+        margin: 0.5rem 0;
+      }
+      .modal-description li { margin: 0.25rem 0; }
+      .modal-description a {
+        color: var(--color-accent-fg, #0969da);
+        text-decoration: none;
+      }
+      .modal-description a:hover { text-decoration: underline; }
+      .modal-description code {
+        font-family: var(--font-mono, monospace);
+        font-size: var(--text-code-inline, 12px);
+        background: var(--background-color-secondary, #f6f8fa);
+        padding: 0.1em 0.3em;
+        border-radius: 3px;
+      }
+      .modal-description pre {
+        background: var(--background-color-secondary, #f6f8fa);
+        padding: 0.75rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+      }
+      .modal-description pre code {
+        background: none;
+        padding: 0;
+      }
+      .modal-description blockquote {
+        border-left: 3px solid var(--border-color-default, #d1d9e0);
+        padding-left: 0.75rem;
+        margin: 0.5rem 0;
+        color: var(--text-color-muted, #656d76);
+      }
+      .modal-description hr {
+        border: none;
+        border-top: 1px solid var(--border-color-default, #d1d9e0);
+        margin: 0.75rem 0;
+      }
+      .modal-description input[type="checkbox"] { margin-right: 0.3em; }
       .modal-meta {
         display: flex;
         gap: 1rem;
@@ -291,7 +346,7 @@ function renderHtml() {
 
         document.getElementById('modalNumber').textContent = '#' + issue.number;
         document.getElementById('modalTitle').textContent = issue.title;
-        document.getElementById('modalDescription').textContent = issue.body;
+        document.getElementById('modalDescription').innerHTML = issue.bodyHtml || '';
         
         const metaHtml = \`
           <div class="modal-meta-item">
