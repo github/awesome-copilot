@@ -7,6 +7,8 @@
   <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="Pull requests welcome">
 </p>
 
+Turn AI coding into an orchestrated loop: plan, build, review, debug.
+
 > Spec-driven multi-agent orchestration for software development, verification, debugging, and reusable project knowledge.
 
 **TL;DR:** Gem Team installs a coordinated set of specialist AI agents for planning, implementation, review, debugging, testing, documentation, design, DevOps, and skill extraction. It is designed for structured software delivery: clarify the goal, discover existing patterns, plan the work, execute in controlled waves, verify results, and persist useful learnings.
@@ -45,6 +47,7 @@ After the first install, commit the generated APM files that belong to your repo
 ## Contents
 
 - [Why Gem Team?](#why-gem-team)
+- [Comparison](#comparison)
 - [Core Concepts](#core-concepts)
 - [Workflow](#workflow)
 - [The Agent Team](#the-agent-team)
@@ -84,6 +87,23 @@ After the first install, commit the generated APM files that belong to your repo
 - **Model routing** — routine agents can use a fast cost-efficient model while planner, debugger, critic, and reviewer roles can use stronger reasoning models.
 - **Reduced redundant reading** — the context envelope and research digest prevent repeated source reads.
 - **Concise agent outputs** — agents are instructed to return actionable artifacts rather than verbose commentary.
+
+## Comparison
+
+gem-team is not trying to replace Copilot, Cursor, Claude Code, Cline, or Roo Code.
+
+It focuses on the missing workflow layer:
+
+- planning
+- subagent delegation first policy for parallel work
+- context envelope for avoiding repeated source reads
+- reviewer/debugger loops
+- specialist agents
+- repeatable execution artifacts
+
+Use gem-team when you want AI coding to follow an engineering process instead of a single chat prompt.
+
+Vibe with confident, structured delivery and durable knowledge instead of ad-hoc one-off outputs.
 
 ## Core Concepts
 
