@@ -100,6 +100,13 @@ jobs:
               return;
             }
 
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
             const baseResult = await intake.evaluateExternalPluginIssue({
               issue: currentIssue,
               token: process.env.GITHUB_TOKEN,
