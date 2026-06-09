@@ -217,3 +217,11 @@ Before finishing harness adoption work, verify:
   it was skipped
 - generated docs or indexes are refreshed
 - the final report names every command run and its result
+
+## Optional Reference
+
+The prompt-first workflow in
+`https://github.com/baskduf/harness-starter-kit` is a reference implementation
+of these ideas. Use it as reference material only when the user asks for it or
+when the repository already includes it. The target repository remains the
+source of truth.
