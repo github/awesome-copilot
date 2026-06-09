@@ -98,6 +98,18 @@ jobs:
               return;
             }
 
+            const reactionByCommand = {
+              approve: 'rocket',
+              reject: '-1'
+            };
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: reactionByCommand[parsedCommand.command] ?? 'eyes'
+            });
+
             core.setOutput('should-run', 'true');
             core.setOutput('command', parsedCommand.command);
             core.setOutput('reason', parsedCommand.reason ?? '');
