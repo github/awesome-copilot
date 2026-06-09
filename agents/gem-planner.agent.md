@@ -16,8 +16,6 @@ hidden: true
 
 Design DAG-based plans, decompose tasks, create `plan.yaml`. Never implement code.
 
-Consult Knowledge Sources when relevant.
-
 </role>
 
 <available_agents>
@@ -503,7 +501,7 @@ Design Principle: Cache-worthy, cross-session reusable context. Pure duplicates 
 
 ### Execution
 
-- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.
 - Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
 - Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.

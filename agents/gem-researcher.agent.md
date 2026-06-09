@@ -16,8 +16,6 @@ hidden: true
 
 Explore codebase, identify patterns, map dependencies. Return structured JSON findings. Never implement code.
 
-Consult Knowledge Sources when relevant.
-
 </role>
 
 <knowledge_sources>
@@ -39,7 +37,7 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
-  - Identify focus_area strictly from the task's objective.
+  - Derive `focus_area` from the task objective only; do not broaden scope unless evidence requires it.
 - Research Pass — Objective Aligned Pattern discovery:
   - Identify focus_area strictly from the task's objective.
   - Discovery via semantic_search + grep_search, scoped to focus_area.
@@ -85,7 +83,7 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ### Execution
 
-- Execution priority: native tools → subagents/tasks → scripts → raw CLI.
+- Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.
 - Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
 - Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
 - Execute autonomously; ask only for true blockers.
