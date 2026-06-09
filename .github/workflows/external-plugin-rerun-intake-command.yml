@@ -100,9 +100,19 @@ jobs:
               return;
             }
 
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
             const baseResult = await intake.evaluateExternalPluginIssue({
               issue: currentIssue,
-              token: process.env.GITHUB_TOKEN
+              token: process.env.GITHUB_TOKEN,
+              runId: context.runId,
+              owner: context.repo.owner,
+              repo: context.repo.repo
             });
 
             core.setOutput('should-run', 'true');
@@ -173,7 +183,7 @@ jobs:
                 };
               }
 
-              finalResult = intake.applyQualityGateResult(baseResult, qualityResult);
+              finalResult = intake.applyQualityGateResult(baseResult, qualityResult, context.runId, context.repo.owner, context.repo.repo);
             }
 
             await intakeState.applyExternalPluginIntakeEvaluation({

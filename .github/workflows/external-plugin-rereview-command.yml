@@ -72,6 +72,19 @@ jobs:
               return;
             }
 
+            const reactionByCommand = {
+              keep: '+1',
+              'needs-changes': 'eyes',
+              remove: '-1'
+            };
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: reactionByCommand[command] ?? 'eyes'
+            });
+
             const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
             if (errors.length > 0) {
               core.setFailed(errors.join('\n'));

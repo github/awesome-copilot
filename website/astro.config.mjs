@@ -57,6 +57,7 @@ export default defineConfig({
             { label: "Skills", link: "/skills/" },
             { label: "Hooks", link: "/hooks/" },
             { label: "Workflows", link: "/workflows/" },
+            { label: "Canvas Extensions", link: "/extensions/" },
             { label: "Plugins", link: "/plugins/" },
             { label: "Tools", link: "/tools/" },
             { label: "Contributors", link: "/contributors/" },

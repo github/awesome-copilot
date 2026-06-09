@@ -424,13 +424,14 @@ function getIntakeStateFromQualityResult(baseResult, qualityResult) {
   return "ready-for-review";
 }
 
-function buildMergedIntakeComment(baseResult, qualityResult) {
+function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo) {
   if (!baseResult.valid) {
     return baseResult.commentBody;
   }
 
   const marker = baseResult.commentMarker ?? EXTERNAL_PLUGIN_INTAKE_COMMENT_MARKER;
   const qualitySection = buildQualityGatesCommentSection(qualityResult);
+  const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
 
   const intro =
     qualityResult.failure_class === "submitter_fixes"
@@ -459,7 +460,9 @@ function buildMergedIntakeComment(baseResult, qualityResult) {
     "",
     qualitySection,
     "",
+    "",
     "### Canonical external.json payload",
+    "",
     "",
     "```json",
     JSON.stringify(baseResult.plugin ?? {}, null, 2),
@@ -467,10 +470,11 @@ function buildMergedIntakeComment(baseResult, qualityResult) {
     baseResult.warnings?.length
       ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
       : "",
+    runLink ? `\n${runLink}` : "",
   ].filter(Boolean).join("\n");
 }
 
-export function applyQualityGateResult(baseEvaluation, qualityGateResult) {
+export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId, owner, repo) {
   const baseResult = typeof baseEvaluation === "string" ? JSON.parse(baseEvaluation) : baseEvaluation;
   const qualityResult = normalizeQualityGateResult(
     typeof qualityGateResult === "string" ? JSON.parse(qualityGateResult) : qualityGateResult,
@@ -481,11 +485,11 @@ export function applyQualityGateResult(baseEvaluation, qualityGateResult) {
     ...baseResult,
     qualityGates: qualityResult,
     intakeState,
-    commentBody: buildMergedIntakeComment(baseResult, qualityResult),
+    commentBody: buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo),
   };
 }
 
-export async function evaluateExternalPluginIssue({ issue, token } = {}) {
+export async function evaluateExternalPluginIssue({ issue, token, runId, owner, repo } = {}) {
   const issueBody = issue?.body ?? "";
   const parsed = parseExternalPluginIssueBody(issueBody);
   const errors = [...parsed.errors];
@@ -529,6 +533,8 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
       ].join("\n")
     : "```json\n{}\n```";
 
+  const runLink = runId && owner && repo ? `_[View workflow run](https://github.com/${owner}/${repo}/actions/runs/${runId})_` : "";
+
   const commentBody = valid
     ? [
         marker,
@@ -542,16 +548,20 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         parsed.plugin.source.sha ? `- **SHA:** ${parsed.plugin.source.sha}` : undefined,
         `- **Keywords:** ${normalizedKeywords}`,
         "",
+        "",
         "### Canonical external.json payload",
+        "",
         "",
         payload,
         "",
         "### Reviewer notes",
         "",
+        "",
         notes,
         dedupedWarnings.length > 0
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
+        runLink ? `\n${runLink}` : "",
       ].filter(Boolean).join("\n")
     : [
         marker,
@@ -566,6 +576,7 @@ export async function evaluateExternalPluginIssue({ issue, token } = {}) {
         dedupedWarnings.length > 0
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
+        runLink ? `\n${runLink}` : "",
       ].filter(Boolean).join("\n");
 
   return {
@@ -585,11 +596,14 @@ const isCli = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve
 if (isCli) {
   const eventPath = process.argv[2];
   if (!eventPath) {
-    console.error("Usage: node ./eng/external-plugin-intake.mjs <github-event.json>");
+    console.error("Usage: node ./eng/external-plugin-intake.mjs <github-event.json> [runId] [owner] [repo]");
     process.exit(1);
   }
 
   const event = JSON.parse(fs.readFileSync(eventPath, "utf8"));
-  const result = await evaluateExternalPluginIssue({ issue: event.issue, token: process.env.GITHUB_TOKEN });
+  const runId = process.argv[3];
+  const owner = process.argv[4];
+  const repo = process.argv[5];
+  const result = await evaluateExternalPluginIssue({ issue: event.issue, token: process.env.GITHUB_TOKEN, runId, owner, repo });
   process.stdout.write(JSON.stringify(result));
 }

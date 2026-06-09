@@ -53,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          result=$(node ./eng/external-plugin-intake.mjs "$GITHUB_EVENT_PATH")
+          result=$(node ./eng/external-plugin-intake.mjs "$GITHUB_EVENT_PATH" "${{ github.run_id }}" "${{ github.repository_owner }}" "${{ github.event.repository.name }}")
           {
             echo 'result<<EOF'
             echo "$result"
@@ -130,7 +130,7 @@ jobs:
                 };
               }
 
-              finalResult = intake.applyQualityGateResult(baseResult, qualityResult);
+              finalResult = intake.applyQualityGateResult(baseResult, qualityResult, context.runId, context.repo.owner, context.repo.repo);
             }
 
             await intakeState.applyExternalPluginIntakeEvaluation({
