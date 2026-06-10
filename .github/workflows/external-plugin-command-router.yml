@@ -5,7 +5,7 @@ on:
     types: [created]
 
 concurrency:
-  group: external-plugin-command-${{ github.event.issue.number }}
+  group: external-plugin-intake-${{ github.event.issue.number }}
   cancel-in-progress: false
 
 permissions:
