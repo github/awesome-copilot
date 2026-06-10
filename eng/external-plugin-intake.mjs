@@ -553,7 +553,7 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
       ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
       : "",
     runLink ? `\n${runLink}` : "",
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 }
 
 export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId, owner, repo) {
@@ -644,7 +644,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
         runLink ? `\n${runLink}` : "",
-      ].filter(Boolean).join("\n")
+      ].join("\n")
     : [
         marker,
         "## ❌ External plugin intake failed",
@@ -659,7 +659,7 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
         runLink ? `\n${runLink}` : "",
-      ].filter(Boolean).join("\n");
+      ].join("\n");
 
   return {
     valid,
