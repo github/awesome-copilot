@@ -21,7 +21,7 @@ jobs:
       pull-requests: write
     if: >-
       !github.event.issue.pull_request &&
-      (contains(github.event.comment.body, '/approve') || contains(github.event.comment.body, '/reject'))
+      (startsWith(github.event.comment.body, '/approve') || startsWith(github.event.comment.body, '/reject'))
     steps:
       - name: Checkout staged branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
