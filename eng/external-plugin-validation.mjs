@@ -23,10 +23,11 @@ export const EXTERNAL_PLUGIN_POLICIES = Object.freeze({
   }),
 });
 
+// NOTE: Keep in sync with PLUGIN_JSON_CANDIDATES in external-plugin-quality-gates.mjs
 const EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS = Object.freeze([
   "plugin.json",
   ".github/plugin/plugin.json",
-  ".plugin/plugin.json",
+  ".plugins/plugin.json",
 ]);
 
 function resolvePolicy(policy) {

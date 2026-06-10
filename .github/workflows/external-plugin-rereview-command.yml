@@ -1,8 +1,12 @@
-name: External Plugin Re-review Commands
+name: External Plugin Re-review Command
 
 on:
   issue_comment:
     types: [created]
+
+concurrency:
+  group: external-plugin-rereview-${{ github.event.issue.number }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -10,7 +14,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  handle-command:
+  rereview-command:
     runs-on: ubuntu-latest
     if: >-
       !github.event.issue.pull_request &&
@@ -71,6 +75,19 @@ jobs:
               core.info(`Ignoring ${command} because the issue is not currently in the six-month re-review queue.`);
               return;
             }
+
+            const reactionByCommand = {
+              keep: '+1',
+              'needs-changes': 'eyes',
+              remove: '-1'
+            };
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: reactionByCommand[command] ?? 'eyes'
+            });
 
             const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
             if (errors.length > 0) {

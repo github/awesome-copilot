@@ -156,10 +156,88 @@ function downloadSkillValidator(workDir) {
   return binaryPath;
 }
 
+// Ordered list of candidate locations for plugin.json, from most to least specific.
+// The skill-validator --plugin mode expects plugin.json at the plugin root, but
+// both the Copilot CLI and many external repos use nested conventions. We read the
+// manifest ourselves so skill/agent paths can be resolved from the plugin root
+// consistently, regardless of where the manifest lives.
+// NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
+const PLUGIN_JSON_CANDIDATES = [
+  [".github", "plugin", "plugin.json"],
+  [".plugins", "plugin.json"],
+  ["plugin.json"],
+];
+
+function findPluginJson(pluginRoot) {
+  for (const segments of PLUGIN_JSON_CANDIDATES) {
+    const candidate = path.join(pluginRoot, ...segments);
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+function buildSkillValidatorArgs(pluginRoot) {
+  const pluginJsonPath = findPluginJson(pluginRoot);
+  if (!pluginJsonPath) {
+    // No recognised plugin.json location found — let the validator fail with its
+    // own diagnostic (covers exotic layouts and surfaces the real error to submitters).
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  let pluginJson;
+  try {
+    pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
+  } catch {
+    // Malformed plugin.json — let the validator surface the parse error.
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  const args = ["check", "--verbose"];
+
+  // Paths in plugin.json are relative to the plugin root regardless of where
+  // plugin.json itself lives. Use [].concat() to accept both string and array values.
+  const skillPaths = [].concat(pluginJson.skills ?? [])
+    .map((s) => path.resolve(pluginRoot, s))
+    .filter((p) => fs.existsSync(p));
+
+  // Agent entries may be directory paths or explicit file paths; normalise to directories
+  // so AgentDiscovery.DiscoverAgentsInDirectory can discover agents within them.
+  // Deduplicate in case multiple file entries share the same parent directory.
+  const agentPaths = [...new Set(
+    [].concat(pluginJson.agents ?? [])
+      .map((a) => {
+        const resolved = path.resolve(pluginRoot, a);
+        if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
+          return path.dirname(resolved);
+        }
+        return resolved;
+      })
+      .filter((p) => fs.existsSync(p))
+  )];
+
+  if (skillPaths.length > 0) {
+    args.push("--skills", ...skillPaths);
+  }
+  if (agentPaths.length > 0) {
+    args.push("--agents", ...agentPaths);
+  }
+
+  if (skillPaths.length === 0 && agentPaths.length === 0) {
+    // plugin.json found but no resolvable skills/agents — fall back to --plugin so the
+    // validator can surface the specific validation error to the submitter.
+    return ["check", "--verbose", "--plugin", pluginRoot];
+  }
+
+  return args;
+}
+
 function runSkillValidatorGate(workDir, pluginRoot) {
   try {
     const validatorBinary = downloadSkillValidator(workDir);
-    const check = runCommand(validatorBinary, ["check", "--verbose", "--plugin", pluginRoot]);
+    const args = buildSkillValidatorArgs(pluginRoot);
+    const check = runCommand(validatorBinary, args);
 
     if (check.exitCode === 0) {
       return { status: "pass", output: check.output };
@@ -230,11 +308,17 @@ function runInstallSmokeGate(workDir, plugin) {
     }
 
     const installedPluginPath = path.join(homeDir, ".copilot", "installed-plugins", "external-plugin-intake", plugin.name);
-    const pluginManifestPath = path.join(installedPluginPath, ".github", "plugin", "plugin.json");
-    if (!fs.existsSync(installedPluginPath) || !fs.existsSync(pluginManifestPath)) {
+    if (!fs.existsSync(installedPluginPath)) {
       return {
         status: "fail",
-        output: `Plugin installed but expected files were missing at ${installedPluginPath}`,
+        output: `Plugin installed but install directory was not found at ${installedPluginPath}`,
+      };
+    }
+    const pluginManifestPath = findPluginJson(installedPluginPath);
+    if (!pluginManifestPath) {
+      return {
+        status: "fail",
+        output: `Plugin installed but no plugin.json was found in any recognized location under ${installedPluginPath}`,
       };
     }
 

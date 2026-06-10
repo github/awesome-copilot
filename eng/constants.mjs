@@ -194,6 +194,7 @@ const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
 const HOOKS_DIR = path.join(ROOT_FOLDER, "hooks");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const WORKFLOWS_DIR = path.join(ROOT_FOLDER, "workflows");
 const COOKBOOK_DIR = path.join(ROOT_FOLDER, "cookbook");
@@ -212,6 +213,7 @@ export {
   AKA_INSTALL_URLS,
   COOKBOOK_DIR,
   DOCS_DIR,
+  EXTENSIONS_DIR,
   HOOKS_DIR,
   INSTRUCTIONS_DIR,
   MAX_PLUGIN_ITEMS,

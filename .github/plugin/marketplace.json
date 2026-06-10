@@ -68,6 +68,12 @@
       "version": "1.1.0"
     },
     {
+      "name": "aws-cloud-development",
+      "source": "aws-cloud-development",
+      "description": "Comprehensive AWS cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
+      "version": "1.0.0"
+    },
+    {
       "name": "azure",
       "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
       "version": "1.0.0",
@@ -474,7 +480,7 @@
     {
       "name": "modernize-dotnet",
       "description": "AI-powered .NET modernization and upgrade assistant. Helps upgrade .NET Framework and .NET applications to the latest versions of .NET.",
-      "version": "1.0.1146-preview1",
+      "version": "1.0.1152-preview1",
       "author": {
         "name": "Microsoft",
         "url": "https://www.microsoft.com"

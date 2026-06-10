@@ -214,7 +214,7 @@ jobs:
               exitCode !== '0'
                 ? '> **Note:** The validator returned a non-zero exit code. Please review the findings above before merge.'
                 : '',
-            ].filter(Boolean).join('\n');
+            ].join('\n');
 
             // Find existing comment with our marker
             const { data: comments } = await github.rest.issues.listComments({
