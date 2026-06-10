@@ -68,6 +68,12 @@
       "version": "1.1.0"
     },
     {
+      "name": "aws-cloud-development",
+      "source": "aws-cloud-development",
+      "description": "Comprehensive AWS cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
+      "version": "1.0.0"
+    },
+    {
       "name": "azure",
       "description": "Microsoft Azure MCP Server and skills for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Copilot.",
       "version": "1.0.0",
@@ -359,7 +365,7 @@
       "name": "gem-team",
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
-      "version": "1.42.0"
+      "version": "1.61.0"
     },
     {
       "name": "git-ape",
