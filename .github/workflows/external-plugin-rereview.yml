@@ -233,7 +233,7 @@ jobs:
                     ...unmatchedRows
                   ].join('\n')
                 : '',
-            ].filter(Boolean).join('\n');
+            ].join('\n');
 
             if (existingTrackerIssues.length > 0) {
               const [primary, ...duplicates] = existingTrackerIssues;
