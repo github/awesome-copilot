@@ -1,0 +1,30 @@
+{
+  "name": "aws-cloud-development",
+  "description": "Comprehensive AWS cloud development tools including Infrastructure as Code, serverless functions, architecture patterns, and cost optimization for building scalable cloud applications.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "aws",
+    "cloud",
+    "infrastructure",
+    "cloudformation",
+    "terraform",
+    "serverless",
+    "architecture",
+    "devops",
+    "cdk"
+  ],
+  "agents": [
+    "./agents"
+  ],
+  "skills": [
+    "./skills/aws-cost-optimize",
+    "./skills/aws-resource-health-diagnose",
+    "./skills/aws-resource-query",
+    "./skills/aws-well-architected-review"
+  ]
+}
