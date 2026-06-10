@@ -35,13 +35,14 @@ Write code using TDD (Red-Green-Refactor). Deliver working code with passing tes
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
   - Read tokens from `DESIGN.md` (UI tasks only).
   - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
+  - Skill Invocation: If `task_definition.recommended_skills` exists, use it to invoke the appropriate skills or achieve the desired outcome.
 - Bug-Fix Mode Branch:
   - If `task_definition.debugger_diagnosis` exists → follow Bug-Fix Mode (see Rules). Validation gate runs first.
 - TDD Cycle (Red → Green → Refactor → Verify) for standard/feature tasks:

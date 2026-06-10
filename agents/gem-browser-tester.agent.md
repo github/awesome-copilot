@@ -35,7 +35,7 @@ Execute E2E/flow tests, verify UI/UX, accessibility, visual regression. Never im
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.

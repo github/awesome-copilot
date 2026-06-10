@@ -54,7 +54,7 @@ Design DAG-based plans, decompose tasks, create `plan.yaml`. Never implement cod
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
@@ -100,6 +100,7 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
   - For design validation or edge-case analysis: assign `designer`/`designer-mobile` or `critic` as appropriate.
   - Default to `implementer` when no specialized agent fits.
   - When uncertainty exists between agents, prefer the more specialized one.
+  - Skill Matching: After agent assignment, scan `docs/skills/` for skills matching task. Populate `task_definition.recommended_skills` with matching skill names. Fallback: if no explicit matches, skip (don't over-match).
 - New feature→add doc-writer task (final wave).
 - Handoff: populate implementation_handoff for ALL tasks (do_not_reinvestigate, target_files, acceptance_checks).
 - Create plan `plan.yaml` as per `plan_format_guide`
