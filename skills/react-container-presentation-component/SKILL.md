@@ -1,5 +1,5 @@
 ---
-name: react-clean-architecture-add-component
+name: react-container-presentation-component
 description: "Create a new React component in src/components by asking component name and type (ui or features), then scaffold files that follow this repository rules, TypeScript strict typing, and Storybook/SCSS structure. Use when user types /add-component or asks to add a component."
 argument-hint: "componentName type(ui|features)"
 user-invocable: true
@@ -79,4 +79,7 @@ Question requirements:
 - If replacements were performed, report the list of changed files and replacement details.
 - Provide one usage example of the created component.
 - Report whether Storybook verification was executed (run/skip), and if run, include the command used.
+- Explain why the component was classified as `ui` or `features`.
+- Summarize where state, side effects, and rendering responsibilities were placed.
+- Confirm whether there were any dependency direction violations.
 - Clearly state any unresolved items.

@@ -1,7 +1,5 @@
 # TypeScript and SCSS Rules Reference
 
-This reference defines coding rules required by the `add-component` skill.
-
 ## TypeScript Rules
 
 - Do not use `any`.
