@@ -9,13 +9,16 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
   issues: write
-  pull-requests: write
 
 jobs:
   approval-command:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     if: >-
       !github.event.issue.pull_request &&
       (contains(github.event.comment.body, '/approve') || contains(github.event.comment.body, '/reject'))
