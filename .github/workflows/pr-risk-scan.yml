@@ -1,0 +1,51 @@
+name: PR Risk Scan — Gate
+
+on:
+  pull_request:
+    branches: [staged]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - "workflows/**"
+      - "plugins/**"
+      - "hooks/**"
+      - "instructions/**"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Collect changed files
+        run: |
+          git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" > changed-files.txt
+          echo "Changed files:"
+          cat changed-files.txt || true
+
+      - name: Run PR risk scanner
+        run: |
+          mkdir -p pr-risk-results
+          node ./eng/pr-risk-scan.mjs \
+            --files changed-files.txt \
+            --output-json pr-risk-results/results.json \
+            --output-md pr-risk-results/report.md
+
+      - name: Save metadata
+        run: |
+          echo "${{ github.event.pull_request.number }}" > pr-risk-results/pr-number.txt
+
+      - name: Upload scan artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: pr-risk-scan-results
+          path: pr-risk-results/
+          retention-days: 1
