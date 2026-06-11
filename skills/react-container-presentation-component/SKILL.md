@@ -1,26 +1,26 @@
 ---
 name: react-container-presentation-component
-description: "Create a new React component in src/components by asking component name and type (ui or features), then scaffold files that follow this repository rules, TypeScript strict typing, and Storybook/SCSS structure. Use when user types /add-component or asks to add a component."
+description: "Create a React component using the Container/Presentation pattern in src/components by asking for the component name and type (ui or features), then scaffold files that follow this repository's TypeScript, Storybook, and SCSS conventions. Use when the user explicitly asks for a Container/Presentation-based component or runs /react-container-presentation-component."
 argument-hint: "componentName type(ui|features)"
 user-invocable: true
 ---
 
-# Add Component
+# Container/Presentation Component
 
-Use this skill when adding a new component under `src/components`.
+Use this skill to create a React component under `src/components` that follows the Container/Presentation pattern.
 
 Refer to this skill's bundled references for detailed rules.
 
 - `references/component-architecture.md`
 - `references/typescript-and-scss-rules.md`
 
-If the `/add-component` input is incomplete, ask questions first before creating files.
+If the `/react-container-presentation-component` input is incomplete, ask questions first before creating files.
 
 ## When To Use
 
-- When the user runs `/add-component`
-- When the user asks to add a new component
-- When the user wants to create a component in either `ui` or `features`
+- When the user runs `/react-container-presentation-component`
+- When the user explicitly asks for a React component that follows the Container/Presentation pattern
+- When the user wants help deciding or implementing `ui` vs `features` classification within the Container/Presentation pattern
 
 ## Required Questions
 
