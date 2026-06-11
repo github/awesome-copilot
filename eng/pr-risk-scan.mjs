@@ -148,7 +148,7 @@ function normalizeRelativePath(value) {
     return "";
   }
 
-  if (cleaned.includes("..")) {
+  if (/(^|\/)\.\.(\/|$)/.test(cleaned)) {
     throw new Error(`Unsafe relative path in changed files list: ${value}`);
   }
 
