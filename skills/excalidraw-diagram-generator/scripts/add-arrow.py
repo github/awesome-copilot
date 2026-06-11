@@ -233,6 +233,9 @@ def add_arrow_to_diagram(
 
 def main():
     """Main entry point."""
+    if hasattr(sys.stdout, "reconfigure"):
+        # Ensure consistent UTF-8 output on Windows consoles.
+        sys.stdout.reconfigure(encoding="utf-8")
     if len(sys.argv) < 6:
         print("Usage: python add-arrow.py <diagram_path> <from_x> <from_y> <to_x> <to_y> [OPTIONS]")
         print("\nOptions:")
