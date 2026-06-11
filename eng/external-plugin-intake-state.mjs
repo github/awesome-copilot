@@ -21,7 +21,7 @@ export const EXTERNAL_PLUGIN_INTAKE_LABELS = Object.freeze({
   },
   rejected: {
     color: "B60205",
-    description: "Submission was rejected or failed intake validation",
+    description: "Submission was rejected by a maintainer",
   },
 });
 
@@ -143,7 +143,7 @@ export async function applyExternalPluginIntakeEvaluation({
   issueNumber,
   evaluation,
 }) {
-  const state = evaluation.intakeState ?? (evaluation.valid ? "ready-for-review" : "rejected");
+  const state = evaluation.intakeState ?? (evaluation.valid ? "ready-for-review" : "requires-submitter-fixes");
   const desiredLabelsByState = {
     "ready-for-review": new Set(["external-plugin", "ready-for-review"]),
     "requires-submitter-fixes": new Set(["external-plugin", "requires-submitter-fixes"]),
