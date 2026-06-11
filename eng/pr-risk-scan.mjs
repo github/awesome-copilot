@@ -13,6 +13,62 @@ const SCRIPT_EXTENSIONS = new Set([
   ".ts",
 ]);
 
+function isLikelyAbsolutePath(value) {
+  if (!value) {
+    return false;
+  }
+
+  // POSIX absolute (/foo), UNC (//server/share), Windows drive paths (C:/foo).
+  return (
+    value.startsWith("/") ||
+    value.startsWith("//") ||
+    /^[A-Za-z]:\//.test(value)
+  );
+}
+
+function isPathWithinRoot(rootPath, targetPath) {
+  const relative = path.relative(rootPath, targetPath);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+}
+
+function hasUnpinnedVersionIndicator(line) {
+  const trimmed = line.trim();
+
+  if (!trimmed) {
+    return false;
+  }
+
+  // Command contexts where floating versions are risky.
+  if (
+    /\b(npm|pnpm|yarn|bun|npx|uvx|pip|pipx)\b[^\n]*(?:@latest\b|\blatest\b)/i.test(
+      trimmed
+    )
+  ) {
+    return true;
+  }
+
+  // package.json/yaml style dependency entries with floating ranges.
+  if (
+    /["'][^"']+["']\s*:\s*["'](\^|~|\*|latest\b)[^"']*["']/i.test(trimmed)
+  ) {
+    return true;
+  }
+
+  // pyproject/requirements style entries with broad lower-bound only specs.
+  if (
+    /\b[A-Za-z0-9_.-]+\s*(>=|>|~=)\s*\d+(?:\.\d+){0,2}\b(?!\s*,\s*<)/.test(
+      trimmed
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 const severityLevels = {
   high: "high",
   medium: "medium",
@@ -58,11 +114,9 @@ const LINE_RULES = [
   {
     rule_id: "unpinned-version-indicator",
     severity: severityLevels.medium,
-    regex: /\B@latest\b|\blatest\b|\*|(\^|~)\d+/i,
     reason: "Unpinned dependencies can change behavior between runs.",
     suggested_fix: "Use exact immutable versions or commit hashes.",
-    shouldApply: (line) =>
-      /\b(npm|pnpm|yarn|npx|uvx|pip|pipx|cargo|go)\b/i.test(line),
+    matcher: (line) => hasUnpinnedVersionIndicator(line),
   },
 ];
 
@@ -98,6 +152,10 @@ function normalizeRelativePath(value) {
     throw new Error(`Unsafe relative path in changed files list: ${value}`);
   }
 
+  if (isLikelyAbsolutePath(cleaned)) {
+    throw new Error(`Absolute paths are not allowed in changed files list: ${value}`);
+  }
+
   return cleaned;
 }
 
@@ -127,8 +185,10 @@ function scanLineRules(filePath, content, findings) {
         continue;
       }
 
-      const match = line.match(rule.regex);
-      if (!match) {
+      const matchedByRegex = rule.regex ? rule.regex.test(line) : false;
+      const matchedByFunction =
+        typeof rule.matcher === "function" ? rule.matcher(line) : false;
+      if (!matchedByRegex && !matchedByFunction) {
         continue;
       }
 
@@ -254,6 +314,7 @@ function main() {
   const changedFilesPath = path.resolve(args.files);
   const outputJsonPath = path.resolve(args["output-json"]);
   const outputMarkdownPath = path.resolve(args["output-md"]);
+  const repoRootPath = process.cwd();
 
   const changedFiles = fs
     .readFileSync(changedFilesPath, "utf8")
@@ -266,7 +327,11 @@ function main() {
   const skippedFiles = [];
 
   for (const relativePath of changedFiles) {
-    const absolutePath = path.resolve(relativePath);
+    const absolutePath = path.resolve(repoRootPath, relativePath);
+    if (!isPathWithinRoot(repoRootPath, absolutePath)) {
+      throw new Error(`Path escapes repository root: ${relativePath}`);
+    }
+
     scanSkillScriptPath(relativePath, findings);
 
     if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isFile()) {
