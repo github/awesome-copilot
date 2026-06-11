@@ -108,8 +108,11 @@ Routing matrix:
 - Complexity=MEDIUM/HIGH:
   - Delegate to `gem-planner` with `task_clarifications`, relevant context, `memory_seed`, and `config_snapshot`.
   - Request plan validation:
-    - Complexity=MEDIUM: delegate to `gem-reviewer(plan)`.
-    - Complexity=HIGH: delegate to `gem-reviewer(plan)`. Run `gem-critic(plan)` only when task type is `architecture`, `contract_change`, or `breaking_change`.
+    - Complexity=MEDIUM:
+      - Delegate to `gem-reviewer(plan)`.
+    - Complexity=HIGH:
+      - Delegate to `gem-reviewer(plan)` for correctness, feasibility, integration risk, and workflow compliance.
+      - In parallel, delegate to `gem-critic(plan)` when any high-risk signal exists: `architecture`, `contract_change`, `breaking_change`, `api_change`, `schema_change`, `auth_change`, `data_flow_change`, `migration`, `security_sensitive`, or `cross_domain_impact`.
   - If validation fails:
     - Failed + replanable → delegate to `gem-planner` with findings for replan/ adjustments.
     - Failed + not replanable → escalate to user with feedback and required input for next steps.
@@ -120,8 +123,6 @@ Routing matrix:
 
 - Complexity=MEDIUM/HIGH:
   - Read `docs/plan/{plan_id}/context_envelope.json` once and keep it as canonical in-memory context.
-  - Read `docs/plan/{plan_id}/plan.yaml` for current status, dependencies, blockers, and todo list.
-  - Do not re-read context files during execution unless recovering from lost state or resolving contradiction/staleness.
 
 #### Phase 3B: Wave Execution Loop
 
@@ -147,7 +148,7 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
 ##### Complexity=MEDIUM/HIGH
 
 - Select Work:
-  - Execute: Get waves sorted; include contracts for Wave > 1; get pending tasks (deps=completed, status=pending, wave=current); Respect `conflicts_with` constraints.
+  - Execute: Read current wave tasks from `docs/plan/{plan_id}/plan.yaml`, process waves in ascending order, attach contracts for Wave > 1, run only tasks where `status=pending`, `wave=current`, and all dependencies are completed, while preventing parallel execution of tasks listed in `conflicts_with`.
 - Execute Wave:
   - Delegate to subagents `task.agent` (if `orchestrator.max_concurrent_agents` from config is set, use it; otherwise, default to 2 concurrent).
   - Include `config_snapshot` in delegation — pass relevant settings from loaded config.
@@ -417,6 +418,8 @@ Next: Wave `{n+1}` (`{pending_count}` tasks)
 <rules>
 
 ## Rules
+
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
 
 ### Execution
 

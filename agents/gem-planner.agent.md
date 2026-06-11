@@ -500,6 +500,8 @@ Design Principle: Cache-worthy, cross-session reusable context. Pure duplicates 
 
 ## Rules
 
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+
 ### Execution
 
 - Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.

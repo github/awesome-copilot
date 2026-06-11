@@ -55,10 +55,6 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Wave parallelism, conflicts_with not parallel.
   - Wave assignment: tasks with no dependencies are in wave 1.
   - Tasks have verification + acceptance_criteria.
-  - Test file inclusion: if acceptance_criteria requires tests, verify target_files includes corresponding test file using pattern matching.
-  - Report missing test files as non-critical findings.
-  - PRD alignment, valid agents.
-  - Tech stack: context_envelope.tech_stack exists and is non-empty.
   - Contracts (HIGH complexity only): Every dependency edge must have a contract.
   - Diagnose-then-fix: every debugger task has a paired implementer task in a later wave.
 - Status:
@@ -119,6 +115,8 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 <rules>
 
 ## Rules
+
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
 
 ### Execution
 
