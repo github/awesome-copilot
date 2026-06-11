@@ -20,7 +20,7 @@
   "agents": [
     "./agents/java-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/java-mcp-server-generator.md"
+  "skills": [
+    "./skills/java-mcp-server-generator/"
   ]
 }

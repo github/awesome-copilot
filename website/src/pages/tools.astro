@@ -1,45 +1,59 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import toolsData from '../../public/data/tools.json';
+import Modal from '../components/Modal.astro';
+import ContributeCTA from "../components/ContributeCTA.astro";
+import EmbeddedPageData from "../components/EmbeddedPageData.astro";
+import PageHeader from "../components/PageHeader.astro";
+import BackToTop from '../components/BackToTop.astro';
+import { renderToolsHtml, sortTools } from "../scripts/pages/tools-render";
+
+const initialItems = sortTools(
+  toolsData.items.map((item) => ({
+    ...item,
+    title: item.name,
+  })),
+  "title"
+);
 ---
 
-<BaseLayout
-  title="Tools"
-  description="MCP servers and developer tools for GitHub Copilot"
-  activeNav="tools"
->
-  <main id="main-content">
-    <div class="page-header">
-      <div class="container">
-        <h1>🔧 Tools</h1>
-        <p>MCP servers and developer tools for GitHub Copilot</p>
-      </div>
-    </div>
+<StarlightPage frontmatter={{ title: 'Tools', description: 'MCP servers and developer tools for GitHub Copilot', template: 'splash', prev: false, next: false, editUrl: false }}>
+  <div id="main-content">
+    <PageHeader title="Tools" description="MCP servers and developer tools for GitHub Copilot" icon="wrench" />
 
     <div class="page-content">
       <div class="container">
-        <div class="search-section">
-          <div class="search-bar">
-            <label for="search-input" class="sr-only">Search tools</label>
-            <input
-              type="text"
-              id="search-input"
-              placeholder="Search tools..."
-              class="search-input"
-            />
+        <div class="listing-toolbar">
+          <div class="listing-toolbar-row">
+            <div id="results-count" class="results-count" aria-live="polite">{initialItems.length} tools</div>
+            <details class="listing-controls">
+              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
+              <div class="listing-controls-panel">
+                <div class="filters-bar" id="filters-bar">
+                  <div class="filter-group">
+                    <label for="filter-category">Category:</label>
+                    <select id="filter-category" class="filter-select" aria-label="Filter by category">
+                      <option value="">All Categories</option>
+                      {toolsData.filters.categories.map((category) => (
+                        <option value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div class="filter-group">
+                    <label for="sort-select">Sort:</label>
+                    <select id="sort-select" class="filter-select" aria-label="Sort tools">
+                      <option value="featured">Featured First</option>
+                      <option value="title">Title</option>
+                    </select>
+                  </div>
+                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear</button>
+                </div>
+              </div>
+            </details>
           </div>
-          <div class="filters">
-            <label for="filter-category" class="sr-only">Filter by category</label>
-            <select id="filter-category" class="filter-select" aria-label="Filter by category">
-              <option value="">All Categories</option>
-            </select>
-            <button id="clear-filters" class="btn btn-secondary btn-small"
-              >Clear</button
-            >
-          </div>
-          <div id="results-count" class="results-count" aria-live="polite"></div>
         </div>
 
-        <div id="tools-list" role="list"></div>
+        <div id="tools-list" role="list" set:html={renderToolsHtml(initialItems)}></div>
 
         <div class="coming-soon">
           <h2>More Tools Coming Soon</h2>
@@ -48,64 +62,16 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             experience. Check back soon!
           </p>
         </div>
+        <ContributeCTA resourceType="tools" />
       </div>
     </div>
-  </main>
+  </div>
+
+  <Modal />
+  <BackToTop />
+  <EmbeddedPageData filename="tools.json" data={toolsData} />
 
   <style is:global>
-    .search-section {
-      margin-bottom: 24px;
-    }
-
-    .search-bar {
-      margin-bottom: 16px;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius);
-      background-color: var(--color-card-bg);
-      color: var(--color-text-primary);
-      font-size: 16px;
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px rgba(133, 52, 243, 0.1);
-    }
-
-    .filters {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .filter-select {
-      padding: 8px 12px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--border-radius);
-      background-color: var(--color-card-bg);
-      color: var(--color-text-primary);
-      font-size: 14px;
-      min-width: 180px;
-    }
-
-    .results-count {
-      margin-top: 12px;
-      font-size: 14px;
-      color: var(--color-text-muted);
-    }
-
-    .loading {
-      text-align: center;
-      padding: 48px;
-      color: var(--color-text-muted);
-    }
-
     .empty-state {
       text-align: center;
       padding: 48px;
@@ -305,7 +271,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </style>
 
   <script>
-    import { initToolsPage } from "../scripts/pages/tools";
-    initToolsPage();
+    import '../scripts/listing-flyouts';
+    import '../scripts/pages/tools';
   </script>
-</BaseLayout>
+</StarlightPage>

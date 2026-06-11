@@ -10,7 +10,8 @@ try
     await client.StartAsync();
     var session = await client.CreateSessionAsync(new SessionConfig
     {
-        Model = "gpt-5"
+        Model = "gpt-5",
+        OnPermissionRequest = PermissionHandler.ApproveAll
     });
 
     var done = new TaskCompletionSource<string>();

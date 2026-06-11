@@ -1,0 +1,19 @@
+---
+import {
+  getEmbeddedDataElementId,
+  serializeEmbeddedData,
+} from "../scripts/embedded-data";
+
+interface Props {
+  filename: string;
+  data: unknown;
+}
+
+const { filename, data } = Astro.props;
+---
+
+<script
+  id={getEmbeddedDataElementId(filename)}
+  type="application/json"
+  set:html={serializeEmbeddedData(data)}
+></script>

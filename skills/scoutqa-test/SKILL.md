@@ -1,7 +1,6 @@
 ---
 name: scoutqa-test
-description: |
-  This skill should be used when the user asks to "test this website", "run exploratory testing", "check for accessibility issues", "verify the login flow works", "find bugs on this page", or requests automated QA testing. Triggers on web application testing scenarios including smoke tests, accessibility audits, e-commerce flows, and user flow validation using ScoutQA CLI. IMPORTANT: Use this skill proactively after implementing web application features to verify they work correctly - don't wait for the user to ask for testing.
+description: 'This skill should be used when the user asks to "test this website", "run exploratory testing", "check for accessibility issues", "verify the login flow works", "find bugs on this page", or requests automated QA testing. Triggers on web application testing scenarios including smoke tests, accessibility audits, e-commerce flows, and user flow validation using ScoutQA CLI. Use this skill proactively after implementing web application features to verify they work correctly.'
 ---
 
 # ScoutQA Testing Skill
@@ -18,6 +17,7 @@ Use this skill in two scenarios:
 2. **Proactive verification** - After implementing web features, automatically run tests to verify the implementation works correctly
 
 **Example proactive usage:**
+
 - After implementing a login form → Test the authentication flow
 - After adding form validation → Verify validation rules and error handling
 - After building a checkout flow → Test the end-to-end purchase process
@@ -32,6 +32,7 @@ Use this skill in two scenarios:
 Copy this checklist and track your progress:
 
 Testing Progress:
+
 - [ ] Write specific test prompt with clear expectations
 - [ ] Run scoutqa command in background
 - [ ] Inform user of execution ID and browser URL
@@ -46,6 +47,7 @@ See "Writing Effective Prompts" section below for guidelines.
 **IMPORTANT**: Use the Bash tool's timeout parameter (5000ms = 5 seconds) to capture execution details:
 
 When calling the Bash tool, set `timeout: 5000` as a parameter:
+
 - This is the Bash tool's built-in timeout parameter in Claude Code (NOT the Unix `timeout` command)
 - After 5 seconds, the Bash tool returns control with a task ID and the process continues running in the background
 - This is different from Unix `timeout` which kills the process - here the process keeps running
@@ -59,7 +61,7 @@ scoutqa --url "https://example.com" --prompt "Your test instructions"
 In the first few seconds, the command will output:
 
 - **Execution ID** (e.g., `019b831d-xxx`)
-- **Browser URL** (e.g., `https://scoutqa.ai/t/019b831d-xxx`)
+- **Browser URL** (e.g., `https://app.scoutqa.ai/t/019b831d-xxx`)
 - Initial tool calls showing test progress
 
 After the 5-second timeout, the Bash tool returns a task ID and the command continues running in the background. You can work on other tasks while the test runs. The timeout is only to capture the initial output (execution ID and browser URL) - the test keeps running both locally as a background task and remotely on ScoutQA's infrastructure.
@@ -67,6 +69,7 @@ After the 5-second timeout, the Bash tool returns a task ID and the command cont
 **Step 3: Inform user of execution ID and browser URL**
 
 After the Bash tool returns with the task ID (having captured the execution details in the first 5 seconds), inform the user of:
+
 - The ScoutQA execution ID and browser URL so they can monitor progress in their browser
 - The background task ID if they want to check local command output later
 
@@ -78,13 +81,25 @@ See "Presenting Results" section below for the complete format.
 
 ### Command Options
 
-- `--url` (required): Website URL to test
+- `--url` (required): Website URL to test (supports `localhost` / `127.0.0.1`)
 - `--prompt` (required): Natural language testing instructions
 - `--project-id` (optional): Associate with a project for tracking
+- `-v, --verbose` (optional): Show all tool calls including internal ones
+
+### Local Testing Support
+
+ScoutQA supports testing `localhost` and `127.0.0.1` URLs autonomously — no manual setup required.
+
+```bash
+# Seamlessly test a locally running app when you're developing your app
+scoutqa --url "http://localhost:3000" --prompt "Test the registration form"
+```
 
 ### When to Use Each Command
 
 **Starting a new test?** → Use `scoutqa --url --prompt`
+**Verifying a known issue?** → Use `scoutqa issue-verify --issue-id <id>`
+**Finding issue IDs from an execution?** → Use `scoutqa list-issues --execution-id <id>`
 **Agent needs more context?** → Use `scoutqa send-message` (see "Following Up on Stuck Executions")
 
 ## Writing Effective Prompts
@@ -201,6 +216,23 @@ touch interactions, and viewport behavior.
 "
 ```
 
+**Verification of a known issue:**
+
+```bash
+# First, find issue IDs from a previous execution
+scoutqa list-issues --execution-id <executionId>
+
+# Then verify the issue (creates a new verification execution automatically)
+scoutqa issue-verify --issue-id <issueId>
+```
+
+The `issue-verify` command will:
+
+1. Create a verification execution for the issue
+2. Show the execution ID and browser URL
+3. Stream the agent's verification progress in real-time
+4. Display a completion summary with a link to results
+
 **Feature verification (after implementation):**
 
 ```bash
@@ -226,6 +258,36 @@ Test the newly implemented registration form. Verify:
 
 This catches issues immediately while the implementation is fresh in context.
 
+## Listing Issues
+
+Use `scoutqa list-issues` to browse issues found in a previous execution. This is useful for finding issue IDs to use with `issue-verify`.
+
+```bash
+scoutqa list-issues --execution-id <executionId>
+```
+
+**Options:**
+
+- `--execution-id` (required): Execution ID (from the `/t/<executionId>` URL or CLI output)
+
+**Example output:**
+
+```
+Showing 3 issues:
+
+🔴 019c-abc1
+   Login button unresponsive on mobile
+   Severity: critical | Category: usability | Status: open
+
+🟠 019c-abc2
+   Missing form validation on email field
+   Severity: high | Category: functional | Status: open
+
+🟡 019c-abc3
+   Color contrast insufficient on footer links
+   Severity: medium | Category: accessibility | Status: resolved
+```
+
 ## Presenting Results
 
 ### Immediate Presentation (After Starting Test)
@@ -236,7 +298,7 @@ Right after running the scoutqa command, present the execution details to the us
 **ScoutQA Test Started**
 
 Execution ID: `019b831d-xxx`
-View Live: https://scoutqa.ai/t/019b831d-xxx
+View Live: https://app.scoutqa.ai/t/019b831d-xxx
 
 The test is running remotely. You can view real-time progress in your browser at the link above while I continue with other tasks.
 ```
@@ -304,9 +366,10 @@ ScoutQA tests run remotely on ScoutQA's infrastructure. After starting a test wi
 
 ## Troubleshooting
 
-| Issue                        | Solution                                           |
-| ---------------------------- | -------------------------------------------------- |
-| `command not found: scoutqa` | Install CLI: `npm i -g @scoutqa/cli@latest`        |
-| Auth expired / unauthorized  | Run `scoutqa auth login`                           |
-| Test hangs or needs input    | Use `scoutqa send-message --execution-id`          |
-| Check test results           | Visit browser URL or `scoutqa get-execution --execution-id` |
+| Issue                          | Solution                                                    |
+| ------------------------------ | ----------------------------------------------------------- |
+| `command not found: scoutqa`   | Install CLI: `npm i -g @scoutqa/cli@latest`                 |
+| Auth expired / unauthorized    | Run `scoutqa auth login`                                    |
+| Test hangs or needs input      | Use `scoutqa send-message --execution-id`                   |
+| Check test results             | Visit browser URL or `scoutqa get-execution --execution-id` |
+| Need issue ID for verification | Run `scoutqa list-issues --execution-id <id>`               |

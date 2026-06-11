@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": ".github/hooks/dependency-license-checker/check-licenses.sh",
+        "cwd": ".",
+        "env": {
+          "LICENSE_MODE": "warn"
+        },
+        "timeoutSec": 60
+      }
+    ]
+  }
+}

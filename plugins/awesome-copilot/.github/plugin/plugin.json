@@ -1,7 +1,7 @@
 {
   "name": "awesome-copilot",
   "description": "Meta prompts that help you discover and generate curated GitHub Copilot agents, instructions, prompts, and skills.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "Awesome Copilot Community"
   },
@@ -17,10 +17,9 @@
   "agents": [
     "./agents/meta-agentic-project-scaffold.md"
   ],
-  "commands": [
-    "./commands/suggest-awesome-github-copilot-skills.md",
-    "./commands/suggest-awesome-github-copilot-instructions.md",
-    "./commands/suggest-awesome-github-copilot-prompts.md",
-    "./commands/suggest-awesome-github-copilot-agents.md"
+  "skills": [
+    "./skills/suggest-awesome-github-copilot-agents/",
+    "./skills/suggest-awesome-github-copilot-instructions/",
+    "./skills/suggest-awesome-github-copilot-skills/"
   ]
 }

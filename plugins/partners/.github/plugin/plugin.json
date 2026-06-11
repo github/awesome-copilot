@@ -23,6 +23,7 @@
     "./agents/amplitude-experiment-implementation.md",
     "./agents/apify-integration-expert.md",
     "./agents/arm-migration.md",
+    "./agents/comet-opik.md",
     "./agents/diffblue-cover.md",
     "./agents/droid.md",
     "./agents/dynatrace-expert.md",
@@ -36,9 +37,8 @@
     "./agents/neon-migration-specialist.md",
     "./agents/neon-optimization-analyzer.md",
     "./agents/octopus-deploy-release-notes-mcp.md",
-    "./agents/stackhawk-security-onboarding.md",
-    "./agents/terraform.md",
     "./agents/pagerduty-incident-responder.md",
-    "./agents/comet-opik.md"
+    "./agents/stackhawk-security-onboarding.md",
+    "./agents/terraform.md"
   ]
 }

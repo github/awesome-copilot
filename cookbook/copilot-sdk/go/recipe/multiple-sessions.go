@@ -18,23 +18,32 @@ func main() {
 	defer client.Stop()
 
 	// Create multiple independent sessions
-	session1, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "gpt-5"})
+	session1, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+		Model:               "gpt-5.4",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session1.Destroy()
+	defer session1.Disconnect()
 
-	session2, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "gpt-5"})
+	session2, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+		Model:               "gpt-5.4",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session2.Destroy()
+	defer session2.Disconnect()
 
-	session3, err := client.CreateSession(ctx, &copilot.SessionConfig{Model: "claude-sonnet-4.5"})
+	session3, err := client.CreateSession(ctx, &copilot.SessionConfig{
+		OnPermissionRequest: copilot.PermissionHandler.ApproveAll,
+		Model:               "claude-sonnet-4.6",
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session3.Destroy()
+	defer session3.Disconnect()
 
 	fmt.Println("Created 3 independent sessions")
 
@@ -51,5 +60,5 @@ func main() {
 	session3.Send(ctx, copilot.MessageOptions{Prompt: "How do I initialize a module?"})
 
 	fmt.Println("Sent follow-up questions to each session")
-	fmt.Println("All sessions will be destroyed on exit")
+	fmt.Println("All sessions will be disconnected on exit")
 }

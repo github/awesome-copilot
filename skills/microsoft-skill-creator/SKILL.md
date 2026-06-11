@@ -2,7 +2,7 @@
 name: microsoft-skill-creator
 description: Create agent skills for Microsoft technologies using Learn MCP tools. Use when users want to create a skill that teaches agents about any Microsoft technology, library, framework, or service (Azure, .NET, M365, VS Code, Bicep, etc.). Investigates topics deeply, then generates a hybrid skill storing essential knowledge locally while enabling dynamic deeper investigation.
 context: fork
-compatibility: Requires Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp)
+compatibility: Works best with Microsoft Learn MCP Server (https://learn.microsoft.com/api/mcp). Can also use the mslearn CLI as a fallback.
 ---
 
 # Microsoft Skill Creator
@@ -36,6 +36,27 @@ skill-name/
 | `microsoft_docs_search` | Search official docs | First pass discovery, finding topics |
 | `microsoft_docs_fetch` | Get full page content | Deep dive into important pages |
 | `microsoft_code_sample_search` | Find code examples | Get implementation patterns |
+
+### CLI Alternative
+
+If the Learn MCP server is not available, use the `mslearn` CLI from a terminal or shell (for example, Bash, PowerShell, or cmd) instead:
+
+```bash
+# Run directly (no install needed)
+npx @microsoft/learn-cli search "semantic kernel overview"
+
+# Or install globally, then run
+npm install -g @microsoft/learn-cli
+mslearn search "semantic kernel overview"
+```
+
+| MCP Tool | CLI Command |
+|----------|-------------|
+| `microsoft_docs_search(query: "...")` | `mslearn search "..."` |
+| `microsoft_code_sample_search(query: "...", language: "...")` | `mslearn code-search "..." --language ...` |
+| `microsoft_docs_fetch(url: "...")` | `mslearn fetch "..."` |
+
+Generated skills should include this same CLI fallback table so agents can use either path.
 
 ## Creation Process
 
@@ -214,4 +235,16 @@ See [getting-started/hello-kernel.cs](sample_codes/getting-started/hello-kernel.
 | Plugin development | `microsoft_docs_search(query="semantic kernel plugins custom functions")` |
 | Planners | `microsoft_docs_search(query="semantic kernel planner")` |
 | Memory | `microsoft_docs_fetch(url="https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-memory")` |
+
+## CLI Alternative
+
+If the Learn MCP server is not available, use the `mslearn` CLI instead:
+
+| MCP Tool | CLI Command |
+|----------|-------------|
+| `microsoft_docs_search(query: "...")` | `mslearn search "..."` |
+| `microsoft_code_sample_search(query: "...", language: "...")` | `mslearn code-search "..." --language ...` |
+| `microsoft_docs_fetch(url: "...")` | `mslearn fetch "..."` |
+
+Run directly with `npx @microsoft/learn-cli <command>` or install globally with `npm install -g @microsoft/learn-cli`.
 ```

@@ -1,0 +1,135 @@
+name: External plugin submission
+description: Submit a public GitHub-hosted external plugin for marketplace review.
+title: "[External Plugin]: "
+labels:
+  - external-plugin
+  - awaiting-review
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <!-- external-plugin-submission -->
+        Thanks for submitting a public external plugin.
+
+        Before you continue:
+        - Public submissions are **GitHub-only** in v1.
+        - The plugin must live in a **public GitHub repository**.
+        - Provide an immutable **ref**, **sha**, or both for review.
+        - Do **not** open a PR that edits `plugins/external.json` directly.
+  - type: input
+    id: plugin-name
+    attributes:
+      label: Plugin name
+      description: Lowercase letters, numbers, and hyphens only.
+      placeholder: my-plugin
+    validations:
+      required: true
+  - type: textarea
+    id: short-description
+    attributes:
+      label: Short description
+      description: One or two sentences describing the plugin.
+      placeholder: Helps developers...
+    validations:
+      required: true
+  - type: input
+    id: github-repository
+    attributes:
+      label: GitHub repository
+      description: Public GitHub repository in owner/repo format.
+      placeholder: owner/repo
+    validations:
+      required: true
+  - type: input
+    id: plugin-path
+    attributes:
+      label: Plugin path inside the repository
+      description: Optional if the plugin lives at the repository root. Otherwise, enter the folder where the plugin structure starts, not the plugin.json file.
+      placeholder: plugins/my-plugin
+    validations:
+      required: false
+  - type: input
+    id: immutable-ref
+    attributes:
+      label: Ref to review
+      description: Optional release tag or tag ref. Submit this, a commit SHA, or both.
+      placeholder: v1.2.3
+    validations:
+      required: false
+  - type: input
+    id: immutable-sha
+    attributes:
+      label: Commit SHA to review
+      description: Optional full 40-character commit SHA. Submit this, a ref, or both.
+      placeholder: 0123456789abcdef0123456789abcdef01234567
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: License identifier
+      description: SPDX identifier or other license string.
+      placeholder: MIT
+    validations:
+      required: true
+  - type: input
+    id: author-name
+    attributes:
+      label: Author name
+      placeholder: Example Maintainers
+    validations:
+      required: true
+  - type: input
+    id: author-url
+    attributes:
+      label: Author URL
+      description: Optional HTTPS URL.
+      placeholder: https://example.com
+    validations:
+      required: false
+  - type: input
+    id: homepage-url
+    attributes:
+      label: Homepage URL
+      description: Optional HTTPS URL if different from the repository URL.
+      placeholder: https://example.com/plugin
+    validations:
+      required: false
+  - type: textarea
+    id: keywords
+    attributes:
+      label: Keywords
+      description: Comma-separated or newline-separated lowercase tags.
+      placeholder: |
+        automation
+        github
+        copilot
+    validations:
+      required: true
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: Additional notes for reviewers
+      description: Optional context that helps maintainers review the plugin.
+    validations:
+      required: false
+  - type: checkboxes
+    id: submission-checklist
+    attributes:
+      label: Submission checklist
+      options:
+        - label: The plugin lives in a public GitHub repository.
+          required: true
+        - label: The ref and/or sha I provided is immutable (release tag and/or full 40-character commit SHA), not a branch.
+          required: true
+        - label: This submission follows this repository's contribution, security, and responsible AI policies.
+          required: true
+        - label: This plugin is not already listed in the Awesome Copilot marketplace.
+          required: true

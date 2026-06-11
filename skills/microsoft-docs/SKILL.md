@@ -21,6 +21,27 @@ Use these tools for **everything on learn.microsoft.com** — Azure, .NET, M365,
 
 Use `microsoft_docs_fetch` after search when you need complete tutorials, all config options, or when search excerpts are truncated.
 
+### CLI Alternative
+
+If the Learn MCP server is not available, use the `mslearn` CLI from your terminal or shell (for example, Bash, PowerShell, or cmd) instead:
+
+```bash
+# Run directly (no install needed)
+npx @microsoft/learn-cli search "BlobClient UploadAsync Azure.Storage.Blobs"
+
+# Or install globally, then run
+npm install -g @microsoft/learn-cli
+mslearn search "BlobClient UploadAsync Azure.Storage.Blobs"
+```
+
+| MCP Tool | CLI Command |
+|----------|-------------|
+| `microsoft_docs_search(query: "...")` | `mslearn search "..."` |
+| `microsoft_code_sample_search(query: "...", language: "...")` | `mslearn code-search "..." --language ...` |
+| `microsoft_docs_fetch(url: "...")` | `mslearn fetch "..."` |
+
+Pass `--json` to `search` or `code-search` to get raw JSON output for further processing.
+
 ---
 
 ## Exceptions: When to Use Other Tools

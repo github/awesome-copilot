@@ -35,7 +35,7 @@ npx tsx accessibility-report.ts
 ```typescript
 #!/usr/bin/env npx tsx
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import * as readline from "node:readline";
 
 // ============================================================================
@@ -73,6 +73,7 @@ async function main() {
     const client = new CopilotClient();
 
     const session = await client.createSession({
+        onPermissionRequest: approveAll,
         model: "claude-opus-4.6",
         streaming: true,
         mcpServers: {
@@ -89,7 +90,7 @@ async function main() {
     let idleResolve: (() => void) | null = null;
 
     session.on((event) => {
-        if (event.type === "assistant.message.delta") {
+        if (event.type === "assistant.message_delta") {
             process.stdout.write(event.data.deltaContent ?? "");
         } else if (event.type === "session.idle") {
             idleResolve?.();
@@ -178,7 +179,7 @@ main().catch(console.error);
 ## How it works
 
 1. **Playwright MCP server**: Configures a local MCP server running `@playwright/mcp` to provide browser automation tools
-2. **Streaming output**: Uses `streaming: true` and `assistant.message.delta` events for real-time token-by-token output
+2. **Streaming output**: Uses `streaming: true` and `assistant.message_delta` events for real-time token-by-token output
 3. **Accessibility snapshot**: Playwright's `browser_snapshot` tool captures the full accessibility tree of the page
 4. **Structured report**: The prompt engineers a consistent WCAG-aligned report format with emoji severity indicators
 5. **Test generation**: Optionally detects the project language and generates Playwright accessibility tests
@@ -191,6 +192,7 @@ The recipe configures a local MCP server that runs alongside the session:
 
 ```typescript
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     mcpServers: {
         playwright: {
             type: "local",
@@ -210,7 +212,7 @@ Unlike `sendAndWait`, this recipe uses streaming for real-time output:
 
 ```typescript
 session.on((event) => {
-    if (event.type === "assistant.message.delta") {
+    if (event.type === "assistant.message_delta") {
         process.stdout.write(event.data.deltaContent ?? "");
     } else if (event.type === "session.idle") {
         idleResolve?.();

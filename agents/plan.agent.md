@@ -5,9 +5,7 @@ tools:
   - search/codebase
   - vscode/extensions
   - web/fetch
-  - web/githubRepo
   - read/problems
-  - azure-mcp/search
   - search/searchResults
   - search/usages
   - vscode/vscodeAPI

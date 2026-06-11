@@ -17,7 +17,7 @@
     "optimization",
     "best-practices"
   ],
-  "commands": [
-    "./commands/ai-prompt-engineering-safety-review.md"
+  "skills": [
+    "./skills/ai-prompt-engineering-safety-review/"
   ]
 }

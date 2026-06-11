@@ -19,7 +19,7 @@
   "agents": [
     "./agents/php-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/php-mcp-server-generator.md"
+  "skills": [
+    "./skills/php-mcp-server-generator/"
   ]
 }

@@ -6,7 +6,7 @@ Premium planning, thrifty implementation
 
 ```bash
 # Using Copilot CLI
-copilot plugin install github/awesome-copilot/plugins/structured-autonomy
+copilot plugin install structured-autonomy@awesome-copilot
 ```
 
 ## What's Included

@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 
 import asyncio
-from copilot import CopilotClient, SessionConfig, MessageOptions
+from copilot import CopilotClient, SessionConfig, MessageOptions, PermissionHandler
 
 async def main():
     client = CopilotClient()
     await client.start()
 
     # Create multiple independent sessions
-    session1 = await client.create_session(SessionConfig(model="gpt-5"))
-    session2 = await client.create_session(SessionConfig(model="gpt-5"))
-    session3 = await client.create_session(SessionConfig(model="claude-sonnet-4.5"))
+    session1 = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
+    session2 = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
+    session3 = await client.create_session(SessionConfig(model="claude-sonnet-4.5",
+        on_permission_request=PermissionHandler.approve_all))
 
     print("Created 3 independent sessions")
 

@@ -1,0 +1,129 @@
+---
+// Back to Top Button Component
+---
+
+<button
+  id="back-to-top"
+  class="back-to-top"
+  aria-label="Back to top"
+  title="Back to top"
+>
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 15l-6-6-6 6"/>
+  </svg>
+</button>
+
+<script>
+  (function() {
+    const button = document.getElementById('back-to-top');
+    if (!button) return;
+
+    // Move button to body level to escape stacking contexts
+    if (button.parentElement !== document.body) {
+      document.body.appendChild(button);
+    }
+
+    // Show/hide button based on scroll position
+    function toggleVisibility() {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      if (scrollY > 400) {
+        button.classList.add('visible');
+      } else {
+        button.classList.remove('visible');
+      }
+    }
+
+    // Scroll to top with smooth behavior
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    // Throttled scroll handler
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          toggleVisibility();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // Click handler
+    button.addEventListener('click', scrollToTop);
+
+    // Initial check
+    toggleVisibility();
+  })();
+</script>
+
+<style is:global>
+  .back-to-top {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(133, 52, 243, 0.4);
+    z-index: 9999;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
+
+  .back-to-top:hover {
+    background: var(--color-accent-hover);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(133, 52, 243, 0.5);
+  }
+
+  .back-to-top:active {
+    transform: translateY(0) scale(0.95);
+  }
+
+  .back-to-top:focus-visible {
+    outline: 2px solid var(--color-text-emphasis);
+    outline-offset: 2px;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .back-to-top {
+      bottom: 16px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .back-to-top {
+      transition: opacity 0.2s ease;
+      transform: none;
+    }
+
+    .back-to-top.visible {
+      transform: none;
+    }
+  }
+</style>

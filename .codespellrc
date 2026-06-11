@@ -34,8 +34,28 @@
 
 # FillIn - pdftk-server skill reference file available permission
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai
+# LOD - Level of Detail
+
+# InOut - template property in skills/game-engine/assets/2d-platform-game.md
+
+# pixelX - template variable in skill/game-engine/assets/simple-2d-engine.md
+
+# aNULL - HTTPS configuration cipher string
+
+# Wee, Sherif - proper name (Wee, Sherif, contributor names should not be flagged as typos)
+
+# queston - intentional misspelling example in skills/arize-dataset/SKILL.md demonstrating typo detection in field names
+
+# nin - MongoDB $nin operator in security instructions NoSQL injection detection regex
+
+# Vertexes - FreeCAD shape sub-elements used as property of obj.Shape
+
+# FO - tasklist option /FO to format running task output
+
+# CAF - Microsoft Cloud Adoption Framework acronym
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth
 
 # Skip certain files and directories
 
-skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus
+skip = .git,node_modules,package-lock.json,*.lock,website/build,website/.docusaurus,.all-contributorrc,./skills/geofeed-tuner/assets/*.json,./skills/geofeed-tuner/references/*.txt,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/assets/*.json,./plugins/fastah-ip-geo-tools/skills/geofeed-tuner/references/*.txt

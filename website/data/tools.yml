@@ -41,6 +41,51 @@ tools:
       - search
       - install
 
+  - id: chatcrystal
+    name: ChatCrystal
+    description: >-
+      Local-first knowledge base for AI coding conversations. ChatCrystal imports
+      conversations from Claude Code, Cursor, Codex CLI, Trae, and GitHub Copilot,
+      distills them into searchable notes, and exposes recall, search, and writeback
+      tools through a stdio MCP server.
+    category: MCP Servers
+    featured: false
+    requirements:
+      - Node.js 20 or higher
+      - npm
+      - ChatCrystal installed globally with npm
+      - Optional Ollama or supported API provider for summarization and embeddings
+    links:
+      github: https://github.com/ZengLiangYi/ChatCrystal
+      npm: https://www.npmjs.com/package/chatcrystal
+      documentation: https://zengliangyi.github.io/ChatCrystal/
+    features:
+      - "Conversation import: Claude Code, Cursor, Codex CLI, Trae, and GitHub Copilot"
+      - "Semantic search: find prior fixes, decisions, code snippets, and notes"
+      - "MCP tools: search_knowledge, get_note, list_notes, and get_relations"
+      - "Memory loop: recall_for_task and write_task_memory for coding agents"
+      - "Local-first storage: data is stored under the user's ChatCrystal data directory"
+    configuration:
+      type: json
+      content: |
+        {
+          "servers": {
+            "chatcrystal": {
+              "type": "stdio",
+              "command": "crystal",
+              "args": ["mcp"]
+            }
+          }
+        }
+    tags:
+      - mcp
+      - cli
+      - npm
+      - local-first
+      - memory
+      - knowledge-base
+      - semantic-search
+
   - id: vscode-extension
     name: Awesome GitHub Copilot Browser
     description: >-
@@ -259,3 +304,162 @@ tools:
       - copilot
       - agent
       - manager
+
+  - id: groundhog-day
+    name: Groundhog Day
+    description: >-
+      Autonomous backup agent for GitHub Copilot CLI skills. Watches your
+      ~/.copilot/skills/ directory in real time, commits every change with
+      meaningful messages, and pushes to GitHub automatically. Starts on boot
+      via macOS LaunchAgent, restarts if it crashes, and requires zero
+      interaction after setup. One-line installer creates a backup repo,
+      seeds it with existing skills, and starts the watcher. Includes a daily
+      health check, sync locking, push retry, and empty-source protection.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - macOS or Linux
+      - GitHub CLI (gh) authenticated
+      - git
+      - fswatch (installed automatically via Homebrew on macOS)
+    links:
+      github: https://github.com/DUBSOpenHub/groundhog-day
+    features:
+      - "👀 Real-Time Watch: Detects every create, edit, rename, and delete in your skills directory using fswatch"
+      - "🔄 Auto Sync: Commits and pushes changes to GitHub with meaningful commit messages"
+      - "🏥 Daily Health Check: Automated 6 AM checkup validates watcher, repo state, remote sync, and log health"
+      - "⚡ One-Line Install: curl installer creates a backup repo, seeds existing skills, and starts the watcher"
+      - "🛡️ Built-In Safety: Sync locking, push retry, empty-source guard, and graceful shutdown"
+      - "🔁 Survives Reboots: macOS LaunchAgent keeps it alive across restarts"
+    configuration:
+      type: bash
+      content: |
+        # Install in one line
+        curl -fsSL https://raw.githubusercontent.com/DUBSOpenHub/groundhog-day/main/install.sh | bash
+
+        # Or install with Homebrew
+        brew install DUBSOpenHub/tap/groundhog-day
+
+        # Check status
+        groundhog status
+
+        # Run a manual health check
+        groundhog checkup
+    tags:
+      - cli
+      - backup
+      - skills
+      - automation
+      - macos
+      - launchagent
+
+  - id: swarm-orchestrator
+    name: Swarm Orchestrator
+    description: >-
+      Independent verification battery for patches written by AI coding agents.
+      Wraps GitHub Copilot CLI, Claude Code, or Codex; runs each agent-authored
+      patch through a five-layer falsification battery (intent, regression,
+      solution quality, behavioral, provenance) on isolated git branches before
+      merge. Hard gates block patches that fail intent or regression checks;
+      advisory layers feed a composite score with signed SLSA attestation
+      attached as a git note.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - "Node.js >= 20"
+      - "git >= 2.40 (worktrees required)"
+      - "One of: GitHub Copilot CLI, Claude Code, or Codex (installed and authenticated separately)"
+      - Docker (optional, for SWE-bench evaluation containers)
+    links:
+      github: https://github.com/moonrunnerkc/swarm-orchestrator
+      npm: https://www.npmjs.com/package/swarm-orchestrator
+    features:
+      - "Five-layer falsification battery: differential gating, mutation testing, semantic cheat detection, property-based testing, signed SLSA attestation"
+      - "Worker/reviewer execution model on isolated git worktrees"
+      - "Static dependency analyzer for safe parallelism (the planner does not declare independence; the analyzer detects it)"
+      - "In-toto SLSA v1.0 attestation with cosign keyless signing via Fulcio + OIDC"
+      - "Multi-agent: adapters for Copilot CLI, Claude Code, Codex, Claude Code Teams"
+      - "Audit-ready run artifacts in runs/<execution-id>/"
+    configuration:
+      type: bash
+      content: |
+        # Install globally
+        npm install -g swarm-orchestrator
+
+        # Run a demo
+        swarm demo demo-fast
+
+        # Plan and execute a goal
+        swarm run --goal "Add a /health endpoint that returns 200 OK" \
+          --tool claude-code --target ./my-repo
+
+        # Verify a signed attestation on a merge commit
+        swarm attest verify <commit-sha>
+    tags:
+      - cli
+      - npm
+      - verification
+      - falsification
+      - attestation
+      - mutation-testing
+      - slsa
+      - copilot-cli
+      - claude-code
+      - codex
+      - agent-orchestrator
+
+  - id: copilot-cockpit
+    name: Copilot Cockpit
+    description: >-
+      A VS Code extension for structured GitHub Copilot workflows. Adds planning,
+      approvals, scheduling, research runs, and review checkpoints inside the editor.
+    category: VS Code Extensions
+    featured: false
+    requirements:
+      - VS Code version 1.80.0 or higher
+      - GitHub Copilot in VS Code
+      - Download the VSIX from GitHub Releases and install it in VS Code
+    links:
+      github: https://github.com/goodguy1963/Copilot-Cockpit
+      documentation: https://github.com/goodguy1963/Copilot-Cockpit#readme
+    features:
+      - "Todo cockpit: Plan work, manage approvals, and keep execution status visible"
+      - "Scheduler and jobs: Run scheduled tasks, multi-step jobs, and pause checkpoints"
+      - "MCP integration: Use built-in MCP tools for repo workflows inside VS Code"
+      - "Research runs: Capture and review research tasks without leaving the editor"
+    tags:
+      - vscode
+      - extension
+      - copilot
+      - planning
+      - scheduling
+      - mcp
+
+  - id: ivy-tendril
+    name: Ivy Tendril
+    description: >-
+      Open-source AI coding orchestrator that manages GitHub Copilot, Claude Code,
+      Codex, Antigravity, and OpenCode through a plan-based lifecycle. Decomposes tasks
+      into structured plans, dispatches agents in isolated git worktrees, runs automated
+      verification gates (build, test, lint, format, AI review), and accumulates
+      self-improving memory across sessions. Local-first desktop app.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Windows, macOS, or Linux
+      - At least one supported coding agent installed (GitHub Copilot CLI, Claude Code, Codex, etc.)
+    links:
+      github: https://github.com/Ivy-Interactive/Ivy-Tendril
+      documentation: https://tendril.ivy.app/getting-started/installation
+    features:
+      - "🔄 Plan lifecycle: Idea → plan → execute → verify → PR in a structured pipeline"
+      - "🤖 Agent-agnostic: Orchestrates Copilot, Claude Code, Codex, Antigravity, OpenCode"
+      - "✅ Verification gates: Build, test, lint, format, and AI review before human sees the diff"
+      - "🧠 Self-improving: Agents learn your codebase conventions through persistent memory"
+      - "🌳 Git worktree isolation: Each task runs in its own worktree"
+    tags:
+      - orchestration
+      - multi-agent
+      - verification
+      - worktree
+      - local-first

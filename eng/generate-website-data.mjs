@@ -2,29 +2,32 @@
 
 /**
  * Generate JSON metadata files for the GitHub Pages website.
- * This script extracts metadata from agents, prompts, instructions, skills, and plugins
+ * This script extracts metadata from agents, instructions, skills, hooks, and plugins
  * and writes them to website/data/ for client-side search and display.
  */
 
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import {
-    AGENTS_DIR,
-    COOKBOOK_DIR,
-    HOOKS_DIR,
-    INSTRUCTIONS_DIR,
-    PLUGINS_DIR,
-    PROMPTS_DIR,
-    ROOT_FOLDER,
-    SKILLS_DIR
+  AGENTS_DIR,
+  COOKBOOK_DIR,
+  EXTENSIONS_DIR,
+  HOOKS_DIR,
+  INSTRUCTIONS_DIR,
+  PLUGINS_DIR,
+  ROOT_FOLDER,
+  SKILLS_DIR,
+  WORKFLOWS_DIR,
 } from "./constants.mjs";
 import { getGitFileDates } from "./utils/git-dates.mjs";
 import {
-    parseFrontmatter,
-    parseSkillMetadata,
-    parseHookMetadata,
-    parseYamlFile,
+  parseFrontmatter,
+  parseHookMetadata,
+  parseSkillMetadata,
+  parseWorkflowMetadata,
+  parseYamlFile,
 } from "./yaml-parser.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +64,68 @@ function extractTitle(filePath, frontmatter) {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+/**
+ * Convert kebab/snake names into readable titles.
+ */
+function formatDisplayName(value) {
+  const acronymMap = new Map([
+    ["ai", "AI"],
+    ["api", "API"],
+    ["cli", "CLI"],
+    ["css", "CSS"],
+    ["html", "HTML"],
+    ["json", "JSON"],
+    ["llm", "LLM"],
+    ["mcp", "MCP"],
+    ["ui", "UI"],
+    ["ux", "UX"],
+    ["vscode", "VS Code"],
+  ]);
+
+  return value
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => {
+      const lower = part.toLowerCase();
+      if (acronymMap.has(lower)) {
+        return acronymMap.get(lower);
+      }
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+/**
+ * Find the latest git-modified date for any file under a directory.
+ */
+function getDirectoryLastUpdated(gitDates, relativeDirPath) {
+  const prefix = `${relativeDirPath}/`;
+  let latestDate = null;
+  let latestTime = 0;
+
+  for (const [filePath, date] of gitDates.entries()) {
+    if (!filePath.startsWith(prefix)) continue;
+    const timestamp = Date.parse(date);
+    if (!Number.isNaN(timestamp) && timestamp > latestTime) {
+      latestTime = timestamp;
+      latestDate = date;
+    }
+  }
+
+  return latestDate;
+}
+
+/**
+ * Get the current commit SHA for the checked-out repository.
+ */
+function getCurrentCommitSha() {
+  return execSync("git --no-pager rev-parse HEAD", {
+    cwd: ROOT_FOLDER,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
 }
 
 /**
@@ -131,7 +196,7 @@ function generateAgentsData(gitDates) {
  */
 function generateHooksData(gitDates) {
   const hooks = [];
-  
+
   // Check if hooks directory exists
   if (!fs.existsSync(HOOKS_DIR)) {
     return {
@@ -193,46 +258,56 @@ function generateHooksData(gitDates) {
 }
 
 /**
- * Generate prompts metadata
+ * Generate workflows metadata (flat .md files)
  */
-function generatePromptsData(gitDates) {
-  const prompts = [];
-  const files = fs
-    .readdirSync(PROMPTS_DIR)
-    .filter((f) => f.endsWith(".prompt.md"));
+function generateWorkflowsData(gitDates) {
+  const workflows = [];
 
-  // Track all unique tools for filters
-  const allTools = new Set();
+  if (!fs.existsSync(WORKFLOWS_DIR)) {
+    return {
+      items: workflows,
+      filters: {
+        triggers: [],
+      },
+    };
+  }
 
-  for (const file of files) {
-    const filePath = path.join(PROMPTS_DIR, file);
-    const frontmatter = parseFrontmatter(filePath);
+  const workflowFiles = fs.readdirSync(WORKFLOWS_DIR).filter((file) => {
+    return file.endsWith(".md") && file !== ".gitkeep";
+  });
+
+  const allTriggers = new Set();
+
+  for (const file of workflowFiles) {
+    const filePath = path.join(WORKFLOWS_DIR, file);
+    const metadata = parseWorkflowMetadata(filePath);
+    if (!metadata) continue;
+
     const relativePath = path
       .relative(ROOT_FOLDER, filePath)
       .replace(/\\/g, "/");
 
-    const tools = frontmatter?.tools || [];
-    tools.forEach((t) => allTools.add(t));
+    (metadata.triggers || []).forEach((t) => allTriggers.add(t));
 
-    prompts.push({
-      id: file.replace(".prompt.md", ""),
-      title: extractTitle(filePath, frontmatter),
-      description: frontmatter?.description || "",
-      agent: frontmatter?.agent || null,
-      model: frontmatter?.model || null,
-      tools: tools,
+    const id = path.basename(file, ".md");
+    workflows.push({
+      id,
+      title: metadata.name,
+      description: metadata.description,
+      triggers: metadata.triggers || [],
       path: relativePath,
-      filename: file,
       lastUpdated: gitDates.get(relativePath) || null,
     });
   }
 
-  const sortedPrompts = prompts.sort((a, b) => a.title.localeCompare(b.title));
+  const sortedWorkflows = workflows.sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
 
   return {
-    items: sortedPrompts,
+    items: sortedWorkflows,
     filters: {
-      tools: Array.from(allTools).sort(),
+      triggers: Array.from(allTriggers).sort(),
     },
   };
 }
@@ -344,64 +419,18 @@ function generateInstructionsData(gitDates) {
 }
 
 /**
- * Categorize a skill based on its name and description
- */
-function categorizeSkill(name, description) {
-  const text = `${name} ${description}`.toLowerCase();
-
-  if (text.includes("azure") || text.includes("appinsights")) return "Azure";
-  if (
-    text.includes("github") ||
-    text.includes("gh-cli") ||
-    text.includes("git-commit") ||
-    text.includes("git ")
-  )
-    return "Git & GitHub";
-  if (text.includes("vscode") || text.includes("vs code")) return "VS Code";
-  if (
-    text.includes("test") ||
-    text.includes("qa") ||
-    text.includes("playwright")
-  )
-    return "Testing";
-  if (
-    text.includes("microsoft") ||
-    text.includes("m365") ||
-    text.includes("workiq")
-  )
-    return "Microsoft";
-  if (text.includes("cli") || text.includes("command")) return "CLI Tools";
-  if (
-    text.includes("diagram") ||
-    text.includes("plantuml") ||
-    text.includes("visual")
-  )
-    return "Diagrams";
-  if (
-    text.includes("nuget") ||
-    text.includes("dotnet") ||
-    text.includes(".net")
-  )
-    return ".NET";
-
-  return "Other";
-}
-
-/**
  * Generate skills metadata
  */
 function generateSkillsData(gitDates) {
   const skills = [];
 
   if (!fs.existsSync(SKILLS_DIR)) {
-    return { items: [], filters: { categories: [], hasAssets: ["Yes", "No"] } };
+    return { items: [], filters: { hasAssets: ["Yes", "No"] } };
   }
 
   const folders = fs
     .readdirSync(SKILLS_DIR)
     .filter((f) => fs.statSync(path.join(SKILLS_DIR, f)).isDirectory());
-
-  const allCategories = new Set();
 
   for (const folder of folders) {
     const skillPath = path.join(SKILLS_DIR, folder);
@@ -411,31 +440,39 @@ function generateSkillsData(gitDates) {
       const relativePath = path
         .relative(ROOT_FOLDER, skillPath)
         .replace(/\\/g, "/");
-      const category = categorizeSkill(metadata.name, metadata.description);
-      allCategories.add(category);
 
       // Get all files in the skill folder recursively
       const files = getSkillFiles(skillPath, relativePath);
 
       // Get last updated from SKILL.md file
       const skillFilePath = `${relativePath}/SKILL.md`;
+      const title = metadata.name
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      const searchText = [
+        title,
+        metadata.description,
+        folder,
+        metadata.name,
+        relativePath,
+      ]
+        .join(" ")
+        .toLowerCase();
 
       skills.push({
         id: folder,
         name: metadata.name,
-        title: metadata.name
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" "),
+        title,
         description: metadata.description,
         assets: metadata.assets,
         hasAssets: metadata.assets.length > 0,
         assetCount: metadata.assets.length,
-        category: category,
         path: relativePath,
         skillFile: skillFilePath,
         files: files,
         lastUpdated: gitDates.get(skillFilePath) || null,
+        searchText,
       });
     }
   }
@@ -445,7 +482,6 @@ function generateSkillsData(gitDates) {
   return {
     items: sortedSkills,
     filters: {
-      categories: Array.from(allCategories).sort(),
       hasAssets: ["Yes", "No"],
     },
   };
@@ -482,6 +518,21 @@ function getSkillFiles(skillPath, relativePath) {
 }
 
 /**
+ * Get all agent markdown files from a folder
+ */
+function getAgentFiles(agentDir, pluginRootPath) {
+  if (!fs.existsSync(agentDir)) return [];
+
+  return fs
+    .readdirSync(agentDir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => ({
+      kind: "agent",
+      path: `${pluginRootPath}/agents/${f}`,
+    }));
+}
+
+/**
  * Generate plugins metadata
  */
 function generatePluginsData(gitDates) {
@@ -491,8 +542,9 @@ function generatePluginsData(gitDates) {
     return { items: [], filters: { tags: [] } };
   }
 
-  const pluginDirs = fs.readdirSync(PLUGINS_DIR, { withFileTypes: true })
-    .filter(d => d.isDirectory());
+  const pluginDirs = fs
+    .readdirSync(PLUGINS_DIR, { withFileTypes: true })
+    .filter((d) => d.isDirectory());
 
   for (const dir of pluginDirs) {
     const pluginDir = path.join(PLUGINS_DIR, dir.name);
@@ -505,11 +557,27 @@ function generatePluginsData(gitDates) {
       const relPath = `plugins/${dir.name}`;
       const dates = gitDates[relPath] || gitDates[`${relPath}/`] || {};
 
+      const agentItems = (data.agents || []).flatMap((agent) => {
+        const agentPath = agent.replace("./", "");
+        const fullPath = path.join(pluginDir, agentPath);
+
+        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+          return getAgentFiles(fullPath, relPath);
+        }
+
+        return [
+          {
+            kind: "agent",
+            path: `${relPath}/${agentPath}`,
+          },
+        ];
+      });
+
       // Build items list from spec fields (agents, commands, skills)
       const items = [
-        ...(data.agents || []).map(p => ({ kind: "agent", path: p })),
-        ...(data.commands || []).map(p => ({ kind: "prompt", path: p })),
-        ...(data.skills || []).map(p => ({ kind: "skill", path: p })),
+        ...agentItems,
+        ...(data.commands || []).map((p) => ({ kind: "prompt", path: p })),
+        ...(data.skills || []).map((p) => ({ kind: "skill", path: p })),
       ];
 
       const tags = data.keywords || data.tags || [];
@@ -523,22 +591,112 @@ function generatePluginsData(gitDates) {
         itemCount: items.length,
         items: items,
         lastUpdated: dates.lastModified || null,
-        searchText: `${data.name || dir.name} ${data.description || ""} ${tags.join(" ")}`.toLowerCase(),
+        searchText: `${data.name || dir.name} ${data.description || ""
+          } ${tags.join(" ")}`.toLowerCase(),
       });
     } catch (e) {
       console.warn(`Failed to parse plugin: ${dir.name}`, e.message);
     }
   }
 
+  // Load external plugins from plugins/external.json
+  const externalJsonPath = path.join(PLUGINS_DIR, "external.json");
+  if (fs.existsSync(externalJsonPath)) {
+    try {
+      const externalPlugins = JSON.parse(
+        fs.readFileSync(externalJsonPath, "utf-8")
+      );
+      if (Array.isArray(externalPlugins)) {
+        let addedCount = 0;
+        for (const ext of externalPlugins) {
+          if (!ext.name || !ext.description) {
+            console.warn(
+              `Skipping external plugin with missing name/description`
+            );
+            continue;
+          }
+
+          // Skip if a local plugin with the same name already exists
+          if (plugins.some((p) => p.id === ext.name)) {
+            console.warn(
+              `Skipping external plugin "${ext.name}" — local plugin with same name exists`
+            );
+            continue;
+          }
+
+          const tags = ext.keywords || ext.tags || [];
+
+          plugins.push({
+            id: ext.name,
+            name: ext.name,
+            description: ext.description || "",
+            path: `plugins/${ext.name}`,
+            tags: tags,
+            itemCount: 0,
+            items: [],
+            external: true,
+            repository: ext.repository || null,
+            homepage: ext.homepage || null,
+            author: ext.author || null,
+            license: ext.license || null,
+            source: ext.source || null,
+            lastUpdated: null,
+            searchText: `${ext.name} ${ext.description || ""} ${tags.join(
+              " "
+            )} ${ext.author?.name || ""} ${ext.repository || ""}`.toLowerCase(),
+          });
+          addedCount++;
+        }
+        console.log(
+          `  ✓ Loaded ${addedCount} external plugin(s)`
+        );
+      }
+    } catch (e) {
+      console.warn(`Failed to parse external plugins: ${e.message}`);
+    }
+  }
+
   // Collect all unique tags
-  const allTags = [...new Set(plugins.flatMap(p => p.tags))].sort();
+  const allTags = [...new Set(plugins.flatMap((p) => p.tags))].sort();
 
   const sortedPlugins = plugins.sort((a, b) => a.name.localeCompare(b.name));
 
   return {
     items: sortedPlugins,
-    filters: { tags: allTags }
+    filters: { tags: allTags },
   };
+}
+
+/**
+ * Generate canvas extensions metadata
+ */
+function generateExtensionsData(gitDates, commitSha) {
+  const extensions = [];
+
+  if (!fs.existsSync(EXTENSIONS_DIR)) {
+    return { items: [] };
+  }
+
+  const extensionDirs = fs
+    .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory());
+
+  for (const dir of extensionDirs) {
+    const relPath = `extensions/${dir.name}`;
+    extensions.push({
+      id: dir.name,
+      name: formatDisplayName(dir.name),
+      path: relPath,
+      ref: commitSha,
+      lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+    });
+  }
+
+  const sortedExtensions = extensions.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  return { items: sortedExtensions };
 }
 
 /**
@@ -603,9 +761,9 @@ function generateToolsData() {
  */
 function generateSearchIndex(
   agents,
-  prompts,
   instructions,
   hooks,
+  workflows,
   skills,
   plugins
 ) {
@@ -625,18 +783,6 @@ function generateSearchIndex(
     });
   }
 
-  for (const prompt of prompts) {
-    index.push({
-      type: "prompt",
-      id: prompt.id,
-      title: prompt.title,
-      description: prompt.description,
-      path: prompt.path,
-      lastUpdated: prompt.lastUpdated,
-      searchText: `${prompt.title} ${prompt.description}`.toLowerCase(),
-    });
-  }
-
   for (const instruction of instructions) {
     index.push({
       type: "instruction",
@@ -645,9 +791,8 @@ function generateSearchIndex(
       description: instruction.description,
       path: instruction.path,
       lastUpdated: instruction.lastUpdated,
-      searchText: `${instruction.title} ${instruction.description} ${
-        instruction.applyTo || ""
-      }`.toLowerCase(),
+      searchText: `${instruction.title} ${instruction.description} ${instruction.applyTo || ""
+        }`.toLowerCase(),
     });
   }
 
@@ -665,6 +810,19 @@ function generateSearchIndex(
     });
   }
 
+  for (const workflow of workflows) {
+    index.push({
+      type: "workflow",
+      id: workflow.id,
+      title: workflow.title,
+      description: workflow.description,
+      path: workflow.path,
+      lastUpdated: workflow.lastUpdated,
+      searchText: `${workflow.title} ${workflow.description
+        } ${workflow.triggers.join(" ")}`.toLowerCase(),
+    });
+  }
+
   for (const skill of skills) {
     index.push({
       type: "skill",
@@ -673,7 +831,7 @@ function generateSearchIndex(
       description: skill.description,
       path: skill.skillFile,
       lastUpdated: skill.lastUpdated,
-      searchText: `${skill.title} ${skill.description}`.toLowerCase(),
+      searchText: skill.searchText,
     });
   }
 
@@ -726,15 +884,48 @@ function generateSamplesData() {
   const allTags = new Set();
   let totalRecipes = 0;
 
-  const cookbooks = cookbookManifest.cookbooks.map((cookbook) => {
-    // Collect languages
+  // First pass: collect all known language IDs across cookbooks
+  cookbookManifest.cookbooks.forEach((cookbook) => {
     cookbook.languages.forEach((lang) => allLanguages.add(lang.id));
+  });
+
+  const cookbooks = cookbookManifest.cookbooks.map((cookbook) => {
 
     // Process recipes and add file paths
     const recipes = cookbook.recipes.map((recipe) => {
       // Collect tags
       if (recipe.tags) {
         recipe.tags.forEach((tag) => allTags.add(tag));
+      }
+
+      totalRecipes++;
+
+      // External recipes link to an external URL — skip local file resolution
+      if (recipe.external) {
+        if (recipe.url) {
+          try {
+            new URL(recipe.url);
+          } catch {
+            console.warn(`Warning: Invalid URL for external recipe "${recipe.id}": ${recipe.url}`);
+          }
+        } else {
+          console.warn(`Warning: External recipe "${recipe.id}" is missing a url`);
+        }
+
+        // Derive languages from tags that match known language IDs
+        const recipeLanguages = (recipe.tags || []).filter((tag) => allLanguages.has(tag));
+
+        return {
+          id: recipe.id,
+          name: recipe.name,
+          description: recipe.description,
+          tags: recipe.tags || [],
+          languages: recipeLanguages,
+          external: true,
+          url: recipe.url || null,
+          author: recipe.author || null,
+          variants: {},
+        };
       }
 
       // Build variants with file paths for each language
@@ -755,13 +946,12 @@ function generateSamplesData() {
         }
       });
 
-      totalRecipes++;
-
       return {
         id: recipe.id,
         name: recipe.name,
         description: recipe.description,
         tags: recipe.tags || [],
+        languages: Object.keys(variants),
         variants,
       };
     });
@@ -799,12 +989,22 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "prompts/", "instructions/", "hooks/", "skills/", "plugins/"],
+    [
+      "agents/",
+      "instructions/",
+      "hooks/",
+      "workflows/",
+      "skills/",
+      "extensions/",
+      "plugins/",
+    ],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
 
   // Generate all data
+  const commitSha = getCurrentCommitSha();
+
   const agentsData = generateAgentsData(gitDates);
   const agents = agentsData.items;
   console.log(
@@ -817,10 +1017,10 @@ async function main() {
     `✓ Generated ${hooks.length} hooks (${hooksData.filters.hooks.length} hook types, ${hooksData.filters.tags.length} tags)`
   );
 
-  const promptsData = generatePromptsData(gitDates);
-  const prompts = promptsData.items;
+  const workflowsData = generateWorkflowsData(gitDates);
+  const workflows = workflowsData.items;
   console.log(
-    `✓ Generated ${prompts.length} prompts (${promptsData.filters.tools.length} tools)`
+    `✓ Generated ${workflows.length} workflows (${workflowsData.filters.triggers.length} triggers)`
   );
 
   const instructionsData = generateInstructionsData(gitDates);
@@ -831,15 +1031,17 @@ async function main() {
 
   const skillsData = generateSkillsData(gitDates);
   const skills = skillsData.items;
-  console.log(
-    `✓ Generated ${skills.length} skills (${skillsData.filters.categories.length} categories)`
-  );
+  console.log(`✓ Generated ${skills.length} skills`);
 
   const pluginsData = generatePluginsData(gitDates);
   const plugins = pluginsData.items;
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
+
+  const extensionsData = generateExtensionsData(gitDates, commitSha);
+  const extensions = extensionsData.items;
+  console.log(`✓ Generated ${extensions.length} extensions`);
 
   const toolsData = generateToolsData();
   const tools = toolsData.items;
@@ -852,11 +1054,17 @@ async function main() {
     `✓ Generated ${samplesData.totalRecipes} recipes in ${samplesData.totalCookbooks} cookbooks (${samplesData.filters.languages.length} languages, ${samplesData.filters.tags.length} tags)`
   );
 
+  // Count contributors from .all-contributorsrc for manifest stats
+  const contributorsRcPath = path.join(ROOT_FOLDER, ".all-contributorsrc");
+  const contributorCount = fs.existsSync(contributorsRcPath)
+    ? (JSON.parse(fs.readFileSync(contributorsRcPath, "utf-8")).contributors || []).length
+    : 0;
+
   const searchIndex = generateSearchIndex(
     agents,
-    prompts,
     instructions,
     hooks,
+    workflows,
     skills,
     plugins
   );
@@ -874,8 +1082,8 @@ async function main() {
   );
 
   fs.writeFileSync(
-    path.join(WEBSITE_DATA_DIR, "prompts.json"),
-    JSON.stringify(promptsData, null, 2)
+    path.join(WEBSITE_DATA_DIR, "workflows.json"),
+    JSON.stringify(workflowsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -891,6 +1099,11 @@ async function main() {
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "plugins.json"),
     JSON.stringify(pluginsData, null, 2)
+  );
+
+  fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "extensions.json"),
+    JSON.stringify(extensionsData, null, 2)
   );
 
   fs.writeFileSync(
@@ -913,12 +1126,14 @@ async function main() {
     generated: new Date().toISOString(),
     counts: {
       agents: agents.length,
-      prompts: prompts.length,
       instructions: instructions.length,
       skills: skills.length,
       hooks: hooks.length,
+      workflows: workflows.length,
       plugins: plugins.length,
+      extensions: extensions.length,
       tools: tools.length,
+      contributors: contributorCount,
       samples: samplesData.totalRecipes,
       total: searchIndex.length,
     },

@@ -1,0 +1,9 @@
+{
+  "name": "accessibility-kanban",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  }
+}

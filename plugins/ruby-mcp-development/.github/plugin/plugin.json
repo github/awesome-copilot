@@ -19,7 +19,7 @@
   "agents": [
     "./agents/ruby-mcp-expert.md"
   ],
-  "commands": [
-    "./commands/ruby-mcp-server-generator.md"
+  "skills": [
+    "./skills/ruby-mcp-server-generator/"
   ]
 }

@@ -1,10 +1,11 @@
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 
 const client = new CopilotClient();
 await client.start();
 
 // Create a session with a memorable ID
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     sessionId: "user-123-conversation",
     model: "gpt-5",
 });
@@ -17,7 +18,7 @@ await session.destroy();
 console.log("Session destroyed (state persisted)");
 
 // Resume the previous session
-const resumed = await client.resumeSession("user-123-conversation");
+const resumed = await client.resumeSession("user-123-conversation", { onPermissionRequest: approveAll });
 console.log(`Resumed: ${resumed.sessionId}`);
 
 await resumed.sendAndWait({ prompt: "What were we discussing?" });

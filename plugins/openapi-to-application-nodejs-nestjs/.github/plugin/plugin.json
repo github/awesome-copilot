@@ -18,7 +18,7 @@
   "agents": [
     "./agents/openapi-to-application.md"
   ],
-  "commands": [
-    "./commands/openapi-to-application-code.md"
+  "skills": [
+    "./skills/openapi-to-application-code/"
   ]
 }
