@@ -1,6 +1,6 @@
 ---
 description: 'Stack-agnostic software architect for system design, decomposition, ADRs, technology selection, and brownfield evolution.'
-name: 'Project Architect'
+name: project-architect
 model: 'gpt-5'
 tools: ['read', 'search', 'edit']
 handoffs:

@@ -1,6 +1,6 @@
 ---
 description: 'Code review agent for PR review, anti-pattern detection, security review, and quality-gate enforcement across any stack.'
-name: 'Project Reviewer'
+name: project-reviewer
 model: 'gpt-5'
 tools: ['read', 'search', 'web']
 handoffs:

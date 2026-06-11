@@ -1,6 +1,6 @@
 ---
 description: 'Delivery planning agent for scoping, estimation, milestone roadmaps, critical path, risk registers, and replanning.'
-name: 'Project Planner'
+name: project-planner
 model: 'gpt-5'
 tools: ['read', 'search', 'edit']
 handoffs:
