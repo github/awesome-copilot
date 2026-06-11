@@ -3,9 +3,36 @@
 ## TypeScript Rules
 
 - Do not use `any`.
+
+  ```ts
+  // Bad
+  const handler = (e: any) => {};
+
+  // Good
+  const handler = (e: React.ChangeEvent<HTMLInputElement>) => {};
+  ```
+
 - Use `type` for props instead of `interface`.
+
+  ```ts
+  // Bad
+  interface ButtonProps {
+    label: string;
+  }
+
+  // Good
+  type ButtonProps = { label: string };
+  ```
+
 - Explicitly annotate function return types.
-- Prefer `@` alias imports and avoid deep relative imports.
+
+  ```ts
+  // Bad
+  const getLabel = () => "hello";
+
+  // Good
+  const getLabel = (): string => "hello";
+  ```
 
 ## SCSS Rules
 
