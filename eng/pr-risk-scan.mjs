@@ -217,7 +217,7 @@ function scanSkillScriptPath(filePath, findings) {
   }
 
   addFinding(findings, {
-    rule_id: "skill-script-added",
+    rule_id: "skill-script-touched",
     severity: severityLevels.info,
     file: normalized,
     line: 1,
