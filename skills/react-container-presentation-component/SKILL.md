@@ -24,7 +24,7 @@ If the `/react-container-presentation-component` input is incomplete, ask questi
 
 ## Required Questions
 
-If any of the following information is missing, ask using `vscode_askQuestions`.
+If any of the following information is missing, ask the user using `ask_user`.
 
 1. Component name
 2. Type (`ui` or `features`)
@@ -52,7 +52,7 @@ Question requirements:
 
 - Even when `ui` is specified, before creating files, review `Reclassification Rule` in `references/component-architecture.md`.
 - If the implementation includes state management, side effects, async processing, context/store updates, or business logic, treat it as `features`.
-- If the result is closer to `features`, do not proceed as `ui`; use `vscode_askQuestions` and confirm one of the following before continuing.
+- If the result is closer to `features`, do not proceed as `ui`; use `ask_user` and confirm one of the following before continuing.
   - `Create as features`
   - `Keep ui and move state/logic to parent or features`
 
@@ -69,7 +69,7 @@ Question requirements:
 
 - Run build and lint commands, and ensure both pass; if issues are introduced by newly added or updated files, fix them.
 - Follow `Storybook Minimum` in `references/component-architecture.md` for story state decisions.
-- Ask the user via `vscode_askQuestions` whether to run a Storybook check (for example: "Run" / "Skip for now").
+- Ask the user via `ask_user` whether to run a Storybook check (for example: "Run" / "Skip for now").
 - Run `npm run storybook` only if the user selects "Run".
 - If the user selects "Skip for now", explicitly mention in the final report that Storybook execution was skipped.
 
