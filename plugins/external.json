@@ -210,6 +210,32 @@
     }
   },
   {
+    "name": "elasticsearch",
+    "description": "Official Elastic plugin for GitHub Copilot — translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
+    "version": "0.3.0",
+    "author": {
+      "name": "Elastic",
+      "url": "https://www.elastic.co"
+    },
+    "repository": "https://github.com/elastic/agent-skills",
+    "homepage": "https://github.com/elastic/agent-skills/tree/main/plugins/elasticsearch",
+    "license": "Apache-2.0",
+    "keywords": [
+      "elasticsearch",
+      "esql",
+      "search",
+      "ingest",
+      "security",
+      "elastic"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "elastic/agent-skills",
+      "path": "plugins/elasticsearch",
+      "sha": "e0d6b02194d4ec74cf9e5975290e950fc5ba549f"
+    }
+  },
+  {
     "name": "figma",
     "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
     "version": "1.0.0",
