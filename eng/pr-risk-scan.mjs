@@ -350,7 +350,11 @@ function main() {
       continue;
     }
 
-    const stat = fs.statSync(absolutePath);
+    const stat = fs.lstatSync(absolutePath);
+    if (stat.isSymbolicLink()) {
+      skippedFiles.push(`${relativePath} (skipped: symbolic link)`);
+      continue;
+    }
     if (!stat.isFile()) {
       skippedFiles.push(relativePath);
       continue;
