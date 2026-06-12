@@ -67,7 +67,9 @@ const IMPACT_ORDER = { critical: 0, serious: 1, moderate: 2, minor: 3, undefined
 
 const browser = await chromium.launch();
 try {
-  const page = await browser.newPage();
+  // axe-core/playwright requires a page created from an explicit context.
+  const context = await browser.newContext();
+  const page = await context.newPage();
   await page.goto(args.url, { waitUntil: 'networkidle' });
 
   const results = await new AxeBuilder({ page }).withTags(args.tags).analyze();
