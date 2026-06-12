@@ -2,8 +2,11 @@ name: Check PR Target Branch
 
 on:
   pull_request_target:
-    branches: [main, staged]
     types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: check-pr-target-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   pull-requests: write
