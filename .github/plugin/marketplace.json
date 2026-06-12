@@ -447,6 +447,36 @@
       }
     },
     {
+      "name": "github-copilot-modernization",
+      "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
+      "version": "1.20.0",
+      "author": {
+        "name": "Microsoft",
+        "url": "https://github.com/microsoft/github-copilot-modernization"
+      },
+      "repository": "https://github.com/microsoft/github-copilot-modernization",
+      "homepage": "https://github.com/microsoft/github-copilot-modernization",
+      "license": "MIT",
+      "keywords": [
+        "java",
+        "dotnet",
+        "modernization",
+        "azure",
+        "migration",
+        "assessment",
+        "cve",
+        "spring-boot",
+        "multi-agent",
+        "copilot"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/github-copilot-modernization",
+        "path": "plugins/github-copilot-modernization",
+        "sha": "42c1189c55933384bec07e8349ef998eb9e775ad"
+      }
+    },
+    {
       "name": "go-mcp-development",
       "source": "go-mcp-development",
       "description": "Complete toolkit for building Model Context Protocol (MCP) servers in Go using the official github.com/modelcontextprotocol/go-sdk. Includes instructions for best practices, a prompt for generating servers, and an expert chat mode for guidance.",
