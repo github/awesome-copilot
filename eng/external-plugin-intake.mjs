@@ -492,7 +492,7 @@ function buildQualityGatesCommentSection(qualityResult) {
 
 function getIntakeStateFromQualityResult(baseResult, qualityResult) {
   if (!baseResult.valid) {
-    return "rejected";
+    return "requires-submitter-fixes";
   }
 
   if (qualityResult.failure_class === "submitter_fixes") {
@@ -553,7 +553,7 @@ function buildMergedIntakeComment(baseResult, qualityResult, runId, owner, repo)
       ? ["", "### Warnings", "", ...baseResult.warnings.map((warning) => `- ${warning}`)].join("\n")
       : "",
     runLink ? `\n${runLink}` : "",
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 }
 
 export function applyQualityGateResult(baseEvaluation, qualityGateResult, runId, owner, repo) {
@@ -644,13 +644,13 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
         runLink ? `\n${runLink}` : "",
-      ].filter(Boolean).join("\n")
+      ].join("\n")
     : [
         marker,
-        "## ❌ External plugin intake failed",
+        "## ⚠️ External plugin intake requires submitter fixes",
         "",
-        "This submission did not pass automated intake validation, so the issue has been closed.",
-        `Edit the issue form to address the fixes below, then have the issue author or a maintainer comment \`${RERUN_INTAKE_COMMAND}\` to re-run intake for this closed submission.`,
+        "This submission did not pass automated intake validation and cannot move to maintainer review yet.",
+        `Edit the issue form to address the fixes below. Intake reruns automatically when the issue is edited, or the issue author/maintainer can comment \`${RERUN_INTAKE_COMMAND}\` to re-run on demand.`,
         "",
         "### Required fixes",
         "",
@@ -659,11 +659,11 @@ export async function evaluateExternalPluginIssue({ issue, token, runId, owner, 
           ? ["", "### Warnings", "", ...dedupedWarnings.map((warning) => `- ${warning}`)].join("\n")
           : "",
         runLink ? `\n${runLink}` : "",
-      ].filter(Boolean).join("\n");
+      ].join("\n");
 
   return {
     valid,
-    intakeState: valid ? "ready-for-review" : "rejected",
+    intakeState: valid ? "ready-for-review" : "requires-submitter-fixes",
     markerPresent: parsed.markerPresent,
     errors: dedupedErrors,
     warnings: dedupedWarnings,
