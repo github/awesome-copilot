@@ -270,9 +270,15 @@ function toMarkdownReport(findings, scannedFiles, skippedFiles) {
           : finding.severity === severityLevels.medium
           ? "🟠"
           : "ℹ️";
-      const match = finding.match.replace(/\|/g, "\\|");
+      const match = finding.match
+        .replace(/\\/g, "\\\\")
+        .replace(/`/g, "\\`")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\|/g, "\\|")
+        .replace(/@/g, "@\u200b");
       summary.push(
-        `| ${severity} | \`${finding.rule_id}\` | \`${finding.file}\` | ${finding.line} | ${match} |`
+        `| ${severity} | \`${finding.rule_id}\` | \`${finding.file}\` | ${finding.line} | \`${match}\` |`
       );
     }
 
