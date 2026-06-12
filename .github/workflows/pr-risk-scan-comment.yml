@@ -36,9 +36,19 @@ jobs:
               return;
             }
 
-            const body = fs.readFileSync(reportPath, 'utf8');
-            let prNumber = null;
+            let body = fs.readFileSync(reportPath, 'utf8');
 
+            // Treat artifact content as untrusted (the gate workflow runs on PR code).
+            // Prevent spam/notification abuse and avoid API failures on oversized bodies.
+            body = body.replace(/@/g, '@\u200b');
+            const maxLength = 65000;
+            if (body.length > maxLength) {
+              body = `${body.slice(0, maxLength)}\n\n_...(truncated)..._`;
+            }
+            if (!body.includes(marker)) {
+              body = `${marker}\n${body}`;
+            }
+            let prNumber = null;
             if (fs.existsSync(prNumberPath)) {
               const parsed = parseInt(fs.readFileSync(prNumberPath, 'utf8').trim(), 10);
               if (!Number.isNaN(parsed)) {
