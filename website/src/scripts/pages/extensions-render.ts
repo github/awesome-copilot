@@ -6,6 +6,8 @@ export interface RenderableExtension {
   path: string;
   ref: string;
   lastUpdated?: string | null;
+  imageUrl?: string | null;
+  assetPath?: string | null;
 }
 
 export type ExtensionSortOption = "title" | "lastUpdated";
@@ -40,14 +42,19 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
       (item) => `
         <article class="resource-item" role="listitem">
           <div class="resource-preview">
-            <div class="resource-info">
-              <div class="resource-title">${escapeHtml(item.name)}</div>
-              <div class="resource-description">Canvas extension</div>
-              <div class="resource-meta">
-                ${getLastUpdatedHtml(item.lastUpdated)}
-              </div>
-            </div>
-          </div>
+           ${
+             item.imageUrl
+               ? `<img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />`
+               : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`
+           }
+           <div class="resource-info">
+             <div class="resource-title">${escapeHtml(item.name)}</div>
+             <div class="resource-description">Canvas extension</div>
+             <div class="resource-meta">
+               ${getLastUpdatedHtml(item.lastUpdated)}
+             </div>
+           </div>
+         </div>
           <div class="resource-actions">
             <button
               class="btn btn-primary btn-small copy-install-url-btn"
