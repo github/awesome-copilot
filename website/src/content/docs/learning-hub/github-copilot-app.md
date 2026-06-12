@@ -1,5 +1,5 @@
 ---
-title: 'Getting Started with the GitHub Copilot App'
+title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
@@ -19,11 +19,11 @@ prerequisites:
   - Copilot Pro, Pro+, Business, or Enterprise plan
 ---
 
-The GitHub Copilot app is a desktop experience built from the ground up for agent-native development. As agents become a central part of your development workflow, you need a place where you can see multiple agents working in parallel, inspect their progress, and take control when needed—all without context-switching between windows or losing track of what's running.
+The GitHub Copilot app is a desktop experience built from the ground up for agent-native development. As agents become a central part of your development workflow, you need a place where you can see multiple agents working in parallel, inspect their progress, and take control when needed, all without context-switching between windows or losing track of what's running.
 
 This guide covers what the Copilot app is, its key features, and how to get started.
 
-## What Is the GitHub Copilot App?
+## What Is the GitHub Copilot app?
 
 The Copilot app is a standalone desktop application that serves as a control center for agentic development. Instead of managing agents through GitHub.com pull requests, issues, and CLI windows, the Copilot app brings everything into one unified interface.
 
@@ -49,6 +49,12 @@ The central hub of the Copilot app is the **My Work** view. This dashboard shows
 
 Instead of checking GitHub, your CLI, and VS Code for updates, everything is in one place.
 
+### Automations
+
+The Copilot app includes built-in automations that can run scheduled tasks for you using the same agentic technology. You can use templates out of the box or create your own.
+
+Automations run in the context of a repository, so they can access issues, pull requests, and code. You can also choose whether they run as a plan, an interactive session, or on autopilot.
+
 ### Isolated Worktrees for Parallel Work
 
 Each session the Copilot app creates runs in its own **git worktree**—a real, isolated copy of your branch. This is critical for parallel agent work:
@@ -68,11 +74,9 @@ This makes it easy to dispatch multiple agents and trust they won't interfere wi
 - Agents update the canvas as they work, and you can edit, approve, or redirect changes on the same surface
 - This makes it easy to see exactly what an agent is doing and step in when needed
 
-Learn more about [working with canvases](/learning-hub/).
+### Agent Merge
 
-### Agent Merge (Automations)
-
-**Agent Merge** is an automation feature that can carry your pull requests through the entire workflow:
+**Agent Merge** is a feature that can carry your pull requests through the entire workflow:
 
 - Monitors CI/CD pipelines and waits for checks to pass
 - Addresses failing tests or linting errors
@@ -81,7 +85,7 @@ Learn more about [working with canvases](/learning-hub/).
 
 You control the automation level—decide whether Agent Merge should just run CI, address feedback, or go all the way to merging. It's a way to let Copilot handle the tedious parts of the review and merge process.
 
-## Who Is the Copilot App For?
+## Who is the Copilot app for?
 
 The Copilot app isn't a replacement for existing Copilot experiences—it's another tool in the toolbox. Here's who it serves best:
 
@@ -178,8 +182,6 @@ The Copilot app respects all your existing GitHub Copilot customizations:
 - **Hooks** (automated checks and formatting in `.github/hooks/`)
 - **Setup steps** (`.github/copilot-setup-steps.yml`)
 
-When you create a session in the Copilot app, the agent automatically loads your repository's configuration and runs with your custom setup. No additional configuration needed.
-
 If you haven't set up custom agents, skills, or instructions yet, see [Copilot Configuration Basics](../copilot-configuration-basics/) to get started.
 
 ## Common Workflows
@@ -217,9 +219,7 @@ Enable Agent Merge to automate routine PR workflows:
 ## Next Steps
 
 - **Set Up Your Repository**: [Copilot Configuration Basics](../copilot-configuration-basics/) — Add custom agents, skills, and instructions
-- **Create Specialized Agents**: [Building Custom Agents](../building-custom-agents/) — Design agents for specific types of work
 - **Understand Agent Skills**: [Creating Effective Skills](../creating-effective-skills/) — Build reusable task guidance
 - **Automate with Hooks**: [Automating with Hooks](../automating-with-hooks/) — Add guardrails to autonomous work
-- **Learn About Agentic Workflows**: [Agentic Workflows](../agentic-workflows/) — Orchestrate complex multi-agent tasks
 
 ---
