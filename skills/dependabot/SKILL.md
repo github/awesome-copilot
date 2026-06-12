@@ -34,7 +34,8 @@ Scan the repository for dependency manifests. Look for:
 | Ecosystem | YAML Value | Manifest Files |
 |---|---|---|
 | npm/pnpm/yarn | `npm` | `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` |
-| pip/pipenv/poetry/uv | `pip` | `requirements.txt`, `Pipfile`, `pyproject.toml`, `setup.py` |
+| pip/pipenv/poetry | `pip` | `requirements.txt`, `Pipfile`, `pyproject.toml`, `setup.py` |
+| uv | `uv` | `pyproject.toml`, `uv.lock` |
 | Docker | `docker` | `Dockerfile` |
 | Docker Compose | `docker-compose` | `docker-compose.yml` |
 | GitHub Actions | `github-actions` | `.github/workflows/*.yml` |
