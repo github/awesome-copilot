@@ -160,6 +160,31 @@
       "version": "0.1.0"
     },
     {
+      "name": "copilot-goal-skill",
+      "description": "Goal-driven task orchestration with independent verification. Interviews the user to define a clear goal, then loops between a Builder subagent (does the work) and an Inspector subagent (judges the result with fresh context). The Inspector never trusts the Builder. Output is auditable in git commits from each subagent actions. Use when the user says \"achieve this goal\", \"make this work\", \"implement until done\", or wants verified autonomous task completion with independent quality review.",
+      "version": "1.0.1",
+      "author": {
+        "name": "Gaetan Semet",
+        "url": "https://github.com/gsemet"
+      },
+      "repository": "https://github.com/gsemet/copilot-goal-skill",
+      "license": "MIT",
+      "keywords": [
+        "goal",
+        "autonomous",
+        "inspector",
+        "builder",
+        "loop"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "gsemet/copilot-goal-skill",
+        "path": "plugins/copilot-goal-skill",
+        "ref": "1.0.1",
+        "sha": "b186d0b0d59da1ea051283a7d99185979ede998a"
+      }
+    },
+    {
       "name": "copilot-sdk",
       "source": "copilot-sdk",
       "description": "Build applications with the GitHub Copilot SDK across multiple programming languages. Includes comprehensive instructions for C#, Go, Node.js/TypeScript, and Python to help you create AI-powered applications.",
@@ -308,6 +333,32 @@
       "source": "edge-ai-tasks",
       "description": "Task Researcher and Task Planner for intermediate to expert users and large codebases - Brought to you by microsoft/edge-ai",
       "version": "1.0.0"
+    },
+    {
+      "name": "elasticsearch",
+      "description": "Official Elastic plugin for GitHub Copilot — translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Elastic",
+        "url": "https://www.elastic.co"
+      },
+      "repository": "https://github.com/elastic/agent-skills",
+      "homepage": "https://github.com/elastic/agent-skills/tree/main/plugins/elasticsearch",
+      "license": "Apache-2.0",
+      "keywords": [
+        "elasticsearch",
+        "esql",
+        "search",
+        "ingest",
+        "security",
+        "elastic"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "elastic/agent-skills",
+        "path": "plugins/elasticsearch",
+        "sha": "e0d6b02194d4ec74cf9e5975290e950fc5ba549f"
+      }
     },
     {
       "name": "ember",
