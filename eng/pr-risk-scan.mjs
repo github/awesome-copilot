@@ -340,8 +340,19 @@ function main() {
 
     scanSkillScriptPath(relativePath, findings);
 
-    if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isFile()) {
+    if (!fs.existsSync(absolutePath)) {
       skippedFiles.push(relativePath);
+      continue;
+    }
+
+    const stat = fs.statSync(absolutePath);
+    if (!stat.isFile()) {
+      skippedFiles.push(relativePath);
+      continue;
+    }
+
+    if (stat.size > 1024 * 1024) {
+      skippedFiles.push(`${relativePath} (skipped: file too large)`);
       continue;
     }
 
