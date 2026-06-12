@@ -850,6 +850,34 @@
       "version": "1.0.0"
     },
     {
+      "name": "ui5",
+      "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
+      "version": "0.1.3",
+      "author": {
+        "name": "SAP SE",
+        "url": "https://www.sap.com"
+      },
+      "repository": "https://github.com/UI5/plugins-coding-agents",
+      "homepage": "https://github.com/UI5/plugins-coding-agents",
+      "license": "Apache-2.0",
+      "keywords": [
+        "ui5",
+        "sapui5",
+        "openui5",
+        "sap",
+        "web-development",
+        "plugin",
+        "development"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "UI5/plugins-coding-agents",
+        "path": "plugins/ui5",
+        "ref": "v0.1.3",
+        "sha": "9b3d7d80356f687725f9584988e4038dbead0d53"
+      }
+    },
+    {
       "name": "vercel-plugin",
       "description": "Build and deploy web apps and agents. Comprehensive Vercel ecosystem plugin — relational knowledge graph, skills for every major product, specialized agents, and Vercel conventions. Turns any AI agent into a Vercel expert.",
       "version": "0.43.0",
