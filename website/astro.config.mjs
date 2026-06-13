@@ -138,9 +138,10 @@ export default defineConfig({
         },
       ],
       disable404Route: true,
-      // pagefind: true is required so Starlight renders the search UI.
-      // Our pagefindResources() integration overwrites the index after build.
-      pagefind: true,
+      // Search is rendered by our custom Search component and indexed by
+      // pagefindResources(). Keep Starlight's own Pagefind disabled to avoid
+      // building two search indexes during every production build.
+      pagefind: false,
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 3 },
       components: {
         Head: "./src/components/Head.astro",

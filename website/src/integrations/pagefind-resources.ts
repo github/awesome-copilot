@@ -7,7 +7,8 @@
  * HTML pages + custom resource records combined.
  */
 import type { AstroIntegration } from "astro";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as pagefind from "pagefind";
 
@@ -41,6 +42,41 @@ const TYPE_PAGES: Record<string, string> = {
   tool: "/tools/",
 };
 
+function collectHtmlFiles(root: string, dir = root): string[] {
+  const files: string[] = [];
+
+  for (const entry of readdirSync(dir)) {
+    const path = `${dir}/${entry}`;
+    const stats = statSync(path);
+
+    if (stats.isDirectory()) {
+      files.push(...collectHtmlFiles(root, path));
+      continue;
+    }
+
+    if (entry.endsWith(".html")) {
+      files.push(path);
+    }
+  }
+
+  return files;
+}
+
+function toPagefindUrl(root: string, filePath: string, base: string): string {
+  const relativePath = relative(root, filePath).split(sep).join("/");
+  let urlPath = relativePath;
+
+  if (urlPath === "index.html") {
+    urlPath = "";
+  } else if (urlPath.endsWith("/index.html")) {
+    urlPath = urlPath.slice(0, -"index.html".length);
+  } else {
+    urlPath = urlPath.replace(/\.html$/, "/");
+  }
+
+  return `${base}${urlPath}`;
+}
+
 export default function pagefindResources(): AstroIntegration {
   let siteBase = "/";
 
@@ -68,15 +104,38 @@ export default function pagefindResources(): AstroIntegration {
             throw new Error("Pagefind index is undefined");
           }
 
-          // Index all built HTML pages (same as Starlight's default)
-          const indexResult = await index.addDirectory({
-            path: fileURLToPath(dir),
-          });
-          if (indexResult.errors.length > 0) {
-            for (const err of indexResult.errors) log.error(err);
-            throw new Error("Failed to index HTML directory");
+          const outputRoot = fileURLToPath(dir);
+
+          // Use the base path from Astro config (e.g. "/")
+          const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
+
+          // Index built HTML pages, but skip generated agent detail pages.
+          // Agents are already indexed below as resource records, so including
+          // /agent/* here duplicates search content and increases Pagefind work.
+          let indexedPages = 0;
+          let skippedAgentPages = 0;
+          for (const htmlFile of collectHtmlFiles(outputRoot)) {
+            const relativePath = relative(outputRoot, htmlFile).split(sep).join("/");
+            if (relativePath.startsWith("agent/")) {
+              skippedAgentPages++;
+              continue;
+            }
+
+            const addResult = await index.addHTMLFile({
+              url: toPagefindUrl(outputRoot, htmlFile, base),
+              content: readFileSync(htmlFile, "utf-8"),
+            });
+
+            if (addResult.errors.length > 0) {
+              for (const err of addResult.errors) log.error(err);
+              throw new Error(`Failed to index HTML file ${relativePath}`);
+            }
+
+            indexedPages++;
           }
-          log.info(`Indexed ${indexResult.page_count} HTML pages.`);
+          log.info(
+            `Indexed ${indexedPages} HTML pages (${skippedAgentPages} agent detail pages skipped).`
+          );
 
           // Read and index resource records from search-index.json
           const searchIndexPath = fileURLToPath(
@@ -91,10 +150,6 @@ export default function pagefindResources(): AstroIntegration {
             );
             records = [];
           }
-
-          // Use the base path from Astro config (e.g. "/")
-          const base = siteBase.endsWith("/") ? siteBase : `${siteBase}/`;
-
           let added = 0;
           for (const record of records) {
             const typePage = TYPE_PAGES[record.type];

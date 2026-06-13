@@ -74,8 +74,6 @@ if (project.trailingSlash === 'never') dataAttributes['data-strip-trailing-slash
 </script>
 
 <script>
-	import { pagefindUserConfig } from 'virtual:starlight/pagefind-config';
-
 	const ROUTE_TYPE_FILTERS: Record<string, string> = {
 		'/agents': 'agent',
 		'/instructions': 'instruction',
@@ -159,7 +157,6 @@ if (project.trailingSlash === 'never') dataAttributes['data-strip-trailing-slash
 					// @ts-expect-error — Missing types for @pagefind/default-ui package.
 					const { PagefindUI } = await import('@pagefind/default-ui');
 					const pagefind = new PagefindUI({
-						...pagefindUserConfig,
 						element: '#starlight__search',
 						baseUrl: import.meta.env.BASE_URL,
 						bundlePath: import.meta.env.BASE_URL.replace(/\/$/, '') + '/pagefind/',
