@@ -1,0 +1,15 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ResourceDetailPage from '../components/ResourceDetailPage.astro';
+---
+
+<BaseLayout title="Plugin · Awesome Copilot" description="Explore and install a GitHub Copilot plugin.">
+  <ResourceDetailPage kind="plugin" plural="plugins" title="Plugins" description="Fetching plugin details on demand." />
+</BaseLayout>
+
+<script>
+  import { initCopyButtons, initResourceDetail } from '../scripts/resource-detail';
+
+  initCopyButtons();
+  initResourceDetail('plugin');
+</script>
