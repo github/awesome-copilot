@@ -1,0 +1,230 @@
+---
+import { primaryNav } from '../../config/nav';
+import { SITE } from '../../config/site';
+import Icon from '../ui/Icon.astro';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+<header class="site-header">
+  <a class="brand" href="/" aria-label={`${SITE.title} home`}>
+    <span class="brand-mark" aria-hidden="true">
+      <img src={SITE.favicon} alt="" width="28" height="28" />
+    </span>
+    <span class="brand-name">GitHub Copilot</span>
+    <span class="brand-badge">Awesome</span>
+  </a>
+
+  <button
+    class="menu-button"
+    type="button"
+    aria-expanded="false"
+    aria-controls="primary-navigation"
+  >
+    <Icon name="menu" size={18} />
+    <span class="sr-only">Open navigation</span>
+  </button>
+
+  <nav id="primary-navigation" class="nav" aria-label="Primary navigation">
+    {
+      primaryNav.map((item) => {
+        const href = item.href.replace(/\/$/, '') || '/';
+        const active = currentPath === href;
+        return (
+          <a
+            class:list={['nav-link', { 'nav-link--active': active }]}
+            href={item.href}
+          >
+            {active ? `$ ${item.label}` : item.label}
+          </a>
+        );
+      })
+    }
+  </nav>
+
+  <a
+    class="bit-btn bit-btn--secondary bit-btn--sm"
+    href="https://github.com/github/awesome-copilot"
+    aria-label="Open GitHub repository"
+    rel="noopener noreferrer"
+  >
+    <span class="bit-btn-inner">
+      <Icon name="github" size={16} />
+      GITHUB ->
+    </span>
+  </a>
+</header>
+
+<script>
+  const header = document.querySelector('.site-header');
+  const button = header?.querySelector('.menu-button');
+  const nav = header?.querySelector('#primary-navigation');
+
+  button?.addEventListener('click', () => {
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!expanded));
+    nav?.toggleAttribute('data-open', !expanded);
+  });
+
+  nav?.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLAnchorElement) {
+      button?.setAttribute('aria-expanded', 'false');
+      nav?.removeAttribute('data-open');
+    }
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 4.25rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    background: rgb(10 13 13 / 88%);
+    padding-inline: clamp(1rem, 2.4vw, 1.5rem);
+    backdrop-filter: blur(16px);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: fit-content;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    line-height: 0;
+  }
+
+  .brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-badge {
+    border-radius: var(--radius-1);
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.85rem, 1.4vw, 1.35rem);
+  }
+
+  .nav-link {
+    color: var(--color-muted);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: color var(--motion-fast);
+  }
+
+  .nav-link:hover,
+  .nav-link--active {
+    color: var(--color-green);
+  }
+
+  .menu-button {
+    display: none;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: transparent;
+    color: var(--color-text);
+    padding: 0.55rem;
+  }
+
+  /* GitHub button (pixel-art style, inline for the header) */
+  .bit-btn {
+    position: relative;
+    display: inline-flex;
+    text-decoration: none;
+  }
+
+  .bit-btn-inner {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+    transition: transform var(--motion-fast), background var(--motion-fast);
+    color: inherit;
+  }
+
+  .bit-btn--sm .bit-btn-inner {
+    min-height: 1.75rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .bit-btn--secondary .bit-btn-inner {
+    background: var(--color-blue);
+    color: white;
+  }
+
+  .bit-btn--secondary .bit-btn-inner:hover {
+    background: rgb(45 140 255 / 80%);
+  }
+
+  .bit-btn-inner:active {
+    transform: translateY(2px);
+  }
+
+  @media (max-width: 1100px) {
+    .nav {
+      position: absolute;
+      inset: 4rem 1rem auto 1rem;
+      display: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2);
+      background: var(--color-bg-elevated);
+      padding: 1rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .nav[data-open] {
+      display: grid;
+    }
+
+    .menu-button {
+      display: inline-flex;
+    }
+
+    .site-header :global(.bit-btn) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .brand-name {
+      font-size: 1.08rem;
+    }
+
+    .brand-badge {
+      display: none;
+    }
+
+    .nav {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

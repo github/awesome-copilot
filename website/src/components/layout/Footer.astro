@@ -1,0 +1,71 @@
+---
+import Icon from '../ui/Icon.astro';
+import { REPO, SITE } from '../../config/site';
+---
+<footer class="footer">
+  <p>
+    <strong>{SITE.title}</strong> · static-first Astro implementation
+  </p>
+  <nav aria-label="Footer links" class="footer-links">
+    <a href={REPO.url} rel="noopener noreferrer">
+      <Icon name="github" size={14} />
+      {REPO.owner}/{REPO.name}
+    </a>
+    <a href="#top">
+      $ back to top <Icon name="arrow-right" size={14} />
+    </a>
+  </nav>
+</footer>
+
+<style>
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--color-border-soft);
+    padding: 2rem clamp(1rem, 2.4vw, 2rem);
+    color: var(--color-muted);
+    font-size: 0.8rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  strong {
+    color: var(--color-text);
+    font-family: var(--font-heading);
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-primary);
+    font-weight: 800;
+  }
+
+  a:hover {
+    color: var(--color-green);
+  }
+
+  @media (max-width: 640px) {
+    .footer {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .footer-links {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+</style>

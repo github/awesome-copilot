@@ -1,0 +1,114 @@
+---
+export interface Props {
+  question: string;
+  answer: string;
+  index: number;
+}
+const { question, answer, index } = Astro.props;
+const panelId = `faq-panel-${index}`;
+const buttonId = `faq-btn-${index}`;
+---
+<div class="accordion-item">
+  <button
+    id={buttonId}
+    class="accordion-trigger"
+    aria-expanded="false"
+    aria-controls={panelId}
+  >
+    <span class="question">{question}</span>
+    <span class="icon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </span>
+  </button>
+  <div
+    id={panelId}
+    class="accordion-panel"
+    role="region"
+    aria-labelledby={buttonId}
+    hidden
+  >
+    <p class="answer">{answer}</p>
+  </div>
+</div>
+
+<script is:inline>
+  (function() {
+    const triggers = document.querySelectorAll('.accordion-trigger');
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const expanded = trigger.getAttribute('aria-expanded') === 'true';
+        const panelId = trigger.getAttribute('aria-controls');
+        const panel = document.getElementById(panelId);
+
+        triggers.forEach(t => {
+          if (t !== trigger) {
+            t.setAttribute('aria-expanded', 'false');
+            t.classList.remove('is-open');
+            const p = document.getElementById(t.getAttribute('aria-controls'));
+            if (p) p.hidden = true;
+          }
+        });
+
+        trigger.setAttribute('aria-expanded', String(!expanded));
+        trigger.classList.toggle('is-open', !expanded);
+        if (panel) panel.hidden = expanded;
+      });
+    });
+  })();
+</script>
+
+<style>
+  .accordion-item {
+    border-bottom: 1px dashed var(--color-muted);
+  }
+  .accordion-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    padding: 1.25rem 0;
+    cursor: pointer;
+    text-align: left;
+    transition: color var(--motion-fast);
+  }
+  .accordion-trigger:hover { color: var(--color-green); }
+  .accordion-trigger:hover .icon { color: var(--color-green); }
+  .question {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--color-muted);
+    transition: transform var(--motion-fast), color var(--motion-fast);
+  }
+  .icon svg { display: block; }
+  .accordion-trigger.is-open .icon {
+    transform: rotate(180deg);
+  }
+  .accordion-panel {
+    padding: 0 0 1.25rem;
+  }
+  .accordion-panel[hidden] {
+    display: none;
+  }
+  .answer {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 0.98rem;
+    line-height: 1.65;
+    max-width: 65ch;
+  }
+</style>

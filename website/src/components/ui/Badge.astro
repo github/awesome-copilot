@@ -1,0 +1,55 @@
+---
+import type { Accent } from '../../lib/types';
+
+export interface Props {
+  tone?: Accent | 'neutral';
+}
+
+const { tone = 'neutral' } = Astro.props;
+---
+<span class:list={['badge', `badge--${tone}`]}>
+  <slot />
+</span>
+
+<style>
+  .badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    padding: 0.25rem 0.75rem;
+    color: var(--color-text);
+    background: var(--color-surface-2);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: lowercase;
+    letter-spacing: 0.03em;
+    image-rendering: pixelated;
+    shape-rendering: crispEdges;
+  }
+
+  .badge::before,
+  .badge::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    width: 6px;
+    background-color: inherit;
+  }
+
+  .badge::before { left: -6px; }
+  .badge::after  { right: -6px; }
+
+  .badge--purple  { background: var(--color-primary); color: var(--color-black); }
+  .badge--blue    { background: var(--color-blue);    color: var(--color-black); }
+  .badge--green   { background: var(--color-green);   color: var(--color-black); }
+  .badge--yellow  { background: var(--color-yellow);  color: var(--color-black); }
+  .badge--danger  { background: var(--color-danger);  color: var(--color-black); }
+  .badge--neutral { background: var(--color-surface-2); color: var(--color-text); border-color: var(--color-border-soft); }
+</style>
