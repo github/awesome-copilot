@@ -1,0 +1,238 @@
+---
+/**
+ * Resource file-viewer modal shell.
+ *
+ * This component provides the modal markup and CSS.  It is controlled
+ * by `scripts/modal-client.ts` and the page-level scripts that call
+ * `openModal()` / `closeModal()`.
+ *
+ * States: loading, raw (code), rendered (markdown), error.
+ * Keyboard: Escape → close, Tab cycles inside the modal.
+ *
+ * The modal content is populated by client scripts; the server renders
+ * only the structural shell with aria attributes for accessibility.
+ */
+---
+<div
+  class="file-modal-overlay"
+  id="file-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="file-modal-title"
+  hidden
+>
+  <div class="file-modal" role="document">
+    <!-- Header -->
+    <div class="file-modal-header">
+      <h2 class="file-modal-title" id="file-modal-title">File Viewer</h2>
+      <div class="file-modal-controls">
+        <button class="file-modal-mode" data-mode="raw" type="button">Raw</button>
+        <button class="file-modal-mode" data-mode="rendered" type="button">Render</button>
+        <button class="file-modal-action" data-action="copy" type="button" title="Copy to clipboard">Copy</button>
+        <button class="file-modal-action" data-action="download" type="button" title="Download file">↓</button>
+        <button class="file-modal-action" data-action="share" type="button" title="Copy share link">Share</button>
+        <button class="file-modal-close" id="file-modal-close" type="button" aria-label="Close modal">✕</button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="file-modal-body" id="file-modal-body">
+      <!-- Loading -->
+      <div class="file-modal-loading" id="file-modal-loading">
+        <p>Loading…</p>
+      </div>
+
+      <!-- Raw (code) view -->
+      <pre class="file-modal-raw" id="file-modal-raw" hidden><code></code></pre>
+
+      <!-- Rendered (markdown) view -->
+      <div class="file-modal-rendered" id="file-modal-rendered" hidden></div>
+
+      <!-- Error -->
+      <div class="file-modal-error" id="file-modal-error" hidden>
+        <p>Failed to load file content.</p>
+      </div>
+
+      <!-- File switcher (for skills with multiple files) -->
+      <div class="file-modal-switcher" id="file-modal-switcher" hidden>
+        <label for="file-switcher-select">Files:</label>
+        <select id="file-switcher-select" class="filter-select"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .file-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 68%);
+    backdrop-filter: blur(4px);
+    padding: var(--space-4);
+  }
+
+  .file-modal-overlay[hidden] {
+    display: none;
+  }
+
+  .file-modal {
+    display: flex;
+    flex-direction: column;
+    width: min(960px, 100%);
+    max-height: 88vh;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* ── Header ─────────────────────────────── */
+  .file-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    border-bottom: 1px solid var(--color-border-soft);
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .file-modal-title {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .file-modal-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .file-modal-mode,
+  .file-modal-action,
+  .file-modal-close {
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-1);
+    background: var(--color-surface-2);
+    padding: 0.25rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition: color var(--motion-fast), border-color var(--motion-fast);
+  }
+
+  .file-modal-mode:hover,
+  .file-modal-action:hover {
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+
+  .file-modal-mode[aria-pressed="true"] {
+    background: var(--color-primary);
+    color: var(--color-black);
+    border-color: var(--color-primary);
+  }
+
+  .file-modal-close {
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .file-modal-close:hover {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+  }
+
+  /* ── Body ───────────────────────────────── */
+  .file-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .file-modal-loading p {
+    text-align: center;
+    color: var(--color-muted);
+  }
+
+  .file-modal-raw {
+    margin: 0;
+    border-radius: var(--radius-1);
+    background: var(--color-bg);
+    padding: var(--space-4);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--color-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .file-modal-rendered {
+    color: var(--color-text);
+    line-height: 1.7;
+  }
+
+  .file-modal-rendered :global(h1),
+  .file-modal-rendered :global(h2),
+  .file-modal-rendered :global(h3) {
+    font-family: var(--font-heading);
+    color: var(--color-text);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+  }
+
+  .file-modal-rendered :global(code) {
+    background: var(--color-bg);
+    padding: 0.1em 0.3em;
+    border-radius: var(--radius-1);
+    font-size: 0.82em;
+  }
+
+  .file-modal-rendered :global(pre) {
+    background: var(--color-bg);
+    border-radius: var(--radius-1);
+    padding: var(--space-4);
+    overflow-x: auto;
+  }
+
+  .file-modal-rendered :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+
+  .file-modal-error {
+    text-align: center;
+    color: var(--color-danger);
+  }
+
+  /* ── File switcher ─────────────────────── */
+  .file-modal-switcher {
+    margin-top: var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .file-modal-switcher label {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+  }
+
+  .file-modal-switcher select {
+    min-width: 200px;
+  }
+
+  @media (max-width: 640px) {
+    .file-modal { max-height: 94vh; }
+    .file-modal-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>

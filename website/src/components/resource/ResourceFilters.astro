@@ -1,0 +1,164 @@
+---
+/**
+ * Resource filter bar — renders filter controls for catalog pages.
+ *
+ * Filter configs drive the UI; actual filtering is handled by
+ * `scripts/filters.ts` at runtime.  The rendered controls expose the
+ * selectors and data attributes that the client script expects.
+ *
+ * This component is reusable across all catalog pages.
+ */
+import type { FilterConfig } from '../../scripts/filters';
+
+export interface Props {
+  filters: FilterConfig[];
+  /** Text for the clear-filters action. */
+  clearLabel?: string;
+}
+
+const { filters, clearLabel = 'Clear all filters' } = Astro.props;
+---
+<div class="filter-bar" id="filter-bar" role="search" aria-label="Filter resources">
+  {filters.map((cfg) => (
+    <div class="filter-group" data-filter-param={cfg.param}>
+      <label class="filter-label" for={`filter-${cfg.param}`}>{cfg.label}:</label>
+      {cfg.type === 'multi' ? (
+        <select
+          id={`filter-${cfg.param}`}
+          class="filter-select"
+          multiple
+          size={Math.min(cfg.options.length, 6)}
+          aria-label={cfg.label}
+        >
+          {cfg.options.map((opt) => (
+            <option value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : cfg.type === 'single' ? (
+        <select
+          id={`filter-${cfg.param}`}
+          class="filter-select"
+          aria-label={cfg.label}
+        >
+          <option value="">All</option>
+          {cfg.options.map((opt) => (
+            <option value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      ) : (
+        <label class="filter-flag">
+          <input
+            id={`filter-${cfg.param}`}
+            type="checkbox"
+            class="filter-checkbox"
+            value="1"
+          />
+          <span>{cfg.label}</span>
+        </label>
+      )}
+    </div>
+  ))}
+  <button class="filter-clear" id="filter-clear" type="button">
+    {clearLabel}
+  </button>
+</div>
+
+<style>
+  .filter-bar {
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    padding: var(--space-4) var(--space-5);
+    margin-top: var(--space-4);
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-select {
+    min-width: 160px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  .filter-select:focus {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: var(--shadow-primary);
+  }
+
+  .filter-select option {
+    padding: 0.25rem;
+  }
+
+  .filter-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--color-text);
+  }
+
+  .filter-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+  }
+
+  .filter-clear {
+    align-self: flex-end;
+    margin-left: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-1);
+    background: transparent;
+    padding: 0.4rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-danger);
+    cursor: pointer;
+    transition: background var(--motion-fast);
+  }
+
+  .filter-clear:hover {
+    background: rgb(255 80 124 / 10%);
+  }
+
+  @media (max-width: 640px) {
+    .filter-bar {
+      flex-direction: column;
+    }
+
+    .filter-select {
+      min-width: 100%;
+    }
+
+    .filter-clear {
+      margin-left: 0;
+    }
+  }
+</style>

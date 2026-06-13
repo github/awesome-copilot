@@ -1,0 +1,25 @@
+---
+/**
+ * CTA section — ported from awesome-copilot-jh base UI.
+ *
+ * Renders the "next step" terminal-label CTA box with pixel button.
+ */
+import BitButton from '../ui/8BitButton.astro';
+import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
+---
+<section class="cta" aria-labelledby="cta-title">
+  <Container narrow>
+    <div class="cta-box">
+      <p>$ next step</p>
+      <h2 id="cta-title">Ship Copilot resources without losing the system model.</h2>
+      <BitButton href="/"><Icon name="arrow" size={15} /> Explore console</BitButton>
+    </div>
+  </Container>
+</section>
+<style>
+  .cta { padding-block: clamp(2.5rem, 5vw, 4rem); }
+  .cta-box { display: grid; justify-items: center; gap: 1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-2); background: linear-gradient(135deg, rgb(169 112 255 / 18%), rgb(45 140 255 / 8%)), var(--color-bg-elevated); padding: clamp(1.75rem, 4vw, 3rem); text-align: center; box-shadow: var(--shadow-primary); }
+  p { margin: 0; color: var(--color-green); font-weight: 800; }
+  h2 { max-width: 760px; margin: 0; font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; letter-spacing: -0.05em; }
+</style>
