@@ -10,27 +10,27 @@ Once they exist, update each `@<path>` pointer below to reference the real locat
 
 - `identityProfile` — name, role, org, team, manager, what the user does, what people
   come to them for.
-  @<CONTEXT_DIR>\identity.md
+  @<CONTEXT_DIR>/identity.md
 
 - `roleAndResponsibilities` — responsibilities per team, cadences, deliverables,
   reporting line, what a typical week looks like.
-  @<CONTEXT_DIR>\role-and-responsibilities.md
+  @<CONTEXT_DIR>/role-and-responsibilities.md
 
 - `teamMetadata` — team rosters: names, emails, roles, focus areas, interaction notes,
   team leads.
-  @<CONTEXT_DIR>\team.md
+  @<CONTEXT_DIR>/team.md
 
 - `teamSystemsConfig` — tools, ADO orgs/projects/area paths, Obsidian vault, meeting
   tags, strategic pillars with epic mappings, scorecard exclusions, reporting output
   paths.
-  @<CONTEXT_DIR>\tools-systems-and-config.md
+  @<CONTEXT_DIR>/tools-systems-and-config.md
 
 - `communicationStyle` — tone, formatting preferences, voice, things to avoid in
   generated text.
-  @<CONTEXT_DIR>\communication-style.md
+  @<CONTEXT_DIR>/communication-style.md
 
 - `preferencesAndConstraints` — working preferences, constraints, rules of engagement.
-  @<CONTEXT_DIR>\preferences-and-constraints.md
+  @<CONTEXT_DIR>/preferences-and-constraints.md
 
 ## Routing Questions to Files
 
