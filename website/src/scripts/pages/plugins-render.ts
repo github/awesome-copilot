@@ -3,7 +3,6 @@ import {
   getGitHubUrl,
   sanitizeUrl,
 } from '../utils';
-import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 interface PluginAuthor {
   name: string;
@@ -32,6 +31,15 @@ export interface RenderablePlugin {
 
 export type PluginSortOption = 'title' | 'lastUpdated';
 
+function getStableAccent(item: RenderablePlugin): string {
+  const accents = ['purple', 'blue', 'green', 'yellow'];
+  let hash = 0;
+  for (const char of item.path || item.name) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return accents[hash % accents.length];
+}
+
 export function sortPlugins<T extends RenderablePlugin>(
   items: T[],
   sort: PluginSortOption
@@ -58,43 +66,49 @@ function getExternalPluginUrl(plugin: RenderablePlugin): string {
 
 export function renderPluginsHtml(items: RenderablePlugin[]): string {
   if (items.length === 0) {
-    return renderEmptyStateHtml('No plugins found', 'Try different tags or clear the current filters');
+    return `
+      <div class="empty-state">
+        <h3>No plugins found</h3>
+        <p>Try different tags or clear the current filters</p>
+      </div>
+    `;
   }
 
   return items
     .map((item) => {
       const isExternal = item.external === true;
       const metaTag = isExternal
-        ? '<span class="resource-tag resource-tag-external">🔗 External</span>'
-        : `<span class="resource-tag">${item.itemCount} items</span>`;
+        ? '<span>External</span>'
+        : `<span>${item.itemCount} items</span>`;
       const authorTag =
         isExternal && item.author?.name
-          ? `<span class="resource-tag">by ${escapeHtml(item.author.name)}</span>`
+          ? `<span>by ${escapeHtml(item.author.name)}</span>`
           : '';
       const githubHref = isExternal
         ? escapeHtml(getExternalPluginUrl(item))
         : getGitHubUrl(item.path);
-      const metaHtml = `
-        ${metaTag}
-        ${authorTag}
-        ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
-        ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
+      return `
+        <article class="resource-item resource-card resource-card--${getStableAccent(item)}${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}" role="listitem">
+          <button type="button" class="resource-card__preview resource-preview">
+            <div class="resource-card__topline">
+              <span class="badge badge--yellow">${isExternal ? 'external plugin' : 'plugin'}</span>
+            </div>
+            <div class="resource-card__body">
+              <h2 class="resource-card__title">${escapeHtml(item.name)}</h2>
+              <p class="resource-card__description">${escapeHtml(item.description || 'No description')}</p>
+              <div class="resource-card__tags resource-meta">
+                ${metaTag}
+                ${authorTag}
+                ${item.tags?.slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('') || ''}
+                ${item.tags && item.tags.length > 4 ? `<span>+${item.tags.length - 4} more</span>` : ''}
+              </div>
+            </div>
+          </button>
+          <div class="resource-card__footer resource-actions">
+            <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
+          </div>
+        </article>
       `;
-
-      const actionsHtml = `
-        <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
-      `;
-
-      return renderSharedCardHtml({
-        title: item.name,
-        description: item.description || 'No description',
-        articleClassName: isExternal ? 'resource-item-external' : '',
-        articleAttributes: {
-          'data-path': item.path,
-        },
-        metaHtml,
-        actionsHtml,
-      });
     })
     .join('');
 }

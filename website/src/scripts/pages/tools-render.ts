@@ -29,6 +29,15 @@ export interface RenderableTool {
 
 export type ToolSortOption = "featured" | "title";
 
+function getStableAccent(tool: RenderableTool): string {
+  const accents = ["purple", "blue", "green", "yellow"];
+  let hash = 0;
+  for (const char of tool.id || tool.name) {
+    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  }
+  return accents[hash % accents.length];
+}
+
 export function sortTools<T extends RenderableTool>(
   tools: T[],
   sort: ToolSortOption
@@ -92,10 +101,10 @@ export function renderToolsHtml(
     .map((tool) => {
       const badges: string[] = [];
       if (tool.featured) {
-        badges.push('<span class="tool-badge featured">Featured</span>');
+        badges.push('<span>Featured</span>');
       }
       badges.push(
-        `<span class="tool-badge category">${escapeHtml(tool.category)}</span>`
+        `<span>${escapeHtml(tool.category)}</span>`
       );
 
       const features =
@@ -120,9 +129,9 @@ export function renderToolsHtml(
 
       const tags =
         tool.tags && tool.tags.length > 0
-          ? `<div class="tool-tags">
+          ? `<div class="resource-card__tags tool-tags">
           ${tool.tags
-            .map((tag) => `<span class="tool-tag">${escapeHtml(tag)}</span>`)
+            .map((tag) => `<span>${escapeHtml(tag)}</span>`)
             .join("")}
         </div>`
           : "";
@@ -179,24 +188,27 @@ export function renderToolsHtml(
 
       const actionsHtml =
         actions.length > 0
-          ? `<div class="tool-actions">${actions.join("")}</div>`
+          ? `<div class="resource-card__footer tool-actions">${actions.join("")}</div>`
           : "";
 
       return `
-      <div class="tool-card">
-        <div class="tool-header">
-          <h2>${escapeHtml(tool.name)}</h2>
-          <div class="tool-badges">
+      <article class="resource-card resource-card--${getStableAccent(tool)} tool-card" role="listitem">
+        <div class="resource-card__topline tool-header">
+          <span class="badge badge--blue">tool</span>
+          <div class="resource-card__tags tool-badges">
             ${badges.join("")}
           </div>
         </div>
-        <p class="tool-description">${formatMultilineText(tool.description)}</p>
+        <div class="resource-card__body">
+          <h2 class="resource-card__title">${escapeHtml(tool.name)}</h2>
+          <p class="resource-card__description tool-description">${formatMultilineText(tool.description)}</p>
+        </div>
         ${features}
         ${requirements}
         ${config}
         ${tags}
         ${actionsHtml}
-      </div>
+      </article>
     `;
     })
     .join("");
