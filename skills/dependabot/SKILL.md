@@ -58,7 +58,9 @@ Scan the repository for dependency manifests. Look for:
 | Git Submodules | `gitsubmodule` | `.gitmodules` |
 | Pre-commit | `pre-commit` | `.pre-commit-config.yaml` |
 
-Note: pnpm and yarn both use the `npm` ecosystem value.
+Notes:
+- pnpm and yarn both use the `npm` ecosystem value.
+- Prefer `uv` ecosystem value when `uv.lock` is present; otherwise use `pip`.
 
 ### Step 2: Map Directory Locations
 
