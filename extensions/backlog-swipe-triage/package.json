@@ -5,6 +5,6 @@
   "main": "extension.mjs",
   "description": "Swipe-driven backlog triage canvas for reviewing open issues and assigning implementation work.",
   "dependencies": {
-    "@github/copilot-sdk": "latest"
+    "@github/copilot-sdk": "1.0.1"
   }
 }
