@@ -1,243 +1,184 @@
 ---
-import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
-import Modal from "../components/Modal.astro";
-import Icon from "../components/Icon.astro";
-import BackToTop from "../components/BackToTop.astro";
+/**
+ * Homepage — ported from awesome-copilot-jh base UI.
+ *
+ * Renders HeroSection, CTASection, and FaqSection from base visual shell.
+ * Resource cards and search preview are wired to upstream manifest/search data.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/sections/HeroSection.astro';
+import CTASection from '../components/sections/CTASection.astro';
+import FaqSection from '../components/sections/FaqSection.astro';
+import { SITE } from '../config/site';
+import { adaptManifest, type ManifestSummary } from '../lib/adapters/manifest';
+import { adaptSearchIndex, type SearchResultEntry } from '../lib/adapters/search';
+import manifestData from '../../public/data/manifest.json';
+import searchIndexData from '../../public/data/search-index.json';
+import type { ManifestItem, SearchIndexData } from '../lib/upstream-types';
 
-const base = import.meta.env.BASE_URL;
+const manifest: ManifestSummary = adaptManifest(manifestData as ManifestItem);
+const searchEntries: SearchResultEntry[] = adaptSearchIndex(searchIndexData as SearchIndexData);
 ---
-
-<StarlightPage
-  frontmatter={{
-    title: "Awesome GitHub Copilot",
-    description:
-      "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience",
-    template: "splash",
-    pagefind: false,
-    prev: false,
-    next: false,
-    editUrl: false,
-    head: [
-      {
-        tag: "meta",
-        attrs: {
-          property: "og:type",
-          content: "website",
-        },
-      },
-    ],
-  }}
-  hasSidebar={false}
+<BaseLayout
+  title={`${SITE.title} · GitHub Copilot resource console`}
+  description={SITE.description}
 >
-  <div id="main-content">
-    <!-- Hero Section -->
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="container">
-        <h1 id="hero-heading">
-          <span class="gradient-text">Awesome GitHub Copilot</span>
-        </h1>
-        <p class="hero-subtitle">
-          Community-contributed agents, instructions, and skills to enhance your
-          GitHub Copilot experience
-        </p>
-        <p>
-          <a href="https://github.com/github/awesome-copilot/" target="_blank" rel="noopener noreferrer">
-            View the Awesome Copilot repository on GitHub
-          </a>
-        </p>
-      </div>
-    </section>
+  <HeroSection
+    resources={manifest.cards}
+    searchEntries={searchEntries}
+  />
 
-    <!-- Quick Links -->
-    <section class="quick-links" aria-labelledby="quick-links-heading">
-      <h2 id="quick-links-heading" class="sr-only">Browse Resources</h2>
-      <div class="container">
-        <div class="cards-grid">
-          <a
-            href={`${base}agents/`}
-            class="card card-with-count card-category-ai"
-            id="card-agents"
-            style="--animation-delay: 0ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="robot" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Agents</h3>
-              <p>Custom agents for specialized Copilot experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="agents"
-              aria-label="Agent count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}instructions/`}
-            class="card card-with-count card-category-docs"
-            id="card-instructions"
-            style="--animation-delay: 50ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="document" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Instructions</h3>
-              <p>Coding standards and best practices for Copilot</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="instructions"
-              aria-label="Instruction count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}skills/`}
-            class="card card-with-count card-category-power"
-            id="card-skills"
-            style="--animation-delay: 100ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="lightning" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Skills</h3>
-              <p>Self-contained folders with instructions and resources</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="skills"
-              aria-label="Skill count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}hooks/`}
-            class="card card-with-count card-category-automation"
-            id="card-hooks"
-            style="--animation-delay: 150ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="hook" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Hooks</h3>
-              <p>Automated workflows triggered by agent events</p>
-            </div>
-            <div class="card-count" data-count="hooks" aria-label="Hook count">
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}workflows/`}
-            class="card card-with-count card-category-automation"
-            id="card-workflows"
-            style="--animation-delay: 200ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="workflow" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Workflows</h3>
-              <p>AI-powered automations for GitHub Actions</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="workflows"
-              aria-label="Workflow count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}plugins/`}
-            class="card card-with-count card-category-extension"
-            id="card-plugins"
-            style="--animation-delay: 250ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Plugins</h3>
-              <p>Curated plugins organized by themes</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="plugins"
-              aria-label="Plugin count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}extensions/`}
-            class="card card-with-count card-category-extension"
-            id="card-extensions"
-            style="--animation-delay: 300ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Canvas Extensions</h3>
-              <p>Interactive canvas extensions for Copilot app experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="extensions"
-              aria-label="Extension count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}tools/`}
-            class="card card-with-count card-category-dev"
-            id="card-tools"
-            style="--animation-delay: 350ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="wrench" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Tools</h3>
-              <p>MCP servers and developer tools</p>
-            </div>
-            <div class="card-count" data-count="tools" aria-label="Tool count">
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}learning-hub/`}
-            class="card card-with-count card-category-learn"
-            id="card-learning-hub"
-            style="--animation-delay: 400ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="book" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Learning Hub</h3>
-              <p>Articles and guides to master GitHub Copilot</p>
-            </div>
-          </a>
-        </div>
-      </div>
-    </section>
-  </div>
+  <CTASection />
 
-  <Modal />
+  <FaqSection />
+</BaseLayout>
 
-  <!-- Back to Top Button -->
-  <BackToTop />
+<!-- Embedded data for client scripts ─────── -->
+<script type="application/json" id="embedded-search-data">
+  {JSON.stringify(searchEntries).replace(/</g, '\\u003c')}
+</script>
 
-  <script>
-    import "../scripts/pages/index";
-  </script>
-</StarlightPage>
+<script>
+  import { FuzzySearch } from '../lib/search/fuzzy';
+  import { initSearch, createSearch } from '../scripts/search-client';
+  import type { SearchResultEntry as Entry } from '../lib/adapters/search';
+
+  /* ── Typed reference to embedded data ──── */
+  const dataEl = document.getElementById('embedded-search-data');
+  if (!dataEl || !dataEl.textContent) {
+    throw new Error('Search data not found');
+  }
+
+  const entries: Entry[] = JSON.parse(dataEl.textContent) as Entry[];
+
+  interface GlobalSearchItem {
+    title: string;
+    description: string;
+    searchText: string;
+    tags: string[];
+    route: string;
+    label: string;
+    path: string;
+  }
+
+  const items: GlobalSearchItem[] = entries.map((e) => ({
+    title: e.title,
+    description: e.description,
+    searchText: e.searchText,
+    tags: e.tags,
+    route: e.route,
+    label: e.label,
+    path: e.path,
+  }));
+
+  const engine = createSearch<GlobalSearchItem>(items);
+
+  initSearch<GlobalSearchItem>(engine, {
+    inputSelector: '#global-search',
+    resultsSelector: '#global-search-results',
+    statusSelector: '#global-search-status',
+    minLength: 2,
+    maxResults: 40,
+  }, {
+    render(item, idx, _query, highlight) {
+      const title = highlight(item.title, _query);
+      const desc = highlight(
+        item.description.length > 120
+          ? `${item.description.slice(0, 120)}…`
+          : item.description,
+        _query,
+      );
+      return `
+        <div class="search-result" data-result-index="${idx}" role="option" aria-selected="false">
+          <span class="search-result-label">${item.label}</span>
+          <span class="search-result-title">${title}</span>
+          <span class="search-result-desc">${desc}</span>
+        </div>`;
+    },
+    onSelect(item) {
+      const hash = item.path ? `#file=${encodeURIComponent(item.path)}` : '';
+      window.location.href = `${item.route}${hash}`;
+    },
+    statusText(query, resultCount, totalCount) {
+      if (!query) return '';
+      if (resultCount === 0) return `No results for "${query}"`;
+      return `${resultCount} of ${totalCount} results for "${query}"`;
+    },
+  });
+</script>
+
+<style is:global>
+  /* ── Global search result styles (for nav search bar) ── */
+  #global-search-results {
+    position: absolute;
+    inset: 100% 0 auto;
+    z-index: 5;
+    max-height: 420px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    background: var(--color-bg-elevated);
+    box-shadow: var(--shadow-card);
+  }
+
+  .search-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--color-border-soft);
+    cursor: pointer;
+    transition: background var(--motion-fast);
+  }
+
+  .search-result:last-child {
+    border-bottom: none;
+  }
+
+  .search-result:hover,
+  .search-result--active {
+    background: var(--color-surface-2);
+  }
+
+  .search-result-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary);
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-1);
+  }
+
+  .search-result-title {
+    font-weight: 700;
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    color: var(--color-text);
+  }
+
+  .search-result-desc {
+    width: 100%;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+    margin-top: 0.15rem;
+  }
+
+  .search-result mark {
+    background: var(--color-primary);
+    color: var(--color-black);
+    padding: 0 0.15rem;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 640px) {
+    #global-search-results {
+      position: relative;
+      inset: auto;
+      margin-top: 0.5rem;
+      max-height: 320px;
+    }
+  }
+</style>
