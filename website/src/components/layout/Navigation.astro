@@ -1,6 +1,7 @@
 ---
 import { primaryNav } from '../../config/nav';
 import { SITE } from '../../config/site';
+import BitButton from '../ui/8BitButton.astro';
 import Icon from '../ui/Icon.astro';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
@@ -41,17 +42,15 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     }
   </nav>
 
-  <a
-    class="bit-btn bit-btn--secondary bit-btn--sm"
+  <BitButton
     href="https://github.com/github/awesome-copilot"
-    aria-label="Open GitHub repository"
-    rel="noopener noreferrer"
+    variant="secondary"
+    size="sm"
+    ariaLabel="Open GitHub repository"
   >
-    <span class="bit-btn-inner">
-      <Icon name="github" size={16} />
-      GITHUB ->
-    </span>
-  </a>
+    <Icon name="github" size={16} />
+    GITHUB ->
+  </BitButton>
 </header>
 
 <script>
@@ -144,48 +143,6 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     background: transparent;
     color: var(--color-text);
     padding: 0.55rem;
-  }
-
-  /* GitHub button (pixel-art style, inline for the header) */
-  .bit-btn {
-    position: relative;
-    display: inline-flex;
-    text-decoration: none;
-  }
-
-  .bit-btn-inner {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    border: none;
-    border-radius: 0;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    line-height: 1;
-    transition: transform var(--motion-fast), background var(--motion-fast);
-    color: inherit;
-  }
-
-  .bit-btn--sm .bit-btn-inner {
-    min-height: 1.75rem;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.78rem;
-  }
-
-  .bit-btn--secondary .bit-btn-inner {
-    background: var(--color-blue);
-    color: white;
-  }
-
-  .bit-btn--secondary .bit-btn-inner:hover {
-    background: rgb(45 140 255 / 80%);
-  }
-
-  .bit-btn-inner:active {
-    transform: translateY(2px);
   }
 
   @media (max-width: 1100px) {
