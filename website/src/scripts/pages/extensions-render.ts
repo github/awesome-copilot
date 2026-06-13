@@ -44,7 +44,9 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
           <div class="resource-preview">
            ${
              item.imageUrl
-               ? `<img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />`
+               ? `<button type="button" class="resource-thumbnail-btn" data-preview-url="${escapeHtml(item.imageUrl)}" data-preview-alt="${escapeHtml(item.name)} preview" aria-label="Open ${escapeHtml(item.name)} preview">
+                    <img class="resource-thumbnail" src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)} preview" loading="lazy" />
+                  </button>`
                : `<div class="resource-thumbnail resource-thumbnail-placeholder" aria-hidden="true">Canvas</div>`
            }
            <div class="resource-info">
