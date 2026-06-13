@@ -1,58 +1,123 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import workflowsData from '../../public/data/workflows.json';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
-import { renderWorkflowsHtml, sortWorkflows } from '../scripts/pages/workflows-render';
+import workflowsData from '../../public/data/workflows.json';
 
-const initialItems = sortWorkflows(workflowsData.items, 'title');
+const rawItems = workflowsData.items;
+const triggers = [...new Set(rawItems.flatMap((item) => item.triggers))].sort();
+const scheduledCount = rawItems.filter((item) => item.triggers.includes('schedule')).length;
 ---
 
-<StarlightPage frontmatter={{ title: 'Agentic Workflows', description: 'AI-powered repository automations that run coding agents in GitHub Actions', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="workflows-page listing-cards-page">
-    <PageHeader title="Agentic Workflows" description="AI-powered repository automations that run coding agents in GitHub Actions" icon="workflow" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} workflows</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-trigger">Trigger:</label>
-                    <select id="filter-trigger" multiple aria-label="Filter by trigger"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Agentic Workflows · Awesome GitHub Copilot" description="AI-powered repository automations that run coding agents in GitHub Actions">
+  <section id="workflows" class="section" aria-labelledby="workflows-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/workflows · fuzzy search + on-demand details</p>
+          <h1 id="workflows-title" class="console-title">Agentic workflows console</h1>
+          <p class="console-description">Filter workflow recipes by trigger, then open a focused internal detail UI without mounting every workflow card up front.</p>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderWorkflowsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="workflows" />
+
+        <dl class="console-stats-grid" aria-label="Workflow stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>workflows</dt></div>
+          <div class="console-stat-card"><dd>{triggers.length}</dd><dt>triggers</dt></div>
+          <div class="console-stat-card"><dd>{scheduledCount}</dd><dt>scheduled</dt></div>
+        </dl>
+      </Card>
+
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search workflows</span>
+          <input id="workflow-search" type="search" placeholder="search workflows…" aria-label="Search workflows" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--wide" for="filter-trigger">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="trigger">trigger: all</span></span>
+          <select id="filter-trigger" data-filter-param="trigger" multiple aria-label="Filter workflows by trigger">
+            {triggers.map((trigger) => <option value={trigger}>{trigger}</option>)}
+          </select>
+        </label>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort workflows">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
+
+      <section class="marketplace-results" aria-label="Matching workflows">
+        <div class="results-meta"><p id="resource-count">Loading workflows...</p></div>
+      </section>
+
+      <div id="workflow-grid" class="resource-grid" role="list"></div>
+      <div id="workflow-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="workflow-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more workflows</button>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No workflows found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <div id="workflow-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="workflow-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <ContributeCTA resourceType="workflows" />
+    </Container>
+  </section>
 
   <BackToTop />
-  <Modal />
-  <EmbeddedPageData filename="workflows.json" data={workflowsData} />
+</BaseLayout>
 
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/workflows';
-  </script>
-</StarlightPage>
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import type { WorkflowItem } from '../lib/upstream-types';
+
+  function toClientItem(item: WorkflowItem): CatalogClientItem {
+    return {
+      slug: item.id,
+      title: item.title,
+      label: item.triggers.length === 1 ? item.triggers[0] : `${item.triggers.length} triggers`,
+      description: item.description,
+      tags: item.triggers,
+      accent: stableAccent(item.id),
+      href: `/workflow/?slug=${encodeURIComponent(item.id)}`,
+      detail: item.path,
+      sortDate: item.lastUpdated,
+      filters: { trigger: item.triggers },
+      searchText: `${item.title} ${item.description} ${item.triggers.join(' ')}`,
+    };
+  }
+
+  initResourceCatalog<WorkflowItem>({
+    dataUrl: 'data/workflows.json',
+    gridSelector: '#workflow-grid',
+    countSelector: '#resource-count',
+    emptySelector: '#empty-state',
+    searchInputSelector: '#workflow-search',
+    searchResultsSelector: '#workflow-search-results',
+    searchStatusSelector: '#workflow-search-status',
+    loadMoreSelector: '#workflow-load-more',
+    loadSentinelSelector: '#workflow-load-sentinel',
+    clearSelector: '#filter-clear',
+    emptyClearSelector: '#empty-clear',
+    resourceName: 'workflow',
+    resourceNamePlural: 'workflows',
+    defaultSort: 'title',
+    filterConfigs: [
+      { param: 'trigger', label: 'Trigger', type: 'multi' },
+      { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+    ],
+    toClientItem,
+  });
+</script>

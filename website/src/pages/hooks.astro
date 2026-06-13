@@ -1,58 +1,103 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
-import PageHeader from '../components/PageHeader.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
 import hooksData from '../../public/data/hooks.json';
-import { renderHooksHtml, sortHooks } from '../scripts/pages/hooks-render';
 
-const initialItems = sortHooks(hooksData.items, 'title');
+const rawItems = hooksData.items;
+const uniqueHooks = new Set(rawItems.flatMap((item) => item.hooks)).size;
+const assetEnabledCount = rawItems.filter((item) => item.assets.length > 0).length;
+const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
 ---
 
-<StarlightPage frontmatter={{ title: 'Hooks', description: 'Automated workflows triggered by Copilot coding agent events', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="hooks-page listing-cards-page">
-    <PageHeader title="Hooks" description="Automated workflows triggered by Copilot coding agent events" icon="hook" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} hooks</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-tag">Tag:</label>
-                    <select id="filter-tag" multiple aria-label="Filter by tag"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort by">
-                      <option value="title">Name (A-Z)</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
-          </div>
+<BaseLayout title="Hooks · Awesome GitHub Copilot" description="Automated workflows triggered by Copilot coding agent events">
+  <section id="hooks" class="section" aria-labelledby="hooks-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/hooks · fuzzy search + on-demand details</p>
+          <h1 id="hooks-title" class="console-title">Hooks automation console</h1>
+          <p class="console-description">Filter Copilot coding agent hooks by tag, then open a focused internal detail UI.</p>
         </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderHooksHtml(initialItems)}></div>
-        <ContributeCTA resourceType="hooks" />
+
+        <dl class="console-stats-grid" aria-label="Hook stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>hooks</dt></div>
+          <div class="console-stat-card"><dd>{uniqueHooks}</dd><dt>events</dt></div>
+          <div class="console-stat-card"><dd>{assetEnabledCount}</dd><dt>with assets</dt></div>
+        </dl>
+      </Card>
+
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search hooks</span>
+          <input id="hook-search" type="search" placeholder="search hooks…" aria-label="Search hooks" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--wide" for="filter-tag">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="tag">tag: all</span></span>
+          <select id="filter-tag" data-filter-param="tag" multiple aria-label="Filter hooks by tag">
+            {tags.map((tag) => <option value={tag}>{tag}</option>)}
+          </select>
+        </label>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort hooks">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
+
+      <section class="marketplace-results" aria-label="Matching hooks"><div class="results-meta"><p id="resource-count">Loading hooks...</p></div></section>
+      <div id="hook-grid" class="resource-grid" role="list"></div>
+      <div id="hook-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="hook-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more hooks</button>
+
+      <div id="empty-state" class="empty-state" hidden><h3>No hooks found</h3><p>Try adjusting your search or filters.</p><button id="empty-clear" class="filter-clear" type="button">Clear all filters</button></div>
+      <div id="hook-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="hook-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <ContributeCTA resourceType="hooks" />
+    </Container>
+  </section>
 
   <BackToTop />
-  <Modal />
+</BaseLayout>
 
-  <EmbeddedPageData filename="hooks.json" data={hooksData} />
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/hooks';
-  </script>
-</StarlightPage>
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import type { HookItem } from '../lib/upstream-types';
+
+  function toClientItem(item: HookItem): CatalogClientItem {
+    return {
+      slug: item.id,
+      title: item.title,
+      label: item.hooks.length === 1 ? item.hooks[0] : `${item.hooks.length} events`,
+      description: item.description,
+      tags: [...item.tags.slice(0, 4), ...item.hooks.slice(0, 2)],
+      accent: stableAccent(item.id),
+      href: `/hook/?slug=${encodeURIComponent(item.id)}`,
+      detail: item.readmeFile ?? item.path,
+      sortDate: item.lastUpdated,
+      filters: { tag: item.tags },
+      searchText: `${item.title} ${item.description} ${item.tags.join(' ')} ${item.hooks.join(' ')}`,
+    };
+  }
+
+  initResourceCatalog<HookItem>({
+    dataUrl: 'data/hooks.json', gridSelector: '#hook-grid', countSelector: '#resource-count', emptySelector: '#empty-state',
+    searchInputSelector: '#hook-search', searchResultsSelector: '#hook-search-results', searchStatusSelector: '#hook-search-status',
+    loadMoreSelector: '#hook-load-more', loadSentinelSelector: '#hook-load-sentinel', clearSelector: '#filter-clear', emptyClearSelector: '#empty-clear',
+    resourceName: 'hook', resourceNamePlural: 'hooks', defaultSort: 'title',
+    filterConfigs: [{ param: 'tag', label: 'Tag', type: 'multi' }, { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' }],
+    toClientItem,
+  });
+</script>

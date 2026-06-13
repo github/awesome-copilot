@@ -1,92 +1,156 @@
 ---
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import pluginsData from '../../public/data/plugins.json';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Container from '../components/ui/Container.astro';
+import Card from '../components/ui/Card.astro';
+import Icon from '../components/ui/Icon.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
-import EmbeddedPageData from '../components/EmbeddedPageData.astro';
-import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
-import Modal from '../components/Modal.astro';
-import { renderPluginsHtml, sortPlugins } from '../scripts/pages/plugins-render';
+import pluginsData from '../../public/data/plugins.json';
 
-const initialItems = sortPlugins(pluginsData.items, 'title');
+const rawItems = pluginsData.items;
+const externalCount = rawItems.filter((item) => item.external).length;
+const itemCount = rawItems.reduce((total, item) => total + item.itemCount, 0);
+const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
 ---
 
-<StarlightPage frontmatter={{ title: 'Plugins', description: 'Curated plugins of agents, hooks, and skills for specific workflows', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content" class="plugins-page listing-cards-page">
-    <PageHeader title="Plugins" description="Curated plugins of agents, hooks, and skills for specific workflows" icon="plug" />
-
-    <div class="page-content">
-      <div class="container">
-        <div class="how-to-access">
-          <p><strong>Awesome Copilot is a default plugin marketplace</strong> — no setup required. Access it directly from your tools:</p>
-          <ul>
-            <li><strong>GitHub Copilot CLI</strong>: Type <code>/plugin marketplace browse awesome-copilot</code> in a Copilot session</li>
-            <li><strong>VS Code</strong>: Type <code>@agentPlugins</code> in the Extensions search view, or open the Command Palette and run <code>Chat: Plugins</code></li>
-          </ul>
-          <p>Install any plugin with: <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+<BaseLayout title="Plugins · Awesome GitHub Copilot" description="Curated plugins of agents, hooks, and skills for specific workflows">
+  <section id="plugins" class="section" aria-labelledby="plugins-title">
+    <Container>
+      <Card class="console-header-card">
+        <div class="console-summary-text">
+          <p class="console-eyebrow">/plugins · fuzzy search + on-demand details</p>
+          <h1 id="plugins-title" class="console-title">Plugin marketplace console</h1>
+          <p class="console-description">Browse curated plugin collections and external submissions through lightweight cards that open internal detail views.</p>
         </div>
 
-        <div class="listing-toolbar">
-          <div class="listing-toolbar-row">
-            <div class="results-count" id="results-count" aria-live="polite">{initialItems.length} plugins</div>
-            <details class="listing-controls">
-              <summary class="listing-controls-trigger btn btn-secondary btn-small">Sort &amp; Filter</summary>
-              <div class="listing-controls-panel">
-                <div class="filters-bar" id="filters-bar">
-                  <div class="filter-group">
-                    <label for="filter-tag">Tag:</label>
-                    <select id="filter-tag" multiple aria-label="Filter by tag"></select>
-                  </div>
-                  <div class="filter-group">
-                    <label for="sort-select">Sort:</label>
-                    <select id="sort-select" aria-label="Sort plugins">
-                      <option value="title">Title</option>
-                      <option value="lastUpdated">Recently Updated</option>
-                    </select>
-                  </div>
-                  <button id="clear-filters" class="btn btn-secondary btn-small">Clear Filters</button>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-        <div class="resource-list" id="resource-list" role="list" set:html={renderPluginsHtml(initialItems)}></div>
-        <ContributeCTA resourceType="plugins" />
+        <dl class="console-stats-grid" aria-label="Plugin stats">
+          <div class="console-stat-card console-stat-card--active"><dd>{rawItems.length}</dd><dt>plugins</dt></div>
+          <div class="console-stat-card"><dd>{itemCount}</dd><dt>resources</dt></div>
+          <div class="console-stat-card"><dd>{externalCount}</dd><dt>external</dt></div>
+        </dl>
+      </Card>
+
+      <Card class="plugin-access-card">
+        <p><strong>Awesome Copilot is a default plugin marketplace</strong> - no setup required. Access it directly from GitHub Copilot CLI or VS Code.</p>
+        <p><code>/plugin marketplace browse awesome-copilot</code> · <code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></p>
+      </Card>
+
+      <div class="console-filter-bar" id="filters-bar">
+        <label class="console-search-control">
+          <span aria-hidden="true" class="console-prompt">&gt;</span>
+          <span class="sr-only">Search plugins</span>
+          <input id="plugin-search" type="search" placeholder="search plugins…" aria-label="Search plugins" autocomplete="off" />
+          <Icon name="search" size={16} />
+        </label>
+
+        <label class="console-select-control console-select-control--wide" for="filter-tag">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="tag">tag: all</span></span>
+          <select id="filter-tag" data-filter-param="tag" multiple aria-label="Filter plugins by tag">
+            {tags.map((tag) => <option value={tag}>{tag}</option>)}
+          </select>
+        </label>
+
+        <label class="console-select-control console-select-control--sort" for="sort-select">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort plugins">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
+
+        <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
-    </div>
-  </div>
+
+      <section class="marketplace-results" aria-label="Matching plugins">
+        <div class="results-meta"><p id="resource-count">Loading plugins...</p></div>
+      </section>
+
+      <div id="plugin-grid" class="resource-grid" role="list"></div>
+      <div id="plugin-load-sentinel" class="agent-load-sentinel" aria-hidden="true"></div>
+      <button id="plugin-load-more" class="filter-clear agent-load-more" type="button" hidden>Load more plugins</button>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <h3>No plugins found</h3>
+        <p>Try adjusting your search or filters.</p>
+        <button id="empty-clear" class="filter-clear" type="button">Clear all filters</button>
+      </div>
+
+      <div id="plugin-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
+      <div id="plugin-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <ContributeCTA resourceType="plugins" />
+    </Container>
+  </section>
 
   <BackToTop />
-  <Modal />
-  <EmbeddedPageData filename="plugins.json" data={pluginsData} />
+</BaseLayout>
 
-  <script>
-    import '../scripts/listing-flyouts';
-    import '../scripts/pages/plugins';
-  </script>
+<script>
+  import { initResourceCatalog, stableAccent, type CatalogClientItem } from '../scripts/resource-catalog';
+  import type { PluginItem } from '../lib/upstream-types';
 
-  <style>
-    .how-to-access {
-      background: var(--sl-color-bg-nav);
-      border: 1px solid var(--sl-color-hairline);
-      border-radius: 0.5rem;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.9rem;
-      line-height: 1.6;
-    }
-    .how-to-access p { margin: 0 0 0.5rem; }
-    .how-to-access p:last-child { margin-bottom: 0; }
-    .how-to-access ul {
-      margin: 0.25rem 0 0.5rem 1.25rem;
-      padding: 0;
-    }
-    .how-to-access li { margin: 0.2rem 0; }
-    .how-to-access code {
-      background: var(--sl-color-bg-inline-code);
-      padding: 0.1em 0.35em;
-      border-radius: 0.2rem;
-      font-size: 0.85em;
-    }
-  </style>
-</StarlightPage>
+  function authorName(item: PluginItem): string {
+    const author = item.author as unknown;
+    if (typeof author === 'string') return author;
+    if (author && typeof author === 'object' && 'name' in author) return String((author as { name?: string }).name ?? '');
+    return '';
+  }
+
+  function toClientItem(item: PluginItem): CatalogClientItem {
+    return {
+      slug: item.id,
+      title: item.name,
+      label: item.external ? 'external' : `${item.itemCount} resources`,
+      description: item.description,
+      tags: [item.external ? 'external' : 'curated', ...item.tags].slice(0, 5),
+      accent: stableAccent(item.id),
+      href: `/plugin/?slug=${encodeURIComponent(item.id)}`,
+      detail: item.path,
+      sortDate: item.lastUpdated,
+      sortTitle: item.name,
+      filters: { tag: item.tags },
+      searchText: item.searchText || `${item.name} ${item.description} ${item.tags.join(' ')} ${authorName(item)}`,
+    };
+  }
+
+  initResourceCatalog<PluginItem>({
+    dataUrl: 'data/plugins.json',
+    gridSelector: '#plugin-grid',
+    countSelector: '#resource-count',
+    emptySelector: '#empty-state',
+    searchInputSelector: '#plugin-search',
+    searchResultsSelector: '#plugin-search-results',
+    searchStatusSelector: '#plugin-search-status',
+    loadMoreSelector: '#plugin-load-more',
+    loadSentinelSelector: '#plugin-load-sentinel',
+    clearSelector: '#filter-clear',
+    emptyClearSelector: '#empty-clear',
+    resourceName: 'plugin',
+    resourceNamePlural: 'plugins',
+    defaultSort: 'title',
+    filterConfigs: [
+      { param: 'tag', label: 'Tag', type: 'multi' },
+      { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+    ],
+    toClientItem,
+  });
+</script>
+
+<style>
+  .plugin-access-card {
+    margin: var(--space-4) 0 var(--space-5);
+    color: var(--color-muted);
+  }
+
+  .plugin-access-card p {
+    margin: 0;
+  }
+
+  .plugin-access-card p + p {
+    margin-top: var(--space-2);
+  }
+
+  .plugin-access-card code {
+    color: var(--color-text);
+  }
+</style>
