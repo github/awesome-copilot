@@ -146,7 +146,9 @@ export default defineConfig({
       components: {
         Head: "./src/components/Head.astro",
         Footer: "./src/components/Footer.astro",
+        PageFrame: "./src/components/starlight/PageFrame.astro",
         Search: "./src/components/Search.astro",
+        ThemeSelect: "./src/components/starlight/Empty.astro",
       },
     }),
     sitemap(),
