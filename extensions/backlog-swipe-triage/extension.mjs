@@ -32,9 +32,11 @@ const filterSchema = {
     additionalProperties: false,
 };
 let activeSession = null;
+const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 
 let storage = { boards: {} };
 let storageLoaded = false;
+let persistStorageQueue = Promise.resolve();
 
 async function ensureStorageLoaded() {
     if (storageLoaded) {
@@ -55,11 +57,29 @@ async function ensureStorageLoaded() {
 
 async function persistStorage() {
     await fs.mkdir(artifactsDir, { recursive: true });
-    await fs.writeFile(stateFile, JSON.stringify(storage, null, 2), "utf8");
+    const snapshot = JSON.stringify(storage, null, 2);
+    persistStorageQueue = persistStorageQueue
+        .catch(() => undefined)
+        .then(async () => {
+            const tempStateFile = `${stateFile}.tmp-${process.pid}-${Date.now()}`;
+            await fs.writeFile(tempStateFile, snapshot, "utf8");
+            await fs.rename(tempStateFile, stateFile);
+        });
+    await persistStorageQueue;
 }
 
 function normalizeText(value, fallback = "") {
     return typeof value === "string" ? value.trim() : fallback;
+}
+
+function escapeHtml(value) {
+    return normalizeText(value).replace(/[&<>"']/g, (char) => {
+        if (char === "&") return "&amp;";
+        if (char === "<") return "&lt;";
+        if (char === ">") return "&gt;";
+        if (char === '"') return "&quot;";
+        return "&#39;";
+    });
 }
 
 function normalizeStringArray(values) {
@@ -268,6 +288,9 @@ function buildItemWorkStatus(board, item) {
         statuses.push({ label: sessionName ? `Session active: ${sessionName}` : "Session active" });
     } else if (work?.sessionState === "starting") {
         statuses.push({ label: "Session starting" });
+    } else if (work?.sessionState === "requested") {
+        const sessionName = normalizeText(work.sessionName);
+        statuses.push({ label: sessionName ? `Session requested: ${sessionName}` : "Session requested" });
     }
     return statuses;
 }
@@ -463,11 +486,11 @@ async function startImplementationSession(board, item, agent, note) {
         displayPrompt: `Start implementation session for #${issueNumber}`,
     });
     return {
-        sessionState: "active",
-        sessionName: "",
+        sessionState: "requested",
+        sessionName: `Issue #${issueNumber}`,
         issueNumber,
         agent: normalizeText(agent),
-        startedAt: new Date().toISOString(),
+        requestedAt: new Date().toISOString(),
     };
 }
 
@@ -540,12 +563,14 @@ async function syncBoardFromRepo(board, filtersInput) {
 }
 
 function renderHtml(instanceId, title) {
+    const safeTitle = escapeHtml(title || "Backlog Swipe Triage");
+    const safeInstanceId = escapeHtml(instanceId || "default");
     return `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>${title}</title>
+    <title>${safeTitle}</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -1105,9 +1130,9 @@ function renderHtml(instanceId, title) {
     <div class="wrap">
       <div class="header">
         <div class="title-wrap">
-          <h1>${title}</h1>
+          <h1>${safeTitle}</h1>
           <div class="subline muted">
-            <span>Instance: <code>${instanceId}</code></span>
+            <span>Instance: <code>${safeInstanceId}</code></span>
             <span id="boardMeta">Loading board…</span>
           </div>
         </div>
@@ -1761,11 +1786,30 @@ function renderHtml(instanceId, title) {
 </html>`;
 }
 
-function readJson(req) {
+function readJson(req, maxBytes = MAX_REQUEST_BODY_BYTES) {
     return new Promise((resolve, reject) => {
         const chunks = [];
-        req.on("data", (chunk) => chunks.push(chunk));
+        let totalBytes = 0;
+        let settled = false;
+        req.on("data", (chunk) => {
+            if (settled) {
+                return;
+            }
+            totalBytes += chunk.length;
+            if (totalBytes > maxBytes) {
+                settled = true;
+                const error = new Error(`Request body exceeds ${maxBytes} bytes.`);
+                error.statusCode = 413;
+                req.destroy(error);
+                reject(error);
+                return;
+            }
+            chunks.push(chunk);
+        });
         req.on("end", () => {
+            if (settled) {
+                return;
+            }
             const raw = Buffer.concat(chunks).toString("utf8");
             if (!raw) {
                 resolve({});
@@ -1774,10 +1818,17 @@ function readJson(req) {
             try {
                 resolve(JSON.parse(raw));
             } catch (error) {
+                error.statusCode = 400;
                 reject(error);
             }
         });
-        req.on("error", reject);
+        req.on("error", (error) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            reject(error);
+        });
     });
 }
 
@@ -1807,12 +1858,7 @@ async function handleServerRequest(instanceId, req, res) {
 
     if (req.method === "POST" && req.url === "/sync") {
         try {
-            let payload = {};
-            try {
-                payload = await readJson(req);
-            } catch {
-                payload = {};
-            }
+            const payload = await readJson(req);
             const repo = normalizeText(payload?.repo);
             if (repo) {
                 board.repo = repo;
@@ -1825,7 +1871,7 @@ async function handleServerRequest(instanceId, req, res) {
             res.setHeader("Content-Type", "application/json; charset=utf-8");
             res.end(JSON.stringify(buildBoardState(board)));
         } catch (error) {
-            res.statusCode = 500;
+            res.statusCode = error?.statusCode || 500;
             res.end(error instanceof Error ? error.message : "Failed to sync from repo");
         }
         return;
@@ -1835,9 +1881,13 @@ async function handleServerRequest(instanceId, req, res) {
         let payload;
         try {
             payload = await readJson(req);
-        } catch {
-            res.statusCode = 400;
-            res.end("Invalid JSON payload");
+        } catch (error) {
+            res.statusCode = error?.statusCode || 400;
+            res.end(
+                error?.statusCode === 413
+                    ? "Request body too large"
+                    : "Invalid JSON payload",
+            );
             return;
         }
 
@@ -1884,7 +1934,14 @@ async function handleServerRequest(instanceId, req, res) {
 
 async function startServer(instanceId) {
     const server = createServer((req, res) => {
-        handleServerRequest(instanceId, req, res);
+        handleServerRequest(instanceId, req, res).catch((error) => {
+            if (res.headersSent) {
+                res.end();
+                return;
+            }
+            res.statusCode = error?.statusCode || 500;
+            res.end(error instanceof Error ? error.message : "Internal server error");
+        });
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();

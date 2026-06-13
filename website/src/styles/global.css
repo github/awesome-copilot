@@ -1895,7 +1895,8 @@ body:has(#main-content) {
 }
  
 .resource-thumbnail {
-  width: 160px;
+  width: clamp(120px, 24vw, 160px);
+  max-width: 38%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
   border-radius: var(--border-radius);
@@ -2196,6 +2197,20 @@ body:has(#main-content) {
   .resource-item {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .resource-preview {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .resource-thumbnail-btn {
+    width: 100%;
+  }
+
+  .resource-thumbnail {
+    width: min(100%, 320px);
+    max-width: 100%;
   }
 
   .resource-actions {

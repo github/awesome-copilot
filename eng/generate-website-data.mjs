@@ -707,9 +707,13 @@ function getExtensionAssetInfo(extensionDir, relPath, ref) {
     const candidatePath = path.join(assetDir, candidate);
     if (fs.existsSync(candidatePath)) {
       const assetPath = `${relPath}/assets/${candidate}`;
+      const encodedAssetPath = assetPath
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/");
       return {
         assetPath,
-        imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${assetPath}`,
+        imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`,
       };
     }
   }
@@ -725,10 +729,14 @@ function getExtensionAssetInfo(extensionDir, relPath, ref) {
 
   const assetFile = files[0];
   const assetPath = `${relPath}/assets/${assetFile}`;
+  const encodedAssetPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
 
   return {
     assetPath,
-    imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${assetPath}`,
+    imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`,
   };
 }
 
