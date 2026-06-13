@@ -224,14 +224,16 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .main-
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) main {
-  padding: 0 !important;
+  padding: 1.875rem 2.25rem 0 !important;
+  max-width: 60rem !important;
+  flex: 0 0 auto !important;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .lg\:sl-flex {
   align-items: flex-start;
   gap: 1.75rem;
   min-height: calc(100vh - var(--site-header-height, 4.25rem));
-  padding: 1.875rem clamp(1.25rem, 3vw, 2.25rem);
+  padding: 0;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sidebar-pane {
@@ -307,13 +309,13 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .conte
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type > .sl-container {
   border-bottom: 0;
   border-radius: var(--radius-2) var(--radius-2) 0 0;
-  padding: clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem) 0;
+  padding: 0 clamp(1.5rem, 3vw, 2rem) 0;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:nth-of-type(2) > .sl-container {
   border-top: 0;
   border-radius: 0 0 var(--radius-2) var(--radius-2);
-  padding: 1rem clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
+  padding: 0 clamp(1.5rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem);
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel:first-of-type > .sl-container::before {
@@ -362,9 +364,30 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-ma
   text-decoration-color: var(--color-primary);
 }
 
-html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content :is(code, pre):not(:where(.not-content *)) {
-  border-color: var(--color-border-soft);
-  background: var(--color-bg);
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre:not(:where(.not-content *)) {
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-green);
+  border-radius: var(--radius-1);
+  background: var(--color-bg-elevated);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre code:not(:where(.not-content *)) {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-1);
+  background: var(--color-bg-elevated);
+  padding: 0.15rem 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-green);
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content blockquote:not(:where(.not-content *)),
@@ -376,11 +399,11 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-ma
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar {
-  flex: 0 0 14.375rem;
-  width: 14.375rem;
+  flex: 1 1 auto;
+  width: auto;
   border-left: 0 !important;
   background: transparent;
-  padding-top: 0 !important;
+  padding: 1.875rem 0 0 !important;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel {
@@ -390,11 +413,11 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel > .sl-container {
-  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2);
   background: var(--color-bg-elevated);
-  padding: 1.35rem;
+  padding: clamp(1.5rem, 3vw, 2rem) 0 1.35rem 1.35rem;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel h2 {
@@ -449,8 +472,8 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .pagin
 }
 
 @media (max-width: 72rem) {
-  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .lg\:sl-flex {
-    padding-inline: 1.25rem;
+  html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) main {
+    padding-inline: 1.25rem !important;
   }
 
   html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar {
