@@ -6,7 +6,7 @@ compatibility: Requires Python 3.11+ and an authenticated GitHub CLI (gh) v2.90.
 allowed-tools: Bash(gh:*) Bash(python3:*) Read
 metadata:
   author: Kinosaur
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # GitHub Repository Inventory

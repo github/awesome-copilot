@@ -1159,9 +1159,9 @@ def assemble_records(
             "code": "private-excluded",
             "repo": "",
             "message": (
-                f"{n} repositor{'y' if n == 1 else 'ies'} with contribution or access evidence "
-                f"{'was' if n == 1 else 'were'} private and excluded (public-only default; "
-                f"pass --include-private to include them). Names are withheld."
+                f"{n} {'repository' if n == 1 else 'repositories'} with contribution or access "
+                f"evidence {'was' if n == 1 else 'were'} private and excluded (public-only "
+                f"default; pass --include-private to include them). Names are withheld."
             ),
         })
     if stats.get("inaccessible"):
@@ -1170,7 +1170,8 @@ def assemble_records(
             "code": "external-inaccessible",
             "repo": "",
             "message": (
-                f"{n} contribution-evidenced repositor{'y' if n == 1 else 'ies'} "
+                f"{n} contribution-evidenced "
+                f"{'repository' if n == 1 else 'repositories'} "
                 f"{'was' if n == 1 else 'were'} inaccessible (deleted or now private) and "
                 f"excluded. Names are withheld."
             ),
