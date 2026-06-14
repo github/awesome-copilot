@@ -77,6 +77,31 @@
     }
   },
   {
+    "name": "copilot-goal-skill",
+    "description": "Goal-driven task orchestration with independent verification. Interviews the user to define a clear goal, then loops between a Builder subagent (does the work) and an Inspector subagent (judges the result with fresh context). The Inspector never trusts the Builder. Output is auditable in git commits from each subagent actions. Use when the user says \"achieve this goal\", \"make this work\", \"implement until done\", or wants verified autonomous task completion with independent quality review.",
+    "version": "1.0.1",
+    "author": {
+      "name": "Gaetan Semet",
+      "url": "https://github.com/gsemet"
+    },
+    "repository": "https://github.com/gsemet/copilot-goal-skill",
+    "license": "MIT",
+    "keywords": [
+      "goal",
+      "autonomous",
+      "inspector",
+      "builder",
+      "loop"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "gsemet/copilot-goal-skill",
+      "path": "plugins/copilot-goal-skill",
+      "ref": "1.0.1",
+      "sha": "b186d0b0d59da1ea051283a7d99185979ede998a"
+    }
+  },
+  {
     "name": "dataverse",
     "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
     "version": "1.0.0",
@@ -185,6 +210,32 @@
     }
   },
   {
+    "name": "elasticsearch",
+    "description": "Official Elastic plugin for GitHub Copilot — translate natural language to ES|QL queries, ingest data, manage Elasticsearch security (authn, authz, audit), and troubleshoot clusters. Powered by the official Elastic agent skills repository.",
+    "version": "0.3.0",
+    "author": {
+      "name": "Elastic",
+      "url": "https://www.elastic.co"
+    },
+    "repository": "https://github.com/elastic/agent-skills",
+    "homepage": "https://github.com/elastic/agent-skills/tree/main/plugins/elasticsearch",
+    "license": "Apache-2.0",
+    "keywords": [
+      "elasticsearch",
+      "esql",
+      "search",
+      "ingest",
+      "security",
+      "elastic"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "elastic/agent-skills",
+      "path": "plugins/elasticsearch",
+      "sha": "e0d6b02194d4ec74cf9e5975290e950fc5ba549f"
+    }
+  },
+  {
     "name": "figma",
     "description": "Plugin that includes the Figma MCP server and Skills for common workflows.",
     "version": "1.0.0",
@@ -193,7 +244,13 @@
       "url": "https://www.figma.com"
     },
     "homepage": "https://github.com/figma/mcp-server-guide",
-    "keywords": ["figma", "design", "mcp", "ui", "code-connect"],
+    "keywords": [
+      "figma",
+      "design",
+      "mcp",
+      "ui",
+      "code-connect"
+    ],
     "repository": "https://github.com/figma/mcp-server-guide",
     "source": {
       "source": "github",
@@ -226,6 +283,36 @@
     "source": {
       "source": "github",
       "repo": "Azure/git-ape"
+    }
+  },
+  {
+    "name": "github-copilot-modernization",
+    "description": "Autonomous application modernization using multi-agent orchestration for GitHub Copilot CLI. Supports Java upgrades (8→21, Spring Boot 2.x→3.x), .NET modernization, Azure migration, CVE/vulnerability fixing, and application rearchitecture (monolith-to-microservices). Features a 3-level agent hierarchy (orchestrator → coordinators → executors) with enterprise rulebook support for embedding organizational policies into the workflow.",
+    "version": "1.20.0",
+    "author": {
+      "name": "Microsoft",
+      "url": "https://github.com/microsoft/github-copilot-modernization"
+    },
+    "repository": "https://github.com/microsoft/github-copilot-modernization",
+    "homepage": "https://github.com/microsoft/github-copilot-modernization",
+    "license": "MIT",
+    "keywords": [
+      "java",
+      "dotnet",
+      "modernization",
+      "azure",
+      "migration",
+      "assessment",
+      "cve",
+      "spring-boot",
+      "multi-agent",
+      "copilot"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/github-copilot-modernization",
+      "path": "plugins/github-copilot-modernization",
+      "sha": "42c1189c55933384bec07e8349ef998eb9e775ad"
     }
   },
   {
@@ -265,7 +352,14 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/microsoft/Build-CLI",
-    "keywords": ["microsoft", "build", "ignite", "events", "sessions", "learn"],
+    "keywords": [
+      "microsoft",
+      "build",
+      "ignite",
+      "events",
+      "sessions",
+      "learn"
+    ],
     "license": "Apache-2.0",
     "repository": "https://github.com/microsoft/Build-CLI",
     "source": {
@@ -282,7 +376,12 @@
       "url": "https://www.microsoft.com"
     },
     "homepage": "https://github.com/dotnet/modernize-dotnet",
-    "keywords": ["modernization", "upgrade", "migration", "dotnet"],
+    "keywords": [
+      "modernization",
+      "upgrade",
+      "migration",
+      "dotnet"
+    ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/modernize-dotnet",
     "source": {
@@ -365,6 +464,63 @@
       "source": "github",
       "repo": "SonarSource/sonarqube-agent-plugins",
       "ref": "2.0.0"
+    }
+  },
+  {
+    "name": "ui5",
+    "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
+    "version": "0.1.3",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/UI5/plugins-coding-agents",
+    "homepage": "https://github.com/UI5/plugins-coding-agents",
+    "license": "Apache-2.0",
+    "keywords": [
+      "ui5",
+      "sapui5",
+      "openui5",
+      "sap",
+      "web-development",
+      "plugin",
+      "development"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "UI5/plugins-coding-agents",
+      "path": "plugins/ui5",
+      "ref": "v0.1.3",
+      "sha": "9b3d7d80356f687725f9584988e4038dbead0d53"
+    }
+  },
+  {
+    "name": "ui5-typescript-conversion",
+    "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
+    "version": "0.1.3",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/UI5/plugins-coding-agents",
+    "homepage": "https://github.com/UI5/plugins-coding-agents",
+    "license": "Apache-2.0",
+    "keywords": [
+      "ui5",
+      "sapui5",
+      "openui5",
+      "typescript",
+      "conversion",
+      "migration",
+      "sap",
+      "javascript"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "UI5/plugins-coding-agents",
+      "path": "plugins/ui5-typescript-conversion",
+      "ref": "v0.1.3",
+      "sha": "9b3d7d80356f687725f9584988e4038dbead0d53"
     }
   },
   {
