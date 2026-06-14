@@ -1,10 +1,123 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import Modal from "../components/Modal.astro";
-import Icon from "../components/Icon.astro";
 import BackToTop from "../components/BackToTop.astro";
+import CommunityCTA from "../components/home/CommunityCTA.astro";
+import Hero from "../components/home/Hero.astro";
+import HowItWorks from "../components/home/HowItWorks.astro";
+import InstallCard from "../components/home/InstallCard.astro";
+import QuickLinks from "../components/home/QuickLinks.astro";
 
 const base = import.meta.env.BASE_URL;
+
+const categories = [
+  {
+    title: "Code smarter",
+    description: "Make Copilot write, review, and reason like a domain expert for your stack.",
+    items: [
+      {
+        id: "agents",
+        icon: "robot" as const,
+        title: "Agents",
+        description: "Specialized personas for complex domains — .NET, AWS, accessibility, security, and more.",
+        path: "agents/",
+        accentClass: "card-category-ai",
+        countKey: "agents",
+      },
+      {
+        id: "skills",
+        icon: "lightning" as const,
+        title: "Skills",
+        description: "Reusable folders of instructions and bundled assets for multi-step tasks.",
+        path: "skills/",
+        accentClass: "card-category-power",
+        countKey: "skills",
+      },
+      {
+        id: "instructions",
+        icon: "document" as const,
+        title: "Instructions",
+        description: "Coding standards and conventions applied automatically by file pattern.",
+        path: "instructions/",
+        accentClass: "card-category-docs",
+        countKey: "instructions",
+      },
+    ],
+  },
+  {
+    title: "Automate workflows",
+    description: "Orchestrate sessions, toolkits, and CI/CD with Copilot.",
+    items: [
+      {
+        id: "plugins",
+        icon: "plug" as const,
+        title: "Plugins",
+        description: "Curated bundles of agents, skills, and commands for the Copilot CLI.",
+        path: "plugins/",
+        accentClass: "card-category-extension",
+        countKey: "plugins",
+      },
+      {
+        id: "hooks",
+        icon: "hook" as const,
+        title: "Hooks",
+        description: "Actions triggered during Copilot agent session lifecycle.",
+        path: "hooks/",
+        accentClass: "card-category-automation",
+        countKey: "hooks",
+      },
+      {
+        id: "workflows",
+        icon: "workflow" as const,
+        title: "Workflows",
+        description: "Markdown-defined automations that run as GitHub Actions.",
+        path: "workflows/",
+        accentClass: "card-category-automation",
+        countKey: "workflows",
+      },
+    ],
+  },
+  {
+    title: "Extend and learn",
+    description: "Explore the ecosystem, tooling, and guided tutorials.",
+    items: [
+      {
+        id: "tools",
+        icon: "wrench" as const,
+        title: "Tools",
+        description: "MCP servers, editor integrations, and developer tooling.",
+        path: "tools/",
+        accentClass: "card-category-dev",
+        countKey: "tools",
+      },
+      {
+        id: "extensions",
+        icon: "plug" as const,
+        title: "Canvas Extensions",
+        description: "Interactive canvas add-ons for Copilot app experiences.",
+        path: "extensions/",
+        accentClass: "card-category-extension",
+        countKey: "extensions",
+      },
+      {
+        id: "learning-hub",
+        icon: "book" as const,
+        title: "Learning Hub",
+        description: "Guides and tutorials covering agents, skills, MCP servers, and agentic workflows.",
+        path: "learning-hub/",
+        accentClass: "card-category-learn",
+      },
+    ],
+  },
+];
+
+const stats = [
+  { label: "Resources", key: "total" },
+  { label: "Agents", key: "agents" },
+  { label: "Skills", key: "skills" },
+  { label: "Instructions", key: "instructions" },
+  { label: "Plugins", key: "plugins" },
+];
 ---
 
 <StarlightPage
@@ -30,206 +143,11 @@ const base = import.meta.env.BASE_URL;
   hasSidebar={false}
 >
   <div id="main-content">
-    <!-- Hero Section -->
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="container">
-        <h1 id="hero-heading">
-          <span class="gradient-text">Awesome GitHub Copilot</span>
-        </h1>
-        <p class="hero-subtitle">
-          Community-contributed agents, instructions, and skills to enhance your
-          GitHub Copilot experience
-        </p>
-        <p>
-          <a href="https://github.com/github/awesome-copilot/" target="_blank" rel="noopener noreferrer">
-            View the Awesome Copilot repository on GitHub
-          </a>
-        </p>
-      </div>
-    </section>
-
-    <!-- Quick Links -->
-    <section class="quick-links" aria-labelledby="quick-links-heading">
-      <h2 id="quick-links-heading" class="sr-only">Browse Resources</h2>
-      <div class="container">
-        <div class="cards-grid">
-          <a
-            href={`${base}agents/`}
-            class="card card-with-count card-category-ai"
-            id="card-agents"
-            style="--animation-delay: 0ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="robot" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Agents</h3>
-              <p>Custom agents for specialized Copilot experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="agents"
-              aria-label="Agent count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}instructions/`}
-            class="card card-with-count card-category-docs"
-            id="card-instructions"
-            style="--animation-delay: 50ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="document" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Instructions</h3>
-              <p>Coding standards and best practices for Copilot</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="instructions"
-              aria-label="Instruction count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}skills/`}
-            class="card card-with-count card-category-power"
-            id="card-skills"
-            style="--animation-delay: 100ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="lightning" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Skills</h3>
-              <p>Self-contained folders with instructions and resources</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="skills"
-              aria-label="Skill count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}hooks/`}
-            class="card card-with-count card-category-automation"
-            id="card-hooks"
-            style="--animation-delay: 150ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="hook" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Hooks</h3>
-              <p>Automated workflows triggered by agent events</p>
-            </div>
-            <div class="card-count" data-count="hooks" aria-label="Hook count">
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}workflows/`}
-            class="card card-with-count card-category-automation"
-            id="card-workflows"
-            style="--animation-delay: 200ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="workflow" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Workflows</h3>
-              <p>AI-powered automations for GitHub Actions</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="workflows"
-              aria-label="Workflow count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}plugins/`}
-            class="card card-with-count card-category-extension"
-            id="card-plugins"
-            style="--animation-delay: 250ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Plugins</h3>
-              <p>Curated plugins organized by themes</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="plugins"
-              aria-label="Plugin count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}extensions/`}
-            class="card card-with-count card-category-extension"
-            id="card-extensions"
-            style="--animation-delay: 300ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="plug" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Canvas Extensions</h3>
-              <p>Interactive canvas extensions for Copilot app experiences</p>
-            </div>
-            <div
-              class="card-count"
-              data-count="extensions"
-              aria-label="Extension count"
-            >
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}tools/`}
-            class="card card-with-count card-category-dev"
-            id="card-tools"
-            style="--animation-delay: 350ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="wrench" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Tools</h3>
-              <p>MCP servers and developer tools</p>
-            </div>
-            <div class="card-count" data-count="tools" aria-label="Tool count">
-              -
-            </div>
-          </a>
-          <a
-            href={`${base}learning-hub/`}
-            class="card card-with-count card-category-learn"
-            id="card-learning-hub"
-            style="--animation-delay: 400ms;"
-          >
-            <div class="card-icon" aria-hidden="true">
-              <Icon name="book" size={40} />
-            </div>
-            <div class="card-content">
-              <h3>Learning Hub</h3>
-              <p>Articles and guides to master GitHub Copilot</p>
-            </div>
-          </a>
-        </div>
-      </div>
-    </section>
+    <Hero stats={stats} />
+    <QuickLinks title="Browse Resources" categories={categories} />
+    <HowItWorks />
+    <InstallCard />
+    <CommunityCTA />
   </div>
 
   <Modal />
