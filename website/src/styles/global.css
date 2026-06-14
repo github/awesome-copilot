@@ -44,7 +44,7 @@
   --color-glass: rgba(255, 255, 255, 0.05);
   --color-glass-border: rgba(255, 255, 255, 0.1);
 
-  /* macOS-inspired motion & shape tokens */
+  /* Big-tech fit-and-finish motion & shape tokens */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
