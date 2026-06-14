@@ -51,13 +51,16 @@ const twitterDomain =
     const STORAGE_KEY = 'awesome-copilot-theme';
     const stored = localStorage.getItem(STORAGE_KEY);
 
-    // Theme handling:
-    // - 'dark' or 'light' → set data-theme attribute to that value
-    // - 'auto' or unset → don't set data-theme (CSS media query handles system preference)
+    // Resolve the effective theme as early as possible so the first paint
+    // already uses the right palette. The ThemeToggle component mirrors this
+    // logic at runtime; keep them in sync.
     if (stored === 'dark' || stored === 'light') {
       document.documentElement.setAttribute('data-theme', stored);
+    } else {
+      // 'auto' or no stored preference: follow the system, defaulting to light
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }
-    // For 'auto' or unset, no attribute means CSS media query controls theme
   })();
 </script>
 

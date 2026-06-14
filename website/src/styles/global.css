@@ -43,20 +43,48 @@
   --color-card-hover: rgba(28, 28, 40, 0.9);
   --color-glass: rgba(255, 255, 255, 0.05);
   --color-glass-border: rgba(255, 255, 255, 0.1);
+
+  /* macOS-inspired motion & shape tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-in-out-quint: cubic-bezier(0.86, 0, 0.07, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-enter: 400ms;
+
+  --border-radius: 8px;
+  --border-radius-sm: 6px;
+  --border-radius-xs: 4px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 24px;
+  --border-radius-2xl: 32px;
+  --border-radius-full: 9999px;
+
+  /* Glass surfaces — use on static/sticky surfaces only; respect reduced motion */
+  --surface-glass: rgba(20, 20, 28, 0.72);
+  --surface-glass-border: rgba(255, 255, 255, 0.08);
+  --surface-backdrop: saturate(180%) blur(20px);
+
+  /* Layered shadow scale */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 3px rgba(0, 0, 0, 0.16);
+  --shadow-md: 0 12px 24px -10px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+  --shadow-float: 0 24px 48px -16px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.5);
+
+  /* Transitions */
+  --transition: var(--duration-base) var(--ease-out-expo);
+  --transition-slow: var(--duration-slow) var(--ease-out-expo);
+  --transition-spring: var(--duration-slow) var(--ease-spring);
+
   --gradient-primary: linear-gradient(180deg, #8534F3 0%, #B870FF 50%, #FE4C25 100%);
   --gradient-accent: linear-gradient(135deg, #43179E 0%, #8534F3 100%);
   --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.25), transparent),
                    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.12), transparent),
                    radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.12), transparent);
-  --border-radius: 8px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 24px;
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 12px 24px -10px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.5);
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
   --container-width: 1200px;
   --header-height: 72px;
   --font-mono: 'Monaspace Argon NF', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
@@ -77,12 +105,22 @@
   --color-card-hover: rgba(255, 255, 255, 1);
   --color-glass: rgba(255, 255, 255, 0.85);
   --color-glass-border: rgba(0, 0, 0, 0.12);
+
+  /* Glass surfaces */
+  --surface-glass: rgba(255, 255, 255, 0.72);
+  --surface-glass-border: rgba(0, 0, 0, 0.08);
+
+  /* Layered shadow scale */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 12px 24px -10px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+  --shadow-float: 0 24px 48px -16px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
+
   --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.18), transparent),
                    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.10), transparent),
                    radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.10), transparent);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
-  --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
 }
 
 /* Auto theme based on system preference */
@@ -101,12 +139,22 @@
     --color-card-hover: rgba(255, 255, 255, 1);
     --color-glass: rgba(255, 255, 255, 0.85);
     --color-glass-border: rgba(0, 0, 0, 0.12);
+
+    /* Glass surfaces */
+    --surface-glass: rgba(255, 255, 255, 0.72);
+    --surface-glass-border: rgba(0, 0, 0, 0.08);
+
+    /* Layered shadow scale */
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 12px 24px -10px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+    --shadow-float: 0 24px 48px -16px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
+
     --gradient-hero: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(133, 52, 243, 0.18), transparent),
                      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(254, 76, 37, 0.10), transparent),
                      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(184, 112, 255, 0.10), transparent);
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
-    --shadow-glow: 0 0 40px -10px rgba(133, 52, 243, 0.3);
   }
 }
 
