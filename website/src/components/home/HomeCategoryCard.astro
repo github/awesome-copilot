@@ -1,0 +1,43 @@
+---
+import Icon from '../Icon.astro';
+
+export interface Props {
+  id: string;
+  icon: 'robot' | 'document' | 'lightning' | 'hook' | 'workflow' | 'plug' | 'wrench' | 'book';
+  title: string;
+  description: string;
+  path: string;
+  accentClass: string;
+  countKey?: string;
+  delay?: string;
+}
+
+const { id, icon, title, description, path, accentClass, countKey, delay = '0ms' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const href = `${base}${path}`;
+const hasCount = countKey !== undefined;
+---
+
+<a
+  href={href}
+  class={`card card--shimmer card--glow card--spotlight ${hasCount ? 'card-with-count' : ''} ${accentClass}`}
+  id={`card-${id}`}
+  style={`--animation-delay: ${delay};`}
+>
+  <div class="card-icon" aria-hidden="true">
+    <Icon name={icon} size={40} />
+  </div>
+  <div class="card-content">
+    <h3>{title}</h3>
+    <p>{description}</p>
+  </div>
+  {hasCount && (
+    <div
+      class="card-count"
+      data-count={countKey}
+      aria-label={`${title} count`}
+    >
+      -
+    </div>
+  )}
+</a>

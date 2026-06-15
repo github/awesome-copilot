@@ -1,0 +1,46 @@
+---
+import HomeCategoryCard from './HomeCategoryCard.astro';
+import type { Props as CardProps } from './HomeCategoryCard.astro';
+
+type CategoryItem = Omit<CardProps, 'delay'>;
+
+export interface CategoryGroup {
+  title: string;
+  description?: string;
+  items: CategoryItem[];
+}
+
+export interface Props {
+  title?: string;
+  categories: CategoryGroup[];
+}
+
+const { title = 'Browse Resources', categories } = Astro.props;
+---
+
+<section class="quick-links" aria-labelledby="quick-links-heading">
+  <div class="container">
+    <h2 id="quick-links-heading" class="sr-only">{title}</h2>
+
+    {
+      categories.map((group, groupIndex) => (
+        <div class="category-cluster reveal">
+          <div class="category-cluster__header">
+            <h3 class="category-cluster__title">{group.title}</h3>
+            {group.description && (
+              <p class="category-cluster__description">{group.description}</p>
+            )}
+          </div>
+          <div class="cards-grid cards-grid--compact reveal-stagger">
+            {group.items.map((item, itemIndex) => (
+              <HomeCategoryCard
+                {...item}
+                delay={`${groupIndex * 150 + itemIndex * 60}ms`}
+              />
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>

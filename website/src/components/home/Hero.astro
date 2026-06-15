@@ -1,0 +1,71 @@
+---
+import Icon from '../Icon.astro';
+
+const base = import.meta.env.BASE_URL;
+const githubUrl = 'https://github.com/github/awesome-copilot';
+---
+
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero__ambient" aria-hidden="true">
+    <div class="ambient-orb ambient-orb--purple"></div>
+    <div class="ambient-orb ambient-orb--orange"></div>
+    <div class="ambient-orb ambient-orb--violet"></div>
+    <div class="ambient-noise"></div>
+  </div>
+
+  <div class="container">
+    <p class="hero-eyebrow reveal">The Copilot customization community</p>
+    <h1 id="hero-heading" class="hero-title reveal">
+      <span class="hero-title--gradient">Supercharge</span> GitHub Copilot for the way you work
+    </h1>
+    <p class="hero-subtitle reveal">
+      A community-curated library of agents, instructions, skills, and plugins.
+      Search hundreds of resources, install in one command, or drop reusable
+      guidance into your repo.
+    </p>
+
+    <div class="hero-search reveal" role="search" aria-label="Search resources">
+      <div class="search-row">
+        <input
+          type="text"
+          id="hero-search-input"
+          placeholder="Search agents, skills, instructions..."
+          aria-label="Search resources"
+          autocomplete="off"
+        />
+        <span class="search-shortcut" aria-hidden="true">
+          <kbd>/</kbd>
+        </span>
+      </div>
+      <div
+        id="hero-search-results"
+        class="search-results hidden"
+        aria-live="polite"
+      >
+      </div>
+    </div>
+
+    <div class="hero-actions reveal">
+      <a href={`${base}agents/`} class="btn btn-primary btn--glow">
+        Browse all resources
+        <Icon name="chevron-down" size={16} />
+      </a>
+      <a href={`${base}how-to-use/`} class="btn btn-secondary btn--glass-pill">
+        How it works
+      </a>
+      <a
+        href={githubUrl}
+        class="btn btn-outline github-btn"
+        target="_blank"
+        rel="noopener"
+      >
+        <Icon name="mark-github" size={18} />
+        Star on GitHub
+      </a>
+    </div>
+
+    <p class="hero-micro reveal">
+      No setup required — Awesome Copilot is already registered as a default marketplace.
+    </p>
+  </div>
+</section>

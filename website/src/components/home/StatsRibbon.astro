@@ -1,0 +1,30 @@
+---
+export interface Stat {
+  label: string;
+  key: string;
+}
+
+export interface Props {
+  stats: Stat[];
+}
+
+const { stats } = Astro.props;
+---
+
+<section class="stats-ribbon" aria-labelledby="stats-heading">
+  <div class="container">
+    <h2 id="stats-heading" class="sr-only">Collection stats</h2>
+    <div class="stats-grid reveal-stagger">
+      {
+        stats.map((stat) => (
+          <div class="stat-item reveal">
+            <span class="stat-value" data-stat={stat.key} aria-label={`${stat.label} count`}>
+              0
+            </span>
+            <span class="stat-label">{stat.label}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
