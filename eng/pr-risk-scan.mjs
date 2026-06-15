@@ -207,7 +207,10 @@ function scanLineRules(filePath, content, findings) {
 
 function scanSkillScriptPath(filePath, findings) {
   const normalized = filePath.replace(/\\/g, "/");
-  if (!normalized.startsWith("skills/")) {
+  const isSkillScript =
+    normalized.startsWith("skills/") ||
+    /^plugins\/[^/]+\/skills\//.test(normalized);
+  if (!isSkillScript) {
     return;
   }
 
