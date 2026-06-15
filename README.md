@@ -539,6 +539,7 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lovyjain"><img src="https://avatars.githubusercontent.com/u/54174168?v=4" width="100px;" alt=""/><br /><sub><b>Lovy Jain</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://blogs.gnome.org/jmatsuzawa/"><img src="https://avatars.githubusercontent.com/u/545426?v=4" width="100px;" alt=""/><br /><sub><b>Jiro Matsuzawa</b></sub></a></td>
     </tr>
   </tbody>
   <tfoot>
