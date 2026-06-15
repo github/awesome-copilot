@@ -128,7 +128,7 @@ To use the GitHub Copilot app, you need:
 
 ### Installation
 
-1. Visit [GitHub Copilot App](https://github.com/features/ai/github-app) and download the installer for your platform
+1. Visit [GitHub Copilot app](https://github.com/features/ai/github-app) and download the installer for your platform
 2. Install and launch the app
 3. Authenticate with your GitHub account
 4. Connect your repositories
