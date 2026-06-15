@@ -85,10 +85,6 @@ Reference these guidelines when:
 - [fundamentals-required-attributes](references/fundamentals-required-attributes.md) - Required fields per span type
 - [fundamentals-universal-attributes](references/fundamentals-universal-attributes.md) - Common attributes (user.id, session.id)
 - [fundamentals-flattening](references/fundamentals-flattening.md) - JSON flattening rules
-- [attributes-messages](references/attributes-messages.md) - Chat message format
-- [attributes-metadata](references/attributes-metadata.md) - Custom metadata schema
-- [attributes-graph](references/attributes-graph.md) - Agent workflow attributes
-- [attributes-exceptions](references/attributes-exceptions.md) - Error tracking
 
 ## Common Workflows
 
@@ -109,7 +105,6 @@ references/span-*               # Span type specifications
 references/sessions-*           # Session tracking
 references/production-*         # Production deployment
 references/fundamentals-*       # Core concepts
-references/attributes-*         # Attribute specifications
 
 # By language
 references/*-python.md          # Python implementations
