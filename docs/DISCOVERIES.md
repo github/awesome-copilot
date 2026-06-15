@@ -22,3 +22,10 @@ A living log of architectural decisions, patterns, and hard-learned lessons for 
 - **Why:** Consistency across the site reinforces the product-site aesthetic and gives users a clear path from discovery → installation → contribution.
 - **Impact:** `website/src/styles/global.css`, `website/src/components/PageHeader.astro`, `website/src/components/ContributeCTA.astro`, `website/src/components/Icon.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/InstallCard.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/pages/index.astro`.
 - **Reference:** `feature/website-polish` branch commits around `5a0f0e20`–`a32d148b`.
+
+## [2026-06-15] UI refinements based on feedback
+
+- **What changed:** Removed the hero animated background, simplified the theme toggle to a minimalist icon button, cleaned up button colors (removed purple glow primary), fixed GitHub icon alignment, aligned stats baselines, increased search results height, and redesigned *How it works* as a commit-history timeline.
+- **Why:** The first iteration had visual noise (orbs, purple buttons, misaligned icons) and inconsistent card sizing. Simplifying the palette and aligning elements gives the page the calm, big-tech finish requested.
+- **Impact:** `website/src/styles/global.css`, `website/src/components/ThemeToggle.astro`, `website/src/components/home/Hero.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/components/home/InstallCard.astro`, `website/src/scripts/pages/index.ts`.
+- **Reference:** `feature/website-polish` branch commits around `7b306c03`–`04f7b7c2`.
