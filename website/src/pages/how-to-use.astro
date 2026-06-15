@@ -1,0 +1,367 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import Icon from '../components/Icon.astro';
+import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const steps = [
+  {
+    title: 'Browse the collection',
+    body: 'Start on the home page, search across every resource, or jump straight to a category. Each listing has filters and full-text search built in.',
+    icon: 'search',
+  },
+  {
+    title: 'Pick a plugin for instant power-ups',
+    body: 'Plugins bundle agents, skills, and commands for a specific workflow. Most users can install one directly from the Copilot CLI/VS Code marketplace.',
+    icon: 'plug',
+  },
+  {
+    title: 'Add instructions to your project',
+    body: 'Instructions customize Copilot for a technology or coding standard. Drop them in your repo, reference them by file pattern, and Copilot picks them up automatically.',
+    icon: 'document',
+  },
+  {
+    title: 'Invoke agents and skills',
+    body: 'Agents turn Copilot Chat into a domain specialist. Skills package reusable context and prompts. Use them together for complex, multi-step tasks.',
+    icon: 'robot',
+  },
+  {
+    title: 'Automate with hooks and workflows',
+    body: 'Hooks run during Copilot agent sessions. Agentic workflows turn markdown into GitHub Actions automations. Wire them up once, then let them run.',
+    icon: 'workflow',
+  },
+  {
+    title: 'Connect tools and MCP servers',
+    body: 'Extend Copilot with external tools, MCP servers, and editor integrations listed in the Tools section.',
+    icon: 'wrench',
+  },
+];
+
+const resourceTypes = [
+  { label: 'Agents', href: `${base}agents/`, icon: 'robot', desc: 'Specialized Copilot personas' },
+  { label: 'Instructions', href: `${base}instructions/`, icon: 'document', desc: 'Coding standards by file pattern' },
+  { label: 'Skills', href: `${base}skills/`, icon: 'lightning', desc: 'Reusable folders of prompts and assets' },
+  { label: 'Plugins', href: `${base}plugins/`, icon: 'plug', desc: 'Curated bundles for the Copilot CLI' },
+  { label: 'Hooks', href: `${base}hooks/`, icon: 'hook', desc: 'Session lifecycle automations' },
+  { label: 'Workflows', href: `${base}workflows/`, icon: 'workflow', desc: 'AI-powered GitHub Actions' },
+  { label: 'Canvas Extensions', href: `${base}extensions/`, icon: 'plug', desc: 'Interactive canvas add-ons' },
+  { label: 'Tools', href: `${base}tools/`, icon: 'wrench', desc: 'MCP servers and integrations' },
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'How to Use',
+    description: 'Get the most out of Awesome GitHub Copilot — browse resources, install plugins, apply instructions, and automate your workflow.',
+    template: 'splash',
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div id="main-content">
+    <PageHeader
+      title="How to Use"
+      description="A short guide to turning the Awesome GitHub Copilot collection into a productivity engine for your projects."
+      icon="book"
+    />
+
+    <section class="page-content" aria-labelledby="steps-heading">
+      <div class="container">
+        <h2 id="steps-heading" class="section-title">Get started in six steps</h2>
+        <div class="steps-grid">
+          {
+            steps.map((step, index) => (
+              <article class="step-card glass-card" style={`--animation-delay: ${index * 80}ms;`}>
+                <div class="step-number" aria-hidden="true">
+                  {index + 1}
+                </div>
+                <div class="step-body">
+                  <div class="step-icon" aria-hidden="true">
+                    <Icon name={step.icon as any} size={24} />
+                  </div>
+                  <h3>{step.title}</h3>
+                  <p>{step.body}</p>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content" aria-labelledby="resources-heading">
+      <div class="container">
+        <h2 id="resources-heading" class="section-title">Explore resource types</h2>
+        <div class="resource-type-grid">
+          {
+            resourceTypes.map((type, index) => (
+              <a
+                href={type.href}
+                class="resource-type-card glass-card"
+                style={`--animation-delay: ${index * 60}ms;`}
+              >
+                <span class="resource-type-icon" aria-hidden="true">
+                  <Icon name={type.icon as any} size={28} />
+                </span>
+                <span class="resource-type-label">{type.label}</span>
+                <span class="resource-type-desc">{type.desc}</span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content" aria-labelledby="install-heading">
+      <div class="container">
+        <div class="install-panel glass-card">
+          <h2 id="install-heading" class="install-title">Install a plugin from the command line</h2>
+          <p class="install-description">
+            The Awesome Copilot marketplace is already registered in the Copilot CLI and VS Code, so most plugins install in one command:
+          </p>
+          <div class="code-block" role="region" aria-label="Plugin install command">
+            <pre><code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></pre>
+            <button class="copy-btn" type="button" aria-label="Copy command">
+              <Icon name="copy" size={16} />
+            </button>
+          </div>
+          <p class="install-note">
+            If your CLI does not recognize the marketplace, register it once with{' '}
+            <code>copilot plugin marketplace add github/awesome-copilot</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content page-content-final" aria-labelledby="learn-heading">
+      <div class="container">
+        <div class="learn-panel glass-card">
+          <div class="learn-content">
+            <h2 id="learn-heading">Level up with the Learning Hub</h2>
+            <p>
+              New to customization? The Learning Hub covers core concepts — agents, skills, instructions, hooks, MCP servers, agentic workflows, and the Copilot coding agent — in guided articles and tutorials.
+            </p>
+            <a href={`${base}learning-hub/`} class="btn btn-primary">
+              Open the Learning Hub
+              <Icon name="external" size={16} />
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <BackToTop />
+
+  <script>
+    document.querySelectorAll('.code-block .copy-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const code = button.parentElement?.querySelector('code')?.textContent ?? '';
+        navigator.clipboard?.writeText(code);
+        const icon = button.querySelector('svg');
+        if (!icon) return;
+        const original = icon.innerHTML;
+        icon.innerHTML = '<path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/>';
+        setTimeout(() => {
+          icon.innerHTML = original;
+        }, 1500);
+      });
+    });
+  </script>
+
+  <style>
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 1.875rem);
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin-bottom: 1.5rem;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .step-card {
+      display: flex;
+      gap: 1rem;
+      padding: 1.5rem;
+      text-align: left;
+      opacity: 0;
+      animation: card-enter 0.5s var(--ease-out-expo) forwards;
+      animation-delay: var(--animation-delay, 0ms);
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 2.25rem;
+      height: 2.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius-full);
+      background: var(--gradient-accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.875rem;
+    }
+
+    .step-icon {
+      color: var(--color-accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .step-body h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 0.5rem;
+    }
+
+    .step-body p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .resource-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 4rem;
+    }
+
+    .resource-type-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+      padding: 1.25rem;
+      color: inherit;
+      text-decoration: none;
+      opacity: 0;
+      animation: card-enter 0.5s var(--ease-out-expo) forwards;
+      animation-delay: var(--animation-delay, 0ms);
+    }
+
+    .resource-type-icon {
+      color: var(--color-accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .resource-type-label {
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+    }
+
+    .resource-type-desc {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    .install-panel,
+    .learn-panel {
+      padding: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .install-title,
+    .learn-content h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 0.75rem;
+    }
+
+    .install-description,
+    .learn-content p {
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      margin: 0 0 1.25rem;
+      max-width: 64ch;
+    }
+
+    .install-note {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      margin: 1rem 0 0;
+    }
+
+    .install-note code {
+      font-family: var(--font-mono);
+      background: var(--color-bg-tertiary);
+      padding: 0.15em 0.35em;
+      border-radius: var(--border-radius-xs);
+    }
+
+    .code-block {
+      position: relative;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1rem 3rem 1rem 1rem;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--color-text);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .copy-btn:hover {
+      border-color: var(--color-accent);
+      color: var(--color-text-emphasis);
+      background: var(--color-bg-secondary);
+    }
+
+    .learn-panel {
+      background: var(--gradient-accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .learn-panel h2,
+    .learn-panel p {
+      color: #fff;
+    }
+
+    .page-content-final {
+      padding-bottom: 4rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .step-card,
+      .resource-type-card {
+        animation: none;
+        opacity: 1;
+      }
+    }
+  </style>
+</StarlightPage>

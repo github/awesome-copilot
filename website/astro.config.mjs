@@ -72,6 +72,21 @@ export default defineConfig({
       },
       sidebar: [
         {
+          label: "Browse Resources",
+          items: [
+            { label: "Home", link: "/" },
+            { label: "Agents", link: "/agents/" },
+            { label: "Instructions", link: "/instructions/" },
+            { label: "Skills", link: "/skills/" },
+            { label: "Hooks", link: "/hooks/" },
+            { label: "Workflows", link: "/workflows/" },
+            { label: "Canvas Extensions", link: "/extensions/" },
+            { label: "Plugins", link: "/plugins/" },
+            { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
+          ],
+        },
+        {
           label: "Fundamentals",
           items: [
             "learning-hub/github-copilot-app",

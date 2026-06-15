@@ -1,0 +1,384 @@
+---
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import Icon from '../components/Icon.astro';
+import PageHeader from '../components/PageHeader.astro';
+import BackToTop from '../components/BackToTop.astro';
+
+const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CONTRIBUTING.md';
+const newIssueUrl = 'https://github.com/github/awesome-copilot/issues/new';
+
+const contributionTypes = [
+  {
+    title: 'Instructions',
+    desc: 'Add a .md file in the instructions/ directory with clear, specific guidance for a technology or practice.',
+    icon: 'document',
+    link: `${import.meta.env.BASE_URL}instructions/`,
+  },
+  {
+    title: 'Agents',
+    desc: 'Add a .agent.md file in the agents/ directory. Define the persona, expertise, and guidelines in the frontmatter.',
+    icon: 'robot',
+    link: `${import.meta.env.BASE_URL}agents/`,
+  },
+  {
+    title: 'Skills',
+    desc: 'Create a self-contained folder under skills/ with a SKILL.md file and optional bundled assets.',
+    icon: 'lightning',
+    link: `${import.meta.env.BASE_URL}skills/`,
+  },
+  {
+    title: 'Plugins',
+    desc: 'Group related agents, commands, and skills into a plugin. Scaffold with npm run plugin:create.',
+    icon: 'plug',
+    link: `${import.meta.env.BASE_URL}plugins/`,
+  },
+  {
+    title: 'Hooks',
+    desc: 'Add automated actions that run during Copilot agent sessions.',
+    icon: 'hook',
+    link: `${import.meta.env.BASE_URL}hooks/`,
+  },
+  {
+    title: 'Workflows',
+    desc: 'Create AI-powered GitHub Actions automations written in markdown.',
+    icon: 'workflow',
+    link: `${import.meta.env.BASE_URL}workflows/`,
+  },
+];
+
+const qualityGuidelines = [
+  'Be specific — generic instructions are less useful than targeted guidance.',
+  'Test your content with GitHub Copilot before submitting.',
+  'Follow existing file naming and frontmatter conventions.',
+  'Keep each file focused on one technology, framework, or workflow.',
+  'Write clearly and promote secure, maintainable, ethical practices.',
+];
+
+const whatWeReject = [
+  'Content that violates Responsible AI principles or platform policies.',
+  'Instructions that bypass security, exploit vulnerabilities, or enable malicious activity.',
+  'Generic prompts without a clear gap or domain-specific uplift.',
+  'Unreviewed additions to plugins/external.json — external plugins go through the review workflow.',
+];
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Contribute',
+    description: 'Help grow the Awesome GitHub Copilot community by contributing agents, instructions, skills, plugins, hooks, and workflows.',
+    template: 'splash',
+    prev: false,
+    next: false,
+    editUrl: false,
+  }}
+>
+  <div id="main-content">
+    <PageHeader
+      title="Contribute"
+      description="Awesome GitHub Copilot is community-curated. Share what you have built so other developers can ship faster."
+      icon="plus"
+    />
+
+    <section class="page-content" aria-labelledby="cta-heading">
+      <div class="container">
+        <div class="contribute-hero glass-card">
+          <div class="contribute-hero-content">
+            <h2 id="cta-heading">Ready to share your work?</h2>
+            <p>
+              Read the contribution guide, open a pull request, or start a discussion. Every contribution — from a single instruction to a full plugin — makes the collection more useful.
+            </p>
+          </div>
+          <div class="contribute-hero-actions">
+            <a href={contributingUrl} class="btn btn-primary" target="_blank" rel="noopener">
+              Read CONTRIBUTING.md
+              <Icon name="external" size={16} />
+            </a>
+            <a href={newIssueUrl} class="btn btn-secondary" target="_blank" rel="noopener">
+              Open an issue
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content" aria-labelledby="types-heading">
+      <div class="container">
+        <h2 id="types-heading" class="section-title">What you can contribute</h2>
+        <div class="contribution-grid">
+          {
+            contributionTypes.map((type, index) => (
+              <a
+                href={type.link}
+                class="contribution-card glass-card"
+                style={`--animation-delay: ${index * 70}ms;`}
+              >
+                <span class="contribution-icon" aria-hidden="true">
+                  <Icon name={type.icon as any} size={28} />
+                </span>
+                <h3>{type.title}</h3>
+                <p>{type.desc}</p>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content" aria-labelledby="guidelines-heading">
+      <div class="container">
+        <div class="guidelines-grid">
+          <div class="guidelines-panel glass-card">
+            <h2 id="guidelines-heading">Quality guidelines</h2>
+            <ul>
+              {qualityGuidelines.map((item) => (
+                <li>
+                  <span aria-hidden="true">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="guidelines-panel glass-card guidelines-panel-warn">
+            <h2>What we do not accept</h2>
+            <ul>
+              {whatWeReject.map((item) => (
+                <li>
+                  <span aria-hidden="true">×</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-content page-content-final" aria-labelledby="submit-heading">
+      <div class="container">
+        <div class="submit-panel glass-card">
+          <h2 id="submit-heading">Submitting your contribution</h2>
+          <ol class="submit-steps">
+            <li>
+              <strong>Fork the repository</strong> and create a feature branch from the latest main.
+            </li>
+            <li>
+              <strong>Add your resource</strong> following the directory and naming conventions for the resource type.
+            </li>
+            <li>
+              <strong>Validate</strong> with the relevant npm script (e.g. <code>npm run skill:validate</code> or <code>npm run plugin:validate</code>).
+            </li>
+            <li>
+              <strong>Run the build</strong> with <code>npm run build</code> to regenerate README tables and website data.
+            </li>
+            <li>
+              <strong>Open a pull request</strong> with a clear description of what your resource does and why it helps.
+            </li>
+          </ol>
+          <div class="submit-actions">
+            <a href={contributingUrl} class="btn btn-primary" target="_blank" rel="noopener">
+              View full guide
+              <Icon name="external" size={16} />
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <BackToTop />
+
+  <style>
+    .contribute-hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .contribute-hero h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 0.5rem;
+    }
+
+    .contribute-hero p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      max-width: 56ch;
+    }
+
+    .contribute-hero-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 1.875rem);
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin-bottom: 1.5rem;
+    }
+
+    .contribution-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .contribution-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      color: inherit;
+      text-decoration: none;
+      opacity: 0;
+      animation: card-enter 0.5s var(--ease-out-expo) forwards;
+      animation-delay: var(--animation-delay, 0ms);
+    }
+
+    .contribution-icon {
+      color: var(--color-accent);
+    }
+
+    .contribution-card h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0;
+    }
+
+    .contribution-card p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .guidelines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 4rem;
+    }
+
+    .guidelines-panel {
+      padding: 1.5rem;
+    }
+
+    .guidelines-panel h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 1rem;
+    }
+
+    .guidelines-panel ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .guidelines-panel li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    .guidelines-panel li span {
+      flex-shrink: 0;
+      width: 1.25rem;
+      height: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius-full);
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .guidelines-panel:not(.guidelines-panel-warn) li span {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+    }
+
+    .guidelines-panel-warn li span {
+      background: rgba(197, 50, 17, 0.15);
+      color: #ef4444;
+    }
+
+    .submit-panel {
+      padding: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .submit-panel h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 1rem;
+    }
+
+    .submit-steps {
+      margin: 0 0 1.5rem;
+      padding-left: 1.25rem;
+      color: var(--color-text-muted);
+      line-height: 1.7;
+    }
+
+    .submit-steps li {
+      margin-bottom: 0.75rem;
+    }
+
+    .submit-steps code {
+      font-family: var(--font-mono);
+      background: var(--color-bg-tertiary);
+      padding: 0.15em 0.35em;
+      border-radius: var(--border-radius-xs);
+    }
+
+    .submit-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .page-content-final {
+      padding-bottom: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .contribute-hero {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .contribute-hero-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .contribute-hero-actions .btn {
+        justify-content: center;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .contribution-card {
+        animation: none;
+        opacity: 1;
+      }
+    }
+  </style>
+</StarlightPage>
