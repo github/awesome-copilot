@@ -1,0 +1,59 @@
+---
+import Icon from '../Icon.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const steps = [
+  {
+    title: 'Find',
+    description: 'Search across every resource by technology, task, or workflow.',
+    icon: 'search' as const,
+  },
+  {
+    title: 'Install',
+    description: 'Add a plugin with one command, or drop instructions into your repo.',
+    icon: 'download' as const,
+  },
+  {
+    title: 'Ship',
+    description: 'Invoke agents and skills so Copilot follows your project standards.',
+    icon: 'external' as const,
+  },
+];
+---
+
+<section class="how-it-works" aria-labelledby="how-it-works-heading">
+  <div class="container">
+    <div class="how-it-works-header reveal">
+      <h2 id="how-it-works-heading">How it works</h2>
+      <p>
+        Get from discovery to delivery in three steps. Everything in the collection is
+        designed to be copied, installed, or invoked without heavy setup.
+      </p>
+    </div>
+
+    <div class="steps-grid reveal-stagger">
+      {
+        steps.map((step, index) => (
+          <article class="step-card glass-card reveal" style={`--animation-delay: ${index * 100}ms;`}>
+            <div class="step-card-icon" aria-hidden="true">
+              <Icon name={step.icon} size={28} />
+            </div>
+            <div class="step-card-number" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </div>
+            <h3>{step.title}</h3>
+            <p>{step.description}</p>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="how-it-works-footer reveal">
+      <a href={`${base}how-to-use/`} class="btn btn-secondary btn--glass-pill">
+        Read the full guide
+        <Icon name="external" size={16} />
+      </a>
+    </div>
+  </div>
+</section>

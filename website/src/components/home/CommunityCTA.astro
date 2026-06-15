@@ -1,0 +1,119 @@
+---
+import Icon from '../Icon.astro';
+
+const contributorsUrl = `${import.meta.env.BASE_URL}contributors/`;
+const contributeUrl = `${import.meta.env.BASE_URL}contribute/`;
+const githubUrl = 'https://github.com/github/awesome-copilot';
+---
+
+<section class="community-cta" aria-labelledby="community-heading">
+  <div class="container">
+    <div class="community-card glass-card reveal">
+      <div class="community-card-content">
+        <div class="community-card-icon" aria-hidden="true">
+          <Icon name="mark-github" size={32} />
+        </div>
+        <div class="community-card-text">
+          <h2 id="community-heading">Built by developers, for developers</h2>
+          <p>
+            Every agent, skill, and instruction here is community-tested. Add your own,
+            suggest an improvement, or explore the contributors who make this collection
+            possible.
+          </p>
+        </div>
+      </div>
+
+      <div class="community-card-actions">
+        <a href={contributeUrl} class="btn btn-primary">
+          Contribute
+          <Icon name="external" size={16} />
+        </a>
+        <a href={contributorsUrl} class="btn btn-secondary">
+          View contributors
+        </a>
+        <a href={githubUrl} class="btn btn-outline github-btn" target="_blank" rel="noopener">
+          <Icon name="mark-github" size={18} />
+          Star on GitHub
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .community-cta {
+    padding: 80px 0;
+  }
+
+  .community-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 2rem;
+  }
+
+  .community-card-content {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    flex: 1;
+    min-width: min(100%, 420px);
+  }
+
+  .community-card-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-emphasis);
+  }
+
+  .community-card-text h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-emphasis);
+    margin: 0 0 0.5rem;
+  }
+
+  .community-card-text p {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+    max-width: 60ch;
+  }
+
+  .community-card-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .community-card {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .community-card-content {
+      flex-direction: column;
+      align-items: center;
+      min-width: 100%;
+    }
+
+    .community-card-actions {
+      width: 100%;
+    }
+
+    .community-card-actions .btn {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+  }
+</style>

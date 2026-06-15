@@ -1,0 +1,159 @@
+---
+import Icon from '../Icon.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<section class="install-section" aria-labelledby="install-heading">
+  <div class="container">
+    <div class="install-card glass-card reveal">
+      <div class="install-card-content">
+        <div class="install-card-icon" aria-hidden="true">
+          <Icon name="plug" size={32} />
+        </div>
+        <div class="install-card-text">
+          <h2 id="install-heading">Install in seconds</h2>
+          <p>
+            The Awesome Copilot marketplace is already registered in the Copilot CLI and VS Code.
+            Install any plugin with a single command.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block" role="region" aria-label="Plugin install command">
+        <pre><code>copilot plugin install &lt;plugin-name&gt;@awesome-copilot</code></pre>
+        <button class="copy-btn" type="button" aria-label="Copy command">
+          <Icon name="copy" size={16} class="copy-icon" />
+        </button>
+      </div>
+
+      <div class="install-card-actions">
+        <a href={`${base}plugins/`} class="btn btn-primary">
+          Browse plugins
+          <Icon name="external" size={16} />
+        </a>
+        <a href={`${base}how-to-use/`} class="btn btn-outline">
+          More install options
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.querySelectorAll('.install-section .copy-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        const code = button.parentElement?.querySelector('code')?.textContent ?? '';
+        navigator.clipboard?.writeText(code);
+        const icon = button.querySelector('.copy-icon');
+        if (!icon) return;
+        const original = icon.innerHTML;
+        icon.innerHTML = '<path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/>';
+        setTimeout(() => {
+          icon.innerHTML = original;
+        }, 1500);
+      });
+    });
+  </script>
+
+  <style>
+    .install-section {
+      padding: 80px 0;
+    }
+
+    .install-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .install-card-content {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .install-card-icon {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--border-radius);
+      background: var(--gradient-accent);
+      color: #fff;
+    }
+
+    .install-card-text h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text-emphasis);
+      margin: 0 0 0.5rem;
+    }
+
+    .install-card-text p {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      max-width: 64ch;
+    }
+
+    .code-block {
+      position: relative;
+      background: var(--color-bg-tertiary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1rem 3rem 1rem 1rem;
+      overflow-x: auto;
+    }
+
+    .code-block pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--color-text);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .copy-btn:hover {
+      border-color: var(--color-accent);
+      color: var(--color-text-emphasis);
+      background: var(--color-bg-secondary);
+    }
+
+    .install-card-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 480px) {
+      .install-card-content {
+        flex-direction: column;
+      }
+
+      .install-card-actions .btn {
+        flex: 1 1 auto;
+        justify-content: center;
+      }
+    }
+  </style>
+</section>
