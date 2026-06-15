@@ -594,10 +594,6 @@ body:has(#main-content) {
   display: none;
 }
 
-.hero__ambient {
-  display: none;
-}
-
 .hero-title {
   font-size: clamp(2.75rem, 8vw, 5rem);
   font-weight: 800;
@@ -637,12 +633,6 @@ body:has(#main-content) {
 }
 
 /* Button variants */
-.btn--glow {
-  background: var(--color-accent);
-  color: #fff !important;
-  border-color: transparent;
-}
-
 .btn--glass-pill {
   background: var(--surface-glass);
   backdrop-filter: var(--surface-backdrop);
@@ -654,20 +644,8 @@ body:has(#main-content) {
 }
 
 .btn--glass-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--color-accent);
-  box-shadow: var(--shadow-glow);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ambient-orb {
-    animation: none;
-    opacity: 0.45;
-  }
-
-  .btn--glow::before {
-    animation: none;
-  }
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border);
 }
 
 /* Search Results Dropdown */
