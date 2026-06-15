@@ -224,7 +224,7 @@ function initHeroSearch(): void {
         const haystack = `${item.title} ${item.description} ${item.searchText ?? ""}`.toLowerCase();
         return haystack.includes(normalizedQuery);
       })
-      .slice(0, 7);
+      .slice(0, 5);
 
     if (matches.length === 0) {
       resultsContainer.innerHTML = `

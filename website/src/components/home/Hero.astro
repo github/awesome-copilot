@@ -6,13 +6,6 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
 ---
 
 <section class="hero" aria-labelledby="hero-heading">
-  <div class="hero__ambient" aria-hidden="true">
-    <div class="ambient-orb ambient-orb--purple"></div>
-    <div class="ambient-orb ambient-orb--orange"></div>
-    <div class="ambient-orb ambient-orb--violet"></div>
-    <div class="ambient-noise"></div>
-  </div>
-
   <div class="container">
     <p class="hero-eyebrow reveal">The Copilot customization community</p>
     <h1 id="hero-heading" class="hero-title reveal">
@@ -46,11 +39,11 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
     </div>
 
     <div class="hero-actions reveal">
-      <a href={`${base}agents/`} class="btn btn-primary btn--glow">
+      <a href={`${base}agents/`} class="btn btn-primary">
         Browse all resources
-        <Icon name="chevron-down" size={16} />
+        <Icon name="chevron-down" size={16} class="btn-icon-right" />
       </a>
-      <a href={`${base}how-to-use/`} class="btn btn-secondary btn--glass-pill">
+      <a href={`${base}how-to-use/`} class="btn btn-secondary">
         How it works
       </a>
       <a
@@ -59,7 +52,7 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
         target="_blank"
         rel="noopener"
       >
-        <Icon name="mark-github" size={18} />
+        <Icon name="mark-github" size={20} class="github-btn__icon" />
         Star on GitHub
       </a>
     </div>
