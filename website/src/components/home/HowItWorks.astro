@@ -32,22 +32,22 @@ const steps = [
       </p>
     </div>
 
-    <div class="commit-timeline reveal-stagger" role="list">
+    <div class="commit-history reveal-stagger" role="list">
+      <div class="commit-history__line" aria-hidden="true"></div>
       {
         steps.map((step, index) => (
-          <article class="commit-node glass-card reveal" style={`--animation-delay: ${index * 120}ms;`} role="listitem">
-            <div class="commit-node__connector" aria-hidden="true">
-              <span class="commit-node__dot"></span>
-              {index < steps.length - 1 && <span class="commit-node__line"></span>}
+          <article class="commit-entry reveal" style={`--animation-delay: ${index * 120}ms;`} role="listitem">
+            <div class="commit-entry__avatar" aria-hidden="true">
+              <span class="commit-entry__dot"></span>
+              <span class="commit-entry__icon">
+                <Icon name={step.icon} size={18} />
+              </span>
             </div>
-            <div class="commit-node__content">
-              <div class="commit-node__meta">
-                <span class="commit-node__icon" aria-hidden="true">
-                  <Icon name={step.icon} size={20} />
-                </span>
-                <span class="commit-node__sha" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <div class="commit-entry__body glass-card">
+              <div class="commit-entry__header">
+                <h3>{step.title}</h3>
+                <span class="commit-entry__hash" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               </div>
-              <h3>{step.title}</h3>
               <p>{step.description}</p>
             </div>
           </article>
