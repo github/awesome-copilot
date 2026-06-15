@@ -1,87 +1,223 @@
 ---
-import EditLink from "@astrojs/starlight/components/EditLink.astro";
-import LastUpdated from "@astrojs/starlight/components/LastUpdated.astro";
-import Pagination from "@astrojs/starlight/components/Pagination.astro";
-import config from "virtual:starlight/user-config";
-import { Icon } from "@astrojs/starlight/components";
+import Icon from "./Icon.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+
+const base = import.meta.env.BASE_URL;
+const githubUrl = "https://github.com/github/awesome-copilot";
+const currentYear = new Date().getFullYear();
+
+const browseLinks = [
+  { label: "Agents", href: `${base}agents/` },
+  { label: "Skills", href: `${base}skills/` },
+  { label: "Instructions", href: `${base}instructions/` },
+  { label: "Plugins", href: `${base}plugins/` },
+  { label: "Hooks", href: `${base}hooks/` },
+  { label: "Workflows", href: `${base}workflows/` },
+  { label: "Tools", href: `${base}tools/` },
+  { label: "Learning Hub", href: `${base}learning-hub/` },
+];
+
+const resourceLinks = [
+  { label: "How to Use", href: `${base}how-to-use/` },
+  { label: "Contribute", href: `${base}contribute/` },
+  { label: "Contributors", href: `${base}contributors/` },
+  { label: "GitHub", href: githubUrl },
+  { label: "License", href: `${githubUrl}/blob/main/LICENSE` },
+];
 ---
 
-<footer class="sl-flex">
-  <div class="meta sl-flex">
-    <EditLink />
-    <LastUpdated />
+<footer class="site-footer" aria-labelledby="footer-heading">
+  <h2 id="footer-heading" class="sr-only">Site footer</h2>
+
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href={base} class="footer-brand-link" aria-label="Awesome GitHub Copilot home">
+          <span class="footer-logo" aria-hidden="true">
+            <Icon name="mark-github" size={28} />
+          </span>
+          <span class="footer-title">Awesome GitHub Copilot</span>
+        </a>
+        <p class="footer-tagline">
+          Community-contributed agents, instructions, and skills to supercharge
+          your Copilot experience.
+        </p>
+      </div>
+
+      <nav class="footer-nav" aria-label="Browse resources">
+        <h3>Browse</h3>
+        <ul>
+          {
+            browseLinks.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav class="footer-nav" aria-label="Project resources">
+        <h3>Resources</h3>
+        <ul>
+          {
+            resourceLinks.map((link) => (
+              <li>
+                <a href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener" : undefined}>
+                  {link.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="footer-actions">
+        <h3>Appearance</h3>
+        <div class="footer-theme-toggle">
+          <ThemeToggle />
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copyright">
+        © {currentYear} GitHub, Inc. Licensed under the MIT License.
+      </p>
+      <p class="footer-credits">
+        Made with love by our amazing{" "}
+        <a href={`${base}contributors/`}>contributors</a>.
+      </p>
+    </div>
   </div>
-  <Pagination />
-
-  {
-    config.credits && (
-      <a class="kudos sl-flex" href="https://starlight.astro.build">
-        <Icon name={"starlight"} /> {Astro.locals.t("starlight:builtWithStarlight.label")}
-      </a>
-    )
-  }
-
-  <p class="made-by">Made with love by our amazing <a href="/contributors/">contributors</a></p>
 </footer>
 
-<ThemeToggle />
-
 <style>
-  footer {
-    flex-direction: column;
-    gap: 0.25rem;
+  .site-footer {
+    padding: 64px 0 32px;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    color: var(--color-text-muted);
   }
 
-  .meta {
-    gap: 0.75rem 3rem;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    margin-top: 0.75rem;
-    font-size: var(--sl-text-sm);
-    color: var(--sl-color-gray-3);
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: 2.5rem;
+    margin-bottom: 3rem;
   }
 
-  .meta > :global(p:only-child) {
-    margin-inline-start: auto;
-  }
-
-  :global(.pagination-links:empty) {
-    display: none;
-  }
-
-  .made-by {
-    text-align: center;
-    margin: 0 auto 0.75rem;
-    font-size: var(--sl-text-xs);
-    color: var(--sl-color-gray-3);
-  }
-
-  .kudos {
+  .footer-brand-link {
+    display: inline-flex;
     align-items: center;
-    gap: 0.5em;
-    margin: 0 auto;
-    font-size: var(--sl-text-xs);
+    gap: 0.625rem;
+    color: var(--color-text-emphasis);
     text-decoration: none;
-    color: var(--sl-color-gray-3);
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
   }
 
-  .kudos:hover {
-    color: var(--sl-color-white);
+  .footer-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-emphasis);
   }
 
-  .kudos :global(svg) {
-    color: var(--sl-color-orange);
+  .footer-brand-link:hover .footer-logo {
+    color: var(--color-accent);
   }
 
-  .made-by a {
-    color: var(--sl-color-gray-3);
+  .footer-tagline {
+    margin: 0;
+    max-width: 32ch;
+    line-height: 1.6;
+    font-size: 0.9375rem;
+  }
+
+  .footer-nav h3,
+  .footer-actions h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-emphasis);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 0.875rem;
+  }
+
+  .footer-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer-nav a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    transition: color var(--transition);
+  }
+
+  .footer-nav a:hover {
+    color: var(--color-link);
+  }
+
+  .footer-theme-toggle {
+    display: inline-flex;
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+  }
+
+  .footer-bottom p {
+    margin: 0;
+  }
+
+  .footer-bottom a {
+    color: var(--color-text-muted);
     text-decoration: underline;
     text-underline-offset: 0.15em;
-    transition: color 0.2s ease;
+    transition: color var(--transition);
   }
 
-  .made-by a:hover {
-    color: var(--sl-color-accent);
+  .footer-bottom a:hover {
+    color: var(--color-link);
+  }
+
+  @media (max-width: 900px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+
+    .footer-tagline {
+      max-width: 50ch;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      text-align: center;
+    }
   }
 </style>
