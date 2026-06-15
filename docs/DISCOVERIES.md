@@ -29,3 +29,10 @@ A living log of architectural decisions, patterns, and hard-learned lessons for 
 - **Why:** The first iteration had visual noise (orbs, purple buttons, misaligned icons) and inconsistent card sizing. Simplifying the palette and aligning elements gives the page the calm, big-tech finish requested.
 - **Impact:** `website/src/styles/global.css`, `website/src/components/ThemeToggle.astro`, `website/src/components/home/Hero.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/components/home/InstallCard.astro`, `website/src/scripts/pages/index.ts`.
 - **Reference:** `feature/website-polish` branch commits around `7b306c03`–`04f7b7c2`.
+
+## [2026-06-15] Final alignment and icon polish
+
+- **What changed:** Fixed stats ribbon alignment so all items line up, bumped the hero GitHub button icon to 22px with proper vertical centering, redesigned *How it works* into a true GitHub-style vertical commit history, aligned the *Install in seconds* icon with its title, and enlarged the GitHub logo in the *Built by developers* CTA.
+- **Why:** The previous commit-history timeline was still card-like; a vertical line with connected commit dots reads more authentically like a GitHub history and balances the page.
+- **Impact:** `website/src/components/home/StatsRibbon.astro`, `website/src/components/home/Hero.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/InstallCard.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/styles/global.css`.
+- **Reference:** `feature/website-polish` branch commits around `04809234`–`1c0aaee3`.
