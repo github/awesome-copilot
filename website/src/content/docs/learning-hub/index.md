@@ -4,6 +4,14 @@ description: "Curated articles, walkthroughs, and reference material to help you
 tableOfContents: false
 ---
 
+## Getting Started
+
+New to GitHub Copilot? Start here to understand the tools available to you.
+
+**Desktop App**: Explore the [GitHub Copilot app](github-copilot-app/) — a control center for directing multiple agents in parallel. Perfect for agent-native development and parallel work with isolated worktrees.
+
+**Terminal**: Looking for a guided path into GitHub Copilot from the terminal? Explore the [Copilot CLI for Beginners](cli-for-beginners/) with a text-based experience or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).
+
 ## Fundamentals
 
 Essential concepts to tailor GitHub Copilot beyond its default experience. Start with
@@ -22,8 +30,3 @@ for definitions of common terms and concepts.
 Interactive samples and recipes to learn by doing. Jump into the
 [Cookbook](cookbook/) for code samples, recipes,
 and examples you can use right away.
-
-## Copilot CLI for Beginners
-
-Looking for a guided path into GitHub Copilot from the terminal? Explore Copilot CLI for Beginners! You can work through a 
-[text based experience](cli-for-beginners/) for a text-based experience, or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).

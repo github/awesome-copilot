@@ -302,8 +302,9 @@ On macOS with Homebrew, the binary is installed as `jdtls` on `$PATH`.
 
 | OS      | Command                                                        |
 |---------|----------------------------------------------------------------|
-| macOS   | Included with Xcode; binary at `xcrun sourcekit-lsp`          |
+| macOS   | Included with Xcode; binary at `xcrun sourcekit-lsp`           |
 | Linux   | Included with Swift toolchain; install from https://swift.org  |
+| Windows | Included with Swift toolchain; install from https://swift.org  |
 
 ### Config snippet
 
