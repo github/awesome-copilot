@@ -670,6 +670,76 @@ function generatePluginsData(gitDates) {
 /**
  * Generate canvas extensions metadata
  */
+function getExtensionAssetInfo(extensionDir, relPath, ref) {
+  const assetDir = path.join(extensionDir, "assets");
+
+  if (!fs.existsSync(assetDir)) {
+    return null;
+  }
+
+  const imageExtensions = new Set([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+  ]);
+
+  const preferredNames = [
+    "preview.png",
+    "preview.jpg",
+    "preview.jpeg",
+    "preview.webp",
+    "preview.gif",
+    "screenshot.png",
+    "screenshot.jpg",
+    "screenshot.jpeg",
+    "screenshot.webp",
+    "screenshot.gif",
+    "image.png",
+    "image.jpg",
+    "image.jpeg",
+    "image.webp",
+    "image.gif",
+  ];
+
+  for (const candidate of preferredNames) {
+    const candidatePath = path.join(assetDir, candidate);
+    if (fs.existsSync(candidatePath)) {
+      const assetPath = `${relPath}/assets/${candidate}`;
+      const encodedAssetPath = assetPath
+        .split("/")
+        .map((segment) => encodeURIComponent(segment))
+        .join("/");
+      return {
+        assetPath,
+        imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`,
+      };
+    }
+  }
+
+  const files = fs
+    .readdirSync(assetDir)
+    .filter((file) => imageExtensions.has(path.extname(file).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b));
+
+  if (files.length === 0) {
+    return null;
+  }
+
+  const assetFile = files[0];
+  const assetPath = `${relPath}/assets/${assetFile}`;
+  const encodedAssetPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return {
+    assetPath,
+    imageUrl: `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`,
+  };
+}
+
 function generateExtensionsData(gitDates, commitSha) {
   const extensions = [];
 
@@ -683,12 +753,20 @@ function generateExtensionsData(gitDates, commitSha) {
 
   for (const dir of extensionDirs) {
     const relPath = `extensions/${dir.name}`;
+    const assetInfo = getExtensionAssetInfo(
+      path.join(EXTENSIONS_DIR, dir.name),
+      relPath,
+      commitSha
+    );
+
     extensions.push({
       id: dir.name,
       name: formatDisplayName(dir.name),
       path: relPath,
       ref: commitSha,
       lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+      imageUrl: assetInfo?.imageUrl || null,
+      assetPath: assetInfo?.assetPath || null,
     });
   }
 
