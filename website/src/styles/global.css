@@ -1536,14 +1536,20 @@ body:has(#main-content) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  background: var(--surface-glass);
+  border: 1px solid var(--surface-glass-border);
+  border-radius: var(--border-radius-lg);
   position: relative;
   z-index: 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listing-toolbar {
+    background: var(--color-bg-secondary);
+  }
 }
 
 .listing-toolbar-row {
@@ -1557,6 +1563,9 @@ body:has(#main-content) {
 
 .listing-toolbar .results-count {
   margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted);
 }
 
 .listing-controls {
@@ -1575,10 +1584,10 @@ body:has(#main-content) {
   justify-content: space-between;
   gap: 8px;
   min-height: 36px;
-  padding: 7px 12px;
-  border: 1px solid var(--color-glass-border);
-  border-radius: 999px;
-  background: var(--color-glass);
+  padding: 7px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-full);
+  background: var(--color-bg-secondary);
   color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 600;
@@ -1674,14 +1683,14 @@ body:has(#main-content) {
 .search-bar input {
   flex: 1 1 220px;
   min-width: 220px;
-  padding: 9px 14px;
-  font-size: 13px;
+  padding: 10px 16px;
+  font-size: 14px;
   margin: 0;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-lg);
   color: var(--color-text);
-  transition: all var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 .search-bar input:focus {
@@ -1931,16 +1940,16 @@ body:has(#main-content) {
 
 .resource-item {
   background: var(--color-card-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--color-glass-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--border-radius-lg);
   padding: 20px 24px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  transition: all var(--transition);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background-color var(--transition);
   position: relative;
+  overflow: hidden;
 }
 
 .resource-item::before {
@@ -1948,26 +1957,36 @@ body:has(#main-content) {
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
+  width: 3px;
   height: 100%;
   background: var(--gradient-primary);
   border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
   opacity: 0;
-  transition: opacity var(--transition), left var(--transition);
+  transition: opacity var(--transition);
 }
 
 .resource-item:hover,
 .resource-item:focus-within {
   background: var(--color-card-hover);
-  transform: translateX(4px);
-  box-shadow: var(--shadow);
-  border-radius: 0px var(--border-radius-lg) var(--border-radius-lg) 0px;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent);
 }
 
 .resource-item:hover::before,
 .resource-item:focus-within::before {
   opacity: 1;
-  left: -4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resource-item {
+    transition: background-color var(--transition), border-color var(--transition);
+  }
+
+  .resource-item:hover,
+  .resource-item:focus-within {
+    transform: none;
+  }
 }
 
 .resource-preview {
