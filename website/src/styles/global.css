@@ -345,7 +345,7 @@ body:has(#main-content) {
 }
 
 .github-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 0 16px;
@@ -373,6 +373,7 @@ body:has(#main-content) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-top: -1px;
 }
 
 .github-btn__icon svg {
@@ -529,6 +530,9 @@ body:has(#main-content) {
   text-decoration: none;
   white-space: nowrap;
   transition: all var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .github-btn:hover {
@@ -540,11 +544,12 @@ body:has(#main-content) {
 
 .github-btn__icon {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-top: -1px;
 }
 
 .github-btn__icon svg {
@@ -1118,6 +1123,7 @@ body:has(#main-content) {
   align-items: center;
   gap: 6px;
   min-width: 0;
+  justify-content: flex-start;
 }
 
 .stat-value {
@@ -1127,6 +1133,9 @@ body:has(#main-content) {
   letter-spacing: -0.02em;
   line-height: 1;
   min-height: 1.1em;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15em;
 }
 
 .stat-label {
@@ -1136,6 +1145,7 @@ body:has(#main-content) {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   line-height: 1;
+  text-align: center;
 }
 
 @media (max-width: 480px) {
@@ -1170,150 +1180,103 @@ body:has(#main-content) {
   line-height: 1.6;
 }
 
-/* Commit-history timeline */
-.commit-timeline {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.commit-node {
+/* GitHub-style commit history */
+.commit-history {
   position: relative;
-  flex: 1 1 0;
-  display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-radius: 0;
-  min-width: 0;
-}
-
-.commit-node:first-child {
-  border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
-}
-
-.commit-node:last-child {
-  border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
-}
-
-.commit-node:not(:last-child) {
-  border-right: none;
-}
-
-.commit-node__connector {
-  position: relative;
-  flex-shrink: 0;
-  width: 28px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 0.5rem;
+  gap: 1.25rem;
+  padding-left: 1.25rem;
 }
 
-.commit-node__dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  box-shadow: 0 0 0 4px var(--color-bg-secondary);
-  z-index: 2;
-}
-
-.commit-node__line {
+.commit-history__line {
   position: absolute;
-  top: 1rem;
-  left: 50%;
-  width: calc(100% + 2rem);
-  height: 2px;
+  top: 0;
+  bottom: 0;
+  left: 2.25rem;
+  width: 2px;
   background: var(--color-border);
-  transform: translateX(-50%);
+  border-radius: 1px;
+}
+
+.commit-entry {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   z-index: 1;
 }
 
-.commit-node:last-child .commit-node__line {
-  display: none;
-}
-
-.commit-node__content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.commit-node__meta {
+.commit-entry__avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
+  justify-content: center;
+  margin-top: 0.25rem;
 }
 
-.commit-node__icon {
+.commit-entry__dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--color-bg-secondary);
+  border: 2px solid var(--color-border);
+}
+
+.commit-entry__icon {
+  position: relative;
   color: var(--color-accent);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 
-.commit-node__sha {
-  font-family: var(--font-mono);
-  letter-spacing: 0.02em;
+.commit-entry__body {
+  flex: 1;
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--border-radius-lg);
 }
 
-.commit-node h3 {
-  font-size: 1.125rem;
+.commit-entry__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.375rem;
+}
+
+.commit-entry__header h3 {
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-emphasis);
   margin: 0;
 }
 
-.commit-node p {
+.commit-entry__hash {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.commit-entry__body p {
   margin: 0;
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.5;
   font-size: 0.9rem;
 }
 
-@media (max-width: 760px) {
-  .commit-timeline {
-    flex-direction: column;
+@media (min-width: 640px) {
+  .commit-history {
+    padding-left: 0;
   }
 
-  .commit-node {
-    border-radius: 0 !important;
-  }
-
-  .commit-node:first-child {
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
-  }
-
-  .commit-node:last-child {
-    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg) !important;
-  }
-
-  .commit-node:not(:last-child) {
-    border-right: 1px solid var(--color-border);
-    border-bottom: none;
-  }
-
-  .commit-node__connector {
-    width: 32px;
-    padding-top: 0;
-    align-items: flex-start;
-    height: 100%;
-  }
-
-  .commit-node__dot {
-    margin-top: 0.25rem;
-  }
-
-  .commit-node__line {
-    top: auto;
-    left: 1rem;
-    top: 1rem;
-    width: 2px;
-    height: calc(100% + 2rem);
-    transform: none;
+  .commit-history__line {
+    left: 1.125rem;
   }
 }
 
