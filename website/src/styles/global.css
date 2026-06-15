@@ -544,12 +544,11 @@ body:has(#main-content) {
 
 .github-btn__icon {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: -1px;
 }
 
 .github-btn__icon svg {

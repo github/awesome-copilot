@@ -11,7 +11,7 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
     <div class="community-card glass-card reveal">
       <div class="community-card-content">
         <div class="community-card-icon" aria-hidden="true">
-          <Icon name="mark-github" size={40} />
+          <Icon name="mark-github" size={48} />
         </div>
         <div class="community-card-text">
           <h2 id="community-heading">Built by developers, for developers</h2>
@@ -32,7 +32,9 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
           View contributors
         </a>
         <a href={githubUrl} class="btn btn-outline github-btn" target="_blank" rel="noopener">
-          <Icon name="mark-github" size={20} class="github-btn__icon" />
+          <span class="github-btn__icon" aria-hidden="true">
+            <Icon name="mark-github" size={24} />
+          </span>
           Star on GitHub
         </a>
       </div>
