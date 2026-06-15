@@ -36,3 +36,10 @@ A living log of architectural decisions, patterns, and hard-learned lessons for 
 - **Why:** The previous commit-history timeline was still card-like; a vertical line with connected commit dots reads more authentically like a GitHub history and balances the page.
 - **Impact:** `website/src/components/home/StatsRibbon.astro`, `website/src/components/home/Hero.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/InstallCard.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/styles/global.css`.
 - **Reference:** `feature/website-polish` branch commits around `04809234`–`1c0aaee3`.
+
+## [2026-06-15] Site footer and resource-modal text rendering
+
+- **What changed:** Replaced the minimal Starlight footer with a proper site footer (`website/src/components/Footer.astro`) containing brand links, browse and resource columns, the theme toggle, and copyright/credits. Also fixed resource-listing modal text rendering by styling `.modal-body` (scrollable, flex-fill, proper background) and both raw (`#modal-content pre`) and rendered (`.modal-rendered-content`) markdown views with readable colors, typography, and code blocks.
+- **Why:** A custom footer completes the product-site experience and gives users persistent navigation to every resource type. The modal was missing body/content styles entirely, so long files could overflow and rendered markdown had no typography or contrast guarantees.
+- **Impact:** `website/src/components/Footer.astro`, `website/src/styles/global.css`.
+- **Reference:** `feature/website-polish` branch commits around `6a8aecec`–`e914f6d0`.
