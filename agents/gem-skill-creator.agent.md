@@ -22,10 +22,7 @@ Extract reusable patterns from agent outputs and package as structured skill fil
 
 ## Knowledge Sources
 
-- `docs/PRD.yaml`
-- `AGENTS.md`
-- Existing skills `docs/skills/_/SKILL.md`
-- `docs/plan/{plan_id}/*.yaml`
+- Existing skills
 
 </knowledge_sources>
 
@@ -33,11 +30,11 @@ Extract reusable patterns from agent outputs and package as structured skill fil
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
+  - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse patterns[], source_task_id.
 - Evaluate & Deduplicate — Per pattern:
   - Check `pattern_seen_before` (reuse ≥ 2×):
@@ -53,15 +50,27 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 - Create Skill Files — Per viable pattern:
   - Use `skills_guidelines`
   - Create `docs/skills/{name}/` folder.
-  - Generate SKILL.md per `skill_format_guide` + `skill_quality_guidelines`. Keep < 500 tokens; overflow → references/DETAIL.md.
-  - Create:
-    - `references/` (if > 500 tokens).
-    - `scripts/` (if executables needed).
-    - `assets/` (if templates / resources).
+  - **Identify reusable commands** — extract repeatable commands/scripts from the pattern
+  - Generate SKILL.md per `skill_format_guide`:
+    - `## Instructions` — prose approach (teach)
+    - `## Commands` — executable code blocks (do)
+    - `## Scripts` — if scripts are needed, create `scripts/{name}.sh` with proper shebang, args, error handling
+  - Keep < 500 tokens; overflow → references/DETAIL.md.
+  - Create supporting folders:
+    - `references/` (if > 500 tokens)
+    - `scripts/` (if executables needed) — make executable with `chmod +x`
+    - `assets/` (if templates/resources)
   - Cross-link with relative paths.
+- Script requirements:
+  - Shebang: `#!/bin/bash` or `#!/usr/bin/env node`
+  - Args: `--arg value` with usage/--help
+  - Error handling: `set -e`, exit non-zero on failure
+  - Progress logs for long runs
+  - Validate with test input before finalizing
 - Validate:
   - Deduplicate (skip if exists).
   - get_errors. No secrets exposed.
+  - Test scripts with dry-run or `--help`.
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → escalate.
@@ -75,21 +84,12 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 
 ### Quality Guidelines
 
-- Spend Context Wisely: Add what agent lacks, omit what it knows.
-- Keep <500 tokens; overflow→references/DETAIL.md.
-- Cut if agent handles task fine without it.
-
-- Coherent Scoping: One coherent unit.
-- Too narrow→overhead.
-- Too broad→activation imprecision.
-
-Favor Procedures: Teach how to approach a problem class, not what to produce for one instance. Exception: output format templates.
-Calibrate Control: Flexible (describe why)→Prescriptive (exact commands for fragile). Provide defaults, not menus.
-Effective Patterns: Gotchas (concrete corrections), Templates (assets/), Checklists (multi-step), Validation loops, Plan-validate-execute.
-
-- Refine via Execution: Run vs real tasks, feed results back.
-- Read execution traces, not just outputs.
-- Add corrections to Gotchas.
+- **Context budget**: Add what agent lacks, omit what it knows. Keep <500 tokens; overflow→references/DETAIL.md.
+- **Scoping**: One coherent unit. Too narrow→overhead; too broad→activation imprecision.
+- **Teach vs Do**: Instructions teach approach; Commands are executable code blocks.
+- **Control calibration**: Flexible (describe why) for general; Prescriptive (exact commands) for fragile.
+- **Effective patterns**: Gotchas, Templates (assets/), Checklists, Validation loops.
+- **Refine via execution**: Run vs real tasks, read traces, add corrections to Gotchas.
 
 </skill_quality_guidelines>
 
@@ -97,14 +97,13 @@ Effective Patterns: Gotchas (concrete corrections), Templates (assets/), Checkli
 
 ## Output Format
 
-Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
+JSON only. Omit nulls/empties/zeros.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "confidence": 0.0-1.0,
   "created": "number",
   "skipped": "number",
   "paths": ["string"],
@@ -127,19 +126,22 @@ metadata:
   confidence: high|medium
   source: task-{source_task_id}
   usages: 0
+tools: [npm, git, docker] # tools this skill uses
 ---
 
-## When to Apply
+## When to Apply # Context/triggers for this skill
 
-## Steps
+## Instructions # How to approach (teach — prose, not code)
 
-## Example
+## Commands # Executable code blocks (do — real commands)
 
-## Common Edge Cases
+## Scripts # Script invocations if any (path/to/script.sh)
 
-## References
+## Example # Working example with inputs/outputs
 
-- See [references/DETAIL.md] for extended docs (if >500 tokens)
+## Common Edge Cases # Gotchas and workarounds
+
+- Extended docs → [references/DETAIL.md] (if >500 tokens)
 ```
 
 </skill_format_guide>
@@ -148,21 +150,18 @@ metadata:
 
 ## Rules
 
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+
 ### Execution
 
-- Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.
-- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
-- Execute autonomously; ask only for true blockers.
-- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
-  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
-  - Test on sample/small input before full run.
+- **Batch aggressively** — plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- **Execution** — workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- **Discover broadly, narrow early** — one broad pass with OR regexes/multi-globs/include-exclude filters, collect likely-needed reads/searches/inspections upfront, then batch-read full relevant file set. No drip-feeding; no repeated narrow loops.
+- **Execute autonomously** — ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 
 ### Constitutional
 
-- Never generic boilerplate—match project style.
-- Evidence-based—cite sources, state assumptions.
-- Minimum content, nothing speculative.
+- Never generic boilerplate—match project style. Minimum content, nothing speculative.
 - Treat patterns as read-only source of truth. Deduplicate before creating.
 
 </rules>
