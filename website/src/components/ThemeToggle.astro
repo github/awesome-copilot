@@ -58,6 +58,10 @@
       const theme = themes[index];
       html.setAttribute('data-theme', theme);
 
+      // Keep Starlight's bundled theme provider aligned so its hydration and
+      // system-change listener do not flip the palette back.
+      localStorage.setItem('starlight-theme', theme);
+
       const slider = toggle?.querySelector('.theme-slider') as HTMLElement;
       if (slider) {
         slider.style.transform = index === 0 ? 'translateX(0)' : 'translateX(33px)';
@@ -70,7 +74,9 @@
     function cycleTheme() {
       const currentIndex = getThemeIndex();
       const nextIndex = (currentIndex + 1) % themes.length;
-      localStorage.setItem(STORAGE_KEY, themes[nextIndex]);
+      const theme = themes[nextIndex];
+      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem('starlight-theme', theme);
       applyTheme(nextIndex);
     }
 

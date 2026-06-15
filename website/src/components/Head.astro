@@ -56,10 +56,15 @@ const twitterDomain =
     // logic at runtime; keep them in sync.
     if (stored === 'dark' || stored === 'light') {
       document.documentElement.setAttribute('data-theme', stored);
+      // Keep Starlight's own theme key in sync so Starlight's bundled script does
+      // not override our explicit choice on hydration.
+      localStorage.setItem('starlight-theme', stored);
     } else {
       // No explicit preference yet: follow the system, defaulting to light.
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      const systemTheme = prefersDark ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', systemTheme);
+      localStorage.setItem('starlight-theme', systemTheme);
     }
   })();
 </script>
