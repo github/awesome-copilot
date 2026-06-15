@@ -1092,12 +1092,14 @@ body:has(#main-content) {
     0 0 48px -14px color-mix(in srgb, var(--card-accent, var(--color-accent)) 55%, transparent);
 }
 
-/* Scroll reveal */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s var(--ease-out-expo),
-              transform 0.6s var(--ease-out-expo);
+/* Scroll reveal — only hide when scripting is enabled so no-JS users still see content */
+@media (scripting: enabled) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s var(--ease-out-expo),
+                transform 0.6s var(--ease-out-expo);
+  }
 }
 
 .reveal.is-visible {
