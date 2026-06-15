@@ -844,7 +844,7 @@ copilot
 
 The exercise shows developers how to use GitHub Copilot CLI to create issues, generate code, and collaborate from the terminal while building a Node.js calculator app. You'll install the CLI, use templates and agents, and practice iterative, command-line driven development.
 
-##### <img src="/images/learning-hub/copilot-cli-for-beginners/03/github-skills-logo.png" width="28" align="center" /> [Start the "Create applications with the Copilot CLI" Skills Exercise](https://github.com/skills/create-applications-with-the-copilot-cli)
+##### <img src="/images/learning-hub/copilot-cli-for-beginners/03/github-skills-logo.png" width="28" align="center" alt="GitHub Skills logo" /> [Start the "Create applications with the Copilot CLI" Skills Exercise](https://github.com/skills/create-applications-with-the-copilot-cli)
 
 ---
 
