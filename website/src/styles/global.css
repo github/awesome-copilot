@@ -1787,6 +1787,182 @@ body:has(#main-content) {
   color: var(--color-text-emphasis);
 }
 
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0;
+  background: var(--color-bg-primary);
+}
+
+#modal-content {
+  margin: 0;
+  min-height: 100%;
+}
+
+#modal-content:where(pre) {
+  padding: 20px 24px;
+  background: var(--color-bg-primary);
+  color: var(--color-text);
+  overflow-x: auto;
+}
+
+#modal-content:where(pre) code {
+  font-family: 'Monaspace Argon NF', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+#modal-content pre,
+#modal-content pre code,
+.modal-code-content pre,
+.modal-code-content pre code {
+  font-family: 'Monaspace Argon NF', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+#modal-content pre,
+.modal-code-content pre {
+  margin: 0;
+  padding: 20px 24px;
+  border-radius: 0;
+  background: var(--color-bg-primary);
+  overflow-x: auto;
+  min-height: 100%;
+}
+
+#modal-content pre code,
+.modal-code-content pre code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.modal-rendered-content {
+  padding: 20px 24px;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.modal-rendered-content h1,
+.modal-rendered-content h2,
+.modal-rendered-content h3,
+.modal-rendered-content h4,
+.modal-rendered-content h5,
+.modal-rendered-content h6 {
+  color: var(--color-text-emphasis);
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.modal-rendered-content h1 { font-size: 1.75rem; }
+.modal-rendered-content h2 { font-size: 1.5rem; }
+.modal-rendered-content h3 { font-size: 1.25rem; }
+.modal-rendered-content h4 { font-size: 1.1rem; }
+
+.modal-rendered-content p {
+  margin-bottom: 16px;
+}
+
+.modal-rendered-content a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+.modal-rendered-content a:hover {
+  color: var(--color-link-hover);
+  text-decoration: underline;
+}
+
+.modal-rendered-content ul,
+.modal-rendered-content ol {
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+
+.modal-rendered-content li {
+  margin-bottom: 6px;
+}
+
+.modal-rendered-content code {
+  font-family: 'Monaspace Argon NF', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-emphasis);
+}
+
+.modal-rendered-content pre {
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: var(--border-radius);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.modal-rendered-content pre code {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 13px;
+  line-height: 1.6;
+  color: inherit;
+}
+
+.modal-rendered-content blockquote {
+  margin: 16px 0;
+  padding: 12px 20px;
+  border-left: 4px solid var(--color-accent);
+  background-color: var(--color-glass);
+  border-radius: 0 8px 8px 0;
+  color: var(--color-text-muted);
+}
+
+.modal-rendered-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-rendered-content hr {
+  margin: 24px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.modal-rendered-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--border-radius);
+}
+
+.modal-rendered-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.modal-rendered-content th,
+.modal-rendered-content td {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.modal-rendered-content th {
+  background: var(--color-bg-tertiary);
+  font-weight: 600;
+  color: var(--color-text-emphasis);
+}
+
 /* Collection Modal View */
 .collection-view {
   padding: 20px 24px;
