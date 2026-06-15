@@ -785,6 +785,52 @@ body:has(#main-content) {
   line-height: 1.6;
 }
 
+/* Reusable glass card surface */
+.glass-card {
+  position: relative;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  backdrop-filter: var(--surface-backdrop);
+  -webkit-backdrop-filter: var(--surface-backdrop);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--card-accent, var(--color-accent)), transparent 55%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.glass-card:hover,
+.glass-card:focus-within {
+  border-color: var(--card-accent, var(--color-accent));
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-float), 0 0 0 1px var(--card-accent, var(--color-accent));
+}
+
+.glass-card:hover::before,
+.glass-card:focus-within::before {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card {
+    transition: none;
+  }
+}
+
 /* Quick Links Section */
 .quick-links {
   padding: 80px 0;
