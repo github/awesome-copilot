@@ -15,3 +15,10 @@ A living log of architectural decisions, patterns, and hard-learned lessons for 
 - **Why:** A directory-style grid surfaces taxonomy before user intent. Grouping cards by what the user wants to do makes the landing page feel like a product destination rather than an awesome-list index.
 - **Impact:** `website/src/pages/index.astro`, `website/src/components/home/*`, `website/src/scripts/pages/index.ts`, `website/src/styles/global.css`.
 - **Reference:** `feature/website-polish` branch commits around `3bd10087`–`3e724813`.
+
+## [2026-06-15] Extended glass theme to listing pages and completed landing page sections
+
+- **What changed:** Applied the glass-card surface to resource listing pages (resource items, listing toolbar, search/filter inputs, ContributeCTA) and added the final landing-page sections: *How it works*, *Install in seconds*, and *Built by developers, for developers*. Also added an optional `class` prop to the `Icon` component.
+- **Why:** Consistency across the site reinforces the product-site aesthetic and gives users a clear path from discovery → installation → contribution.
+- **Impact:** `website/src/styles/global.css`, `website/src/components/PageHeader.astro`, `website/src/components/ContributeCTA.astro`, `website/src/components/Icon.astro`, `website/src/components/home/HowItWorks.astro`, `website/src/components/home/InstallCard.astro`, `website/src/components/home/CommunityCTA.astro`, `website/src/pages/index.astro`.
+- **Reference:** `feature/website-polish` branch commits around `5a0f0e20`–`a32d148b`.
