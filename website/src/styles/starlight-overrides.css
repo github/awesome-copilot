@@ -161,6 +161,28 @@ starlight-theme-select {
   display: none !important;
 }
 
+/* ── Sidebar polish ─────────────────────────────────────── */
+nav[aria-label="Main"] {
+  font-size: 0.9rem;
+}
+
+nav[aria-label="Main"] a {
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition), background-color var(--transition);
+}
+
+nav[aria-label="Main"] a:hover {
+  background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+}
+
+nav[aria-label="Main"] a[aria-current="page"] {
+  background-color: var(--sl-color-accent-low);
+  color: var(--sl-color-text-accent) !important;
+  font-weight: 600 !important;
+  border-inline-start-color: var(--sl-color-accent) !important;
+}
+
 /* ── Browse Resources sidebar group ────────────────────────── */
 nav[aria-label="Main"] > ul > li:first-child details summary,
 nav[aria-label="Main"] > ul > li:first-child > a {
@@ -172,6 +194,49 @@ nav[aria-label="Main"] > ul > li:first-child > a {
 /* Starlight generates a title h1; custom pages render their own h1 */
 main:has(#main-content) > .content-panel:has(h1#_top) {
   display: none !important;
+}
+
+/* ── Typography & content polish ───────────────────────── */
+.sl-markdown-content {
+  line-height: 1.7;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  letter-spacing: -0.015em;
+}
+
+.sl-markdown-content h2 {
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding-bottom: 0.5rem;
+  margin-top: 2.5rem;
+}
+
+/* ── Code blocks ─────────────────────────────────────────── */
+.expressive-code {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+.sl-markdown-content code:not(pre code) {
+  padding: 0.15em 0.4em;
+  border-radius: var(--border-radius-sm);
+  background: var(--sl-color-gray-5);
+  color: var(--sl-color-white);
+  font-size: 0.9em;
+}
+
+/* ── Callouts / asides ───────────────────────────────────── */
+.sl-markdown-content .starlight-aside {
+  border-radius: var(--border-radius);
+  border-left-width: 3px;
+}
+
+.sl-markdown-content .starlight-aside--note {
+  border-left-color: var(--sl-color-accent);
+  background-color: var(--sl-color-accent-low);
 }
 
 /* ── Pagefind search filter pills ──────────────────────────── */
