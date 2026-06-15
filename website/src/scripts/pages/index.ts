@@ -71,9 +71,113 @@ export async function initHomepage(): Promise<void> {
         countEl.textContent = manifest.counts[key].toString();
       }
     });
+
+    // Populate and animate stat ribbon
+    populateStats(manifest.counts);
   }
 
   initHeroSearch();
+  initRevealAnimations();
+  initSpotlightCards();
+}
+
+function populateStats(counts: Manifest["counts"]): void {
+  const statValues = {
+    agents: counts.agents ?? 0,
+    instructions: counts.instructions ?? 0,
+    skills: counts.skills ?? 0,
+    hooks: counts.hooks ?? 0,
+    workflows: counts.workflows ?? 0,
+    plugins: counts.plugins ?? 0,
+    extensions: counts.extensions ?? 0,
+    tools: counts.tools ?? 0,
+    total:
+      (counts.agents ?? 0) +
+      (counts.instructions ?? 0) +
+      (counts.skills ?? 0) +
+      (counts.hooks ?? 0) +
+      (counts.workflows ?? 0) +
+      (counts.plugins ?? 0) +
+      (counts.extensions ?? 0) +
+      (counts.tools ?? 0),
+  };
+
+  document.querySelectorAll('.stat-value[data-stat]').forEach((el) => {
+    const key = el.getAttribute('data-stat') as keyof typeof statValues;
+    if (!key || !(key in statValues)) return;
+    const target = statValues[key];
+    animateCount(el, target, { duration: 1200 });
+  });
+}
+
+function animateCount(
+  el: Element,
+  target: number,
+  options: { duration?: number; suffix?: string } = {}
+): void {
+  const { duration = 1200, suffix = '+' } = options;
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion || target === 0) {
+    el.textContent = target > 0 ? `${target.toLocaleString()}${suffix}` : target.toLocaleString();
+    return;
+  }
+
+  const start = performance.now();
+  const format = (n: number) => `${Math.round(n).toLocaleString()}${suffix}`;
+
+  function step(now: number): void {
+    const progress = Math.min((now - start) / duration, 1);
+    // easeOutExpo
+    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    const current = target * eased;
+    el.textContent = format(current);
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+function initRevealAnimations(): void {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) {
+    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+  );
+
+  document.querySelectorAll('.reveal').forEach((el, i) => {
+    const htmlEl = el as HTMLElement;
+    htmlEl.style.setProperty('--reveal-index', String(i % 6));
+    observer.observe(el);
+  });
+}
+
+function initSpotlightCards(): void {
+  // Only enable spotlight follow when fine pointer is available.
+  const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+  if (!hasFinePointer) return;
+
+  document.querySelectorAll('.card--spotlight, .glass-card--spotlight').forEach((card) => {
+    const htmlCard = card as HTMLElement;
+    htmlCard.addEventListener('pointermove', (e) => {
+      const rect = htmlCard.getBoundingClientRect();
+      htmlCard.style.setProperty('--spotlight-x', `${e.clientX - rect.left}px`);
+      htmlCard.style.setProperty('--spotlight-y', `${e.clientY - rect.top}px`);
+    });
+  });
 }
 
 function initHeroSearch(): void {
