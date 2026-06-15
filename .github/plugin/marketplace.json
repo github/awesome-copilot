@@ -582,6 +582,31 @@
       }
     },
     {
+      "name": "modernize-java",
+      "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
+      "version": "1.9.2",
+      "author": {
+        "name": "microsoft",
+        "url": "https://github.com/microsoft/modernize-java"
+      },
+      "repository": "https://github.com/microsoft/modernize-java",
+      "homepage": "https://github.com/microsoft/modernize-java",
+      "license": "MIT",
+      "keywords": [
+        "java",
+        "modernization",
+        "upgrade",
+        "spring-boot"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "microsoft/modernize-java",
+        "path": "plugins/modernize-java",
+        "ref": "1.9.2",
+        "sha": "b570196c070bf1eb9d7ad34a263b228ef16034a0"
+      }
+    },
+    {
       "name": "napkin",
       "source": "napkin",
       "description": "Visual whiteboard collaboration for Copilot CLI. Opens an interactive whiteboard in your browser where you can draw, sketch, and add sticky notes — then share everything back with Copilot. Copilot sees your drawings and responds with analysis, suggestions, and ideas.",
