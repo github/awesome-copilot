@@ -391,6 +391,31 @@
     }
   },
   {
+    "name": "modernize-java",
+    "description": "GitHub Copilot modernization – Java Upgrade CLI Plugin helps you upgrade Java applications from the command line. It brings intelligent modernization capabilities to your terminal and CI/CD pipelines: analyze your project and generate an upgrade plan, automatically transform your codebase, fix build issues, validate against known CVEs, and output a detailed summary of file changes and updated dependencies.",
+    "version": "1.9.2",
+    "author": {
+      "name": "microsoft",
+      "url": "https://github.com/microsoft/modernize-java"
+    },
+    "repository": "https://github.com/microsoft/modernize-java",
+    "homepage": "https://github.com/microsoft/modernize-java",
+    "license": "MIT",
+    "keywords": [
+      "java",
+      "modernization",
+      "upgrade",
+      "spring-boot"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "microsoft/modernize-java",
+      "path": "plugins/modernize-java",
+      "ref": "1.9.2",
+      "sha": "b570196c070bf1eb9d7ad34a263b228ef16034a0"
+    }
+  },
+  {
     "name": "pm-skills",
     "description": "MCP server and 12 skills for product analysis, specification writing, strategy, narrative, and stakeholder alignment. Run competitive analyses, write zero-question specs, design metrics, and produce executive-ready documents directly from Copilot.",
     "version": "2.1.0",
