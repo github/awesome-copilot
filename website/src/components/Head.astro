@@ -57,7 +57,7 @@ const twitterDomain =
     if (stored === 'dark' || stored === 'light') {
       document.documentElement.setAttribute('data-theme', stored);
     } else {
-      // 'auto' or no stored preference: follow the system, defaulting to light
+      // No explicit preference yet: follow the system, defaulting to light.
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
     }

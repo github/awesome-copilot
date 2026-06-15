@@ -1,22 +1,20 @@
 ---
-// Theme Toggle Component - 3 state slider: Auto | Dark | Light
+// Theme Toggle Component — two-state slider: Dark | Light
+// Auto/system preference is only used for the very first visit; after that the
+// user always lands in an explicit dark or light palette.
 ---
 
 <div class="theme-toggle-container">
   <button
     id="theme-toggle"
     class="theme-toggle"
-    aria-label="Toggle theme: auto, dark, light"
+    aria-label="Toggle theme between dark and light"
     title="Change theme (Ctrl/Cmd + Shift + L)"
+    type="button"
   >
     <span class="theme-icon moon" aria-hidden="true">
       <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
         <path d="M9.598 1.591a.749.749 0 0 1 .785-.559 7.001 7.001 0 1 1-7.737 7.737.749.749 0 0 1 .56-.786 7.002 7.002 0 0 0 5.902-5.903.751.751 0 0 1 .49-.489Z"/>
-      </svg>
-    </span>
-    <span class="theme-icon auto" aria-hidden="true">
-      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM3.965 13.096a6.5 6.5 0 0 0 8.131-8.131Zm1.031-1.031L12.096 3.965A6.5 6.5 0 0 1 4.996 12.065ZM14 8A6 6 0 0 0 2 8a6 6 0 0 0 12 0Z"/>
       </svg>
     </span>
     <span class="theme-icon sun" aria-hidden="true">
@@ -40,36 +38,33 @@
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
-    const themes = ['dark', 'auto', 'light'];
-    const icons = ['moon', 'auto', 'sun'];
+    const themes = ['dark', 'light'];
 
-    function getThemeIndex() {
+    function getSystemTheme(): 'dark' | 'light' {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function getThemeIndex(): number {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && themes.includes(stored)) {
-        return themes.indexOf(stored);
-      }
-      // Default to light theme
-      return 2;
+      if (stored === 'dark') return 0;
+      if (stored === 'light') return 1;
+      // First visit: honour the system preference, but store it as an explicit choice.
+      const system = getSystemTheme();
+      localStorage.setItem(STORAGE_KEY, system);
+      return system === 'dark' ? 0 : 1;
     }
 
     function applyTheme(index: number) {
       const theme = themes[index];
-      if (theme === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-      } else {
-        html.setAttribute('data-theme', theme);
-      }
+      html.setAttribute('data-theme', theme);
 
-      // Move slider
       const slider = toggle?.querySelector('.theme-slider') as HTMLElement;
       if (slider) {
-        slider.style.transform = `translateX(${index * 100}%)`;
+        slider.style.transform = index === 0 ? 'translateX(0)' : 'translateX(33px)';
       }
 
-      // Highlight active icon
-      const themeToggle = document.querySelector('.theme-toggle');
-      themeToggle?.setAttribute('data-active', String(index));
+      toggle?.setAttribute('data-active', String(index));
+      toggle?.setAttribute('aria-pressed', String(index === 0));
     }
 
     function cycleTheme() {
@@ -79,24 +74,14 @@
       applyTheme(nextIndex);
     }
 
-    // Initialize
     applyTheme(getThemeIndex());
 
-    // Click handler
     toggle?.addEventListener('click', cycleTheme);
 
-    // Keyboard shortcut
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
         cycleTheme();
-      }
-    });
-
-    // Listen for system theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (localStorage.getItem(STORAGE_KEY) === 'auto') {
-        applyTheme(1); // auto
       }
     });
   })();
@@ -111,7 +96,7 @@
   .theme-toggle {
     display: flex;
     position: relative;
-    width: 108px;
+    width: 72px;
     height: 36px;
     padding: 3px;
     border: 1px solid var(--color-border);
@@ -150,8 +135,7 @@
   }
 
   .theme-toggle[data-active="0"] .moon,
-  .theme-toggle[data-active="1"] .auto,
-  .theme-toggle[data-active="2"] .sun {
+  .theme-toggle[data-active="1"] .sun {
     color: var(--color-text-emphasis);
     transform: scale(1.1);
   }
@@ -169,10 +153,6 @@
     z-index: 0;
   }
 
-  .theme-toggle[data-active="0"] .theme-slider { transform: translateX(0); }
-  .theme-toggle[data-active="1"] .theme-slider { transform: translateX(33px); }
-  .theme-toggle[data-active="2"] .theme-slider { transform: translateX(66px); }
-
   @media (prefers-reduced-motion: reduce) {
     .theme-toggle,
     .theme-icon,
@@ -183,7 +163,7 @@
 
   @media (max-width: 768px) {
     .theme-toggle {
-      width: 96px;
+      width: 64px;
       height: 32px;
     }
 
@@ -197,9 +177,11 @@
       height: 26px;
       top: 3px;
       left: 3px;
+      transform: translateX(0);
     }
 
-    .theme-toggle[data-active="1"] .theme-slider { transform: translateX(29px); }
-    .theme-toggle[data-active="2"] .theme-slider { transform: translateX(58px); }
+    .theme-toggle[data-active="1"] .theme-slider {
+      transform: translateX(29px);
+    }
   }
 </style>
