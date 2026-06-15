@@ -32,25 +32,31 @@ const steps = [
       </p>
     </div>
 
-    <div class="steps-grid reveal-stagger">
+    <div class="commit-timeline reveal-stagger" role="list">
       {
         steps.map((step, index) => (
-          <article class="step-card glass-card reveal" style={`--animation-delay: ${index * 100}ms;`}>
-            <div class="step-card-icon" aria-hidden="true">
-              <Icon name={step.icon} size={28} />
+          <article class="commit-node glass-card reveal" style={`--animation-delay: ${index * 120}ms;`} role="listitem">
+            <div class="commit-node__connector" aria-hidden="true">
+              <span class="commit-node__dot"></span>
+              {index < steps.length - 1 && <span class="commit-node__line"></span>}
             </div>
-            <div class="step-card-number" aria-hidden="true">
-              {String(index + 1).padStart(2, '0')}
+            <div class="commit-node__content">
+              <div class="commit-node__meta">
+                <span class="commit-node__icon" aria-hidden="true">
+                  <Icon name={step.icon} size={20} />
+                </span>
+                <span class="commit-node__sha" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+              </div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
             </div>
-            <h3>{step.title}</h3>
-            <p>{step.description}</p>
           </article>
         ))
       }
     </div>
 
     <div class="how-it-works-footer reveal">
-      <a href={`${base}how-to-use/`} class="btn btn-secondary btn--glass-pill">
+      <a href={`${base}how-to-use/`} class="btn btn-secondary">
         Read the full guide
         <Icon name="external" size={16} />
       </a>
