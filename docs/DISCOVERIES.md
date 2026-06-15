@@ -8,3 +8,10 @@ A living log of architectural decisions, patterns, and hard-learned lessons for 
 - **Why:** We want a consistent, big-tech-grade translucent glass aesthetic across landing and content pages without rebuilding every card component from scratch. Removing the `auto` toggle state reduces UI ambiguity while still respecting the OS default on first paint.
 - **Impact:** `website/src/styles/global.css`, `website/src/components/ThemeToggle.astro`, `website/src/components/Head.astro`, plus new `.astro` pages (`how-to-use.astro`, `contribute.astro`) and sidebar entries.
 - **Reference:** `feature/website-polish` branch commits around `a27fa743`–`fc354282`.
+
+## [2026-06-15] Landing-page restructure into intent-driven sections
+
+- **What changed:** Rewrote `website/src/pages/index.astro` using new components (`Hero`, `HomeCategoryCard`, `QuickLinks`, `StatsRibbon`) and moved the flat 9-card grid into three clusters: *Code smarter*, *Automate workflows*, and *Extend and learn*.
+- **Why:** A directory-style grid surfaces taxonomy before user intent. Grouping cards by what the user wants to do makes the landing page feel like a product destination rather than an awesome-list index.
+- **Impact:** `website/src/pages/index.astro`, `website/src/components/home/*`, `website/src/scripts/pages/index.ts`, `website/src/styles/global.css`.
+- **Reference:** `feature/website-polish` branch commits around `3bd10087`–`3e724813`.
