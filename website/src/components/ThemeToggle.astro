@@ -1,89 +1,71 @@
 ---
-// Theme Toggle Component — two-state slider: Dark | Light
-// Auto/system preference is only used for the very first visit; after that the
-// user always lands in an explicit dark or light palette.
+// Minimalist two-state theme toggle: dark | light
+//
+// - First-time visitors get the system preference, stored as an explicit choice.
+// - After that, users cycle only between dark and light with a single click.
 ---
 
-<div class="theme-toggle-container">
-  <button
-    id="theme-toggle"
-    class="theme-toggle"
-    aria-label="Toggle theme between dark and light"
-    title="Change theme (Ctrl/Cmd + Shift + L)"
-    type="button"
-  >
-    <span class="theme-icon moon" aria-hidden="true">
-      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-        <path d="M9.598 1.591a.749.749 0 0 1 .785-.559 7.001 7.001 0 1 1-7.737 7.737.749.749 0 0 1 .56-.786 7.002 7.002 0 0 0 5.902-5.903.751.751 0 0 1 .49-.489Z"/>
-      </svg>
+<button
+  id="theme-toggle"
+  class="theme-toggle"
+  aria-label="Toggle between dark and light theme"
+  title="Toggle theme (Ctrl/Cmd + Shift + L)"
+  type="button"
+>
+  <span class="theme-toggle__track" aria-hidden="true">
+    <span class="theme-toggle__thumb" aria-hidden="true">
+      <span class="theme-toggle__icon theme-toggle__icon--moon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+          <path d="M9.598 1.591a.749.749 0 0 1 .785-.559 7.001 7.001 0 1 1-7.737 7.737.749.749 0 0 1 .56-.786 7.002 7.002 0 0 0 5.902-5.903.751.751 0 0 1 .49-.489Z"/>
+        </svg>
+      </span>
+      <span class="theme-toggle__icon theme-toggle__icon--sun" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+          <path d="M8 12.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0 1a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm0-15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0Zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13Zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5ZM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8Zm12.354-3.646a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.415a.5.5 0 1 1-.707.708L2.626 4.062a.5.5 0 0 1 0-.707ZM14.354 11.354a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.414a.5.5 0 1 1-.707.707L2.626 10.646a.5.5 0 0 1 0-.707Z"/>
+        </svg>
+      </span>
     </span>
-    <span class="theme-icon sun" aria-hidden="true">
-      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
-        <path d="M8 12.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0 1a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm0-15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0Zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13Zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5ZM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8Zm12.354-3.646a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.415a.5.5 0 1 1-.707.708L2.626 4.062a.5.5 0 0 1 0-.707ZM14.354 11.354a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.414a.5.5 0 1 1-.707.707L2.626 10.646a.5.5 0 0 1 0-.707Z"/>
-      </svg>
-    </span>
-    <span class="theme-slider" aria-hidden="true"></span>
-  </button>
-</div>
+  </span>
+</button>
 
 <script>
-  (function() {
-    // Move theme toggle to body level to escape any stacking contexts
-    const container = document.querySelector('.theme-toggle-container');
-    if (container && container.parentElement !== document.body) {
-      document.body.appendChild(container);
-    }
-
+  (function () {
     const STORAGE_KEY = 'awesome-copilot-theme';
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
-
     const themes = ['dark', 'light'];
 
-    function getSystemTheme(): 'dark' | 'light' {
+    function getSystemTheme() {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
 
-    function getThemeIndex(): number {
+    function getThemeIndex() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'dark') return 0;
       if (stored === 'light') return 1;
-      // First visit: honour the system preference, but store it as an explicit choice.
       const system = getSystemTheme();
       localStorage.setItem(STORAGE_KEY, system);
       return system === 'dark' ? 0 : 1;
     }
 
-    function applyTheme(index: number) {
+    function applyTheme(index) {
       const theme = themes[index];
       html.setAttribute('data-theme', theme);
-
-      // Keep Starlight's bundled theme provider aligned so its hydration and
-      // system-change listener do not flip the palette back.
       localStorage.setItem('starlight-theme', theme);
-
-      const slider = toggle?.querySelector('.theme-slider') as HTMLElement;
-      if (slider) {
-        slider.style.transform = index === 0 ? 'translateX(0)' : 'translateX(33px)';
-      }
-
       toggle?.setAttribute('data-active', String(index));
       toggle?.setAttribute('aria-pressed', String(index === 0));
     }
 
     function cycleTheme() {
-      const currentIndex = getThemeIndex();
-      const nextIndex = (currentIndex + 1) % themes.length;
+      const nextIndex = (getThemeIndex() + 1) % themes.length;
       const theme = themes[nextIndex];
       localStorage.setItem(STORAGE_KEY, theme);
-      localStorage.setItem('starlight-theme', theme);
       applyTheme(nextIndex);
     }
 
     applyTheme(getThemeIndex());
 
     toggle?.addEventListener('click', cycleTheme);
-
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'L') {
         e.preventDefault();
@@ -94,28 +76,26 @@
 </script>
 
 <style is:global>
-  .theme-toggle-container {
-    display: flex;
-    align-items: center;
-  }
-
   .theme-toggle {
-    display: flex;
-    position: relative;
-    width: 72px;
-    height: 36px;
-    padding: 3px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: transparent;
     border: 1px solid var(--color-border);
-    border-radius: 20px;
-    background: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    color: var(--color-text-muted);
     cursor: pointer;
-    transition: border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
-    overflow: hidden;
+    transition: border-color var(--transition), color var(--transition), background-color var(--transition);
+    position: relative;
   }
 
   .theme-toggle:hover {
     border-color: var(--color-accent);
-    background: var(--color-bg-tertiary);
+    color: var(--color-text-emphasis);
+    background: var(--color-bg-secondary);
   }
 
   .theme-toggle:focus-visible {
@@ -123,71 +103,71 @@
     outline-offset: 2px;
   }
 
-  .theme-icon {
+  .theme-toggle__track {
+    position: relative;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 30px;
-    border-radius: 16px;
-    color: var(--color-text-muted);
-    transition: color var(--transition), transform var(--transition);
-    z-index: 1;
   }
 
-  .theme-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .theme-toggle[data-active="0"] .moon,
-  .theme-toggle[data-active="1"] .sun {
-    color: var(--color-text-emphasis);
-    transform: scale(1.1);
-  }
-
-  .theme-slider {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 36px;
-    height: 30px;
-    border-radius: 16px;
-    background: var(--color-accent);
-    opacity: 0.15;
+  .theme-toggle__thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: transform var(--transition-spring);
-    z-index: 0;
+  }
+
+  .theme-toggle__icon {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition), transform var(--transition-spring);
+  }
+
+  /* Default (dark) — show moon */
+  .theme-toggle__icon--sun {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.7);
+  }
+
+  .theme-toggle__icon--moon {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  /* Light — show sun */
+  .theme-toggle[data-active="1"] .theme-toggle__icon--moon {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.7);
+  }
+
+  .theme-toggle[data-active="1"] .theme-toggle__icon--sun {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .theme-toggle,
-    .theme-icon,
-    .theme-slider {
+    .theme-toggle__thumb,
+    .theme-toggle__icon {
       transition: none;
     }
   }
 
+  /* Header positioning */
+  .theme-toggle-container {
+    position: fixed !important;
+    top: 14px !important;
+    right: 80px !important;
+    z-index: 1001;
+  }
+
   @media (max-width: 768px) {
-    .theme-toggle {
-      width: 64px;
-      height: 32px;
-    }
-
-    .theme-icon {
-      width: 32px;
-      height: 26px;
-    }
-
-    .theme-slider {
-      width: 32px;
-      height: 26px;
-      top: 3px;
-      left: 3px;
-      transform: translateX(0);
-    }
-
-    .theme-toggle[data-active="1"] .theme-slider {
-      transform: translateX(29px);
+    .theme-toggle-container {
+      top: 10px !important;
+      right: 64px !important;
     }
   }
 </style>
