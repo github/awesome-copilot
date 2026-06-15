@@ -1111,8 +1111,9 @@ body:has(#main-content) {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
   text-align: center;
 }
@@ -1121,9 +1122,11 @@ body:has(#main-content) {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   min-width: 0;
-  justify-content: flex-start;
+  flex: 1 1 0;
+  min-width: 120px;
 }
 
 .stat-value {
@@ -1132,9 +1135,8 @@ body:has(#main-content) {
   color: var(--color-text-emphasis);
   letter-spacing: -0.02em;
   line-height: 1;
-  min-height: 1.1em;
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.15em;
 }
 
