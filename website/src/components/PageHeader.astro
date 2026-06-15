@@ -14,25 +14,82 @@ const contributingUrl = 'https://github.com/github/awesome-copilot/blob/main/CON
 <div class="page-header">
   <div class="container">
     <div class="page-header-row">
-      <div>
+      <div class="page-header-main">
         <h1>
-          {icon && <Icon name={icon} size={28} />}
-          <Fragment set:html={title} />
+          <span class="page-header-icon" aria-hidden="true">
+            {icon && <Icon name={icon} size={28} />}
+          </span>
+          <span class="page-header-title"><Fragment set:html={title} /></span>
         </h1>
         <p><slot><Fragment set:html={description} /></slot></p>
       </div>
       <a href={contributingUrl} class="contribute-link" target="_blank" rel="noopener">
-        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z"/></svg>
-        Contribute
+        <Icon name="plus" size={16} />
+        <span>Contribute</span>
       </a>
     </div>
   </div>
 </div>
 
 <style>
+  .page-header {
+    padding: clamp(32px, 6vh, 56px) 0 clamp(20px, 3vh, 32px);
+  }
+
+  .page-header-main {
+    flex: 1;
+    min-width: 0;
+  }
+
   .page-header h1 {
     display: flex;
     align-items: center;
+    gap: 0.75rem;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    line-height: 1.15;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-accent);
+  }
+
+  .page-header p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    max-width: 56ch;
+    margin: 0;
+  }
+
+  .contribute-link {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    transition: all var(--transition);
+  }
+
+  .contribute-link:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-text-emphasis);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .contribute-link :global(svg) {
+    flex-shrink: 0;
   }
 </style>

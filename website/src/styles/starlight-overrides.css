@@ -93,12 +93,24 @@ header .site-title:hover {
 }
 
 /* ── Unified background ─────────────────────────────────────── */
-/* Clean header - solid background */
+/* Refined sticky header with glass backdrop on supported devices */
 header.header {
-  background: var(--sl-color-gray-6) !important;
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--sl-color-gray-6) 85%, transparent) !important;
   border-bottom: 1px solid var(--sl-color-gray-5) !important;
   z-index: 1000;
-  position: relative;
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Disable expensive backdrop-filter for users who prefer reduced motion / transparency */
+@media (prefers-reduced-motion: reduce) {
+  header.header {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--sl-color-gray-6) !important;
+  }
 }
 
 /* Header inner content for alignment */
@@ -120,12 +132,20 @@ header .social-icons {
   display: none !important;
 }
 
-/* Move theme toggle inside header - align with header elements */
+/* Theme toggle is appended to body by the component script; position it inside
+   the header area when possible, but keep it fixed on narrow viewports. */
 .theme-toggle-container {
   position: fixed !important;
   top: 12px !important;
   right: 80px !important;
   z-index: 1001;
+}
+
+@media (max-width: 768px) {
+  .theme-toggle-container {
+    top: 10px !important;
+    right: 64px !important;
+  }
 }
 
 /* On custom splash pages, body already has the gradient bg.

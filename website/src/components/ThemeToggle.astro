@@ -6,34 +6,25 @@
   <button
     id="theme-toggle"
     class="theme-toggle"
-    aria-label="Toggle theme"
-    title="Change theme"
+    aria-label="Toggle theme: auto, dark, light"
+    title="Change theme (Ctrl/Cmd + Shift + L)"
   >
     <span class="theme-icon moon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M9.598 1.591a.749.749 0 0 1 .785-.559 7.001 7.001 0 1 1-7.737 7.737.749.749 0 0 1 .56-.786 7.002 7.002 0 0 0 5.902-5.903.751.751 0 0 1 .49-.489Z"/>
       </svg>
     </span>
     <span class="theme-icon auto" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2v10l4.5 4.5"/>
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM3.965 13.096a6.5 6.5 0 0 0 8.131-8.131Zm1.031-1.031L12.096 3.965A6.5 6.5 0 0 1 4.996 12.065ZM14 8A6 6 0 0 0 2 8a6 6 0 0 0 12 0Z"/>
       </svg>
     </span>
     <span class="theme-icon sun" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="5"/>
-        <line x1="12" y1="1" x2="12" y2="3"/>
-        <line x1="12" y1="21" x2="12" y2="23"/>
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-        <line x1="1" y1="12" x2="3" y2="12"/>
-        <line x1="21" y1="12" x2="23" y2="12"/>
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+        <path d="M8 12.5a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0 1a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11Zm0-15a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0Zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13Zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5ZM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8Zm12.354-3.646a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.415a.5.5 0 1 1-.707.708L2.626 4.062a.5.5 0 0 1 0-.707ZM14.354 11.354a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 1 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0Zm-12.728 0a.5.5 0 0 1 .707 0l1.414 1.414a.5.5 0 1 1-.707.707L2.626 10.646a.5.5 0 0 1 0-.707Z"/>
       </svg>
     </span>
-    <span class="theme-slider"></span>
+    <span class="theme-slider" aria-hidden="true"></span>
   </button>
 </div>
 
@@ -127,12 +118,13 @@
     border-radius: 20px;
     background: var(--color-bg-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
     overflow: hidden;
   }
 
   .theme-toggle:hover {
     border-color: var(--color-accent);
+    background: var(--color-bg-tertiary);
   }
 
   .theme-toggle:focus-visible {
@@ -148,23 +140,66 @@
     height: 30px;
     border-radius: 16px;
     color: var(--color-text-muted);
-    transition: all 0.2s ease;
+    transition: color var(--transition), transform var(--transition);
     z-index: 1;
-    font-weight: 400;
   }
 
-  .theme-icon.moon { color: #9898a6; }
-  .theme-icon.auto { color: #9898a6; }
-  .theme-icon.sun { color: #9898a6; }
+  .theme-icon svg {
+    width: 16px;
+    height: 16px;
+  }
 
   .theme-toggle[data-active="0"] .moon,
   .theme-toggle[data-active="1"] .auto,
   .theme-toggle[data-active="2"] .sun {
-    color: var(--color-text);
-    font-weight: 700;
+    color: var(--color-text-emphasis);
+    transform: scale(1.1);
   }
 
   .theme-slider {
-    display: none;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 36px;
+    height: 30px;
+    border-radius: 16px;
+    background: var(--color-accent);
+    opacity: 0.15;
+    transition: transform var(--transition-spring);
+    z-index: 0;
+  }
+
+  .theme-toggle[data-active="0"] .theme-slider { transform: translateX(0); }
+  .theme-toggle[data-active="1"] .theme-slider { transform: translateX(33px); }
+  .theme-toggle[data-active="2"] .theme-slider { transform: translateX(66px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle,
+    .theme-icon,
+    .theme-slider {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .theme-toggle {
+      width: 96px;
+      height: 32px;
+    }
+
+    .theme-icon {
+      width: 32px;
+      height: 26px;
+    }
+
+    .theme-slider {
+      width: 32px;
+      height: 26px;
+      top: 3px;
+      left: 3px;
+    }
+
+    .theme-toggle[data-active="1"] .theme-slider { transform: translateX(29px); }
+    .theme-toggle[data-active="2"] .theme-slider { transform: translateX(58px); }
   }
 </style>
