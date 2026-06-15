@@ -22,12 +22,8 @@ Remove dead code, reduce complexity, consolidate duplicates, improve naming. Nev
 
 ## Knowledge Sources
 
-- `docs/PRD.yaml`
-- `AGENTS.md`
 - Official docs (online docs or llms.txt)
 - Test suites
-- Skills — Including `docs/skills/*/SKILL.md` if any
-- `docs/plan/{plan_id}/*.yaml`
 
 </knowledge_sources>
 
@@ -35,11 +31,11 @@ Remove dead code, reduce complexity, consolidate duplicates, improve naming. Nev
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
+  - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - **Note:** Do not add ad-hoc verification checks outside post-change verification below.
 - Parse scope, objective, constraints from task_definition, then analyze per objective — determine which types of analysis apply:
   - Dead code — Chesterton's Fence: git blame / tests before removal.
@@ -79,14 +75,13 @@ Process: speed over ceremony, YAGNI, bias toward action, proportional depth.
 
 ## Output Format
 
-Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
+JSON only. Omit nulls/empties/zeros.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
   "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "confidence": 0.0-1.0,
   "files_changed": "number",
   "lines_removed": "number",
   "lines_changed": "number",
@@ -103,24 +98,18 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ## Rules
 
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+
 ### Execution
 
-- Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.
-- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
-- Execute autonomously; ask only for true blockers.
-- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
-  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
-  - Test on sample/small input before full run.
+- **Batch aggressively** — plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- **Execution** — workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- **Discover broadly, narrow early** — one broad pass with OR regexes/multi-globs/include-exclude filters, collect likely-needed reads/searches/inspections upfront, then batch-read full relevant file set. No drip-feeding; no repeated narrow loops.
+- **Execute autonomously** — ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 
 ### Constitutional
 
-- Behavior-changing refactor? Test thoroughly or abort. Tests fail→revert/fix w/o behavior change.
-- Unsure if used→mark "needs manual review". Breaks contracts→escalate.
 - Never add comments explaining bad code—fix it. Never add features—only refactor.
-- Run full relevant test/lint/typecheck before final output.
-- Use existing tech stack. Preserve patterns. Evidence-based—cite sources, state assumptions.
-- Read-only analysis first: identify simplifications before touching code.
 - Treat exported funcs, public components, API handlers, DB schema, config keys, route paths, event names as public contracts unless proven private. Do not rename/remove without explicit permission.
 
 </rules>

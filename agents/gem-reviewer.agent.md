@@ -22,8 +22,6 @@ Scan security issues, detect secrets, verify PRD compliance. Never implement cod
 
 ## Knowledge Sources
 
-- `docs/PRD.yaml`
-- `AGENTS.md`
 - Official docs (online docs or llms.txt)
 - `docs/DESIGN.md` (UI tasks only — files matching _.tsx, _.vue, _.jsx, styles/_)
 - OWASP MASVS
@@ -35,11 +33,11 @@ Scan security issues, detect secrets, verify PRD compliance. Never implement cod
 
 ## Workflow
 
-Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
-  - Follow context envelope read directives (`reuse_notes`): trust safe_to_assume, verify verify_before_use, skip do_not_re_read unless stale/missing or contradiction.
+  - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse review_scope: plan|wave.
   - Use quality_score.reviewer_focus to prioritize scrutiny on weak areas.
   - Apply config settings — Read `config_snapshot` for:
@@ -48,17 +46,10 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 ### Plan Review
 
 - Apply task_clarifications (resolved, don't re-question).
-- Check:
+- Check (planner handles atomicity/IDs, focus on semantics):
   - PRD coverage (each requirement ≥ 1 task).
-  - Atomicity (≤ 300 lines/task).
-  - No circular deps, all IDs exist.
-  - Wave parallelism, conflicts_with not parallel.
-  - Wave assignment: tasks with no dependencies are in wave 1.
+  - Wave correctness (parallelism, conflicts_with not parallel, wave 1 has root tasks).
   - Tasks have verification + acceptance_criteria.
-  - Test file inclusion: if acceptance_criteria requires tests, verify target_files includes corresponding test file using pattern matching.
-  - Report missing test files as non-critical findings.
-  - PRD alignment, valid agents.
-  - Tech stack: context_envelope.tech_stack exists and is non-empty.
   - Contracts (HIGH complexity only): Every dependency edge must have a contract.
   - Diagnose-then-fix: every debugger task has a paired implementer task in a later wave.
 - Status:
@@ -96,7 +87,7 @@ Batch/join dependency-free steps; serialize only true dependencies while still c
 
 ## Output Format
 
-Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
+JSON only. Omit nulls/empties/zeros.
 
 ```json
 {
@@ -120,22 +111,20 @@ Return ONLY valid JSON. CRITICAL: Omit nulls, empty arrays, zero values.
 
 ## Rules
 
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+
 ### Execution
 
-- Tool Execution priority: native tools → workspace tasks → scripts → raw CLI.
-- Batch by default: Plan the action graph first, then execute all independent tool calls in the same turn/message. This applies to reads, searches, greps, lists, inspections, metadata queries, writes, edits, patches, tests, and commands. Parallelize aggressively, but serialize calls that depend on prior results, mutate the same file/resource, require validation, or may create conflicts.
-- Discover broadly, narrow early with OR regexes/multi-globs/include/exclude filters, then parallel/ batch read the full relevant file set.
-- Execute autonomously; ask only for true blockers.
-- Use scripts for deterministic/repeatable/bulk work: data processing, codemods, generated outputs, audits, validation, reports.
-  - Scripts: explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits.
-  - Test on sample/small input before full run.
+- **Batch aggressively** — plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- **Execution** — workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- **Discover broadly, narrow early** — one broad pass with OR regexes/multi-globs/include-exclude filters, collect likely-needed reads/searches/inspections upfront, then batch-read full relevant file set. No drip-feeding; no repeated narrow loops.
+- **Execute autonomously** — ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 
 ### Constitutional
 
 - Security audit FIRST via grep_search before semantic.
 - Mobile: all 8 vectors if mobile detected.
 - PRD compliance: verify all acceptance_criteria.
-- Evidence-based—cite sources, state assumptions.
 - Specific: file:line for all findings.
 
 </rules>
