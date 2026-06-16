@@ -1,0 +1,10 @@
+{
+  "name": "backlog-swipe-triage",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Swipe-driven backlog triage canvas for reviewing open issues and assigning implementation work.",
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.1"
+  }
+}

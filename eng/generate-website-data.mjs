@@ -97,6 +97,10 @@ function formatDisplayName(value) {
     .join(" ");
 }
 
+function normalizeText(value, fallback = "") {
+  return typeof value === "string" ? value.trim() : fallback;
+}
+
 /**
  * Find the latest git-modified date for any file under a directory.
  */
@@ -670,6 +674,76 @@ function generatePluginsData(gitDates) {
 /**
  * Generate canvas extensions metadata
  */
+function getExtensionAssetInfo(extensionDir, relPath, ref) {
+  const assetDir = path.join(extensionDir, "assets");
+
+  if (!fs.existsSync(assetDir)) {
+    return null;
+  }
+
+  const imageExtensions = new Set([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+  ]);
+
+  const preferredNames = [
+    "preview.png",
+    "preview.jpg",
+    "preview.jpeg",
+    "preview.webp",
+    "preview.gif",
+    "screenshot.png",
+    "screenshot.jpg",
+    "screenshot.jpeg",
+    "screenshot.webp",
+    "screenshot.gif",
+    "image.png",
+    "image.jpg",
+    "image.jpeg",
+    "image.webp",
+    "image.gif",
+  ];
+
+  for (const candidate of preferredNames) {
+    const candidatePath = path.join(assetDir, candidate);
+    if (fs.existsSync(candidatePath)) {
+      const assetPath = `${relPath}/assets/${candidate}`;
+      return {
+        assetPath,
+        imageUrl: buildRepoImageUrl(assetPath, ref),
+      };
+    }
+  }
+
+  const files = fs
+    .readdirSync(assetDir)
+    .filter((file) => imageExtensions.has(path.extname(file).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b));
+
+  if (files.length === 0) {
+    return null;
+  }
+
+  const assetFile = files[0];
+  const assetPath = `${relPath}/assets/${assetFile}`;
+
+  return {
+    assetPath,
+    imageUrl: buildRepoImageUrl(assetPath, ref),
+  };
+}
+
+function buildRepoImageUrl(assetPath, ref) {
+  const encodedAssetPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`;
+}
+
 function generateExtensionsData(gitDates, commitSha) {
   const extensions = [];
 
@@ -679,17 +753,85 @@ function generateExtensionsData(gitDates, commitSha) {
 
   const extensionDirs = fs
     .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory());
+    .filter((entry) => {
+      if (!entry.isDirectory()) return false;
+      const extensionEntryPoint = path.join(
+        EXTENSIONS_DIR,
+        entry.name,
+        "extension.mjs"
+      );
+      return fs.existsSync(extensionEntryPoint);
+    });
 
   for (const dir of extensionDirs) {
     const relPath = `extensions/${dir.name}`;
+    const assetInfo = getExtensionAssetInfo(
+      path.join(EXTENSIONS_DIR, dir.name),
+      relPath,
+      commitSha
+    );
+
     extensions.push({
       id: dir.name,
       name: formatDisplayName(dir.name),
+      description: "Canvas extension",
       path: relPath,
       ref: commitSha,
       lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+      imageUrl: assetInfo?.imageUrl || null,
+      assetPath: assetInfo?.assetPath || null,
+      installUrl: `https://github.com/github/awesome-copilot/tree/${commitSha}/${relPath.replace(
+        /\\/g,
+        "/"
+      )}`,
+      sourceUrl: null,
+      external: false,
     });
+  }
+
+  const externalJsonPath = path.join(EXTENSIONS_DIR, "external.json");
+  if (fs.existsSync(externalJsonPath)) {
+    try {
+      const externalExtensions = JSON.parse(
+        fs.readFileSync(externalJsonPath, "utf-8")
+      );
+      if (Array.isArray(externalExtensions)) {
+        for (const ext of externalExtensions) {
+          const name = normalizeText(ext?.name);
+          const installUrl = normalizeText(ext?.installUrl);
+          const sourceUrl = normalizeText(ext?.sourceUrl || installUrl);
+          if (!name || !installUrl) {
+            continue;
+          }
+
+          const id = normalizeText(ext?.id || name.toLowerCase().replace(/\s+/g, "-"));
+          let imageUrl = normalizeText(ext?.imageUrl);
+          let assetPath = null;
+          const imagePath = normalizeText(ext?.imagePath);
+          if (!imageUrl && imagePath) {
+            const repoAssetPath = imagePath.replace(/\\/g, "/");
+            imageUrl = buildRepoImageUrl(repoAssetPath, commitSha);
+            assetPath = repoAssetPath;
+          }
+
+          extensions.push({
+            id,
+            name,
+            description: normalizeText(ext?.description, "External canvas extension"),
+            path: null,
+            ref: null,
+            lastUpdated: null,
+            imageUrl: imageUrl || null,
+            assetPath,
+            installUrl,
+            sourceUrl: sourceUrl || null,
+            external: true,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`Failed to parse external extensions: ${e.message}`);
+    }
   }
 
   const sortedExtensions = extensions.sort((a, b) =>
