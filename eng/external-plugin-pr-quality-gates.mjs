@@ -34,7 +34,8 @@ export function buildSourceTreeUrl(plugin) {
     return `https://github.com/${sourceRepo}/tree/${encodedLocator}`;
   }
 
-  return `https://github.com/${sourceRepo}/tree/${encodedLocator}/${normalizedPath}`;
+  const encodedPath = encodePathLikeValue(normalizedPath);
+  return `https://github.com/${sourceRepo}/tree/${encodedLocator}/${encodedPath}`;
 }
 
 function aggregateResultStatus(pluginResults) {
