@@ -63,6 +63,10 @@ jobs:
               'workflow': {
                 color: 'BFD4F2',
                 description: 'PR touches workflow automation'
+              },
+              'canvas-extension': {
+                color: 'E4B9FF',
+                description: 'PR touches canvas extensions'
               }
             };
 
@@ -139,12 +143,16 @@ jobs:
                 /^workflows\/.+\.md$/,
                 /^\.github\/workflows\/.+\.(?:ya?ml|md)$/
               ],
+              canvasExtension: [
+                /^extensions\/[^/]+\//
+              ],
               newSubmission: [
                 /^agents\/.+\.agent\.md$/,
                 /^instructions\/.+\.instructions\.md$/,
                 /^skills\/[^/]+\/SKILL\.md$/,
                 /^hooks\/[^/]+\/(?:README\.md|hooks\.json)$/,
                 /^plugins\/[^/]+\/\.github\/plugin\/plugin\.json$/,
+                /^extensions\/[^/]+\/extension\.mjs$/,
                 /^workflows\/.+\.md$/,
                 /^\.github\/workflows\/.+\.(?:ya?ml|md)$/,
                 /^website\//
@@ -195,6 +203,10 @@ jobs:
 
               if (filenames.some((filename) => matchesAny(filename, patterns.workflow))) {
                 desiredLabels.add('workflow');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.canvasExtension))) {
+                desiredLabels.add('canvas-extension');
               }
 
               if (hasNewSubmission) {
