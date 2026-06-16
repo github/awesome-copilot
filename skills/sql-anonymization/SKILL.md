@@ -5,9 +5,9 @@ description: 'Skill for sql-anonymization workflows and guidance.'
 
 # SQL Anonymization Skill
 
-**Version:** 2.0  
-**Status:** Production-Ready  
-**Domain:** Database Security & Privacy  
+**Version:** 2.0
+**Status:** Production-Ready
+**Domain:** Database Security & Privacy
 **Use Case:** Generate shareable SQL exports without hardcoding project-specific values.
 
 ---
