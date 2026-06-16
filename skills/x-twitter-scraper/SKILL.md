@@ -23,7 +23,7 @@ Before writing code, inspect the current Xquik source material:
 - REST API docs: https://docs.xquik.com/api-reference/overview
 - SDK index: https://docs.xquik.com/sdks
 - OpenAPI spec: https://xquik.com/openapi.json
-- MCP server docs: https://docs.xquik.com/mcp
+- MCP server docs: https://docs.xquik.com/mcp/overview
 - Skill repo: https://github.com/Xquik-dev/x-twitter-scraper
 
 Do not invent endpoint names, request fields, response fields, scopes, pricing, limits, or package names. Read the relevant SDK README and API reference page first.
