@@ -129,6 +129,6 @@ Run with `-v` first to understand category volume and tune custom exclusions.
 
 ## Related Skills
 
-- [security-loop](../security-loop/SKILL.md)
-- [documentation-recovery](../documentation-recovery/SKILL.md)
-- [migration-scripting](../migration-scripting/SKILL.md)
+- `security-loop` — applies security review after anonymization
+- `documentation-recovery` — recovers documentation from anonymized exports
+- `migration-scripting` — generates migration scripts from anonymized SQL

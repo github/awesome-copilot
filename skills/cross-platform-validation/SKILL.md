@@ -9,7 +9,7 @@ description: 'Skill to contrast recommendations with official documentation and 
 Ensure that each recommendation issued by Boost DBA is supported by official documentation and is valid for the client's specific platform and version.
 
 ## Source of Truth
-[knowledge/references/official-docs.md](../../knowledge/references/official-docs.md)
+Official vendor documentation (Microsoft Docs, PostgreSQL docs, AWS RDS docs) and platform-specific release notes.
 
 ## Entries
 - Recommendation to validate
@@ -32,7 +32,7 @@ Available in tier: [Basic / Standard / Premium / ...]
 ```
 
 ### Step 2: Contrast with official reference
-- Search [official-docs.md](../../knowledge/references/official-docs.md) for the canonical link
+- Search official vendor documentation for the canonical link
 - Verify that the documented behavior matches the recommendation
 - Note if there are behavior changes between versions
 

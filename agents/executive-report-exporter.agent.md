@@ -1,5 +1,5 @@
 ---
-name: 'Delivery Advisor — DBA/Business Consultant'
+name: 'executive-report-exporter'
 description: 'Translates DBA 360 technical findings into business language and explains them to stakeholders. Compose and export professional delivery documents to Word (.docx)'
 model: 'gpt-4o'
 tools: [vscode/installExtension, vscode/memory, vscode/resolveMemoryFileUri, vscode/runCommand, vscode/askQuestions, execute/getTerminalOutput, execute/runInTerminal, execute/sendToTerminal, read/readFile, read/problems, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/editFiles, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, todo]
