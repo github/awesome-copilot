@@ -27,6 +27,30 @@ let allItems: Extension[] = [];
 let currentSort: ExtensionSortOption = "title";
 let actionHandlersReady = false;
 
+function openPreviewModal(url: string, alt: string): void {
+  const modal = document.getElementById("extension-preview-modal");
+  const image = document.getElementById("extension-preview-image") as HTMLImageElement | null;
+  const title = document.getElementById("extension-preview-title");
+
+  if (!modal || !image || !title) return;
+
+  image.src = url;
+  image.alt = alt;
+  title.textContent = alt.replace(/ preview$/i, "");
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+}
+
+function closePreviewModal(): void {
+  const modal = document.getElementById("extension-preview-modal");
+  if (!modal) return;
+
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
 function applySortAndRender(): void {
   const countEl = document.getElementById("results-count");
   const results = sortExtensions(allItems, currentSort);
@@ -49,6 +73,20 @@ function setupActionHandlers(list: HTMLElement | null): void {
 
   list.addEventListener("click", async (event) => {
     const target = event.target as HTMLElement;
+    const thumbnailButton = target.closest(
+      ".resource-thumbnail-btn"
+    ) as HTMLButtonElement | null;
+
+    if (thumbnailButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      openPreviewModal(
+        thumbnailButton.dataset.previewUrl || "",
+        thumbnailButton.dataset.previewAlt || "Extension preview"
+      );
+      return;
+    }
+
     const installButton = target.closest(
       ".copy-install-url-btn"
     ) as HTMLButtonElement | null;
@@ -57,11 +95,36 @@ function setupActionHandlers(list: HTMLElement | null): void {
 
     event.stopPropagation();
     const installUrl = installButton.dataset.installUrl || "";
+    if (!installUrl) {
+      showToast("No install URL available for this extension", "error");
+      return;
+    }
     const success = await copyToClipboard(installUrl);
     showToast(
       success ? "Install URL copied!" : "Failed to copy install URL",
       success ? "success" : "error"
     );
+  });
+
+  const modal = document.getElementById("extension-preview-modal");
+  const closeButton = document.getElementById("extension-preview-close");
+
+  if (modal) {
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closePreviewModal();
+      }
+    });
+  }
+
+  if (closeButton) {
+    closeButton.addEventListener("click", closePreviewModal);
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closePreviewModal();
+    }
   });
 
   actionHandlersReady = true;
