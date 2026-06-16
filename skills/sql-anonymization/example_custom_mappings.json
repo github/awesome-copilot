@@ -1,0 +1,17 @@
+{
+  "exact_replacements": {
+    "INTERNAL_PROJECT_X": "PROJECT_DEMO",
+    "LEGACY_VENDOR_NAME": "VENDOR_ANON"
+  },
+  "exclude_schemas": [
+    "dbo",
+    "sys",
+    "information_schema"
+  ],
+  "exclude_databases": [
+    "master",
+    "model",
+    "msdb",
+    "tempdb"
+  ]
+}

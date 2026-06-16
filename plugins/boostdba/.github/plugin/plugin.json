@@ -1,0 +1,62 @@
+{
+  "name": "boostdba",
+  "description": "AI-augmented SQL Server DBA toolkit with orchestration, dependency analysis, performance diagnostics, security governance, and modernization workflows.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Awesome Copilot Community"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "keywords": [
+    "dba",
+    "sql-server",
+    "database-modernization",
+    "query-optimization",
+    "performance-diagnostics",
+    "migration-scripting",
+    "high-availability",
+    "database-governance"
+  ],
+  "agents": [
+    "./agents/capacity-planning-advisor.md",
+    "./agents/change-impact-assessor.md",
+    "./agents/cross-platform-advisor.md",
+    "./agents/db-dependency-analyzer.md",
+    "./agents/db-documentation-generator.md",
+    "./agents/dba-360-orchestrator.md",
+    "./agents/dba-reliability-security-advisor.md",
+    "./agents/executive-report-exporter.md",
+    "./agents/high-availability-advisor.md",
+    "./agents/legacy-logic-extractor.md",
+    "./agents/migration-script-generator.md",
+    "./agents/modernization-orchestrator.md",
+    "./agents/monitoring-baseline-advisor.md",
+    "./agents/performance-bottleneck-analyzer.md",
+    "./agents/proactive-maintenance-advisor.md",
+    "./agents/query-optimizer.md",
+    "./agents/sql-agent-jobs-analyzer.md",
+    "./agents/test-data-generator.md"
+  ],
+  "skills": [
+    "./skills/capacity-planning/",
+    "./skills/cross-platform-validation/",
+    "./skills/database-analysis/",
+    "./skills/dba-governance/",
+    "./skills/dependency-impact/",
+    "./skills/documentation-recovery/",
+    "./skills/high-availability/",
+    "./skills/human-in-the-loop/",
+    "./skills/jobs-automation/",
+    "./skills/migration-scripting/",
+    "./skills/monitoring-baseline/",
+    "./skills/performance-diagnostics/",
+    "./skills/proactive-maintenance/",
+    "./skills/query-optimization/",
+    "./skills/secure-onboarding/",
+    "./skills/security-loop/",
+    "./skills/sp-to-application-migration/",
+    "./skills/sql-anonymization/",
+    "./skills/test-data-generation/",
+    "./skills/token-usage-observability/"
+  ]
+}

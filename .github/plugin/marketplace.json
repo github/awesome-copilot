@@ -105,6 +105,12 @@
       "version": "1.0.1"
     },
     {
+      "name": "boostdba",
+      "source": "boostdba",
+      "description": "AI-augmented SQL Server DBA toolkit with orchestration, dependency analysis, performance diagnostics, security governance, and modernization workflows.",
+      "version": "1.0.0"
+    },
+    {
       "name": "cast-imaging",
       "source": "cast-imaging",
       "description": "A comprehensive collection of specialized agents for software analysis, impact assessment, structural quality advisories, and architectural review using CAST Imaging.",
