@@ -43,7 +43,9 @@ async function ensureLabel({ github, owner, repo, name, config }) {
       description: config.description,
     });
   } catch (error) {
-    if (error.status !== 422) {
+    // 422: Label already exists
+    // 403: Permission denied (e.g., fork contributor token without repo write access)
+    if (error.status !== 422 && error.status !== 403) {
       throw error;
     }
   }
