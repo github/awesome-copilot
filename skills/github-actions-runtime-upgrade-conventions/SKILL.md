@@ -1,11 +1,17 @@
 ---
-description: 'Use when editing GitHub Actions workflow files to address action runtime deprecations and validate upgrades.'
-applyTo: '.github/workflows/*.yml, .github/workflows/*.yaml'
+name: github-actions-runtime-upgrade-conventions
+description: 'Upgrade GitHub Actions to supported runtimes by selecting safe action versions, preserving workflow behavior, and validating post-upgrade execution.'
 ---
 
 # GitHub Actions Runtime Upgrade Conventions
 
-When a workflow warning reports that an action is running on a deprecated Node.js runtime, treat it as a required maintenance update.
+Use this skill when editing GitHub Actions workflows to address deprecation warnings about action runtimes (for example Node.js runtime migrations).
+
+## Use This Skill When
+
+- Workflow logs report an action is running on a deprecated runtime.
+- You are upgrading action versions in `.github/workflows/*.yml` or `.github/workflows/*.yaml`.
+- You need to keep existing workflow behavior while modernizing action dependencies.
 
 ## Upgrade Rules
 
