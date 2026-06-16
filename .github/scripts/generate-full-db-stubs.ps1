@@ -288,7 +288,7 @@ Set-Content -Path $summaryPath -Value $md -Encoding UTF8
 Write-Host "Generacion de stubs completada"
 Write-Host "Total generado: $count"
 Write-Host "Total con error: $($errors.Count)"
-Write-Host "Manifiesto: $manifestPath"
+Write-Host "Manifest: $manifestPath"
 Write-Host "Errores: $errorsPath"
 Write-Host "Resumen: $summaryPath"
 

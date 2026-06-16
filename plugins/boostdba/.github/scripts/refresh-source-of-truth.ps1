@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Reingesta un nuevo schema SQL en un workspace ya creado por bootstrap-source-of-truth.ps1.
-    Conserva el historial de ingestas en ingestion-log.json y genera un diff de objetos
+    Preserves the ingestion history en ingestion-log.json y genera un diff de objetos
     comparando el manifest anterior con el nuevo.
 
     No borra reportes ni planes existentes. Solo actualiza fuente-de-verdad/.

@@ -163,7 +163,7 @@ $md += "| Ola | Cantidad | Estrategia |`n|---|---:|---|`n"
 foreach ($w in $byWave) {
     $strategy = switch ($w.Name) {
         "Wave-1" { "Consultas Dapper (lectura primero)" }
-        "Wave-2" { "Comandos/handlers simples" }
+        "Wave-2" { "Commands/simple handlers" }
         "Wave-3" { "Extraccion a servicio de dominio" }
         "Wave-4" { "Transaccional/criptografia critica" }
         default { "Por definir" }

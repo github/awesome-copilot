@@ -50,4 +50,4 @@ $projectRoot = Join-Path $repoRoot "workspaces" $ProjectName
 Write-Host "[2/2] Ejecutando preflight de seguridad sobre la fuente de verdad..."
 & $preflightScript -ProjectName $ProjectName
 
-Write-Host "Wizard completado. Ya puedes iniciar analisis DBA 360 sobre: $projectRoot"
+Write-Host "Wizard complete. You can now start DBA 360 analysis sobre: $projectRoot"

@@ -64,7 +64,7 @@ if ($AutoFix -and $missing.Count -gt 0) {
     Write-Host ""
 
     if (-not (Test-Path "$fv/schema/db.sql")) {
-        Write-Host "  [SKIP] schema/db.sql requiere fuente manual (input/). Coloca el schema en input/ y ejecuta refresh-source-of-truth.ps1"
+        Write-Host "  [SKIP] schema/db.sql requires manual source (input/). Coloca el schema en input/ y ejecuta refresh-source-of-truth.ps1"
     }
 
     if (-not (Test-Path "$fv/views-by-schema.json") -or -not (Test-Path "$fv/functions-by-schema.json")) {

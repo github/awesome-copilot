@@ -85,7 +85,7 @@ $manifest = [ordered]@{
         logs = $logsRoot
     }
     notes = @(
-        "Usa esta carpeta como fuente de verdad local para analisis.",
+        "Usa esta carpeta como local source of truth for analysis.",
         "No guardes connection strings reales en archivos versionados.",
         "Reingesta esquemas cuando cambie el origen."
     )
@@ -105,7 +105,7 @@ Se crea dentro del repo BoostDBA, bajo workspaces/.
 
 ## Estructura
 - fuente-de-verdad/: esquemas y manifest
-- reports/: salidas de analisis
+- reports/: analysis outputs
 - plans/: roadmap y planes de cambio
 - logs/: trazabilidad de ingesta
 

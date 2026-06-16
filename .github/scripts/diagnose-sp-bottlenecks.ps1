@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-  Validacion de cuellos de botella Fase 2: ejecuta consultas DMV en SQL Server PROD para confirmar cuellos reales
+  Bottleneck validation Phase 2: runs DMV queries on SQL Server PROD to confirm real bottlenecks
   
 .DESCRIPTION
-  Valida el diagnostico de analisis estatico con metricas reales de produccion:
+  Validates the static analysis diagnostic with real production metrics:
   1. Top SPs por total_elapsed_time (consultas CPU-bound)
   2. Top SPs por execution_count (candidatos frecuentes/de contencion)
   3. Eventos de escalado de locks (waits PAGEIO_LATCH, LCK_M)
@@ -23,7 +23,7 @@
   .\diagnose-sp-bottlenecks.ps1 -ServerInstance 'prod-db.database.windows.net' -DatabaseName 'ProjectName'
   
 .NOTES
-  Requiere: SQL Server Management Objects (SMO) o modulo SqlServer
+  Requires: SQL Server Management Objects (SMO) or SqlServer module
   Rol: db_datareader en la base objetivo
 #>
 
@@ -70,7 +70,7 @@ function Export-JsonEnvelope {
   $payload | ConvertTo-Json -Depth 8 | Out-File -FilePath $Path -Encoding UTF8 -Force
 }
 
-Write-Host "🔍 Fase 2: Validacion de cuellos de botella con DMV" -ForegroundColor Cyan
+Write-Host "🔍 Phase 2: Bottleneck validation with DMV" -ForegroundColor Cyan
 Write-Host "📌 Objetivo: $ServerInstance / $DatabaseName" -ForegroundColor Gray
 Write-Host "📂 Salida: $OutputDir" -ForegroundColor Gray
 
@@ -276,7 +276,7 @@ try {
 Write-Host "`n📋 Generando informe resumen..." -ForegroundColor Cyan
 
 $summary = @"
-# 📊 RESUMEN DE VALIDACION DMV - FASE 2
+# 📊 DMV VALIDATION SUMMARY - PHASE 2
 **Fecha:** $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 **Servidor:** $ServerInstance
 **Base de datos:** $DatabaseName
@@ -310,8 +310,8 @@ $summary = @"
 - **LCK_M_X esperas:** contencion de escritura en tablas
 - **Multiples planes para el mismo SP:** SQL dinamico o parameter sniffing
 
-### Correlacion con analisis estatico
-- Analisis estatico: 2,483 SPs de escritura (37.9%)
+### Correlation with static analysis
+- Static analysis: 2,483 write SPs (37.9%)
 - DMV muestra: top de ejecucion por frecuencia = alto riesgo de contencion
 - Accion: priorizar top 20 SPs de escritura para auditoria de indices
 
@@ -327,9 +327,9 @@ $summary = @"
 "@
 
 $summary | Out-File -FilePath "$OutputDir\FASE2-RESUMEN.md" -Force
-Write-Host "✅ Informe resumen exportado a FASE2-RESUMEN.md" -ForegroundColor Green
+Write-Host "✅ Summary report exported to PHASE2-SUMMARY.md" -ForegroundColor Green
 
-Write-Host "`n✅ Validacion de fase 2 completada" -ForegroundColor Green
+Write-Host "`n✅ Phase 2 validation complete" -ForegroundColor Green
 Write-Host "📂 Informes disponibles en: $OutputDir" -ForegroundColor Green
 
 $resolvedOutDir = (Resolve-Path $OutputDir).Path

@@ -50,7 +50,7 @@ $schemaPath = "$fv/schema/db.sql"
 if (Test-Path $schemaPath) {
     $openKey = @(Select-String -Path $schemaPath -Pattern 'OPEN\s+SYMMETRIC\s+KEY' -ErrorAction SilentlyContinue)
     if ($openKey.Count -gt 0) {
-        $warnings.Add("GDPR: $($openKey.Count) uso(s) de OPEN SYMMETRIC KEY — datos cifrados presentes. Migracion requiere gestion de clave.")
+        $warnings.Add("GDPR: $($openKey.Count) uso(s) de OPEN SYMMETRIC KEY — encrypted data present. Migration requires key management.")
     }
     $decrypt = @(Select-String -Path $schemaPath -Pattern 'DecryptByKey' -ErrorAction SilentlyContinue)
     if ($decrypt.Count -gt 0) {

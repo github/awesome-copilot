@@ -1,7 +1,7 @@
 # ================================================================
 # Export Report - Convierte MD a DOCX con Pandoc
 # ================================================================
-# Uso: powershell -File .github\scripts\export-report.ps1 -ProjectName ProjectName -Audience cliente
+# Uso: powershell -File .github\scripts\export-report.ps1 -ProjectName ProjectName -Audience client
 # ================================================================
 
 [CmdletBinding(DefaultParameterSetName = 'Export')]
@@ -10,8 +10,8 @@ param(
     [string]$ProjectName,
 
     [Parameter(ParameterSetName = 'Export')]
-    [ValidateSet('cliente', 'funcional', 'assessment', 'techlead', 'dba')]
-    [string]$Audience = 'cliente',
+    [ValidateSet('client', 'functional', 'assessment', 'techlead', 'dba')]
+    [string]$Audience = 'client',
 
     [Parameter(ParameterSetName = 'Check', Mandatory = $false)]
     [switch]$Check
@@ -100,21 +100,21 @@ Write-Host ""
 # PRE-RENDER MERMAID DIAGRAMS
 $mmdc = Get-Command mmdc -ErrorAction SilentlyContinue
 if ($mmdc) {
-    Write-Host "PRE-RENDERIZANDO DIAGRAMAS MERMAID..." -ForegroundColor Cyan
+    Write-Host "PRE-RENDERING MERMAID DIAGRAMS..." -ForegroundColor Cyan
     $renderScript = Join-Path $scriptDir "convert-mermaid-to-png.ps1"
     if (Test-Path $renderScript) {
         try {
             $renderedMd = & $renderScript -InputMd $masterMd
             if ($renderedMd -and (Test-Path $renderedMd)) {
                 $masterMd = $renderedMd
-                Write-Host "  OK - diagramas renderizados como PNG" -ForegroundColor Green
+                Write-Host "  OK - diagrams rendered as PNG" -ForegroundColor Green
             }
         } catch {
-            Write-Host "  AVISO - fallo al renderizar diagramas, se exportaran como texto" -ForegroundColor Yellow
+            Write-Host "  WARNING - failed to render diagrams, will exportaran como texto" -ForegroundColor Yellow
         }
     }
 } else {
-    Write-Host "AVISO: mmdc no encontrado. Los diagramas se exportaran como bloques de codigo." -ForegroundColor Yellow
+    Write-Host "AVISO: mmdc no encontrado. Diagrams will be exported como bloques de codigo." -ForegroundColor Yellow
     Write-Host "       Para activar renderizado: npm install -g @mermaid-js/mermaid-cli" -ForegroundColor DarkGray
 }
 Write-Host ""

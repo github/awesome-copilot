@@ -7,7 +7,7 @@
   Orquesta el ciclo completo de optimización de un SP:
   
   Stage 0 → Capture baseline (golden file + métricas)
-  Stage 1 → Validar en DEV (regresión funcional)
+  Stage 1 → Validate in DEV (functional regression)
   Stage 2 → Validar en STAGING (rendimiento)
   Stage 3 → Despliegue en PROD (ventana controlada)
   Stage 4 → Monitor post-deploy (compara P50/P95 vs baseline)
@@ -154,7 +154,7 @@ if ($Stage -in '0','all') {
 # ═══════════════════════════════════════════════════════════════
 if ($Stage -in '1','all') {
     Write-Stage 1 "VALIDACIÓN EN DEV ($DevServer)"
-    Write-Info "Validando regresión funcional (resultados idénticos)..."
+    Write-Info "Validating functional regression (resultados idénticos)..."
 
     $result = & $regression -Mode validate -SpName $SpName `
         -ServerInstance $DevServer -DatabaseName $DatabaseName `
@@ -164,7 +164,7 @@ if ($Stage -in '1','all') {
     $report += "## Stage 1: Validación DEV"
     if ($exitCode -eq 0) {
         Write-Ok "PASS — Resultados idénticos al golden file."
-        $report += "**Result:** ✅ PASS — Sin regresión funcional."
+        $report += "**Result:** ✅ PASS — No functional regression."
     } else {
         Write-Err "FAIL — Regresión detectada. Revisar diferencias."
         $report += "**Result:** ❌ FAIL — Revisar output del test."
@@ -196,7 +196,7 @@ if ($Stage -in '2','all') {
 
     $report += "## Stage 2: Staging"
     if ($exitCode -eq 0) {
-        Write-Ok "PASS — Funcional OK."
+        Write-Ok "PASS — Functional OK."
         if ($perf -lt 0) {
             Write-Ok "Mejora de rendimiento: $([Math]::Abs($perf))ms"
             $report += "**Result:** ✅ PASS | **Perf:** +$([Math]::Abs($perf))ms mejora"
@@ -216,7 +216,7 @@ if ($Stage -in '2','all') {
 }
 
 # ═══════════════════════════════════════════════════════════════
-# STAGE 3 — DEPLOY EN PROD (requiere confirmación)
+# STAGE 3 — DEPLOY TO PROD (requires confirmation)
 # ═══════════════════════════════════════════════════════════════
 if ($Stage -in '3','all') {
     Write-Stage 3 "DESPLIEGUE EN PROD ($ProdServer)"
@@ -229,7 +229,7 @@ if ($Stage -in '3','all') {
     Write-Host "`n  ⚠️  ATENCIÓN: Estás a punto de aplicar cambios en PRODUCCIÓN." -ForegroundColor Red
     Write-Host "  SP: $SpName | Servidor: $ProdServer" -ForegroundColor Yellow
     Write-Host ""
-    $confirm = Read-Host "  ¿Confirmas el despliegue? (escribe 'CONFIRMO' para continuar)"
+    $confirm = Read-Host "  Confirm deployment? (type 'CONFIRM' to continue)"
 
     $report += "## Stage 3: Deploy PROD"
     if ($confirm -ne 'CONFIRMO') {
@@ -252,7 +252,7 @@ if ($Stage -in '3','all') {
         $exitCode = $LASTEXITCODE
 
         if ($exitCode -eq 0) {
-            Write-Ok "PROD OK — Sin regresión funcional post-deploy."
+            Write-Ok "PROD OK — No functional regression post-deploy."
             $report += "**Result:** ✅ PASS — Deploy exitoso, sin regresión."
         } else {
             Write-Err "REGRESIÓN EN PROD — Iniciar rollback inmediatamente."

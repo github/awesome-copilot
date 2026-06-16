@@ -50,14 +50,14 @@ foreach ($line in $lines) {
         $mermaidLines -join "`n" | Set-Content $tmpFile -Encoding UTF8
 
         # Renderizar con mmdc
-        Write-Host "  Renderizando diagrama $counter..." -ForegroundColor DarkGray
+        Write-Host "  Rendering diagram $counter..." -ForegroundColor DarkGray
         & mmdc -i $tmpFile -o $pngFile --backgroundColor white 2>&1 | Out-Null
 
         if (Test-Path $pngFile) {
-            $newLines += "![Diagrama $counter]($pngFile)"
-            Write-Host "  OK diagrama $counter -> $pngFile" -ForegroundColor Green
+            $newLines += "![Diagram $counter]($pngFile)"
+            Write-Host "  OK diagram $counter -> $pngFile" -ForegroundColor Green
         } else {
-            Write-Host "  FALLO diagrama $counter, manteniendo bloque de codigo" -ForegroundColor Yellow
+            Write-Host "  FAILED diagram $counter, manteniendo bloque de codigo" -ForegroundColor Yellow
             $newLines += '```mermaid'
             $newLines += $mermaidLines
             $newLines += '```'
@@ -72,7 +72,7 @@ foreach ($line in $lines) {
 $newLines -join "`n" | Set-Content $outputMd -Encoding UTF8
 
 Write-Host ""
-Write-Host "OK - $counter diagramas renderizados" -ForegroundColor Green
+Write-Host "OK - $counter diagrams rendered" -ForegroundColor Green
 Write-Host "Salida: $outputMd" -ForegroundColor Cyan
 Write-Host ""
 

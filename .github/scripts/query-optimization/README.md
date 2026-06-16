@@ -57,7 +57,7 @@ cd c:\repo\BoostDBA
 ### `01-capture-baseline.sql`
 Ejecutar en SSMS contra ProjectName. Captura:
 - Top 30 SPs por CPU, tiempo transcurrido y frecuencia
-- Planes con regresion (Query Store)
+- Plans with regression (Query Store)
 - Estadisticas de espera (PAGEIO_LATCH, LCK_M, etc.)
 - Spills a TEMPDB
 - Key lookups costosos
@@ -80,7 +80,7 @@ Genera DDL listo para revisar y aplicar:
 ---
 
 ### `03-golden-file-regression.ps1`
-Compara salidas funcionales de un SP:
+Compares functional outputs of a SP:
 
 | Modo | Acción |
 |------|--------|
@@ -104,7 +104,7 @@ Orquesta el despliegue seguro en 5 etapas:
 | Etapa | Acción | Entorno |
 |-------|--------|---------|
 | 0 | Captura baseline + métricas DMV | PROD |
-| 1 | Regresión funcional | DEV |
+| 1 | Functional regression | DEV |
 | 2 | Regresión + rendimiento | STAGING |
 | 3 | Despliegue con confirmación manual (`CONFIRMO`) | PROD |
 | 4 | Monitor 24h post-deploy (comparar vs baseline) | PROD |
@@ -186,7 +186,7 @@ WHERE Descripcion > REPLICATE('a', 100)
 - [ ] Baseline capturado antes del cambio (script 01)
 - [ ] Golden file creado (script 03 capture)
 - [ ] Índice/reescritura aplicado en DEV
-- [ ] Validación funcional pass (script 03 validate, Stage 1)
+- [ ] Functional validation pass (script 03 validate, Stage 1)
 - [ ] Validación en staging pass (Stage 2)
 - [ ] DDL de cambio revisado por DBA
 - [ ] Ventana de mantenimiento acordada con OPS
@@ -204,7 +204,7 @@ WHERE Descripcion > REPLICATE('a', 100)
 | AvgLogicalReads | -30% mínimo | sys.dm_exec_procedure_stats |
 | Timeouts de lock/día | < 5 | alerta de sys.dm_os_waiting_tasks |
 | Esperas PAGEIO_LATCH | < 100ms promedio | script 01 sección de esperas |
-| Regresiones detectadas | 0 | código de salida de script 03 validate |
+| Regressions detected | 0 | código de salida de script 03 validate |
 
 ---
 
@@ -251,5 +251,5 @@ workspaces/ProjectName/plans/optimization-reports/
 **Próximos SPs priorizados (Wave-1, mayor frecuencia):**  
 Obtener de `workspaces/ProjectName/plans/full-db-sp-classification.json`  
 Filtrar: `Category = CRUD AND Wave = Wave-1`  
-Ordenar por: frecuencia real (Fase 2 DMV → `phase2-top-sps-frequency.json`)
+Ordenar por: real frequency (Phase 2 DMV → `phase2-top-sps-frequency.json`)
 
