@@ -1,0 +1,14 @@
+{
+  "name": "chromium-control-canvas",
+  "version": "1.0.0",
+  "description": "GitHub Copilot canvas that drives a real headful Chromium window via Playwright.",
+  "main": "extension.mjs",
+  "keywords": [],
+  "author": "Andrea Griffiths",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@github/copilot-sdk": "latest",
+    "playwright": "^1.60.0"
+  }
+}
