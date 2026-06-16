@@ -9,7 +9,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  issues: write
+  pull-requests: write
+  contents: read
 
 jobs:
   sync-merged-pr-labels:
