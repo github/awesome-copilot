@@ -922,7 +922,6 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5",
-        "ref": "v0.1.4",
         "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
       }
     },
@@ -951,7 +950,6 @@
         "source": "github",
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5-typescript-conversion",
-        "ref": "v0.1.4",
         "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
       }
     },
