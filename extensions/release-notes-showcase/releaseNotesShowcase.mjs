@@ -1,4 +1,9 @@
+import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
+import { homedir } from "node:os";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { CanvasError, createCanvas } from "@github/copilot-sdk/extension";
 
@@ -106,195 +111,511 @@ const exportInputSchema = {
     },
 };
 
-const sampleRelease = Object.freeze({
-    releaseName: "PowerToys",
-    version: "v0.100.0",
-    releaseDate: "June 2026",
-    tagline: "A compact release with a brand-new utility, a huge Command Palette jump, and deeper platform polish.",
-    summary:
-        "PowerToys 0.100 ships the new Shortcut Guide, Command Palette's Extension Gallery and multi-monitor Dock, major Power Display reliability work, ZoomIt recording upgrades, and a .NET 10 platform refresh.",
-    emailSubject: "PowerToys v0.100.0 - top features, improvements, and contributors",
-    emailPreheader:
-        "Shortcut Guide arrives, Command Palette expands, and the release spotlights the contributors behind v0.100.",
-    heroStats: [
-        { label: "Headline features", value: "05" },
-        { label: "Modules touched", value: "15" },
-        { label: "Contributors thanked", value: "21" },
-        { label: "Platform leap", value: ".NET 10" },
-    ],
-    sections: [
-        {
-            title: "Shortcut Guide debuts as a context-aware side pane",
+let repositoryContext = resolveRepositoryContext("", "");
+let sampleRelease = Object.freeze(buildDefaultRelease(repositoryContext));
+
+function buildDefaultRelease(context) {
+    const releaseName = context.displayName;
+    const version = "vNext";
+    const releaseDate = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric",
+    }).format(new Date());
+
+    return {
+        releaseName,
+        version,
+        releaseDate,
+        tagline: `No release data loaded yet for ${releaseName}.`,
+        summary:
+            "Use Release source to load a tag or draft unreleased changes from repository history.",
+        emailSubject: `${releaseName} ${version} - release highlights`,
+        emailPreheader: `Release draft for ${releaseName}.`,
+        heroStats: [
+            { label: "Commits", value: "00" },
+            { label: "Merged PRs", value: "00" },
+            { label: "Closed issues", value: "00" },
+            { label: "Repository", value: context.repoSlug },
+        ],
+        sections: [],
+        contributors: [],
+        communityThanks: [],
+        otherChanges: [],
+        callToAction: {
+            label: "View repository",
+            url: context.repoUrl,
+        },
+    };
+}
+
+function resolveRepositoryContext(preferredWorkingDirectory, sessionId) {
+    const extensionDir = dirname(fileURLToPath(import.meta.url));
+    const sessionWorkingDirectory = readSessionWorkingDirectoryFromMetadata(sessionId);
+    const repoRoot =
+        findRepositoryRoot(preferredWorkingDirectory ?? "") ||
+        findRepositoryRoot(sessionWorkingDirectory) ||
+        findRepositoryRoot(process.cwd()) ||
+        findRepositoryRoot(extensionDir);
+    const repoName = repoRoot ? basename(repoRoot) : "current-repository";
+    const remoteUrl = repoRoot ? readRemoteOrigin(repoRoot) : "";
+    const parsed = parseRepositorySlug(remoteUrl);
+    const repoSlug = parsed ?? repoName;
+    const slugLeaf = repoSlug.split("/").at(-1) || repoName;
+    const displayName = humanizeRepoName(slugLeaf);
+    const repoUrl = parsed ? `https://github.com/${parsed}` : "https://github.com/";
+
+    return {
+        repoRoot,
+        repoSlug,
+        displayName,
+        repoUrl,
+    };
+}
+
+function findRepositoryRoot(startPath) {
+    if (!startPath) {
+        return "";
+    }
+
+    let current = startPath;
+
+    while (true) {
+        if (existsSync(join(current, ".git"))) {
+            return current;
+        }
+
+        const parent = dirname(current);
+        if (parent === current) {
+            return "";
+        }
+
+        current = parent;
+    }
+}
+
+function readRemoteOrigin(repoRoot) {
+    const result = spawnSync("git", ["-C", repoRoot, "config", "--get", "remote.origin.url"], {
+        encoding: "utf8",
+    });
+
+    if (result.status !== 0 || typeof result.stdout !== "string") {
+        return "";
+    }
+
+    return result.stdout.trim();
+}
+
+function parseRepositorySlug(remoteUrl) {
+    if (!remoteUrl) {
+        return "";
+    }
+
+    const httpsMatch = remoteUrl.match(/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/i);
+    if (httpsMatch?.[1]) {
+        return httpsMatch[1];
+    }
+
+    const sshMatch = remoteUrl.match(/github\.com:([^/]+\/[^/]+?)(?:\.git)?$/i);
+    if (sshMatch?.[1]) {
+        return sshMatch[1];
+    }
+
+    return "";
+}
+
+function humanizeRepoName(value) {
+    return value
+        .replace(/[-_]+/g, " ")
+        .trim()
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function readSessionWorkingDirectoryFromMetadata(sessionId) {
+    const resolvedSessionId =
+        pickString(sessionId, "") ||
+        pickString(process.env.SESSION_ID, "") ||
+        pickString(process.env.COPILOT_AGENT_SESSION_ID, "");
+    if (!resolvedSessionId) {
+        return "";
+    }
+
+    const metadataPath = join(
+        homedir(),
+        ".copilot",
+        "session-state",
+        resolvedSessionId,
+        "vscode.metadata.json",
+    );
+    const workspacePath = join(
+        homedir(),
+        ".copilot",
+        "session-state",
+        resolvedSessionId,
+        "workspace.yaml",
+    );
+
+    const candidatePaths = [metadataPath, workspacePath];
+    for (const path of candidatePaths) {
+        if (!existsSync(path)) {
+            continue;
+        }
+
+        let text = "";
+        try {
+            text = readFileSync(path, "utf8");
+        } catch {
+            continue;
+        }
+
+        const match = text.match(/^cwd:\s*(.+)$/m);
+        if (match?.[1]?.trim()) {
+            return match[1].trim();
+        }
+    }
+
+    return "";
+}
+
+function runGit(repoRoot, args) {
+    if (!repoRoot) {
+        return "";
+    }
+
+    const result = spawnSync("git", ["-C", repoRoot, ...args], {
+        encoding: "utf8",
+    });
+
+    if (result.status !== 0 || typeof result.stdout !== "string") {
+        return "";
+    }
+
+    return result.stdout.trim();
+}
+
+function listReleaseTags(repoRoot) {
+    const output = runGit(repoRoot, ["tag", "--sort=-creatordate"]);
+    if (!output) {
+        return [];
+    }
+
+    return output
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+}
+
+function readTagDate(repoRoot, tag) {
+    const output = runGit(repoRoot, ["log", "-1", "--date=short", "--format=%ad", tag]);
+    return output || "";
+}
+
+function readCommitSummaries(repoRoot, rangeExpr) {
+    const output = runGit(repoRoot, [
+        "log",
+        "--max-count=250",
+        "--pretty=format:%s%x1f%an",
+        rangeExpr,
+    ]);
+    if (!output) {
+        return [];
+    }
+
+    return output
+        .split(/\r?\n/)
+        .map((line) => line.split("\x1f"))
+        .filter((parts) => parts.length >= 2)
+        .map(([subject, author]) => ({
+            subject: cleanCommitSubject(subject),
+            author: pickString(author, "Contributor"),
+        }))
+        .filter((entry) => entry.subject);
+}
+
+function cleanCommitSubject(value) {
+    return pickString(value, "")
+        .replace(/^\w+(\([^)]+\))?!?:\s*/i, "")
+        .replace(/\s+\(#\d+\)\s*$/u, "")
+        .trim();
+}
+
+function classifyCommit(subject) {
+    const lower = subject.toLowerCase();
+    if (/^(feat|feature)\b/.test(lower) || /add|introduce|support|new/.test(lower)) {
+        return "feature";
+    }
+
+    if (/^(fix|perf|refactor)\b/.test(lower) || /improv|stabil|reliab|optim/.test(lower)) {
+        return "improvement";
+    }
+
+    return "quality";
+}
+
+function toReleaseStateFromCommits(context, commits, options) {
+    const releaseName = context.displayName;
+    const version = options.version;
+    const releaseDate = options.releaseDate;
+    const commitCount = commits.length;
+    const mergedPulls = Array.isArray(options.mergedPulls) ? options.mergedPulls : [];
+    const closedIssues = Array.isArray(options.closedIssues) ? options.closedIssues : [];
+
+    if (commitCount === 0) {
+        const emptyState = buildDefaultRelease(context);
+        return {
+            ...emptyState,
+            releaseName,
+            version,
+            releaseDate,
+            tagline: `No commit changes were detected for ${options.rangeLabel}.`,
+            summary: `There are no commits in ${options.rangeLabel}, so this draft starts from the repository template.`,
+            emailSubject: `${releaseName} ${version} - release highlights`,
+            emailPreheader: `No commit changes detected for ${options.rangeLabel}.`,
+            callToAction: {
+                label: options.callToActionLabel,
+                url: options.callToActionUrl,
+            },
+        };
+    }
+
+    const buckets = {
+        feature: [],
+        improvement: [],
+        quality: [],
+    };
+
+    const contributorCounts = new Map();
+    for (const commit of commits) {
+        const kind = classifyCommit(commit.subject);
+        buckets[kind].push(commit.subject);
+        contributorCounts.set(commit.author, (contributorCounts.get(commit.author) ?? 0) + 1);
+    }
+
+    const sections = [];
+    if (mergedPulls.length > 0) {
+        sections.push({
+            title: "Merged pull requests",
             kind: "feature",
-            summary:
-                "The new Shortcut Guide was rebuilt from the ground up and now detects the active app to show relevant shortcuts alongside Windows and PowerToys commands.",
-            metric: "New utility",
-            bullets: [
-                "Appears as a side pane that auto-detects the active application when invoked.",
-                "Bundles built-in manifests for Windows, PowerToys, and common apps.",
-                "Open to community PRs to add support for more applications.",
-            ],
+            summary: `Pull requests merged since ${options.sinceLabel}.`,
+            metric: `${mergedPulls.length} merged`,
+            bullets: mergedPulls.slice(0, 6).map((pull) => `#${pull.number} ${pull.title}`),
+        });
+    }
+    for (const kind of ["feature", "improvement", "quality"]) {
+        const entries = buckets[kind];
+        if (entries.length === 0) {
+            continue;
+        }
+
+        const kindTitle =
+            kind === "feature"
+                ? "Feature work shipped"
+                : kind === "improvement"
+                  ? "Improvements and fixes"
+                  : "Quality and maintenance updates";
+        const kindSummary =
+            kind === "feature"
+                ? "New capabilities and user-facing improvements landed in this release."
+                : kind === "improvement"
+                  ? "Stability, performance, and reliability updates were delivered."
+                  : "Foundational cleanup and maintenance work strengthened the codebase.";
+
+        sections.push({
+            title: kindTitle,
+            kind,
+            summary: kindSummary,
+            metric: `${entries.length} commits`,
+            bullets: entries.slice(0, 6),
+        });
+    }
+
+    const sortedContributors = [...contributorCounts.entries()]
+        .sort((left, right) => right[1] - left[1])
+        .slice(0, 6);
+
+    const contributors = sortedContributors.map(([name, count]) => ({
+        name,
+        githubHandle: "",
+        avatarUrl: "",
+        profileUrl: context.repoUrl,
+        area: count === 1 ? "1 commit" : `${count} commits`,
+        summary: `Contributed ${count} change${count === 1 ? "" : "s"} in ${options.rangeLabel}.`,
+    }));
+
+    const otherChanges = commits.slice(0, 7).map((commit) => ({
+        label: classifyCommit(commit.subject),
+        text: commit.subject,
+    }));
+    if (closedIssues.length > 0) {
+        otherChanges.unshift(
+            ...closedIssues.slice(0, 6).map((issue) => ({
+                label: `Issue #${issue.number}`,
+                text: issue.title,
+            })),
+        );
+    }
+
+    const featureCount = buckets.feature.length;
+
+    return {
+        releaseName,
+        version,
+        releaseDate,
+        tagline: `${commitCount} commits, ${mergedPulls.length} merged PRs, and ${closedIssues.length} closed issues since ${options.sinceLabel}.`,
+        summary: `This draft combines git history with merged pull requests and closed issues since ${options.sinceLabel}.`,
+        emailSubject: `${releaseName} ${version} - release highlights`,
+        emailPreheader: `${commitCount} commits, ${mergedPulls.length} merged PRs, and ${closedIssues.length} closed issues summarized from ${options.rangeLabel}.`,
+        heroStats: [
+            { label: "Commits", value: padCount(commitCount) },
+            { label: "Merged PRs", value: padCount(mergedPulls.length) },
+            { label: "Closed issues", value: padCount(closedIssues.length) },
+            { label: "Features", value: padCount(featureCount) },
+        ],
+        sections: sections.length > 0 ? sections : buildDefaultRelease(context).sections,
+        contributors: contributors.length > 0 ? contributors : buildDefaultRelease(context).contributors,
+        communityThanks: [],
+        otherChanges,
+        callToAction: {
+            label: options.callToActionLabel,
+            url: options.callToActionUrl,
         },
-        {
-            title: "Command Palette adds the Extension Gallery",
-            kind: "feature",
-            summary:
-                "Browse, discover, install, update, and remove community extensions without ever leaving Command Palette Settings.",
-            metric: "Biggest release area",
-            bullets: [
-                "Cached gallery data with extension details, screenshots, and WinGet progress.",
-                "New parameter pages let extensions prompt for inputs inline.",
-                "Dozens of search, reliability, and accessibility fixes shipped alongside.",
-            ],
-        },
-        {
-            title: "Command Palette Dock goes multi-monitor",
-            kind: "feature",
-            summary:
-                "Each monitor can now keep its own independent Dock layout, with drag-and-drop pinning and a smarter Pin to Dock flow.",
-            metric: "Power-user workflow",
-            bullets: [
-                "Drag dock bands between monitors and choose exactly where commands pin.",
-                "Drag-and-drop files and URLs straight onto the Dock to bookmark them.",
-                "Performance Monitor adds a Battery widget plus pinnable CPU, Memory, GPU, and Network metrics.",
-            ],
-        },
-        {
-            title: "Power Display pushes deeper on reliability and compatibility",
-            kind: "improvement",
-            summary:
-                "Startup, monitor detection, wake-from-sleep rescans, compatibility handling, and warning flows all got sharper in this release.",
-            metric: "Reliability focus",
-            bullets: [
-                "Faster startup with more reliable monitor identification across reboots.",
-                "New Max Compatibility Mode finds displays skipped by standard DDC discovery.",
-                "Escape to dismiss, mouse-wheel sliders, and a built-in problem-monitor blacklist.",
-            ],
-        },
-        {
-            title: "ZoomIt adds webcam overlay and multi-clip recording",
-            kind: "feature",
-            summary:
-                "Recording workflows now support a webcam overlay and appending multiple clips with transitions for faster demo creation.",
-            metric: "Creator workflow",
-            bullets: [
-                "Overlay your webcam while recording demos, presentations, and tutorials.",
-                "Append multiple clips with transitions without leaving ZoomIt.",
-                "Expose the 16:9 region-recording toggle directly in Settings.",
-            ],
-        },
-        {
-            title: "Foundations move to .NET 10 with leaner installs",
-            kind: "quality",
-            summary:
-                "PowerToys now runs on .NET 10, trims installer size, hardens auto-update, and is fully submodule-free.",
-            metric: "Platform refresh",
-            bullets: [
-                "Upgraded to .NET 10 (Visual Studio 2026 now required to build from source).",
-                "Installer footprint reduced (~11 MB) by removing unused dependencies.",
-                "Auto-update now relaunches cleanly and backs up configs before updating.",
-            ],
-        },
-    ],
-    contributors: [
-        {
-            name: "Noraa Junker",
-            githubHandle: "noraa-junker",
-            avatarUrl: "https://avatars.githubusercontent.com/u/58633848?v=4",
-            profileUrl: "https://github.com/noraa-junker",
-            area: "Shortcut Guide",
-            summary: "Built the new Shortcut Guide experience from the ground up.",
-        },
-        {
-            name: "Jiří Polášek",
-            githubHandle: "jiripolasek",
-            avatarUrl: "https://avatars.githubusercontent.com/u/4773077?v=4",
-            profileUrl: "https://github.com/jiripolasek",
-            area: "Command Palette",
-            summary: "Drove the Extension Gallery and major Command Palette improvements throughout the release.",
-        },
-        {
-            name: "Knyrps",
-            githubHandle: "Knyrps",
-            avatarUrl: "https://avatars.githubusercontent.com/u/122410661?v=4",
-            profileUrl: "https://github.com/Knyrps",
-            area: "Performance Monitor",
-            summary: "Built the Command Palette Performance Monitor Battery widget and fixed CPU dock readings.",
-        },
-        {
-            name: "Jeremy Sinclair",
-            githubHandle: "snickler",
-            avatarUrl: "https://avatars.githubusercontent.com/u/4016293?v=4",
-            profileUrl: "https://github.com/snickler",
-            area: ".NET 10 foundations",
-            summary: "Drove the .NET 10 upgrade and kept shared runtime packages current.",
-        },
-        {
-            name: "moooyo",
-            githubHandle: "moooyo",
-            avatarUrl: "https://avatars.githubusercontent.com/u/42196638?v=4",
-            profileUrl: "https://github.com/moooyo",
-            area: "Power Display",
-            summary: "Fixed a Power Display false-positive crash detection and tidied shipped-module tags.",
-        },
-    ],
-    communityThanks: [
-        "michaeljolley",
-        "chatasweetie",
-        "daverayment",
-        "namdpran8",
-        "Morma016",
-        "MardSilva",
-        "thetsaw",
-        "guidotorresmx",
-        "mikeclayton",
-        "Jay-o-Way",
-        "MuyuanMS",
-        "foxmsft",
-        "markrussinovich",
-        "jerone",
-        "DHowett",
-        "P-r-e-m-i-u-m",
-    ],
-    otherChanges: [
-        {
-            label: "Keyboard Manager",
-            text: "The redesigned WinUI 3 editor is now enabled by default.",
-        },
-        {
-            label: "Workspaces",
-            text: "Editor moved to Fluent WPF theming with a refreshed typography, spacing, and Mica layout.",
-        },
-        {
-            label: "Quick Accent",
-            text: "Standard PowerToys styling, sharper high-DPI behavior, and new Greek Polytonic support.",
-        },
-        {
-            label: "Mouse Without Borders",
-            text: "Added a Refresh Connections action to quickly reconnect devices.",
-        },
-        {
-            label: "Image Resizer",
-            text: "Settings changes are now picked up live without relaunching the flow.",
-        },
-        {
-            label: "Peek",
-            text: "Added a toggle to disable the on-hover file preview tooltip.",
-        },
-        {
-            label: "PowerToys Run",
-            text: "Friendlier calculator errors for complex-number results, plus a documented Disk Analyzer plugin.",
-        },
-        {
-            label: "Settings",
-            text: "Refreshed imagery, cleaner OOBE/SCOOBE layouts, and more reliable auto-update.",
-        },
-    ],
-    callToAction: {
-        label: "Read the full changelog",
-        url: "https://github.com/microsoft/PowerToys/releases/tag/v0.100.0",
-    },
-});
+    };
+}
+
+function getGitHubToken() {
+    const direct = pickString(process.env.GITHUB_TOKEN, "");
+    if (direct) {
+        return direct;
+    }
+
+    const key = Object.keys(process.env).find((name) =>
+        name.startsWith("COPILOT_GH_ACCOUNT_github_2E_com_"),
+    );
+    return key ? pickString(process.env[key], "") : "";
+}
+
+async function fetchGithubJson(url) {
+    const headers = {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "release-notes-showcase",
+    };
+    const token = getGitHubToken();
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, { headers });
+    if (!response.ok) {
+        return [];
+    }
+
+    const payload = await response.json();
+    return Array.isArray(payload) ? payload : [];
+}
+
+function normalizeIsoDate(dateValue) {
+    if (!dateValue) {
+        return "";
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+        return `${dateValue}T00:00:00Z`;
+    }
+
+    return dateValue;
+}
+
+async function fetchUnreleasedGithubSignals(context, sinceDate) {
+    if (!context.repoSlug.includes("/")) {
+        return { mergedPulls: [], closedIssues: [] };
+    }
+
+    const sinceIso = normalizeIsoDate(sinceDate);
+    if (!sinceIso) {
+        return { mergedPulls: [], closedIssues: [] };
+    }
+
+    const [owner, repo] = context.repoSlug.split("/");
+    const pullsUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls?state=closed&sort=updated&direction=desc&per_page=100`;
+    const issuesUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/issues?state=closed&since=${encodeURIComponent(sinceIso)}&sort=updated&direction=desc&per_page=100`;
+
+    try {
+        const [pulls, issues] = await Promise.all([
+            fetchGithubJson(pullsUrl),
+            fetchGithubJson(issuesUrl),
+        ]);
+
+        const mergedPulls = pulls
+            .filter((pull) => isRecord(pull) && typeof pull.merged_at === "string")
+            .filter((pull) => Date.parse(pull.merged_at) >= Date.parse(sinceIso))
+            .map((pull) => ({
+                number: Number(pull.number) || 0,
+                title: pickString(pull.title, "Merged pull request"),
+            }))
+            .filter((pull) => pull.number > 0);
+
+        const closedIssues = issues
+            .filter((issue) => isRecord(issue) && !issue.pull_request)
+            .filter((issue) => typeof issue.closed_at === "string")
+            .filter((issue) => Date.parse(issue.closed_at) >= Date.parse(sinceIso))
+            .map((issue) => ({
+                number: Number(issue.number) || 0,
+                title: pickString(issue.title, "Closed issue"),
+            }))
+            .filter((issue) => issue.number > 0);
+
+        return { mergedPulls, closedIssues };
+    } catch {
+        return { mergedPulls: [], closedIssues: [] };
+    }
+}
+
+async function buildReleaseFromRepository(context, mode, selectedTag) {
+    const tags = listReleaseTags(context.repoRoot);
+    const latestTag = tags[0] ?? "";
+
+    if (mode === "tag" && selectedTag && tags.includes(selectedTag)) {
+        const index = tags.indexOf(selectedTag);
+        const previousTag = index >= 0 && index < tags.length - 1 ? tags[index + 1] : "";
+        const rangeExpr = previousTag ? `${previousTag}..${selectedTag}` : selectedTag;
+        const releaseDate = readTagDate(context.repoRoot, selectedTag) || sampleRelease.releaseDate;
+        const commits = readCommitSummaries(context.repoRoot, rangeExpr);
+        const releaseUrl =
+            context.repoUrl !== "https://github.com/"
+                ? `${context.repoUrl}/releases/tag/${encodeURIComponent(selectedTag)}`
+                : context.repoUrl;
+
+        return toReleaseStateFromCommits(context, commits, {
+            version: selectedTag,
+            releaseDate,
+            rangeLabel: rangeExpr,
+            sinceLabel: previousTag || selectedTag,
+            callToActionLabel: `View ${selectedTag} release`,
+            callToActionUrl: releaseUrl,
+        });
+    }
+
+    const rangeExpr = latestTag ? `${latestTag}..HEAD` : "HEAD";
+    const commits = readCommitSummaries(context.repoRoot, rangeExpr);
+    const latestTagDate = latestTag ? readTagDate(context.repoRoot, latestTag) : "";
+    const unreleasedSignals = latestTagDate
+        ? await fetchUnreleasedGithubSignals(context, latestTagDate)
+        : { mergedPulls: [], closedIssues: [] };
+    const compareUrl =
+        context.repoUrl !== "https://github.com/" && latestTag
+            ? `${context.repoUrl}/compare/${encodeURIComponent(latestTag)}...HEAD`
+            : context.repoUrl;
+
+    return toReleaseStateFromCommits(context, commits, {
+        version: "vNext",
+        releaseDate: sampleRelease.releaseDate,
+        rangeLabel: rangeExpr,
+        sinceLabel: latestTag || "the beginning of the branch",
+        mergedPulls: unreleasedSignals.mergedPulls,
+        closedIssues: unreleasedSignals.closedIssues,
+        callToActionLabel: latestTag ? "Review unreleased commits" : "View repository",
+        callToActionUrl: compareUrl,
+    });
+}
 
 export const releaseNotesShowcaseCanvas = createCanvas({
     id: CANVAS_ID,
@@ -347,6 +668,8 @@ export const releaseNotesShowcaseCanvas = createCanvas({
         },
     ],
     open: async (ctx) => {
+        repositoryContext = resolveRepositoryContext(ctx.session?.workingDirectory, ctx.sessionId);
+        sampleRelease = Object.freeze(buildDefaultRelease(repositoryContext));
         const state = buildState(ctx.input);
 
         let entry = servers.get(ctx.instanceId);
@@ -406,7 +729,7 @@ function buildState(input) {
 
 function normalizeCommunityThanks(value) {
     if (!Array.isArray(value)) {
-        return sampleRelease.communityThanks.slice();
+        return [];
     }
 
     const handles = value
@@ -414,12 +737,12 @@ function normalizeCommunityThanks(value) {
         .map((handle) => handle.trim().replace(/^@/, ""))
         .filter((handle) => handle.length > 0);
 
-    return handles.length > 0 ? handles : sampleRelease.communityThanks.slice();
+    return handles;
 }
 
 function normalizeOtherChanges(value) {
     if (!Array.isArray(value) || value.length === 0) {
-        return sampleRelease.otherChanges.map((change) => ({ ...change }));
+        return [];
     }
 
     const changes = value
@@ -430,51 +753,59 @@ function normalizeOtherChanges(value) {
         }))
         .filter((change) => change.text);
 
-    return changes.length > 0 ? changes : sampleRelease.otherChanges.map((change) => ({ ...change }));
+    return changes;
 }
 
 function normalizeSections(value) {
     if (!Array.isArray(value) || value.length === 0) {
-        return sampleRelease.sections.map((section) => ({ ...section }));
+        return [];
     }
 
     return value
         .filter(isRecord)
-        .map((section, index) => {
-            const fallback = sampleRelease.sections[index % sampleRelease.sections.length];
-            const kind = isSectionKind(section.kind) ? section.kind : fallback.kind;
+        .map((section) => {
+            const kind = isSectionKind(section.kind) ? section.kind : "feature";
             const bullets = toStringArray(section.bullets);
+            const title = pickString(section.title, "");
+            const summary = pickString(section.summary, "");
+            if (!title || !summary) {
+                return null;
+            }
 
             return {
-                title: pickString(section.title, fallback.title),
+                title,
                 kind,
-                summary: pickString(section.summary, fallback.summary),
-                metric: pickString(section.metric, fallback.metric),
-                bullets: bullets.length > 0 ? bullets : fallback.bullets.slice(),
+                summary,
+                metric: pickString(section.metric, ""),
+                bullets,
             };
-        });
+        })
+        .filter(Boolean);
 }
 
 function normalizeContributors(value) {
     if (!Array.isArray(value) || value.length === 0) {
-        return sampleRelease.contributors.map((contributor) => ({ ...contributor }));
+        return [];
     }
 
     return value
         .filter(isRecord)
-        .map((contributor, index) => {
-            const fallback =
-                sampleRelease.contributors[index % sampleRelease.contributors.length];
+        .map((contributor) => {
+            const name = pickString(contributor.name, "");
+            if (!name) {
+                return null;
+            }
 
             return {
-                name: pickString(contributor.name, fallback.name),
-                githubHandle: pickString(contributor.githubHandle, fallback.githubHandle ?? ""),
-                avatarUrl: pickString(contributor.avatarUrl, fallback.avatarUrl ?? ""),
-                profileUrl: pickString(contributor.profileUrl, fallback.profileUrl ?? ""),
-                area: pickString(contributor.area, fallback.area),
-                summary: pickString(contributor.summary, fallback.summary),
+                name,
+                githubHandle: pickString(contributor.githubHandle, ""),
+                avatarUrl: pickString(contributor.avatarUrl, ""),
+                profileUrl: pickString(contributor.profileUrl, ""),
+                area: pickString(contributor.area, ""),
+                summary: pickString(contributor.summary, ""),
             };
-        });
+        })
+        .filter(Boolean);
 }
 
 function normalizeHeroStats(value, sections, contributors) {
@@ -490,10 +821,6 @@ function normalizeHeroStats(value, sections, contributors) {
         if (stats.length > 0) {
             return stats;
         }
-    }
-
-    if (Array.isArray(sampleRelease.heroStats) && sampleRelease.heroStats.length > 0) {
-        return sampleRelease.heroStats.map((stat) => ({ ...stat }));
     }
 
     return [
@@ -788,6 +1115,33 @@ async function startServer(initialState) {
         if (req.method === "POST" && requestUrl.pathname === "/actions/export-email") {
             const body = await readJsonBody(req);
             respondJson(res, buildExportPayload(state, body));
+            return;
+        }
+
+        if (req.method === "GET" && requestUrl.pathname === "/actions/release-options") {
+            const tags = listReleaseTags(repositoryContext.repoRoot);
+            respondJson(res, {
+                repository: repositoryContext.repoSlug,
+                tags: tags.map((tag) => ({ value: tag, label: tag })),
+                latestTag: tags[0] ?? "",
+            });
+            return;
+        }
+
+        if (req.method === "POST" && requestUrl.pathname === "/actions/load-release") {
+            const body = await readJsonBody(req);
+            const mode = pickString(body?.mode, "unreleased");
+            const selectedTag = pickString(body?.tag, "");
+            if (mode !== "unreleased" && mode !== "tag") {
+                respondJson(res, { error: "Invalid release mode." }, 400);
+                return;
+            }
+
+            state = await buildReleaseFromRepository(repositoryContext, mode, selectedTag);
+            respondJson(res, {
+                title: `${state.releaseName} ${state.version}`,
+                summary: state.summary,
+            });
             return;
         }
 
@@ -1358,6 +1712,28 @@ function renderHtml(state) {
         padding: 12px;
       }
 
+      .release-tools {
+        display: grid;
+        gap: 8px;
+      }
+
+      .control-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      select {
+        width: 100%;
+        min-height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(140, 143, 161, 0.3);
+        background: #ffffffcc;
+        color: #4c4f69;
+        font: inherit;
+        font-size: 13px;
+        padding: 7px 10px;
+      }
+
       .email-stack {
         display: grid;
         gap: 8px;
@@ -1560,9 +1936,9 @@ function renderHtml(state) {
           <div>
             <div class="brand">
               <span class="brand-mark"><span></span><span></span><span></span><span></span></span>
-              <span class="brand-name">Microsoft PowerToys</span>
+              <span class="brand-name">${escapeHtml(state.releaseName)} repository</span>
             </div>
-            <div class="eyebrow">${escapeHtml(state.releaseDate)} &middot; ✨ Fresh out of the toolbox</div>
+            <div class="eyebrow">${escapeHtml(state.releaseDate)} &middot; ✨ Fresh from the repo</div>
             <h1>${escapeHtml(state.releaseName)} <span class="version-chip">${escapeHtml(state.version)}</span></h1>
             <p class="tagline">${escapeHtml(state.tagline)}</p>
             <p class="summary">${escapeHtml(state.summary)}</p>
@@ -1581,19 +1957,41 @@ function renderHtml(state) {
         </div>
       </section>
 
+      <section class="panel" style="margin-top:10px;">
+        <div class="panel-header">
+          <div>
+            <h2>Release source</h2>
+            <p class="panel-subtitle">Pick an existing tag, or draft unreleased work merged/closed since the latest tag.</p>
+          </div>
+        </div>
+        <div class="email-panel">
+          <div class="release-tools">
+            <label class="email-label" for="release-tag">Release tag</label>
+            <select id="release-tag" aria-label="Release tag">
+              <option value="">Loading tags…</option>
+            </select>
+          </div>
+          <div class="button-row">
+            <button type="button" id="load-selected-release">Load selected release</button>
+            <button type="button" id="load-unreleased" class="secondary">Draft unreleased</button>
+          </div>
+          <div class="footnote">Unreleased drafts include commits plus merged PRs and closed issues since the latest tag.</div>
+        </div>
+      </section>
+
       <section class="content-grid">
         <div class="panel">
           <div class="panel-header">
             <div>
               <h2>Top hits</h2>
-              <p class="panel-subtitle">A denser dashboard view of the biggest feature work, improvements, and platform moves in v0.100.</p>
+              <p class="panel-subtitle">A denser dashboard view of the biggest feature work, improvements, and quality moves in this release.</p>
             </div>
           </div>
           <div class="sections-grid">${featureCards}</div>
           <div class="panel-header" style="border-top:1px solid rgba(140,143,161,0.18);">
             <div>
               <h2>Also in this release</h2>
-              <p class="panel-subtitle">Smaller but mighty updates landing across the rest of the suite.</p>
+              <p class="panel-subtitle">Smaller but mighty updates landing across the rest of the repository.</p>
             </div>
           </div>
           <ul class="change-list">${otherChangeRows}</ul>
@@ -1604,14 +2002,14 @@ function renderHtml(state) {
             <div class="panel-header">
               <div>
                 <h2>Contributors</h2>
-                <p class="panel-subtitle">Real GitHub profiles stay visible with avatars, focus areas, and the work they drove.</p>
+                <p class="panel-subtitle">Contributors detected in the current draft.</p>
               </div>
             </div>
             <div class="contributors">${contributorCards}</div>
             <div class="panel-header" style="border-top:1px solid rgba(140,143,161,0.18);padding-top:10px;">
               <div>
                 <h2 style="font-size:13px;">🙌 Community thanks</h2>
-                <p class="panel-subtitle">And many more amazing community contributors who shipped fixes this release.</p>
+                <p class="panel-subtitle">Additional contributor handles found in this draft.</p>
               </div>
             </div>
             <div class="thanks-wall">${communityChips}</div>
@@ -1654,6 +2052,9 @@ function renderHtml(state) {
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script>
       const toast = document.getElementById("toast");
+      const releaseTagSelect = document.getElementById("release-tag");
+      const loadSelectedReleaseButton = document.getElementById("load-selected-release");
+      const loadUnreleasedButton = document.getElementById("load-unreleased");
 
       async function requestExport(format) {
         const response = await fetch("/actions/export-email", {
@@ -1664,6 +2065,29 @@ function renderHtml(state) {
 
         if (!response.ok) {
           throw new Error("Export failed.");
+        }
+
+        return response.json();
+      }
+
+      async function requestReleaseOptions() {
+        const response = await fetch("/actions/release-options");
+        if (!response.ok) {
+          throw new Error("Could not load release tags.");
+        }
+
+        return response.json();
+      }
+
+      async function requestLoadRelease(mode, tag) {
+        const response = await fetch("/actions/load-release", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode, tag }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not load release draft.");
         }
 
         return response.json();
@@ -1686,6 +2110,56 @@ function renderHtml(state) {
         anchor.download = fileName;
         anchor.click();
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function setLoadingState(isLoading) {
+        loadSelectedReleaseButton.disabled = isLoading;
+        loadUnreleasedButton.disabled = isLoading;
+      }
+
+      async function loadRelease(mode) {
+        setLoadingState(true);
+        try {
+          const selectedTag = releaseTagSelect.value;
+          await requestLoadRelease(mode, selectedTag);
+          showToast(mode === "tag" ? "Release loaded." : "Unreleased draft loaded.");
+          window.setTimeout(() => {
+            window.location.reload();
+          }, 250);
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "Could not load release.");
+        } finally {
+          setLoadingState(false);
+        }
+      }
+
+      async function initReleasePicker() {
+        try {
+          const options = await requestReleaseOptions();
+          const tags = Array.isArray(options.tags) ? options.tags : [];
+
+          releaseTagSelect.innerHTML = "";
+          if (tags.length === 0) {
+            releaseTagSelect.innerHTML = '<option value="">No tags found</option>';
+            loadSelectedReleaseButton.disabled = true;
+            return;
+          }
+
+          for (const tag of tags) {
+            const option = document.createElement("option");
+            option.value = typeof tag.value === "string" ? tag.value : "";
+            option.textContent = typeof tag.label === "string" ? tag.label : option.value;
+            releaseTagSelect.appendChild(option);
+          }
+
+          if (typeof options.latestTag === "string" && options.latestTag) {
+            releaseTagSelect.value = options.latestTag;
+          }
+        } catch (error) {
+          releaseTagSelect.innerHTML = '<option value="">Could not load tags</option>';
+          loadSelectedReleaseButton.disabled = true;
+          showToast(error instanceof Error ? error.message : "Could not load release tags.");
+        }
       }
 
       async function copyPayload(format) {
@@ -1732,6 +2206,20 @@ function renderHtml(state) {
           }
         });
       });
+
+      loadSelectedReleaseButton.addEventListener("click", async () => {
+        if (!releaseTagSelect.value) {
+          showToast("Pick a release tag first.");
+          return;
+        }
+        await loadRelease("tag");
+      });
+
+      loadUnreleasedButton.addEventListener("click", async () => {
+        await loadRelease("unreleased");
+      });
+
+      initReleasePicker();
     </script>
   </body>
 </html>`;
