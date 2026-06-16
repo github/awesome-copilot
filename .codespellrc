@@ -18,6 +18,8 @@
 
 # rouge - Rouge is a syntax highlighter (not "rogue")
 
+# autor - Spanish word for "Author", used as intentional bilingual regex pattern in anonymize_sql.py
+
 # categor - TypeScript template literal in website/src/scripts/pages/skills.ts:70 (categor${...length > 1 ? "ies" : "y"})
 
 # aline - proper name (Aline Ávila, contributor)
@@ -54,7 +56,7 @@
 
 # CAF - Microsoft Cloud Adoption Framework acronym
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,autor
 
 # Skip certain files and directories
 
