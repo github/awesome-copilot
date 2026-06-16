@@ -241,6 +241,18 @@ The public-submission policy builds on those rules and also requires `license` p
 9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
 10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
 
+##### Updating listed external plugins via PR
+
+When a pull request updates `plugins/external.json` (for example, version updates for a previously approved listing), automation runs PR quality checks and posts the result directly on the PR:
+
+1. **Detect changed entries**: automation identifies added/updated external plugin entries in the PR.
+2. **Run quality gates**: automation runs install smoke tests and `skill-validator` checks against each changed plugin source ref/SHA/path.
+3. **Post source links**: automation updates a bot comment with per-plugin results and direct GitHub tree links to each plugin source location.
+4. **Sync workflow-state labels on the PR**:
+   - `ready-for-review` when all checks pass
+   - `requires-submitter-fixes` when quality checks fail due to plugin issues
+   - `awaiting-review` when checks cannot complete because of infrastructure/transient errors
+
 ##### Maintainer review responsibilities
 
 Maintainers are responsible for confirming that the submission:
