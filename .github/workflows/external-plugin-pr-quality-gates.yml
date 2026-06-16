@@ -13,8 +13,6 @@ concurrency:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 jobs:
   detect-changed-plugins:
@@ -113,6 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [detect-changed-plugins, run-quality-gates]
     if: always()
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout staged branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -122,6 +123,7 @@ jobs:
       - name: Sync labels and PR status comment
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         env:
+          DETECT_JOB_RESULT: ${{ needs.detect-changed-plugins.result }}
           SHOULD_RUN: ${{ needs.detect-changed-plugins.outputs.should-run }}
           CHANGED_COUNT: ${{ needs.detect-changed-plugins.outputs.changed-count }}
           QUALITY_RESULT_JSON: ${{ needs.run-quality-gates.outputs.quality-result }}
@@ -134,6 +136,7 @@ jobs:
             const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
             const marker = '<!-- external-plugin-pr-quality -->';
 
+            const detectJobResult = process.env.DETECT_JOB_RESULT;
             const shouldRun = process.env.SHOULD_RUN === 'true';
             const changedCount = Number.parseInt(process.env.CHANGED_COUNT || '0', 10);
             const qualityJobResult = process.env.QUALITY_JOB_RESULT;
@@ -145,7 +148,7 @@ jobs:
               summary: 'No changed external plugin entries were detected in this PR.',
             };
 
-            if ('${{ needs.detect-changed-plugins.result }}' === 'failure' || '${{ needs.detect-changed-plugins.result }}' === 'cancelled') {
+            if (detectJobResult === 'failure' || detectJobResult === 'cancelled') {
               qualityResult = {
                 overall_status: 'infra_error',
                 failure_class: 'infra',
@@ -190,7 +193,7 @@ jobs:
             const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins : [];
             const header = qualityResult.failure_class === 'submitter_fixes'
               ? '## ⚠️ External plugin PR checks require submitter fixes'
-              : qualityResult.overall_status === 'pass'
+              : qualityResult.overall_status === 'pass' || !shouldRun
                 ? '## ✅ External plugin PR checks passed'
                 : '## ⚠️ External plugin PR checks need maintainer follow-up';
 

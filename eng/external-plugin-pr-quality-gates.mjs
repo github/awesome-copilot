@@ -28,7 +28,7 @@ export function buildSourceTreeUrl(plugin) {
     return `https://github.com/${sourceRepo}`;
   }
 
-  const encodedLocator = encodePathLikeValue(sourceLocator);
+  const encodedLocator = encodeURIComponent(sourceLocator);
   const normalizedPath = normalizePluginPath(plugin?.source?.path);
   if (!normalizedPath) {
     return `https://github.com/${sourceRepo}/tree/${encodedLocator}`;
