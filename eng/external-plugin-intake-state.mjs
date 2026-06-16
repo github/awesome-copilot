@@ -34,21 +34,8 @@ const EXTERNAL_PLUGIN_INTAKE_SYNC_LABELS = Object.freeze([
 ]);
 
 async function ensureLabel({ github, owner, repo, name, config }) {
-  try {
-    await github.rest.issues.createLabel({
-      owner,
-      repo,
-      name,
-      color: config.color,
-      description: config.description,
-    });
-  } catch (error) {
-    // 422: Label already exists
-    // 403: Permission denied (e.g., fork contributor token without repo write access)
-    if (error.status !== 422 && error.status !== 403) {
-      throw error;
-    }
-  }
+  // Labels are now managed by the setup-labels workflow
+  // This function is no longer needed and labels are assumed to exist
 }
 
 async function removeLabel({ github, owner, repo, issueNumber, name }) {

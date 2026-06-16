@@ -192,19 +192,8 @@ jobs:
             };
 
             async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
+              // Labels are now managed by the setup-labels workflow
+              // This workflow assumes labels already exist and will fail if they don't
             }
 
             await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));

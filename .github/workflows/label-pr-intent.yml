@@ -92,19 +92,9 @@ jobs:
             }
 
             async function ensureLabel(name, { color, description }) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color,
-                  description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
+              // Labels are now managed by the setup-labels workflow
+              // This workflow assumes labels already exist and will fail if they don't
+              // To add a new label, dispatch the setup-labels workflow
             }
 
             const files = await listAllFiles();
