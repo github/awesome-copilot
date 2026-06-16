@@ -33,11 +33,6 @@ const EXTERNAL_PLUGIN_INTAKE_SYNC_LABELS = Object.freeze([
   "rejected",
 ]);
 
-async function ensureLabel({ github, owner, repo, name, config }) {
-  // Labels are now managed by the setup-labels workflow
-  // This function is no longer needed and labels are assumed to exist
-}
-
 async function removeLabel({ github, owner, repo, issueNumber, name }) {
   try {
     await github.rest.issues.removeLabel({
@@ -54,12 +49,6 @@ async function removeLabel({ github, owner, repo, issueNumber, name }) {
 }
 
 export async function syncExternalPluginIntakeLabels({ github, owner, repo, issueNumber, desiredLabels }) {
-  await Promise.all(
-    Object.entries(EXTERNAL_PLUGIN_INTAKE_LABELS).map(([name, config]) =>
-      ensureLabel({ github, owner, repo, name, config })
-    )
-  );
-
   const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
     owner,
     repo,

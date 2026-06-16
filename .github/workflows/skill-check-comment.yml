@@ -42,16 +42,7 @@ jobs:
               }
             };
 
-            async function ensureLabel(name, { color, description }) {
-              // Labels are now managed by the setup-labels workflow
-              // This workflow assumes labels already exist and will fail if they don't
-            }
-
             async function syncManagedLabels(issueNumber, desiredLabels) {
-              await Promise.all(
-                Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config))
-              );
-
               const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,

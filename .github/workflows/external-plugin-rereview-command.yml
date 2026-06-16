@@ -180,23 +180,6 @@ jobs:
           PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
         with:
           script: |
-            const managedLabels = {
-              're-review-due': {
-                color: 'FBCA04',
-                description: 'Approved external plugin is due for six-month re-review'
-              },
-              're-review-follow-up': {
-                color: 'D4C5F9',
-                description: 'Six-month re-review needs maintainer follow-up before a final decision'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              // Labels are now managed by the setup-labels workflow
-              // This workflow assumes labels already exist and will fail if they don't
-            }
-
-            await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
