@@ -1896,7 +1896,6 @@ body:has(#main-content) {
  
 .resource-thumbnail {
   width: clamp(120px, 24vw, 160px);
-  max-width: 38%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
   border-radius: var(--border-radius);
