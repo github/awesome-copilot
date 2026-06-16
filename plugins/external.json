@@ -494,7 +494,7 @@
   {
     "name": "ui5",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Create and validate UI5 projects, access API documentation, run UI5 linter, get development guidelines and best practices for UI5 development.",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -515,14 +515,13 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5",
-      "ref": "v0.1.3",
-      "sha": "9b3d7d80356f687725f9584988e4038dbead0d53"
+      "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
     }
   },
   {
     "name": "ui5-typescript-conversion",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "author": {
       "name": "SAP SE",
       "url": "https://www.sap.com"
@@ -544,8 +543,7 @@
       "source": "github",
       "repo": "UI5/plugins-coding-agents",
       "path": "plugins/ui5-typescript-conversion",
-      "ref": "v0.1.3",
-      "sha": "9b3d7d80356f687725f9584988e4038dbead0d53"
+      "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
     }
   },
   {
