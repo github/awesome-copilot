@@ -56,7 +56,7 @@
 
 # CAF - Microsoft Cloud Adoption Framework acronym
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,autor
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,autor,fase,diagrama,diagramas,analisis,requiere,comandos,cliente,manifiesto,historial,funcional,confirmas,regresion
 
 # Skip certain files and directories
 
