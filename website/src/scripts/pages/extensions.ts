@@ -95,6 +95,10 @@ function setupActionHandlers(list: HTMLElement | null): void {
 
     event.stopPropagation();
     const installUrl = installButton.dataset.installUrl || "";
+    if (!installUrl) {
+      showToast("No install URL available for this extension", "error");
+      return;
+    }
     const success = await copyToClipboard(installUrl);
     showToast(
       success ? "Install URL copied!" : "Failed to copy install URL",

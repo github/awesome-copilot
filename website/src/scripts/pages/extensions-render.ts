@@ -3,11 +3,15 @@ import { escapeHtml, getGitHubUrl, getLastUpdatedHtml } from "../utils";
 export interface RenderableExtension {
   id: string;
   name: string;
-  path: string;
-  ref: string;
+  path?: string | null;
+  ref?: string | null;
+  description?: string;
   lastUpdated?: string | null;
   imageUrl?: string | null;
   assetPath?: string | null;
+  installUrl?: string | null;
+  sourceUrl?: string | null;
+  external?: boolean;
 }
 
 export type ExtensionSortOption = "title" | "lastUpdated";
@@ -38,8 +42,19 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
   }
 
   return items
-    .map(
-      (item) => `
+    .map((item) => {
+      const installUrl =
+        item.installUrl ||
+        (item.path && item.ref
+          ? `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
+             /\\/g,
+             "/"
+           )}`
+          : "");
+      const sourceUrl =
+        item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
+
+      return `
         <article class="resource-item" role="listitem">
           <div class="resource-preview">
            ${
@@ -51,8 +66,15 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
            }
            <div class="resource-info">
              <div class="resource-title">${escapeHtml(item.name)}</div>
-             <div class="resource-description">Canvas extension</div>
+             <div class="resource-description">${escapeHtml(
+               item.description || "Canvas extension"
+             )}</div>
              <div class="resource-meta">
+               ${
+                 item.external
+                   ? '<span class="resource-tag">External</span>'
+                   : ""
+               }
                ${getLastUpdatedHtml(item.lastUpdated)}
              </div>
            </div>
@@ -60,22 +82,22 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
           <div class="resource-actions">
             <button
               class="btn btn-primary btn-small copy-install-url-btn"
-              data-install-url="${escapeHtml(
-                `https://github.com/github/awesome-copilot/tree/${item.ref}/${item.path.replace(
-                  /\\/g,
-                  "/"
-                )}`
-              )}"
+              data-install-url="${escapeHtml(installUrl)}"
               title="Copy install URL"
+              ${installUrl ? "" : "disabled"}
             >
               Install
             </button>
-            <a href="${getGitHubUrl(
-              item.path
-            )}" class="btn btn-secondary btn-small" target="_blank" rel="noopener noreferrer" title="View on GitHub">GitHub</a>
+            ${
+              sourceUrl
+                ? `<a href="${escapeHtml(
+                    sourceUrl
+                  )}" class="btn btn-secondary btn-small" target="_blank" rel="noopener noreferrer" title="View source">Source</a>`
+                : ""
+            }
           </div>
         </article>
-      `
-    )
+      `;
+    })
     .join("");
 }
