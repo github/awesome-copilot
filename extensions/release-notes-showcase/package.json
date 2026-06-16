@@ -1,0 +1,10 @@
+{
+  "name": "release-notes-showcase",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Release notes canvas for building polished release communications and exports.",
+  "dependencies": {
+    "@github/copilot-sdk": "1.0.1"
+  }
+}
