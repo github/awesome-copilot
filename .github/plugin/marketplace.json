@@ -841,7 +841,7 @@
     {
       "name": "sonarqube",
       "description": "SonarQube is the AI code quality and security verification platform used by millions of developers to catch bugs, vulnerabilities, and leaked secrets. This plugin enforces those standards in the coding loop: 7,500+ distinct issue types, secrets scanning, agentic analysis, and quality gates across 40+ languages.",
-      "version": "2.0.0",
+      "version": "2.2.0",
       "author": {
         "name": "Sonar",
         "url": "https://sonarsource.com/"
@@ -859,7 +859,7 @@
       "source": {
         "source": "github",
         "repo": "SonarSource/sonarqube-agent-plugins",
-        "ref": "2.0.0"
+        "ref": "2.2.0"
       }
     },
     {
