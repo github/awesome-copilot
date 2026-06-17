@@ -1,7 +1,7 @@
 {
   "id": "gesture-review",
   "name": "Gesture PR Review",
-  "description": "Users review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
+  "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
   "version": "1.0.0",
   "keywords": [
     "camera-input",

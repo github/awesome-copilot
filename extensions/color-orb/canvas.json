@@ -1,7 +1,7 @@
 {
   "id": "color-orb",
   "name": "Color Orb",
-  "description": "Gives users a visual orb they can ask the agent to recolor while showing a live activity log in the canvas.",
+  "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
   "version": "1.0.0",
   "keywords": [
     "agent-actions",

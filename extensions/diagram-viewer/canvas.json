@@ -1,7 +1,7 @@
 {
   "id": "diagram",
   "name": "Diagram Explorer",
-  "description": "Lets users render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
+  "description": "Render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
   "version": "1.0.0",
   "keywords": [
     "architecture-mapping",

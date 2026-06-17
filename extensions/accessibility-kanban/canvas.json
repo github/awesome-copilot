@@ -1,7 +1,7 @@
 {
   "id": "accessibility-kanban",
   "name": "Accessibility Kanban",
-  "description": "Users drag accessibility issues across kanban lanes to plan, track, and complete remediation work.",
+  "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
   "version": "1.0.0",
   "keywords": [
     "accessibility",
