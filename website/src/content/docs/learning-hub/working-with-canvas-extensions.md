@@ -118,6 +118,7 @@ Use these extension folders as concrete references:
 - [`Backlog Swipe Triage`](../../extensions/#backlog-swipe-triage): swipe-based issue triage surface for fast backlog decisions.
 - [`Release Notes Showcase`](../../extensions/#release-notes-showcase): release notes authoring and review canvas pattern.
 - [`Chromium Control Canvas`](../../extensions/#chromium-control-canvas): advanced canvas that coordinates panel controls with a real headful Chromium window.
+- [`Agent Arcade`](../../extensions/#agent-arcade-canvas): retro arcade canvas with agent-callable controls for choosing or restarting mini-games while agents work.
 
 These examples show different complexity levels, from focused workflow boards to richer UI + automation integrations.
 
