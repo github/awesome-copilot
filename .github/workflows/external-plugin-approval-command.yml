@@ -9,7 +9,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  issues: write
+  pull-requests: write
+  contents: read
 
 jobs:
   sync-merged-pr-labels:
@@ -24,20 +25,6 @@ jobs:
           script: |
             const prNumber = context.payload.pull_request.number;
             const staleLabels = ['awaiting-review', 'awaiting-approval', 'ready-for-review', 'rejected'];
-
-            try {
-              await github.rest.issues.createLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: 'approved',
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              });
-            } catch (error) {
-              if (error.status !== 422) {
-                throw error;
-              }
-            }
 
             const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
