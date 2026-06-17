@@ -1,0 +1,24 @@
+{
+  "id": "color-orb",
+  "name": "Color Orb",
+  "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
+  "version": "1.0.0",
+  "keywords": [
+    "agent-actions",
+    "color-picker",
+    "interactive-demo",
+    "realtime-updates",
+    "sse-events",
+    "visual-feedback"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}
