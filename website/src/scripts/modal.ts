@@ -26,7 +26,7 @@ type ModalViewMode = "rendered" | "raw";
 let currentFilePath: string | null = null;
 let currentFileContent: string | null = null;
 let currentFileType: string | null = null;
-let currentViewMode: ModalViewMode = "raw";
+let currentViewMode: ModalViewMode = "rendered";
 let triggerElement: HTMLElement | null = null;
 let originalDocumentTitle: string | null = null;
 
@@ -896,7 +896,7 @@ export async function openFileModal(
 
   currentFilePath = filePath;
   currentFileType = type;
-  currentViewMode = "raw";
+  currentViewMode = "rendered";
 
   // Track trigger element for focus return
   triggerElement =
@@ -1288,7 +1288,7 @@ export function closeModal(updateUrl = true): void {
   currentFilePath = null;
   currentFileContent = null;
   currentFileType = null;
-  currentViewMode = "raw";
+  currentViewMode = "rendered";
   triggerElement = null;
   hideSkillFileSwitcher();
 }
