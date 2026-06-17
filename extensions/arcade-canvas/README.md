@@ -54,7 +54,7 @@ In the Agent Arcade repository, rebuild the committed canvas bundle after fronte
 npm run build:canvas
 ```
 
-That command builds the frontend, copies `dist/game` into `game/`, copies `dist/assets` into `assets/`, and writes `assets/preview.png` for the Awesome Copilot gallery.
+That command builds the frontend, copies `dist/game` into `game/`, copies `dist/assets` into `assets/`, writes `assets/preview.png` for the Awesome Copilot gallery, and bundles `assets/canvas-background.webp` for the canvas-only space backdrop.
 
 ## Credits
 

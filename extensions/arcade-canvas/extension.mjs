@@ -11,6 +11,8 @@ const gameRoot = path.join(__dirname, "game");
 const assetsRoot = path.join(__dirname, "assets");
 const indexPath = path.join(gameRoot, "index.html");
 const gameJsPath = path.join(gameRoot, "game.js");
+const alienOnslaughtJsPath = path.join(gameRoot, "scenes", "AlienOnslaught.js");
+const galaxyBlasterJsPath = path.join(gameRoot, "scenes", "GalaxyBlaster.js");
 
 const games = [
     { key: "cosmic-rocks", label: "Cosmic Rocks", icon: "☄️" },
@@ -22,6 +24,7 @@ const games = [
 
 const gameKeys = new Set(games.map((game) => game.key));
 const defaultGame = "ninja-runner";
+const canvasBackgroundGames = ["cosmic-rocks", "alien-onslaught", "galaxy-blaster", "defender"];
 const servers = new Map();
 
 function normalizeGameKey(value) {
@@ -95,6 +98,12 @@ async function renderIndex(entry) {
 (() => {
   const selectedGame = ${JSON.stringify(entry.selectedGame)};
   const games = ${JSON.stringify(games)};
+  const canvasBackgroundGames = ${JSON.stringify(canvasBackgroundGames)};
+  let switchingGames = false;
+  try {
+    localStorage.setItem("agentArcade_pauseKey", "Escape");
+    localStorage.setItem("agentArcade_unpauseKey", "Ctrl+Escape");
+  } catch {}
 
   function storeGame(gameKey) {
     try { localStorage.setItem("agentArcade_lastGame", gameKey); } catch {}
@@ -103,9 +112,12 @@ async function renderIndex(entry) {
   function selectGame(gameKey) {
     if (!games.some((game) => game.key === gameKey)) return;
     storeGame(gameKey);
+    applyCanvasBackdrop(gameKey);
+    setTimeout(() => applyCanvasBackdrop(gameKey), 150);
     const selector = document.getElementById("game-select");
     if (selector) selector.value = gameKey;
     if (window.__agentArcadeSwitchGame) {
+      markSwitchingGame();
       window.__agentArcadeSwitchGame(gameKey);
       return;
     }
@@ -114,6 +126,7 @@ async function renderIndex(entry) {
       attempts += 1;
       if (window.__agentArcadeSwitchGame) {
         clearInterval(timer);
+        markSwitchingGame();
         window.__agentArcadeSwitchGame(gameKey);
       } else if (attempts > 40) {
         clearInterval(timer);
@@ -121,13 +134,122 @@ async function renderIndex(entry) {
     }, 100);
   }
 
+  function applyCanvasBackdrop(gameKey) {
+    try {
+      const useSpaceBackground = canvasBackgroundGames.includes(gameKey);
+      document.body.classList.toggle("canvas-space-background", useSpaceBackground);
+      localStorage.setItem("agentArcade_bgDefault_v2", "1");
+      localStorage.setItem("agentArcade_bgTransparency", useSpaceBackground ? "0" : "100");
+      const scenes = window.__phaserGame?.scene?.scenes ?? [];
+      for (const scene of scenes) {
+        if (typeof scene.setBackdropAlpha === "function") {
+          scene.setBackdropAlpha(useSpaceBackground ? 0 : 100);
+        }
+        scene._backdrop?.setAlpha?.(useSpaceBackground ? 0 : 1);
+      }
+    } catch {}
+  }
+
+  function isHudOverlayOpen() {
+    return document.getElementById("settings-overlay")?.classList.contains("show")
+      || document.getElementById("help-overlay")?.classList.contains("show");
+  }
+
+  function isTextInput(target) {
+    const el = target;
+    return !!el?.closest?.("input, textarea, select, [contenteditable='true']");
+  }
+
+  function markSwitchingGame() {
+    switchingGames = true;
+    setTimeout(() => { switchingGames = false; }, 600);
+  }
+
+  function pauseCanvas() {
+    if (document.body.classList.contains("paused")) return;
+    window.__agentArcadePauseScene?.(true);
+    document.getElementById("hud")?.classList.add("paused");
+    document.body.classList.add("paused");
+    document.getElementById("gameover-overlay")?.style.setProperty("display", "none");
+    document.getElementById("wave-banner")?.style.setProperty("display", "none");
+    document.getElementById("help-overlay")?.classList.remove("show");
+    document.getElementById("ready-overlay")?.remove();
+  }
+
+  function resumeCanvas() {
+    if (!document.body.classList.contains("paused") && !document.getElementById("hud")?.classList.contains("paused")) return;
+    if (!switchingGames) {
+      window.__agentArcadePauseScene?.(false);
+    }
+    document.getElementById("hud")?.classList.remove("paused");
+    document.body.classList.remove("paused");
+    setTimeout(() => document.querySelector("#game canvas")?.focus?.(), 50);
+  }
+
+  window.agentArcade = {
+    setClickThrough: () => {},
+    setPaused: (paused) => paused ? pauseCanvas() : resumeCanvas(),
+    onResumeRequest: () => {},
+    quitApp: () => {},
+    hideApp: () => {},
+  };
+
+  function handleCanvasHotkey(event) {
+    if (event.__agentArcadeCanvasHandled) return;
+    if (event.code !== "Escape" || isTextInput(event.target) || isHudOverlayOpen()) return;
+    event.__agentArcadeCanvasHandled = true;
+    if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      resumeCanvas();
+      return;
+    }
+    if (!event.altKey && !event.metaKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      pauseCanvas();
+    }
+  }
+
+  window.addEventListener("keydown", handleCanvasHotkey, true);
+  document.addEventListener("keydown", handleCanvasHotkey, true);
+
+  document.getElementById("resume-btn")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    resumeCanvas();
+  }, true);
+
+  document.getElementById("game-select")?.addEventListener("change", () => {
+    markSwitchingGame();
+  }, true);
+
   storeGame(selectedGame);
+  applyCanvasBackdrop(selectedGame);
   setTimeout(() => selectGame(selectedGame), 300);
+  setTimeout(() => applyCanvasBackdrop(selectedGame), 800);
 
   const style = document.createElement("style");
   style.textContent = \`
-    html, body { background: var(--background-color-default, #050814) !important; }
-    #hud { top: 12px !important; max-width: calc(100vw - 32px); gap: 12px !important; transform: translateX(-50%) scale(0.92); transform-origin: top center; }
+    html, body, body.paused, #game {
+      background-color: #02040d !important;
+    }
+    body.canvas-space-background,
+    body.canvas-space-background.paused,
+    body.canvas-space-background #game {
+      background-image:
+        radial-gradient(circle at 50% 35%, rgba(18, 34, 88, 0.35), rgba(2, 4, 13, 0.18) 42%, rgba(2, 4, 13, 0.78) 100%),
+        url('/assets/canvas-background.webp') !important;
+      background-position: center, center !important;
+      background-repeat: no-repeat, no-repeat !important;
+      background-size: cover, cover !important;
+    }
+    canvas { background: transparent !important; }
+    #bg-transparency { display: none !important; }
+    #bg-transparency-value::before { content: 'Canvas backdrop'; }
+    #bg-transparency-value { font-size: 0 !important; }
+    #bg-transparency-value::before { font-size: 12px !important; }
+    #hud { top: 12px !important; max-width: calc(100vw - 32px); gap: 12px !important; transform: translateX(-50%); transform-origin: top center; }
     #minimize-btn, #close-btn, #drag-handle { display: none !important; }
     #update-banner { display: none !important; }
     @media (max-width: 760px) {
@@ -156,6 +278,25 @@ async function renderGameJs() {
         .replaceAll("newW > 800 && newH > 400", "newW > 320 && newH > 220")
         .replaceAll("game && newH > 400", "game && newH > 220")
         .replaceAll("window.innerWidth > 800 && window.innerHeight > 400", "window.innerWidth > 320 && window.innerHeight > 220");
+}
+
+async function renderAlienOnslaughtJs() {
+    const js = await readFile(alienOnslaughtJsPath, "utf8");
+    const layoutH = "Math.min(H, W * 3 / 4)";
+    const layoutY = `((H - ${layoutH}) / 2)`;
+    return js
+        .replace("this.playerY = H * 0.92;", `this.playerY = ${layoutY} + ${layoutH} * 0.95;`)
+        .replace("this.alienGridY = Math.max(H * 0.20, 120);", `this.alienGridY = Math.max(${layoutY} + ${layoutH} * 0.10, 80);`)
+        .replace("const targetShieldH = H * 0.055;", `const targetShieldH = ${layoutH} * 0.065;`)
+        .replace("SCALE = Math.min(W / 1920, H / 1080);", "SCALE = Math.max(1.25, Math.min(W / 1920, H / 1080));")
+        .replace("this.alienCellW = Math.round(W * 0.055);", "this.alienCellW = Math.round(W * 0.068);");
+}
+
+async function renderGalaxyBlasterJs() {
+    const js = await readFile(galaxyBlasterJsPath, "utf8");
+    return js
+        .replaceAll("SCALE = Math.min(CONV_X, CONV_Y);", "SCALE = Math.max(1.7, Math.min(CONV_X, CONV_Y));")
+        .replaceAll("OPPONENT_SIZE = Math.min(32 * SCALE, W / 35);", "OPPONENT_SIZE = Math.max(54, Math.min(32 * SCALE, W / 24));");
 }
 
 async function streamFile(res, filePath) {
@@ -247,6 +388,24 @@ async function handleRequest(entry, req, res) {
                 "cache-control": "no-cache",
             });
             res.end(await renderGameJs());
+            return;
+        }
+
+        if (url.pathname === "/scenes/AlienOnslaught.js" || url.pathname === "/game/scenes/AlienOnslaught.js") {
+            res.writeHead(200, {
+                "content-type": "text/javascript; charset=utf-8",
+                "cache-control": "no-cache",
+            });
+            res.end(await renderAlienOnslaughtJs());
+            return;
+        }
+
+        if (url.pathname === "/scenes/GalaxyBlaster.js" || url.pathname === "/game/scenes/GalaxyBlaster.js") {
+            res.writeHead(200, {
+                "content-type": "text/javascript; charset=utf-8",
+                "cache-control": "no-cache",
+            });
+            res.end(await renderGalaxyBlasterJs());
             return;
         }
 
