@@ -1,0 +1,24 @@
+{
+  "id": "backlog-swipe-triage",
+  "name": "Backlog Swipe Triage",
+  "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
+  "version": "1.0.0",
+  "keywords": [
+    "agent-assignment",
+    "backlog-triage",
+    "github-issues",
+    "issue-prioritization",
+    "swipe-interface",
+    "workflow-automation"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

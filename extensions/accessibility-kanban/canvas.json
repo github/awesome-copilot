@@ -1,0 +1,24 @@
+{
+  "id": "accessibility-kanban",
+  "name": "Accessibility Kanban",
+  "description": "Kanban board to manage accessibility issues, allow you to plan, track, and complete remediation work.",
+  "version": "1.0.0",
+  "keywords": [
+    "accessibility",
+    "github-issues",
+    "issue-triage",
+    "kanban-board",
+    "planning-workflow",
+    "status-tracking"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

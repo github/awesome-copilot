@@ -1,0 +1,24 @@
+{
+  "id": "where-was-i",
+  "name": "Where Was I?",
+  "description": "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
+  "version": "1.0.0",
+  "keywords": [
+    "branch-state",
+    "developer-context",
+    "git-history",
+    "interrupt-recovery",
+    "pull-request-context",
+    "resume-work"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

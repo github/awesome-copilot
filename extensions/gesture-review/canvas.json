@@ -1,0 +1,24 @@
+{
+  "id": "gesture-review",
+  "name": "Gesture PR Review",
+  "description": "Review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
+  "version": "1.0.0",
+  "keywords": [
+    "camera-input",
+    "gesture-control",
+    "github-prs",
+    "hands-free",
+    "mediapipe",
+    "pull-request-review"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

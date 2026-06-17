@@ -11,6 +11,7 @@ tags:
   - agents
   - parallel-work
 relatedArticles:
+  - ./using-automations-in-copilot-app.md
   - ./using-copilot-coding-agent.md
   - ./agentic-workflows.md
   - ./what-are-agents-skills-instructions.md
@@ -73,6 +74,8 @@ This makes it easy to dispatch multiple agents and trust they won't interfere wi
 - A canvas might display a plan, a pull request diff, a terminal output, or a live browser session
 - Agents update the canvas as they work, and you can edit, approve, or redirect changes on the same surface
 - This makes it easy to see exactly what an agent is doing and step in when needed
+
+For a hands-on guide to building canvases with `/create-canvas`, see [Working with Canvas Extensions](../working-with-canvas-extensions/).
 
 ### Agent Merge
 
