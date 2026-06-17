@@ -42,7 +42,8 @@ jobs:
               if (parts[0] === EXTENSIONS_DIR && parts.length >= 2) {
                 const extName = parts[1];
                 // Skip the external-assets directory — it's not a canvas extension
-                if (extName !== EXTERNAL_ASSETS_DIR) {
+                // Also skip external.json and other files at extensions root level
+                if (extName !== EXTERNAL_ASSETS_DIR && !extName.includes('.')) {
                   changedExtDirs.add(path.join(EXTENSIONS_DIR, extName));
                 }
               }
