@@ -79,6 +79,7 @@ export async function initHomepage(): Promise<void> {
   initHeroSearch();
   initRevealAnimations();
   initSpotlightCards();
+  initFloatingStats();
 }
 
 function populateStats(counts: Manifest["counts"]): void {
@@ -178,6 +179,30 @@ function initSpotlightCards(): void {
       htmlCard.style.setProperty('--spotlight-y', `${e.clientY - rect.top}px`);
     });
   });
+}
+
+function initFloatingStats(): void {
+  const statsRibbon = document.getElementById('stats-ribbon');
+  if (!statsRibbon) return;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) return;
+
+  const headerHeight = parseInt(
+    getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '72',
+    10
+  );
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        statsRibbon.classList.toggle('is-floating', !entry.isIntersecting);
+      });
+    },
+    { threshold: 0, rootMargin: `-${headerHeight}px 0px 0px 0px` }
+  );
+
+  observer.observe(statsRibbon);
 }
 
 function initHeroSearch(): void {
