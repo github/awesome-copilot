@@ -275,49 +275,6 @@ jobs:
           PR_NUMBER: ${{ steps.approval_pr.outputs.pr-number }}
         with:
           script: |
-            const managedLabels = {
-              'external-plugin': {
-                color: 'FEF2C0',
-                description: 'Public external plugin submission'
-              },
-              'awaiting-review': {
-                color: 'FBCA04',
-                description: 'Submission is waiting for automated intake validation'
-              },
-              'ready-for-review': {
-                color: '0E8A16',
-                description: 'Submission passed intake validation and is ready for maintainer review'
-              },
-              'requires-submitter-fixes': {
-                color: 'D93F0B',
-                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
-              },
-              'approved': {
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              },
-              'rejected': {
-                color: 'B60205',
-                description: 'Submission was rejected by a maintainer'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function removeLabel(issueNumber, name) {
               try {
                 await github.rest.issues.removeLabel({
@@ -334,7 +291,14 @@ jobs:
             }
 
             async function syncIssueLabels(issueNumber, desiredLabels) {
-              await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
+              const managedLabels = {
+                'external-plugin': true,
+                'awaiting-review': true,
+                'ready-for-review': true,
+                'requires-submitter-fixes': true,
+                'approved': true,
+                'rejected': true
+              };
 
               const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
                 owner: context.repo.owner,
@@ -438,49 +402,6 @@ jobs:
           PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
         with:
           script: |
-            const managedLabels = {
-              'external-plugin': {
-                color: 'FEF2C0',
-                description: 'Public external plugin submission'
-              },
-              'awaiting-review': {
-                color: 'FBCA04',
-                description: 'Submission is waiting for automated intake validation'
-              },
-              'ready-for-review': {
-                color: '0E8A16',
-                description: 'Submission passed intake validation and is ready for maintainer review'
-              },
-              'requires-submitter-fixes': {
-                color: 'D93F0B',
-                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
-              },
-              'approved': {
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              },
-              'rejected': {
-                color: 'B60205',
-                description: 'Submission was rejected by a maintainer'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function removeLabel(name) {
               try {
                 await github.rest.issues.removeLabel({
@@ -496,7 +417,6 @@ jobs:
               }
             }
 
-            await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,

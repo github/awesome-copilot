@@ -1,0 +1,148 @@
+name: Setup Repository Labels
+
+on:
+  workflow_dispatch
+
+permissions:
+  issues: write
+
+jobs:
+  setup-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const labels = {
+              // Intent labels for PR categorization
+              'targets-main': {
+                color: 'B60205',
+                description: 'PR targets main instead of staged'
+              },
+              'branched-main': {
+                color: 'D93F0B',
+                description: 'PR appears to include plugin files materialized from main'
+              },
+              'skills': {
+                color: '1D76DB',
+                description: 'PR touches skills'
+              },
+              'plugin': {
+                color: '5319E7',
+                description: 'PR touches plugins'
+              },
+              'agent': {
+                color: '0E8A16',
+                description: 'PR touches agents'
+              },
+              'instructions': {
+                color: 'FBCA04',
+                description: 'PR touches instructions'
+              },
+              'new-submission': {
+                color: '006B75',
+                description: 'PR adds at least one new contribution'
+              },
+              'website-update': {
+                color: '0052CC',
+                description: 'PR touches website content or code'
+              },
+              'external-plugin': {
+                color: 'FEF2C0',
+                description: 'Public external plugin submission'
+              },
+              'hooks': {
+                color: 'C2E0C6',
+                description: 'PR touches hooks'
+              },
+              'workflow': {
+                color: 'BFD4F2',
+                description: 'PR touches workflow automation'
+              },
+              // External plugin intake state labels
+              'awaiting-review': {
+                color: 'FBCA04',
+                description: 'Submission is waiting for automated intake validation'
+              },
+              'ready-for-review': {
+                color: '0E8A16',
+                description: 'Submission passed intake validation and is ready for maintainer review'
+              },
+              'requires-submitter-fixes': {
+                color: 'D93F0B',
+                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
+              },
+              'approved': {
+                color: '1D76DB',
+                description: 'Submission was approved by a maintainer'
+              },
+              'rejected': {
+                color: 'B60205',
+                description: 'Submission was rejected by a maintainer'
+              },
+              // Re-review labels
+              'removed': {
+                color: 'B60205',
+                description: 'External plugin was removed from the marketplace after re-review'
+              },
+              're-review-follow-up': {
+                color: 'D4C5F9',
+                description: 'Six-month re-review needs maintainer follow-up before a final decision'
+              },
+              'awaiting-approval': {
+                color: 'FBCA04',
+                description: 'External plugin awaiting maintainer approval'
+              }
+            };
+
+            let created = 0;
+            let updated = 0;
+            let failed = 0;
+
+            for (const [name, config] of Object.entries(labels)) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color: config.color,
+                  description: config.description
+                });
+                created++;
+                core.info(`✓ Created label: ${name}`);
+              } catch (error) {
+                if (error.status === 422) {
+                  // Label already exists, try to update it
+                  try {
+                    await github.rest.issues.updateLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      name,
+                      color: config.color,
+                      description: config.description
+                    });
+                    updated++;
+                    core.info(`✓ Updated label: ${name}`);
+                  } catch (updateError) {
+                    failed++;
+                    core.error(`✗ Failed to update label ${name}: ${updateError.message}`);
+                  }
+                } else {
+                  failed++;
+                  core.error(`✗ Failed to create label ${name}: ${error.message}`);
+                }
+              }
+            }
+
+            core.info(`
+            Label setup complete:
+            - Created: ${created}
+            - Updated: ${updated}
+            - Failed: ${failed}
+            - Total: ${Object.keys(labels).length}
+            `);
+
+            if (failed > 0) {
+              throw new Error(`Failed to setup ${failed} label(s)`);
+            }
