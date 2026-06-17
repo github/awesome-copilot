@@ -1026,7 +1026,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     for (const canvas of canvasEntries) {
       const canvasId = normalizeText(canvas.id, dir.name);
       const canvasName = normalizeText(canvas.displayName, formatDisplayName(canvasId));
-      const canvasDescription = normalizeText(canvas.description, extensionDescription);
+      const canvasDescription = normalizeText(extensionDescription, canvas.description);
       items.push({
         id: canvasId,
         canvasId,
