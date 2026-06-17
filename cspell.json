@@ -1,6 +1,0 @@
-{
-  "version": "0.2",
-  "ignorePaths": [
-    "extensions/arcade-canvas/game/phaser.min.js"
-  ]
-}
