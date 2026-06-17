@@ -1,0 +1,24 @@
+{
+  "id": "release-notes-showcase",
+  "name": "Release Notes Showcase",
+  "description": "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
+  "version": "1.0.0",
+  "keywords": [
+    "changelog",
+    "contributor-callouts",
+    "email-export",
+    "launch-summary",
+    "product-updates",
+    "release-notes"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

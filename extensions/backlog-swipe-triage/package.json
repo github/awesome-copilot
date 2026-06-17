@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "main": "extension.mjs",
-  "description": "Swipe-driven backlog triage canvas for reviewing open issues and assigning implementation work.",
   "dependencies": {
     "@github/copilot-sdk": "1.0.1"
-  }
+  },
+  "description": "Users quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
+  "keywords": [
+    "backlog-triage",
+    "swipe-interface",
+    "issue-prioritization",
+    "github-issues",
+    "agent-assignment",
+    "workflow-automation"
+  ]
 }

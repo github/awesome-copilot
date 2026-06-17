@@ -666,7 +666,7 @@ const session = await joinSession({
         createCanvas({
             id: "where-was-i",
             displayName: "Where Was I?",
-            description: "Interrupt Recovery — reconstructs your working context (branch, commits, changes, PRs) so you can resume after being pulled away.",
+            description: "Reconstruct your dev context (branch, commits, uncommitted work, PR clues) and trigger a resume prompt to continue quickly.",
             actions: [
                 {
                     name: "refresh",

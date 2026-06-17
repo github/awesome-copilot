@@ -5,5 +5,14 @@
   "main": "extension.mjs",
   "dependencies": {
     "@github/copilot-sdk": "latest"
-  }
+  },
+  "description": "Users drag accessibility issues across kanban lanes to plan, track, and complete remediation work.",
+  "keywords": [
+    "accessibility",
+    "kanban-board",
+    "issue-triage",
+    "planning-workflow",
+    "status-tracking",
+    "github-issues"
+  ]
 }

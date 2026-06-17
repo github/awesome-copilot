@@ -621,7 +621,7 @@ export const releaseNotesShowcaseCanvas = createCanvas({
     id: CANVAS_ID,
     displayName: CANVAS_TITLE,
     description:
-        "Presents release notes as a high-impact launch summary with contributor callouts and email-ready export output.",
+        "Compose and refine launch-ready release notes with contributor callouts and export-friendly output.",
     inputSchema: releaseNotesInputSchema,
     actions: [
         {

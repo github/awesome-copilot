@@ -561,7 +561,7 @@ const session = await joinSession({
 			id: "chromium-control-canvas",
 			displayName: "Chromium Control Canvas",
 			description:
-				"Control canvas for a real headful Chromium window driven by Playwright.",
+				"Opens a real Chromium window you can navigate and interact with from a Copilot canvas control panel and agent actions.",
 			inputSchema: {
 				type: "object",
 				properties: {

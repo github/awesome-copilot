@@ -5,5 +5,14 @@
   "main": "extension.mjs",
   "dependencies": {
     "@github/copilot-sdk": "latest"
-  }
+  },
+  "description": "Users review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
+  "keywords": [
+    "pull-request-review",
+    "gesture-control",
+    "camera-input",
+    "hands-free",
+    "github-prs",
+    "mediapipe"
+  ]
 }
