@@ -1,6 +1,6 @@
 #:package GitHub.Copilot.SDK@*
 
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Create and start client
 await using var client = new CopilotClient();
@@ -33,12 +33,11 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
   Model = "claude-opus-4.6",
   Streaming = true,
   OnPermissionRequest = PermissionHandler.ApproveAll,
-  McpServers = new Dictionary<string, object>()
+  McpServers = new Dictionary<string, McpServerConfig>()
   {
     ["playwright"] =
-        new McpLocalServerConfig
+        new McpStdioServerConfig
         {
-          Type = "local",
           Command = "npx",
           Args = ["@playwright/mcp@latest"],
           Tools = ["*"]

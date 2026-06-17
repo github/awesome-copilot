@@ -32,7 +32,7 @@ dotnet run recipe/accessibility-report.cs
 ```csharp
 #:package GitHub.Copilot.SDK@*
 
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Create and start client
 await using var client = new CopilotClient();
@@ -65,12 +65,11 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
     Model = "claude-opus-4.6",
     Streaming = true,
     OnPermissionRequest = PermissionHandler.ApproveAll,
-    McpServers = new Dictionary<string, object>()
+    McpServers = new Dictionary<string, McpServerConfig>()
     {
         ["playwright"] =
-        new McpLocalServerConfig
+        new McpStdioServerConfig
         {
-            Type = "local",
             Command = "npx",
             Args = ["@playwright/mcp@latest"],
             Tools = ["*"]
@@ -209,11 +208,10 @@ The recipe configures a local MCP server that runs alongside the session:
 
 ```csharp
 OnPermissionRequest = PermissionHandler.ApproveAll,
-McpServers = new Dictionary<string, object>()
+McpServers = new Dictionary<string, McpServerConfig>()
 {
-    ["playwright"] = new McpLocalServerConfig
+    ["playwright"] = new McpStdioServerConfig
     {
-        Type = "local",
         Command = "npx",
         Args = ["@playwright/mcp@latest"],
         Tools = ["*"]
