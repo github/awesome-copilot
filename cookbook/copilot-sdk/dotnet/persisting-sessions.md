@@ -88,9 +88,17 @@ foreach (var evt in events)
         case AssistantMessageEvent assistant:
             Console.WriteLine($"[assistant] {assistant.Data.Content}");
             break;
+        default:
+            // Sessions can also contain other events (tool calls, tool results, system events).
+            Console.WriteLine($"[{evt.GetType().Name}]");
+            break;
     }
 }
 ```
+
+> A session's event stream may include event kinds beyond user and assistant messages
+> (for example tool calls, tool results, and system events). Handle the ones you care
+> about and fall back to a default case so nothing is silently dropped.
 
 ## Best practices
 

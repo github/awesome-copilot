@@ -194,7 +194,7 @@ if (generateTests == "y" || generateTests == "yes")
 
 ## How it works
 
-1. **Playwright MCP server**: Configures a local MCP server running `@playwright/mcp` to provide browser automation tools
+1. **Playwright MCP server**: Configures a local stdio MCP server (`McpStdioServerConfig`, launched via `npx`) running `@playwright/mcp` to provide browser automation tools
 2. **Streaming output**: Uses `Streaming = true` and `AssistantMessageDeltaEvent` for real-time token-by-token output
 3. **Accessibility snapshot**: Playwright's `browser_snapshot` tool captures the full accessibility tree of the page
 4. **Structured report**: The prompt engineers a consistent WCAG-aligned report format with emoji severity indicators
@@ -204,7 +204,7 @@ if (generateTests == "y" || generateTests == "yes")
 
 ### MCP server configuration
 
-The recipe configures a local MCP server that runs alongside the session:
+The recipe configures a local stdio MCP server (`McpStdioServerConfig`, launched via `npx`) that runs alongside the session:
 
 ```csharp
 OnPermissionRequest = PermissionHandler.ApproveAll,

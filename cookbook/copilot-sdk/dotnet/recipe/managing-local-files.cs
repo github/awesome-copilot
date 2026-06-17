@@ -1,6 +1,7 @@
 #:package GitHub.Copilot.SDK@*
 #:property PublishAot=false
 
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
 using GitHub.Copilot;
 
 // Create and start client

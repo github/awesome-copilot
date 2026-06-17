@@ -2,6 +2,7 @@
 #:property PublishAot=false
 
 using System.Diagnostics;
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
 using GitHub.Copilot;
 
 // ============================================================================

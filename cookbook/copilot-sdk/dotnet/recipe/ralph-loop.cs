@@ -1,5 +1,6 @@
 #:package GitHub.Copilot.SDK@*
 
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
 using GitHub.Copilot;
 
 // Ralph loop: autonomous AI task loop with fresh context per iteration.
