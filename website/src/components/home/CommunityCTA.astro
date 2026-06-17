@@ -10,9 +10,6 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
   <div class="container">
     <div class="community-card glass-card reveal">
       <div class="community-card-content">
-        <div class="community-card-icon" aria-hidden="true">
-          <Icon name="mark-github" size={48} />
-        </div>
         <div class="community-card-text">
           <h2 id="community-heading">Built by developers, for developers</h2>
           <p>
@@ -31,10 +28,7 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
         <a href={contributorsUrl} class="btn btn-secondary">
           View contributors
         </a>
-        <a href={githubUrl} class="btn btn-outline github-btn" target="_blank" rel="noopener">
-          <span class="github-btn__icon" aria-hidden="true">
-            <Icon name="mark-github" size={24} />
-          </span>
+        <a href={githubUrl} class="btn btn-outline" target="_blank" rel="noopener">
           Star on GitHub
         </a>
       </div>
@@ -62,18 +56,6 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
     align-items: flex-start;
     flex: 1;
     min-width: min(100%, 420px);
-  }
-
-  .community-card-icon {
-    flex-shrink: 0;
-    width: 64px;
-    height: 64px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--border-radius);
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-emphasis);
   }
 
   .community-card-text h2 {
@@ -104,7 +86,6 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
     }
 
     .community-card-content {
-      flex-direction: column;
       align-items: center;
       min-width: 100%;
     }

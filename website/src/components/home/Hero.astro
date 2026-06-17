@@ -1,6 +1,13 @@
 ---
 import Icon from '../Icon.astro';
+import StatsRibbon from './StatsRibbon.astro';
+import type { Stat } from './StatsRibbon.astro';
 
+interface Props {
+  stats: Stat[];
+}
+
+const { stats } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const githubUrl = 'https://github.com/github/awesome-copilot';
 ---
@@ -48,13 +55,10 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
       </a>
       <a
         href={githubUrl}
-        class="btn btn-outline github-btn"
+        class="btn btn-outline"
         target="_blank"
         rel="noopener"
       >
-        <span class="github-btn__icon" aria-hidden="true">
-          <Icon name="mark-github" size={24} />
-        </span>
         Star on GitHub
       </a>
     </div>
@@ -62,5 +66,7 @@ const githubUrl = 'https://github.com/github/awesome-copilot';
     <p class="hero-micro reveal">
       No setup required — Awesome Copilot is already registered as a default marketplace.
     </p>
+
+    <StatsRibbon stats={stats} />
   </div>
 </section>

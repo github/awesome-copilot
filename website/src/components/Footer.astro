@@ -1,5 +1,4 @@
 ---
-import Icon from "./Icon.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 
 const base = import.meta.env.BASE_URL;
@@ -33,9 +32,6 @@ const resourceLinks = [
     <div class="footer-grid">
       <div class="footer-brand">
         <a href={base} class="footer-brand-link" aria-label="Awesome GitHub Copilot home">
-          <span class="footer-logo" aria-hidden="true">
-            <Icon name="mark-github" size={28} />
-          </span>
           <span class="footer-title">Awesome GitHub Copilot</span>
         </a>
         <p class="footer-tagline">
