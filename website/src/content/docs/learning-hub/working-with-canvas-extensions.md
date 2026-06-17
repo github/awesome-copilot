@@ -107,7 +107,7 @@ Treat `joinSession` + `createCanvas` as the contract between UI interactions and
 
 Reference implementations:
 
-- SDK docs: [`joinSession` + `createCanvas`](https://github.com/github/copilot-sdk/blob/main/nodejs/docs/extensions.md)
+- SDK docs/source: [`joinSession`](https://github.com/github/copilot-sdk/blob/main/nodejs/docs/extensions.md), [`createCanvas`](https://github.com/github/copilot-sdk/blob/main/nodejs/src/canvas.ts)
 - Repo example: [`extensions/backlog-swipe-triage/extension.mjs`](https://github.com/github/awesome-copilot/blob/main/extensions/backlog-swipe-triage/extension.mjs)
 - Persistent user-scoped path example: [`extensions/chromium-control-canvas/extension.mjs`](https://github.com/github/awesome-copilot/blob/main/extensions/chromium-control-canvas/extension.mjs)
 
