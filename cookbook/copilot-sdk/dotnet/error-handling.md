@@ -15,7 +15,7 @@ You need to handle various error conditions like connection failures, timeouts, 
 ## Basic try-catch
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 var client = new CopilotClient();
 
@@ -134,15 +134,22 @@ Console.CancelKeyPress += async (sender, e) =>
     e.Cancel = true;
     Console.WriteLine("Shutting down...");
 
-    var errors = await client.StopAsync();
-    if (errors.Count > 0)
+    try
     {
-        Console.WriteLine($"Cleanup errors: {string.Join(", ", errors)}");
+        await client.StopAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Cleanup error: {ex.Message}");
     }
 
     Environment.Exit(0);
 };
 ```
+
+> In 1.0, `StopAsync()` throws if it encounters errors during cleanup rather than returning a
+> list of cleanup errors, so wrap it in a try/catch to log failures instead of letting them
+> crash shutdown. Use `ForceStopAsync()` if a graceful stop takes too long.
 
 ## Using await using for automatic disposal
 
@@ -163,7 +170,7 @@ var session = await client.CreateSessionAsync(new SessionConfig
 
 ## Best practices
 
-Starting with Copilot SDK v0.1.28, permission handling is opt-in. If a session may need tool, file, or system access, set `OnPermissionRequest` explicitly when creating it.
+Permission handling is opt-in. If a session may need tool, file, or system access, set `OnPermissionRequest` explicitly when creating it.
 
 1. **Always clean up**: Use try-finally or `await using` to ensure `StopAsync()` is called
 2. **Handle connection errors**: The CLI might not be installed or running

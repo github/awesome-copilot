@@ -42,7 +42,7 @@ A [Ralph loop](https://ghuntley.com/ralph/) is an autonomous development workflo
 The minimal Ralph loop — the SDK equivalent of `while :; do cat PROMPT.md | copilot ; done`:
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 var client = new CopilotClient();
 await client.StartAsync();
@@ -96,7 +96,7 @@ This is all you need to get started. The prompt file tells the agent what to do;
 The full Ralph pattern with planning and building modes, matching the [Ralph Playbook](https://github.com/ClaytonFarr/ralph-playbook) architecture:
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Parse args: dotnet run [plan] [max_iterations]
 var mode = args.Contains("plan") ? "plan" : "build";

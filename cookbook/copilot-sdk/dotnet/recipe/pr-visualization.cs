@@ -2,7 +2,8 @@
 #:property PublishAot=false
 
 using System.Diagnostics;
-using GitHub.Copilot.SDK;
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
+using GitHub.Copilot;
 
 // ============================================================================
 // Git & GitHub Detection
@@ -126,7 +127,7 @@ var owner = parts[0];
 var repoName = parts[1];
 
 // Create Copilot client - no custom tools needed!
-await using var client = new CopilotClient(new CopilotClientOptions { LogLevel = "error" });
+await using var client = new CopilotClient(new CopilotClientOptions { LogLevel = CopilotLogLevel.Error });
 await client.StartAsync();
 
 var session = await client.CreateSessionAsync(new SessionConfig
