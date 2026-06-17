@@ -30,7 +30,8 @@ jobs:
               'website-update': true,
               'external-plugin': true,
               'hooks': true,
-              'workflow': true
+              'workflow': true,
+              'canvas-extension': true
             };
 
             const matchesAny = (filename, patterns) => patterns.some((pattern) => pattern.test(filename));
@@ -90,12 +91,16 @@ jobs:
                 /^workflows\/.+\.md$/,
                 /^\.github\/workflows\/.+\.(?:ya?ml|md)$/
               ],
+              canvasExtension: [
+                /^extensions\/[^/]+\//
+              ],
               newSubmission: [
                 /^agents\/.+\.agent\.md$/,
                 /^instructions\/.+\.instructions\.md$/,
                 /^skills\/[^/]+\/SKILL\.md$/,
                 /^hooks\/[^/]+\/(?:README\.md|hooks\.json)$/,
                 /^plugins\/[^/]+\/\.github\/plugin\/plugin\.json$/,
+                /^extensions\/[^/]+\/extension\.mjs$/,
                 /^workflows\/.+\.md$/,
                 /^\.github\/workflows\/.+\.(?:ya?ml|md)$/,
                 /^website\//
@@ -146,6 +151,10 @@ jobs:
 
               if (filenames.some((filename) => matchesAny(filename, patterns.workflow))) {
                 desiredLabels.add('workflow');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.canvasExtension))) {
+                desiredLabels.add('canvas-extension');
               }
 
               if (hasNewSubmission) {
