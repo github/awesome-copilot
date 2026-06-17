@@ -77,6 +77,8 @@ await client.DeleteSessionAsync("user-123-conversation");
 Retrieve all events from a session:
 
 ```csharp
+using GitHub.Copilot; // UserMessageEvent, AssistantMessageEvent, etc. live in this namespace
+
 var events = await session.GetEventsAsync();
 foreach (var evt in events)
 {

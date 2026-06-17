@@ -147,6 +147,10 @@ Console.CancelKeyPress += async (sender, e) =>
 };
 ```
 
+> In 1.0, `StopAsync()` throws if it encounters errors during cleanup rather than returning a
+> list of cleanup errors, so wrap it in a try/catch to log failures instead of letting them
+> crash shutdown. Use `ForceStopAsync()` if a graceful stop takes too long.
+
 ## Using await using for automatic disposal
 
 ```csharp
