@@ -1,5 +1,5 @@
 {
-  "id": "arcade-canvas",
+  "id": "agent-arcade-canvas",
   "name": "Agent Arcade",
   "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
   "version": "1.0.0",
