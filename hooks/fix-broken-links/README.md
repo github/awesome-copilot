@@ -149,6 +149,7 @@ hook stops after the broken-link list — the menu above is skipped.
 
 - `curl` — HTTP status checks (the hook exits quietly if absent)
 - `grep`, `sed` — link extraction (standard on any POSIX system)
+- `jq` — required by the bash hook to parse the postToolUse JSON payload and discover edited files
 - Bash 4+ (for `link-fix.sh`); on Windows use Git Bash or WSL, or run the PowerShell 7+ port
  `link-fix.ps1`
 - `copilot` (GitHub Copilot CLI) — optional; powers the agent-suggested replacements. Without it,
@@ -169,6 +170,7 @@ hook stops after the broken-link list — the menu above is skipped.
 
 - Only checks absolute `http://` and `https://` URLs; relative paths require a running server
 - Dynamic links generated at runtime from database queries are not detectable from source alone
+- When `copilot` suggestions are enabled, broken URLs are sent to the Copilot service as prompt input
 - Agent-suggested replacements are model proposals and are not verified live; confirm each before
  accepting
 - The `d` (remove) action targets HTML and Markdown link syntax; bare URLs in code are best handled

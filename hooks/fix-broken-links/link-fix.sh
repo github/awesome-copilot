@@ -40,24 +40,26 @@ _HOOK=""
 if [ "$#" -eq 0 ] && [ ! -t 0 ]; then
   _HOOK=1                      # invoked as a hook: stdin carries the tool payload
   _INPUT=$(cat)
-  _TOOL=$(printf '%s' "$_INPUT" | jq -r '.toolName // .tool_name // empty' 2>/dev/null)
-  case "$_TOOL" in
-    editFiles|edit|write|str_replace_editor|create_file|multiEdit|applyPatch)
-      # Only the files this edit tool just changed — never a wider repo scan.
-      mapfile -t _FILES < <(
-        printf '%s' "$_INPUT" \
-          | jq -r '.tool_input.files[]? // .toolInput.files[]? // .tool_input.path // .toolInput.path // empty' 2>/dev/null
-      )
-      [ "${#_FILES[@]}" -gt 0 ] && set -- "${_FILES[@]}"
-      ;;
-    "")
-      # No tool context — called manually with piped input, fall through
-      ;;
-    *)
-      # Different tool (bash, read, etc.) — nothing to check
-      exit 0
-      ;;
-  esac
+  if command -v jq >/dev/null 2>&1; then
+    _TOOL=$(printf '%s' "$_INPUT" | jq -r '.toolName // .tool_name // empty' 2>/dev/null)
+    case "$_TOOL" in
+      editFiles|edit|write|str_replace_editor|create_file|multiEdit|applyPatch)
+        # Only the files this edit tool just changed — never a wider repo scan.
+        mapfile -t _FILES < <(
+          printf '%s' "$_INPUT" \
+            | jq -r '.tool_input.files[]? // .toolInput.files[]? // .tool_input.path // .toolInput.path // empty' 2>/dev/null
+        )
+        [ "${#_FILES[@]}" -gt 0 ] && set -- "${_FILES[@]}"
+        ;;
+      "")
+        # No tool context — called manually with piped input, fall through
+        ;;
+      *)
+        # Different tool (bash, read, etc.) — nothing to check
+        exit 0
+        ;;
+    esac
+  fi
 fi
 
 # A non-empty positional list means the caller passed files: the edited files from
@@ -171,7 +173,7 @@ find_variation() {
 agent_alts() {
   local url="$1" max="$2" prompt out
   command -v copilot >/dev/null 2>&1 || return 0
-  prompt="In under ${AGENT_TIMEOUT-5} seconds, find up to ${max} working alternative URLs for the broken link ${url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  prompt="In under $((AGENT_TIMEOUT - 5)) seconds, find up to ${max} working alternative URLs for the broken link ${url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
   # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.
   out="$(FIX_BROKEN_LINKS_AGENT=1 $AGENT_RUN copilot -p "$prompt" \
           -s --no-color --model "$AGENT_MODEL" --available-tools 2>/dev/null)"

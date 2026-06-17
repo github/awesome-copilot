@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 # fix-broken-links — link-fix.ps1  (PowerShell 7+ port of link-fix.sh)
 #
 # After the agent edits files (postToolUse): take the files it just changed,
@@ -91,7 +91,9 @@ function Get-HttpStatus {
               -UserAgent $UA -ErrorAction Stop
     return [string][int]$resp.StatusCode
   } catch {
-    return Write-Output $_.Exception.Response.StatusCode.Value__
+    $resp = $_.Exception.Response
+    if ($resp -and $resp.StatusCode) { return [string][int]$resp.StatusCode }
+    return 'ERR'
   }
 }
 
