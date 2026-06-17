@@ -2,11 +2,26 @@ import { escapeHtml, getGitHubUrl, getLastUpdatedHtml } from "../utils";
 
 export interface RenderableExtension {
   id: string;
+  canvasId?: string;
+  extensionId?: string;
+  extensionName?: string;
   name: string;
   path?: string | null;
   ref?: string | null;
+  version?: string | null;
   description?: string;
   lastUpdated?: string | null;
+  keywords?: string[];
+  screenshots?: {
+    icon?: {
+      path?: string | null;
+      type?: string | null;
+    } | null;
+    gallery?: {
+      path?: string | null;
+      type?: string | null;
+    } | null;
+  } | null;
   imageUrl?: string | null;
   assetPath?: string | null;
   installUrl?: string | null;
@@ -69,6 +84,18 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
              <div class="resource-description">${escapeHtml(
                item.description || "Canvas extension"
              )}</div>
+             <div class="resource-keywords">
+               ${
+                 item.keywords && item.keywords.length > 0
+                   ? item.keywords
+                       .map(
+                         (kw) =>
+                           `<span class="keyword-tag">${escapeHtml(kw)}</span>`
+                       )
+                       .join("")
+                   : ""
+               }
+             </div>
              <div class="resource-meta">
                ${
                  item.external

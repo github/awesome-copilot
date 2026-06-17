@@ -1971,6 +1971,23 @@ body:has(#main-content) {
   color: var(--color-text-muted);
 }
 
+.resource-keywords {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.keyword-tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 3px 8px;
+  background-color: var(--color-bg-tertiary);
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
 .resource-actions {
   display: flex;
   gap: 8px;
