@@ -1267,6 +1267,11 @@ body:has(#main-content) {
   border-top: 1px solid var(--color-border);
   background: var(--color-bg-secondary);
   color: var(--color-text-muted);
+  /* Break out of Starlight's centered content column and span the full viewport */
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .footer-inner {
