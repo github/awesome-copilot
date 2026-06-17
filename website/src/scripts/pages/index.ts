@@ -72,14 +72,13 @@ export async function initHomepage(): Promise<void> {
       }
     });
 
-    // Populate and animate stat ribbon
+    // Populate hero stats
     populateStats(manifest.counts);
   }
 
   initHeroSearch();
   initRevealAnimations();
   initSpotlightCards();
-  initFloatingStats();
 }
 
 function populateStats(counts: Manifest["counts"]): void {
@@ -103,7 +102,7 @@ function populateStats(counts: Manifest["counts"]): void {
       (counts.tools ?? 0),
   };
 
-  document.querySelectorAll('.stat-value[data-stat]').forEach((el) => {
+  document.querySelectorAll('.hero-stat-value[data-stat]').forEach((el) => {
     const key = el.getAttribute('data-stat') as keyof typeof statValues;
     if (!key || !(key in statValues)) return;
     const target = statValues[key];
@@ -179,30 +178,6 @@ function initSpotlightCards(): void {
       htmlCard.style.setProperty('--spotlight-y', `${e.clientY - rect.top}px`);
     });
   });
-}
-
-function initFloatingStats(): void {
-  const statsRibbon = document.getElementById('stats-ribbon');
-  if (!statsRibbon) return;
-
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (prefersReducedMotion) return;
-
-  const headerHeight = parseInt(
-    getComputedStyle(document.documentElement).getPropertyValue('--header-height') || '72',
-    10
-  );
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        statsRibbon.classList.toggle('is-floating', !entry.isIntersecting);
-      });
-    },
-    { threshold: 0, rootMargin: `-${headerHeight}px 0px 0px 0px` }
-  );
-
-  observer.observe(statsRibbon);
 }
 
 function initHeroSearch(): void {
