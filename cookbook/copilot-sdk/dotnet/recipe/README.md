@@ -50,25 +50,28 @@ Some recipes have side effects or external dependencies. Expand each section for
 <summary><strong>⚠️ Managing Local Files</strong> — Modifies your filesystem</summary>
 
 Before running on a real directory, test it on a copy first.
+Run these snippets from this recipe directory so the recipe path is captured before switching to the temporary folder.
 
 **PowerShell:**
 ```powershell
+$recipeDir = (Get-Location).Path
 $tempDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine([IO.Path]::GetTempPath(), "copilot-test-files"))
 @("document1.txt", "image1.png", "data.json") | ForEach-Object { 
     New-Item -Path "$tempDir/$_" -ItemType File
 }
 cd $tempDir
-dotnet run "$PSScriptRoot/managing-local-files.cs"
+dotnet run "$recipeDir/managing-local-files.cs"
 # Inspect results, then clean up
 Remove-Item $tempDir -Recurse
 ```
 
 **Bash:**
 ```bash
+recipeDir=$(pwd)
 tempDir=$(mktemp -d)
 touch "$tempDir"/{document1.txt,image1.png,data.json}
 cd "$tempDir"
-dotnet run "$(dirname "$0")/managing-local-files.cs"
+dotnet run "$recipeDir/managing-local-files.cs"
 # Inspect results, then clean up
 rm -rf "$tempDir"
 ```
@@ -80,9 +83,11 @@ Edit the `targetFolder` variable in the `.cs` file to point to your test directo
 <summary><strong>⚠️ Ralph Loop</strong> — Creates git commits and modifies files</summary>
 
 Always run it in an isolated git repository first to verify behavior.
+Run these snippets from this recipe directory so the recipe path is captured before switching to the temporary repository.
 
 **PowerShell:**
 ```powershell
+$recipeDir = (Get-Location).Path
 $tempDir = New-Item -ItemType Directory -Path ([IO.Path]::Combine([IO.Path]::GetTempPath(), "copilot-test-repo"))
 cd $tempDir
 git init
@@ -91,7 +96,7 @@ git config user.name "Test User"
 
 # Create a PROMPT_task.md for the recipe to work with
 "# Task`nCreate a simple README" | Out-File PROMPT_task.md
-dotnet run "$PSScriptRoot/ralph-loop.cs"
+dotnet run "$recipeDir/ralph-loop.cs"
 
 # Review commits and changes
 git log --oneline
@@ -104,6 +109,7 @@ Remove-Item $tempDir -Recurse
 
 **Bash:**
 ```bash
+recipeDir=$(pwd)
 tempDir=$(mktemp -d)
 cd "$tempDir"
 git init
@@ -112,7 +118,7 @@ git config user.name "Test User"
 
 # Create a PROMPT_task.md for the recipe to work with
 echo -e "# Task\nCreate a simple README" > PROMPT_task.md
-dotnet run "$(dirname "$0")/ralph-loop.cs"
+dotnet run "$recipeDir/ralph-loop.cs"
 
 # Review commits and changes
 git log --oneline
