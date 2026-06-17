@@ -39,9 +39,9 @@ Even if none of these are an exact match, templates are the quickest way to avoi
 
 A practical way to discover useful automations is to ask Copilot to audit your work surfaces and suggest candidates.
 
-Try this in a regular chat first:
+If you have MCP servers configured (for example, WorkIQ for Microsoft 365 or a Slack MCP server), try a prompt like this in a regular chat first:
 
-> Look across all of my work surfaces. Browse Teams and Outlook through WorkIQ, use the Slack MCP server to look at Slack, check my calendar, and figure out where I am dropping balls, where I might need help, and suggest what automations would be useful.
+> If available, use WorkIQ (Teams/Outlook) and a Slack MCP server to review my recent messages and calendar. Identify where I'm missing follow-ups or repeating work, and suggest a short list of useful automations.
 
 This often produces several concrete automation ideas in one pass. Then turn the best one into a saved automation.
 
