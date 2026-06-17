@@ -1,23 +1,34 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 # fix-broken-links — link-fix.ps1  (PowerShell 7+ port of link-fix.sh)
 #
-# Before each Copilot prompt: find changed web files, extract every http(s) URL,
-# and check each one. For any URL that does not return 200, try spelling
-# variations (http/https, www, trailing slash), then Wayback Machine sibling
-# pages / snapshots, and present an interactive menu to replace (with up to five
-# alternatives), remove (keep anchor text), or skip. Generic anchor text is
-# flagged as an SEO note.
+# After the agent edits files (postToolUse): take the files it just changed,
+# extract every http(s) URL, and check each one.
+#   • With file paths passed (the edited files, injected from the hook payload, or
+#     given on the command line) any URL that is not 200 gets spelling variations
+#     (http/https, www, trailing slash) then a Copilot CLI agent hand-off for more
+#     alternatives, followed by an interactive menu to replace / remove / skip.
+#   • With NO file arguments it only lists the broken links — no alternative
+#     lookups and no prompts.
+# Generic anchor text is flagged as an SEO note either way.
 #
-# Pure PowerShell + .NET (Invoke-WebRequest/regex). No external tools required.
+# Pure PowerShell + .NET (Invoke-WebRequest/regex), plus an optional Copilot CLI
+# hand-off for suggestions.
 # Covers: HTML · Markdown · JS/TS · JSON · CSS · SQL · templates (all via URL scan)
-# Trigger: postToolUse / userPromptSubmitted
+# Trigger: postToolUse
 
 Set-StrictMode -Off
 $ProgressPreference = 'SilentlyContinue'   # Invoke-WebRequest is far faster without the bar
 
-$LIMIT   = 50
-$TIMEOUT = 10
-$UA      = 'Mozilla/5.0 (compatible; fix-broken-links/1.0)'
+# The agent hand-off below invokes `copilot`, which may itself re-fire this hook.
+# The child run is marked with this env var; exit immediately if it is present so
+# we never recurse.
+if ($env:FIX_BROKEN_LINKS_AGENT) { exit 0 }
+
+$LIMIT         = 50
+$TIMEOUT       = 10
+$UA            = 'Mozilla/5.0 (compatible; fix-broken-links/1.0)'
+$AGENT_MODEL   = 'gpt-5-mini'   # small, low-token model for the suggestion hand-off
+$AGENT_TIMEOUT = 60             # seconds before giving up on the agent
 $WEB_RE  = '\.(html?|xhtml|md|markdown|mdx|js|jsx|ts|tsx|vue|svelte|json|jsonl|css|sql|erb|jinja|j2|twig|ejs|pug|hbs)$'
 
 # Positional args become the file list; the hook payload can also supply them.
@@ -27,15 +38,19 @@ foreach ($a in $args) { [void]$ScriptArgs.Add([string]$a) }
 # ── Hook stdin ────────────────────────────────────────────────────────────────
 # When called as a postToolUse hook, extract edited files from the JSON payload
 # and inject them as positional args so Get-InputFiles picks them up.
+$IsHook = $false
 if ($ScriptArgs.Count -eq 0 -and [Console]::IsInputRedirected) {
+  $IsHook = $true               # invoked as a hook: stdin carries the tool payload
   $raw = [Console]::In.ReadToEnd()
   if ($raw.Trim()) {
     try {
       $json = $raw | ConvertFrom-Json
       $tool = $json.toolName; if (-not $tool) { $tool = $json.tool_name }
       if ($tool) {
-        if ($tool -in 'editFiles','write','str_replace_editor','create_file') {
+        if ($tool -in 'editFiles','edit','write','str_replace_editor','create_file','multiEdit','applyPatch') {
+          # Only the files this edit tool just changed — never a wider repo scan.
           $hookFiles = $json.tool_input.files; if (-not $hookFiles) { $hookFiles = $json.toolInput.files }
+          if (-not $hookFiles) { $hookFiles = $json.tool_input.path; if (-not $hookFiles) { $hookFiles = $json.toolInput.path } }
           if ($hookFiles) { foreach ($hf in $hookFiles) { [void]$ScriptArgs.Add([string]$hf) } }
         }
         else {
@@ -43,10 +58,16 @@ if ($ScriptArgs.Count -eq 0 -and [Console]::IsInputRedirected) {
           exit 0
         }
       }
-      # No tool context — called as userPromptSubmitted or manually, fall through
+      # No tool context — called manually with piped input, fall through
     } catch { }
   }
 }
+
+# A non-empty positional list means the caller passed files: the edited files from
+# the hook payload above, or paths given on the command line. Only then do we run
+# the full repair flow (look up alternatives, then prompt to fix). With no
+# parameters we simply list the broken links — no lookups, no prompts.
+$HaveParams = $ScriptArgs.Count -gt 0
 
 # Interactive prompts are only possible when input is a real console; once the
 # hook JSON has been read from a redirected stdin we report rather than prompt.
@@ -67,10 +88,10 @@ function Get-HttpStatus {
   param([string]$Url)
   try {
     $resp = Invoke-WebRequest -Uri $Url -MaximumRedirection 5 -TimeoutSec $TIMEOUT `
-              -UserAgent $UA -SkipHttpErrorCheck -ErrorAction Stop
+              -UserAgent $UA -ErrorAction Stop
     return [string][int]$resp.StatusCode
   } catch {
-    return '000'
+    return Write-Output $_.Exception.Response.StatusCode.Value__
   }
 }
 
@@ -124,95 +145,68 @@ function Find-Variation {
   return ''
 }
 
-# Look up a working replacement in the Wayback Machine, using the broken URL as
-# the lookup key; return the closest archived snapshot URL or ''.
-function Get-WaybackSnapshot {
-  param([string]$Url)
+# Hand the broken link to the Copilot CLI agent and let it propose alternatives.
+# A deliberately lightweight, low-token hand-off: one non-interactive prompt to a
+# small model with no tools enabled (so it answers from its own knowledge — no web
+# fetches, no permission prompts, no archive lookups on our side). The model may
+# prefix a prose line, so we pull http(s) tokens from anywhere in the output, trim
+# trailing punctuation, drop the broken URL itself, and de-duplicate. The call runs
+# as a job so it can be capped at $AGENT_TIMEOUT seconds.
+function Get-AgentAlts {
+  param([string]$Url,[int]$Max)
+  if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) { return @() }
+  $snappy = $AGENT_TIMEOUT - 5
+  $prompt = "In under $snappy seconds, find up to $Max working alternative URLs for the broken link $Url. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  $out = ''
   try {
-    $enc = [uri]::EscapeDataString($Url)
-    $r = Invoke-RestMethod -Uri "http://archive.org/wayback/available?url=$enc" `
-           -TimeoutSec 8 -UserAgent $UA -ErrorAction Stop
-    $snap = $r.archived_snapshots.closest
-    if ($snap -and $snap.url) { return [string]$snap.url }
-  } catch { }
-  return ''
-}
+    # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.
+    $job = Start-Job -ScriptBlock {
+      param($Prompt, $Model)
+      $env:FIX_BROKEN_LINKS_AGENT = '1'
+      copilot -p $Prompt -s --no-color --model $Model --available-tools 2>$null
+    } -ArgumentList $prompt, $AGENT_MODEL
+    # Only read output from a job that completed cleanly; a failed/errored copilot
+    # run yields no alternatives.
+    if ((Wait-Job $job -Timeout $AGENT_TIMEOUT) -and $job.State -eq 'Completed') {
+      $out = (Receive-Job $job -ErrorAction SilentlyContinue | Out-String)
+    }
+    Remove-Job $job -Force -ErrorAction SilentlyContinue
+  } catch { $out = '' }
+  if (-not $out) { return @() }
 
-# Longest common prefix length (in characters) of two strings, case-sensitive.
-function Get-LcpLen {
-  param([string]$A,[string]$B)
-  $n = [Math]::Min($A.Length, $B.Length)
-  $i = 0
-  while ($i -lt $n -and $A[$i] -ceq $B[$i]) { $i++ }
-  return $i
-}
-
-# Archived sibling pages living in the same directory as the broken URL. Queries
-# the Wayback CDX API with a path wildcard, keeps only captures the archive
-# served at status 200, strips query strings and trailing slashes, dedupes.
-# This is how a misspelled link finds its correct neighbour.
-function Get-CdxSiblings {
-  param([string]$Url)
-  $p = Split-Url $Url
-  if (-not $p.Path) { return @() }                 # host only, no siblings
-  $dir = $p.Path -replace '/[^/]*$',''
-  if (-not $dir) { return @() }                    # top-level page, skip
-  $prefix = "$($p.Host)$dir/*"
-  $cdxUrl = "http://web.archive.org/cdx/search/cdx?url=$prefix&output=text&fl=original&filter=statuscode:200&collapse=urlkey&limit=200"
-  # The CDX API rate-limits bursts and returns an empty body when throttled;
-  # retry a couple of times before giving up so a transient blip isn't fatal.
-  $body = ''
-  foreach ($try in 1..3) {
-    try {
-      $resp = Invoke-WebRequest -Uri $cdxUrl -TimeoutSec 12 -UserAgent $UA `
-                -SkipHttpErrorCheck -ErrorAction Stop
-      $body = [string]$resp.Content
-    } catch { $body = '' }
-    if ($body) { break }
-    Start-Sleep -Seconds 1
+  $seen = @{}
+  $result = [System.Collections.Generic.List[string]]::new()
+  foreach ($m in [regex]::Matches($out, 'https?://[^\s"''<>)\]]+', 'IgnoreCase')) {
+    if ($result.Count -ge $Max) { break }
+    $u = $m.Value -replace '[.,;:]+$',''
+    $key = $u.ToLower()
+    if ($key -eq $Url.ToLower()) { continue }
+    if ($seen.ContainsKey($key)) { continue }
+    $seen[$key] = $true
+    [void]$result.Add($u)
   }
-  if (-not $body) { return @() }
-  $body -split "`r?`n" |
-    ForEach-Object { ($_ -replace '\?.*$','') -replace '/$','' } |
-    Where-Object { $_ } |
-    Sort-Object -Unique
+  return ,$result.ToArray()
 }
 
 # Up to MAX viable replacement URLs for a broken link, best first:
 #   1. a working scheme/www/slash variation (verified live 200)
-#   2. archived sibling pages whose final path segment most resembles the broken
-#      one — ranked by shared-prefix length, then re-checked live (200 only)
-#   3. the closest archived snapshot, only if nothing live was found
+#   2. alternatives proposed by the Copilot CLI agent (see Get-AgentAlts)
 # De-duplicated case-insensitively. The first item is what `r` uses; the rest
 # become the numbered alternatives.
 function Get-SuggestedAlts {
   param([string]$Url,[int]$Max = 6)
-  $seg = ($Url -split '/')[-1]; $seg = ($seg -split '\?')[0]
   $seen = @{}
   $out  = [System.Collections.Generic.List[string]]::new()
 
   $v = Find-Variation $Url
   if ($v) { [void]$out.Add($v); $seen[$v.ToLower()] = $true }
 
-  $ranked = Get-CdxSiblings $Url |
-    Where-Object { $_ -and $_ -ne $Url } |
-    ForEach-Object { [pscustomobject]@{ Score = (Get-LcpLen $seg (($_ -split '/')[-1])); Url = $_ } } |
-    Sort-Object -Property Score -Descending
-
-  $checks = 0
-  foreach ($r in $ranked) {
+  foreach ($a in (Get-AgentAlts $Url $Max)) {
     if ($out.Count -ge $Max) { break }
-    if ($checks -ge 10) { break }
-    $key = $r.Url.ToLower()
+    if (-not $a) { continue }
+    $key = $a.ToLower()
     if ($seen.ContainsKey($key)) { continue }
-    $checks++
-    if ((Get-HttpStatus $r.Url) -ne '200') { continue }
-    [void]$out.Add($r.Url); $seen[$key] = $true
-  }
-
-  if ($out.Count -eq 0) {
-    $w = Get-WaybackSnapshot $Url
-    if ($w) { [void]$out.Add($w) }
+    [void]$out.Add($a); $seen[$key] = $true
   }
   return ,$out.ToArray()
 }
@@ -231,10 +225,13 @@ function Remove-LinkWrapper {
   param([string]$File,[string]$Url)
   $content = [System.IO.File]::ReadAllText($File)
   $esc = [regex]::Escape($Url)
+  # Each element is parenthesized: the comma operator binds tighter than '+', so
+  # without the parens the three concatenations collapse into a single string and
+  # the array would hold one bogus pattern instead of three.
   $patterns = @(
-    '<a[^>]*href="' + $esc + '"[^>]*>([^<]*)</a>',
-    "<a[^>]*href='" + $esc + "'[^>]*>([^<]*)</a>",
-    '\[([^\]]*)\]\(' + $esc + '[^)]*\)'
+    ('<a[^>]*href="' + $esc + '"[^>]*>([^<]*)</a>'),
+    ("<a[^>]*href='" + $esc + "'[^>]*>([^<]*)</a>"),
+    ('\[([^\]]*)\]\(' + $esc + '[^)]*\)')
   )
   foreach ($pat in $patterns) {
     $content = [regex]::Replace($content, $pat, '$1', 'IgnoreCase')
@@ -246,6 +243,9 @@ function Remove-LinkWrapper {
 
 function Get-InputFiles {
   if ($ScriptArgs.Count -gt 0) { return $ScriptArgs.ToArray() }
+  # Fired as a hook but the payload carried no (web) files: do nothing rather than
+  # fall back to scanning unrelated files — the hook only ever checks edited files.
+  if ($IsHook) { return @() }
   $out = @()
   if (Get-Command git -ErrorAction SilentlyContinue) {
     git rev-parse --git-dir *> $null
@@ -290,7 +290,7 @@ foreach ($file in $FILES) {
   $urls = @(Get-Urls $file)
   if ($urls.Count -eq 0) { continue }
 
-  if ($urls.Count -gt $LIMIT) {
+  if ($HaveParams -and $urls.Count -gt $LIMIT) {
     $ans = Read-Answer "  $file has $($urls.Count) links (limit $LIMIT). Continue? [Y/n] "
     if ($ans -in 'n','N','no','NO') { continue }
   }
@@ -301,7 +301,9 @@ foreach ($file in $FILES) {
     $status = Get-HttpStatus $url
     if ($status -eq '200') { continue }
     Write-Host "    BROKEN ($status) $url"
-    $alts = Get-SuggestedAlts $url 6
+    # Only look up replacements when files were passed; otherwise just list.
+    $alts = @()
+    if ($HaveParams) { $alts = Get-SuggestedAlts $url 6 }
     [void]$B_FILE.Add($file)
     [void]$B_URL.Add($url)
     [void]$B_STATUS.Add($status)
@@ -346,6 +348,10 @@ for ($i = 0; $i -lt $n; $i++) {
   $note = ''
   if ($status -in 'ERR','000','TIMEOUT') { $note = '  (unreachable)' }
   Write-Host "    HTTP: $status$note"
+
+  # No file parameters → report-only: list the broken link and move on.
+  if (-not $HaveParams) { continue }
+
   Write-Host ""
   if ($alts.Count -gt 0) {
     Write-Host "    r  Replace -> $($alts[0])"
