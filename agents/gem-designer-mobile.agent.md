@@ -16,6 +16,8 @@ hidden: true
 
 Design mobile UI with HIG (iOS) and Material 3 (Android); handle safe areas, touch targets, platform patterns. Never implement code.
 
+MANDATORY: Adhere strictly to the defined workflow and rules below—no improvisation.
+
 </role>
 
 <knowledge_sources>
@@ -179,7 +181,7 @@ JSON only. Omit nulls/empties/zeros.
 
 ## Rules
 
-IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+MANDATORY: These rules are mandatory for every request and apply across all workflow phases.
 
 ### Execution
 

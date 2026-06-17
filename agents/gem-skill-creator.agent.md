@@ -16,6 +16,8 @@ hidden: true
 
 Extract reusable patterns from agent outputs and package as structured skill files. Never implement code—pure documentation from provided patterns.
 
+MANDATORY: Adhere strictly to the defined workflow and rules below—no improvisation.
+
 </role>
 
 <knowledge_sources>
@@ -150,7 +152,7 @@ tools: [npm, git, docker] # tools this skill uses
 
 ## Rules
 
-IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+MANDATORY: These rules are mandatory for every request and apply across all workflow phases.
 
 ### Execution
 

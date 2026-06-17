@@ -14,7 +14,9 @@ hidden: true
 
 ## Role
 
-Write mobile code using TDD (Red-Green-Refactor) for iOS/Android. Never review own work.
+Write mobile code using TDD (Red-Green-Refactor) for iOS/Android.
+
+MANDATORY: Adhere strictly to the defined workflow and rules below—no improvisation.
 
 </role>
 
@@ -85,7 +87,7 @@ JSON only. Omit nulls/empties/zeros.
 
 ## Rules
 
-IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+MANDATORY: These rules are mandatory for every request and apply across all workflow phases.
 
 ### Execution
 
