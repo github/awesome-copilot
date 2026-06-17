@@ -1,0 +1,24 @@
+{
+  "id": "feedback-themes",
+  "name": "Feedback Themes",
+  "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
+  "version": "1.0.0",
+  "keywords": [
+    "customer-feedback",
+    "impact-prioritization",
+    "product-insights",
+    "signal-grouping",
+    "theme-analysis",
+    "trend-discovery"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}
