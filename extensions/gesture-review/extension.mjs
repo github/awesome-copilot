@@ -179,7 +179,7 @@ const canvas = createCanvas({
 	id: "gesture-review",
 	displayName: "Gesture PR Review",
 	description:
-		"Interactive PR review using hand gestures. Shows a live camera feed and detects thumbs up (approve) or thumbs down (reject) via MediaPipe hand tracking.",
+		"Users review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
 	actions: [
 		{
 			name: "show_pr",
