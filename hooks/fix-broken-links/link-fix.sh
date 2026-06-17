@@ -1,5 +1,5 @@
 #!/bin/bash
-# fix-broken-links — link-fix.sh
+# fix-broken-links - link-fix.sh
 #
 # After the agent edits files (postToolUse): take the files it just changed,
 # extract every http(s) URL, and check each with curl.
@@ -7,7 +7,7 @@
 #     given on the command line) any URL that is not 200 gets spelling variations
 #     (http/https, www, trailing slash) then a Copilot CLI agent hand-off for more
 #     alternatives, followed by an interactive menu to replace / remove / skip.
-#   • With NO file arguments it only lists the broken links — no alternative
+#   • With NO file arguments it only lists the broken links - no alternative
 #     lookups and no prompts.
 # Generic anchor text is flagged as an SEO note either way.
 #
@@ -44,7 +44,7 @@ if [ "$#" -eq 0 ] && [ ! -t 0 ]; then
     _TOOL=$(printf '%s' "$_INPUT" | jq -r '.toolName // .tool_name // empty' 2>/dev/null)
     case "$_TOOL" in
       editFiles|edit|write|str_replace_editor|create_file|multiEdit|applyPatch)
-        # Only the files this edit tool just changed — never a wider repo scan.
+        # Only the files this edit tool just changed - never a wider repo scan.
         mapfile -t _FILES < <(
           printf '%s' "$_INPUT" \
             | jq -r '.tool_input.files[]? // .toolInput.files[]? // .tool_input.path // .toolInput.path // empty' 2>/dev/null
@@ -52,10 +52,10 @@ if [ "$#" -eq 0 ] && [ ! -t 0 ]; then
         [ "${#_FILES[@]}" -gt 0 ] && set -- "${_FILES[@]}"
         ;;
       "")
-        # No tool context — called manually with piped input, fall through
+        # No tool context - called manually with piped input, fall through
         ;;
       *)
-        # Different tool (bash, read, etc.) — nothing to check
+        # Different tool (bash, read, etc.) - nothing to check
         exit 0
         ;;
     esac
@@ -65,11 +65,11 @@ fi
 # A non-empty positional list means the caller passed files: the edited files from
 # the hook payload above, or paths given on the command line. Only then do we run
 # the full repair flow (look up alternatives, then prompt to fix). With no
-# parameters we simply list the broken links — no lookups, no prompts.
+# parameters we simply list the broken links - no lookups, no prompts.
 [ "$#" -gt 0 ] && HAVE_PARAMS=1 || HAVE_PARAMS=0
 
 # Interactive input comes from the terminal, since stdin may carry hook JSON.
-# Probe by actually opening /dev/tty — a mere -r/-w test can pass where open fails.
+# Probe by actually opening /dev/tty - a mere -r/-w test can pass where open fails.
 TTY=/dev/tty
 if { true >/dev/tty; } 2>/dev/null && { true </dev/tty; } 2>/dev/null; then
   TTY=/dev/tty
@@ -91,7 +91,7 @@ http_status() {
 }
 
 # Escape ERE metacharacters so a literal string can be used safely inside a bash
-# [[ =~ ]] pattern. Only true metacharacters are escaped — backslash-escaping an
+# [[ =~ ]] pattern. Only true metacharacters are escaped - backslash-escaping an
 # ordinary character (e.g. '\:') is undefined in ERE and would fail to match.
 re_escape() {
   local s="$1" out="" c i bs='\' meta='.^$*+?()[]{}|\'
@@ -165,7 +165,7 @@ find_variation() {
 
 # Hand the broken link to the Copilot CLI agent and let it propose alternatives.
 # This is a deliberately lightweight, low-token hand-off: a single non-interactive
-# prompt to a small model, with no tools enabled — the agent answers from its own
+# prompt to a small model, with no tools enabled - the agent answers from its own
 # knowledge, so there are no web fetches, no permission prompts, and no archive
 # lookups on our side. The model may prefix a prose line, so we pull http(s) tokens
 # from anywhere in the output, trim trailing punctuation, drop the broken URL
@@ -244,7 +244,7 @@ remove_link() {
 collect_input() {
   if [ "$#" -gt 0 ]; then printf '%s\n' "$@"; return; fi
   # Fired as a hook but the payload carried no (web) files: do nothing rather than
-  # fall back to scanning unrelated files — the hook only ever checks edited files.
+  # fall back to scanning unrelated files - the hook only ever checks edited files.
   [ -n "$_HOOK" ] && return
   local out=""
   if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
@@ -341,7 +341,7 @@ for ((i=0; i<n; i++)); do
   printf '    s  Skip\n'
 
   if [ -z "$TTY" ]; then
-    printf '    (no terminal — reporting only)\n'
+    printf '    (no terminal - reporting only)\n'
     continue
   fi
 

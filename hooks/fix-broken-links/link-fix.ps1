@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# fix-broken-links — link-fix.ps1  (PowerShell 7+ port of link-fix.sh)
+# fix-broken-links - link-fix.ps1  (PowerShell 7+ port of link-fix.sh)
 #
 # After the agent edits files (postToolUse): take the files it just changed,
 # extract every http(s) URL, and check each one.
@@ -7,7 +7,7 @@
 #     given on the command line) any URL that is not 200 gets spelling variations
 #     (http/https, www, trailing slash) then a Copilot CLI agent hand-off for more
 #     alternatives, followed by an interactive menu to replace / remove / skip.
-#   • With NO file arguments it only lists the broken links — no alternative
+#   • With NO file arguments it only lists the broken links - no alternative
 #     lookups and no prompts.
 # Generic anchor text is flagged as an SEO note either way.
 #
@@ -48,17 +48,17 @@ if ($ScriptArgs.Count -eq 0 -and [Console]::IsInputRedirected) {
       $tool = $json.toolName; if (-not $tool) { $tool = $json.tool_name }
       if ($tool) {
         if ($tool -in 'editFiles','edit','write','str_replace_editor','create_file','multiEdit','applyPatch') {
-          # Only the files this edit tool just changed — never a wider repo scan.
+          # Only the files this edit tool just changed - never a wider repo scan.
           $hookFiles = $json.tool_input.files; if (-not $hookFiles) { $hookFiles = $json.toolInput.files }
           if (-not $hookFiles) { $hookFiles = $json.tool_input.path; if (-not $hookFiles) { $hookFiles = $json.toolInput.path } }
           if ($hookFiles) { foreach ($hf in $hookFiles) { [void]$ScriptArgs.Add([string]$hf) } }
         }
         else {
-          # Different tool (bash, read, etc.) — nothing to check
+          # Different tool (bash, read, etc.) - nothing to check
           exit 0
         }
       }
-      # No tool context — called manually with piped input, fall through
+      # No tool context - called manually with piped input, fall through
     } catch { }
   }
 }
@@ -66,7 +66,7 @@ if ($ScriptArgs.Count -eq 0 -and [Console]::IsInputRedirected) {
 # A non-empty positional list means the caller passed files: the edited files from
 # the hook payload above, or paths given on the command line. Only then do we run
 # the full repair flow (look up alternatives, then prompt to fix). With no
-# parameters we simply list the broken links — no lookups, no prompts.
+# parameters we simply list the broken links - no lookups, no prompts.
 $HaveParams = $ScriptArgs.Count -gt 0
 
 # Interactive prompts are only possible when input is a real console; once the
@@ -149,7 +149,7 @@ function Find-Variation {
 
 # Hand the broken link to the Copilot CLI agent and let it propose alternatives.
 # A deliberately lightweight, low-token hand-off: one non-interactive prompt to a
-# small model with no tools enabled (so it answers from its own knowledge — no web
+# small model with no tools enabled (so it answers from its own knowledge - no web
 # fetches, no permission prompts, no archive lookups on our side). The model may
 # prefix a prose line, so we pull http(s) tokens from anywhere in the output, trim
 # trailing punctuation, drop the broken URL itself, and de-duplicate. The call runs
@@ -246,7 +246,7 @@ function Remove-LinkWrapper {
 function Get-InputFiles {
   if ($ScriptArgs.Count -gt 0) { return $ScriptArgs.ToArray() }
   # Fired as a hook but the payload carried no (web) files: do nothing rather than
-  # fall back to scanning unrelated files — the hook only ever checks edited files.
+  # fall back to scanning unrelated files - the hook only ever checks edited files.
   if ($IsHook) { return @() }
   $out = @()
   if (Get-Command git -ErrorAction SilentlyContinue) {
@@ -366,7 +366,7 @@ for ($i = 0; $i -lt $n; $i++) {
   Write-Host "    s  Skip"
 
   if (-not $Interactive) {
-    Write-Host "    (no terminal — reporting only)"
+    Write-Host "    (no terminal - reporting only)"
     continue
   }
 
