@@ -519,6 +519,27 @@ Thanks goes to these wonderful people ([emoji key](./CONTRIBUTING.md#contributor
       <td align="center" valign="top" width="14.28%"><a href="http://jamesmcgrath.net/"><img src="https://avatars.githubusercontent.com/u/1762902?v=4" width="100px;" alt=""/><br /><sub><b>James</b></sub></a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jcountsNR"><img src="https://avatars.githubusercontent.com/u/94138069?v=4" width="100px;" alt=""/><br /><sub><b>Joseph Counts</b></sub></a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/NehaGitHubAcc"><img src="https://avatars.githubusercontent.com/u/60216366?v=4" width="100px;" alt=""/><br /><sub><b>Neha Mandge</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/srpatcha"><img src="https://avatars.githubusercontent.com/u/20883509?v=4" width="100px;" alt=""/><br /><sub><b>Srikanth Patchava</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://thomas-f-ray.art/"><img src="https://avatars.githubusercontent.com/u/74461863?v=4" width="100px;" alt=""/><br /><sub><b>Thomas Ray</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/fizznix"><img src="https://avatars.githubusercontent.com/u/58569464?v=4" width="100px;" alt=""/><br /><sub><b>Nixon Kurian</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/petrsx"><img src="https://avatars.githubusercontent.com/u/18548253?v=4" width="100px;" alt=""/><br /><sub><b>Petr Stupka</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.pdebruin.org/"><img src="https://avatars.githubusercontent.com/u/4709852?v=4" width="100px;" alt=""/><br /><sub><b>Pieter de Bruin</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/sudeepghatak"><img src="https://avatars.githubusercontent.com/u/12538280?v=4" width="100px;" alt=""/><br /><sub><b>sudeepghatak</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tlietz"><img src="https://avatars.githubusercontent.com/u/25965706?v=4" width="100px;" alt=""/><br /><sub><b>tlietz</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/dawright22"><img src="https://avatars.githubusercontent.com/u/53329137?v=4" width="100px;" alt=""/><br /><sub><b>dawright22</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/alfersugo"><img src="https://avatars.githubusercontent.com/u/49598311?v=4" width="100px;" alt=""/><br /><sub><b>Alejandro Fernando Suarez Gomez</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://xquik.com/"><img src="https://avatars.githubusercontent.com/u/8755484?v=4" width="100px;" alt=""/><br /><sub><b>Burak Bayır</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://msamiullah.tech/"><img src="https://avatars.githubusercontent.com/u/52650290?v=4" width="100px;" alt=""/><br /><sub><b>MUHAMMAD SAMIULLAH</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://metulev.com/"><img src="https://avatars.githubusercontent.com/u/711864?v=4" width="100px;" alt=""/><br /><sub><b>Nikola Metulev</b></sub></a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.colorado.edu/lab/krg"><img src="https://avatars.githubusercontent.com/u/4161712?v=4" width="100px;" alt=""/><br /><sub><b>Joseph Kasprzyk</b></sub></a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lovyjain"><img src="https://avatars.githubusercontent.com/u/54174168?v=4" width="100px;" alt=""/><br /><sub><b>Lovy Jain</b></sub></a></td>
+    </tr>
   </tbody>
   <tfoot>
     <tr>

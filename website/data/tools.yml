@@ -434,3 +434,32 @@ tools:
       - planning
       - scheduling
       - mcp
+
+  - id: ivy-tendril
+    name: Ivy Tendril
+    description: >-
+      Open-source AI coding orchestrator that manages GitHub Copilot, Claude Code,
+      Codex, Antigravity, and OpenCode through a plan-based lifecycle. Decomposes tasks
+      into structured plans, dispatches agents in isolated git worktrees, runs automated
+      verification gates (build, test, lint, format, AI review), and accumulates
+      self-improving memory across sessions. Local-first desktop app.
+    category: CLI Tools
+    featured: false
+    requirements:
+      - Windows, macOS, or Linux
+      - At least one supported coding agent installed (GitHub Copilot CLI, Claude Code, Codex, etc.)
+    links:
+      github: https://github.com/Ivy-Interactive/Ivy-Tendril
+      documentation: https://tendril.ivy.app/getting-started/installation
+    features:
+      - "🔄 Plan lifecycle: Idea → plan → execute → verify → PR in a structured pipeline"
+      - "🤖 Agent-agnostic: Orchestrates Copilot, Claude Code, Codex, Antigravity, OpenCode"
+      - "✅ Verification gates: Build, test, lint, format, and AI review before human sees the diff"
+      - "🧠 Self-improving: Agents learn your codebase conventions through persistent memory"
+      - "🌳 Git worktree isolation: Each task runs in its own worktree"
+    tags:
+      - orchestration
+      - multi-agent
+      - verification
+      - worktree
+      - local-first

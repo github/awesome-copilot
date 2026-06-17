@@ -9,9 +9,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import {
   AGENTS_DIR,
   COOKBOOK_DIR,
+  EXTENSIONS_DIR,
   HOOKS_DIR,
   INSTRUCTIONS_DIR,
   PLUGINS_DIR,
@@ -62,6 +64,72 @@ function extractTitle(filePath, frontmatter) {
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+/**
+ * Convert kebab/snake names into readable titles.
+ */
+function formatDisplayName(value) {
+  const acronymMap = new Map([
+    ["ai", "AI"],
+    ["api", "API"],
+    ["cli", "CLI"],
+    ["css", "CSS"],
+    ["html", "HTML"],
+    ["json", "JSON"],
+    ["llm", "LLM"],
+    ["mcp", "MCP"],
+    ["ui", "UI"],
+    ["ux", "UX"],
+    ["vscode", "VS Code"],
+  ]);
+
+  return value
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((part) => {
+      const lower = part.toLowerCase();
+      if (acronymMap.has(lower)) {
+        return acronymMap.get(lower);
+      }
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+function normalizeText(value, fallback = "") {
+  return typeof value === "string" ? value.trim() : fallback;
+}
+
+/**
+ * Find the latest git-modified date for any file under a directory.
+ */
+function getDirectoryLastUpdated(gitDates, relativeDirPath) {
+  const prefix = `${relativeDirPath}/`;
+  let latestDate = null;
+  let latestTime = 0;
+
+  for (const [filePath, date] of gitDates.entries()) {
+    if (!filePath.startsWith(prefix)) continue;
+    const timestamp = Date.parse(date);
+    if (!Number.isNaN(timestamp) && timestamp > latestTime) {
+      latestTime = timestamp;
+      latestDate = date;
+    }
+  }
+
+  return latestDate;
+}
+
+/**
+ * Get the current commit SHA for the checked-out repository.
+ */
+function getCurrentCommitSha() {
+  return execSync("git --no-pager rev-parse HEAD", {
+    cwd: ROOT_FOLDER,
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "pipe"],
+  }).trim();
 }
 
 /**
@@ -604,6 +672,176 @@ function generatePluginsData(gitDates) {
 }
 
 /**
+ * Generate canvas extensions metadata
+ */
+function getExtensionAssetInfo(extensionDir, relPath, ref) {
+  const assetDir = path.join(extensionDir, "assets");
+
+  if (!fs.existsSync(assetDir)) {
+    return null;
+  }
+
+  const imageExtensions = new Set([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".gif",
+  ]);
+
+  const preferredNames = [
+    "preview.png",
+    "preview.jpg",
+    "preview.jpeg",
+    "preview.webp",
+    "preview.gif",
+    "screenshot.png",
+    "screenshot.jpg",
+    "screenshot.jpeg",
+    "screenshot.webp",
+    "screenshot.gif",
+    "image.png",
+    "image.jpg",
+    "image.jpeg",
+    "image.webp",
+    "image.gif",
+  ];
+
+  for (const candidate of preferredNames) {
+    const candidatePath = path.join(assetDir, candidate);
+    if (fs.existsSync(candidatePath)) {
+      const assetPath = `${relPath}/assets/${candidate}`;
+      return {
+        assetPath,
+        imageUrl: buildRepoImageUrl(assetPath, ref),
+      };
+    }
+  }
+
+  const files = fs
+    .readdirSync(assetDir)
+    .filter((file) => imageExtensions.has(path.extname(file).toLowerCase()))
+    .sort((a, b) => a.localeCompare(b));
+
+  if (files.length === 0) {
+    return null;
+  }
+
+  const assetFile = files[0];
+  const assetPath = `${relPath}/assets/${assetFile}`;
+
+  return {
+    assetPath,
+    imageUrl: buildRepoImageUrl(assetPath, ref),
+  };
+}
+
+function buildRepoImageUrl(assetPath, ref) {
+  const encodedAssetPath = assetPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+  return `https://raw.githubusercontent.com/github/awesome-copilot/${ref}/${encodedAssetPath}`;
+}
+
+function generateExtensionsData(gitDates, commitSha) {
+  const extensions = [];
+
+  if (!fs.existsSync(EXTENSIONS_DIR)) {
+    return { items: [] };
+  }
+
+  const extensionDirs = fs
+    .readdirSync(EXTENSIONS_DIR, { withFileTypes: true })
+    .filter((entry) => {
+      if (!entry.isDirectory()) return false;
+      const extensionEntryPoint = path.join(
+        EXTENSIONS_DIR,
+        entry.name,
+        "extension.mjs"
+      );
+      return fs.existsSync(extensionEntryPoint);
+    });
+
+  for (const dir of extensionDirs) {
+    const relPath = `extensions/${dir.name}`;
+    const assetInfo = getExtensionAssetInfo(
+      path.join(EXTENSIONS_DIR, dir.name),
+      relPath,
+      commitSha
+    );
+
+    extensions.push({
+      id: dir.name,
+      name: formatDisplayName(dir.name),
+      description: "Canvas extension",
+      path: relPath,
+      ref: commitSha,
+      lastUpdated: getDirectoryLastUpdated(gitDates, relPath),
+      imageUrl: assetInfo?.imageUrl || null,
+      assetPath: assetInfo?.assetPath || null,
+      installUrl: `https://github.com/github/awesome-copilot/tree/${commitSha}/${relPath.replace(
+        /\\/g,
+        "/"
+      )}`,
+      sourceUrl: null,
+      external: false,
+    });
+  }
+
+  const externalJsonPath = path.join(EXTENSIONS_DIR, "external.json");
+  if (fs.existsSync(externalJsonPath)) {
+    try {
+      const externalExtensions = JSON.parse(
+        fs.readFileSync(externalJsonPath, "utf-8")
+      );
+      if (Array.isArray(externalExtensions)) {
+        for (const ext of externalExtensions) {
+          const name = normalizeText(ext?.name);
+          const installUrl = normalizeText(ext?.installUrl);
+          const sourceUrl = normalizeText(ext?.sourceUrl || installUrl);
+          if (!name || !installUrl) {
+            continue;
+          }
+
+          const id = normalizeText(ext?.id || name.toLowerCase().replace(/\s+/g, "-"));
+          let imageUrl = normalizeText(ext?.imageUrl);
+          let assetPath = null;
+          const imagePath = normalizeText(ext?.imagePath);
+          if (!imageUrl && imagePath) {
+            const repoAssetPath = imagePath.replace(/\\/g, "/");
+            imageUrl = buildRepoImageUrl(repoAssetPath, commitSha);
+            assetPath = repoAssetPath;
+          }
+
+          extensions.push({
+            id,
+            name,
+            description: normalizeText(ext?.description, "External canvas extension"),
+            path: null,
+            ref: null,
+            lastUpdated: null,
+            imageUrl: imageUrl || null,
+            assetPath,
+            installUrl,
+            sourceUrl: sourceUrl || null,
+            external: true,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn(`Failed to parse external extensions: ${e.message}`);
+    }
+  }
+
+  const sortedExtensions = extensions.sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+
+  return { items: sortedExtensions };
+}
+
+/**
  * Generate tools metadata from website/data/tools.yml
  */
 function generateToolsData() {
@@ -893,12 +1131,22 @@ async function main() {
   // Load git dates for all resource files (single efficient git command)
   console.log("Loading git history for last updated dates...");
   const gitDates = getGitFileDates(
-    ["agents/", "instructions/", "hooks/", "workflows/", "skills/", "plugins/"],
+    [
+      "agents/",
+      "instructions/",
+      "hooks/",
+      "workflows/",
+      "skills/",
+      "extensions/",
+      "plugins/",
+    ],
     ROOT_FOLDER
   );
   console.log(`✓ Loaded dates for ${gitDates.size} files\n`);
 
   // Generate all data
+  const commitSha = getCurrentCommitSha();
+
   const agentsData = generateAgentsData(gitDates);
   const agents = agentsData.items;
   console.log(
@@ -932,6 +1180,10 @@ async function main() {
   console.log(
     `✓ Generated ${plugins.length} plugins (${pluginsData.filters.tags.length} tags)`
   );
+
+  const extensionsData = generateExtensionsData(gitDates, commitSha);
+  const extensions = extensionsData.items;
+  console.log(`✓ Generated ${extensions.length} extensions`);
 
   const toolsData = generateToolsData();
   const tools = toolsData.items;
@@ -992,6 +1244,11 @@ async function main() {
   );
 
   fs.writeFileSync(
+    path.join(WEBSITE_DATA_DIR, "extensions.json"),
+    JSON.stringify(extensionsData, null, 2)
+  );
+
+  fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "tools.json"),
     JSON.stringify(toolsData, null, 2)
   );
@@ -1016,6 +1273,7 @@ async function main() {
       hooks: hooks.length,
       workflows: workflows.length,
       plugins: plugins.length,
+      extensions: extensions.length,
       tools: tools.length,
       contributors: contributorCount,
       samples: samplesData.totalRecipes,

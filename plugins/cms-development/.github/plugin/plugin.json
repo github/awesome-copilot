@@ -1,7 +1,7 @@
 {
   "name": "cms-development",
   "description": "Skills for CMS development across themes, plugins, admin tooling, media workflows, markdown rendering, and static export pipelines.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "keywords": [
     "cms",
     "content-management-system",
@@ -21,7 +21,6 @@
   "skills": [
     "./skills/content-management-systems/",
     "./skills/markdown-to-html/",
-    "./skills/quasi-coder/",
-    "./skills/web-coder/"
+    "./skills/quasi-coder/"
   ]
 }

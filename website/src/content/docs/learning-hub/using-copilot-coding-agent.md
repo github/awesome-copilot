@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-28
+lastUpdated: 2026-05-13
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -363,6 +363,8 @@ Remote sessions also appear in the `--resume` picker, so you can reconnect to a 
 ```bash
 copilot --resume
 ```
+
+Since v1.0.47, `--resume` also surfaces **cloud agent sessions that haven't yet pushed any changes** to their branch — useful for connecting to a session early in its run, before it has committed anything.
 
 ### Why Use Remote Control?
 

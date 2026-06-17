@@ -142,24 +142,8 @@ without a loop:
 
 Result: `@body('Generate_Date_Series')` → `["2025-01-06", "2025-01-07", …, "2025-01-19"]`
 
-```json
-// Flatten a 2D array (rows × cols) into 1D using arithmetic indexing
-"Flatten_Grid": {
-  "type": "Select",
-  "inputs": {
-    "from": "@range(0, mul(length(outputs('Rows')), length(outputs('Cols'))))",
-    "select": {
-      "row": "@outputs('Rows')[div(item(), length(outputs('Cols')))]",
-      "col": "@outputs('Cols')[mod(item(), length(outputs('Cols')))]"
-    }
-  }
-}
-```
-
-> `range()` is zero-based. The Cartesian product pattern above uses `div(i, cols)`
-> for the row index and `mod(i, cols)` for the column index — equivalent to a
-> nested for-loop flattened into a single pass. Useful for generating time-slot ×
-> date grids, shift × location assignments, etc.
+For Cartesian products, iterate `range(0, mul(rowCount, colCount))` and derive
+indexes with `div(item(), colCount)` and `mod(item(), colCount)`.
 
 ---
 
@@ -183,23 +167,6 @@ dictionary type, build one from an array using Select + join + json:
 ```
 
 Lookup: `@outputs('Assemble_Dictionary')?['myKey']`
-
-```json
-// Practical example: date → rate-code lookup for business rules
-"Build_Holiday_Rates": {
-  "type": "Select",
-  "inputs": {
-    "from": "@body('Get_Holidays')?['value']",
-    "select": "@concat('\"', formatDateTime(item()?['Date'], 'yyyy-MM-dd'), '\":\"', item()?['RateCode'], '\"')"
-  }
-},
-"Holiday_Dict": {
-  "type": "Compose",
-  "inputs": "@json(concat('{', join(body('Build_Holiday_Rates'), ','), '}'))"
-}
-```
-
-Then inside a loop: `@coalesce(outputs('Holiday_Dict')?[item()?['Date']], 'Standard')`
 
 > The `json(concat('{', join(...), '}'))` pattern works for string values. For numeric
 > or boolean values, omit the inner escaped quotes around the value portion.
@@ -280,111 +247,20 @@ CSV → database), avoid nested `Apply to each` loops to find changed records.
 Instead, **project flat key arrays** and use `contains()` to perform set operations —
 zero nested loops, and the final loop only touches changed items.
 
-**Full insert/update/delete sync pattern:**
+**Insert/update/delete sync recipe:**
 
-```json
-// Step 1 — Project a flat key array from the DESTINATION (e.g. SharePoint)
-"Select_Dest_Keys": {
-  "type": "Select",
-  "inputs": {
-    "from": "@outputs('Get_Dest_Items')?['body/value']",
-    "select": "@item()?['Title']"
-  }
-}
-// → ["KEY1", "KEY2", "KEY3", ...]
+1. `Select_Dest_Keys` from destination rows.
+2. `Filter_To_Insert`: source rows whose key is not in destination keys.
+3. `Filter_Already_Exists`: source rows whose key is in destination keys.
+4. For each compared field, run `Filter_<Field>_Changed`; combine them with
+   `union()` into `Union_Changed`.
+5. `Select_Changed_Keys` from `Union_Changed`, then filter destination rows to
+   only those keys before updating.
+6. `Select_Source_Keys`, then `Filter_To_Delete` destination rows whose key is
+   not in source keys.
 
-// Step 2 — INSERT: source rows whose key is NOT in destination
-"Filter_To_Insert": {
-  "type": "Query",
-  "inputs": {
-    "from": "@body('Source_Array')",
-    "where": "@not(contains(body('Select_Dest_Keys'), item()?['key']))"
-  }
-}
-// → Apply to each Filter_To_Insert → CreateItem
-
-// Step 3 — INNER JOIN: source rows that exist in destination
-"Filter_Already_Exists": {
-  "type": "Query",
-  "inputs": {
-    "from": "@body('Source_Array')",
-    "where": "@contains(body('Select_Dest_Keys'), item()?['key'])"
-  }
-}
-
-// Step 4 — UPDATE: one Filter per tracked field, then union them
-"Filter_Field1_Changed": {
-  "type": "Query",
-  "inputs": {
-    "from": "@body('Filter_Already_Exists')",
-    "where": "@not(equals(item()?['field1'], item()?['dest_field1']))"
-  }
-}
-"Filter_Field2_Changed": {
-  "type": "Query",
-  "inputs": {
-    "from": "@body('Filter_Already_Exists')",
-    "where": "@not(equals(item()?['field2'], item()?['dest_field2']))"
-  }
-}
-"Union_Changed": {
-  "type": "Compose",
-  "inputs": "@union(body('Filter_Field1_Changed'), body('Filter_Field2_Changed'))"
-}
-// → rows where ANY tracked field differs
-
-// Step 5 — Resolve destination IDs for changed rows (no nested loop)
-"Select_Changed_Keys": {
-  "type": "Select",
-  "inputs": { "from": "@outputs('Union_Changed')", "select": "@item()?['key']" }
-}
-"Filter_Dest_Items_To_Update": {
-  "type": "Query",
-  "inputs": {
-    "from": "@outputs('Get_Dest_Items')?['body/value']",
-    "where": "@contains(body('Select_Changed_Keys'), item()?['Title'])"
-  }
-}
-// Step 6 — Single loop over changed items only
-"Apply_to_each_Update": {
-  "type": "Foreach",
-  "foreach": "@body('Filter_Dest_Items_To_Update')",
-  "actions": {
-    "Get_Source_Row": {
-      "type": "Query",
-      "inputs": {
-        "from": "@outputs('Union_Changed')",
-        "where": "@equals(item()?['key'], items('Apply_to_each_Update')?['Title'])"
-      }
-    },
-    "Update_Item": {
-      "...": "...",
-      "id": "@items('Apply_to_each_Update')?['ID']",
-      "item/field1": "@first(body('Get_Source_Row'))?['field1']"
-    }
-  }
-}
-
-// Step 7 — DELETE: destination keys NOT in source
-"Select_Source_Keys": {
-  "type": "Select",
-  "inputs": { "from": "@body('Source_Array')", "select": "@item()?['key']" }
-}
-"Filter_To_Delete": {
-  "type": "Query",
-  "inputs": {
-    "from": "@outputs('Get_Dest_Items')?['body/value']",
-    "where": "@not(contains(body('Select_Source_Keys'), item()?['Title']))"
-  }
-}
-// → Apply to each Filter_To_Delete → DeleteItem
-```
-
-> **Why this beats nested loops**: the naive approach (for each dest item, scan source)
-> is O(n × m) and hits Power Automate's 100k-action run limit fast on large lists.
-> This pattern is O(n + m): one pass to build key arrays, one pass per filter.
-> The update loop in Step 6 only iterates *changed* records — often a tiny fraction
-> of the full collection. Run Steps 2/4/7 in **parallel Scopes** for further speed.
+This changes O(n x m) nested loops to O(n + m) set operations and helps avoid
+Power Automate's 100k-action run limit.
 
 ---
 
@@ -649,14 +525,8 @@ Parse a raw CSV string into an array of objects using only built-in expressions.
 Avoids the premium "Parse CSV" connector action.
 
 ```json
-"Delimiter": {
-  "type": "Compose",
-  "inputs": ","
-},
-"Strip_Quotes": {
-  "type": "Compose",
-  "inputs": "@replace(body('Get_File_Content'), '\"', '')"
-},
+"Delimiter": { "type": "Compose", "inputs": "," },
+"Strip_Quotes": { "type": "Compose", "inputs": "@replace(body('Get_File_Content'), '\"', '')" },
 "Detect_Line_Ending": {
   "type": "Compose",
   "inputs": "@if(equals(indexOf(outputs('Strip_Quotes'), decodeUriComponent('%0D%0A')), -1), if(equals(indexOf(outputs('Strip_Quotes'), decodeUriComponent('%0A')), -1), decodeUriComponent('%0D'), decodeUriComponent('%0A')), decodeUriComponent('%0D%0A'))"
@@ -665,10 +535,7 @@ Avoids the premium "Parse CSV" connector action.
   "type": "Compose",
   "inputs": "@split(first(split(outputs('Strip_Quotes'), outputs('Detect_Line_Ending'))), outputs('Delimiter'))"
 },
-"Data_Rows": {
-  "type": "Compose",
-  "inputs": "@skip(split(outputs('Strip_Quotes'), outputs('Detect_Line_Ending')), 1)"
-},
+"Data_Rows": { "type": "Compose", "inputs": "@skip(split(outputs('Strip_Quotes'), outputs('Detect_Line_Ending')), 1)" },
 "Select_CSV_Body": {
   "type": "Select",
   "inputs": {
@@ -691,16 +558,9 @@ Avoids the premium "Parse CSV" connector action.
 
 Result: `@body('Filter_Empty_Rows')` — array of objects with header names as keys.
 
-> **`Detect_Line_Ending`** handles CRLF (Windows), LF (Unix), and CR (old Mac) automatically
-> using `indexOf()` with `decodeUriComponent('%0D%0A' / '%0A' / '%0D')`.
->
-> **Dynamic key names in `Select`**: `@{outputs('Headers')[0]}` as a JSON key in a
-> `Select` shape sets the output property name at runtime from the header row —
-> this works as long as the expression is in `@{...}` interpolation syntax.
->
-> **Columns with embedded commas**: if field values can contain the delimiter,
-> use `length(split(row, ','))` in a Switch to detect the column count and manually
-> reassemble the split fragments: `@concat(split(item(),',')[1],',',split(item(),',')[2])`
+Notes: `Detect_Line_Ending` handles CRLF/LF/CR. Dynamic keys in `Select` require
+`@{...}` interpolation. This simple pattern does not safely parse quoted fields
+with embedded delimiters; for those, use a dedicated parser or custom action.
 
 ---
 

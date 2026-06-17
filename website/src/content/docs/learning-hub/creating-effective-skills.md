@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-02-26
+lastUpdated: 2026-05-08
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -347,7 +347,10 @@ Use [scripts/parse-test-output.sh](scripts/parse-test-output.sh) to extract stru
 
 **Q: How do I invoke a skill?**
 
-A: Skills can be invoked in two ways. Users can type the skill name as a `/command` in VS Code Chat (e.g., `/generate-tests`). Agents can also discover and invoke skills automatically based on the skill's description and the user's intent.
+A: Skills can be invoked in several ways:
+- **Slash command**: Type the skill name anywhere in your message (e.g., `/generate-tests fix the failing tests`). Since v1.0.44, slash commands can appear mid-input — you don't have to start with them.
+- **Multiple skills in one message**: You can invoke multiple skills in a single message (e.g., `/generate-tests and then /conventional-commit`). Both skills will be executed in sequence.
+- **Agent discovery**: Agents can also discover and invoke skills automatically based on the skill's `description` and the user's intent — no slash command required.
 
 **Q: How are skills different from prompts?**
 
@@ -361,9 +364,9 @@ A: Yes! Skills are folders, not single files. You can bundle reference documents
 
 A: Store skill folders in your repository's `.github/skills/` directory. They're automatically available to all team members with Copilot access when working in that repository.
 
-**Q: Can agents chain multiple skills?**
+**Q: Can I invoke multiple skills in one message?**
 
-A: Agents can discover and invoke multiple skills during a conversation based on user intent. Each skill invocation is independent, but agents maintain conversation context across invocations.
+A: Yes, since v1.0.44. You can include multiple slash commands in a single message (e.g., `/generate-tests and then /conventional-commit`), and the CLI will execute each skill in sequence. Agents can also discover and chain multiple skills during a conversation based on user intent. Each skill invocation is independent, but agents maintain conversation context across invocations.
 
 **Q: Should skills include code examples?**
 
