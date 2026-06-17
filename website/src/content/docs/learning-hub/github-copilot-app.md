@@ -74,6 +74,8 @@ This makes it easy to dispatch multiple agents and trust they won't interfere wi
 - Agents update the canvas as they work, and you can edit, approve, or redirect changes on the same surface
 - This makes it easy to see exactly what an agent is doing and step in when needed
 
+For a hands-on guide to building canvases with `/create-canvas`, see [Working with Canvas Extensions](../working-with-canvas-extensions/).
+
 ### Agent Merge
 
 **Agent Merge** is a feature that can carry your pull requests through the entire workflow:

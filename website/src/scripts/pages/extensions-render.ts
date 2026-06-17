@@ -70,7 +70,7 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         item.sourceUrl || (item.path ? getGitHubUrl(item.path) : "");
 
       return `
-        <article class="resource-item" role="listitem">
+        <article id="${escapeHtml(item.id)}" class="resource-item" role="listitem">
           <div class="resource-preview">
            ${
              item.imageUrl
