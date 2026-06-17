@@ -1,0 +1,24 @@
+{
+  "id": "agent-arcade-canvas",
+  "name": "Agent Arcade",
+  "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
+  "version": "1.0.0",
+  "keywords": [
+    "arcade-games",
+    "copilot-canvas",
+    "interactive-canvas",
+    "phaser",
+    "retro-games",
+    "session-breaks"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/icon.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}

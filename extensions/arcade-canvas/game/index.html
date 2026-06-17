@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' blob:;">
+  <title>Agent Arcade</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      cursor: default;
+    }
+    body.paused {
+      background: transparent !important;
+    }
+    body.paused #game,
+    body.paused #game *,
+    body.paused #pause-overlay,
+    body.paused #gameover-overlay,
+    body.paused #wave-banner,
+    body.paused #help-overlay {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+    }
+    #game {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+    canvas {
+      background: transparent !important;
+      display: block;
+    }
+
+    /* ---------- HUD bar ---------- */
+    #hud {
+      position: fixed;
+      top: 37px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 16px;
+      background: linear-gradient(180deg, #1a1f3a 0%, #0a0e22 100%);
+      border: 2px solid #ffd54a;
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 6px 24px rgba(0, 0, 0, 0.7),
+        0 0 18px rgba(255, 213, 74, 0.35);
+      color: #e8ecff;
+      font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+      font-size: 13px;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    .hud-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-divider {
+      width: 1px;
+      align-self: stretch;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.25), transparent);
+    }
+
+    .hud-spacer {
+      flex: 1;
+    }
+
+    .ctrl {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    kbd {
+      display: inline-block;
+      min-width: 18px;
+      padding: 2px 6px;
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      background: linear-gradient(180deg, #3b4570 0%, #232846 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .ctrl-label {
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #b8c2e8;
+    }
+
+    .title {
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #ffd54a;
+      text-shadow: 0 0 8px rgba(255, 213, 74, 0.5);
+    }
+
+    /* Score: big neon */
+    .score-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .score-icon {
+      font-size: 18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
+    }
+    .score-value {
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 26px;
+      font-weight: 900;
+      color: #ffeb3b;
+      text-shadow:
+        0 0 8px rgba(255, 235, 59, 0.9),
+        0 0 18px rgba(255, 152, 0, 0.55),
+        0 2px 0 rgba(0, 0, 0, 0.6);
+      min-width: 70px;
+      text-align: center;
+      transition: transform 120ms ease-out;
+    }
+    .score-value.bump {
+      transform: scale(1.25);
+      filter: brightness(1.4);
+    }
+    @keyframes scorePop {
+      0%   { transform: translateY(0) scale(1);    color: #ffeb3b; }
+      30%  { transform: translateY(-3px) scale(1.28); color: #fff59d; }
+      100% { transform: translateY(0) scale(1);    color: #ffeb3b; }
+    }
+    .score-value.pop {
+      animation: scorePop 320ms ease-out;
+    }
+
+    .lives-value {
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 26px;
+      font-weight: 900;
+      color: #ff5252;
+      text-shadow:
+        0 0 8px rgba(255, 82, 82, 0.9),
+        0 0 14px rgba(255, 0, 0, 0.5),
+        0 2px 0 rgba(0, 0, 0, 0.6);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .level-value {
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 20px;
+      font-weight: 900;
+      color: #4fc3f7;
+      text-shadow:
+        0 0 8px rgba(79, 195, 247, 0.9),
+        0 0 14px rgba(33, 150, 243, 0.5),
+        0 2px 0 rgba(0, 0, 0, 0.6);
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .hi-value {
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 22px;
+      font-weight: 900;
+      color: #aaa;
+      text-shadow:
+        0 0 6px rgba(170, 170, 170, 0.5),
+        0 2px 0 rgba(0, 0, 0, 0.6);
+      min-width: 50px;
+      text-align: center;
+    }
+
+    /* Help button */
+    .help-btn {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: linear-gradient(180deg, #2a3258 0%, #161a30 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #b8c2e8;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      font-size: 12px;
+      transition: all 120ms ease;
+    }
+    .help-btn:hover {
+      color: #fff;
+      border-color: #ffd54a;
+      box-shadow: 0 0 12px rgba(255, 213, 74, 0.6);
+    }
+    .help-btn .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #4caf50;
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    /* Mute button */
+    .mute-btn {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      background: linear-gradient(180deg, #2a3258 0%, #161a30 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #b8c2e8;
+      font-size: 16px;
+      transition: all 120ms ease;
+    }
+    .mute-btn:hover {
+      color: #fff;
+      border-color: #ffd54a;
+      box-shadow: 0 0 12px rgba(255, 213, 74, 0.6);
+    }
+    .mute-btn.muted {
+      color: #ff5252;
+      border-color: rgba(255, 82, 82, 0.4);
+    }
+
+    /* Settings button */
+    .settings-btn {
+      pointer-events: auto;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      background: linear-gradient(180deg, #2a3258 0%, #161a30 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      color: #b8c2e8;
+      font-size: 16px;
+      transition: all 120ms ease;
+    }
+    .settings-btn:hover {
+      color: #fff;
+      border-color: #ffd54a;
+      box-shadow: 0 0 12px rgba(255, 213, 74, 0.6);
+    }
+
+    /* Settings overlay & modal */
+    #settings-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 8, 20, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      pointer-events: auto;
+    }
+    #settings-overlay.show { display: flex; }
+
+    #settings-modal {
+      min-width: 360px;
+      max-width: 90vw;
+      padding: 28px 32px;
+      background: linear-gradient(180deg, #1a1f3a 0%, #0a0e22 100%);
+      border: 2px solid #ffd54a;
+      border-radius: 16px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 12px 48px rgba(0, 0, 0, 0.85),
+        0 0 32px rgba(255, 213, 74, 0.45);
+      color: #e8ecff;
+      font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+      animation: modalIn 200ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+
+    #settings-modal h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      color: #ffd54a;
+      text-shadow: 0 0 10px rgba(255, 213, 74, 0.6);
+      letter-spacing: 1px;
+    }
+    #settings-modal .subtitle {
+      margin: 0 0 20px;
+      font-size: 12px;
+      color: #8892bd;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .settings-row:last-of-type { border-bottom: none; }
+
+    .settings-row-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #c8d0ee;
+    }
+
+    .settings-row-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Range slider */
+    .settings-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 140px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #2a3258, #3b4570);
+      outline: none;
+      cursor: pointer;
+    }
+    .settings-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffd54a, #c9a020);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 8px rgba(255, 213, 74, 0.5);
+      cursor: pointer;
+    }
+    .settings-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ffd54a, #c9a020);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 8px rgba(255, 213, 74, 0.5);
+      cursor: pointer;
+    }
+    .settings-slider-value {
+      min-width: 40px;
+      text-align: right;
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffd54a;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: #2a3258;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: background 200ms, border-color 200ms;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667;
+      transition: transform 200ms, background 200ms;
+    }
+    .toggle-switch input:checked + .toggle-track {
+      background: rgba(76, 175, 80, 0.3);
+      border-color: #4caf50;
+    }
+    .toggle-switch input:checked + .toggle-track::after {
+      transform: translateX(20px);
+      background: #4caf50;
+    }
+
+    /* Help modal */
+    #help-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 8, 20, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      pointer-events: auto;
+    }
+    #help-overlay.show { display: flex; }
+
+    #help-modal {
+      min-width: 380px;
+      max-width: 90vw;
+      padding: 28px 32px;
+      background: linear-gradient(180deg, #1a1f3a 0%, #0a0e22 100%);
+      border: 2px solid #ffd54a;
+      border-radius: 16px;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 12px 48px rgba(0, 0, 0, 0.85),
+        0 0 32px rgba(255, 213, 74, 0.45);
+      color: #e8ecff;
+      font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+      animation: modalIn 200ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.85) translateY(-10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    #help-modal h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      color: #ffd54a;
+      text-shadow: 0 0 10px rgba(255, 213, 74, 0.6);
+      letter-spacing: 1px;
+    }
+    #help-modal .subtitle {
+      margin: 0 0 20px;
+      font-size: 12px;
+      color: #8892bd;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .help-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      row-gap: 12px;
+      column-gap: 18px;
+      align-items: center;
+    }
+    .help-grid .keys {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .help-grid .desc {
+      color: #c8d0ee;
+      font-size: 14px;
+    }
+    .help-close {
+      margin-top: 22px;
+      width: 100%;
+      padding: 9px;
+      cursor: pointer;
+      background: linear-gradient(180deg, #ffd54a 0%, #c9a020 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 8px;
+      color: #1a1a1a;
+      font-weight: 700;
+      letter-spacing: 1px;
+      font-size: 13px;
+      transition: filter 120ms;
+    }
+    .help-close:hover { filter: brightness(1.15); }
+
+    /* ---------- Pause: HUD bar variant ---------- */
+    #hud.paused {
+      border-color: #ffd54a;
+      box-shadow: none;
+      animation: none;
+    }
+    @keyframes hudPulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 6px 24px rgba(0,0,0,0.7), 0 0 18px rgba(255, 213, 74, 0.45); }
+      50%      { box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 6px 24px rgba(0,0,0,0.7), 0 0 32px rgba(255, 213, 74, 0.85); }
+    }
+    .pause-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: linear-gradient(180deg, #4d3a06 0%, #2a1f00 100%);
+      border: 1px solid #ffd54a;
+      border-radius: 6px;
+      color: #ffd54a;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      text-shadow: 0 0 6px rgba(255, 213, 74, 0.6);
+    }
+    #hud.paused .pause-badge { display: inline-flex; }
+    #hud.paused .when-running { display: none; }
+    .pause-badge .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ffd54a;
+      box-shadow: 0 0 8px #ffd54a;
+      animation: dotBlink 1s ease-in-out infinite;
+    }
+    @keyframes dotBlink {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.25; }
+    }
+
+    /* Resume button — shown only when paused */
+    .resume-btn {
+      display: none;
+      pointer-events: auto;
+      cursor: pointer;
+      align-items: center;
+      padding: 4px 12px;
+      background: linear-gradient(180deg, #2a5828 0%, #163015 100%);
+      border: 1px solid #4caf50;
+      border-radius: 6px;
+      color: #4caf50;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+      transition: all 120ms ease;
+      font-family: inherit;
+    }
+    .resume-btn:hover {
+      color: #fff;
+      border-color: #4caf50;
+      box-shadow: 0 0 12px rgba(76, 175, 80, 0.7);
+      background: linear-gradient(180deg, #357a32 0%, #1e3f1c 100%);
+    }
+    #hud.paused .resume-btn { display: inline-flex; }
+
+    /* Drag handle — shown only when paused */
+    .drag-handle {
+      display: none;
+      pointer-events: auto;
+      cursor: grab;
+      align-items: center;
+      padding: 2px 4px;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 16px;
+      letter-spacing: 2px;
+      user-select: none;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    #hud.paused .drag-handle { display: inline-flex; }
+
+    /* Close button — shown only when paused, positioned top-right corner */
+    .close-btn {
+      display: inline-flex;
+      pointer-events: auto;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(180deg, #e84040 0%, #b02020 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0;
+      transition: all 120ms ease;
+      box-shadow: 0 0 6px rgba(232, 64, 64, 0.5);
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      z-index: 20;
+    }
+    .close-btn:hover {
+      background: linear-gradient(180deg, #ff5050 0%, #d03030 100%);
+      box-shadow: 0 0 14px rgba(255, 80, 80, 0.8);
+      transform: scale(1.15);
+    }
+
+    /* Minimize button — to the left of close */
+    .minimize-btn {
+      display: inline-flex;
+      pointer-events: auto;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(180deg, #f0c040 0%, #c09020 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0;
+      transition: all 120ms ease;
+      box-shadow: 0 0 6px rgba(240, 192, 64, 0.5);
+      position: absolute;
+      top: -8px;
+      right: 18px;
+      z-index: 20;
+    }
+    .minimize-btn:hover {
+      background: linear-gradient(180deg, #ffdd55 0%, #d0a030 100%);
+      box-shadow: 0 0 14px rgba(255, 213, 74, 0.8);
+      transform: scale(1.15);
+    }
+
+
+    /* ---------- Game selector ---------- */
+    .game-select {
+      pointer-events: auto;
+      background: rgba(0,0,0,0.6);
+      color: #ffd700;
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+    .game-select:hover {
+      border-color: rgba(255,215,0,0.8);
+    }
+    .game-select option {
+      background: #1a1a2e;
+      color: #ffd700;
+    }
+
+    /* Update notification banner */
+    #update-banner {
+      position: fixed;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+      pointer-events: none;
+      background: linear-gradient(180deg, #1a3a1a 0%, #0a220e 100%);
+      border: 2px solid #4caf50;
+      border-radius: 10px;
+      padding: 10px 20px;
+      color: #c8e6c9;
+      font-family: -apple-system, system-ui, 'Helvetica Neue', sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px rgba(76,175,80,0.3);
+      cursor: pointer;
+      transition: opacity 0.4s ease;
+      opacity: 0;
+      visibility: hidden;
+      white-space: nowrap;
+    }
+    #update-banner.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    #update-banner:hover {
+      border-color: #81c784;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 18px rgba(76,175,80,0.5);
+    }
+    #update-banner .update-icon { margin-right: 8px; }
+    #update-banner .update-link {
+      color: #81c784;
+      font-weight: 700;
+      text-decoration: underline;
+      margin-left: 6px;
+    }
+    #update-banner .update-dismiss {
+      margin-left: 12px;
+      color: #666;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    #update-banner .update-dismiss:hover { color: #aaa; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div class="hud-section">
+      <span id="drag-handle" class="drag-handle" title="Drag to move">⠿</span>
+      <span id="hud-title" class="title">AGENT ARCADE</span>
+    </div>
+    <div class="hud-spacer"></div>
+    <div class="hud-section">
+      <select id="game-select" class="game-select">
+        <!-- populated by game.ts -->
+      </select>
+    </div>
+    <div class="hud-divider"></div>
+    <div class="hud-section score-wrap">
+      <span class="score-icon" title="Lives">❤️</span>
+      <span id="lives-value" class="lives-value">3</span>
+    </div>
+    <div class="hud-divider"></div>
+    <div class="hud-section score-wrap">
+      <span class="score-icon" title="Score">⭐</span>
+      <span id="score-value" class="score-value">0</span>
+    </div>
+    <div class="hud-divider"></div>
+    <div class="hud-section score-wrap">
+      <span class="score-icon" title="High Score">🏆</span>
+      <span id="hi-value" class="hi-value">0</span>
+    </div>
+    <div class="hud-divider"></div>
+    <div class="hud-section">
+      <button id="help-btn" class="help-btn when-running" type="button">
+        <span class="badge">?</span>
+      </button>
+      <button id="mute-btn" class="mute-btn when-running" type="button" title="Toggle sound (M)">🔊</button>
+      <button id="resume-btn" class="resume-btn" type="button" title="Resume game">▶ RESUME</button>
+      <button id="settings-btn" class="settings-btn" type="button" title="Settings">⚙️</button>
+    </div>
+    <button id="minimize-btn" class="minimize-btn" type="button" title="Hide Agent Arcade">−</button>
+    <button id="close-btn" class="close-btn" type="button" title="Quit Agent Arcade">✕</button>
+  </div>
+
+  <div id="settings-overlay">
+    <div id="settings-modal" role="dialog" aria-labelledby="settings-title">
+      <h2 id="settings-title">⚙️ SETTINGS</h2>
+      <p class="subtitle">Customize your experience</p>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Background Transparency</span>
+        <div class="settings-row-control">
+          <input id="bg-transparency" class="settings-slider" type="range" min="0" max="100" value="100">
+          <span id="bg-transparency-value" class="settings-slider-value">100%</span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Enable Audio</span>
+        <div class="settings-row-control">
+          <label class="toggle-switch">
+            <input id="audio-toggle" type="checkbox" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Toggle Hotkey</span>
+        <div class="settings-row-control" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input id="hotkey-display" type="text" readonly
+            style="width:180px;padding:6px 12px;border:2px solid #555;border-radius:6px;
+                   background:#222;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:13px;text-align:center;cursor:pointer;"
+            value="Ctrl+Alt+M" title="Click to change, then press new combo">
+          <button id="hotkey-record-btn" type="button"
+            style="padding:6px 14px;border:2px solid #888;border-radius:6px;
+                   background:#333;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:12px;cursor:pointer;">
+            Change
+          </button>
+          <button id="hotkey-reset-btn" type="button"
+            style="padding:6px 10px;border:2px solid #666;border-radius:6px;
+                   background:#2a2a2a;color:#aaa;font-family:'Press Start 2P',monospace;
+                   font-size:10px;cursor:pointer;"
+            title="Reset to Ctrl+Alt+M">
+            Reset
+          </button>
+          <span id="hotkey-status" style="font-size:11px;color:#888;"></span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Pause Hotkey</span>
+        <div class="settings-row-control" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input id="pause-hotkey-display" type="text" readonly
+            style="width:180px;padding:6px 12px;border:2px solid #555;border-radius:6px;
+                   background:#222;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:13px;text-align:center;cursor:pointer;"
+            value="Escape" title="Click to change, then press new key or combo">
+          <button id="pause-hotkey-record-btn" type="button"
+            style="padding:6px 14px;border:2px solid #888;border-radius:6px;
+                   background:#333;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:12px;cursor:pointer;">
+            Change
+          </button>
+          <button id="pause-hotkey-reset-btn" type="button"
+            style="padding:6px 10px;border:2px solid #666;border-radius:6px;
+                   background:#2a2a2a;color:#aaa;font-family:'Press Start 2P',monospace;
+                   font-size:10px;cursor:pointer;"
+            title="Reset to Escape">
+            Reset
+          </button>
+          <span id="pause-hotkey-status" style="font-size:11px;color:#888;"></span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Resume Hotkey</span>
+        <div class="settings-row-control" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <input id="unpause-hotkey-display" type="text" readonly
+            style="width:180px;padding:6px 12px;border:2px solid #555;border-radius:6px;
+                   background:#222;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:13px;text-align:center;cursor:pointer;"
+            value="Ctrl+Escape" title="Click to change, then press new key or combo">
+          <button id="unpause-hotkey-record-btn" type="button"
+            style="padding:6px 14px;border:2px solid #888;border-radius:6px;
+                   background:#333;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:12px;cursor:pointer;">
+            Change
+          </button>
+          <button id="unpause-hotkey-reset-btn" type="button"
+            style="padding:6px 10px;border:2px solid #666;border-radius:6px;
+                   background:#2a2a2a;color:#aaa;font-family:'Press Start 2P',monospace;
+                   font-size:10px;cursor:pointer;"
+            title="Reset to Ctrl+Escape">
+            Reset
+          </button>
+          <span id="unpause-hotkey-status" style="font-size:11px;color:#888;"></span>
+        </div>
+      </div>
+
+      <div class="settings-row">
+        <span class="settings-row-label">Clear Scores</span>
+        <div class="settings-row-control" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <select id="clear-scores-game"
+            style="padding:6px 12px;border:2px solid #555;border-radius:6px;
+                   background:#222;color:#fff;font-family:'Press Start 2P',monospace;
+                   font-size:11px;cursor:pointer;">
+            <option value="alien-onslaught">👾 Alien Onslaught</option>
+            <option value="cosmic-rocks">☄️ Cosmic Rocks</option>
+            <option value="galaxy-blaster">🚀 Galaxy Blaster</option>
+            <option value="ninja-runner">🥷 Ninja Runner</option>
+          </select>
+          <button id="clear-scores-btn" type="button"
+            style="padding:6px 14px;border:2px solid #c44;border-radius:6px;
+                   background:#422;color:#f88;font-family:'Press Start 2P',monospace;
+                   font-size:12px;cursor:pointer;">
+            Clear
+          </button>
+          <span id="clear-scores-status" style="font-size:11px;color:#888;"></span>
+        </div>
+      </div>
+
+      <button id="settings-close" class="help-close" type="button">CLOSE</button>
+      <div id="settings-version" style="text-align:center;margin-top:10px;font-size:11px;color:#555;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;"></div>
+    </div>
+  </div>
+
+  <div id="help-overlay">
+    <div id="help-modal" role="dialog" aria-labelledby="help-title">
+      <h2 id="help-title">🕹️ AGENT ARCADE</h2>
+      <p class="subtitle">Controls</p>
+      <div class="help-grid">
+        <div class="keys"><kbd>←</kbd><kbd>→</kbd></div>
+        <div class="desc">Move left / right</div>
+
+        <div class="keys"><kbd>Space</kbd></div>
+        <div class="desc">Jump (hold for higher)</div>
+
+        <div class="keys"><kbd>⇧ Shift</kbd></div>
+        <div class="desc">Run (hold while moving)</div>
+
+        <div class="keys"><kbd>F</kbd></div>
+        <div class="desc">Fire (when powered up)</div>
+
+        <div class="keys" id="help-pause-keys"><kbd>Esc</kbd></div>
+        <div class="desc">Pause</div>
+
+        <div class="keys" id="help-unpause-keys"><kbd>Ctrl</kbd>+<kbd>Esc</kbd></div>
+        <div class="desc">Resume (or click ▶ RESUME)</div>
+
+        <div class="keys"><kbd>M</kbd></div>
+        <div class="desc">Toggle sound on / off</div>
+
+        <div class="keys" id="help-toggle-keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>M</kbd></div>
+        <div class="desc">Show / Hide window (global)</div>
+
+        <div class="keys">Tray menu</div>
+        <div class="desc">Show / Hide window</div>
+
+        <div class="keys"><kbd>⌘</kbd><kbd>Q</kbd></div>
+        <div class="desc">Quit</div>
+      </div>
+      <button id="help-close" class="help-close" type="button">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="update-banner">
+    <span class="update-icon">🚀</span>
+    <span>Version <strong id="update-version"></strong> is available!</span>
+    <span class="update-link">View Release</span>
+    <span class="update-dismiss" id="update-dismiss" title="Dismiss">✕</span>
+  </div>
+
+  <div id="pause-overlay" style="display:none"></div>
+
+  <div id="game"></div>
+  <script src="./hud.js"></script>
+  <script src="./phaser.min.js"></script>
+  <script type="module" src="./game.js"></script>
+</body>
+</html>

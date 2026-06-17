@@ -20,3 +20,4 @@ jobs:
         with:
           check_filenames: true
           check_hidden: false
+          skip: extensions/arcade-canvas/game/phaser.min.js
