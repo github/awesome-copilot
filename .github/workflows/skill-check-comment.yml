@@ -1,12 +1,12 @@
-name: Skill Validator — PR Comment
+name: Vally Lint — PR Comment
 
-# Posts results from the "Skill Validator — PR Gate" workflow.
+# Posts results from the "Vally Lint — PR Gate" workflow.
 # Runs with write permissions but never checks out PR code,
 # so it is safe for fork PRs.
 
 on:
   workflow_run:
-    workflows: ["Skill Validator — PR Gate"]
+    workflows: ["Vally Lint — PR Gate"]
     types: [completed]
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
       - name: Download results artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: skill-validator-results
+          name: vally-lint-results
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
@@ -34,11 +34,11 @@ jobs:
             const managedLabels = {
               'skill-check-warning': {
                 color: 'FBCA04',
-                description: 'Skill validator reported warnings'
+                description: 'Vally lint reported warnings'
               },
               'skill-check-error': {
                 color: 'B60205',
-                description: 'Skill validator reported errors'
+                description: 'Vally lint reported errors'
               }
             };
 
@@ -105,9 +105,9 @@ jobs:
             const agentCount = parseInt(fs.readFileSync('agent-count.txt', 'utf8').trim(), 10);
             const totalChecked = skillCount + agentCount;
 
-            const marker = '<!-- skill-validator-results -->';
-            const rawOutput = fs.existsSync('sv-output.txt')
-              ? fs.readFileSync('sv-output.txt', 'utf8')
+            const marker = '<!-- vally-lint-results -->';
+            const rawOutput = fs.existsSync('vally-output.txt')
+              ? fs.readFileSync('vally-output.txt', 'utf8')
               : '';
             const output = rawOutput.replace(/\x1b\[[0-9;]*m/g, '').trim();
 
@@ -171,7 +171,7 @@ jobs:
             ];
 
             const findingsTable = summaryLines.length === 0
-              ? ['_No findings were emitted by the validator._']
+              ? ['_No findings were emitted by the linter._']
               : [
                   '| Level | Finding |',
                   '|---|---|',
@@ -190,7 +190,7 @@ jobs:
 
             const body = [
               marker,
-              '## 🔍 Skill Validator Results',
+              '## 🔍 Vally Lint Results',
               '',
               `**${verdict}**`,
               '',
@@ -203,16 +203,16 @@ jobs:
               ...findingsTable,
               '',
               '<details>',
-              '<summary>Full validator output</summary>',
+              '<summary>Full linter output</summary>',
               '',
               '```text',
-              output || 'No validator output captured.',
+              output || 'No linter output captured.',
               '```',
               '',
               '</details>',
               '',
               exitCode !== '0'
-                ? '> **Note:** The validator returned a non-zero exit code. Please review the findings above before merge.'
+                ? '> **Note:** Vally lint returned a non-zero exit code. Please review the findings above before merge.'
                 : '',
             ].join('\n');
 
