@@ -533,6 +533,7 @@ body:has(#main-content) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  line-height: 1;
 }
 
 .github-btn:hover {
@@ -549,11 +550,14 @@ body:has(#main-content) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  margin-bottom: -2px;
 }
 
 .github-btn__icon svg {
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 .btn-icon-right {
