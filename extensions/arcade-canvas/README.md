@@ -64,3 +64,5 @@ That command builds the frontend, copies `dist/game` into `game/`, copies `dist/
 - Asteroids-style game mechanics: [phaser3-typescript](https://github.com/digitsensitive/phaser3-typescript) by digitsensitive.
 - Defender-style game mechanics and sound effects: [OpenDefender](https://github.com/mkinney/Opendefender) by mkinney.
 - Retro game sound effects: ["Retro game sound effects"](https://opengameart.org/content/retro-game-sound-effects) by Vircon32 (Carra), published at OpenGameArt under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+- Thanks to [John Papa](https://github.com/johnpapa) for his Alien Onslaught game PR.
+- Thanks to [Shayne Boyer](https://github.com/spboyer) for the initial PR to get Agent Arcade running in the GitHub App canvas.
