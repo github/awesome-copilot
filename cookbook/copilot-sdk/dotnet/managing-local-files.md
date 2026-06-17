@@ -16,7 +16,7 @@ You have a folder with many files and want to organize them into subfolders base
 ## Example code
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Create and start client
 await using var client = new CopilotClient();
