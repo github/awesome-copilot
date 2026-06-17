@@ -3,7 +3,7 @@ title: 'Getting Started with the GitHub Copilot app'
 description: 'Learn about the GitHub Copilot app, a desktop experience built for agent-native development. Understand its key features and who it''s for.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-12
+lastUpdated: 2026-06-17
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -142,6 +142,65 @@ Once installed, you can create a session by:
 3. **From your inbox**: The app syncs your GitHub inbox—click an issue and start a session for it
 
 Each session runs in its own worktree with its own isolated environment. You can run multiple sessions in parallel.
+
+### Launching Sessions from the Terminal with Deep Links
+
+The GitHub Copilot app supports URL deep links. This is useful when you want to open the app or start a session directly from your terminal workflow.
+
+Supported schemes:
+
+- `ghapp://` (canonical)
+- `github-app://`
+- `gh://`
+
+In examples below, replace `owner/repo` with your repository.
+
+#### Open a new session
+
+Use the `session/new` route:
+
+```bash
+# Basic new session
+open "ghapp://session/new?repo=owner/repo"
+
+# Start from a branch
+open "ghapp://session/new?repo=owner/repo&branch=main"
+
+# Start from a pull request
+open "ghapp://session/new?repo=owner/repo&pr=1234"
+
+# Start with a kickoff prompt
+open "ghapp://session/new?repo=owner/repo&prompt=fix%20the%20flaky%20test"
+
+# Set the initial session mode
+open "ghapp://session/new?repo=owner/repo&mode=plan"
+```
+
+`session/new` supports:
+
+- `repo` (**required**, format `owner/repo`)
+- `pr` (integer, mutually exclusive with `branch`)
+- `branch` (mutually exclusive with `pr`)
+- `prompt` (URL-encoded text)
+- `mode` (`plan`, `interactive`, or `autopilot`)
+
+#### Other useful deep links
+
+- `ghapp://repo/owner/repo` - Open (or clone) a repo into projects
+- `ghapp://clone/owner/repo` - Clone a repo
+- `ghapp://sessions/<sessionId>` - Open an existing session
+- `ghapp://chats` - Open chats
+- `ghapp://mywork` - Open the My Work view
+- `ghapp://recent` - Open recent workspaces
+- `ghapp://workflows` - Open automations
+- `ghapp://owner/repo/issues/123` - Open an issue
+- `ghapp://owner/repo/pull/456` - Open a pull request
+
+#### Important limitations
+
+- Deep links are **repo-centric** and expect `owner/repo`.
+- There is no deep link that directly opens an arbitrary local folder.
+- For local folders, use the app's **Add local folder** flow; if the folder is already a Git repository with a `github.com` remote, resolve that remote to `owner/repo` and use `session/new`.
 
 ### Understanding Session Workflow
 
