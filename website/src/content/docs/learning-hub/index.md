@@ -10,6 +10,8 @@ New to GitHub Copilot? Start here to understand the tools available to you.
 
 **Desktop App**: Explore the [GitHub Copilot app](github-copilot-app/) — a control center for directing multiple agents in parallel. Perfect for agent-native development and parallel work with isolated worktrees.
 
+**Canvases**: Learn [Working with Canvas Extensions](working-with-canvas-extensions/) to create and evolve interactive canvases with `/create-canvas`.
+
 **Terminal**: Looking for a guided path into GitHub Copilot from the terminal? Explore the [Copilot CLI for Beginners](cli-for-beginners/) with a text-based experience or the [YouTube video series](https://www.youtube.com/watch?v=BDxRhhs36ns&list=PL0lo9MOBetEHvO-spzKBAITkkTqv4RvNl).
 
 ## Fundamentals
