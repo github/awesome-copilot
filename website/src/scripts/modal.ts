@@ -14,8 +14,9 @@ import {
   shareFile,
   getResourceType,
   escapeHtml,
-  getResourceIcon,
+  getResourceIconSvg,
   sanitizeUrl,
+  REPO_IDENTIFIER,
 } from "./utils";
 import fm from "front-matter";
 
@@ -99,8 +100,8 @@ async function resolveResourceTitle(
     type === "skill"
       ? getCollectionRootPath(filePath, "skills")
       : type === "hook"
-        ? getCollectionRootPath(filePath, "hooks")
-        : filePath.substring(0, filePath.lastIndexOf("/"));
+      ? getCollectionRootPath(filePath, "hooks")
+      : filePath.substring(0, filePath.lastIndexOf("/"));
 
   if (collectionRootPath) {
     const parentItem = data.items.find((i) => i.path === collectionRootPath);
@@ -118,7 +119,10 @@ function isMarkdownFile(filePath: string): boolean {
   return /\.(md|markdown|mdx)$/i.test(filePath);
 }
 
-function getCollectionRootPath(filePath: string, collectionName: string): string | null {
+function getCollectionRootPath(
+  filePath: string,
+  collectionName: string
+): string | null {
   const segments = filePath.split("/");
   const collectionIndex = segments.indexOf(collectionName);
   if (collectionIndex === -1 || segments.length <= collectionIndex + 1) {
@@ -139,7 +143,9 @@ async function getSkillsData(): Promise<SkillsData | null> {
   return skillsCache;
 }
 
-async function getSkillItemByFilePath(filePath: string): Promise<SkillItem | null> {
+async function getSkillItemByFilePath(
+  filePath: string
+): Promise<SkillItem | null> {
   if (getResourceType(filePath) !== "skill") return null;
 
   const skillsData = await getSkillsData();
@@ -284,7 +290,10 @@ function getLanguageForFile(filePath: string): string {
   return "text";
 }
 
-async function renderHighlightedCode(content: string, filePath: string): Promise<void> {
+async function renderHighlightedCode(
+  content: string,
+  filePath: string
+): Promise<void> {
   try {
     const { codeToHtml } = await import("shiki");
     const container = ensureDivContent("modal-code-content");
@@ -305,7 +314,9 @@ async function renderHighlightedCode(content: string, filePath: string): Promise
 function updateViewButtons(): void {
   const renderBtn = document.getElementById("render-btn");
   const rawBtn = document.getElementById("raw-btn");
-  const markdownFile = currentFilePath ? isMarkdownFile(currentFilePath) : false;
+  const markdownFile = currentFilePath
+    ? isMarkdownFile(currentFilePath)
+    : false;
 
   if (!renderBtn || !rawBtn) return;
 
@@ -376,7 +387,9 @@ async function configureSkillFileSwitcher(filePath: string): Promise<void> {
       (file) =>
         `<button type="button" class="modal-file-menu-item${
           file.path === filePath ? " active" : ""
-        }" data-path="${escapeHtml(file.path)}" role="menuitemradio" aria-checked="${
+        }" data-path="${escapeHtml(
+          file.path
+        )}" role="menuitemradio" aria-checked="${
           file.path === filePath ? "true" : "false"
         }">${escapeHtml(file.name)}</button>`
     )
@@ -489,8 +502,16 @@ function handleModalKeydown(e: KeyboardEvent, modal: HTMLElement): void {
  */
 export function setupModal(): void {
   const modal = document.getElementById("file-modal");
+
+  // Move modal to body level to escape ancestor stacking contexts
+  // This fixes the issue where modal appears below header/theme-toggle
+  if (modal && modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
+
   const closeBtn = document.getElementById("close-modal");
   const copyBtn = document.getElementById("copy-btn");
+  const installCommandBtn = document.getElementById("install-command-btn");
   const downloadBtn = document.getElementById("download-btn");
   const shareBtn = document.getElementById("share-btn");
   const renderBtn = document.getElementById("render-btn");
@@ -525,6 +546,30 @@ export function setupModal(): void {
         success ? "Copied to clipboard!" : "Failed to copy",
         success ? "success" : "error"
       );
+    }
+  });
+
+  installCommandBtn?.addEventListener("click", async () => {
+    if (currentFilePath && currentFileType === "skill") {
+      const skill = await getSkillItemByFilePath(currentFilePath);
+      if (!skill) {
+        showToast("Could not resolve skill ID.", "error");
+        return;
+      }
+      const command = `gh skills install ${REPO_IDENTIFIER} ${skill.id}`;
+      const originalContent = installCommandBtn.innerHTML;
+      const success = await copyToClipboard(command);
+      showToast(
+        success ? "Install command copied!" : "Failed to copy",
+        success ? "success" : "error"
+      );
+      if (success) {
+        installCommandBtn.innerHTML =
+          '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg><span aria-hidden="true">Copied!</span>';
+        setTimeout(() => {
+          installCommandBtn.innerHTML = originalContent;
+        }, 2000);
+      }
     }
   });
 
@@ -590,7 +635,9 @@ export function setupModal(): void {
     setFileMenuOpen(Boolean(isOpen));
     if (isOpen) {
       fileMenu
-        ?.querySelector<HTMLElement>(".modal-file-menu-item.active, .modal-file-menu-item")
+        ?.querySelector<HTMLElement>(
+          ".modal-file-menu-item.active, .modal-file-menu-item"
+        )
         ?.focus();
     }
   };
@@ -842,6 +889,7 @@ export async function openFileModal(
     "install-insiders"
   ) as HTMLAnchorElement | null;
   const copyBtn = document.getElementById("copy-btn");
+  const installCommandBtn = document.getElementById("install-command-btn");
   const downloadBtn = document.getElementById("download-btn");
   const closeBtn = document.getElementById("close-modal");
   if (!modal || !title) return;
@@ -867,6 +915,7 @@ export async function openFileModal(
   const fallbackName = getFileName(filePath);
   updateModalTitle(fallbackName, filePath);
   modal.classList.remove("hidden");
+  modal.classList.add("visible");
 
   // Set focus to close button for accessibility
   setTimeout(() => {
@@ -877,6 +926,10 @@ export async function openFileModal(
   if (type === "plugin") {
     const modalContent = getModalContent();
     if (!modalContent) return;
+    if (installCommandBtn) {
+      installCommandBtn.style.display = "none";
+      installCommandBtn.classList.add("hidden");
+    }
     hideSkillFileSwitcher();
     await openPluginModal(
       filePath,
@@ -897,6 +950,11 @@ export async function openFileModal(
       "aria-label",
       type === "skill" ? "Download skill as ZIP" : "Download file"
     );
+  }
+  // Show copy install button only for skills
+  if (installCommandBtn) {
+    installCommandBtn.style.display = type === "skill" ? "inline-flex" : "none";
+    installCommandBtn.classList.toggle("hidden", type !== "skill");
   }
   renderPlainText("Loading...");
   hideSkillFileSwitcher();
@@ -997,7 +1055,7 @@ async function openPluginModal(
 function getExternalPluginUrl(plugin: Plugin): string {
   if (plugin.source?.source === "github" && plugin.source.repo) {
     const base = `https://github.com/${plugin.source.repo}`;
-    return plugin.source.path
+    return plugin.source.path && plugin.source.path !== "/"
       ? `${base}/tree/main/${plugin.source.path}`
       : base;
   }
@@ -1145,7 +1203,7 @@ function renderLocalPluginModal(
           <div class="collection-item" data-path="${escapeHtml(
             item.path
           )}" data-type="${escapeHtml(item.kind)}">
-            <span class="collection-item-icon">${getResourceIcon(
+            <span class="collection-item-icon">${getResourceIconSvg(
               item.kind
             )}</span>
             <div class="collection-item-info">
@@ -1172,8 +1230,18 @@ function renderLocalPluginModal(
   // Add click handlers to plugin items
   modalContent.querySelectorAll(".collection-item").forEach((el) => {
     el.addEventListener("click", () => {
-      const path = (el as HTMLElement).dataset.path;
+      let path = (el as HTMLElement).dataset.path;
       const itemType = (el as HTMLElement).dataset.type;
+
+      switch (itemType) {
+        case "agent":
+         // path = path.replace(".md", ".agent.md");
+          break;
+        case "skill":
+          path = `${path}/SKILL.md`;
+          break;
+      }
+
       if (path && itemType) {
         openFileModal(path, itemType);
       }
@@ -1191,6 +1259,7 @@ export function closeModal(updateUrl = true): void {
 
   if (modal) {
     modal.classList.add("hidden");
+    modal.classList.remove("visible");
   }
   if (installDropdown) {
     installDropdown.classList.remove("open");

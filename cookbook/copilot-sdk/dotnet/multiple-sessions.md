@@ -12,18 +12,30 @@ Manage multiple independent conversations simultaneously.
 
 You need to run multiple conversations in parallel, each with its own context and history.
 
-## C#
+## C #
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 await using var client = new CopilotClient();
 await client.StartAsync();
 
 // Create multiple independent sessions
-var session1 = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
-var session2 = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
-var session3 = await client.CreateSessionAsync(new SessionConfig { Model = "claude-sonnet-4.5" });
+var session1 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
+var session2 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
+var session3 = await client.CreateSessionAsync(new SessionConfig
+{
+    Model = "claude-sonnet-4.5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
+});
 
 // Each session maintains its own conversation history
 await session1.SendAsync(new MessageOptions { Prompt = "You are helping with a Python project" });
@@ -49,7 +61,8 @@ Use custom IDs for easier tracking:
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     SessionId = "user-123-chat",
-    Model = "gpt-5"
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
 Console.WriteLine(session.SessionId); // "user-123-chat"

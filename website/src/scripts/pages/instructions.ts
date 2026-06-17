@@ -1,9 +1,20 @@
 /**
  * Instructions page functionality
  */
-import { createChoices, getChoicesValues, type Choices } from '../choices';
-import { FuzzySearch, type SearchItem } from '../search';
-import { fetchData, debounce, setupDropdownCloseHandlers, setupActionHandlers } from '../utils';
+import {
+  createChoices,
+  getChoicesValues,
+  setChoicesValues,
+  type Choices,
+} from '../choices';
+import {
+  fetchData,
+  getQueryParam,
+  getQueryParamValues,
+  setupDropdownCloseHandlers,
+  setupActionHandlers,
+  updateQueryParams,
+} from '../utils';
 import { setupModal, openFileModal } from '../modal';
 import {
   renderInstructionsHtml,
@@ -12,7 +23,7 @@ import {
   type RenderableInstruction,
 } from './instructions-render';
 
-interface Instruction extends SearchItem, RenderableInstruction {
+interface Instruction extends RenderableInstruction {
   path: string;
   applyTo?: string | string[];
   extensions?: string[];
@@ -28,7 +39,6 @@ interface InstructionsData {
 
 const resourceType = 'instruction';
 let allItems: Instruction[] = [];
-let search = new FuzzySearch<Instruction>();
 let extensionSelect: Choices;
 let currentFilters = { extensions: [] as string[] };
 let currentSort: InstructionSortOption = 'title';
@@ -39,11 +49,8 @@ function sortItems(items: Instruction[]): Instruction[] {
 }
 
 function applyFiltersAndRender(): void {
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const countEl = document.getElementById('results-count');
-  const query = searchInput?.value || '';
-
-  let results = query ? search.search(query) : [...allItems];
+  let results = [...allItems];
 
   if (currentFilters.extensions.length > 0) {
     results = results.filter(item => {
@@ -56,22 +63,19 @@ function applyFiltersAndRender(): void {
 
   results = sortItems(results);
 
-  renderItems(results, query);
-  let countText = `${results.length} of ${allItems.length} instructions`;
+  renderItems(results);
+  let countText = `${results.length} instruction${results.length === 1 ? '' : 's'}`;
   if (currentFilters.extensions.length > 0) {
-    countText += ` (filtered by ${currentFilters.extensions.length} extension${currentFilters.extensions.length > 1 ? 's' : ''})`;
+    countText = `${results.length} of ${allItems.length} instructions (filtered by ${currentFilters.extensions.length} extension${currentFilters.extensions.length > 1 ? 's' : ''})`;
   }
   if (countEl) countEl.textContent = countText;
 }
 
-function renderItems(items: Instruction[], query = ''): void {
+function renderItems(items: Instruction[]): void {
   const list = document.getElementById('resource-list');
   if (!list) return;
 
-  list.innerHTML = renderInstructionsHtml(items, {
-    query,
-    highlightTitle: (title, highlightQuery) => search.highlight(title, highlightQuery),
-  });
+  list.innerHTML = renderInstructionsHtml(items);
 }
 
 function setupResourceListHandlers(list: HTMLElement | null): void {
@@ -93,9 +97,16 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
   resourceListHandlersReady = true;
 }
 
+function syncUrlState(): void {
+  updateQueryParams({
+    q: '',
+    extension: currentFilters.extensions,
+    sort: currentSort === 'title' ? '' : currentSort,
+  });
+}
+
 export async function initInstructionsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
-  const searchInput = document.getElementById('search-input') as HTMLInputElement;
   const clearFiltersBtn = document.getElementById('clear-filters');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
@@ -108,36 +119,44 @@ export async function initInstructionsPage(): Promise<void> {
   }
 
   allItems = data.items;
-  search.setItems(allItems);
 
   extensionSelect = createChoices('#filter-extension', { placeholderValue: 'All Extensions' });
   extensionSelect.setChoices(data.filters.extensions.map(e => ({ value: e, label: e })), 'value', 'label', true);
+
+  const initialExtensions = getQueryParamValues('extension').filter(extension => data.filters.extensions.includes(extension));
+  const initialSort = getQueryParam('sort');
+
+  if (initialExtensions.length > 0) {
+    currentFilters.extensions = initialExtensions;
+    setChoicesValues(extensionSelect, initialExtensions);
+  }
+  if (initialSort === 'lastUpdated') {
+    currentSort = initialSort;
+    if (sortSelect) sortSelect.value = initialSort;
+  }
+
   document.getElementById('filter-extension')?.addEventListener('change', () => {
     currentFilters.extensions = getChoicesValues(extensionSelect);
     applyFiltersAndRender();
+    syncUrlState();
   });
 
   sortSelect?.addEventListener('change', () => {
     currentSort = sortSelect.value as InstructionSortOption;
     applyFiltersAndRender();
+    syncUrlState();
   });
-
-  const countEl = document.getElementById('results-count');
-  if (countEl) {
-    countEl.textContent = `${allItems.length} of ${allItems.length} instructions`;
-  }
-
-  searchInput?.addEventListener('input', debounce(() => applyFiltersAndRender(), 200));
 
   clearFiltersBtn?.addEventListener('click', () => {
     currentFilters = { extensions: [] };
     currentSort = 'title';
     extensionSelect.removeActiveItems();
-    if (searchInput) searchInput.value = '';
     if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
+    syncUrlState();
   });
 
+  applyFiltersAndRender();
   setupModal();
   setupDropdownCloseHandlers();
   setupActionHandlers();

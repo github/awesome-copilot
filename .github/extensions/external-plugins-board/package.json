@@ -1,0 +1,8 @@
+{
+  "name": "external-plugins-board",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "marked": "^15.0.0"
+  }
+}

@@ -1,6 +1,7 @@
 #:package GitHub.Copilot.SDK@*
 
-using GitHub.Copilot.SDK;
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
+using GitHub.Copilot;
 
 // Ralph loop: autonomous AI task loop with fresh context per iteration.
 //
@@ -48,8 +49,7 @@ try
                 // Pin the agent to the project directory
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                OnPermissionRequest = PermissionHandler.ApproveAll,
             });
 
         try

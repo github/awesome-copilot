@@ -103,6 +103,18 @@ code example here
 - **Stay Current**: Reference current versions and best practices
 - **Link Resources**: Include official documentation and authoritative sources
 
+### Instruction Altitude (Goldilocks Zone)
+
+- Start with the minimum rule set that fully defines expected outcomes
+- Add constraints after observed failures, not hypothetical edge cases
+- Prefer high-signal examples over exhaustive decision tables
+
+| Altitude | Failure Mode | Result |
+| --- | --- | --- |
+| Over-specified | Brittle if-else prose | Breaks on unlisted cases |
+| Under-specified | Assumes shared context | Generic outputs |
+| Right altitude | Heuristics + examples | Stable, generalizable quality |
+
 ### Common Patterns to Include
 
 1. **Naming Conventions**: How to name variables, functions, classes, files
@@ -180,6 +192,7 @@ function getUser(id: any): any {
 - **Missing examples**: Abstract rules without concrete code examples
 - **Contradictory advice**: Ensure consistency throughout the file
 - **Copy-paste from documentation**: Add value by distilling and contextualizing
+- **Hypothetical-rule inflation**: Do not add rules for failures that have not occurred
 
 ## Testing Your Instructions
 
@@ -254,3 +267,4 @@ Description and example
 
 - [Custom Instructions Documentation](https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
 - [Awesome Copilot Instructions](https://github.com/github/awesome-copilot/tree/main/instructions)
+- [System Prompt Altitude — Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents#the-anatomy-of-effective-context)

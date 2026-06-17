@@ -1,4 +1,4 @@
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import * as os from "node:os";
 import * as path from "node:path";
 
@@ -8,6 +8,7 @@ await client.start();
 
 // Create session
 const session = await client.createSession({
+    onPermissionRequest: approveAll,
     model: "gpt-5",
 });
 

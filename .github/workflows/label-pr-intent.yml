@@ -1,0 +1,197 @@
+name: Label PR Intent
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  label-pr:
+    runs-on: ubuntu-latest
+    if: >-
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
+    steps:
+      - name: Apply intent labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const managedLabels = {
+              'targets-main': true,
+              'branched-main': true,
+              'skills': true,
+              'plugin': true,
+              'agent': true,
+              'instructions': true,
+              'new-submission': true,
+              'website-update': true,
+              'external-plugin': true,
+              'hooks': true,
+              'workflow': true,
+              'canvas-extension': true
+            };
+
+            const matchesAny = (filename, patterns) => patterns.some((pattern) => pattern.test(filename));
+
+            async function listAllFiles() {
+              const files = [];
+              let page = 1;
+
+              while (true) {
+                const response = await github.rest.pulls.listFiles({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  per_page: 100,
+                  page
+                });
+
+                files.push(...response.data);
+
+                if (response.data.length < 100) {
+                  return files;
+                }
+
+                page += 1;
+              }
+            }
+
+            const files = await listAllFiles();
+            const filenames = files.map((file) => file.filename);
+
+            const patterns = {
+              branchedMain: [
+                /^plugins\/[^/]+\/(?:agents|commands|skills)\//
+              ],
+              skills: [
+                /^skills\//
+              ],
+              plugin: [
+                /^plugins\//
+              ],
+              agent: [
+                /^agents\/.+\.agent\.md$/
+              ],
+              instructions: [
+                /^instructions\/.+\.instructions\.md$/
+              ],
+              websiteUpdate: [
+                /^website\//
+              ],
+              externalPlugin: [
+                /^plugins\/external\.json$/
+              ],
+              hooks: [
+                /^hooks\//
+              ],
+              workflow: [
+                /^workflows\/.+\.md$/,
+                /^\.github\/workflows\/.+\.(?:ya?ml|md)$/
+              ],
+              canvasExtension: [
+                /^extensions\/[^/]+\//
+              ],
+              newSubmission: [
+                /^agents\/.+\.agent\.md$/,
+                /^instructions\/.+\.instructions\.md$/,
+                /^skills\/[^/]+\/SKILL\.md$/,
+                /^hooks\/[^/]+\/(?:README\.md|hooks\.json)$/,
+                /^plugins\/[^/]+\/\.github\/plugin\/plugin\.json$/,
+                /^extensions\/[^/]+\/extension\.mjs$/,
+                /^workflows\/.+\.md$/,
+                /^\.github\/workflows\/.+\.(?:ya?ml|md)$/,
+                /^website\//
+              ]
+            };
+
+            const isBranchedMain = filenames.some((filename) => matchesAny(filename, patterns.branchedMain));
+            const hasNewSubmission = files.some(
+              (file) => file.status === 'added' && matchesAny(file.filename, patterns.newSubmission)
+            );
+
+            const desiredLabels = new Set();
+
+            if (context.payload.pull_request.base.ref === 'main') {
+              desiredLabels.add('targets-main');
+            }
+
+            if (filenames.some((filename) => matchesAny(filename, patterns.externalPlugin))) {
+              desiredLabels.add('external-plugin');
+            }
+
+            if (isBranchedMain) {
+              desiredLabels.add('branched-main');
+            } else {
+              if (filenames.some((filename) => matchesAny(filename, patterns.skills))) {
+                desiredLabels.add('skills');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.plugin))) {
+                desiredLabels.add('plugin');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.agent))) {
+                desiredLabels.add('agent');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.instructions))) {
+                desiredLabels.add('instructions');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.websiteUpdate))) {
+                desiredLabels.add('website-update');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.hooks))) {
+                desiredLabels.add('hooks');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.workflow))) {
+                desiredLabels.add('workflow');
+              }
+
+              if (filenames.some((filename) => matchesAny(filename, patterns.canvasExtension))) {
+                desiredLabels.add('canvas-extension');
+              }
+
+              if (hasNewSubmission) {
+                desiredLabels.add('new-submission');
+              }
+            }
+
+            const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const currentManagedLabels = currentLabels
+              .map((label) => label.name)
+              .filter((name) => Object.prototype.hasOwnProperty.call(managedLabels, name));
+
+            const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
+            const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd
+              });
+            }
+
+            for (const name of labelsToRemove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name
+              });
+            }
+
+            core.info(`Managed labels: ${[...desiredLabels].sort().join(', ') || 'none'}`);

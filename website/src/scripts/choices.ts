@@ -4,14 +4,22 @@
 import Choices from 'choices.js';
 import 'choices.js/public/assets/styles/choices.min.css';
 
-export type { Choices };
-
 /**
  * Get selected values from a Choices instance
  */
 export function getChoicesValues(choices: Choices): string[] {
   const val = choices.getValue(true);
   return Array.isArray(val) ? val : (val ? [val] : []);
+}
+
+/**
+ * Restore selected values on a Choices instance.
+ */
+export function setChoicesValues(choices: Choices, values: string[]): void {
+  // Clear any existing active items so that the final selection matches `values`
+  choices.removeActiveItems();
+  // Set all provided values as the current selection
+  choices.setChoiceByValue(values);
 }
 
 /**

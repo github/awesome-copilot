@@ -329,6 +329,9 @@ def add_icon_to_diagram(
 
 def main():
     """Main entry point."""
+    if hasattr(sys.stdout, "reconfigure"):
+        # Ensure consistent UTF-8 output on Windows consoles.
+        sys.stdout.reconfigure(encoding="utf-8")
     if len(sys.argv) < 5:
         print("Usage: python add-icon-to-diagram.py <diagram_path> <icon_name> <x> <y> [OPTIONS]")
         print("\nOptions:")

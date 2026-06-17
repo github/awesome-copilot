@@ -1,7 +1,7 @@
 ---
 description: 'Generate or update specification documents for new or existing functionality.'
 name: 'Specification'
-tools: ['changes', 'search/codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'search/searchResults', 'runCommands/terminalLastCommand', 'runCommands/terminalSelection', 'testFailure', 'usages', 'vscodeAPI', 'microsoft.docs.mcp', 'github']
+tools: ['search/codebase', 'search/usages', 'edit/editFiles', 'vscode/extensions', 'web/fetch', 'vscode/openSimpleBrowser', 'read/problems', 'execute/runTests', 'read/terminalLastCommand', 'read/terminalSelection', 'execute/testFailure', 'vscode/vscodeAPI']
 ---
 # Specification mode instructions
 

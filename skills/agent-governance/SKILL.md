@@ -564,6 +564,6 @@ Match governance strictness to risk level:
 
 ## Related Resources
 
-- [Agent-OS Governance Engine](https://github.com/imran-siddique/agent-os) — Full governance framework
-- [AgentMesh Integrations](https://github.com/imran-siddique/agentmesh-integrations) — Framework-specific packages
+- [Agent Governance Toolkit](https://github.com/microsoft/agent-governance-toolkit) — Full governance framework
+- [AgentMesh Integrations](https://github.com/microsoft/agent-governance-toolkit/tree/main/packages/agentmesh-integrations) — Framework-specific packages
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)

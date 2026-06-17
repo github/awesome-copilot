@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { CopilotClient } from "@github/copilot-sdk";
+import { CopilotClient, approveAll } from "@github/copilot-sdk";
 import * as readline from "node:readline";
 
 // ============================================================================
@@ -38,6 +38,7 @@ async function main() {
     const client = new CopilotClient();
 
     const session = await client.createSession({
+        onPermissionRequest: approveAll,
         model: "claude-opus-4.6",
         streaming: true,
         mcpServers: {
@@ -54,7 +55,7 @@ async function main() {
     let idleResolve: (() => void) | null = null;
 
     session.on((event) => {
-        if (event.type === "assistant.message.delta") {
+        if (event.type === "assistant.message_delta") {
             process.stdout.write(event.data.deltaContent ?? "");
         } else if (event.type === "session.idle") {
             idleResolve?.();
@@ -71,12 +72,12 @@ async function main() {
 
     const prompt = `
     Use the Playwright MCP server to analyze the accessibility of this webpage: ${url}
-    
+
     Please:
     1. Navigate to the URL using playwright-browser_navigate
     2. Take an accessibility snapshot using playwright-browser_snapshot
     3. Analyze the snapshot and provide a detailed accessibility report
-    
+
     Format the report EXACTLY like this structure with emoji indicators:
 
     📊 Accessibility Report: [Page Title] (domain.com)
@@ -132,8 +133,8 @@ async function main() {
         const detectLanguagePrompt = `
         Analyze the current working directory to detect the primary programming language used in this project.
         Look for project files like package.json, *.csproj, pom.xml, requirements.txt, go.mod, etc.
-        
-        Respond with ONLY the detected language name (e.g., "TypeScript", "JavaScript", "C#", "Python", "Java") 
+
+        Respond with ONLY the detected language name (e.g., "TypeScript", "JavaScript", "C#", "Python", "Java")
         and a brief explanation of why you detected it.
         If no project is detected, suggest "TypeScript" as the default for Playwright tests.
         `;
@@ -150,7 +151,7 @@ async function main() {
 
         const testGenerationPrompt = `
         Based on the accessibility report you just generated for ${url}, create Playwright accessibility tests in ${language}.
-        
+
         The tests should:
         1. Verify all the accessibility checks from the report
         2. Test for the issues that were found (to ensure they get fixed)
@@ -166,7 +167,7 @@ async function main() {
            - Touch targets meet minimum size requirements
         4. Use Playwright's accessibility testing features
         5. Include helpful comments explaining each test
-        
+
         Output the complete test file that can be saved and run.
         Use the Playwright MCP server tools if you need to verify any page details.
         `;

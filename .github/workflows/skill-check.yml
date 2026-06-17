@@ -1,0 +1,188 @@
+name: Skill Validator — PR Gate
+
+on:
+  pull_request:
+    branches: [staged]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "skills/**"
+      - "agents/**"
+      - "plugins/**/skills/**"
+      - "plugins/**/agents/**"
+
+permissions:
+  contents: read
+
+jobs:
+  skill-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      # ── Download & cache skill-validator ──────────────────────────
+      - name: Get cache key date
+        id: cache-date
+        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore skill-validator from cache
+        id: cache-sv
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          restore-keys: |
+            skill-validator-linux-x64-
+
+      - name: Download skill-validator
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .skill-validator
+          curl -fsSL \
+            "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
+            -o .skill-validator/skill-validator-linux-x64.tar.gz
+          tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
+          rm .skill-validator/skill-validator-linux-x64.tar.gz
+          chmod +x .skill-validator/skill-validator
+
+      - name: Save skill-validator to cache
+        if: steps.cache-sv.outputs.cache-hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: .skill-validator
+          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+
+      # ── Detect changed skills & agents ────────────────────────────
+      - name: Detect changed skills and agents
+        id: detect
+        run: |
+          declare -A SEEN_SKILL_DIRS=()
+          declare -A SEEN_AGENT_FILES=()
+          SKILL_DIRS=()
+          AGENT_FILES=()
+
+          while IFS= read -r -d '' file; do
+            case "$file" in
+              skills/*)
+                skill_dir="${file#skills/}"
+                skill_dir="skills/${skill_dir%%/*}"
+                if [ -d "$skill_dir" ] && [ -z "${SEEN_SKILL_DIRS[$skill_dir]+x}" ]; then
+                  SEEN_SKILL_DIRS["$skill_dir"]=1
+                  SKILL_DIRS+=("$skill_dir")
+                fi
+                ;;
+              plugins/*/skills/*)
+                IFS='/' read -r seg1 seg2 seg3 seg4 _ <<< "$file"
+                skill_dir="$seg1/$seg2/$seg3/$seg4"
+                if [ -d "$skill_dir" ] && [ -z "${SEEN_SKILL_DIRS[$skill_dir]+x}" ]; then
+                  SEEN_SKILL_DIRS["$skill_dir"]=1
+                  SKILL_DIRS+=("$skill_dir")
+                fi
+                ;;
+            esac
+
+            case "$file" in
+              agents/*.agent.md|plugins/*/agents/*.agent.md)
+                if [ -f "$file" ] && [ -z "${SEEN_AGENT_FILES[$file]+x}" ]; then
+                  SEEN_AGENT_FILES["$file"]=1
+                  AGENT_FILES+=("$file")
+                fi
+                ;;
+            esac
+          done < <(git diff --name-only -z "origin/${{ github.base_ref }}...HEAD")
+
+          SKILL_COUNT=${#SKILL_DIRS[@]}
+          AGENT_COUNT=${#AGENT_FILES[@]}
+          TOTAL=$((SKILL_COUNT + AGENT_COUNT))
+
+          {
+            echo "total=$TOTAL"
+            echo "skill_count=$SKILL_COUNT"
+            echo "agent_count=$AGENT_COUNT"
+            echo "skill_dirs<<EOF"
+            printf '%s\n' "${SKILL_DIRS[@]}"
+            echo "EOF"
+            echo "agent_files<<EOF"
+            printf '%s\n' "${AGENT_FILES[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Found $SKILL_COUNT skill dir(s) and $AGENT_COUNT agent file(s) to check."
+
+      # ── Run skill-validator check ─────────────────────────────────
+      - name: Run skill-validator check
+        id: check
+        if: steps.detect.outputs.total != '0'
+        env:
+          SKILL_DIRS_RAW: ${{ steps.detect.outputs.skill_dirs }}
+          AGENT_FILES_RAW: ${{ steps.detect.outputs.agent_files }}
+        run: |
+          SKILL_DIRS=()
+          AGENT_FILES=()
+
+          if [ -n "$SKILL_DIRS_RAW" ]; then
+            while IFS= read -r dir; do
+              [ -n "$dir" ] && SKILL_DIRS+=("$dir")
+            done <<< "$SKILL_DIRS_RAW"
+          fi
+
+          if [ -n "$AGENT_FILES_RAW" ]; then
+            while IFS= read -r file; do
+              [ -n "$file" ] && AGENT_FILES+=("$file")
+            done <<< "$AGENT_FILES_RAW"
+          fi
+
+          CMD=(.skill-validator/skill-validator check --verbose)
+
+          if [ ${#SKILL_DIRS[@]} -gt 0 ]; then
+            CMD+=(--skills "${SKILL_DIRS[@]}")
+          fi
+
+          if [ ${#AGENT_FILES[@]} -gt 0 ]; then
+            CMD+=(--agents "${AGENT_FILES[@]}")
+          fi
+
+          printf 'Running: '
+          printf '%q ' "${CMD[@]}"
+          echo
+
+          # Capture output; don't fail the workflow (warn-only mode)
+          set +e
+          OUTPUT=$("${CMD[@]}" 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+          # Save output to file (multi-line safe)
+          echo "$OUTPUT" > sv-output.txt
+
+          echo "$OUTPUT"
+
+      # ── Upload results for the commenting workflow ────────────────
+      - name: Save metadata
+        if: always()
+        run: |
+          mkdir -p sv-results
+          echo "${{ github.event.pull_request.number }}" > sv-results/pr-number.txt
+          echo "${{ steps.detect.outputs.total }}" > sv-results/total.txt
+          echo "${{ steps.detect.outputs.skill_count }}" > sv-results/skill-count.txt
+          echo "${{ steps.detect.outputs.agent_count }}" > sv-results/agent-count.txt
+          echo "${{ steps.check.outputs.exit_code }}" > sv-results/exit-code.txt
+          if [ -f sv-output.txt ]; then
+            cp sv-output.txt sv-results/sv-output.txt
+          fi
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: skill-validator-results
+          path: sv-results/
+          retention-days: 1
+
+      - name: Post skip notice if no skills changed
+        if: steps.detect.outputs.total == '0'
+        run: echo "No skill or agent files changed in this PR — skipping validation."

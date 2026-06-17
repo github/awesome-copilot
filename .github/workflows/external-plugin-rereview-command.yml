@@ -1,0 +1,322 @@
+name: External Plugin Re-review Command
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: external-plugin-rereview-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  rereview-command:
+    runs-on: ubuntu-latest
+    if: >-
+      !github.event.issue.pull_request &&
+      contains(github.event.comment.body, '/re-review-')
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Parse re-review command
+        id: parse
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-rereview.mjs')).href);
+            const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-validation.mjs')).href);
+            const command = rereview.parseRereviewCommand(context.payload.comment.body);
+
+            core.setOutput('should-run', 'false');
+            if (!command) {
+              core.info('No supported re-review command was found.');
+              return;
+            }
+
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login
+            });
+
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring ${command} because ${context.payload.comment.user.login} does not have write access.`);
+              return;
+            }
+
+            const labelNames = new Set((context.payload.issue.labels || []).map((label) => label.name));
+            if (!labelNames.has('external-plugin') || !labelNames.has('approved')) {
+              core.info('Ignoring command because the issue is not an approved external plugin submission.');
+              return;
+            }
+
+            const inRereviewQueue =
+              labelNames.has('re-review-due') ||
+              labelNames.has('re-review-follow-up');
+            if (!inRereviewQueue) {
+              core.info(`Ignoring ${command} because the issue is not currently in the six-month re-review queue.`);
+              return;
+            }
+
+            const reactionByCommand = {
+              keep: '+1',
+              'needs-changes': 'eyes',
+              remove: '-1'
+            };
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: reactionByCommand[command] ?? 'eyes'
+            });
+
+            const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n'));
+              return;
+            }
+
+            const currentIssue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const match = rereview.matchExternalPluginForIssue(currentIssue.data, plugins);
+            const plugin = match.plugin;
+            const fallbackName = match.submission.pluginName ?? `issue-${context.issue.number}`;
+
+            core.setOutput('should-run', 'true');
+            core.setOutput('command', command);
+            core.setOutput('has-plugin', plugin ? 'true' : 'false');
+            core.setOutput('plugin-name', plugin?.name ?? fallbackName);
+            core.setOutput('plugin-slug', rereview.slugifyPluginName(plugin?.name ?? fallbackName));
+            core.setOutput('source-repo', plugin?.source?.repo ?? match.submission.sourceRepo ?? '');
+
+      - name: Renew six-month review window
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'keep'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+          HAS_PLUGIN: ${{ steps.parse.outputs.has-plugin }}
+        with:
+          script: |
+            const pluginName = process.env.PLUGIN_NAME;
+            const hasPlugin = process.env.HAS_PLUGIN === 'true';
+
+            async function removeLabel(name) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            if (!hasPlugin) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `Could not find a current \`plugins/external.json\` entry for **${pluginName}**, so the six-month re-review window was not reset. Review the listing manually before retrying.`
+              });
+              return;
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'open'
+            });
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });
+
+            await removeLabel('re-review-due');
+            await removeLabel('re-review-follow-up');
+            await removeLabel('removed');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Renewed **${pluginName}** for another six months by reopening and reclosing this approved submission issue.`
+            });
+
+      - name: Mark follow-up needed
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'needs-changes'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['re-review-due', 're-review-follow-up']
+            });
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `Marked **${process.env.PLUGIN_NAME}** as needing follow-up. The plugin will stay in the six-month re-review queue until a maintainer comments \`/re-review-keep\` or \`/re-review-remove\`.`
+            });
+
+      - name: Install dependencies
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'remove' && steps.parse.outputs.has-plugin == 'true'
+        run: npm ci
+
+      - name: Remove plugin and create PR
+        id: remove_pr
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'remove' && steps.parse.outputs.has-plugin == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          plugin_name='${{ steps.parse.outputs.plugin-name }}'
+          plugin_slug='${{ steps.parse.outputs.plugin-slug }}'
+          source_repo='${{ steps.parse.outputs.source-repo }}'
+          issue_number='${{ github.event.issue.number }}'
+          branch="automation/external-plugin-rereview-remove-${issue_number}-${plugin_slug}"
+
+          node ./eng/external-plugin-rereview.mjs remove --plugin-name "$plugin_name" --source-repo "$source_repo" --file ./plugins/external.json
+          npm run build
+          bash eng/fix-line-endings.sh
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add -A
+          git commit -m "Remove external plugin ${plugin_name} after six-month re-review"
+          git push --force-with-lease origin "$branch"
+
+          pr_url=$(gh pr list --head "$branch" --base staged --json url --jq '.[0].url')
+          if [ -z "$pr_url" ]; then
+            pr_body=$(printf '%s\n' \
+              '## Summary' \
+              '' \
+              "- remove \`${plugin_name}\` from \`plugins/external.json\`" \
+              '- regenerate marketplace outputs after the six-month re-review decision' \
+              "- closes #${issue_number} review follow-up for this listing")
+            pr_url=$(gh pr create \
+              --base staged \
+              --head "$branch" \
+              --title "[external-plugin] Remove ${plugin_name} after re-review" \
+              --body "$pr_body")
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "pr-url=$pr_url" >> "$GITHUB_OUTPUT"
+
+      - name: Finalize removal
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'remove'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          CHANGED: ${{ steps.remove_pr.outputs.changed }}
+          PR_URL: ${{ steps.remove_pr.outputs.pr-url }}
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+          HAS_PLUGIN: ${{ steps.parse.outputs.has-plugin }}
+        with:
+          script: |
+            async function ensureLabel(name, color, description) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name,
+                  color,
+                  description
+                });
+              } catch (error) {
+                if (error.status !== 422) {
+                  throw error;
+                }
+              }
+            }
+
+            async function removeLabel(name) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            const changed = process.env.CHANGED === 'true';
+            const prUrl = process.env.PR_URL;
+            const pluginName = process.env.PLUGIN_NAME;
+            const hasPlugin = process.env.HAS_PLUGIN === 'true';
+
+            let body;
+            if (!hasPlugin || !changed) {
+              await ensureLabel('removed', 'B60205', 'External plugin was removed from the marketplace after re-review');
+              await removeLabel('approved');
+              await removeLabel('re-review-due');
+              await removeLabel('re-review-follow-up');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['removed']
+              });
+              body = `Marked **${pluginName}** as removed. No new PR was needed because the listing is already absent from \`plugins/external.json\`.`;
+            } else {
+              await ensureLabel('re-review-follow-up', 'D4C5F9', 'Six-month re-review needs maintainer follow-up before a final decision');
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['re-review-due', 're-review-follow-up']
+              });
+              body = `Opened the removal PR for **${pluginName}**: ${prUrl}. The issue remains approved and due for re-review until that removal lands in \`staged\`.`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });

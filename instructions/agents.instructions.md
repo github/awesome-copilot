@@ -27,7 +27,6 @@ name: 'Agent Display Name'
 tools: ['read', 'edit', 'search']
 model: 'Claude Sonnet 4.5'
 target: 'vscode'
-infer: true
 ---
 ```
 
@@ -61,10 +60,15 @@ infer: true
 - If omitted, agent is available in both environments
 - Use when agent has environment-specific features
 
-#### **infer** (OPTIONAL)
-- Boolean controlling whether Copilot can automatically use this agent based on context
+#### **user-invocable** (OPTIONAL)
+- Boolean controlling whether the agent appears in the agents dropdown in chat
 - Default: `true` if omitted
-- Set to `false` to require manual agent selection
+- Set to `false` to create agents that are only accessible as subagents or programmatically
+
+#### **disable-model-invocation** (OPTIONAL)
+- Boolean controlling whether the agent can be invoked as a subagent by other agents
+- Default: `false` if omitted
+- Set to `true` to prevent subagent invocation while keeping it available in the picker
 
 #### **metadata** (OPTIONAL, GitHub.com only)
 - Object with name-value pairs for agent annotation
@@ -850,7 +854,9 @@ Each level can override settings from previous levels.
 - [ ] `tools` configured appropriately (or intentionally omitted)
 - [ ] `model` specified for optimal performance
 - [ ] `target` set if environment-specific
-- [ ] `infer` set to `false` if manual selection required
+- [ ] Use `user-invocable: false` to hide from picker while allowing subagent invocation
+- [ ] Use `disable-model-invocation: true` to prevent subagent invocation while keeping picker visibility
+
 
 ### Prompt Content
 - [ ] Clear agent identity and role defined

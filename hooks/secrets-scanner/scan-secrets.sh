@@ -30,7 +30,7 @@ PATTERNS=(
   # GitHub tokens
   "GITHUB_PAT|critical|ghp_[0-9A-Za-z]{36}"
   "GITHUB_OAUTH|critical|gho_[0-9A-Za-z]{36}"
-  "GITHUB_APP_TOKEN|critical|ghs_[0-9A-Za-z]{36}"
+  "GITHUB_APP_TOKEN|critical|ghs_[0-9A-Za-z._-]{36,}"
   "GITHUB_REFRESH_TOKEN|critical|ghr_[0-9A-Za-z]{36}"
   "GITHUB_FINE_GRAINED_PAT|critical|github_pat_[0-9A-Za-z_]{82}"
 

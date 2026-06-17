@@ -1,0 +1,238 @@
+name: External Plugin Re-review
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync-rereview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Sync six-month re-review queue
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-rereview.mjs')).href);
+            const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-validation.mjs')).href);
+
+            async function removeLabel(issueNumber, label) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name: label
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            async function addLabel(issueNumber, label) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: [label]
+              });
+            }
+
+            function formatDate(dateValue) {
+              return new Date(dateValue).toISOString().slice(0, 10);
+            }
+
+            function daysPastThreshold(closedAt, threshold) {
+              const diff = Date.parse(threshold.toISOString()) - Date.parse(closedAt);
+              return Math.max(0, Math.floor(Math.abs(diff) / (1000 * 60 * 60 * 24)));
+            }
+
+            const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
+            if (errors.length > 0) {
+              core.setFailed(errors.join('\n'));
+              return;
+            }
+
+            const threshold = new Date();
+            threshold.setUTCDate(threshold.getUTCDate() - 183);
+
+            const approvedIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              labels: 'external-plugin,approved',
+              per_page: 100
+            });
+
+            const issueRecords = approvedIssues
+              .filter((issue) => !issue.pull_request && issue.closed_at)
+              .map((issue) => {
+                const match = rereview.matchExternalPluginForIssue(issue, plugins);
+                return {
+                  issue,
+                  match
+                };
+              });
+
+            const dueRecords = issueRecords.filter(({ issue, match }) => {
+              if (!match.plugin) {
+                return false;
+              }
+
+              return Date.parse(issue.closed_at) <= threshold.getTime();
+            });
+
+            const unmatchedDueRecords = issueRecords.filter(({ issue, match }) => {
+              if (match.plugin) {
+                return false;
+              }
+
+              return Date.parse(issue.closed_at) <= threshold.getTime();
+            });
+
+            const dueIssueNumbers = new Set([
+              ...dueRecords.map((record) => record.issue.number),
+              ...unmatchedDueRecords.map((record) => record.issue.number)
+            ]);
+
+            for (const { issue, match } of issueRecords) {
+              const labelNames = new Set((issue.labels || []).map((label) => label.name));
+              const shouldHaveDueLabel = dueIssueNumbers.has(issue.number);
+
+              if (shouldHaveDueLabel && !labelNames.has(rereview.REREVIEW_LABELS.due)) {
+                await addLabel(issue.number, rereview.REREVIEW_LABELS.due);
+              }
+
+              if (!shouldHaveDueLabel && labelNames.has(rereview.REREVIEW_LABELS.due)) {
+                await removeLabel(issue.number, rereview.REREVIEW_LABELS.due);
+              }
+
+              if (shouldHaveDueLabel && match.plugin && labelNames.has(rereview.REREVIEW_LABELS.removed)) {
+                await removeLabel(issue.number, rereview.REREVIEW_LABELS.removed);
+              }
+            }
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            const existingTrackerIssues = openIssues
+              .filter((issue) => !issue.pull_request && issue.body?.includes(rereview.REREVIEW_REPORT_MARKER))
+              .sort((left, right) => left.number - right.number);
+
+            if (dueRecords.length === 0 && unmatchedDueRecords.length === 0) {
+              for (const tracker of existingTrackerIssues) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: tracker.number,
+                  state: 'closed'
+                });
+              }
+
+              core.info('No external plugins are currently due for six-month re-review.');
+              return;
+            }
+
+            const dueRows = dueRecords
+              .sort((left, right) => Date.parse(left.issue.closed_at) - Date.parse(right.issue.closed_at))
+              .map(({ issue, match }) => {
+                const labelNames = new Set((issue.labels || []).map((label) => label.name));
+                const status = labelNames.has(rereview.REREVIEW_LABELS.followUp) ? 'Needs follow-up' : 'Awaiting decision';
+                const repo = match.plugin.source?.repo ?? match.submission.sourceRepo ?? '_unknown_';
+                return `| ${match.plugin.name} | ${match.plugin.version} | \`${repo}\` | #${issue.number} | ${formatDate(issue.closed_at)} | ${daysPastThreshold(issue.closed_at, threshold)} | ${status} |`;
+              });
+
+            const unmatchedRows = unmatchedDueRecords
+              .sort((left, right) => Date.parse(left.issue.closed_at) - Date.parse(right.issue.closed_at))
+              .map(({ issue, match }) => {
+                const pluginName = match.submission.pluginName ?? '_unknown_';
+                const repo = match.submission.sourceRepo ? `\`${match.submission.sourceRepo}\`` : '_unknown_';
+                return `| #${issue.number} | ${pluginName} | ${repo} | ${formatDate(issue.closed_at)} |`;
+              });
+
+            const body = [
+              rereview.REREVIEW_REPORT_MARKER,
+              '## 🔁 External plugin six-month re-review queue',
+              '',
+              'The following approved external plugin submissions have reached the six-month re-review threshold.',
+              'Review the linked plugin, then comment on the **original approved submission issue** with one of:',
+              '',
+              `- \`${rereview.REREVIEW_COMMANDS.keep}\` — renew the plugin for another six months`,
+              `- \`${rereview.REREVIEW_COMMANDS.needsChanges}\` — keep the plugin in the due queue while follow-up work happens`,
+              `- \`${rereview.REREVIEW_COMMANDS.remove}\` — open or update a PR against \`staged\` that removes the plugin from the marketplace`,
+              '',
+              `- **Threshold date used by this run:** ${formatDate(threshold.toISOString())}`,
+              '',
+              '### Plugins due now',
+              '',
+              dueRows.length > 0
+                ? [
+                    '| Plugin | Version | Source repo | Submission issue | Closed at | Days past threshold | Status |',
+                    '|---|---|---|---:|---|---:|---|',
+                    ...dueRows
+                  ].join('\n')
+                : '_No currently listed plugins are due right now._',
+              unmatchedRows.length > 0
+                ? [
+                    '',
+                    '### Approved issues without a current marketplace match',
+                    '',
+                    'These closed approved issues are older than six months, but no matching entry was found in `plugins/external.json`. Review them manually if the listing was renamed or removed outside the re-review flow.',
+                    '',
+                    '| Submission issue | Parsed plugin name | Parsed repo | Closed at |',
+                    '|---:|---|---|---|',
+                    ...unmatchedRows
+                  ].join('\n')
+                : '',
+            ].join('\n');
+
+            if (existingTrackerIssues.length > 0) {
+              const [primary, ...duplicates] = existingTrackerIssues;
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: primary.number,
+                title: '🔁 External Plugin Six-Month Review',
+                body,
+                labels: [rereview.REREVIEW_LABELS.due]
+              });
+
+              for (const duplicate of duplicates) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: duplicate.number,
+                  state: 'closed'
+                });
+              }
+
+              core.info(`Updated re-review tracker issue #${primary.number}.`);
+              return;
+            }
+
+            const created = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🔁 External Plugin Six-Month Review',
+              body,
+              labels: [rereview.REREVIEW_LABELS.due]
+            });
+
+            core.info(`Created re-review tracker issue #${created.data.number}.`);

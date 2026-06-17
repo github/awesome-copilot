@@ -17,14 +17,15 @@ You need to handle various error conditions like connection failures, timeouts, 
 
 ```python
 import asyncio
-from copilot import CopilotClient, SessionConfig, MessageOptions
+from copilot import CopilotClient, SessionConfig, MessageOptions, PermissionHandler
 
 async def main():
     client = CopilotClient()
 
     try:
         await client.start()
-        session = await client.create_session(SessionConfig(model="gpt-5"))
+        session = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
 
         response = await session.send_and_wait(MessageOptions(prompt="Hello!"))
 
@@ -57,7 +58,8 @@ except Exception as e:
 ## Timeout handling
 
 ```python
-session = await client.create_session(SessionConfig(model="gpt-5"))
+session = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
 
 try:
     # send_and_wait accepts an optional timeout in seconds
@@ -73,7 +75,8 @@ except TimeoutError:
 ## Aborting a request
 
 ```python
-session = await client.create_session(SessionConfig(model="gpt-5"))
+session = await client.create_session(SessionConfig(model="gpt-5",
+        on_permission_request=PermissionHandler.approve_all))
 
 # Start a request (non-blocking send)
 await session.send(MessageOptions(prompt="Write a very long story..."))

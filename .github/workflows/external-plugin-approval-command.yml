@@ -1,0 +1,57 @@
+name: External Plugin Approval Commands
+
+on:
+  pull_request:
+    types: [closed]
+
+concurrency:
+  group: external-plugin-approval-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  sync-merged-pr-labels:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'external-plugin')
+    steps:
+      - name: Normalize merged external plugin PR labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const staleLabels = ['awaiting-review', 'awaiting-approval', 'ready-for-review', 'rejected'];
+
+            const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+            const labelNames = new Set(currentLabels.map((label) => label.name));
+
+            if (!labelNames.has('approved')) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['approved']
+              });
+            }
+
+            for (const labelName of staleLabels) {
+              if (!labelNames.has(labelName)) {
+                continue;
+              }
+
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                name: labelName
+              });
+            }

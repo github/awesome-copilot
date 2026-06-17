@@ -7,7 +7,7 @@ applyTo: "**/*.cpp, **/*.h, **/*.hpp, **/*.cc, **/*.cxx, **/*.c"
 
 You have access to three specialized C++ tools:
 
-1. **`GetSymbolInfo_CppTools`** - Find symbol definitions and get type details
+1. **`GetSymbolInfo_CppTools`** - Find symbol definitions and get type information
 2. **`GetSymbolReferences_CppTools`** - Find ALL references to a symbol
 3. **`GetSymbolCallHierarchy_CppTools`** - Analyze function call relationships
 
@@ -15,28 +15,24 @@ You have access to three specialized C++ tools:
 
 ## Mandatory Tool Usage Rules
 
-### Rule 1: ALWAYS Use GetSymbolReferences_CppTools for Symbol Usages
+### Rule 1: Prefer GetSymbolReferences_CppTools as the default for locating C/C++ Symbol Usages
 
-**NEVER** rely on manual code inspection, `vscode_listCodeUsages`, `grep_search`, or `read_file` to find where a symbol is used.
+**DO NOT** rely on text-based search tools such as `vscode_listCodeUsages`, `grep_search`, or `read_file`. Only if GetSymbolReferences_CppTools is unavailable, fails, or appears incomplete, resort to these text-based search tools as a fallback.
 
 **ALWAYS** call `GetSymbolReferences_CppTools` when:
-
-- Renaming any symbol (function, variable, class, method, etc.)
+- Any task involving "find all references/usages/uses"
 - Changing function signatures
 - Refactoring code
 - Understanding symbol impact
-- Finding all call sites
 - Identifying usage patterns
-- Any task involving "find all uses/usages/references/calls"
 
 **Why**: `GetSymbolReferences_CppTools` uses C++ IntelliSense and understands:
-
-- Overloaded functions
-- Template instantiations
+- Differentiating between overloaded functions
+- Differentiating between template instantiations
 - Qualified vs unqualified names
 - Member function calls
 - Inherited member usage
-- Preprocessor-conditional code
+- Preprocessor conditionals for the active configuration
 
 Text search tools will miss these or produce false positives.
 
@@ -59,9 +55,7 @@ Before modifying any function signature, **ALWAYS** call `GetSymbolCallHierarchy
 Before working with unfamiliar code, **ALWAYS** call `GetSymbolInfo_CppTools` to:
 
 - Find where a symbol is defined
-- Understand class/struct memory layout
 - Get type information
-- Locate declarations
 
 **NEVER** assume you know what a symbol is without checking.
 
@@ -101,26 +95,11 @@ Start with minimal information and add more only if needed:
 
 1. **First attempt**: Symbol name only
 2. **If ambiguous**: Symbol name + file path
-3. **If still ambiguous**: Symbol name + file path + line number (after using `read_file`)
+3. **If still ambiguous**: Symbol name + file path + line number (after using `read_file` workflow mentioned above)
 
 ---
 
 ## Common Workflows
-
-### Renaming a Symbol
-
-```
-CORRECT workflow:
-1. Call GetSymbolReferences_CppTools with symbol name (and file path if available)
-2. Review ALL references returned
-3. Update symbol at definition location
-4. Update symbol at ALL reference locations
-
-INCORRECT workflow:
-❌ Using vscode_listCodeUsages or grep_search to find usages
-❌ Manually inspecting a few files
-❌ Assuming you know all the usages
-```
 
 ### Changing a Function Signature
 
@@ -143,8 +122,8 @@ INCORRECT workflow:
 ```
 CORRECT workflow:
 1. Call GetSymbolInfo_CppTools on key types/functions to understand definitions
-3. Call GetSymbolCallHierarchy_CppTools with callsFrom=true to understand what a function does
-4. Call GetSymbolCallHierarchy_CppTools with callsFrom=false to understand where a function is used
+2. Call GetSymbolCallHierarchy_CppTools with callsFrom=true to understand what a function does
+3. Call GetSymbolCallHierarchy_CppTools with callsFrom=false to understand where a function is used
 
 INCORRECT workflow:
 ❌ Reading code manually without tool assistance
@@ -236,7 +215,8 @@ This is NOT an error - it means:
 
 - ✅ Call `GetSymbolReferences_CppTools` for ANY symbol usage search
 - ✅ Call `GetSymbolCallHierarchy_CppTools` before function signature changes
-- ✅ Use `read_file` to find line numbers before specifying them
+- ✅ Use `read_file` to find line numbers before specifying them### Rule 1: Prefer GetSymbolReferences_CppTools as the default for locating C/C++ Symbol Usages
+- ✅ Prefer C++ tools as the default. Rely on text-based search tools only as a fallback if C++ tools are unavailable, fail, or appear incomplete.
 - ✅ Provide absolute file paths when available
 - ✅ Follow error message instructions exactly
 - ✅ Trust tool results over manual inspection
@@ -244,8 +224,7 @@ This is NOT an error - it means:
 - ✅ Remember line numbers are 1-based
 
 ### DO NOT:
-
-- ❌ Use `vscode_listCodeUsages`, `grep_search`, or `read_file` to find symbol usages
+- ❌ Rely on text-based search tools such as `vscode_listCodeUsages`, `grep_search`, or `read_file` to find symbol usages
 - ❌ Manually inspect code to find references
 - ❌ Guess line numbers
 - ❌ Assume symbol uniqueness without checking
@@ -259,26 +238,7 @@ This is NOT an error - it means:
 
 ## Examples of Correct Usage
 
-### Example 1: User asks to rename a function
-
-```
-User: "Rename the function ProcessData to HandleData"
-
-CORRECT response:
-1. Call GetSymbolReferences_CppTools("ProcessData")
-2. Review all reference locations
-3. Update function definition
-4. Update all call sites shown in results
-5. Confirm all changes made
-
-INCORRECT response:
-❌ Using grep_search to find "ProcessData"
-❌ Only updating files the user mentioned
-❌ Assuming you found all usages manually
-```
-
-### Example 2: User asks to add a parameter to a function
-
+### Example 1: User asks to add a parameter to a function
 ```
 User: "Add a parameter 'bool verbose' to the LogMessage function"
 
@@ -295,8 +255,7 @@ INCORRECT response:
 ❌ Not using call_hierarchy tool
 ```
 
-### Example 3: User asks to understand a function
-
+### Example 2: User asks to understand a function
 ```
 User: "What does the Initialize function do?"
 
@@ -332,7 +291,7 @@ INCORRECT response:
 
 - **Empty results are valid**: "No results found" means the symbol has no references/calls
 - **Multiple results are common**: C++ has overloading, templates, namespaces
-- **Trust the tools**: IntelliSense knows C++ semantics better than text search
+- **Trust the tools**: IntelliSense knows C++ semantics better than text-based search tools
 
 ---
 
@@ -349,7 +308,7 @@ INCORRECT response:
 - Finding string literals or comments
 - Searching non-C++ files
 - Pattern matching in configuration files
-- **NEVER** for finding C++ symbol usages
+- **NEVER** for finding C++ symbol usages unless GetSymbolReferences_CppTools is unavailable, fails, or appears incomplete
 
 ### When to use semantic_search
 
@@ -368,6 +327,6 @@ INCORRECT response:
 2. **Function calls?** → `GetSymbolCallHierarchy_CppTools`
 3. **Symbol definition?** → `GetSymbolInfo_CppTools`
 
-These tools are your primary interface to C++ code understanding. Use them liberally and often. They are fast, accurate, and understand C++ semantics that text search cannot capture.
+These tools are your primary interface to C++ code understanding. Use them liberally and often. They are fast, accurate, and understand C++ semantics that text-based search tools cannot capture.
 
 **Your success metric**: Did I use the right C++ tool for every symbol-related task?

@@ -36,7 +36,7 @@ dotnet run -- --repo github/copilot-sdk
 
 ```csharp
 using System.Diagnostics;
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // ============================================================================
 // Git & GitHub Detection
@@ -159,12 +159,13 @@ var owner = parts[0];
 var repoName = parts[1];
 
 // Create Copilot client - no custom tools needed!
-await using var client = new CopilotClient(new CopilotClientOptions { LogLevel = "error" });
+await using var client = new CopilotClient(new CopilotClientOptions { LogLevel = CopilotLogLevel.Error });
 await client.StartAsync();
 
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     SystemMessage = new SystemMessageConfig
     {
         Content = $"""

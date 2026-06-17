@@ -22,7 +22,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from copilot import CopilotClient, MessageOptions, SessionConfig
+from copilot import CopilotClient, MessageOptions, SessionConfig, PermissionHandler
 
 
 async def ralph_loop(mode: str = "build", max_iterations: int = 50):
@@ -48,10 +48,7 @@ async def ralph_loop(mode: str = "build", max_iterations: int = 50):
                 # Pin the agent to the project directory
                 working_directory=str(Path.cwd()),
                 # Auto-approve tool calls for unattended operation
-                on_permission_request=lambda _req, _ctx: {
-                    "kind": "approved",
-                    "rules": [],
-                },
+                on_permission_request=PermissionHandler.approve_all,
             ))
 
             # Log tool usage for visibility

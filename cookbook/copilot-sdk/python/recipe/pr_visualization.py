@@ -6,8 +6,11 @@ import sys
 import os
 import re
 from copilot import (
-    CopilotClient, SessionConfig, MessageOptions,
-    SessionEvent, SessionEventType,
+    CopilotClient,
+    SessionConfig,
+    MessageOptions,
+    SessionEvent,
+    PermissionHandler,
 )
 
 # ============================================================================
@@ -112,16 +115,16 @@ The current working directory is: {os.getcwd()}
 - Be concise in your responses
 </instructions>
 """
-        }
-    ))
+        },
+        on_permission_request=PermissionHandler.approve_all))
 
     done = asyncio.Event()
 
     # Set up event handling
     def handle_event(event: SessionEvent):
-        if event.type == SessionEventType.ASSISTANT_MESSAGE:
+        if event.type.value == "assistant.message":
             print(f"\n🤖 {event.data.content}\n")
-        elif event.type == SessionEventType.TOOL_EXECUTION_START:
+        elif event.type.value == "tool.execution_start":
             print(f"  ⚙️  {event.data.tool_name}")
         elif event.type.value == "session.idle":
             done.set()

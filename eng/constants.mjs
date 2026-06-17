@@ -103,7 +103,8 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-skills) for guidelines on how to
 
 **Usage:**
 - Browse the skills table below to find relevant capabilities
-- Copy the skill folder to your local skills directory
+- Install a skill using the GitHub CLI: \`gh skills install github/awesome-copilot <skill-name>\` (requires [GitHub CLI v2.90.0+](https://github.blog/changelog/2026-04-16-manage-agent-skills-with-github-cli/))
+- Or copy the skill folder manually to your local skills directory
 - Reference skills in your prompts or let the agent discover them automatically`,
 
   hooksSection: `## 🪝 Hooks
@@ -193,6 +194,7 @@ const INSTRUCTIONS_DIR = path.join(ROOT_FOLDER, "instructions");
 const AGENTS_DIR = path.join(ROOT_FOLDER, "agents");
 const SKILLS_DIR = path.join(ROOT_FOLDER, "skills");
 const HOOKS_DIR = path.join(ROOT_FOLDER, "hooks");
+const EXTENSIONS_DIR = path.join(ROOT_FOLDER, "extensions");
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 const WORKFLOWS_DIR = path.join(ROOT_FOLDER, "workflows");
 const COOKBOOK_DIR = path.join(ROOT_FOLDER, "cookbook");
@@ -211,6 +213,7 @@ export {
   AKA_INSTALL_URLS,
   COOKBOOK_DIR,
   DOCS_DIR,
+  EXTENSIONS_DIR,
   HOOKS_DIR,
   INSTRUCTIONS_DIR,
   MAX_PLUGIN_ITEMS,

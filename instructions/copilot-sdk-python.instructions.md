@@ -30,7 +30,7 @@ uv add github-copilot-sdk
 ### Basic Client Setup
 
 ```python
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 import asyncio
 
 async def main():
@@ -82,6 +82,7 @@ Use a dict for SessionConfig:
 
 ```python
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "streaming": True,
     "tools": [...],
@@ -113,6 +114,7 @@ session = await client.create_session({
 
 ```python
 session = await client.resume_session("session-id", {
+    "on_permission_request": PermissionHandler.approve_all,
     "tools": [my_new_tool]
 })
 ```
@@ -195,6 +197,7 @@ Set `streaming: True` in SessionConfig:
 
 ```python
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "streaming": True
 })
@@ -248,6 +251,7 @@ async def fetch_issue(issue_id: str):
     return {"id": issue_id, "status": "open"}
 
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "tools": [
         define_tool(
@@ -281,6 +285,7 @@ async def get_weather(args: WeatherArgs, inv):
     return {"temperature": 72, "units": args.units}
 
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "tools": [
         define_tool(
             name="get_weather",
@@ -331,6 +336,7 @@ When Copilot invokes a tool, the client automatically:
 
 ```python
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "system_message": {
         "mode": "append",
@@ -348,6 +354,7 @@ session = await client.create_session({
 
 ```python
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "system_message": {
         "mode": "replace",
@@ -392,8 +399,14 @@ await session.send({
 Sessions are independent and can run concurrently:
 
 ```python
-session1 = await client.create_session({"model": "gpt-5"})
-session2 = await client.create_session({"model": "claude-sonnet-4.5"})
+session1 = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
+    "model": "gpt-5",
+})
+session2 = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
+    "model": "claude-sonnet-4.5",
+})
 
 await asyncio.gather(
     session1.send({"prompt": "Hello from session 1"}),
@@ -407,6 +420,7 @@ Use custom API providers via `provider`:
 
 ```python
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "provider": {
         "type": "openai",
         "base_url": "https://api.openai.com/v1",
@@ -436,7 +450,7 @@ await client.delete_session(session_id)
 ```python
 last_id = await client.get_last_session_id()
 if last_id:
-    session = await client.resume_session(last_id)
+    session = await client.resume_session(last_id, on_permission_request=PermissionHandler.approve_all)
 ```
 
 ### Checking Connection State
@@ -452,7 +466,7 @@ state = client.get_state()
 
 ```python
 try:
-    session = await client.create_session()
+    session = await client.create_session(on_permission_request=PermissionHandler.approve_all)
     await session.send({"prompt": "Hello"})
 except Exception as e:
     print(f"Error: {e}")
@@ -487,7 +501,7 @@ ALWAYS use async context managers for automatic cleanup:
 
 ```python
 async with CopilotClient() as client:
-    async with await client.create_session() as session:
+    async with await client.create_session(on_permission_request=PermissionHandler.approve_all) as session:
         # Use session...
         await session.send({"prompt": "Hello"})
     # Session automatically destroyed
@@ -500,7 +514,7 @@ async with CopilotClient() as client:
 client = CopilotClient()
 try:
     await client.start()
-    session = await client.create_session()
+    session = await client.create_session(on_permission_request=PermissionHandler.approve_all)
     try:
         # Use session...
         pass
@@ -529,12 +543,15 @@ finally:
 ### Simple Query-Response
 
 ```python
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 import asyncio
 
 async def main():
     async with CopilotClient() as client:
-        async with await client.create_session({"model": "gpt-5"}) as session:
+        async with await client.create_session({
+            "on_permission_request": PermissionHandler.approve_all,
+            "model": "gpt-5",
+        }) as session:
             done = asyncio.Event()
 
             def handler(event):
@@ -574,7 +591,7 @@ async def send_and_wait(session, prompt: str):
 
     return result[0] if result else None
 
-async with await client.create_session() as session:
+async with await client.create_session(on_permission_request=PermissionHandler.approve_all) as session:
     await send_and_wait(session, "What is the capital of France?")
     await send_and_wait(session, "What is its population?")
 ```
@@ -583,7 +600,7 @@ async with await client.create_session() as session:
 
 ```python
 # Use built-in send_and_wait for simpler synchronous interaction
-async with await client.create_session() as session:
+async with await client.create_session(on_permission_request=PermissionHandler.approve_all) as session:
     response = await session.send_and_wait(
         {"prompt": "What is 2+2?"},
         timeout=60.0
@@ -616,6 +633,7 @@ async def get_user(args, inv) -> dict:
     return asdict(user)
 
 session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
     "tools": [
         define_tool(
             name="get_user",
@@ -697,6 +715,7 @@ options: MessageOptions = {
 await session.send(options)
 
 config: SessionConfig = {
+    "on_permission_request": PermissionHandler.approve_all,
     "model": "gpt-5",
     "streaming": True
 }
@@ -775,7 +794,9 @@ def copilot_tool(
 def calculate(expression: str) -> float:
     return eval(expression)
 
-session = await client.create_session({"tools": [calculate]})
+session = await client.create_session({
+    "on_permission_request": PermissionHandler.approve_all,
+    "tools": [calculate]})
 ```
 
 ## Python-Specific Features

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "coffilot",
+    "name": "Coffilot",
+    "description": "Java-focused Copilot canvas extension from jdubois.",
+    "installUrl": "https://github.com/jdubois/coffilot",
+    "sourceUrl": "https://github.com/jdubois/coffilot",
+    "imagePath": "extensions/external-assets/coffilot-preview.png"
+  }
+]

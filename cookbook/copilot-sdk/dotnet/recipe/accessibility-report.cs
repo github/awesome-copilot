@@ -1,6 +1,7 @@
 #:package GitHub.Copilot.SDK@*
 
-using GitHub.Copilot.SDK;
+// The GitHub.Copilot.SDK package exposes the GitHub.Copilot namespace.
+using GitHub.Copilot;
 
 // Create and start client
 await using var client = new CopilotClient();
@@ -32,12 +33,12 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 {
   Model = "claude-opus-4.6",
   Streaming = true,
-  McpServers = new Dictionary<string, object>()
+  OnPermissionRequest = PermissionHandler.ApproveAll,
+  McpServers = new Dictionary<string, McpServerConfig>()
   {
     ["playwright"] =
-        new McpLocalServerConfig
+        new McpStdioServerConfig
         {
-          Type = "local",
           Command = "npx",
           Args = ["@playwright/mcp@latest"],
           Tools = ["*"]

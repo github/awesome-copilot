@@ -1,9 +1,12 @@
 name: Check PR Target Branch
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened]
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: check-pr-target-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 permissions:
   pull-requests: write
@@ -13,23 +16,65 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reject PR targeting main
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
-            const body = [
-              '⚠️ **This PR targets `main`, but PRs should target `staged`.**',
-              '',
-              'The `main` branch is auto-published from `staged` and should not receive direct PRs.',
-              'Please close this PR and re-open it against the `staged` branch.',
-              '',
-              'You can change the base branch using the **Edit** button at the top of this PR,',
-              'or run: `gh pr edit ${{ github.event.pull_request.number }} --base staged`'
-            ].join('\n');
+            const pull = context.payload.pull_request;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pullNumber = context.issue.number;
+            const botLogin = 'github-actions[bot]';
 
-            await github.rest.pulls.createReview({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-              event: 'REQUEST_CHANGES',
-              body
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner,
+              repo,
+              pull_number: pullNumber,
+              per_page: 100
             });
+
+            const latestBotReview = reviews
+              .filter((review) => review.user?.login === botLogin)
+              .sort((a, b) => new Date(a.submitted_at ?? a.created_at) - new Date(b.submitted_at ?? b.created_at))
+              .at(-1);
+
+            const latestBotState = latestBotReview?.state;
+
+            if (pull.base.ref === 'main') {
+              if (latestBotState !== 'CHANGES_REQUESTED') {
+                const requestChangesBody = [
+                  '⚠️ **This PR targets `main`, but PRs should target `staged`.**',
+                  '',
+                  'The `main` branch is auto-published from `staged` and should not receive direct PRs.',
+                  'Please close this PR and re-open it against the `staged` branch.',
+                  '',
+                  'You can change the base branch using the **Edit** button at the top of this PR,',
+                  'or run: `gh pr edit ${{ github.event.pull_request.number }} --base staged`'
+                ].join('\n');
+
+                await github.rest.pulls.createReview({
+                  owner,
+                  repo,
+                  pull_number: pullNumber,
+                  event: 'REQUEST_CHANGES',
+                  body: requestChangesBody
+                });
+              }
+
+              return;
+            }
+
+            if (latestBotState === 'CHANGES_REQUESTED') {
+              const approveBody = [
+                '✅ Base branch is now set correctly.',
+                '',
+                'Removing the prior block because this PR no longer targets `main`.'
+              ].join('\n');
+
+              await github.rest.pulls.createReview({
+                owner,
+                repo,
+                pull_number: pullNumber,
+                event: 'APPROVE',
+                body: approveBody
+              });
+            }

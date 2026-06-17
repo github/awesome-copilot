@@ -65,6 +65,7 @@ Use `SessionConfig` for configuration:
 ```csharp
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5",
     Streaming = true,
     Tools = [...],
@@ -89,7 +90,11 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 ### Resuming Sessions
 
 ```csharp
-var session = await client.ResumeSessionAsync(sessionId, new ResumeSessionConfig { ... });
+var session = await client.ResumeSessionAsync(sessionId, new ResumeSessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    // ...
+});
 ```
 
 ### Session Operations
@@ -178,6 +183,7 @@ Set `Streaming = true` in SessionConfig:
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5",
     Streaming = true
 });
@@ -236,6 +242,7 @@ using System.ComponentModel;
 
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5",
     Tools = [
         AIFunctionFactory.Create(
@@ -268,6 +275,7 @@ When Copilot invokes a tool, the client automatically:
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5",
     SystemMessage = new SystemMessageConfig
     {
@@ -287,6 +295,7 @@ var session = await client.CreateSessionAsync(new SessionConfig
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5",
     SystemMessage = new SystemMessageConfig
     {
@@ -336,8 +345,16 @@ await session.SendAsync(new MessageOptions
 Sessions are independent and can run concurrently:
 
 ```csharp
-var session1 = await client.CreateSessionAsync(new SessionConfig { Model = "gpt-5" });
-var session2 = await client.CreateSessionAsync(new SessionConfig { Model = "claude-sonnet-4.5" });
+var session1 = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "gpt-5",
+});
+var session2 = await client.CreateSessionAsync(new SessionConfig
+{
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    Model = "claude-sonnet-4.5",
+});
 
 await session1.SendAsync(new MessageOptions { Prompt = "Hello from session 1" });
 await session2.SendAsync(new MessageOptions { Prompt = "Hello from session 2" });
@@ -350,6 +367,7 @@ Use custom API providers via `ProviderConfig`:
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Provider = new ProviderConfig
     {
         Type = "openai",
@@ -390,7 +408,7 @@ var state = client.State;
 ```csharp
 try
 {
-    var session = await client.CreateSessionAsync();
+    var session = await client.CreateSessionAsync(new SessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
     await session.SendAsync(new MessageOptions { Prompt = "Hello" });
 }
 catch (StreamJsonRpc.RemoteInvocationException ex)
@@ -433,7 +451,7 @@ ALWAYS use `await using` for automatic disposal:
 
 ```csharp
 await using var client = new CopilotClient();
-await using var session = await client.CreateSessionAsync();
+await using var session = await client.CreateSessionAsync(new SessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
 // Resources automatically cleaned up
 ```
 
@@ -477,6 +495,7 @@ await client.StartAsync();
 
 await using var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Model = "gpt-5"
 });
 
@@ -501,7 +520,7 @@ await done.Task;
 ### Multi-Turn Conversation
 
 ```csharp
-await using var session = await client.CreateSessionAsync();
+await using var session = await client.CreateSessionAsync(new SessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
 
 async Task SendAndWait(string prompt)
 {
@@ -532,6 +551,7 @@ await SendAndWait("What is its population?");
 ```csharp
 var session = await client.CreateSessionAsync(new SessionConfig
 {
+    OnPermissionRequest = PermissionHandler.ApproveAll,
     Tools = [
         AIFunctionFactory.Create(
             ([Description("User ID")] string userId) => {

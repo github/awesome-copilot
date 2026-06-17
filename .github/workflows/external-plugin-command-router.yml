@@ -1,0 +1,796 @@
+name: External Plugin Command Router
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: external-plugin-intake-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  approval-command:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    if: >-
+      !github.event.issue.pull_request &&
+      (startsWith(github.event.comment.body, '/approve') || startsWith(github.event.comment.body, '/reject'))
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Parse decision command
+        id: parse
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const approval = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-approval.mjs')).href);
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const parsedCommand = approval.parseDecisionCommand(context.payload.comment.body);
+
+            core.setOutput('should-run', 'false');
+            if (!parsedCommand) {
+              core.info('No supported external plugin approval command was found.');
+              return;
+            }
+
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login
+            });
+
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring ${parsedCommand.command} because ${context.payload.comment.user.login} does not have write access.`);
+              return;
+            }
+
+            const currentIssue = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const labelNames = new Set((currentIssue.data.labels || []).map((label) => label.name));
+            if (!labelNames.has('external-plugin')) {
+              core.info('Ignoring command because the issue is not an external plugin submission.');
+              return;
+            }
+
+            const evaluation = await intake.evaluateExternalPluginIssue({
+              issue: currentIssue.data,
+              token: process.env.GITHUB_TOKEN
+            });
+
+            const fallbackName = evaluation.plugin?.name ?? `issue-${context.issue.number}`;
+            const canApprove = labelNames.has('ready-for-review') || labelNames.has('approved');
+            const canReject = !labelNames.has('approved');
+
+            if (parsedCommand.command === 'approve' && !canApprove) {
+              core.info('Ignoring /approve because the issue is not ready for review.');
+              return;
+            }
+
+            if (parsedCommand.command === 'reject' && !canReject) {
+              core.info('Ignoring /reject because the issue is already approved.');
+              return;
+            }
+
+            const reactionByCommand = {
+              approve: 'rocket',
+              reject: '-1'
+            };
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: reactionByCommand[parsedCommand.command] ?? 'eyes'
+            });
+
+            core.setOutput('should-run', 'true');
+            core.setOutput('command', parsedCommand.command);
+            core.setOutput('reason', parsedCommand.reason ?? '');
+            core.setOutput('validation-valid', evaluation.valid ? 'true' : 'false');
+            core.setOutput('validation-errors', JSON.stringify(evaluation.errors));
+            core.setOutput('plugin-name', fallbackName);
+            core.setOutput('plugin-slug', approval.slugifyPluginName(fallbackName));
+            core.setOutput('source-repo', evaluation.plugin?.source?.repo ?? '');
+
+      - name: Comment blocked approval
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'approve' && steps.parse.outputs.validation-valid != 'true'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          VALIDATION_ERRORS: ${{ steps.parse.outputs.validation-errors }}
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+        with:
+          script: |
+            const marker = '<!-- external-plugin-approval-blocked -->';
+            const errors = JSON.parse(process.env.VALIDATION_ERRORS || '[]');
+            const body = [
+              marker,
+              '## ⚠️ External plugin approval blocked',
+              '',
+              `The current issue form for **${process.env.PLUGIN_NAME}** no longer passes automated intake validation, so \`/approve\` was not applied.`,
+              '',
+              '### Required fixes',
+              '',
+              ...(errors.length > 0 ? errors.map((error) => `- ${error}`) : ['- Edit the issue details and let intake rerun automatically, or comment `/rerun-intake` to trigger it again on demand.'])
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const existingComment = comments.find((comment) =>
+              comment.user?.login === 'github-actions[bot]' &&
+              comment.body?.includes(marker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+      - name: Install dependencies
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'approve' && steps.parse.outputs.validation-valid == 'true'
+        run: npm ci
+
+      - name: Update external plugin catalog and PR
+        id: approval_pr
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'approve' && steps.parse.outputs.validation-valid == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          result=$(node ./eng/external-plugin-approval.mjs approve "$GITHUB_EVENT_PATH" --file ./plugins/external.json)
+          {
+            echo 'result<<EOF'
+            echo "$result"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+          plugin_name=$(node -e "const data = JSON.parse(process.argv[1]); process.stdout.write(data.plugin.name);" "$result")
+          action=$(node -e "const data = JSON.parse(process.argv[1]); process.stdout.write(data.action);" "$result")
+          source_repo=$(node -e "const data = JSON.parse(process.argv[1]); process.stdout.write(data.plugin.source.repo);" "$result")
+          plugin_slug='${{ steps.parse.outputs.plugin-slug }}'
+          issue_number='${{ github.event.issue.number }}'
+          branch="automation/external-plugin-approve-${issue_number}-${plugin_slug}"
+
+          if [ "$action" = "inserted" ]; then
+            title_action="Add"
+            summary_action="add"
+          else
+            title_action="Update"
+            summary_action="update"
+          fi
+
+          npm run build
+          bash eng/fix-line-endings.sh
+
+          pr_url=""
+          pr_number=""
+          if git diff --quiet; then
+            pr_number=$(gh pr list --head "$branch" --base staged --json number --jq '.[0].number')
+            if [ -n "$pr_number" ]; then
+              pr_url=$(gh pr view "$pr_number" --json url --jq '.url')
+            fi
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "plugin-name=$plugin_name" >> "$GITHUB_OUTPUT"
+            echo "action=$action" >> "$GITHUB_OUTPUT"
+            echo "source-repo=$source_repo" >> "$GITHUB_OUTPUT"
+            echo "pr-url=$pr_url" >> "$GITHUB_OUTPUT"
+            echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add -A
+          git commit -m "${title_action} external plugin ${plugin_name}"
+          git push --force-with-lease origin "$branch"
+
+          pr_number=$(gh pr list --head "$branch" --base staged --json number --jq '.[0].number')
+          pr_body=$(cat <<EOF
+          ## Summary
+
+          - ${summary_action} \`${plugin_name}\` in \`plugins/external.json\`
+          - regenerate marketplace outputs for the approved external plugin submission
+          - source repository: \`${source_repo}\`
+          - approved from #${issue_number}
+
+          ## Validation
+
+          - npm run build
+          EOF
+          )
+
+          if [ -n "$pr_number" ]; then
+            gh pr edit "$pr_number" \
+              --title "[external-plugin] ${title_action} ${plugin_name}" \
+              --body "$pr_body"
+            pr_url=$(gh pr view "$pr_number" --json url --jq '.url')
+          else
+            pr_url=$(gh pr create \
+              --base staged \
+              --head "$branch" \
+              --title "[external-plugin] ${title_action} ${plugin_name}" \
+              --body "$pr_body")
+            pr_number=$(gh pr view "$branch" --json number --jq '.number')
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "plugin-name=$plugin_name" >> "$GITHUB_OUTPUT"
+          echo "action=$action" >> "$GITHUB_OUTPUT"
+          echo "source-repo=$source_repo" >> "$GITHUB_OUTPUT"
+          echo "pr-url=$pr_url" >> "$GITHUB_OUTPUT"
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+
+      - name: Finalize approval
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'approve' && steps.parse.outputs.validation-valid == 'true'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          CHANGED: ${{ steps.approval_pr.outputs.changed }}
+          ACTION: ${{ steps.approval_pr.outputs.action }}
+          PLUGIN_NAME: ${{ steps.approval_pr.outputs.plugin-name }}
+          SOURCE_REPO: ${{ steps.approval_pr.outputs.source-repo }}
+          PR_URL: ${{ steps.approval_pr.outputs.pr-url }}
+          PR_NUMBER: ${{ steps.approval_pr.outputs.pr-number }}
+        with:
+          script: |
+            async function removeLabel(issueNumber, name) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  name
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            async function syncIssueLabels(issueNumber, desiredLabels) {
+              const managedLabels = {
+                'external-plugin': true,
+                'awaiting-review': true,
+                'ready-for-review': true,
+                'requires-submitter-fixes': true,
+                'approved': true,
+                'rejected': true
+              };
+
+              const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100
+              });
+
+              const currentManagedLabels = currentLabels
+                .map((label) => label.name)
+                .filter((name) => Object.prototype.hasOwnProperty.call(managedLabels, name));
+
+              const labelsToAdd = [...desiredLabels].filter((name) => !currentManagedLabels.includes(name));
+              const labelsToRemove = currentManagedLabels.filter((name) => !desiredLabels.has(name));
+
+              if (labelsToAdd.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  labels: labelsToAdd
+                });
+              }
+
+              for (const name of labelsToRemove) {
+                await removeLabel(issueNumber, name);
+              }
+            }
+
+            const issueNumber = context.issue.number;
+            const prNumber = Number(process.env.PR_NUMBER || 0);
+            const marker = '<!-- external-plugin-approval -->';
+            const action = process.env.ACTION === 'updated' ? 'updated' : 'added';
+            const prUrl = process.env.PR_URL;
+            const body = [
+              marker,
+              '## ✅ External plugin approved',
+              '',
+              `A maintainer approved **${process.env.PLUGIN_NAME}**, and the submission issue has been closed.`,
+              '',
+              `- **Catalog action:** ${action}`,
+              `- **Source repository:** \`${process.env.SOURCE_REPO}\``,
+              prUrl
+                ? `- **PR against \`staged\`:** ${prUrl}`
+                : '- **PR against `staged`:** No new PR was needed because the approved listing is already present.'
+            ].join('\n');
+
+            await syncIssueLabels(issueNumber, new Set(['external-plugin', 'approved']));
+
+            if (prNumber > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: ['external-plugin', 'awaiting-review']
+              });
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100
+            });
+
+            const existingComment = comments.find((comment) =>
+              comment.user?.login === 'github-actions[bot]' &&
+              comment.body?.includes(marker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body
+              });
+            }
+
+            if (context.payload.issue.state !== 'closed') {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                state: 'closed'
+              });
+            }
+
+      - name: Finalize rejection
+        if: steps.parse.outputs.should-run == 'true' && steps.parse.outputs.command == 'reject'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          REASON: ${{ steps.parse.outputs.reason }}
+          PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
+        with:
+          script: |
+            async function removeLabel(name) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name
+                });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['external-plugin', 'rejected']
+            });
+
+            await removeLabel('awaiting-review');
+            await removeLabel('ready-for-review');
+            await removeLabel('requires-submitter-fixes');
+            await removeLabel('approved');
+
+            const marker = '<!-- external-plugin-rejection -->';
+            const reason = process.env.REASON || 'No additional reason was provided.';
+            const body = [
+              marker,
+              '## ❌ External plugin rejected',
+              '',
+              `A maintainer rejected **${process.env.PLUGIN_NAME}**, and the submission issue has been closed.`,
+              '',
+              '### Reason',
+              '',
+              reason,
+              '',
+              'If you address the feedback, edit this issue with the updated details and have the issue author or a maintainer comment `/rerun-intake` to re-run automated intake.'
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100
+            });
+
+            const existingComment = comments.find((comment) =>
+              comment.user?.login === 'github-actions[bot]' &&
+              comment.body?.includes(marker)
+            );
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }
+
+            if (context.payload.issue.state !== 'closed') {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'closed'
+              });
+            }
+
+  mark-ready-command:
+    runs-on: ubuntu-latest
+    if: >-
+      !github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/mark-ready-for-review')
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Apply explicit ready-for-review override
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+
+            const parsed = intake.parseMarkReadyForReviewCommand(context.payload.comment.body);
+            if (!parsed) {
+              core.info('No supported /mark-ready-for-review command was found.');
+              return;
+            }
+
+            const actor = context.payload.comment.user?.login;
+            if (!actor || context.payload.comment.user?.type === 'Bot' || actor === 'github-actions[bot]') {
+              core.info('Ignoring command from a bot or unknown actor.');
+              return;
+            }
+
+            const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: actor
+            });
+            const hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            if (!hasWriteAccess) {
+              core.info(`Ignoring /mark-ready-for-review because ${actor} does not have write access.`);
+              return;
+            }
+
+            const { data: currentIssue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const labelNames = new Set((currentIssue.labels || []).map((label) => label.name));
+            if (!labelNames.has('external-plugin')) {
+              core.info('Ignoring command because issue is not an external plugin submission.');
+              return;
+            }
+
+            if (labelNames.has('approved')) {
+              core.info('Ignoring command because issue is already approved.');
+              return;
+            }
+
+            if (!labelNames.has('requires-submitter-fixes')) {
+              core.info('Ignoring command because issue is not currently blocked by submitter-fix gates.');
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: '+1'
+            });
+
+            await intakeState.syncExternalPluginIntakeLabels({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              desiredLabels: new Set(['external-plugin', 'ready-for-review'])
+            });
+
+            const marker = '<!-- external-plugin-mark-ready-override -->';
+            const reason = parsed.reason || 'No reason provided.';
+            const body = [
+              marker,
+              '## ✅ External plugin manually moved to ready-for-review',
+              '',
+              `Maintainer **${actor}** used \`${intake.MARK_READY_FOR_REVIEW_COMMAND}\` to move this submission from \`requires-submitter-fixes\` to \`ready-for-review\`.`,
+              '',
+              '### Reason',
+              '',
+              reason
+            ].join('\n');
+
+            await intakeState.upsertExternalPluginIntakeComment({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              marker,
+              body
+            });
+
+            if (currentIssue.state === 'closed') {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'open'
+              });
+            }
+
+  rerun-intake-parse:
+    runs-on: ubuntu-latest
+    if: >-
+      !github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/rerun-intake')
+    outputs:
+      should-run: ${{ steps.evaluate.outputs.should-run }}
+      base-result: ${{ steps.evaluate.outputs.base-result }}
+      valid: ${{ steps.evaluate.outputs.valid }}
+      plugin-json: ${{ steps.evaluate.outputs.plugin-json }}
+      issue-state: ${{ steps.evaluate.outputs.issue-state }}
+      issue-labels: ${{ steps.evaluate.outputs.issue-labels }}
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Validate command and evaluate intake
+        id: evaluate
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+
+            core.setOutput('should-run', 'false');
+
+            const commentAuthor = context.payload.comment.user?.login;
+            if (!commentAuthor || context.payload.comment.user?.type === 'Bot' || commentAuthor === 'github-actions[bot]') {
+              core.info('Ignoring /rerun-intake from a bot or unknown actor.');
+              return;
+            }
+
+            if (!intake.parseRerunIntakeCommand(context.payload.comment.body)) {
+              core.info('No supported /rerun-intake command was found.');
+              return;
+            }
+
+            const { data: currentIssue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const labelNames = new Set((currentIssue.labels || []).map((label) => label.name));
+            const isExternalPluginIssue =
+              labelNames.has('external-plugin') ||
+              String(currentIssue.body || '').includes(intake.ISSUE_FORM_MARKER);
+            if (!isExternalPluginIssue) {
+              core.info('Ignoring /rerun-intake because the issue is not an external plugin submission.');
+              return;
+            }
+
+            if (labelNames.has('approved') || labelNames.has('re-review-due') || labelNames.has('re-review-follow-up')) {
+              core.info('Ignoring /rerun-intake because the issue is already approved or in the six-month re-review flow.');
+              return;
+            }
+
+            const issueAuthor = currentIssue.user?.login;
+            const isIssueAuthor = Boolean(issueAuthor && commentAuthor === issueAuthor);
+
+            let hasWriteAccess = false;
+            if (!isIssueAuthor) {
+              const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: commentAuthor
+              });
+              hasWriteAccess = ['admin', 'write', 'maintain'].includes(permission.data.permission);
+            }
+
+            if (!isIssueAuthor && !hasWriteAccess) {
+              core.info(`Ignoring /rerun-intake because ${commentAuthor} is neither the issue author nor a maintainer.`);
+              return;
+            }
+
+            const canRerunFromCurrentState = currentIssue.state === 'open' || labelNames.has('rejected');
+            if (!canRerunFromCurrentState) {
+              core.info('Ignoring /rerun-intake because the issue is closed outside the intake/rejection flow.');
+              return;
+            }
+
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes'
+            });
+
+            const baseResult = await intake.evaluateExternalPluginIssue({
+              issue: currentIssue,
+              token: process.env.GITHUB_TOKEN,
+              runId: context.runId,
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+
+            core.setOutput('should-run', 'true');
+            core.setOutput('base-result', JSON.stringify(baseResult));
+            core.setOutput('valid', baseResult.valid ? 'true' : 'false');
+            core.setOutput('plugin-json', JSON.stringify(baseResult.plugin || {}));
+            core.setOutput('issue-state', currentIssue.state);
+            core.setOutput('issue-labels', JSON.stringify([...labelNames]));
+
+  rerun-intake-quality-gates:
+    needs: rerun-intake-parse
+    if: >-
+      needs.rerun-intake-parse.outputs.should-run == 'true' &&
+      needs.rerun-intake-parse.outputs.valid == 'true'
+    uses: ./.github/workflows/external-plugin-quality-gates.yml
+    with:
+      plugin-json: ${{ needs.rerun-intake-parse.outputs.plugin-json }}
+
+  rerun-intake-apply-state:
+    runs-on: ubuntu-latest
+    needs: [rerun-intake-parse, rerun-intake-quality-gates]
+    if: always() && needs.rerun-intake-parse.outputs.should-run == 'true'
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Apply merged intake evaluation
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          BASE_RESULT_JSON: ${{ needs.rerun-intake-parse.outputs.base-result }}
+          BASE_VALID: ${{ needs.rerun-intake-parse.outputs.valid }}
+          QUALITY_RESULT_JSON: ${{ needs.rerun-intake-quality-gates.outputs.quality-result }}
+          QUALITY_JOB_RESULT: ${{ needs.rerun-intake-quality-gates.result }}
+          ISSUE_STATE: ${{ needs.rerun-intake-parse.outputs.issue-state }}
+          ISSUE_LABELS: ${{ needs.rerun-intake-parse.outputs.issue-labels }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intake = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake.mjs')).href);
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+
+            const baseResult = JSON.parse(process.env.BASE_RESULT_JSON);
+            let finalResult = baseResult;
+
+            if (process.env.BASE_VALID === 'true') {
+              let qualityResult;
+              if (process.env.QUALITY_JOB_RESULT === 'failure' || process.env.QUALITY_JOB_RESULT === 'cancelled') {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  skill_validator_status: 'infra_error',
+                  smoke_status: 'infra_error',
+                  failure_class: 'infra',
+                  summary: 'Quality-gate workflow failed unexpectedly. Re-run intake to retry.',
+                };
+              } else if (process.env.QUALITY_RESULT_JSON) {
+                qualityResult = JSON.parse(process.env.QUALITY_RESULT_JSON);
+              } else {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  skill_validator_status: 'infra_error',
+                  smoke_status: 'infra_error',
+                  failure_class: 'infra',
+                  summary: 'Quality-gate workflow did not return results. Re-run intake to retry.',
+                };
+              }
+
+              finalResult = intake.applyQualityGateResult(baseResult, qualityResult, context.runId, context.repo.owner, context.repo.repo);
+            }
+
+            await intakeState.applyExternalPluginIntakeEvaluation({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              evaluation: finalResult
+            });
+
+            const issueState = process.env.ISSUE_STATE;
+            const labels = new Set(JSON.parse(process.env.ISSUE_LABELS || '[]'));
+            if (finalResult.intakeState === 'rejected' && issueState === 'open') {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'closed'
+              });
+              return;
+            }
+
+            if (finalResult.intakeState !== 'rejected' && issueState === 'closed' && labels.has('rejected')) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                state: 'open'
+              });
+            }

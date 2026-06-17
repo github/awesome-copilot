@@ -32,7 +32,7 @@ dotnet run recipe/accessibility-report.cs
 ```csharp
 #:package GitHub.Copilot.SDK@*
 
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Create and start client
 await using var client = new CopilotClient();
@@ -64,12 +64,12 @@ await using var session = await client.CreateSessionAsync(new SessionConfig
 {
     Model = "claude-opus-4.6",
     Streaming = true,
-    McpServers = new Dictionary<string, object>()
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+    McpServers = new Dictionary<string, McpServerConfig>()
     {
         ["playwright"] =
-        new McpLocalServerConfig
+        new McpStdioServerConfig
         {
-            Type = "local",
             Command = "npx",
             Args = ["@playwright/mcp@latest"],
             Tools = ["*"]
@@ -194,7 +194,7 @@ if (generateTests == "y" || generateTests == "yes")
 
 ## How it works
 
-1. **Playwright MCP server**: Configures a local MCP server running `@playwright/mcp` to provide browser automation tools
+1. **Playwright MCP server**: Configures a local stdio MCP server (`McpStdioServerConfig`, launched via `npx`) running `@playwright/mcp` to provide browser automation tools
 2. **Streaming output**: Uses `Streaming = true` and `AssistantMessageDeltaEvent` for real-time token-by-token output
 3. **Accessibility snapshot**: Playwright's `browser_snapshot` tool captures the full accessibility tree of the page
 4. **Structured report**: The prompt engineers a consistent WCAG-aligned report format with emoji severity indicators
@@ -204,14 +204,14 @@ if (generateTests == "y" || generateTests == "yes")
 
 ### MCP server configuration
 
-The recipe configures a local MCP server that runs alongside the session:
+The recipe configures a local stdio MCP server (`McpStdioServerConfig`, launched via `npx`) that runs alongside the session:
 
 ```csharp
-McpServers = new Dictionary<string, object>()
+OnPermissionRequest = PermissionHandler.ApproveAll,
+McpServers = new Dictionary<string, McpServerConfig>()
 {
-    ["playwright"] = new McpLocalServerConfig
+    ["playwright"] = new McpStdioServerConfig
     {
-        Type = "local",
         Command = "npx",
         Args = ["@playwright/mcp@latest"],
         Tools = ["*"]

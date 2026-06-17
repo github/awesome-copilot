@@ -5,7 +5,7 @@ applyTo: '**/*.md'
 
 # Markdown Accessibility Review Guidelines
 
-When reviewing markdown files, check for the following accessibility issues based on GitHub's [5 tips for making your GitHub profile page accessible](https://github.blog/developer-skills/github/5-tips-for-making-your-github-profile-page-accessible/). Flag violations and suggest fixes with clear explanations of the accessibility impact.
+When reviewing markdown files, check for the following accessibility issues based on GitHub's [5 tips for making your GitHub profile page accessible](https://github.blog/developer-skills/github/5-tips-for-making-your-github-profile-page-accessible/) and the Smashing Magazine article [Improving The Accessibility Of Your Markdown](https://www.smashingmagazine.com/2021/09/improving-accessibility-of-markdown/). Flag violations and suggest fixes with clear explanations of the accessibility impact.
 
 ## 1. Descriptive Links
 
@@ -17,7 +17,7 @@ When reviewing markdown files, check for the following accessibility issues base
 Bad: `Read my blog post [here](https://example.com)`
 Good: `Read my blog post "[Crafting an accessible resume](https://example.com)"`
 
-## 2. Image Alt Text
+## 2. Image Alternative (alt) Text
 
 - Flag images with empty alt text (e.g., `![](path/to/image.png)`) unless they are explicitly decorative.
 - Flag alt text that is a filename (e.g., `img_1234.jpg`) or generic placeholder (e.g., `screenshot`, `image`).
@@ -38,6 +38,8 @@ Good: `Read my blog post "[Crafting an accessible resume](https://example.com)"`
 - Flag unnecessarily complex or jargon-heavy language that could be simplified.
 - Favor short sentences, common words, and active voice.
 - Flag long, dense paragraphs that could be broken into smaller sections or lists.
+- When describing UI navigation, write actions as sequential steps in plain language first (e.g., "open Settings, then select Preferences"). Use generic, stable labels rather than icon names or visual descriptions.
+- A parenthetical visual reference may follow as supplemental context (e.g., "(gear icon > Preferences)"), but never use visual breadcrumb notation or icon names as the sole way to describe a navigation path.
 - When suggesting plain language improvements, present them as recommendations for the author to review. Language decisions require understanding of audience, context, and tone.
 
 ## 5. Lists and Emoji Usage
@@ -54,6 +56,18 @@ Good: `Read my blog post "[Crafting an accessible resume](https://example.com)"`
 - Flag emoji used to convey meaning that is not also communicated in text.
 - Emoji should be used sparingly and thoughtfully.
 
+## 6. Multimedia
+
+- Provide captions for videos and transcripts for recorded audio.
+- Do not auto-play audio and video.
+- It's recommended that animated images and other animations are paused on page load.
+
+## 7. Other
+
+- Links: Avoid opening links in a new tab or window.
+- Bold and Italics: Screen readers often don't announce bold or italic emphasis, so critical information should not rely on this styling alone.
+- Tables: Use tables for data only. Do not use tables for page layout. Avoid nested tables. Avoid complex tables as they are difficult to represent in an accessible format in standard Markdown.
+
 ## Review Priority
 
 When multiple issues exist, prioritize in this order:
@@ -63,6 +77,8 @@ When multiple issues exist, prioritize in this order:
 3. Non-descriptive link text
 4. Emoji used as bullet points or list markers
 5. Plain language improvements
+6. Multimedia
+7. Other
 
 ## Review Tone
 

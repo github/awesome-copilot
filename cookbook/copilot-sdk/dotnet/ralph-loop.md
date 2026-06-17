@@ -42,7 +42,7 @@ A [Ralph loop](https://ghuntley.com/ralph/) is an autonomous development workflo
 The minimal Ralph loop — the SDK equivalent of `while :; do cat PROMPT.md | copilot ; done`:
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 var client = new CopilotClient();
 await client.StartAsync();
@@ -58,7 +58,11 @@ try
 
         // Fresh session each iteration — context isolation is the point
         var session = await client.CreateSessionAsync(
-            new SessionConfig { Model = "gpt-5.1-codex-mini" });
+            new SessionConfig
+            {
+                Model = "gpt-5.1-codex-mini",
+                OnPermissionRequest = PermissionHandler.ApproveAll
+            });
         try
         {
             var done = new TaskCompletionSource<string>();
@@ -92,7 +96,7 @@ This is all you need to get started. The prompt file tells the agent what to do;
 The full Ralph pattern with planning and building modes, matching the [Ralph Playbook](https://github.com/ClaytonFarr/ralph-playbook) architecture:
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 // Parse args: dotnet run [plan] [max_iterations]
 var mode = args.Contains("plan") ? "plan" : "build";
@@ -125,8 +129,7 @@ try
                 // Pin the agent to the project directory
                 WorkingDirectory = Environment.CurrentDirectory,
                 // Auto-approve tool calls for unattended operation
-                OnPermissionRequest = (_, _) => Task.FromResult(
-                    new PermissionRequestResult { Kind = "approved" }),
+                OnPermissionRequest = PermissionHandler.ApproveAll,
             });
         try
         {

@@ -1,5 +1,5 @@
 ---
-description: 'Updates the CODEOWNERS file when a maintainer comments #codeowner on a pull request'
+description: "Updates the CODEOWNERS file when a maintainer comments #codeowner on a pull request"
 on:
   issue_comment:
     types: [created]
@@ -16,7 +16,6 @@ safe-outputs:
     base-branch: staged
     title-prefix: "[codeowner] "
     draft: false
-    github-token: ${{ secrets.GH_AW_CODEOWNER_PR_TOKEN }}
   add-comment:
     max: 1
   noop:

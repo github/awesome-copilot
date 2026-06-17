@@ -16,7 +16,7 @@ You want users to be able to continue a conversation even after closing and reop
 ### Creating a session with a custom ID
 
 ```csharp
-using GitHub.Copilot.SDK;
+using GitHub.Copilot;
 
 await using var client = new CopilotClient();
 await client.StartAsync();
@@ -25,7 +25,8 @@ await client.StartAsync();
 var session = await client.CreateSessionAsync(new SessionConfig
 {
     SessionId = "user-123-conversation",
-    Model = "gpt-5"
+    Model = "gpt-5",
+    OnPermissionRequest = PermissionHandler.ApproveAll
 });
 
 await session.SendAsync(new MessageOptions { Prompt = "Let's discuss TypeScript generics" });
@@ -45,7 +46,7 @@ await using var client = new CopilotClient();
 await client.StartAsync();
 
 // Resume the previous session
-var session = await client.ResumeSessionAsync("user-123-conversation");
+var session = await client.ResumeSessionAsync("user-123-conversation", new ResumeSessionConfig { OnPermissionRequest = PermissionHandler.ApproveAll });
 
 // Previous context is restored
 await session.SendAsync(new MessageOptions { Prompt = "What were we discussing?" });
@@ -73,15 +74,33 @@ await client.DeleteSessionAsync("user-123-conversation");
 
 ### Getting session history
 
-Retrieve all messages from a session:
+Retrieve all events from a session:
 
 ```csharp
-var messages = await session.GetMessagesAsync();
-foreach (var msg in messages)
+using GitHub.Copilot; // UserMessageEvent, AssistantMessageEvent, etc. live in this namespace
+
+var events = await session.GetEventsAsync();
+foreach (var evt in events)
 {
-    Console.WriteLine($"[{msg.Type}] {msg.Data.Content}");
+    switch (evt)
+    {
+        case UserMessageEvent user:
+            Console.WriteLine($"[user] {user.Data.Content}");
+            break;
+        case AssistantMessageEvent assistant:
+            Console.WriteLine($"[assistant] {assistant.Data.Content}");
+            break;
+        default:
+            // Sessions can also contain other events (tool calls, tool results, system events).
+            Console.WriteLine($"[{evt.GetType().Name}]");
+            break;
+    }
 }
 ```
+
+> A session's event stream may include event kinds beyond user and assistant messages
+> (for example tool calls, tool results, and system events). Handle the ones you care
+> about and fall back to a default case so nothing is silently dropped.
 
 ## Best practices
 

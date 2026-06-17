@@ -4,6 +4,7 @@ import LastUpdated from "@astrojs/starlight/components/LastUpdated.astro";
 import Pagination from "@astrojs/starlight/components/Pagination.astro";
 import config from "virtual:starlight/user-config";
 import { Icon } from "@astrojs/starlight/components";
+import ThemeToggle from "./ThemeToggle.astro";
 ---
 
 <footer class="sl-flex">
@@ -21,8 +22,10 @@ import { Icon } from "@astrojs/starlight/components";
     )
   }
 
-  <p class="made-by">Made with ❤️ by our amazing <a href="/contributors/">contributors</a></p>
+  <p class="made-by">Made with love by our amazing <a href="/contributors/">contributors</a></p>
 </footer>
+
+<ThemeToggle />
 
 <style>
   footer {

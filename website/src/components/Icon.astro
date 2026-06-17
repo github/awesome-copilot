@@ -1,0 +1,120 @@
+---
+// Icon component with SVG icons
+// Icons are either fill-based (from GitHub Primer) or stroke-based (custom)
+// GitHub Primer icons are sourced from https://primer.style/foundations/icons/
+
+export interface Props {
+  name: 'agents' | 'instructions' | 'skills' | 'hooks' | 'workflows' | 'plugins' | 'tools' | 'learning' | 'close' | 'copy' | 'download' | 'share' | 'external' | 'plus' | 'search' | 'chevron-down' | 'document' | 'lightning' | 'hook' | 'workflow' | 'plug' | 'wrench' | 'book' | 'robot' | 'sync';
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 24, class: className = '' } = Astro.props;
+
+// Icon definitions: { path: SVG path(s), fill: true for fill-based icons }
+const icons: Record<string, { path: string; fill?: boolean }> = {
+  // Resource type icons - using GitHub Primer icons where available
+
+  // Agent icon - using GitHub Primer's agent-24 (sparkle over workflow)
+  // Source: https://primer.style/foundations/icons/agent-24
+  'robot': {
+    fill: true,
+    path: `<path d="M22.5 13.919v-.278a5.097 5.097 0 0 0-4.961-5.086.858.858 0 0 1-.754-.497l-.149-.327A6.414 6.414 0 0 0 10.81 4a6.133 6.133 0 0 0-6.13 6.32l.019.628a.863.863 0 0 1-.67.869A3.263 3.263 0 0 0 1.5 14.996v.108A3.397 3.397 0 0 0 4.896 18.5h1.577a.75.75 0 0 1 0 1.5H4.896A4.896 4.896 0 0 1 0 15.104v-.108a4.761 4.761 0 0 1 3.185-4.493l-.004-.137A7.633 7.633 0 0 1 10.81 2.5a7.911 7.911 0 0 1 7.176 4.58C21.36 7.377 24 10.207 24 13.641v.278a.75.75 0 0 1-1.5 0Z"/><path d="m12.306 11.77 3.374 3.375a.749.749 0 0 1 0 1.061l-3.375 3.375-.057.051a.751.751 0 0 1-1.004-.051.751.751 0 0 1-.051-1.004l.051-.057 2.845-2.845-2.844-2.844a.75.75 0 1 1 1.061-1.061ZM22.5 19.8H18a.75.75 0 0 1 0-1.5h4.5a.75.75 0 0 1 0 1.5Z"/>`
+  },
+
+  // Document icon - custom stroke-based
+  'document': {
+    path: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  // Lightning icon - custom stroke-based (for skills)
+  'lightning': {
+    path: `<path d="M13 2 4.09 12.11a1.23 1.23 0 0 0 .13 1.72l.16.14a1.23 1.23 0 0 0 1.52 0L13 9.5V22l8.91-10.11a1.23 1.23 0 0 0-.13-1.72l-.16-.14a1.23 1.23 0 0 0-1.52 0L13 14.5V2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  // Hook icon - using GitHub Primer's sync-24 (represents hooks/iterations)
+  // Source: https://primer.style/foundations/icons/sync-24
+  'hook': {
+    fill: true,
+    path: `<path d="M3.38 8A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 9.215 7.182.75.75 0 1 0 1.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 0 0-9.5 5.452V4.75a.75.75 0 0 0-1.5 0V8.5a1 1 0 0 0 1 1h3.75a.75.75 0 0 0 0-1.5H3.38Zm-.595 6.318a.75.75 0 0 0-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 0 0 1.5 0V15.5a1 1 0 0 0-1-1h-3.75a.75.75 0 0 0 0 1.5h2.37A9.502 9.502 0 0 1 12 21.5c-4.446 0-8.181-3.055-9.215-7.182Z"/>`
+  },
+
+  // Workflow icon - using GitHub Primer's workflow-24
+  // Source: https://primer.style/foundations/icons/workflow-24
+  // Also used by https://github.github.com/gh-aw/
+  'workflow': {
+    fill: true,
+    path: `<path d="M1 3a2 2 0 0 1 2-2h6.5a2 2 0 0 1 2 2v6.5a2 2 0 0 1-2 2H7v4.063C7 16.355 7.644 17 8.438 17H12.5v-2.5a2 2 0 0 1 2-2H21a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2h-6.5a2 2 0 0 1-2-2v-2.5H8.437A2.939 2.939 0 0 1 5.5 15.562V11.5H3a2 2 0 0 1-2-2Zm2-.5a.5.5 0 0 0-.5.5v6.5a.5.5 0 0 0 .5.5h6.5a.5.5 0 0 0 .5-.5V3a.5.5 0 0 0-.5-.5ZM14.5 14a.5.5 0 0 0-.5.5V21a.5.5 0 0 0 .5.5H21a.5.5 0 0 0 .5-.5v-6.5a.5.5 0 0 0-.5-.5Z"/>`
+  },
+
+  // Plug icon - using GitHub Primer's plug-24
+  // Source: https://primer.style/foundations/icons/plug-24
+  'plug': {
+    fill: true,
+    path: `<path d="M7 11.5H2.938c-.794 0-1.438.644-1.438 1.437v8.313a.75.75 0 0 1-1.5 0v-8.312A2.939 2.939 0 0 1 2.937 10H7V6.151c0-.897.678-1.648 1.57-1.74l6.055-.626 1.006-1.174A1.752 1.752 0 0 1 16.96 2h1.29c.966 0 1.75.784 1.75 1.75V6h3.25a.75.75 0 0 1 0 1.5H20V14h3.25a.75.75 0 0 1 0 1.5H20v2.25a1.75 1.75 0 0 1-1.75 1.75h-1.29a1.75 1.75 0 0 1-1.329-.611l-1.006-1.174-6.055-.627A1.749 1.749 0 0 1 7 15.348Zm9.77-7.913v.001l-1.201 1.4a.75.75 0 0 1-.492.258l-6.353.657a.25.25 0 0 0-.224.249v9.196a.25.25 0 0 0 .224.249l6.353.657c.191.02.368.112.493.258l1.2 1.401a.252.252 0 0 0 .19.087h1.29a.25.25 0 0 0 .25-.25v-14a.25.25 0 0 0-.25-.25h-1.29a.252.252 0 0 0-.19.087Z"/>`
+  },
+
+  // Wrench icon - custom stroke-based (for tools)
+  'wrench': {
+    path: `<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  // Book icon - custom stroke-based (for learning)
+  'book': {
+    path: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  // Action icons - all custom stroke-based
+  'close': {
+    path: `<path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'copy': {
+    path: `<path d="M8 4h8a2 2 0 0 1 2 2v8M8 4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 4v10a2 2 0 0 0 2 2h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'download': {
+    path: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'share': {
+    path: `<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'external': {
+    path: `<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'plus': {
+    path: `<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'search': {
+    path: `<circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  'chevron-down': {
+    path: `<path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+  },
+
+  // Alias for hook - same as 'hook'
+  'sync': {
+    fill: true,
+    path: `<path d="M3.38 8A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 9.215 7.182.75.75 0 1 0 1.456-.364C21.473 4.539 17.15 1 12 1a10.995 10.995 0 0 0-9.5 5.452V4.75a.75.75 0 0 0-1.5 0V8.5a1 1 0 0 0 1 1h3.75a.75.75 0 0 0 0-1.5H3.38Zm-.595 6.318a.75.75 0 0 0-1.455.364C2.527 19.461 6.85 23 12 23c4.052 0 7.592-2.191 9.5-5.451v1.701a.75.75 0 0 0 1.5 0V15.5a1 1 0 0 0-1-1h-3.75a.75.75 0 0 0 0 1.5h2.37A9.502 9.502 0 0 1 12 21.5c-4.446 0-8.181-3.055-9.215-7.182Z"/>`
+  },
+};
+
+const iconData = icons[name] || { path: '' };
+const isFill = iconData.fill ?? false;
+const iconPath = iconData.path;
+---
+
+<svg
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill={isFill ? 'currentColor' : 'none'}
+  class={className}
+  aria-hidden="true"
+  set:html={iconPath}
+/>

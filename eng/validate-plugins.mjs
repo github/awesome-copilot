@@ -3,6 +3,7 @@
 import fs from "fs";
 import path from "path";
 import { ROOT_FOLDER } from "./constants.mjs";
+import { readExternalPlugins } from "./external-plugin-validation.mjs";
 
 const PLUGINS_DIR = path.join(ROOT_FOLDER, "plugins");
 
@@ -64,6 +65,18 @@ function validateKeywords(keywords) {
   return null;
 }
 
+function arraysEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function sortPluginEntries(entries) {
+  return [...entries].sort((left, right) => left.localeCompare(right));
+}
+
 function validateSpecPaths(plugin) {
   const errors = [];
   const specs = {
@@ -77,6 +90,9 @@ function validateSpecPaths(plugin) {
     if (!Array.isArray(arr)) {
       errors.push(`${field} must be an array`);
       continue;
+    }
+    if (!arraysEqual(arr, sortPluginEntries(arr))) {
+      errors.push(`${field} must be sorted alphabetically`);
     }
     for (let i = 0; i < arr.length; i++) {
       const p = arr[i];
@@ -207,8 +223,24 @@ function validatePlugins() {
     }
   }
 
+  console.log("\nValidating external plugin catalog...");
+  const { plugins: externalPlugins, errors: externalErrors, warnings: externalWarnings } = readExternalPlugins({
+    localPluginNames: pluginDirs,
+    policy: "marketplace",
+  });
+
+  externalWarnings.forEach((warning) => console.warn(`⚠️  ${warning}`));
+
+  if (externalErrors.length > 0) {
+    console.error("❌ external.json:");
+    externalErrors.forEach((error) => console.error(`   - ${error}`));
+    hasErrors = true;
+  } else {
+    console.log(`✅ external.json is valid (${externalPlugins.length} external plugins)`);
+  }
+
   if (!hasErrors) {
-    console.log(`\n✅ All ${pluginDirs.length} plugins are valid`);
+    console.log(`\n✅ All ${pluginDirs.length} plugins and the external catalog are valid`);
   }
 
   return !hasErrors;
