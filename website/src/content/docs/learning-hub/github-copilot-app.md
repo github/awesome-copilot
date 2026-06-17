@@ -11,6 +11,7 @@ tags:
   - agents
   - parallel-work
 relatedArticles:
+  - ./using-automations-in-copilot-app.md
   - ./using-copilot-coding-agent.md
   - ./agentic-workflows.md
   - ./what-are-agents-skills-instructions.md
