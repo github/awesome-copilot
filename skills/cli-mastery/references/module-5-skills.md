@@ -10,13 +10,13 @@
 
 | Level | Location |
 |-------|----------|
-| User | `~/.copilot/skills/<name>/SKILL.md` |
+| User | `~/.copilot/skills/<name>/SKILL.md` or `~/.agents/skills/<name>/SKILL.md` |
 | Repo | `.github/skills/<name>/SKILL.md` |
 | Org | Shared via org-level config |
 
 ## Creating a custom skill
 
-1. Create the directory: `mkdir -p ~/.copilot/skills/my-skill/`
+1. Create the directory: `mkdir -p ~/.copilot/skills/my-skill/` (or `mkdir -p ~/.agents/skills/my-skill/`)
 2. Create `SKILL.md` with YAML frontmatter (`name`, `description`, optional `tools`)
 3. Write detailed instructions for the AI's behavior
 4. Verify with `/skills`
