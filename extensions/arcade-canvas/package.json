@@ -1,0 +1,20 @@
+{
+  "name": "arcade-canvas",
+  "version": "1.0.0",
+  "main": "extension.mjs",
+  "author": "Dan Wahlin",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
+  "description": "Play five retro Phaser mini-games in a Copilot canvas while agents work.",
+  "keywords": [
+    "arcade-games",
+    "copilot-canvas",
+    "interactive-canvas",
+    "phaser",
+    "retro-games",
+    "session-breaks"
+  ]
+}
