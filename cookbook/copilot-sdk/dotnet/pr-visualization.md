@@ -164,7 +164,7 @@ await client.StartAsync();
 
 var session = await client.CreateSessionAsync(new SessionConfig
 {
-    Model = "gpt-5",
+    Model = "auto",
     OnPermissionRequest = PermissionHandler.ApproveAll,
     SystemMessage = new SystemMessageConfig
     {
@@ -185,7 +185,7 @@ The current working directory is: {Environment.CurrentDirectory}
 });
 
 // Set up event handling
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
