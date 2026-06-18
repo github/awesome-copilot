@@ -224,5 +224,5 @@ echo � | sed "s/�/ /g"
 - [em dash punctuation](https://www.nytimes.com/2019/08/14/style/em-dash-punctuation.html)
 - [em dash in retrospective](https://medium.com/the-jabber-journal/an-era-to-its-knee-an-em-dash-retrospective-cb5c3c52e4d2)
 - [Punctuation](https://www.niu.edu/writing-tutorial/punctuation/index.shtml)
-- [Grammar punctuation](https://library.nd.edu.au/english/grammarpunctuation)
+- [Grammar and punctuation](https://library.nd.edu.au/english/grammarpunctuation)
 - [Punctuation Guide](https://www.thepunctuationguide.com/)
