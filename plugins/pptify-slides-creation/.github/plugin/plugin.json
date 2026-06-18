@@ -1,0 +1,29 @@
+{
+  "name": "pptify-slides-creation",
+  "description": "Generate production-ready, editable PowerPoint (PPTX) decks from Copilot chat: narrative strategy, design-context selection, coordinate-explicit slide specs, visual asset planning, import-only extraction tooling, and audit-driven quality gates.",
+  "version": "1.0.0",
+  "keywords": [
+    "powerpoint",
+    "pptx",
+    "presentations",
+    "slide-decks",
+    "deck-generation",
+    "slide-design",
+    "document-generation"
+  ],
+  "author": {
+    "name": "kimtth"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "agents": [
+    "./agents/pptify-slides-builder.md"
+  ],
+  "skills": [
+    "./skills/pptify-context-prep/",
+    "./skills/pptify-quality-gates/",
+    "./skills/pptify-slide-spec/",
+    "./skills/pptify-tooling/",
+    "./skills/pptify-visual-assets/"
+  ]
+}
