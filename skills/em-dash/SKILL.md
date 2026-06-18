@@ -5,10 +5,10 @@ description: 'Expert on the history, origin, and correct use of the em dash. Use
 
 # em dash
 
-The **em dash** (-) is the longest of the standard dashes, and is the Swiss Army
-knife of punctuation. Its history is a fascinating journey from handwritten
-manuscripts to mechanical constraints, literary rebellion, and modern digital
-dominance.
+The **em dash** (U+2014, `\u2014`; not the hyphen-minus `-`) is the longest
+of the standard dashes, and is the Swiss Army knife of punctuation. Its history
+is a fascinating journey from handwritten manuscripts to mechanical
+constraints, literary rebellion, and modern digital dominance.
 
 Here is a breakdown of how the em dash evolved:
 
@@ -128,7 +128,8 @@ These marks control the rhythm of your writing and connect different ideas:
 - Comma `,`: Used to separate items in a list, link independent clauses with a
  conjunction (e.g., and, but), or set off introductory phrases
   - Keyboard character: `true`
-  - Programming language syntax: `false`
+  - Programming language syntax: `true`
+    - Example: `fn(a, b)`
 - Semicolon `;`: Connects two closely related independent clauses that could
  stand alone as separate sentences
   - Keyboard character: `true`
@@ -160,15 +161,15 @@ These marks control the rhythm of your writing and connect different ideas:
   - Keyboard character: `true`
   - Programming language syntax: `true`
     - Example: `count--`
-- En dashes `-` and em dashes `-`:
+- En dash (U+2013, `\u2013`) and em dash (U+2014, `\u2014`):
   - The **en dash** is the thinner of the two, and is used to show numerical ranges
    or connections between words in a compound adjective when one element is itself
    multiple words
-    - Keyboard character: `FALSE`
-    - Programming language syntax: `FALSE`
+    - Keyboard character: `false`
+    - Programming language syntax: `false`
   - The **em dash** is wider, and is used to note a break, provide drama, or give an example.
-    - Keyboard character: `FALSE`
-    - Programming language syntax: `FALSE`
+    - Keyboard character: `false`
+    - Programming language syntax: `false`
 - Slash `/`: Indicates a choice (e.g., yes/no) or separates lines of poetry
   - Keyboard character: `true`
   - Programming language syntax: `true`
@@ -209,8 +210,14 @@ computer instructions; use this rule-of-thumb:
 # For en dash and em dash
 echo - | sed "s/-/-/g"
 
+# Replace Unicode en dash (U+2013) and em dash (U+2014) with hyphen-minus (-)
+perl -CS -pe 's/\x{2013}|\x{2014}/-/g'
+
 # For encoded characters
 echo � | sed "s/�/ /g"
+
+# (Optional) Remove the Unicode replacement character (U+FFFD) if it appears in pasted text
+perl -CS -pe 's/\x{FFFD}/ /g'
 ```
 
 ## Further Reading
