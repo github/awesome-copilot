@@ -289,7 +289,7 @@ Build your own skills from SKILL.md files.
 
 ## Skill Locations
 
-Skills are stored in `.github/skills/` (project-specific) or in one of the supported user-level directories: `~/.copilot/skills/` or `~/.agents/skills/`.
+Skills are stored in `.github/skills/` (project-specific) or `~/.copilot/skills/` (user level).
 
 ### How Copilot Finds Skills
 
@@ -299,7 +299,6 @@ Copilot automatically scans these locations for skills:
 |----------|-------|
 | `.github/skills/` | Project-specific (shared with team via git) |
 | `~/.copilot/skills/` | User-specific (your personal skills) |
-| `~/.agents/skills/` | User-specific (alternative personal skills directory) |
 
 ### Skill Structure
 
@@ -588,8 +587,6 @@ cp -r /tmp/awesome-copilot/skills/code-checklist .github/skills/
 
 # Or for personal use across all projects
 cp -r /tmp/awesome-copilot/skills/code-checklist ~/.copilot/skills/
-# Alternative personal skills directory
-cp -r /tmp/awesome-copilot/skills/code-checklist ~/.agents/skills/
 ```
 
 > ⚠️ **Review before installing**: Always read a skill's `SKILL.md` before copying it into your project. Skills control what Copilot does, and a malicious skill could instruct it to run harmful commands or modify code in unexpected ways.
@@ -720,7 +717,7 @@ EOF
 
 The examples above created `pytest-gen` and `pr-review` skills. Now practice creating a completely different kind of skill: one for generating formatted output from data.
 
-1. List your current skills: Run Copilot and pass it `/skills list`. You can also use `ls .github/skills/` to see project skills, or `ls ~/.copilot/skills/` and `ls ~/.agents/skills/` to see personal skills.
+1. List your current skills: Run Copilot and pass it `/skills list`. You can also use `ls .github/skills/` to see project skills or `ls ~/.copilot/skills/` for personal skills.
 2. Create a `book-summary` skill at `.github/skills/book-summary/SKILL.md` that generates a formatted markdown summary of the book collection
 3. Your skill should have:
    - Clear name and description (description is crucial for matching!)
@@ -791,7 +788,7 @@ copilot
 | Naming the file something other than `SKILL.md` | Skill won't be recognized | The file must be named exactly `SKILL.md` |
 | Vague `description` field | Skill never gets loaded automatically | Description is the PRIMARY discovery mechanism. Use specific trigger words |
 | Missing `name` or `description` in frontmatter | Skill fails to load | Add both fields in YAML frontmatter |
-| Wrong folder location | Skill not found | Use `.github/skills/skill-name/` (project) or `~/.copilot/skills/skill-name/` / `~/.agents/skills/skill-name/` (personal) |
+| Wrong folder location | Skill not found | Use `.github/skills/skill-name/` (project) or `~/.copilot/skills/skill-name/` (personal) |
 
 ### Troubleshooting
 
@@ -814,7 +811,6 @@ copilot
 
    # User skills
    ls ~/.copilot/skills/
-   ls ~/.agents/skills/
    ```
 
 3. **Check SKILL.md format**: Frontmatter is required:
@@ -867,7 +863,7 @@ Run `/skills reload` after creating or editing skills to ensure changes are pick
 1. **Skills are automatic**: Copilot loads them when your prompt matches the skill's description
 2. **Direct invocation**: You can also invoke skills directly with `/skill-name` as a slash command
 3. **SKILL.md format**: YAML frontmatter (name, description, optional license) plus markdown instructions
-4. **Location matters**: `.github/skills/` for project/team sharing, `~/.copilot/skills/` or `~/.agents/skills/` for personal use
+4. **Location matters**: `.github/skills/` for project/team sharing, `~/.copilot/skills/` for personal use
 5. **Description is key**: Write descriptions that match how you naturally ask questions
 
 > 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
