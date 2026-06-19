@@ -153,7 +153,7 @@ The current working directory is: {Environment.CurrentDirectory}
 });
 
 // Set up event handling
-session.On(evt =>
+session.On<SessionEvent>(evt =>
 {
     switch (evt)
     {
