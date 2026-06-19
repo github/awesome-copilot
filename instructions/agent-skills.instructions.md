@@ -25,7 +25,8 @@ Skills are stored in specific locations:
 |----------|-------|----------------|
 | `.github/skills/<skill-name>/` | Project/repository | Recommended for project skills |
 | `.claude/skills/<skill-name>/` | Project/repository | Legacy, for backward compatibility |
-| `~/.github/skills/<skill-name>/` | Personal (user-wide) | Recommended for personal skills |
+| `~/.copilot/skills/<skill-name>/` | Personal (user-wide) | Recommended for personal skills |
+| `~/.agents/skills/<skill-name>/` | Personal (user-wide) | Alternative supported personal skills directory |
 | `~/.claude/skills/<skill-name>/` | Personal (user-wide) | Legacy, for backward compatibility |
 
 Each skill **must** have its own subdirectory containing at minimum a `SKILL.md` file.
