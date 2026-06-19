@@ -39,6 +39,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse task_type: documentation|update|prd|agents_md|update_context_envelope.
+  - Emit minimal/dense/queryable JSON for memory/envelope updates (structured fields over prose; schema: trigger/action/reason/confidence/usage).
 - Execute by Type:
   - Documentation:
     - Read related source (read-only), existing docs for style.

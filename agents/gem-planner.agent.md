@@ -56,6 +56,8 @@ MANDATORY: Adhere strictly to the defined workflow and rules below:no improvisat
 
 IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
 
+IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and scope boundaries—leave technical execution choices to downstream execution agents.
+
 - Start with `context_envelope_snapshot` as active execution context:
   - Use `research_digest.relevant_files` as the initial file shortlist.
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
@@ -69,56 +71,33 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - All searches MUST target focus_areas; no exploratory/off-target searching.
   - Discovery via semantic_search + grep_search, scoped to focus_areas.
   - Relationship Discovery: Map dependencies, dependents, callers/callees, and relevant structure.
-  - Codebase Structure Mapping: Identify:
-    - key_dirs (actual directory structure via list_dir)
-    - key_components (files + their responsibilities)
-    - existing patterns (via semantic_search of code patterns)
-  - Ground-truth population: Populate context_envelope with actual findings, not assumptions:
-    - tech_stack: verified from package.json, requirements.txt, or actual files
-    - conventions: extracted from existing code, not assumed
-    - constraints: based on actual codebase, not generic
-- Design:
-  - Lock clarifications into DAG constraints; downstream tasks depend on explicit contracts/outputs, not hidden assumptions from upstream implementation details.
-  - Synthesize DAG: atomic, high-cohesion tasks; avoid tasks that mix unrelated files, layers, or responsibilities unless required by one acceptance criterion.
+  - Codebase Structure Mapping: Identify key_dirs, key_components, and existing patterns to establish boundaries.
+  - Ground-truth population: Populate context_envelope with actual findings (tech_stack, conventions, constraints).
+- Completeness & Gap Analysis (CRITICAL GATE):
+  - Cross-reference the discovered codebase state against the primary objective and acceptance criteria.
+  - Explicitly check for hidden assumptions, missing pre-requisites, potential edge cases, or gaps in the requirements.
+  - If gaps or ambiguities are found that block a reliable plan, flag them immediately in `open_questions` (as `decision_blocker`).
+  - Ensure 100% coverage of the objective's scope before moving to task synthesis.
+- Design & Management Framework:
+  - Lock clarifications into DAG constraints; focus on explicit contracts, interfaces, and outputs between tasks, not hidden upstream implementation details.
+  - Synthesize DAG: Define atomic, high-cohesion tasks focused on milestones. **Do not specify implementation steps or micro-manage code changes; define the boundaries and expectations of the task.**
   - Assign waves: no deps → wave 1, dep.wave + 1.
 - Acceptance Criteria Injection:
-  - For each task, reference relevant acceptance criteria by ID when available; duplicate full text only when needed for standalone execution.
-  - Populate `task_definition.acceptance_criteria` with the extracted criteria (array of strings).
-  - If no PRD exists or criteria cannot be determined, leave as empty array and note in task definition.
+  - For each task, reference relevant acceptance criteria by ID when available.
+  - Populate `task_definition.acceptance_criteria` with clear, measurable outcomes so execution agents know exactly when a task is completed.
+
 - Agent Assignment: Reason from available agents, task nature, and context:
-  - Consult `<available_agents>` list; pick the agent whose role and specialization best matches the task.
-  - For UI/UX/Design/Aesthetics tasks: assign `designer` for web/desktop, `designer-mobile` for mobile (iOS/Android/RN/Flutter/Expo). If cross-platform, split into separate web + mobile tasks.
-  - Set `flags.requires_design_validation` to `true` only for new UI, major redesigns, style/token/a11y work, or mobile visual changes; set it to `false` for backend-only, config-only, text-only, and trivial tweaks.
-  - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1).
-    - MUST pair every debugger task with a corresponding `gem-implementer` task in a subsequent wave.
-    - The implementer task MUST include `debugger_diagnosis` field (populated from debugger's output) in its task_definition.
+  - Consult `<available_agents>` list; pick the agent whose role matches the task.
+  - For UI/UX/Design/Aesthetics tasks: assign `designer` or `designer-mobile`.
+  - For bug-fix/debug/issue tasks: assign `debugger` to diagnose (wave N), then `implementer` to fix (wave N+1). Ensure `debugger_diagnosis` is forwarded.
   - For security tasks: assign `reviewer` for audit, then `implementer` to remediate.
-    - Set `review_depth: lightweight` for MEDIUM complexity plans; `review_depth: full` for HIGH complexity plans.
-  - For refactoring/simplification tasks: assign `code-simplifier`.
-  - For documentation: assign `doc-writer`.
-  - For testing: assign `browser-tester` (web E2E) or `mobile-tester` (mobile E2E).
-  - For infrastructure/ci/cd/deployment: assign `devops`.
-  - For implementation/code: assign `implementer` (web/general) or `implementer-mobile` (mobile).
-  - For design validation or edge-case analysis: assign `designer`/`designer-mobile` or `critic` as appropriate.
-  - Default to `implementer` when no specialized agent fits.
-  - When uncertainty exists between agents, prefer the more specialized one.
-  - Skill Matching: Populate `task_definition.recommended_skills` with matching skill names. Fallback: if no explicit matches, skip (don't over-match). Only when a matching skill is likely to materially improve execution.
-- Handoff: populate implementation_handoff for ALL tasks (do_not_reinvestigate, target_files, acceptance_checks); expose only task-relevant context, not the full plan/research dump.
+  - Default to `implementer` when no specialized agent fits, trusting their capacity to resolve technicalities within the task scope.
+- Handoff: Populate `implementation_handoff` for ALL tasks. Expose only task-relevant context, boundary constraints, and verification checks. Do not dictate code patterns or implementation mechanics.
 - Create plan `plan.yaml` as per `plan_format_guide`
-  - focused, simple solutions, parallel execution, architectural.
-  - Assess PRD update need (new features, scope shifts, ADR deviations, new stories, AC changes→set prd_update_recommended).
-  - New features→add doc-writer task (final wave).
   - Calculate metrics (wave_1_count, deps, risk_score).
-  - Generate reviewer_focus: list dimensions with score < 0.9 for targeted scrutiny.
-  - Schema Validation (syntax check only: semantic validation is delegated to `gem-reviewer(plan)`):
-    - Validate plan.yaml: valid YAML, all required top-level fields non-null, task IDs unique, wave numbers are integers, no circular deps
-    - If schema invalid → fix inline and re-validate
-  - Save Plan `docs/plan/{plan_id}/plan.yaml`
+  - Schema Validation: Verify syntax, uniqueness of IDs, and ensure no circular dependencies.
+  - Save Plan: `docs/plan/{plan_id}/plan.yaml`
 - Create context envelope `context_envelope.json` as per `context_envelope_format_guide`
-  - Use provided context as seed and augment with research findings from plan.
-  - If `memory_seed` provided, merge its high confidence items/ contents into the envelope
-  - Keep every field concise, bulleted, and dense but comprehensive and complete. Avoid fluff, filler, and verbosity. Evidence paths over explanation.
-  - Create for future agent reuse: include durable facts, decisions, constraints, and evidence paths needed to avoid re-discovery.
   - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.json`.
 - Failure: Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
