@@ -9,20 +9,23 @@ Manage GitHub issues using the `@modelcontextprotocol/server-github` MCP server.
 
 ## Available Tools
 
-### MCP Tools (read operations)
+### MCP Tools (preferred)
 
 | Tool | Purpose |
 |------|---------|
-| `mcp__github__issue_read` | Read issue details, sub-issues, comments, labels (methods: get, get_comments, get_sub_issues, get_labels) |
-| `mcp__github__list_issues` | List and filter repository issues by state, labels, date |
+| `mcp__github__issue_read` | Read issue details (including field values), sub-issues, comments, labels |
+| `mcp__github__issue_write` | Create or update issues, set fields, labels, assignees, type, state |
+| `mcp__github__list_issues` | List and filter issues by state, labels, date, and field values |
+| `mcp__github__list_issue_fields` | Discover available issue fields and their options for a repo/org |
+| `mcp__github__set_issue_fields` | Set issue field values with confidence scoring and rationale |
 | `mcp__github__search_issues` | Search issues across repos using GitHub search syntax |
 | `mcp__github__projects_list` | List projects, project fields, project items, status updates |
 | `mcp__github__projects_get` | Get details of a project, field, item, or status update |
 | `mcp__github__projects_write` | Add/update/delete project items, create status updates |
 
-### CLI / REST API (write operations)
+### CLI / REST API (fallback)
 
-The MCP server does not currently support creating, updating, or commenting on issues. Use `gh api` for these operations.
+Use `gh api` when MCP tools are not available or for operations not yet supported by MCP (e.g., adding comments).
 
 | Operation | Command |
 |-----------|---------|
@@ -39,12 +42,12 @@ The MCP server does not currently support creating, updating, or commenting on i
 1. **Determine action**: Create, update, or query?
 2. **Gather context**: Get repo info, existing labels, milestones if needed
 3. **Structure content**: Use appropriate template from [references/templates.md](references/templates.md)
-4. **Execute**: Use MCP tools for reads, `gh api` for writes
+4. **Execute**: Prefer MCP tools (`issue_write`, `set_issue_fields`); fall back to `gh api` if MCP is unavailable
 5. **Confirm**: Report the issue URL to user
 
 ## Creating Issues
 
-Use `gh api` to create issues. This supports all parameters including issue types.
+**Prefer MCP** when the `issue_write` tool is available. It supports title, body, type, labels, assignees, milestone, and issue fields in one call. Fall back to `gh api` if MCP is not available.
 
 ```bash
 gh api repos/{owner}/{repo}/issues \

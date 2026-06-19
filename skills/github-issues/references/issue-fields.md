@@ -4,9 +4,123 @@ Issue fields are custom metadata (dates, text, numbers, single-select) defined a
 
 **Prefer issue fields over project fields.** When you need to set metadata like dates, priority, or status on an issue, use issue fields (which live on the issue itself) rather than project fields (which live on a project item). Issue fields travel with the issue across projects and views, while project fields are scoped to a single project. Only use project fields when issue fields are not available or when the field is project-specific (e.g., sprint iterations).
 
-## REST API (recommended)
+## MCP Tools (preferred)
 
-The REST API is the simplest way to discover fields and set values.
+When the GitHub MCP server is available, use MCP tools for all issue field operations. They handle ID resolution internally, so you work with human-readable names.
+
+### Discovering available fields
+
+Use `list_issue_fields` to get field definitions and valid options:
+
+```
+Tool: mcp__github__list_issue_fields
+Parameters:
+  owner: "ORG"
+  repo: "REPO"  # optional; omit for org-level fields
+```
+
+Returns field names, types (text, number, date, single_select), and for single-select fields, the list of valid option names.
+
+### Reading field values on an issue
+
+Use `issue_read` with method `get`. Field values are included in the response.
+
+```
+Tool: mcp__github__issue_read
+Parameters:
+  method: "get"
+  owner: "OWNER"
+  repo: "REPO"
+  issue_number: 123
+```
+
+### Setting fields via issue_write (simplest)
+
+When creating or updating an issue, pass `issue_fields` inline. Uses field names and option names directly (no ID lookups needed):
+
+```
+Tool: mcp__github__issue_write
+Parameters:
+  method: "update"
+  owner: "OWNER"
+  repo: "REPO"
+  issue_number: 123
+  show_ui: false
+  issue_fields:
+    - field_name: "Priority"
+      field_option_name: "P1"
+    - field_name: "Target Date"
+      value: "2026-07-01"
+    - field_name: "Effort"
+      value: 5
+```
+
+Each entry takes `field_name` (case-insensitive) plus one of:
+- `field_option_name` - for single-select fields (validated against options)
+- `value` - for text, number, or date fields (date as YYYY-MM-DD)
+- `delete: true` - to clear the field value
+
+### Setting fields via set_issue_fields (advanced)
+
+Use the dedicated `set_issue_fields` tool when you need confidence scoring, rationale, or suggestion mode. Requires GraphQL node IDs (get them from `list_issue_fields` response):
+
+```
+Tool: mcp__github__set_issue_fields
+Parameters:
+  owner: "OWNER"
+  repo: "REPO"
+  issue_number: 123
+  fields:
+    - field_id: "IFD_abc123"
+      date_value: "2026-07-01"
+      confidence: "HIGH"
+      rationale: "Deadline stated in issue description"
+    - field_id: "IFSS_def456"
+      single_select_option_id: "OPT_xyz789"
+      confidence: "MEDIUM"
+      rationale: "Reports a crash when saving, likely high priority"
+      is_suggestion: true
+```
+
+Each entry takes `field_id` plus one value parameter:
+
+| Field type | Value parameter | Format |
+|-----------|----------------|--------|
+| Date | `date_value` | ISO 8601 date string |
+| Text | `text_value` | String |
+| Number | `number_value` | Number |
+| Single select | `single_select_option_id` | GraphQL node ID of the option |
+
+Additional parameters per field:
+- `confidence` (LOW/MEDIUM/HIGH) - how certain you are of this value
+- `rationale` (max 280 chars) - one sentence explaining what led to this choice
+- `is_suggestion` (boolean) - if true, sent as a suggestion rather than applied value
+- `delete` (boolean) - set true to clear the field value
+
+### Filtering issues by field values
+
+Use `list_issues` with `field_filters` to find issues matching specific field values:
+
+```
+Tool: mcp__github__list_issues
+Parameters:
+  owner: "OWNER"
+  repo: "REPO"
+  state: "OPEN"
+  field_filters:
+    - field_name: "Priority"
+      value: "P1"
+```
+
+### Workflow (MCP)
+
+1. **Discover fields** - `list_issue_fields` to see available fields and options
+2. **Set values** - use `issue_write` with `issue_fields` for simple cases, or `set_issue_fields` for confidence/rationale
+3. **Query by fields** - use `list_issues` with `field_filters`
+
+## REST API (fallback)
+
+Use the REST API when MCP tools are not available.
 
 ### Discovering available fields
 
