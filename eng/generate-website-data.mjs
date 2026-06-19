@@ -35,6 +35,11 @@ const __filename = fileURLToPath(import.meta.url);
 const WEBSITE_DIR = path.join(ROOT_FOLDER, "website");
 const WEBSITE_DATA_DIR = path.join(WEBSITE_DIR, "public", "data");
 const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
+const WEBSITE_BASE_URL = "https://awesome-copilot.github.com";
+const RAW_CONTENT_BASE_URL =
+  "https://raw.githubusercontent.com/github/awesome-copilot/main";
+const WELL_KNOWN_DIR = path.join(WEBSITE_DIR, "public", ".well-known");
+const AI_CATALOG_FILE = path.join(WELL_KNOWN_DIR, "ai-catalog.json");
 
 /**
  * Ensure the output directory exists
@@ -42,6 +47,15 @@ const WEBSITE_SOURCE_DATA_DIR = path.join(WEBSITE_DIR, "data");
 function ensureDataDir() {
   if (!fs.existsSync(WEBSITE_DATA_DIR)) {
     fs.mkdirSync(WEBSITE_DATA_DIR, { recursive: true });
+  }
+}
+
+/**
+ * Ensure the .well-known output directory exists
+ */
+function ensureWellKnownDir() {
+  if (!fs.existsSync(WELL_KNOWN_DIR)) {
+    fs.mkdirSync(WELL_KNOWN_DIR, { recursive: true });
   }
 }
 
@@ -99,6 +113,187 @@ function formatDisplayName(value) {
 
 function normalizeText(value, fallback = "") {
   return typeof value === "string" ? value.trim() : fallback;
+}
+
+function normalizeRepoPath(value) {
+  return normalizeText(value).replace(/\\/g, "/").replace(/^\/+/, "");
+}
+
+function buildRawContentUrl(relativePath) {
+  return `${RAW_CONTENT_BASE_URL}/${normalizeRepoPath(relativePath)}`;
+}
+
+function buildWebsiteUrl(route) {
+  const normalizedRoute = route.startsWith("/") ? route : `/${route}`;
+  return new URL(normalizedRoute, `${WEBSITE_BASE_URL}/`).toString();
+}
+
+function normalizeDescription(value) {
+  const description = normalizeText(value);
+  return description || "No description provided.";
+}
+
+function toUrnSegment(value) {
+  const normalized = normalizeText(value).toLowerCase();
+  const segment = normalized
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return segment || "unknown";
+}
+
+function createAiCatalogEntry({
+  category,
+  id,
+  displayName,
+  description,
+  type,
+  url,
+}) {
+  return {
+    identifier: `urn:ai:awesome-copilot.github.com:${category}:${toUrnSegment(id)}`,
+    displayName: normalizeText(displayName, id),
+    type,
+    url,
+    description: normalizeDescription(description),
+  };
+}
+
+function generateAiCatalogData({
+  agents,
+  instructions,
+  skills,
+  hooks,
+  workflows,
+  plugins,
+}) {
+  const entries = [];
+
+  for (const agent of agents) {
+    entries.push(
+      createAiCatalogEntry({
+        category: "agent",
+        id: agent.id,
+        displayName: agent.title,
+        description: agent.description,
+        type: "text/markdown",
+        url: buildRawContentUrl(agent.path),
+      })
+    );
+  }
+
+  for (const instruction of instructions) {
+    entries.push(
+      createAiCatalogEntry({
+        category: "instruction",
+        id: instruction.id,
+        displayName: instruction.title,
+        description: instruction.description,
+        type: "text/markdown",
+        url: buildRawContentUrl(instruction.path),
+      })
+    );
+  }
+
+  for (const skill of skills) {
+    entries.push(
+      createAiCatalogEntry({
+        category: "skill",
+        id: skill.id,
+        displayName: skill.title,
+        description: skill.description,
+        type: "text/markdown",
+        url: buildRawContentUrl(skill.skillFile),
+      })
+    );
+  }
+
+  for (const hook of hooks) {
+    entries.push(
+      createAiCatalogEntry({
+        category: "hook",
+        id: hook.id,
+        displayName: hook.title,
+        description: hook.description,
+        type: "text/markdown",
+        url: buildRawContentUrl(hook.readmeFile),
+      })
+    );
+  }
+
+  for (const workflow of workflows) {
+    entries.push(
+      createAiCatalogEntry({
+        category: "workflow",
+        id: workflow.id,
+        displayName: workflow.title,
+        description: workflow.description,
+        type: "text/markdown",
+        url: buildRawContentUrl(workflow.path),
+      })
+    );
+  }
+
+  for (const plugin of plugins) {
+    const pluginUrl = plugin.external
+      ? plugin.homepage ||
+        plugin.repository ||
+        buildWebsiteUrl(`/plugins/?q=${encodeURIComponent(plugin.name)}`)
+      : buildRawContentUrl(`${plugin.path}/.github/plugin/plugin.json`);
+
+    entries.push(
+      createAiCatalogEntry({
+        category: "plugin",
+        id: plugin.id || plugin.name,
+        displayName: plugin.name,
+        description: plugin.description,
+        type: plugin.external ? "text/html" : "application/json",
+        url: pluginUrl,
+      })
+    );
+  }
+
+  entries.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+  return {
+    specVersion: "1.0",
+    host: {
+      displayName: "Awesome GitHub Copilot",
+      identifier: "awesome-copilot.github.com",
+    },
+    entries,
+    collections: [
+      {
+        displayName: "Agents",
+        url: buildWebsiteUrl("/agents/"),
+        description: "Specialized GitHub Copilot agents.",
+      },
+      {
+        displayName: "Instructions",
+        url: buildWebsiteUrl("/instructions/"),
+        description: "Custom coding instructions for Copilot.",
+      },
+      {
+        displayName: "Skills",
+        url: buildWebsiteUrl("/skills/"),
+        description: "Agent Skills with bundled assets and instructions.",
+      },
+      {
+        displayName: "Hooks",
+        url: buildWebsiteUrl("/hooks/"),
+        description: "Hooks for automated Copilot coding agent workflows.",
+      },
+      {
+        displayName: "Workflows",
+        url: buildWebsiteUrl("/workflows/"),
+        description: "Agentic workflows for GitHub Actions automation.",
+      },
+      {
+        displayName: "Plugins",
+        url: buildWebsiteUrl("/plugins/"),
+        description: "Curated plugin bundles for common scenarios.",
+      },
+    ],
+  };
 }
 
 /**
@@ -1593,6 +1788,16 @@ async function main() {
   );
   console.log(`✓ Generated search index with ${searchIndex.length} items`);
 
+  const aiCatalogData = generateAiCatalogData({
+    agents,
+    instructions,
+    skills,
+    hooks,
+    workflows,
+    plugins,
+  });
+  console.log(`✓ Generated AI Catalog with ${aiCatalogData.entries.length} entries`);
+
   // Write JSON files
   fs.writeFileSync(
     path.join(WEBSITE_DATA_DIR, "agents.json"),
@@ -1669,7 +1874,11 @@ async function main() {
     JSON.stringify(manifest, null, 2)
   );
 
+  ensureWellKnownDir();
+  fs.writeFileSync(AI_CATALOG_FILE, JSON.stringify(aiCatalogData, null, 2));
+
   console.log(`\n✓ All data written to website/public/data/`);
+  console.log(`✓ AI Catalog written to website/public/.well-known/ai-catalog.json`);
 }
 
 main().catch((err) => {
