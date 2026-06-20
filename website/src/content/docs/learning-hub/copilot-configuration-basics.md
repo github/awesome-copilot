@@ -194,7 +194,7 @@ When you work inside `packages/api/`, Copilot loads configuration from `packages
 
 ### Personal Skills Directory
 
-In addition to repository-level skills, GitHub Copilot CLI supports a **personal skills directory** at `~/.agents/skills/`. Skills you place here are discovered automatically across all your projects, making them ideal for personal workflows and reusable utilities that are not project-specific.
+In addition to repository-level skills, GitHub Copilot CLI supports **personal skills directories** at `~/.copilot/skills/` and `~/.agents/skills/`. Skills you place in either location are discovered automatically across all your projects, making them ideal for personal workflows and reusable utilities that are not project-specific.
 
 ```
 ~/.agents/
@@ -205,7 +205,7 @@ In addition to repository-level skills, GitHub Copilot CLI supports a **personal
         └── SKILL.md
 ```
 
-This personal directory aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, so skills defined here work consistently across tools.
+The `~/.agents/skills/` path aligns with the VS Code GitHub Copilot for Azure extension's default skill discovery path, while `~/.copilot/skills/` matches the Copilot CLI configuration directory. Both are supported for personal skills.
 
 ### Custom Agents
 
@@ -402,7 +402,7 @@ In addition to the main config file, GitHub Copilot CLI reads two optional per-p
 
 These files follow the same format as `config.json` and are loaded after the global config, so they can tailor CLI behaviour—including hook definitions—per repository without touching `.github/`.
 
-> **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.agents/` for user-level agents, `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
+> **Important (v1.0.36+)**: Custom agents, skills, and commands placed in `~/.claude/` (the Claude Code user directory) are **no longer loaded** by GitHub Copilot CLI. Only `~/.claude/settings.json` is read for configuration. If you previously stored personal agents or skills in `~/.claude/`, move them to the supported locations: `~/.copilot/agents/` for user-level agents, `~/.copilot/skills/` or `~/.agents/skills/` for personal skills, or `.github/agents/` and `.github/skills/` in your repositories for project-level customizations.
 
 ### Model Picker
 
