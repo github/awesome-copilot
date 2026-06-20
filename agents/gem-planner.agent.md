@@ -85,7 +85,6 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
 - Acceptance Criteria Injection:
   - For each task, reference relevant acceptance criteria by ID when available.
   - Populate `task_definition.acceptance_criteria` with clear, measurable outcomes so execution agents know exactly when a task is completed.
-
 - Agent Assignment: Reason from available agents, task nature, and context:
   - Consult `<available_agents>` list; pick the agent whose role matches the task.
   - For UI/UX/Design/Aesthetics tasks: assign `designer` or `designer-mobile`.
@@ -415,9 +414,13 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
-- Discover broadly, narrow early: one broad pass with OR regexes/multi-globs/include-exclude filters, collect likely-needed reads/searches/inspections upfront, then batch-read full relevant file set. No drip-feeding; no repeated narrow loops.
+- Discover broadly, read narrowly (Two Batched Phases):
+  1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
+  2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.
+  - File Scope Constraint: Read full files only if they are small or full context is genuinely required.
+  - Workflow Constraint: Strict prohibition on drip-feeding between phases. Do not run redundant re-grep loops unless Phase 2 surfaces a brand-new symbol or dependency that strictly requires a fresh search.
 - Execute autonomously: ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
