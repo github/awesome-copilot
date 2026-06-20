@@ -72,7 +72,7 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Discovery via semantic_search + grep_search, scoped to focus_areas.
   - Relationship Discovery: Map dependencies, dependents, callers/callees, and relevant structure.
   - Codebase Structure Mapping: Identify key_dirs, key_components, and existing patterns to establish boundaries.
-  - Ground-truth population: Populate context_envelope with actual findings (tech_stack, conventions, constraints).
+  - Ground-truth population: Populate context_envelope: tech_stack, conventions, constraints, architecture_snapshot, research_digest, prior_decisions, reuse_notes.
 - Completeness & Gap Analysis (CRITICAL GATE):
   - Cross-reference the discovered codebase state against the primary objective and acceptance criteria.
   - Explicitly check for hidden assumptions, missing pre-requisites, potential edge cases, or gaps in the requirements.
@@ -273,6 +273,7 @@ tasks:
 
 Design Principle:
 
+- Extremely dense, bulleted but complete.
 - Cache-worthy, cross-session reusable context. Pure duplicates of plan.yaml are removed: agents read plan.yaml directly for task registry, implementation spec, validation status; store references/summaries only when reuse value is clear.
 - Context envelope must justify each populated section by future reuse value.
 - If a section is unlikely to save future discovery effort, omit it.
@@ -285,12 +286,6 @@ Design Principle:
       "created_at": "ISO-8601 string",
       "last_updated": "ISO-8601 string",
       "version": "number",
-      "source": ["string"],
-    },
-    "scope": {
-      "purpose": ["Reusable implementation context for future agents/calls.", "Helps agents avoid re-discovery and implement asks with better quality."],
-      "applies_to": ["string"],
-      "non_goals": ["string"],
     },
     "tech_stack": [
       {
@@ -308,38 +303,21 @@ Design Principle:
       "security_requirements": ["string"],
     },
     "architecture_snapshot": {
-      "key_dirs": {
-        "path": ["string"],
-      },
+      "key_dirs": ["string"],
       "patterns": ["string"],
       "key_components": [
         {
           "name": "string",
           "location": "string",
           "responsibility": ["string"],
-          "confidence": "number (0.0-1.0)",
         },
       ],
     },
-    // Cache-worthy research summary: enriched after each wave
     "research_digest": {
       "relevant_files": [
         {
           "path": "string",
           "purpose": ["string"],
-          "why_relevant": ["string"],
-          "key_elements": [
-            // Cache-worthy: avoids re-parsing
-            {
-              "element": "string",
-              "type": "function | class | variable | pattern",
-              "location": "string: file:line",
-              "description": "string",
-            },
-          ],
-          "security_sensitivity": "none | internal | confidential | secret",
-          "contains_secrets": "boolean",
-          "reliability": "codebase | docs | assumption",
           "confidence": "number (0.0-1.0)",
         },
       ],
@@ -348,44 +326,13 @@ Design Principle:
           "name": "string",
           "category": "string",
           "confidence": "number (0.0-1.0)",
-          "source": "codebase_analysis | doc | assumption",
           "example_location": ["string"],
         },
       ],
-      "dependencies": {
-        "internal": ["string"],
-        "external": ["string"],
-      },
       "gotchas": [
         {
           "text": "string",
           "confidence": "number (0.0-1.0)",
-        },
-      ],
-      // Cache-worthy domain context: helps future agents avoid re-research
-      "domain_context": {
-        "security_considerations": [
-          {
-            "area": "string",
-            "location": "string",
-            "concern": "string",
-          },
-        ],
-        "testing_patterns": {
-          "framework": "string",
-          "coverage_areas": ["string"],
-          "test_organization": "string",
-          "mock_patterns": ["string"],
-        },
-        "error_handling": "string",
-        "data_flow": "string",
-      },
-      "open_questions": [
-        {
-          "question": "string",
-          "context": "string",
-          "type": "decision_blocker | research | nice_to_know",
-          "affects": ["string"],
         },
       ],
     },
@@ -393,10 +340,7 @@ Design Principle:
       {
         "decision": "string",
         "rationale": ["string"],
-        "evidence": ["path:string"],
         "confidence": "number (0.0-1.0)",
-        "linked_constraints": ["string"],
-        "linked_patterns": ["string"],
       },
     ],
     "reuse_notes": [{ "path": "string", "trust": "high | low" }],
@@ -416,6 +360,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 - Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
 - Discover broadly, read narrowly (Two Batched Phases):
   1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
   2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.

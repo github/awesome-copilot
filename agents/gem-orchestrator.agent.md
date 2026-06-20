@@ -153,13 +153,14 @@ Execute all unblocked waves/tasks without approval pauses. Follow the branching 
     - Run tasks where `status=pending`, `wave=current`, and all dependencies are completed, while preventing parallel execution of tasks listed in `conflicts_with`. Process waves in ascending order, attaching contracts for Wave > 1.
 - Execute Wave:
   - Delegate exclusively to the subagent specified by `task.agent`, using `agent_input_reference`. Concurrency limit = `orchestrator.max_concurrent_agents` if configured, otherwise 2. Never invoke generic, fallback or inferred subagents.
-  - Include `config_snapshot` in delegation: pass relevant settings from loaded config.
-  - Use `context_envelope.json` as canonical durable context; `memory_seed` may be used only as planner input to create/update the envelope.
+  - Pass relevant settings from loaded config.
+  - Include `context_snapshot_fields` in `agent_input_reference` based on target (delegation) agent. Skip irrelevant sections. Keep it optimized.
 - Integration Gate:
   - Complexity=HIGH: delegate to `gem-reviewer(wave)` for integration check after every wave.
   - Complexity=MEDIUM: delegate to `gem-reviewer(wave)` only when integration risk exists:
     - Final wave → always gate (catches all accumulated issues).
     - Non-final wave → gate ONLY if any task in this wave has `conflicts_with` entries OR any contract in `plan.yaml` references a task in this wave as `from_task` (i.e., downstream waves depend on this wave's output).
+  - Gate passes → if `orchestrator.git_commit_on_gate_pass` is true, `git add -A && git commit -m "{plan_id}_wave-{n}"`. Gate fails → `git diff HEAD` for diagnosis.
   - Persist task/ wave status to `plan.yaml`
   - Synthesize statuses (`completed`, `blocked`, `needs_replan`, `failed`, `escalate`). Present concise status without pausing for approval.
 - Persist reusable items where confidence ≥0.95 to the correct target (batch delegation):
@@ -198,7 +199,7 @@ agent_input_reference:
   context_passing_rule:
     TRIVIAL: pass only direct task instructions
     LOW: pass inline_context_snapshot
-    MEDIUM_HIGH: pass context_envelope_snapshot from context_envelope.json
+    MEDIUM_HIGH: pass context_envelope_snapshot filtered to agent's context_snapshot_fields only
     default: pass the smallest relevant subset required by the target agent
 
   base_input:
@@ -430,6 +431,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 - Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
 - Discover broadly, read narrowly (Two Batched Phases):
   1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
   2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.
@@ -447,85 +449,17 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 #### Failure Handling
 
-When a failure occurs, classify it as one of the following failure types and apply the matching action. If lint_rule_recommendations from debugger→delegate to implementer for ESLint rules.
+When a failure occurs, classify and apply:
 
-```yaml
-failure_handling:
-  transient:
-    retry_limit: 3
-    action:
-      - retry_same_operation
-      - if_still_fails: escalate
+- transient → retry 3×, then escalate
+- fixable → debugger → implementer → re-verify
+- needs_replan → planner to revise, continue
+- escalate → mark blocked, escalate to user
+- flaky → log, mark completed
+- regression / new_failure → debugger → implementer → re-verify
+- platform_specific → log, skip, continue
+- needs_approval → persist approval_state in plan.yaml, present to user, delegate on approve / block on deny
 
-  fixable:
-    retry_limit: 3
-    action:
-      - delegate: gem-debugger
-        purpose: diagnosis
-      - delegate: suitable_implementer
-        purpose: apply_fix
-      - delegate: suitable_reviewer_or_tester
-        purpose: reverify
-      - repeat_until: fixed_or_retry_limit_reached
-
-  needs_replan:
-    retry_limit: 3
-    action:
-      - delegate: gem-planner
-        purpose: revise_plan
-      - continue_from: revised_plan
-
-  escalate:
-    retry_limit: 0
-    action:
-      - mark_task: blocked
-      - escalate_to_user:
-          include:
-            - reason
-            - required_input
-            - recommended_next_step
-
-  flaky:
-    retry_limit: 1
-    action:
-      - log_issue
-      - mark_task: completed
-      - add_flag: flaky
-
-  unplanned_failure:
-    # Covers: regression, new_failure
-    retry_limit: 1
-    action:
-      - delegate: gem-debugger
-        purpose: diagnosis
-      - delegate: suitable_implementer
-        purpose: apply_fix
-      - delegate: suitable_reviewer_or_tester
-        purpose: reverify
-
-  platform_specific:
-    retry_limit: 0
-    action:
-      - log_platform_and_issue
-      - skip_platform_test
-      - continue_wave
-
-  needs_approval:
-    retry_limit: 0
-    action:
-      - persist_approval_state:
-          target: docs/plan/{plan_id}/plan.yaml
-          include:
-            - task_id
-            - approval_reason
-            - approval_state
-      - present_to_user:
-          include:
-            - context
-            - risk
-            - requested_decision
-      - on_approved: re_delegate_task
-      - on_denied: mark_task_blocked
-```
+If lint_rule_recommendations from debugger → delegate to implementer for ESLint rules.
 
 </rules>
