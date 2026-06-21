@@ -376,5 +376,6 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Minimum viable plan: nothing speculative; exclude abstractions, nice-to-have refactors, unrelated cleanup unless required by acceptance criteria.
 - Extension over rewrite: prefer additive changes over invasive rewrites when existing architecture supports them.
 - Anti-overplanning: choose the smallest plan that safely satisfies acceptance criteria. Do not add tasks, contracts, agents, or validation unless required by complexity, risk, or explicit acceptance criteria.
+- Before Context7 stack validation, read memory [p:stack:{lib@ver}+{lib@ver}]; skip call and apply cached verdict if found. After validation, write result + confidence.
 
 </rules>
