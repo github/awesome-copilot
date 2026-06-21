@@ -120,7 +120,7 @@ It must be precise, specific, and machine-parseable.
 | "Does stuff with code"          | No activation signal                            |
 | "NOT for Python"                | Negations don't help triggering, only exclusion |
 | "General purpose tool"          | Competes with every other contribution          |
-| Description > 500 chars         | Loses signal in noise                           |
+| Description over 500 chars      | Loses signal in noise                           |
 
 ### Negative Triggers
 
