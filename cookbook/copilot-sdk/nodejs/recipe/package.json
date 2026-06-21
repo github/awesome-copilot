@@ -12,7 +12,7 @@
     "accessibility-report": "tsx accessibility-report.ts"
   },
   "dependencies": {
-    "@github/copilot-sdk": "*"
+    "@github/copilot-sdk": "^1.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.19.7",

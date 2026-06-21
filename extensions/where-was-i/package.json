@@ -13,6 +13,6 @@
     "pull-request-context"
   ],
   "dependencies": {
-    "@github/copilot-sdk": "latest"
+    "@github/copilot-sdk": "^1.0.1"
   }
 }

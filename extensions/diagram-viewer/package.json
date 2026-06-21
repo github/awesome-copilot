@@ -4,7 +4,7 @@
   "type": "module",
   "main": "extension.mjs",
   "dependencies": {
-    "@github/copilot-sdk": "latest"
+    "@github/copilot-sdk": "^1.0.1"
   },
   "description": "Lets users render diagrams, click nodes to drill down, and view agent-generated explanations directly in the canvas.",
   "keywords": [

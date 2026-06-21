@@ -4,7 +4,7 @@
   "type": "module",
   "main": "extension.mjs",
   "dependencies": {
-    "@github/copilot-sdk": "latest"
+    "@github/copilot-sdk": "^1.0.1"
   },
   "description": "Explore grouped customer feedback signals by impact and drill into a theme to guide product next steps.",
   "keywords": [
