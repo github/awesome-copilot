@@ -1,9 +1,10 @@
 # Orchestration — Parent-Owned Loop Control
 
 Cross-cutting protocol for the Copilot PR review loop: time-boxing,
-the sub-agent delegation map, the parent-owned steps (1, 7, 10), the
-single-iteration fallback, and the loop-wide notes. Each per-step
-sub-agent contract lives in its own `NN-*.md` file alongside this one.
+the sub-agent delegation map, the single-iteration fallback, and the
+loop-wide notes. Every step — including the parent-owned steps 1, 7,
+and 10 — has its own `NN-*.md` contract file alongside this one; this
+file holds only what spans the whole loop.
 
 Build, test, and lint commands are NOT prescribed here. Every step
 that needs them defers to the target repo's own conventions
@@ -27,7 +28,7 @@ or takes the step over itself.
 
 ## Sub-agent delegation map
 
-> **The loop:** one **round** = steps 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9. After step 9, if `Converged: false`, **go back to step 1** for another round. Repeat until step 9 returns `Converged: true`; then run step 10 once and exit. See [09-convergence.md](09-convergence.md) for the convergence definition and the loop-exit / loop-back decision.
+> **The loop:** one **round** = steps 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9. After step 9, if `Converged: false`, **go back to step 1** for another round. Repeat until step 9 returns `Converged: true`; then run step 10 once and exit. **At every 10th round, the parent runs the [round-cap recap gate](09-convergence.md#round-cap--recap-gate-circuit-breaker) before looping back** — the circuit breaker that recaps all prior rounds and stops the loop if it has drifted out of the PR's original scope. See [09-convergence.md](09-convergence.md) for the convergence definition, the loop-exit / loop-back decision, and the recap gate.
 
 Canonical order per round: **request → wait → list → triage → fix →
 build → commit + push → reply + resolve (citing pushed SHA) →
@@ -36,95 +37,16 @@ the pushed commit SHA.
 
 | Step | Owner | Contract |
 |------|-------|----------|
-| 1 — Request review | parent | this file, [#step-1-request-review](#step-1-request-review) |
+| 1 — Request review | parent | [01-request-review.md](01-request-review.md) |
 | 2 — Wait for review | sub-agent (`general-purpose`, 20 min) | [02-wait.md](02-wait.md) |
 | 3 — List + categorize open threads | sub-agent (`explore`, 5 min) | [03-list-threads.md](03-list-threads.md) |
 | 4 — Triage | sub-agent (`general-purpose`, 5 min/≤5 threads) | [04-triage.md](04-triage.md) |
 | 5 — Apply fixes | sub-agents (`general-purpose`, parallel max 5, 5 min each) | [05-fix.md](05-fix.md) |
 | 6 — Build + test per repo conventions | sub-agent (`task` + `explore`, 10 min) | [06-build-test.md](06-build-test.md) |
-| 7 — Commit + push | parent | this file, [#step-7-commit-and-push](#step-7-commit-and-push) |
+| 7 — Commit + push | parent | [07-commit-push.md](07-commit-push.md) |
 | 8 — Reply (always) + resolve (conditional) | sub-agent drafts → parent posts | [08-reply-resolve.md](08-reply-resolve.md) |
 | 9 — Convergence verify | sub-agent (`explore`, 3 min) | [09-convergence.md](09-convergence.md) |
-| 10 — Cleanup outdated (post-convergence, once) | parent | this file, [#step-10-cleanup-outdated](#step-10-cleanup-outdated) |
-
-## Step 1: Request review
-
-Sub-agent type: _(parent — no sub-agent)_; budget: n/a.
-
-**Inputs**
-- `PrNumber` for the target PR.
-
-**Return contract**
-- Captured `baseline` = `LatestCopilotReview.submittedAt` string (or empty)
-  to be passed to step 2.
-- Boolean `single_iteration_mode` — `true` if the trigger failed because
-  Copilot isn't a valid reviewer; `false` otherwise.
-
-**Procedure**
-
-1. Snapshot first to learn whether Copilot is already pending:
-
-   ```pwsh
-   $snap = pwsh ./scripts/02-check-review-status.ps1 -PrNumber <n>
-   $baseline = if ($snap -match '"submittedAt":"([^"]+)"') { $Matches[1] } else { '' }
-   $pending  = ($snap -match '"CopilotPending":true')
-   ```
-
-   Regex on raw JSON keeps `submittedAt` a string across the
-   parent → sub-agent boundary on any PS version (5.1 / 7.x), avoiding
-   `[datetime]` rebinding.
-
-2. **If `$pending`** — skip the trigger; jump to step 2 with `baseline`.
-
-3. **Else** — fire the trigger:
-
-   ```pwsh
-   pwsh ./scripts/01-request-review.ps1 -PrNumber <n>
-   ```
-
-   The script keeps its own `InFlight` short-circuit as a safety net,
-   but the canonical "is Copilot pending?" signal lives in
-   `02-check-review-status.ps1` (above).
-
-4. If `01-request-review.ps1` throws because Copilot isn't a valid
-   reviewer (Copilot Code Review not enabled on the repo / account),
-   take the [single-iteration fallback](#single-iteration-fallback).
-
-## Step 7: Commit and push
-
-Sub-agent type: _(parent — no sub-agent)_; budget: n/a.
-
-**Inputs**
-- The fix results from step 5 and the green build from step 6.
-
-**Return contract**
-- Pushed `HeadOid` (the new commit SHA), recorded for step 8 reply
-  bodies and step 9 convergence proof.
-
-**Procedure**
-- Parent runs `git commit` + `git push` directly. One focused commit
-  per round — bundling rounds destroys the audit trail of which finding
-  drove which change and breaks `git bisect`.
-- Include the trailer:
-  `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>`.
-- Record the pushed SHA so step 8 can cite it in every reply body and
-  step 9 can compare it against `LatestCopilotReview.commitOid`.
-
-## Step 10: Cleanup outdated
-
-Sub-agent type: _(parent — no sub-agent)_; budget: n/a. Runs **once,
-after convergence** (step 9 returned `Converged: true`).
-
-**Procedure**
-
-```pwsh
-pwsh ./scripts/10-cleanup-outdated.ps1 -PrNumber <n>
-```
-
-Safety net only. Most loops converge with nothing to clean — outdated
-threads should already have been replied + resolved in step 8 like any
-other open thread. Unresolved state is the source of truth in the PR
-UI; `10-cleanup-outdated.ps1` only catches strays.
+| 10 — Cleanup outdated (post-convergence, once) | parent | [10-cleanup.md](10-cleanup.md) |
 
 ## Single-iteration fallback
 

@@ -65,22 +65,23 @@ loop — do not retry or work around it.
 
 ## Step-by-Step Workflow
 
-> **The loop:** steps 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9, then **back to step 1** if `Converged: false`. Repeat the 1→9 round until step 9 returns `Converged: true`; only then run step 10 once and call `task_complete`.
+> **The loop:** steps 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9, then **back to step 1** if `Converged: false`. Repeat the 1→9 round until step 9 returns `Converged: true`; only then run step 10 once and call `task_complete`. **At every 10th round, the parent runs the [round-cap recap gate](references/09-convergence.md#round-cap--recap-gate-circuit-breaker) before looping back** — recap all prior rounds and stop if the loop has drifted out of the PR's original scope.
 
 Each round runs steps 1–9; step 10 is a one-time cleanup after convergence. The parent agent coordinates; every sub-agent step runs in a fresh context with a bounded budget. Cross-cutting protocol (time-boxing, extension, single-iteration fallback): [orchestration.md](references/orchestration.md).
 
-1. **Request review** _(parent)_ — see [orchestration.md#step-1-request-review](references/orchestration.md#step-1-request-review)
+1. **Request review** _(parent)_ — see [01-request-review.md](references/01-request-review.md)
 2. **Wait for review** _(sub-agent, 20-min cap)_ — see [02-wait.md](references/02-wait.md)
 3. **List + categorize open threads** _(sub-agent, 5 min)_ — see [03-list-threads.md](references/03-list-threads.md)
 4. **Triage** _(sub-agent, 5 min per ≤5 threads)_ — see [04-triage.md](references/04-triage.md)
 5. **Fix** _(sub-agents, parallel max 5, 5 min each)_ — see [05-fix.md](references/05-fix.md)
 6. **Build + test per repo conventions** _(sub-agent, 10 min)_ — see [06-build-test.md](references/06-build-test.md)
-7. **Commit + push** _(parent)_ — see [orchestration.md#step-7-commit-and-push](references/orchestration.md#step-7-commit-and-push)
+7. **Commit + push** _(parent)_ — see [07-commit-push.md](references/07-commit-push.md)
 8. **Reply (always) + resolve (conditional)** _(sub-agent drafts, parent posts)_ — see [08-reply-resolve.md](references/08-reply-resolve.md)
 9. **Convergence verify** _(sub-agent, 3 min)_ — see [09-convergence.md](references/09-convergence.md)
    - **`Converged: false` → loop back to step 1** for another round (re-trigger, wait, list, triage, fix, push, reply, re-check). Each round addresses Copilot's findings on the previous round's HEAD; the loop terminates as soon as Copilot has nothing new to say AND every open thread has a reply from the agent.
    - **`Converged: true` → exit the loop**, run step 10 once, call `task_complete` with the proof.
-10. **Cleanup outdated** _(parent, post-convergence, once)_ — see [orchestration.md#step-10-cleanup-outdated](references/orchestration.md#step-10-cleanup-outdated)
+   - **Every 10th round (10, 20, 30…) → run the [round-cap recap gate](references/09-convergence.md#round-cap--recap-gate-circuit-breaker) before looping back.** Recap ALL prior rounds against the PR's original scope and pick a verdict: **CONTINUE**, **REVERT-AND-SHIP** (drop drifted commits, ship the in-scope ones), or **HAND-OFF** (escalate to the user). This is the circuit breaker that stops a runaway bot-review loop.
+10. **Cleanup outdated** _(parent, post-convergence, once)_ — see [10-cleanup.md](references/10-cleanup.md)
 
 Convergence is computed by [scripts/02-check-review-status.ps1](scripts/02-check-review-status.ps1) as a single `Converged: true` boolean. Do **not** call `task_complete` until it returns true; print the proof (`HeadOid`, `LatestCopilotReview.commitOid`, `submittedAt`) in the completion message.
 
@@ -90,7 +91,7 @@ The bundled scripts enforce the hard correctness invariants (trigger landing via
 
 - **Reply to every open thread; resolve only when the loop owns the disposition.** For `fix` and `decline` threads, reply + resolve. For `escalate-to-user` threads, reply with the analysis but leave the thread OPEN (`08-reply-and-resolve.ps1 -NoResolve`) so the human merge owner can act on it. See [08-reply-resolve.md](references/08-reply-resolve.md).
 - **Copilot threads are loop-owned; human / advanced-security / other-bot threads default to `escalate-to-user`.** Auto-resolving a human review thread can hide unaddressed concerns. See [04-triage.md](references/04-triage.md) for the rubric.
-- **One focused commit per round, not one per PR.** Bundling rounds destroys the audit trail of which finding drove which change and breaks `git bisect`. See [orchestration.md#step-7-commit-and-push](references/orchestration.md#step-7-commit-and-push).
+- **One focused commit per round, not one per PR.** Bundling rounds destroys the audit trail of which finding drove which change and breaks `git bisect`. See [07-commit-push.md](references/07-commit-push.md).
 - **Build/test/lint with the repo's own commands** (per its `CONTRIBUTING` / `AGENTS` / `README` / `package.json` / `Makefile`) before pushing a fix. Discovery procedure: [06-build-test.md](references/06-build-test.md).
 - **Push back with written rationale** when a Copilot finding would over-engineer the design for a hypothetical edge case. Auto-accepting every suggestion erodes the design — see the `decline` path in [04-triage.md](references/04-triage.md).
 - **Scripting traps** (`gh api graphql -F` type-coercion, `git stash push -m` positional parsing, the three GraphQL traps for the reviewer mutation) are documented in [references/api-quirks.md](references/api-quirks.md). Read before modifying any script.
@@ -110,18 +111,22 @@ The bundled scripts enforce the hard correctness invariants (trigger landing via
 ## References
 
 - [references/orchestration.md](references/orchestration.md) —
-  parent-owned loop control: time-boxing & extension protocol,
-  sub-agent delegation map, steps 1 / 7 / 10 contracts,
-  single-iteration fallback, and loop-wide notes.
-- Per-step sub-agent contracts:
+  cross-cutting loop control: time-boxing & extension protocol,
+  sub-agent delegation map, single-iteration fallback, and loop-wide
+  notes.
+- Per-step contracts (one `NN-*.md` per step):
+  [references/01-request-review.md](references/01-request-review.md) _(parent)_,
   [references/02-wait.md](references/02-wait.md),
   [references/03-list-threads.md](references/03-list-threads.md),
   [references/04-triage.md](references/04-triage.md) (includes the
   fix-vs-decline rubric),
   [references/05-fix.md](references/05-fix.md),
   [references/06-build-test.md](references/06-build-test.md),
+  [references/07-commit-push.md](references/07-commit-push.md) _(parent)_,
   [references/08-reply-resolve.md](references/08-reply-resolve.md),
-  [references/09-convergence.md](references/09-convergence.md).
+  [references/09-convergence.md](references/09-convergence.md) (includes
+  the round-cap recap gate),
+  [references/10-cleanup.md](references/10-cleanup.md) _(parent)_.
 - [references/api-quirks.md](references/api-quirks.md) — verified
   GitHub API behavior, dead-ends, and the GraphQL traps for the
   reviewer mutation.
