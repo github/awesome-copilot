@@ -158,7 +158,8 @@ function Get-AgentAlts {
   param([string]$Url,[int]$Max)
   if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) { return @() }
   $snappy = $AGENT_TIMEOUT - 5
-  $prompt = "In under $snappy seconds, find up to $Max working alternative URLs for the broken link $Url. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  # Prevent command injection by quoting the URL in the prompt (PowerShell subexpression prevention)
+  $prompt = "In under $snappy seconds, find up to $Max working alternative URLs for the broken link '$Url'. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
   $out = ''
   try {
     # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.

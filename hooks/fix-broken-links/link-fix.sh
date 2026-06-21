@@ -173,7 +173,10 @@ find_variation() {
 agent_alts() {
   local url="$1" max="$2" prompt out
   command -v copilot >/dev/null 2>&1 || return 0
-  prompt="In under $((AGENT_TIMEOUT - 5)) seconds, find up to ${max} working alternative URLs for the broken link ${url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  # Escape shell metacharacters in URL to prevent command injection
+  local safe_url
+  safe_url=$(printf '%s\n' "$url" | sed -e 's/[`$]/\\&/g')
+  prompt="In under $((AGENT_TIMEOUT - 5)) seconds, find up to ${max} working alternative URLs for the broken link ${safe_url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
   # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.
   out="$(FIX_BROKEN_LINKS_AGENT=1 $AGENT_RUN copilot -p "$prompt" \
           -s --no-color --model "$AGENT_MODEL" --available-tools 2>/dev/null)"
