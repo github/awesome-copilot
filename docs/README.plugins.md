@@ -23,7 +23,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md#adding-plugins) for guidelines on how t
 - Open the Extensions search view and type \`@agentPlugins\` to browse available plugins
 - Or open the Command Palette and run \`Chat: Plugins\`
 - Published marketplace manifest (tool-facing): `https://raw.githubusercontent.com/github/awesome-copilot/marketplace/.github/plugin/marketplace.json`
-- Source plugin content (human-authored): `https://github.com/github/awesome-copilot/tree/main/plugins`
+- Source plugin content (human-authored): `https://github.com/github/awesome-copilot/tree/HEAD/plugins`
 
 | Name | Description | Items | Tags |
 | ---- | ----------- | ----- | ---- |
