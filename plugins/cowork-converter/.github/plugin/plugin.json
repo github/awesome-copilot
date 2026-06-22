@@ -1,0 +1,22 @@
+{
+  "name": "cowork-converter",
+  "version": "1.0.0",
+  "description": "Convert a GitHub Copilot CLI / Claude Code plugin to a Microsoft 365 Copilot Cowork package (.zip). Handles skill discovery, shared-reference resolution, manifest generation, icon placeholders, validation, and zip packaging.",
+  "keywords": [
+    "cowork",
+    "microsoft-365",
+    "m365",
+    "plugin-converter",
+    "agent-skills",
+    "copilot"
+  ],
+  "author": {
+    "name": "sebastian-sieber",
+    "url": "https://github.com/sebastian-sieber"
+  },
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/cowork-converter/"
+  ]
+}
