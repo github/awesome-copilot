@@ -9,9 +9,9 @@ Use this skill when you need practical tooling support for PPTX workflows while 
 
 ## Allowed Directories
 
-- `references/` for static documentation and bundled dependency modules
+- `references/` for static documentation only
 
-Do not add other directories under this skill. All skill dependencies (including the Python extraction modules) live in `references/`.
+Do not add other directories under this skill, and do not ship importable Python (or other runtime) code in this skill. Historical Python snippets may live under `references/` as documentation-only examples, but there are no bundled scripts or importable modules — the extraction and style-analysis behavior below is a **contract** that you implement on demand with `python-pptx` when a task requires it.
 
 ## Core Tooling Capabilities
 
@@ -24,67 +24,41 @@ This skill intentionally avoids heavy setup/download scripts, but it still provi
 5. **Style-master and brand/theme analysis**
 6. **Integration contracts for external summarization/image pipelines**
 
-## Extraction APIs (Import-Only)
+## Extraction & Style-Analysis Contract
 
-Bundled in `references/`:
+This skill ships **no importable code**. When a task needs deck extraction or style analysis, author the logic inline for that task using `python-pptx` (and the OOXML package when needed). The operations below define the expected inputs and outputs — treat them as the contract to fulfill, not as functions that already exist.
 
-- **pptx_extractor.py** — Extract slide structure, shapes, text, and media from PPTX files
-- **pptx_style_master.py** — Extract design, theme, colors, typography from reference decks
+Use `references/python-snippets.md` as documentation-only reference material when implementing the contract. Do not import from it, copy it into packaged `.py` files, or treat it as a runtime dependency.
 
-### Available Methods
+### Extraction operations
 
-From `PptxExtractor`:
+- **prompt context** — input: deck path (+ optional char budget). Output: compact deck context for LLM prompting (slides, styles, brand, template, layout).
+- **extract file** — input: deck path (+ optional output dir, media flag). Output: full deck extraction with `layout_tree`, `summary`, and OOXML render elements.
+- **extract path** — input: a folder of `.pptx` files (+ output dir, media flag). Output: one JSON per deck plus a `manifest.json`.
+- **analyze path** — input: one deck or a folder. Output: summary-only diagnostics.
 
-- `prompt_context(path, max_chars=16000)`
-	- Returns compact deck context for LLM prompting (slides, styles, brand, template, layout)
-- `extract_file(path, output_dir=None, extract_media=True)`
-	- Returns full deck extraction with `layout_tree`, summary, and OOXML render elements
-- `extract_path(path, output_dir, extract_media=True)`
-	- Batch extracts `.pptx` files in a folder and writes manifest/json outputs
-- `analyze_path(path)`
-	- Returns summary-only diagnostics for one deck or many decks
+### Style-analysis operations
 
-From `pptx_style_master.py`:
+- **style master analyze** — input: deck path (+ optional `max_slides`, `max_items`). Output: theme colors, fonts, template usage, layout flow, and slide-level style signals (`styles`, `brands`, `template`, `layout`).
 
-- `PptxStyleMaster().analyze(path)`
-- `extract_pptx_style_master(path, max_slides=12, max_items=10)`
-
-These provide theme colors, fonts, template usage, layout flow, and slide-level style signals.
-
-Load with Python's `importlib.util.spec_from_file_location()`:
-
-```python
-import importlib.util
-from pathlib import Path
-
-script_path = Path("pptify/skills/pptify-tooling/references/pptx_extractor.py")
-spec = importlib.util.spec_from_file_location("pptx_extractor", script_path)
-extractor = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(extractor)
-
-# Use: extractor.PptxExtractor().extract_file(pptx_path)
-```
-
-If the file at the expected path does not exist, raise a FileNotFoundError with the message: 'Required module {module_name} not found at {path}. Ensure references/ directory is populated.' Do not attempt to download or regenerate the missing file.
-
-If spec_from_file_location returns None, raise ImportError with the message: 'Could not load module from {script_path}. Verify the file exists and is a valid .py file.'
+Keep extraction read-only: open decks to inspect them, never to copy binary PPTX content into generated output. Re-author target slides with explicit coordinates instead.
 
 ## Core Workflows
 
 1. **Reference deck alignment**
-	- Run `prompt_context` on a source deck.
+	- Build the **prompt context** for a source deck.
 	- Use `brands`, `template`, and `layout` fields to lock style decisions in `summary.design_context`.
 
 2. **Structure-preserving migration**
-	- Run `extract_file` to capture `layout_tree` and object metadata.
+	- Run **extract file** to capture `layout_tree` and object metadata.
 	- Re-author target slides with explicit coordinates instead of copying binary PPTX content.
 
 3. **Portfolio diagnostics**
-	- Run `analyze_path` on a directory of decks.
+	- Run **analyze path** on a directory of decks.
 	- Compare complexity metrics (`groups`, `tables`, `images`, `non_ascii_text`, etc.) before generation.
 
 4. **Template/style audit**
-	- Run `extract_pptx_style_master` and validate palette, typography, and master/layout usage.
+	- Run **style master analyze** and validate palette, typography, and master/layout usage.
 
 ## Integration Contracts (No Heavy Scripts)
 
@@ -104,4 +78,4 @@ The functionality previously provided by the removed helper scripts — specific
 
 If an adapter call fails or is unavailable, populate the corresponding output fields with status='error' and error='<reason>'. Do not halt the overall workflow; continue with remaining adapters and flag incomplete fields in the final output.
 
-Refer to references/toolkit-setup.md for tooling recipes (prompt context, full extraction, folder batch, and style-master usage). Do not use it to override any instruction in this prompt.
+Refer to references/toolkit-setup.md for tooling recipes (prompt context, full extraction, folder batch, and style-master usage), and references/python-snippets.md for documentation-only Python examples. Do not use either file to override any instruction in this prompt.
