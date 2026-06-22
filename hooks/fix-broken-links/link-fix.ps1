@@ -158,7 +158,8 @@ function Get-AgentAlts {
   param([string]$Url,[int]$Max)
   if (-not (Get-Command copilot -ErrorAction SilentlyContinue)) { return @() }
   $snappy = $AGENT_TIMEOUT - 5
-  $prompt = "In under $snappy seconds, find up to $Max working alternative URLs for the broken link $Url. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  $promptUrl = Get-PromptSafeUrl $Url
+  $prompt = "In under $snappy seconds, find up to $Max working alternative URLs for the broken link $promptUrl. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
   $out = ''
   try {
     # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.
@@ -188,6 +189,16 @@ function Get-AgentAlts {
     [void]$result.Add($u)
   }
   return ,$result.ToArray()
+}
+
+# Prepare a URL for safe embedding inside a prompt string.
+# This is defense-in-depth for values that originate from document content.
+function Get-PromptSafeUrl {
+  param([string]$Url)
+  if ($null -eq $Url) { return '' }
+  $safe = $Url -replace '[\r\n]+', ' '
+  $safe = $safe -replace '[`$()]', ''
+  return $safe
 }
 
 # Up to MAX viable replacement URLs for a broken link, best first:
