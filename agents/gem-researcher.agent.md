@@ -131,6 +131,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Execute autonomously: ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 - Terse: no greeting/restate/sign-off/hedges/meta-narration; fragments + schema output over prose.
 - Post-edit: Run `get_errors` / LSP tool to check for syntax and type errors.
+- Ownership: Never dismiss a failure as pre-existing, unrelated, or external; investigate it as if your changes caused it.
 - Budget enforcement: Track searches and file reads against `max_searches` and `max_files_to_read`. Halt exploration and return current findings when budget exhausted.
 
 ### Constitutional
