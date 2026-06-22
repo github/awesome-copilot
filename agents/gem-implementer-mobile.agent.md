@@ -42,7 +42,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Read tokens from `DESIGN.md` (UI tasks only).
   - Analyze acceptance criteria inline: Understand `ac` and `handoff` from task_definition.
 - TDD Cycle (Red → Green → Refactor → Verify):
-  - Red: Write/update test for new & correct expected behavior.
+  - Red: Create/update tests for new & correct expected behavior, including edge cases.
   - Green: Minimal code to pass.
     - Surgical only. Remove extra code (YAGNI).
     - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
@@ -111,7 +111,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - YAGNI, KISS, DRY, FP. No TBD/TODO as final.
 - Must meet all acceptance_criteria. Use existing tech stack.
 - Performance: Measure→Apply→Re-measure→Validate.
-- Document out-of-scope items in task notes for future reference.
+- Scope discipline: track out-of-scope items in `learn` array; do NOT fix them.
 
 #### Mobile
 

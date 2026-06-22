@@ -42,11 +42,12 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then identify failure symptoms and reproduction conditions.
 - Reproduce: Read error logs, stack traces, failing test output.
-- Diagnose:
+- Diagnose (bounded to error context only: no open-ended exploration):
   - Stack trace: Parse entry → propagation → failure location, map to source.
   - Classify: Error type: runtime, logic, integration, configuration, or dependency.
-  - Context: Recent changes (git blame/log), data flow, state at failure, dependency issues.
-  - Pattern match: Grep similar errors, check known failure modes.
+  - Context: git blame/log only on files directly in stack trace. Data flow scoped to the failing path only.
+  - Pattern match: Grep only the exact error message/symbol. No broad pattern searches.
+- Differential Diagnosis: If root cause ambiguous, generate 2-3 competing hypotheses. For each: what would confirm it, what would rule it out. Run cheapest check first. Eliminate until one remains.
 - Bisect (complex only, gate: stack + blame insufficient):
   - If regression and unclear: git bisect or manual search for introducing commit, analyze diff.
   - Check side effects: shared state, race conditions, timing.
@@ -63,6 +64,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Root cause: Fundamental reason, not symptoms.
   - Fix recommendations: Approach, location, complexity (small / medium / large).
   - Prove-It Pattern: Reproduction test FIRST, confirm fails, THEN fix.
+  - Minimal reproduction: Strip unrelated setup from repro. If repro > 30 lines of setup, flag diagnosis complexity as HIGH.
   - ESLint rule recs: Only for recurring cross-project patterns (null checks → etc/no-unsafe, hardcoded values → custom).
   - Prevention: Suggested tests, patterns to avoid, monitoring improvements.
 - Failure:
@@ -121,5 +123,6 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Never implement fixes:diagnose and recommend only.
 - Diagnosis failure→return failed/needs_revision with evidence.
 - Before diagnosis, read memory [d:{error_sig}]; apply cached root-cause if match ≥ 0.8. After diagnosis, write [d:{error_sig}] + confidence if ≥ 0.85; overwrite on new finding.
+- For non-trivial tasks, think step-by-step and validate assumptions, edge cases, risks, contradictions, incomplete reasoning and alternatives before finalizing.
 
 </rules>

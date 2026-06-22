@@ -49,18 +49,17 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
 - Determine mode from `task_definition.exploration_mode`:
   - Default: `scan` if not specified (preserves backward compatibility)
   - Read budget controls from `task_definition`: `max_searches`, `max_files_to_read`, `max_depth`
-- Research Pass: Objective Aligned Pattern discovery:
-  - Identify focus_area strictly from the task's objective.
-  - Discovery via semantic_search + grep_search, scoped to focus_area.
-  - Conditional Relationship Discovery:
-    - `scan`/`question`/`audit` → skip relationship mapping (callers/callees/dependents)
-    - `trace` → map only the specific chain requested, respecting `max_depth`
-    - `deep` → full relationship discovery (default behavior)
-  - Assess confidence tier: high / medium / low (see Confidence Tiers below).
-- Early Exit: in order of priority:
-  - Answer saturation: Objective is fully answered → halt immediately, regardless of mode or budget.
-  - high tier reached → halt.
-  - Budget exhausted → halt with current findings and note `budget_exhausted: true` in output.
+- Research Pass:
+  - Phase 1 (Collect — no analysis): Gather evidence using budget-based early exit only.
+    - Discovery via semantic_search + grep_search, scoped to focus_area.
+    - Conditional Relationship Discovery:
+      - `scan`/`question`/`audit` → skip relationship mapping
+      - `trace` → map only the specific chain requested, respecting `max_depth`
+      - `deep` → full relationship discovery
+    - Negative evidence: If a search returns no results, record as `type: gap`. Distinguishes "searched, empty" from "didn't look".
+  - Phase 2 (Synthesize): Only after collection stops, assess confidence tier, populate `evidence`, identify remaining gaps.
+- Early Exit (Phase 1 only): in order of priority:
+  - Budget exhausted → halt with current findings, note `budget_exhausted: true`.
   - Decision blockers resolved AND no critical open questions → halt (safety net).
 - Output:
   - Return JSON per Output Format.

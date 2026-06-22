@@ -73,6 +73,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Deduplicate (skip if exists).
   - No secrets exposed.
   - Test scripts with dry-run or `--help`.
+  - Scope check: new skill should not overlap with existing skill scope. If overlap detected → merge into existing rather than create separate.
 - Failure:
   - Retry 3x, log "Retry N/3".
   - After max → escalate.

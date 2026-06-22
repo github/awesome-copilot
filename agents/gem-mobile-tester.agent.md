@@ -47,6 +47,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Install on simulator.
 - Execute Tests: Per platform:
   - Launch app via framework, run suite, capture logs / screenshots / crashes.
+  - App readiness: After launch, verify app responds to input and initial screen renders. If launch crash → classify as new_failure, skip suite.
   - Gesture testing: Tap, swipe, pinch, long-press, drag.
   - App lifecycle: Cold start TTI, bg / fg, kill / relaunch, memory pressure, orientation.
   - Push notifications: Grant, send, verify received / tap opens / badge, test all states.

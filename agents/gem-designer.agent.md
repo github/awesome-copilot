@@ -40,6 +40,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
   - Then parse mode (create|validate), scope, context.
 - Create Mode:
+  - Constraints: Lock platform, a11y requirements, existing tokens, dark mode support before any creative work. Only satisfy constraints before applying creative direction.
   - Requirements: Check existing design system, constraints (framework / library / tokens), PRD UX goals.
   - Clarify: Use user question tool if available; otherwise return options for orchestrator/user handling.
   - Propose: 2-3 approaches with trade-offs.

@@ -44,6 +44,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Complexity: Cyclomatic, nesting, long functions.
   - Duplication: > 3 line matches, copy-paste.
   - Naming: Misleading, generic, or inconsistent.
+- Impact triage: Before any change, note which symbols are exported/imported. If blast radius > single file, flag for reviewer first.
 - Simplify: In safe order:
   - Remove unused imports / vars → remove dead code → rename → flatten → extract patterns → reduce complexity → consolidate duplicates.
   - Process reverse-dep order (no deps first).

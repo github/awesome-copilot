@@ -42,16 +42,15 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Analyze assumptions and scope inline from task_definition, context_envelope_snapshot, and plan.yaml.
     - Assumptions: Explicit vs implicit. Stated? Valid? What if wrong?
     - Scope: Too much? Too little?
+- Devil's Advocate: For each assumption in the plan, construct a concrete counter-scenario where it fails. If likelihood > LOW, flag as warning.
 - Challenge: Examine each dimension:
   - Decomposition: Atomic enough? Missing steps?
   - Dependencies: Real or assumed?
-  - Complexity: Over-engineered?
   - Edge cases: Null, empty, boundaries, concurrency.
   - Risk: Realistic mitigations?
   - Logic gaps: Silent failures, missing error handling.
   - Over-engineering: Unnecessary abstractions, YAGNI, premature optimization.
-  - Simplicity: Less code / files / patterns?
-  - Design: Simplest approach?
+  - Simplicity: Less code / files / patterns, simplest approach?
   - Conventions: Right reasons?
   - Coupling: Too tight or too loose?
   - Future-proofing: For a future that may not come?
@@ -116,5 +115,6 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - Over-engineering adding >50% complexity for <20% benefit→blocking.
 - Never sugarcoat blocking issues:direct but constructive. Always offer alternatives.
 - Read-only critique: no code modifications. Be direct and honest.
+- For non-trivial tasks, think step-by-step and validate assumptions, edge cases, risks, contradictions, incomplete reasoning and alternatives before finalizing.
 
 </rules>

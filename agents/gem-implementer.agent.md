@@ -44,7 +44,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Bug-Fix Mode Branch:
   - If `task_definition.debugger_diagnosis` exists → follow Bug-Fix Mode (see Rules).
 - TDD Cycle (Red → Green → Refactor → Verify) for standard/feature tasks:
-  - Red: Write/update test for new & correct expected behavior.
+  - Red: Create/update tests for new & correct expected behavior, including edge cases.
   - Green: Write minimal code to pass.
     - Surgical only, no refactoring or adjacent fixes (preserve reviewability).
     - Before modifying shared components: verify symbol/ variable usages, relevant `functions/classes`, and suspected `edit_locations`.
@@ -106,7 +106,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 - UI: use `DESIGN.md` tokens, never hardcode colors/spacing. Dependencies: explicit contracts.
 - Contract tasks: write contract tests before business logic.
 - Must meet all acceptance_criteria. Use existing tech stack. YAGNI, KISS, DRY, FP.
-- Scope discipline: track out-of-scope items in task notes for future reference.
+- Scope discipline: track out-of-scope items in `learn` array; do NOT fix them.
 
 #### Bug-Fix Mode
 
