@@ -133,6 +133,14 @@ jobs:
             "${main_publish_ref}:${LEGACY_PUBLISHED_BRANCH}" \
             "${marketplace_publish_ref}:${MARKETPLACE_BRANCH}"
 
+          git fetch origin "${LEGACY_PUBLISHED_BRANCH}" "${MARKETPLACE_BRANCH}"
+          if ! git diff --quiet "origin/${LEGACY_PUBLISHED_BRANCH}" "origin/${MARKETPLACE_BRANCH}"; then
+            echo "Published branch mismatch detected between ${LEGACY_PUBLISHED_BRANCH} and ${MARKETPLACE_BRANCH}"
+            git --no-pager diff --stat "origin/${LEGACY_PUBLISHED_BRANCH}" "origin/${MARKETPLACE_BRANCH}"
+            exit 1
+          fi
+          echo "Verified published outputs are in sync across ${LEGACY_PUBLISHED_BRANCH} and ${MARKETPLACE_BRANCH}"
+
       - name: Dispatch website deployment
         run: gh workflow run deploy-website.yml --ref "${WEBSITE_DEPLOY_REF}"
         env:
