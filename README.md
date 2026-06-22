@@ -572,3 +572,5 @@ trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
+
+- [ai-delivery-spec](https://github.com/franklinxkk/ai-delivery-spec) — Spec-driven delivery framework for product managers — 4 delivery tiers, 0D triage, prototype testability, AI runtime governance, 5 domain modules
