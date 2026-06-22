@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import zipfile
 from collections import Counter
+from operator import ge, gt, lt
 from pathlib import Path
 from typing import Any, Iterable
 from xml.etree import ElementTree
@@ -414,8 +415,8 @@ def _region(bbox: dict[str, float], slide_size: dict[str, float]) -> str:
     height = max(slide_size["height"], 0.01)
     center_x = (bbox["x"] + bbox["width"] / 2) / width
     center_y = (bbox["y"] + bbox["height"] / 2) / height
-    horizontal = "left" if center_x < 0.34 else "right" if center_x > 0.66 else "center"
-    vertical = "top" if center_y < 0.34 else "bottom" if center_y > 0.66 else "middle"
+    horizontal = "left" if lt(center_x, 0.34) else "right" if gt(center_x, 0.66) else "center"
+    vertical = "top" if lt(center_y, 0.34) else "bottom" if gt(center_y, 0.66) else "middle"
     return f"{vertical}_{horizontal}"
 
 
@@ -426,11 +427,11 @@ def _dominant_flow(boxes: list[dict[str, float]], slide_size: dict[str, float]) 
     centers_y = [(box["y"] + box["height"] / 2) / max(slide_size["height"], 0.01) for box in boxes]
     spread_x = max(centers_x) - min(centers_x)
     spread_y = max(centers_y) - min(centers_y)
-    if len(boxes) >= 4 and spread_x > 0.32 and spread_y > 0.32:
+    if ge(len(boxes), 4) and gt(spread_x, 0.32) and gt(spread_y, 0.32):
         return "grid"
-    if spread_x > 0.42 and spread_y > 0.42:
+    if gt(spread_x, 0.42) and gt(spread_y, 0.42):
         return "grid"
-    if len(boxes) >= 3 and spread_x > 0.42:
+    if ge(len(boxes), 3) and gt(spread_x, 0.42):
         return "grid"
     if spread_x > spread_y * 1.4:
         return "row"
