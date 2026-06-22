@@ -171,9 +171,10 @@ find_variation() {
 # from anywhere in the output, trim trailing punctuation, drop the broken URL
 # itself, and de-duplicate (case-insensitively). Up to MAX lines, one URL each.
 agent_alts() {
-  local url="$1" max="$2" prompt out
+  local url="$1" max="$2" prompt out prompt_url
   command -v copilot >/dev/null 2>&1 || return 0
-  prompt="In under $((AGENT_TIMEOUT - 5)) seconds, find up to ${max} working alternative URLs for the broken link ${url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
+  prompt_url="$(sanitize_prompt_url "$url")"
+  prompt="In under $((AGENT_TIMEOUT - 5)) seconds, find up to ${max} working alternative URLs for the broken link ${prompt_url}. Hierarchically consider 1. Path and/or page spelling; 2. web.archive.org/wayback; 3. Redirects using redirect destination; 4. The context of the link's text; in order to resolve. Output only the URLs. One per line, and no: prose, numbering, markdown, backticks, special characters, post formatting."
   # FIX_BROKEN_LINKS_AGENT marks the child run so a re-entrant hook exits early.
   out="$(FIX_BROKEN_LINKS_AGENT=1 $AGENT_RUN copilot -p "$prompt" \
           -s --no-color --model "$AGENT_MODEL" --available-tools 2>/dev/null)"
@@ -207,6 +208,17 @@ suggest_alts() {
 
   [ "${#out[@]}" -eq 0 ] && return 0
   printf '%s\n' "${out[@]}"
+}
+
+# Prepare a URL for safe embedding inside a shell-built prompt string.
+# This is defense-in-depth for values that originate from document content.
+sanitize_prompt_url() {
+  local s="$1"
+  s="${s//$'\r'/ }"
+  s="${s//$'\n'/ }"
+  s="${s//\`/\\\`}"
+  s="${s//\$/\\\$}"
+  printf '%s' "$s"
 }
 
 # Replace a literal URL everywhere in a file (pure bash, no regex).
