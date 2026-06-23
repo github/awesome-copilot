@@ -38,6 +38,7 @@
   "author": "GitHub",
   "license": "MIT",
   "devDependencies": {
+    "@microsoft/vally": "^0.6.0",
     "all-contributors-cli": "^6.26.1"
   },
   "dependencies": {

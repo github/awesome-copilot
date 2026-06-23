@@ -3,7 +3,9 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { Writable } from "stream";
 import { spawnSync } from "child_process";
+import { runLint, LintConsoleReporter } from "@microsoft/vally";
 
 const MAX_OUTPUT_LENGTH = 12000;
 
@@ -182,7 +184,7 @@ function buildVallyLintArgs(pluginRoot) {
   return [pluginRoot];
 }
 
-function runVallyLintGate(pluginRoot) {
+async function runVallyLintGate(pluginRoot) {
   try {
     const targets = buildVallyLintArgs(pluginRoot);
 
@@ -190,12 +192,20 @@ function runVallyLintGate(pluginRoot) {
     let anyFailure = false;
 
     for (const target of targets) {
-      const check = runCommand(
-        "npx",
-        ["--yes", "@microsoft/vally-cli", "lint", target, "--verbose"],
-      );
-      combinedOutput += check.output + "\n";
-      if (check.exitCode !== 0) {
+      const chunks = [];
+      const captureStream = new Writable({
+        write(chunk, _encoding, callback) {
+          chunks.push(chunk.toString());
+          callback();
+        },
+      });
+
+      const result = await runLint({ rootPath: target });
+      const reporter = new LintConsoleReporter({ verbose: true, stream: captureStream });
+      await reporter.report(result);
+
+      combinedOutput += chunks.join("") + "\n";
+      if (!result.passed) {
         anyFailure = true;
       }
     }
@@ -318,7 +328,7 @@ function toFailureClass(overallStatus) {
   return "none";
 }
 
-export function runExternalPluginQualityGates(plugin) {
+export async function runExternalPluginQualityGates(plugin) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "external-plugin-quality-"));
   const result = {
     overall_status: "not_run",
@@ -344,7 +354,7 @@ export function runExternalPluginQualityGates(plugin) {
       return result;
     }
 
-    const vallyResult = runVallyLintGate(pluginRoot);
+    const vallyResult = await runVallyLintGate(pluginRoot);
     result.vally_lint_status = vallyResult.status;
     result.vally_lint_output = vallyResult.output;
 
@@ -394,6 +404,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   const plugin = JSON.parse(args["plugin-json"]);
-  const result = runExternalPluginQualityGates(plugin);
+  const result = await runExternalPluginQualityGates(plugin);
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
