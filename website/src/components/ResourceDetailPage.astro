@@ -1,16 +1,20 @@
 ---
 import Button from './ui/Button.astro';
 import Container from './ui/Container.astro';
+import CopyButton from './ui/CopyButton.astro';
 import Icon from './ui/Icon.astro';
+import InstallModal from './InstallModal.astro';
 
 interface Props {
   kind: string;
   plural: string;
   title: string;
   description: string;
+  markdownHtml?: string;
+  frontmatter?: string | null;
 }
 
-const { kind, plural, title, description } = Astro.props;
+const { kind, plural, title, description, markdownHtml, frontmatter } = Astro.props;
 ---
 
 <section class="agent-detail" aria-labelledby="detail-title">
@@ -29,7 +33,7 @@ const { kind, plural, title, description } = Astro.props;
             <p id="detail-description">{description}</p>
           </div>
           <div class="hero-actions" aria-label="Primary actions">
-            <Button href="#install" variant="primary"><Icon name="download" size={15} /> Use {kind}</Button>
+            <Button id="hero-install-btn" variant="primary"><Icon name="download" size={15} /> Install {kind}</Button>
             <Button href={`/${plural}/`} variant="secondary" ariaLabel="Back to listing"><Icon name="arrow-left" size={15} /> Back to {plural}</Button>
           </div>
         </header>
@@ -39,13 +43,27 @@ const { kind, plural, title, description } = Astro.props;
           <h2 id="overview-title">What this {kind} provides</h2>
           <p id="detail-overview">Loading details.</p>
           <div class="feature-grid" id="detail-features" aria-label={`${title} facts`}></div>
+          <div class="feature-tags" id="detail-feature-tags" hidden></div>
         </section>
+
+        {markdownHtml ? (
+          <section class="content-panel pixel-panel markdown-panel" aria-labelledby="markdown-title">
+            <div class="file-header"><p class="panel-kicker" id="detail-md-path">README.md</p><span>readonly</span></div>
+            <h2 id="markdown-title">Documentation</h2>
+            <div class="markdown-preview">
+              <div class="markdown-body">
+                {frontmatter ? <div class="frontmatter-block">{`---\n${frontmatter}\n---`}</div> : null}
+                <div set:html={markdownHtml} />
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section class="content-panel pixel-panel" aria-labelledby="usage-title">
           <p class="panel-kicker">Usage</p>
           <h2 id="usage-title">Install or configure from your workspace</h2>
           <div class="terminal-card">
-            <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">command</span><div class="terminal-card__actions"><button class="copy-button" type="button" data-copy-code aria-label="Copy command"><Icon name="copy" size={14} /><span>Copy command</span></button></div></div>
+            <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">command</span><div class="terminal-card__actions"><CopyButton ariaLabel="Copy command" /></div></div>
             <pre><code data-install-command>Loading command...</code></pre>
           </div>
           <p class="helper-copy">Use this from your project root or follow the source documentation when the resource needs custom setup.</p>
@@ -67,15 +85,15 @@ const { kind, plural, title, description } = Astro.props;
         <section id="install" class="sidebar-card pixel-panel" aria-labelledby="install-title">
           <p class="panel-kicker">Command</p><h2 id="install-title">Use this resource</h2>
           <div class="terminal-card terminal-card--compact">
-            <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">copy</span><button class="copy-button" type="button" data-copy-code aria-label="Copy command"><Icon name="copy" size={14} /><span>Copy command</span></button></div>
+            <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">copy</span><CopyButton ariaLabel="Copy command" /></div>
             <pre><code data-install-command>Loading command...</code></pre>
           </div>
         </section>
 
-        <section class="sidebar-card pixel-panel" aria-labelledby="download-title">
-          <p class="panel-kicker">Portable</p><h2 id="download-title">Resource link</h2>
-          <Button href={`/${plural}/`} variant="secondary" size="sm" ariaLabel="Download resource"><Icon name="archive" size={14} /> Open source</Button>
-          <Button href={`/${kind}/`} variant="ghost" size="sm" ariaLabel="Share resource"><Icon name="share" size={14} /> Share resource</Button>
+        <section class="sidebar-card pixel-panel" aria-labelledby="actions-title">
+          <p class="panel-kicker">Quick actions</p><h2 id="actions-title">Get this resource</h2>
+          <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download resource"><Icon name="download" size={14} /> Download</Button>
+          <Button variant="secondary" size="sm" id="detail-share-btn" ariaLabel="Share resource"><Icon name="share" size={14} /> Share</Button>
         </section>
 
         <section class="sidebar-card pixel-panel" aria-labelledby="useful-title">
@@ -90,6 +108,7 @@ const { kind, plural, title, description } = Astro.props;
     </div>
   </Container>
 </section>
+<InstallModal resourceType={kind} />
 
 <style>
   .agent-detail { padding-block: 1.75rem 3rem; }
@@ -119,15 +138,31 @@ const { kind, plural, title, description } = Astro.props;
   .detail-badge--blue { color: var(--color-blue); background: rgb(92 211 255 / 12%); }
   .detail-badge--green { color: var(--color-green); background: rgb(144 255 177 / 12%); }
   .detail-badge--yellow { color: var(--color-yellow); background: rgb(255 214 102 / 12%); }
-  .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.85rem; }
   .feature-grid article { display: grid; align-content: start; gap: 0.45rem; border: 2px solid var(--color-border-soft); background: var(--color-bg); box-shadow: 2px 2px 0 var(--color-black); padding: 1rem; }
   .feature-grid p { margin: 0; color: var(--color-muted); font-size: 0.96rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .feature-tags { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }
+  .feature-tags .feature-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-bg);
+    box-shadow: 2px 2px 0 var(--color-black);
+    padding: 0.45rem 0.65rem;
+    font-size: 0.88rem;
+    color: var(--color-muted);
+    line-height: 1.4;
+  }
+  .feature-tags .feature-tag::before {
+    content: '•';
+    color: var(--color-green);
+    font-weight: 900;
+  }
   .terminal-card { border: 2px solid var(--color-border-soft); background: var(--color-bg); }
   .terminal-card--compact { min-width: 0; }
   .terminal-card__bar, .file-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 2px solid var(--color-border-soft); padding: 0.75rem 0.9rem; color: var(--color-muted); font-family: var(--font-mono); font-size: 0.9rem; font-weight: 800; }
   .terminal-card__actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 0.55rem; align-items: center; }
-  .copy-button { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--color-border-soft); border-radius: 0; background: var(--color-surface-2); color: var(--color-muted); cursor: pointer; font-family: var(--font-mono); font-size: 0.78rem; font-weight: 800; padding: 0.35rem 0.55rem; }
-  .copy-button:hover, .copy-button[data-copied="true"] { border-color: var(--color-green); color: var(--color-green); }
   pre { overflow-x: auto; margin: 0; background: var(--color-black); color: var(--color-text); padding: 1rem; font-family: var(--font-mono); font-size: 0.98rem; line-height: 1.55; }
   .spec-table, .metadata-list { display: grid; margin: 0; border: 2px solid var(--color-border-soft); }
   .spec-table div, .metadata-list div { display: grid; grid-template-columns: minmax(7rem, 0.28fr) 1fr; border-bottom: 2px solid var(--color-border-soft); }
@@ -141,6 +176,87 @@ const { kind, plural, title, description } = Astro.props;
   .sidebar-card :global(.button) { width: 100%; justify-self: stretch; }
   .source-owner { display: flex; align-items: center; gap: 0.5rem; overflow-wrap: anywhere; }
   .tag-list { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+
+  .markdown-body { display: grid; gap: 0.25rem; padding: 1rem; }
+  .markdown-body :global(h1),
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4) { margin: 1.25rem 0 0.5rem; color: var(--color-text); }
+  .markdown-body :global(h1:first-child),
+  .markdown-body :global(h2:first-child),
+  .markdown-body :global(h3:first-child),
+  .markdown-body :global(h4:first-child) { margin-top: 0; }
+  .markdown-body :global(p) { margin: 0.5rem 0; }
+  .markdown-body :global(ul),
+  .markdown-body :global(ol) { margin: 0.5rem 0; padding-left: 1.5rem; }
+  .markdown-body :global(li) { margin: 0.25rem 0; }
+  .markdown-body :global(code) {
+    background: var(--color-surface-2);
+    color: var(--color-primary);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 2px;
+  }
+  .markdown-body :global(pre) {
+    background: var(--color-surface-2);
+    border: 2px solid var(--color-border-soft);
+    overflow-x: auto;
+    padding: 0.8rem;
+    margin: 0.75rem 0;
+  }
+  .markdown-body :global(pre code) {
+    background: none;
+    color: var(--color-muted);
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .markdown-body :global(blockquote) {
+    border-left: 3px solid var(--color-primary);
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--color-muted);
+  }
+  .markdown-body :global(hr) {
+    border: none;
+    border-top: 2px solid var(--color-border-soft);
+    margin: 1.5rem 0;
+  }
+  .markdown-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  .markdown-body :global(th),
+  .markdown-body :global(td) {
+    border: 2px solid var(--color-border-soft);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .markdown-body :global(th) {
+    background: var(--color-surface-2);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+  .markdown-body :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .frontmatter-block {
+    color: var(--color-muted);
+    font: inherit;
+    line-height: 1.6;
+    margin: 0.5rem 0 1rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .markdown-preview {
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-bg);
+  }
+
   @media (max-width: 980px) { .detail-layout { grid-template-columns: 1fr; } .detail-sidebar { position: static; } }
   @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } .spec-table div, .metadata-list div { grid-template-columns: 1fr; } dt { padding-bottom: 0.2rem; } dd { padding-top: 0.2rem; } }
 </style>

@@ -30,7 +30,7 @@ export interface RenderableTool {
 export type ToolSortOption = "featured" | "title";
 
 function getStableAccent(tool: RenderableTool): string {
-  const accents = ["purple", "blue", "green", "yellow"];
+  const accents = ['purple', 'blue', 'green', 'yellow'];
   let hash = 0;
   for (const char of tool.id || tool.name) {
     hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
@@ -80,9 +80,17 @@ function getToolActionLink(
   className: string
 ): string {
   if (!href) return "";
-  return `<a href="${sanitizeToolUrl(
-    href
-  )}" class="${className}" target="_blank" rel="noopener">${label}</a>`;
+  const safeHref = sanitizeToolUrl(href);
+  if (safeHref === "#") return "";
+  try {
+    const protocol = new URL(safeHref).protocol;
+    const isWeb = protocol === "http:" || protocol === "https:";
+    const target = isWeb ? ' target="_blank"' : "";
+    const rel = isWeb ? ' rel="noopener"' : "";
+    return `<a href="${safeHref}" class="${className}"${target}${rel}>${label}</a>`;
+  } catch {
+    return "";
+  }
 }
 
 export function renderToolsHtml(
@@ -142,10 +150,10 @@ export function renderToolsHtml(
           <div class="tool-config-wrapper">
             <pre><code>${escapeHtml(tool.configuration.content)}</code></pre>
           </div>
-          <button class="copy-config-btn" data-config="${encodeURIComponent(
+          <button type="button" class="copy-config-btn" data-config="${encodeURIComponent(
             tool.configuration.content
-          )}">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          )}" aria-label="Copy configuration for ${escapeHtml(tool.name)}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
               <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
             </svg>

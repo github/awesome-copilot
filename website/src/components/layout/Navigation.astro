@@ -5,6 +5,23 @@ import BitButton from '../ui/8BitButton.astro';
 import Icon from '../ui/Icon.astro';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+const navRouteAliases: Record<string, string[]> = {
+  '/agents': ['/agent'],
+  '/instructions': ['/instruction'],
+  '/skills': ['/skill'],
+  '/hooks': ['/hook'],
+  '/workflows': ['/workflow'],
+  '/plugins': ['/plugin'],
+  '/tools': ['/tool'],
+};
+
+function isNavItemActive(itemHref: string, pathname: string): boolean {
+  const href = itemHref.replace(/\/$/, '') || '/';
+  const activePrefixes = [href, ...(navRouteAliases[href] ?? [])];
+
+  return activePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
 ---
 <header class="site-header">
   <a class="brand" href="/" aria-label={`${SITE.title} home`}>
@@ -18,22 +35,24 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   <button
     class="menu-button"
     type="button"
+    aria-label="Open navigation"
     aria-expanded="false"
     aria-controls="primary-navigation"
   >
     <Icon name="menu" size={18} />
-    <span class="sr-only">Open navigation</span>
+    <span class="sr-only" data-menu-label>Open navigation</span>
   </button>
 
   <nav id="primary-navigation" class="nav" aria-label="Primary navigation">
     {
       primaryNav.map((item) => {
         const href = item.href.replace(/\/$/, '') || '/';
-        const active = currentPath === href;
+        const active = isNavItemActive(item.href, currentPath);
         return (
           <a
             class:list={['nav-link', { 'nav-link--active': active }]}
             href={item.href}
+            aria-current={active ? 'page' : undefined}
           >
             {active ? `$ ${item.label}` : item.label}
           </a>
@@ -56,17 +75,24 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 <script>
   const header = document.querySelector('.site-header');
   const button = header?.querySelector('.menu-button');
+  const buttonLabel = header?.querySelector('[data-menu-label]');
   const nav = header?.querySelector('#primary-navigation');
 
   button?.addEventListener('click', () => {
     const expanded = button.getAttribute('aria-expanded') === 'true';
-    button.setAttribute('aria-expanded', String(!expanded));
-    nav?.toggleAttribute('data-open', !expanded);
+    const nextExpanded = !expanded;
+    const nextLabel = nextExpanded ? 'Close navigation' : 'Open navigation';
+    button.setAttribute('aria-expanded', String(nextExpanded));
+    button.setAttribute('aria-label', nextLabel);
+    if (buttonLabel) buttonLabel.textContent = nextLabel;
+    nav?.toggleAttribute('data-open', nextExpanded);
   });
 
   nav?.addEventListener('click', (event) => {
     if (event.target instanceof HTMLAnchorElement) {
       button?.setAttribute('aria-expanded', 'false');
+      button?.setAttribute('aria-label', 'Open navigation');
+      if (buttonLabel) buttonLabel.textContent = 'Open navigation';
       nav?.removeAttribute('data-open');
     }
   });
@@ -124,6 +150,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   }
 
   .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
     color: var(--color-muted);
     font-size: 1rem;
     font-weight: 700;
@@ -138,11 +167,21 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 
   .menu-button {
     display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-1);
     background: transparent;
     color: var(--color-text);
     padding: 0.55rem;
+    cursor: pointer;
+  }
+
+  .menu-button:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 4px;
   }
 
   @media (max-width: 1100px) {

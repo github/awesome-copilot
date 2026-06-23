@@ -80,6 +80,13 @@ const Tag = href ? 'a' : 'button';
     transition: transform var(--motion-fast), background var(--motion-fast), color var(--motion-fast);
     text-decoration: none;
     color: inherit;
+    touch-action: manipulation;
+  }
+
+  .bit-btn-inner:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 4px;
+    box-shadow: var(--focus-ring);
   }
 
   /* Variant: default */
@@ -122,29 +129,29 @@ const Tag = href ? 'a' : 'button';
 
   /* Size: sm */
   .bit-btn--sm .bit-btn-inner {
-    min-height: 1.75rem;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.78rem;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.86rem;
   }
 
   /* Size: md */
   .bit-btn--md .bit-btn-inner {
-    min-height: 2.25rem;
-    padding: 0.55rem 0.9rem;
-    font-size: 0.85rem;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 
   /* Size: lg */
   .bit-btn--lg .bit-btn-inner {
-    min-height: 2.75rem;
+    min-height: 3.25rem;
     padding: 0.8rem 1.35rem;
     font-size: 0.98rem;
   }
 
   /* Size: icon */
   .bit-btn--icon .bit-btn-inner {
-    width: 2rem;
-    height: 2rem;
+    width: 2.75rem;
+    height: 2.75rem;
     padding: 0;
     margin: 0 0.25rem;
   }

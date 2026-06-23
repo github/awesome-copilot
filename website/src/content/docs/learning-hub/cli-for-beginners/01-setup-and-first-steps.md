@@ -258,7 +258,7 @@ As you've seen up to this point, you'll see a prompt where you can type naturall
 
 #### Interactive Mode Example
 
-```bash
+```bash frame="none"
 copilot
 
 > Review @samples/book-app-project/utils.py and suggest improvements
@@ -284,7 +284,7 @@ Plan mode helps you create a step-by-step plan before writing any code. Use the 
 
 > 💡 **Tip**: **Shift+Tab** cycles between modes: Interactive → Plan → Autopilot. Press it anytime during an interactive session to switch modes without typing a command.
 
-```bash
+```bash frame="none"
 copilot
 
 > /plan Add a "mark as read" command to the book app
@@ -453,7 +453,7 @@ That's it for getting started! As you become comfortable, you can explore additi
 
 Run shell commands directly without AI by prefixing with `!`:
 
-```bash
+```bash frame="none"
 copilot
 
 > !git status
@@ -467,7 +467,7 @@ copilot
 
 Copilot CLI supports multiple AI models from OpenAI, Anthropic, Google, and others. The models available to you depend on your subscription level and region. Use `/model` to see your options and switch between them:
 
-```bash
+```bash frame="none"
 copilot
 > /model
 
@@ -494,7 +494,7 @@ Time to put what you've learned into action.
 
 Start Copilot and use follow-up prompts to iteratively improve the book app:
 
-```bash
+```bash frame="none"
 copilot
 
 > Review @samples/book-app-project/book_app.py - what could be improved?
@@ -510,7 +510,7 @@ copilot
 
 Use `/plan` to have Copilot CLI map out an implementation before writing any code:
 
-```bash
+```bash frame="none"
 copilot
 
 > /plan Add a search feature to the book app that can find books by title or author
@@ -575,7 +575,7 @@ The hands-on examples focused on reviewing and refactoring `book_app.py`. Now pr
 <summary>💡 Hints (click to expand)</summary>
 
 **Sample prompts to try:**
-```bash
+```bash frame="none"
 > @samples/book-app-project/utils.py What does each function in this file do?
 > Add validation to get_user_choice() so it handles empty input and non-numeric entries
 > What happens if get_book_details() receives an empty string for the title? Add guards for that.

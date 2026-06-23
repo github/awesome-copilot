@@ -5,10 +5,11 @@
 <button
   id="back-to-top"
   class="back-to-top"
+  type="button"
   aria-label="Back to top"
   title="Back to top"
 >
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M18 15l-6-6-6 6"/>
   </svg>
 </button>
@@ -35,9 +36,10 @@
 
     // Scroll to top with smooth behavior
     function scrollToTop() {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
       });
     }
 
@@ -79,7 +81,12 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px) scale(0.8);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+      background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+      visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 12px rgba(133, 52, 243, 0.4);
     z-index: 9999;
   }
@@ -101,8 +108,8 @@
   }
 
   .back-to-top:focus-visible {
-    outline: 2px solid var(--color-text-emphasis);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-text-emphasis);
+    outline-offset: 4px;
   }
 
   /* Mobile adjustments */

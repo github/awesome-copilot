@@ -1,25 +1,89 @@
 ---
 /**
- * CTA section — ported from awesome-copilot-jh base UI.
- *
- * Renders the "next step" terminal-label CTA box with pixel button.
+ * CTA section — "next step" call to action, aligned with the FAQ section pattern.
  */
 import BitButton from '../ui/8BitButton.astro';
 import Container from '../ui/Container.astro';
 import Icon from '../ui/Icon.astro';
 ---
 <section class="cta" aria-labelledby="cta-title">
-  <Container narrow>
-    <div class="cta-box">
-      <p>$ next step</p>
-      <h2 id="cta-title">Ship Copilot resources without losing the system model.</h2>
-      <BitButton href="/"><Icon name="arrow" size={15} /> Explore console</BitButton>
+  <Container>
+    <div class="cta-panel">
+      <div class="cta-copy">
+        <p class="cta-kicker">$ next step</p>
+        <h2 id="cta-title">Ship Copilot resources without losing the system model.</h2>
+        <p class="cta-sub">Bundle agents, instructions, skills, and plugins that keep your architecture intact — then ship them as a portable console.</p>
+      </div>
+      <div class="cta-action">
+        <BitButton href="/"><Icon name="arrow" size={15} /> Explore console</BitButton>
+      </div>
     </div>
   </Container>
 </section>
 <style>
-  .cta { padding-block: clamp(2.5rem, 5vw, 4rem); }
-  .cta-box { display: grid; justify-items: center; gap: 1rem; border: 1px solid var(--color-primary); border-radius: var(--radius-2); background: linear-gradient(135deg, rgb(169 112 255 / 18%), rgb(45 140 255 / 8%)), var(--color-bg-elevated); padding: clamp(1.75rem, 4vw, 3rem); text-align: center; box-shadow: var(--shadow-primary); }
-  p { margin: 0; color: var(--color-green); font-weight: 800; }
-  h2 { max-width: 760px; margin: 0; font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; letter-spacing: -0.05em; }
+  .cta {
+    padding-block: 4rem 5rem;
+    border-top: 1px solid var(--color-border-soft);
+  }
+
+  .cta-panel {
+    max-width: 1080px;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border-top: 4px solid var(--color-subtle);
+    border-bottom: 4px solid var(--color-subtle);
+    border-left: 1px solid rgb(255 255 255 / 10%);
+    border-right: 1px solid rgb(255 255 255 / 10%);
+    background: var(--color-bg-elevated);
+    box-shadow: 6px 6px 0 rgb(0 0 0 / 45%);
+  }
+
+  .cta-copy {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .cta-kicker {
+    margin: 0;
+    color: var(--color-green);
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.06;
+  }
+
+  .cta-sub {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: clamp(0.9rem, 1.5vw, 1rem);
+    line-height: 1.55;
+  }
+
+  .cta-action {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 760px) {
+    .cta-panel {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .cta-action {
+      justify-content: flex-start;
+    }
+  }
 </style>

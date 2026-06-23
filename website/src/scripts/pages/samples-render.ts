@@ -97,8 +97,10 @@ function renderCookbookSection(
   const languageTabs = cookbook.languages
     .map(
       (language) => `
-    <button class="lang-tab${selectedLanguage === language.id ? " active" : ""}"
+    <button type="button"
+            class="lang-tab${selectedLanguage === language.id ? " active" : ""}"
             data-lang="${escapeHtml(language.id)}"
+            aria-label="Filter ${escapeHtml(cookbook.name)} recipes by ${escapeHtml(language.name)}"
             title="${escapeHtml(language.name)}">
       ${escapeHtml(language.icon)}
     </button>
@@ -211,9 +213,9 @@ function renderRecipeCard(
         ${
           variant
             ? `
-          <button class="btn btn-secondary btn-small view-recipe-btn" data-doc="${escapeHtml(
+          <button type="button" class="btn btn-secondary btn-small view-recipe-btn" data-doc="${escapeHtml(
             variant.doc
-          )}">
+          )}" aria-label="View recipe for ${escapeHtml(recipe.name || recipe.id)}">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
               <path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75zM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5z"/>
             </svg>
@@ -222,9 +224,9 @@ function renderRecipeCard(
           ${
             variant.example
               ? `
-            <button class="btn btn-secondary btn-small view-example-btn" data-example="${escapeHtml(
+            <button type="button" class="btn btn-secondary btn-small view-example-btn" data-example="${escapeHtml(
               variant.example
-            )}">
+            )}" aria-label="View example for ${escapeHtml(recipe.name || recipe.id)}">
               <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
                 <path d="M4.72 3.22a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 0 1 0 1.06l-3.5 3.5a.75.75 0 0 1-1.06-1.06L7.69 7.5 4.72 4.28a.75.75 0 0 1 0-1.06zm6.25 1.06L10.22 5l.75.75-2.25 2.25 2.25 2.25-.75.75-.75-.72L11.97 7.5z"/>
               </svg>

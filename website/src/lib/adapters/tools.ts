@@ -34,7 +34,7 @@ function buildTags(item: ToolItem): string[] {
  * uses ToolCard, so this bridges the type gap.
  */
 export function adaptToolForSearch(item: ToolItem): {
-  slug: string;
+  id: string;
   title: string;
   label: string;
   description: string;
@@ -42,7 +42,7 @@ export function adaptToolForSearch(item: ToolItem): {
   config: string;
 } {
   return {
-    slug: item.id,
+    id: item.id,
     title: item.name,
     label: 'Tool',
     description: item.description,

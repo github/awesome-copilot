@@ -11,13 +11,13 @@ import { rawUrl, githubBlobUrl } from './config';
 
 /** Maximum number of tools shown as tags before a "+N more" overflow. */
 const MAX_TOOL_TAGS = 3;
-const AGENT_ACCENTS: Accent[] = ['purple', 'blue', 'green', 'yellow'];
+const AGENT_ACCENTS: Accent[] = ['purple', 'blue', 'neutral', 'green', 'yellow'];
 
 export function adaptAgent(item: AgentItem): ResultItem {
   const tags = buildTags(item);
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     label: buildLabel(item),
     description: item.description,

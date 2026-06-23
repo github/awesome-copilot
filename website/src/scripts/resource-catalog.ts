@@ -3,7 +3,7 @@ import type { Accent } from '../lib/types';
 import { createSearch, initSearch } from './search-client';
 import { getQueryParam, getQueryParamValues, updateQueryParams } from './url-state';
 
-type FilterType = 'multi' | 'single';
+type FilterType = 'multi' | 'single' | 'flag';
 
 export interface CatalogFilterConfig {
   param: string;
@@ -13,7 +13,7 @@ export interface CatalogFilterConfig {
 }
 
 export interface CatalogClientItem extends Searchable {
-  slug: string;
+  id: string;
   title: string;
   label: string;
   description: string;
@@ -78,9 +78,14 @@ async function loadItems<TRaw>(dataUrl: string, toClientItem: (item: TRaw) => Ca
 function readFilterState(configs: CatalogFilterConfig[]): Record<string, string[]> {
   const state: Record<string, string[]> = {};
   for (const config of configs) {
-    state[config.param] = config.type === 'multi'
-      ? getQueryParamValues(config.param)
-      : [getQueryParam(config.param) || config.defaultValue || ''].filter(Boolean);
+    if (config.type === 'flag') {
+      const val = getQueryParam(config.param);
+      state[config.param] = val === '1' ? ['1'] : [];
+    } else {
+      state[config.param] = config.type === 'multi'
+        ? getQueryParamValues(config.param)
+        : [getQueryParam(config.param) || config.defaultValue || ''].filter(Boolean);
+    }
   }
   return state;
 }
@@ -89,6 +94,13 @@ function applyFilterState(items: CatalogClientItem[], state: Record<string, stri
   return items.filter((item) => configs.every((config) => {
     if (config.param === 'sort') return true;
     const selected = state[config.param] ?? [];
+
+    if (config.type === 'flag') {
+      if (selected.length === 0) return true;
+      const values = item.filters[config.param] ?? [];
+      return values.includes('1');
+    }
+
     const active = config.type === 'single'
       ? selected.filter(value => value && value !== config.defaultValue)
       : selected;
@@ -117,11 +129,10 @@ function renderCard(item: CatalogClientItem): string {
     .join('');
 
   return `
-    <a class="resource-card resource-card--${accent}" role="listitem" data-path="${escapeHtml(item.detail)}" data-slug="${escapeHtml(item.slug)}" href="${escapeHtml(item.href)}">
-      <span class="resource-card__topline">
-        <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
-        <span class="resource-card__arrow"><svg aria-hidden="true" class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
-      </span>
+    <a class="resource-card resource-card--${accent}" role="listitem" data-path="${escapeHtml(item.detail)}" data-id="${escapeHtml(item.id)}" href="${escapeHtml(item.href)}">
+	      <span class="resource-card__topline">
+	        <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
+	      </span>
       <span class="resource-card__body">
         <span class="resource-card__title">${escapeHtml(item.title)}</span>
         <span class="resource-card__description">${escapeHtml(item.description)}</span>
@@ -150,6 +161,17 @@ function wireFilterSelects(configs: CatalogFilterConfig[], onChange: () => void)
     const config = configs.find(item => item.param === select.dataset.filterParam);
     if (!config) return;
 
+    if (config.type === 'flag') {
+      const val = getQueryParam(config.param);
+      select.value = val === '1' ? '1' : '';
+      select.addEventListener('change', () => {
+        const value = select.value === '1' ? '1' : null;
+        updateQueryParams({ set: { [config.param]: value } });
+        onChange();
+      });
+      return;
+    }
+
     const values = config.type === 'multi' ? getQueryParamValues(config.param) : [getQueryParam(config.param) || config.defaultValue || ''];
     for (const option of select.options) option.selected = values.includes(option.value);
 
@@ -165,7 +187,34 @@ function wireFilterSelects(configs: CatalogFilterConfig[], onChange: () => void)
   });
 }
 
-export async function initResourceCatalog<TRaw>(config: CatalogConfig<TRaw>): Promise<void> {
+function wireFilterToggles(configs: CatalogFilterConfig[], onChange: () => void): void {
+  document.querySelectorAll<HTMLButtonElement>('button[data-filter-param]').forEach((button) => {
+    const config = configs.find(item => item.param === button.dataset.filterParam);
+    if (!config || config.type !== 'flag') return;
+
+    const val = getQueryParam(config.param);
+    const isActive = val === '1';
+    button.setAttribute('aria-pressed', String(isActive));
+    if (isActive) button.classList.add('console-toggle--active');
+
+    button.addEventListener('click', () => {
+      const url = new URL(window.location.href);
+      const currentlyActive = url.searchParams.get(config.param) === '1';
+      if (currentlyActive) {
+        url.searchParams.delete(config.param);
+        button.classList.remove('console-toggle--active');
+      } else {
+        url.searchParams.set(config.param, '1');
+        button.classList.add('console-toggle--active');
+      }
+      button.setAttribute('aria-pressed', String(!currentlyActive));
+      history.replaceState(null, '', url.toString());
+      onChange();
+    });
+  });
+}
+
+export async function initResourceCatalog<TRaw>(config: CatalogConfig<TRaw>): Promise<{ applyAndRender: () => void }> {
   const grid = document.querySelector<HTMLElement>(config.gridSelector);
   const countEl = document.querySelector<HTMLElement>(config.countSelector);
   const emptyState = document.querySelector<HTMLElement>(config.emptySelector);
@@ -184,7 +233,7 @@ export async function initResourceCatalog<TRaw>(config: CatalogConfig<TRaw>): Pr
     console.error(error);
     if (countEl) countEl.textContent = `Failed to load ${config.resourceNamePlural}`;
     if (emptyState) emptyState.hidden = false;
-    return;
+    return { applyAndRender: () => {} };
   }
 
   const engine = createSearch<CatalogClientItem>(items);
@@ -228,6 +277,7 @@ export async function initResourceCatalog<TRaw>(config: CatalogConfig<TRaw>): Pr
   }
 
   wireFilterSelects(config.filterConfigs, applyAndRender);
+  wireFilterToggles(config.filterConfigs, applyAndRender);
   clearButton?.addEventListener('click', clearFilters);
   emptyClear?.addEventListener('click', clearFilters);
   loadMore?.addEventListener('click', () => {
@@ -272,4 +322,6 @@ export async function initResourceCatalog<TRaw>(config: CatalogConfig<TRaw>): Pr
   });
 
   applyAndRender();
+
+  return { applyAndRender };
 }

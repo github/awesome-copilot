@@ -89,9 +89,9 @@ export function renderPluginsHtml(items: RenderablePlugin[]): string {
         : getGitHubUrl(item.path);
       return `
         <article class="resource-item resource-card resource-card--${getStableAccent(item)}${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}" role="listitem">
-          <button type="button" class="resource-card__preview resource-preview">
+          <button type="button" class="resource-card__preview resource-preview" aria-label="Preview ${escapeHtml(item.name)}">
             <div class="resource-card__topline">
-              <span class="badge badge--yellow">${isExternal ? 'external plugin' : 'plugin'}</span>
+              <span class="badge badge--purple">${isExternal ? 'external plugin' : 'plugin'}</span>
             </div>
             <div class="resource-card__body">
               <h2 class="resource-card__title">${escapeHtml(item.name)}</h2>

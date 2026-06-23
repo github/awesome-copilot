@@ -1,5 +1,5 @@
 /** Visual accent categories used by badges and cards. */
-export type Accent = 'purple' | 'blue' | 'green' | 'yellow' | 'danger';
+export type Accent = 'purple' | 'blue' | 'neutral' | 'green' | 'yellow' | 'danger';
 
 /** A single navigation link. */
 export interface NavItem {
@@ -20,7 +20,7 @@ export interface ResourceCard {
 
 /** Generic result item for catalog pages. */
 export interface ResultItem {
-  slug?: string;
+  id: string;
   title: string;
   label: string;
   description: string;

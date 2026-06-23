@@ -7,8 +7,8 @@
  *
  * Resource cards and search preview are wired to upstream manifest/search data.
  */
-import Badge from '../ui/Badge.astro';
 import Container from '../ui/Container.astro';
+import Icon from '../ui/Icon.astro';
 import RetroResourceCard from '../ui/RetroResourceCard.astro';
 import type { SearchResultEntry } from '../../lib/adapters/search';
 import type { ResourceCard, Accent } from '../../lib/types';
@@ -40,138 +40,303 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
 <section class="hero" aria-labelledby="hero-title">
   <Container>
     <div class="hero-console">
-      <div class="hero-copy">
-        <p class="terminal-label">$ pwd ~/awesome-copilot/search-index</p>
-        <h1 id="hero-title">Build a sharper Copilot setup.</h1>
-        <p class="lead">Discover agents, skills, instructions, hooks, workflows, plugins and tools from one searchable retro-futuristic control panel.</p>
+      <div class="hero-shell">
+        <div class="hero-copy">
+          <p class="terminal-label">$ pwd ~/awesome-copilot/search-index</p>
+          <h1 id="hero-title">
+            Build a sharper Copilot <span>setup.</span><i aria-hidden="true"></i>
+          </h1>
+          <p class="lead">Discover agents, skills, instructions, hooks, workflows, plugins and tools from one searchable retro-futuristic control panel.</p>
+
+          <div class="command-search" role="search" aria-label="Global resource search preview">
+            <span aria-hidden="true" class="prompt">&gt;</span>
+            <span class="placeholder">Search agents, skills, instructions...</span>
+          </div>
+
+          <div class="quick-results" aria-label="Search result examples">
+            {searchEntries.slice(0, 3).map((entry, i) => (
+              <a class:list={['quick-result', `quick-result--${RESULT_ACCENT[i] ?? 'purple'}`]} href={entry.route}>
+                <Icon name={SECTION_ICON_MAP[entry.label.toLowerCase()] ?? 'terminal'} size={18} />
+                <span>
+                  <strong>&gt; {entry.title}</strong>
+                  <small>{entry.description.length > 42 ? `${entry.description.slice(0, 42)}...` : entry.description}</small>
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <span class="pixel-star pixel-star--one">+</span>
+          <span class="pixel-star pixel-star--two">+</span>
+          <span class="pixel-star pixel-star--three">×</span>
+          <img class="mascot" src="/copilot-icon.png" alt="" width="639" height="484" loading="eager" decoding="async" />
+          <div class="status-console">
+            <p><span></span> copilot@awesome:~$</p>
+            <p>Ready to <strong>enhance your workflow.</strong><i></i></p>
+          </div>
+        </div>
       </div>
 
-      <img class="mascot" src="/copilot-icon.png" alt="Pixel-art GitHub Copilot robot mascot" width="639" height="484" loading="eager" decoding="async" />
-
-      <div class="search-panel" role="search" aria-label="Global resource search preview">
-        <div class="search-row">
-          <span aria-hidden="true" class="prompt">&gt;</span>
-          <span class="query">agent github review</span>
-        </div>
-        <div class="results" aria-label="Search result examples">
-          {searchEntries.slice(0, 3).map((entry, i) => (
-            <article class="result-row">
-              <Badge tone={RESULT_ACCENT[i] ?? 'purple'}>{entry.label}</Badge>
-              <div>
-                <h3>{entry.title}</h3>
-                <p>{entry.description.length > 100 ? `${entry.description.slice(0, 100)}…` : entry.description}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+      <div class="resource-grid" aria-label="Resource categories">
+        {resources.map((resource) => (
+          <RetroResourceCard
+            title={resource.title}
+            label={resource.label}
+            description={resource.description}
+            href={resource.href}
+            icon={SECTION_ICON_MAP[resource.icon] ?? resource.icon}
+            accent={resource.accent}
+          />
+        ))}
       </div>
-    </div>
-
-    <div class="resource-grid" aria-label="Resource categories">
-      {resources.map((resource) => (
-        <RetroResourceCard
-          title={resource.title}
-          label={resource.label}
-          description={resource.description}
-          href={resource.href}
-          icon={SECTION_ICON_MAP[resource.icon] ?? resource.icon}
-          accent={resource.accent}
-        />
-      ))}
     </div>
   </Container>
 </section>
 
 <style>
-  .hero { border-bottom: 1px solid var(--color-border-soft); }
+  .hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 78% 28%, rgb(169 112 255 / 2%), transparent 28rem),
+      radial-gradient(circle at 66% 44%, rgb(45 140 255 / 2%), transparent 24rem);
+  }
+
   .hero-console {
     position: relative;
     max-width: 1440px;
-    min-height: 35rem;
     margin-inline: auto;
-    overflow: auto;
     display: grid;
-    align-content: center;
-    gap: 1.75rem;
-    border-bottom: 1px solid var(--color-border-soft);
-    padding: clamp(2.25rem, 5vw, 3.5rem) clamp(1rem, 3vw, 2.5rem);
+    gap: clamp(2rem, 4vw, 3rem);
+    padding: clamp(2.8rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem) 2rem;
   }
-  .hero-copy { max-width: 49rem; display: grid; gap: 1rem; z-index: 1; }
+
+  .hero-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 5rem);
+    min-height: clamp(31rem, 47vw, 39rem);
+    border-bottom: 1px solid var(--color-border-soft);
+    padding-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .hero-copy {
+    display: grid;
+    gap: 1rem;
+    z-index: 1;
+    max-width: 58rem;
+  }
+
   .terminal-label {
     width: fit-content;
     margin: 0;
-    border-radius: var(--radius-1);
-    background: var(--color-yellow);
-    color: var(--color-bg);
-    padding: 0.25rem 0.5rem;
-    font-size: 0.88rem;
+    border: 2px solid rgb(255 192 87 / 55%);
+    border-radius: 0;
+    background: rgb(255 192 87 / 4%);
+    color: var(--color-yellow);
+    box-shadow: 3px 3px 0 rgb(0 0 0 / 80%);
+    padding: 0.4rem 0.8rem;
+    font-size: clamp(0.78rem, 1.4vw, 0.9rem);
     font-weight: 800;
   }
+
   h1 {
-    max-width: 48.75rem;
     margin: 0;
     color: var(--color-text);
-    font-family: var(--font-heading);
-    font-size: clamp(2.5rem, 7vw, 4.8rem);
+    font-family: var(--font-mono);
+    font-size: clamp(2.6rem, 6.2vw, 5.2rem);
     font-weight: 800;
-    letter-spacing: -0.055em;
-    line-height: 1.03;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    text-wrap: balance;
+    text-shadow:
+      0 3px 0 rgb(0 0 0 / 40%),
+      3px 0 0 rgb(0 0 0 / 25%);
   }
+
+  h1 span { color: var(--color-primary); }
+
+  h1 i,
+  .status-console i {
+    display: inline-block;
+    width: 0.26em;
+    height: 0.54em;
+    margin-left: 0.18em;
+    background: var(--color-green);
+    vertical-align: baseline;
+  }
+
   .lead {
-    max-width: 48.75rem;
+    max-width: 46rem;
     margin: 0;
     color: var(--color-muted);
-    font-size: clamp(1.05rem, 1.9vw, 1.15rem);
-    line-height: 1.65;
+    font-size: clamp(1rem, 1.65vw, 1.22rem);
+    line-height: 1.55;
   }
-  .mascot {
-    position: absolute;
-    right: clamp(0rem, 2vw, 2.5rem);
-    top: clamp(9.5rem, 13vw, 11.5rem);
-    width: clamp(18rem, 27vw, 28rem);
-    max-width: 48%;
-    opacity: 0.9;
-    image-rendering: pixelated;
-  }
-  .search-panel {
-    z-index: 1;
-    width: min(100%, 45rem);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-1);
-    background: var(--color-bg);
-    box-shadow: var(--shadow-primary);
-    padding: 1.25rem;
-  }
-  .search-row {
+
+  .command-search {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding-bottom: 0.8rem;
-    font-size: clamp(1rem, 2vw, 1.15rem);
-  }
-  .prompt { color: var(--color-green); font-weight: 800; }
-  .query { color: var(--color-text); }
-  .results { display: grid; gap: 0.75rem; }
-  .result-row {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 1rem;
-    background: rgb(169 112 255 / 14%);
-    padding: 0.85rem 1rem;
-  }
-  .result-row:nth-child(2) { background: rgb(45 140 255 / 14%); }
-  .result-row:nth-child(3) { background: rgb(144 255 177 / 10%); }
-  .result-row h3 {
-    margin: 0;
-    font-size: 1.15rem;
-    line-height: 1.3;
-  }
-  .result-row p {
-    margin: 0.25rem 0 0;
+    gap: 0.85rem;
+    width: min(100%, 45rem);
+    min-height: 3.5rem;
+    margin-top: 0.75rem;
+    border-top: 2px solid rgb(169 112 255 / 16%);
+    border-bottom: 2px solid rgb(169 112 255 / 16%);
+    border-left: 1px solid rgb(169 112 255 / 12%);
+    border-right: 1px solid rgb(169 112 255 / 12%);
+    background: rgb(5 7 7 / 78%);
     color: var(--color-muted);
-    font-size: 1rem;
+    box-shadow: 0 0 18px rgb(0 0 0 / 55%);
+    padding: 0.75rem 1rem;
   }
+
+  .prompt {
+    color: var(--color-green);
+    font-weight: 900;
+  }
+
+  .placeholder {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quick-results {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    width: min(100%, 49rem);
+    margin-top: 0.65rem;
+  }
+
+  .quick-result {
+    --quick-accent: var(--color-primary);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    border-right: 1px dashed var(--color-border);
+    color: inherit;
+    padding: 0.15rem 1rem 0.15rem 0;
+    text-decoration: none;
+  }
+
+  .quick-result + .quick-result { padding-left: 1rem; }
+  .quick-result:last-child { border-right: 0; }
+  .quick-result--blue { --quick-accent: var(--color-blue); }
+  .quick-result--green { --quick-accent: var(--color-green); }
+  .quick-result :global(.icon) { color: var(--quick-accent); }
+
+  .quick-result span {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+
+  .quick-result strong,
+  .quick-result small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quick-result strong {
+    color: var(--color-text);
+    font-size: 0.88rem;
+  }
+
+  .quick-result small {
+    color: var(--color-muted);
+    font-size: 0.76rem;
+  }
+
+  .hero-visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    min-height: 29rem;
+    overflow: hidden;
+    padding-left: 2.5rem;
+  }
+
+  .hero-visual::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(169 112 255 / 3%) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(169 112 255 / 3%) 1px, transparent 1px);
+    background-size: 2rem 2rem;
+    mask-image: radial-gradient(circle at center, #000 0 57%, transparent 78%);
+    pointer-events: none;
+  }
+
+  .mascot {
+    position: relative;
+    z-index: 1;
+    width: min(86%, 30rem);
+    image-rendering: pixelated;
+  }
+
+  .pixel-star {
+    position: absolute;
+    color: var(--color-primary);
+    font-weight: 900;
+    opacity: 0.45;
+  }
+
+  .pixel-star--one { left: 14%; top: 20%; color: var(--color-blue); }
+  .pixel-star--two { right: 18%; top: 68%; color: var(--color-primary); }
+  .pixel-star--three { right: 10%; top: 32%; color: var(--color-blue); }
+
+  .status-console {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: 2%;
+    transform: translateX(-50%);
+    display: grid;
+    gap: 0.45rem;
+    min-width: min(100%, 25rem);
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 0;
+    background: rgb(5 7 7 / 88%);
+    padding: 1rem 1.25rem;
+  }
+
+  .status-console p {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0;
+  }
+
+  .status-console p:first-child { color: var(--color-green); }
+  .status-console p:first-child span {
+    width: 0.42rem;
+    height: 0.42rem;
+    background: var(--color-green);
+  }
+
+  .status-console strong {
+    color: var(--color-primary);
+    font-weight: 900;
+  }
+
   .resource-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -180,14 +345,39 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     margin-inline: auto;
     padding-block: 2rem;
   }
+
   @media (max-width: 1100px) {
-    .mascot { width: clamp(15rem, 42vw, 23rem); right: -4rem; top: 9rem; opacity: 0.18; }
+    .hero-shell { grid-template-columns: 1fr; }
+    .hero-visual { min-height: 24rem; }
+    .mascot { width: min(58%, 24rem); }
+    .status-console { left: 50%; transform: translateX(-50%); }
     .resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+
+  @media (max-width: 760px) {
+    .quick-results { grid-template-columns: 1fr; gap: 0.75rem; }
+    .quick-result,
+    .quick-result + .quick-result {
+      border-right: 0;
+      border-bottom: 1px dashed var(--color-border);
+      padding: 0 0 0.75rem;
+    }
+    .quick-result:last-child { border-bottom: 0; }
+    .hero-visual { min-height: 21rem; }
+    .mascot { width: min(76%, 22rem); }
+    .status-console {
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 1rem;
+      min-width: 0;
+      width: calc(100% - 2rem);
+    }
+  }
+
   @media (max-width: 560px) {
-    .hero-console { min-height: auto; padding-inline: 1rem; }
-    .mascot { display: none; }
+    .hero-console { padding-inline: 1rem; }
+    .hero-shell { min-height: auto; }
+    .hero-visual { display: none; }
     .resource-grid { grid-template-columns: 1fr; }
-    .result-row { grid-template-columns: 1fr; }
   }
 </style>

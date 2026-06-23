@@ -51,46 +51,32 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
           <Icon name="search" size={16} />
         </label>
 
-        <div
-          class="console-select-control console-select-control--active"
-          data-filter-param="model"
-          role="button"
-          tabindex="0"
-          aria-label="Filter by model"
-          aria-haspopup="listbox"
-        >
+        <label class="console-select-control console-select-control--active" for="filter-model">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="model">model: all</span></span>
           <Icon name="keyboard-arrow-down" size={16} />
-        </div>
+          <select id="filter-model" data-filter-param="model" multiple aria-label="Filter agents by model">
+            <option value="">All Models</option>
+          </select>
+        </label>
 
-        <div
-          class="console-select-control console-select-control--wide"
-          data-filter-param="tool"
-          role="button"
-          tabindex="0"
-          aria-label="Filter by tool"
-          aria-haspopup="listbox"
-        >
-          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="tool">tool: all</span></span>
-          <Icon name="keyboard-arrow-down" size={16} />
-        </div>
+        <button class="console-toggle" type="button" data-filter-param="hasMcpServers" aria-pressed="false" aria-label="Toggle MCP servers only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>MCP servers</span>
+        </button>
 
         <button class="console-toggle" type="button" data-filter-param="handoffs" aria-pressed="false" aria-label="Toggle handoffs only filter">
           <Icon name="filter-alt" size={15} />
           <span>handoffs only</span>
         </button>
 
-        <div
-          class="console-select-control console-select-control--sort"
-          data-filter-param="sort"
-          role="button"
-          tabindex="0"
-          aria-label="Sort results"
-          aria-haspopup="listbox"
-        >
+        <label class="console-select-control console-select-control--sort" for="sort-select">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Recently Updated</span></span>
           <Icon name="keyboard-arrow-down" size={16} />
-        </div>
+          <select id="sort-select" data-filter-param="sort" data-default-value="lastUpdated" aria-label="Sort agents">
+            <option value="lastUpdated">Recently Updated</option>
+            <option value="title">Name (A-Z)</option>
+          </select>
+        </label>
 
         <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
@@ -135,7 +121,8 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
     type ActiveFilters,
   } from '../scripts/filters';
   import { initModalFromHash } from '../scripts/modal-client';
-  import { getQueryParam } from '../scripts/url-state';
+  import { getQueryParam, updateQueryParams } from '../scripts/url-state';
+  import { toggleFlag } from '../scripts/filters';
   import type { Accent, ResultItem } from '../lib/types';
   import type { AgentItem } from '../lib/upstream-types';
 
@@ -147,7 +134,7 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
     items: AgentItem[];
   }
 
-  type AgentClientItem = Pick<ResultItem, 'slug' | 'title' | 'label' | 'description' | 'tags' | 'accent' | 'detail' | 'model' | 'tools'> & {
+  type AgentClientItem = Pick<ResultItem, 'id' | 'title' | 'label' | 'description' | 'tags' | 'accent' | 'detail' | 'model' | 'tools'> & {
     filterModel: string;
     filterTools: string[];
     filterHandoffs: boolean;
@@ -185,7 +172,7 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
   function toClientItem(item: AgentItem): AgentClientItem {
     const model = getModel(item);
     return {
-      slug: item.id,
+      id: item.id,
       title: item.title,
       label: buildLabel(item),
       description: item.description,
@@ -235,7 +222,7 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
   function resolver(item: AgentClientItem): Record<string, string[]> {
     return {
       model: [item.filterModel],
-      tool: item.filterTools,
+      hasMcpServers: item.filterTools.length > 0 ? ['1'] : [],
       handoffs: item.filterHandoffs ? ['1'] : [],
     };
   }
@@ -248,12 +235,11 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
       .map((item) => {
         const accent = escapeHtml(item.accent ?? 'purple');
         const path = escapeHtml(item.detail ?? '');
-        const slug = item.slug ?? '';
+        const id = item.id ?? '';
         return `
-          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-slug="${escapeHtml(slug)}" href="/agent/?slug=${encodeURIComponent(slug)}">
+          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-id="${escapeHtml(id)}" href="/agent/${encodeURIComponent(id)}/">
             <span class="resource-card__topline">
               <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
-              <span class="resource-card__arrow"><svg aria-hidden="true" class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
             </span>
             <span class="resource-card__body">
               <span class="resource-card__title">${escapeHtml(item.title)}</span>
@@ -261,7 +247,7 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
             </span>
             <span class="resource-card__footer">
               <span class="resource-card__tags">${item.tags.slice(0, 3).map(tag => `<span class="badge badge--neutral">${escapeHtml(tag)}</span>`).join('')}</span>
-              <span class="resource-card__cta">Open agent details<svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
+              <span class="resource-card__cta">Open details <svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
             </span>
           </a>`;
       })
@@ -290,17 +276,55 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
     }
 
     const models = [...new Set(items.map(a => a.filterModel))].sort();
-    const tools = [...new Set(items.flatMap(a => a.filterTools))].sort();
+
+    const modelSelect = document.getElementById('filter-model') as HTMLSelectElement | null;
+    if (modelSelect) {
+      modelSelect.innerHTML = '<option value="">All Models</option>' +
+        models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+    }
 
     const filterConfigs: FilterConfig[] = [
       { param: 'model', label: 'Model', type: 'multi', options: models.map(m => ({ value: m, label: m })) },
-      { param: 'tool', label: 'Tool', type: 'multi', options: tools.map(t => ({ value: t, label: t })) },
+      { param: 'hasMcpServers', label: 'MCP Servers', type: 'flag', options: [] },
       { param: 'handoffs', label: 'Has Handoffs', type: 'flag', options: [] },
       { param: 'sort', label: 'Sort', type: 'single', options: [
         { value: 'title', label: 'Name (A-Z)' },
         { value: 'lastUpdated', label: 'Recently Updated' },
       ]},
     ];
+
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    // Wire event listeners for selects and toggles
+    const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+    const mcpToggle = document.querySelector<HTMLButtonElement>('[data-filter-param="hasMcpServers"]');
+    const handoffsToggle = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
+
+    modelSelect?.addEventListener('change', () => {
+      const selected = Array.from(modelSelect.selectedOptions).map(o => o.value).filter(Boolean);
+      updateQueryParams({ setAll: { model: selected } });
+      applyAndRender();
+    });
+
+    sortSelect?.addEventListener('change', () => {
+      const value = sortSelect.value;
+      updateQueryParams({ set: { sort: value || null } });
+      applyAndRender();
+    });
+
+    mcpToggle?.addEventListener('click', () => {
+      const active = mcpToggle.getAttribute('aria-pressed') === 'true';
+      toggleFlag('hasMcpServers', active);
+      applyAndRender();
+    });
+
+    handoffsToggle?.addEventListener('click', () => {
+      const active = handoffsToggle.getAttribute('aria-pressed') === 'true';
+      toggleFlag('handoffs', active);
+      applyAndRender();
+    });
 
     const engine = createSearch<AgentClientItem>(items);
     let currentItems: AgentClientItem[] = [];
@@ -358,26 +382,30 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
 
     function updateFilterDisplays(filters: ActiveFilters): void {
       const modelDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="model"]');
-      const toolDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="tool"]');
       const sortDisplay = document.querySelector<HTMLElement>('.filter-display[data-param="sort"]');
-      const toggleBtn = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
+      const mcpToggleBtn = document.querySelector<HTMLButtonElement>('[data-filter-param="hasMcpServers"]');
+      const handoffsToggleBtn = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
 
       if (modelDisplay) {
         const vals = filters.multi['model'] ?? [];
         modelDisplay.textContent = vals.length > 0 ? `model: ${vals.join(', ')}` : 'model: all';
-      }
-      if (toolDisplay) {
-        const vals = filters.multi['tool'] ?? [];
-        toolDisplay.textContent = vals.length > 0 ? `tool: ${vals.join(', ')}` : 'tool: all';
       }
       if (sortDisplay) {
         const val = filters.single['sort'] || 'lastUpdated';
         const label = val === 'title' ? 'Name (A-Z)' : 'Recently Updated';
         sortDisplay.textContent = `sort: ${label}`;
       }
-      if (toggleBtn) {
+      if (mcpToggleBtn) {
+        const active = filters.flags['hasMcpServers'] === true;
+        mcpToggleBtn.setAttribute('aria-pressed', String(active));
+        if (active) mcpToggleBtn.classList.add('console-toggle--active');
+        else mcpToggleBtn.classList.remove('console-toggle--active');
+      }
+      if (handoffsToggleBtn) {
         const active = filters.flags['handoffs'] === true;
-        toggleBtn.setAttribute('aria-pressed', String(active));
+        handoffsToggleBtn.setAttribute('aria-pressed', String(active));
+        if (active) handoffsToggleBtn.classList.add('console-toggle--active');
+        else handoffsToggleBtn.classList.remove('console-toggle--active');
       }
     }
 
@@ -389,35 +417,6 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
       }, { rootMargin: '320px' });
       observer.observe(loadSentinel);
     }
-
-    document.querySelectorAll<HTMLElement>('.console-select-control[data-filter-param]').forEach((el) => {
-      const param = el.dataset.filterParam!;
-      el.addEventListener('click', () => {
-        const config = filterConfigs.find(c => c.param === param);
-        if (!config || !config.options.length) return;
-
-        if (config.type === 'single') {
-          const current = getQueryParam(param) || '';
-          const idx = config.options.findIndex(o => o.value === current);
-          const next = config.options[(idx + 1) % config.options.length];
-          const url = new URL(window.location.href);
-          url.searchParams.set(param, next.value);
-          history.replaceState(null, '', url.toString());
-          applyAndRender();
-        }
-        /* multi-mode toggling: cycle through options via a prompt or dropdown */
-      });
-    });
-
-    const handoffsToggle = document.querySelector<HTMLButtonElement>('[data-filter-param="handoffs"]');
-    handoffsToggle?.addEventListener('click', () => {
-      const url = new URL(window.location.href);
-      const isActive = url.searchParams.get('handoffs') === '1';
-      if (isActive) url.searchParams.delete('handoffs');
-      else url.searchParams.set('handoffs', '1');
-      history.replaceState(null, '', url.toString());
-      applyAndRender();
-    });
 
     function doClear(): void {
       clearAllFilters(filterConfigs);
@@ -539,8 +538,9 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
   .filter-clear {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     border: 2px solid var(--color-green);
     border-radius: 0;
     background: transparent;
@@ -554,4 +554,5 @@ const handoffCount = rawItems.filter(a => a.hasHandoffs).length;
     transition: background var(--motion-fast);
   }
   .filter-clear:hover { background: var(--color-green); color: var(--color-black); }
+  .filter-clear:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 </style>

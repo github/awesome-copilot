@@ -7,11 +7,23 @@ import '../styles/global.css';
 export interface Props {
   title?: string;
   description?: string;
+  canonicalUrl?: string;
+  socialTitle?: string;
+  socialDescription?: string;
+  socialImage?: string;
+  socialImageAlt?: string;
+  socialType?: 'website' | 'article';
 }
 
 const {
   title = `${SITE.title} · GitHub Copilot resource console`,
   description = SITE.description,
+  canonicalUrl,
+  socialTitle = title,
+  socialDescription = description,
+  socialImage = new URL(SITE.socialImage, SITE.url).toString(),
+  socialImageAlt = description,
+  socialType = 'website',
 } = Astro.props;
 ---
 <!doctype html>
@@ -20,6 +32,21 @@ const {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    {canonicalUrl ? <link rel="canonical" href={canonicalUrl} /> : null}
+    <meta property="og:title" content={socialTitle} />
+    <meta property="og:description" content={socialDescription} />
+    <meta property="og:type" content={socialType} />
+    <meta property="og:site_name" content={SITE.title} />
+    {canonicalUrl ? <meta property="og:url" content={canonicalUrl} /> : null}
+    {socialImage ? <meta property="og:image" content={socialImage} /> : null}
+    {socialImage ? <meta property="og:image:width" content="1200" /> : null}
+    {socialImage ? <meta property="og:image:height" content="630" /> : null}
+    {socialImageAlt ? <meta property="og:image:alt" content={socialImageAlt} /> : null}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={socialTitle} />
+    <meta name="twitter:description" content={socialDescription} />
+    {socialImage ? <meta name="twitter:image" content={socialImage} /> : null}
+    {socialImageAlt ? <meta name="twitter:image:alt" content={socialImageAlt} /> : null}
     <meta name="theme-color" content={SITE.themeColor} />
     <link rel="icon" href={SITE.favicon} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />

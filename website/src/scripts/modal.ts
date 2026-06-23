@@ -5,7 +5,7 @@
 import {
   fetchFileContent,
   fetchData,
-  getVSCodeInstallUrl,
+  getVSCodeProtocolUrl,
   copyToClipboard,
   showToast,
   downloadFile,
@@ -889,6 +889,14 @@ export function setupInstallDropdown(containerId: string): void {
       toggle?.setAttribute("aria-expanded", "false");
     });
   });
+
+  container.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      if (!link.href.startsWith("vscode")) return;
+      e.preventDefault();
+      window.location.href = link.href;
+    });
+  });
 }
 
 /**
@@ -991,8 +999,8 @@ export async function openFileModal(
   updateViewButtons();
 
   // Setup install dropdown
-  const vscodeUrl = getVSCodeInstallUrl(type, filePath, false);
-  const insidersUrl = getVSCodeInstallUrl(type, filePath, true);
+  const vscodeUrl = getVSCodeProtocolUrl(type, filePath, false);
+  const insidersUrl = getVSCodeProtocolUrl(type, filePath, true);
 
   if (vscodeUrl && installDropdown) {
     installDropdown.style.display = "inline-flex";

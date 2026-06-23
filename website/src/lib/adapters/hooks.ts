@@ -4,18 +4,19 @@
 
 import type { ResultItem } from '../types';
 import type { HookItem } from '../upstream-types';
+import { stableAccent } from '../../scripts/resource-catalog';
 import { rawUrl } from './config';
 
 export function adaptHook(item: HookItem): ResultItem {
   const tags = buildTags(item);
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     label: 'Hook',
     description: item.description,
     tags,
-    accent: 'yellow',
+    accent: stableAccent(item.id),
     detail: item.readmeFile ?? undefined,
     event: item.hooks.length > 0 ? item.hooks.join(', ') : undefined,
     actions: ['install', 'download', 'share', 'github'],

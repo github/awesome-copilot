@@ -28,9 +28,9 @@
       <div class="file-modal-controls">
         <button class="file-modal-mode" data-mode="raw" type="button">Raw</button>
         <button class="file-modal-mode" data-mode="rendered" type="button">Render</button>
-        <button class="file-modal-action" data-action="copy" type="button" title="Copy to clipboard">Copy</button>
-        <button class="file-modal-action" data-action="download" type="button" title="Download file">↓</button>
-        <button class="file-modal-action" data-action="share" type="button" title="Copy share link">Share</button>
+        <button class="file-modal-action" data-action="copy" type="button" title="Copy to clipboard" aria-label="Copy file to clipboard">Copy</button>
+        <button class="file-modal-action" data-action="download" type="button" title="Download file" aria-label="Download file">↓</button>
+        <button class="file-modal-action" data-action="share" type="button" title="Copy share link" aria-label="Copy share link">Share</button>
         <button class="file-modal-close" id="file-modal-close" type="button" aria-label="Close modal">✕</button>
       </div>
     </div>
@@ -120,12 +120,20 @@
     border: 1px solid var(--color-border-soft);
     border-radius: var(--radius-1);
     background: var(--color-surface-2);
-    padding: 0.25rem 0.6rem;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.8rem;
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     color: var(--color-muted);
     cursor: pointer;
     transition: color var(--motion-fast), border-color var(--motion-fast);
+  }
+
+  .file-modal-mode:focus-visible,
+  .file-modal-action:focus-visible,
+  .file-modal-close:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
   }
 
   .file-modal-mode:hover,

@@ -38,13 +38,10 @@ const categories = [...new Set(rawItems.map((item) => item.category).filter(Bool
           <Icon name="search" size={16} />
         </label>
 
-        <label class="console-select-control console-select-control--wide" for="filter-category">
-          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="category">category: all</span></span>
-          <select id="filter-category" data-filter-param="category" aria-label="Filter skills by category">
-            <option value="">All Categories</option>
-            {categories.map((category) => <option value={category}>{category}</option>)}
-          </select>
-        </label>
+        <button class="console-toggle" type="button" data-filter-param="hasAssets" aria-pressed="false" aria-label="Toggle skills with assets only filter">
+          <Icon name="filter-alt" size={15} />
+          <span>with assets</span>
+        </button>
 
         <label class="console-select-control console-select-control--sort" for="sort-select">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
@@ -88,41 +85,47 @@ const categories = [...new Set(rawItems.map((item) => item.category).filter(Bool
   function toClientItem(item: SkillItem): CatalogClientItem {
     const label = item.hasAssets ? `${item.assetCount} assets` : 'skill';
     return {
-      slug: item.id,
+      id: item.id,
       title: item.title,
       label,
       description: item.description || 'No description',
       tags: [item.category, item.hasAssets ? 'assets' : 'single file', `${item.files.length} files`].filter(Boolean),
       accent: stableAccent(item.id),
-      href: `/skill/?slug=${encodeURIComponent(item.id)}`,
+      href: `/skill/${encodeURIComponent(item.id)}/`,
       detail: item.skillFile,
       sortDate: item.lastUpdated,
       filters: {
-        category: item.category ? [item.category] : [],
+        hasAssets: item.hasAssets ? ['1'] : [],
       },
       searchText: `${item.title} ${item.description} ${item.category} ${item.assets.join(' ')}`,
     };
   }
 
-  initResourceCatalog<SkillItem>({
-    dataUrl: 'data/skills.json',
-    gridSelector: '#skill-grid',
-    countSelector: '#resource-count',
-    emptySelector: '#empty-state',
-    searchInputSelector: '#skill-search',
-    searchResultsSelector: '#skill-search-results',
-    searchStatusSelector: '#skill-search-status',
-    loadMoreSelector: '#skill-load-more',
-    loadSentinelSelector: '#skill-load-sentinel',
-    clearSelector: '#filter-clear',
-    emptyClearSelector: '#empty-clear',
-    resourceName: 'skill',
-    resourceNamePlural: 'skills',
-    defaultSort: 'title',
-    filterConfigs: [
-      { param: 'category', label: 'Category', type: 'single' },
-      { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
-    ],
-    toClientItem,
-  });
+  (async () => {
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    initResourceCatalog<SkillItem>({
+      dataUrl: 'data/skills.json',
+      gridSelector: '#skill-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#skill-search',
+      searchResultsSelector: '#skill-search-results',
+      searchStatusSelector: '#skill-search-status',
+      loadMoreSelector: '#skill-load-more',
+      loadSentinelSelector: '#skill-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'skill',
+      resourceNamePlural: 'skills',
+      defaultSort: 'title',
+      filterConfigs: [
+        { param: 'hasAssets', label: 'Has Assets', type: 'flag' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+      ],
+      toClientItem,
+    });
+  })();
 </script>

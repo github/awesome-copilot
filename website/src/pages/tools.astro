@@ -37,8 +37,9 @@ const categories = toolsData.filters.categories;
           <Icon name="search" size={16} />
         </label>
 
-        <label class="console-select-control console-select-control--wide" for="filter-category">
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-category">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="category">category: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="filter-category" data-filter-param="category" aria-label="Filter tools by category">
             <option value="">All Categories</option>
             {categories.map((category) => <option value={category}>{category}</option>)}
@@ -46,7 +47,8 @@ const categories = toolsData.filters.categories;
         </label>
 
         <label class="console-select-control console-select-control--sort" for="sort-select">
-          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Featured First</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="sort-select" data-filter-param="sort" data-default-value="featured" aria-label="Sort tools">
             <option value="featured">Featured First</option>
             <option value="title">Title</option>
@@ -91,13 +93,13 @@ const categories = toolsData.filters.categories;
 
   function toClientItem(item: ToolItem): CatalogClientItem {
     return {
-      slug: item.id,
+      id: item.id,
       title: item.name,
       label: item.featured ? 'featured' : item.category,
       description: item.description,
       tags: [item.category, ...item.tags].slice(0, 5),
       accent: stableAccent(item.id),
-      href: `/tool/?slug=${encodeURIComponent(item.id)}`,
+      href: `/tool/${encodeURIComponent(item.id)}/`,
       detail: item.configuration?.type ?? item.category,
       sortTitle: item.name,
       filters: {
@@ -108,27 +110,32 @@ const categories = toolsData.filters.categories;
     };
   }
 
-  initResourceCatalog<ToolItem>({
-    dataUrl: 'data/tools.json',
-    gridSelector: '#tool-grid',
-    countSelector: '#resource-count',
-    emptySelector: '#empty-state',
-    searchInputSelector: '#tool-search',
-    searchResultsSelector: '#tool-search-results',
-    searchStatusSelector: '#tool-search-status',
-    loadMoreSelector: '#tool-load-more',
-    loadSentinelSelector: '#tool-load-sentinel',
-    clearSelector: '#filter-clear',
-    emptyClearSelector: '#empty-clear',
-    resourceName: 'tool',
-    resourceNamePlural: 'tools',
-    defaultSort: 'featured',
-    filterConfigs: [
-      { param: 'category', label: 'Category', type: 'single' },
-      { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'featured' },
-    ],
-    toClientItem,
-  });
+  (async () => {
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    initResourceCatalog<ToolItem>({
+      dataUrl: 'data/tools.json',
+      gridSelector: '#tool-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#tool-search',
+      searchResultsSelector: '#tool-search-results',
+      searchStatusSelector: '#tool-search-status',
+      loadMoreSelector: '#tool-load-more',
+      loadSentinelSelector: '#tool-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'tool',
+      resourceNamePlural: 'tools',
+      defaultSort: 'featured',
+      filterConfigs: [
+        { param: 'category', label: 'Category', type: 'single' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'featured' },
+      ],
+      toClientItem,
+    });
+  })();
 </script>
 
 <style>

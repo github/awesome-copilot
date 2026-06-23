@@ -172,8 +172,6 @@
             <a
               id="install-btn-main"
               class="btn btn-primary install-btn-main"
-              target="_blank"
-              rel="noopener"
             >
               Install
             </a>
@@ -183,6 +181,7 @@
               aria-label="Install options"
               aria-expanded="false"
               aria-haspopup="true"
+              aria-controls="install-dropdown-menu"
             >
               <svg
                 viewBox="0 0 16 16"
@@ -196,19 +195,15 @@
                 ></path>
               </svg>
             </button>
-            <div class="install-dropdown-menu" role="menu">
+            <div id="install-dropdown-menu" class="install-dropdown-menu" role="menu">
               <a
                 id="install-vscode"
-                target="_blank"
-                rel="noopener"
                 role="menuitem"
               >
                 VS Code
               </a>
               <a
                 id="install-insiders"
-                target="_blank"
-                rel="noopener"
                 role="menuitem"
               >
                 VS Code Insiders
@@ -218,6 +213,7 @@
           <button
             id="close-modal"
             class="btn btn-icon"
+            type="button"
             aria-label="Close dialog"
           >
             <svg

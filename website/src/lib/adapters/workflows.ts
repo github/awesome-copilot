@@ -4,18 +4,19 @@
 
 import type { ResultItem } from '../types';
 import type { WorkflowItem } from '../upstream-types';
+import { stableAccent } from '../../scripts/resource-catalog';
 import { rawUrl } from './config';
 
 export function adaptWorkflow(item: WorkflowItem): ResultItem {
   const tags = item.triggers.length > 0 ? [...item.triggers] : [];
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     label: 'Workflow',
     description: item.description,
     tags,
-    accent: 'yellow',
+    accent: stableAccent(item.id),
     detail: item.path,
     trigger: item.triggers.length > 0
       ? item.triggers.join(', ')

@@ -4,18 +4,19 @@
 
 import type { ResultItem } from '../types';
 import type { InstructionItem } from '../upstream-types';
+import { stableAccent } from '../../scripts/resource-catalog';
 import { rawUrl } from './config';
 
 export function adaptInstruction(item: InstructionItem): ResultItem {
   const tags = buildTags(item);
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     label: 'Instruction',
     description: item.description,
     tags,
-    accent: 'blue',
+    accent: stableAccent(item.id),
     detail: item.path,
     applyTo: resolveApplyTo(item),
     actions: ['install', 'download', 'share', 'github'],

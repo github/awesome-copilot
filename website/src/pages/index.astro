@@ -9,6 +9,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroSection from '../components/sections/HeroSection.astro';
 import CTASection from '../components/sections/CTASection.astro';
 import FaqSection from '../components/sections/FaqSection.astro';
+import ContributorsSection from '../components/sections/ContributorsSection.astro';
 import { SITE } from '../config/site';
 import { adaptManifest, type ManifestSummary } from '../lib/adapters/manifest';
 import { adaptSearchIndex, type SearchResultEntry } from '../lib/adapters/search';
@@ -31,6 +32,8 @@ const searchEntries: SearchResultEntry[] = adaptSearchIndex(searchIndexData as S
   <CTASection />
 
   <FaqSection />
+
+  <ContributorsSection />
 </BaseLayout>
 
 <!-- Embedded data for client scripts ─────── -->

@@ -1,11 +1,16 @@
 import type { HookItem, PluginItem, SkillItem, ToolItem, WorkflowItem } from '../lib/upstream-types';
-import { REPO_IDENTIFIER } from './utils';
+import { downloadFile, downloadZipBundle, getGitHubUrl, REPO_IDENTIFIER, shareFile, showToast, getVSCodeProtocolUrl } from './utils';
 import { stableAccent } from './resource-catalog';
 
 type ResourceKind = 'skill' | 'hook' | 'workflow' | 'plugin' | 'tool';
 
+interface ZipFileEntry {
+  name: string;
+  path: string;
+}
+
 interface DetailData {
-  slug: string;
+  id: string;
   title: string;
   description: string;
   label: string;
@@ -15,11 +20,15 @@ interface DetailData {
   listingLabel: string;
   installTitle: string;
   installCommand: string;
+  sourceUrl: string;
   sourcePath: string;
   downloadHref: string;
   shareHref: string;
+  filePath: string;
+  zipFiles: ZipFileEntry[] | null;
   tags: string[];
   features: Array<{ title: string; value: string }>;
+  featureTags: string[];
   specs: Array<{ name: string; value: string }>;
   metadata: Array<{ name: string; value: string }>;
 }
@@ -81,6 +90,23 @@ function renderFeatureCards(features: DetailData['features']): void {
   }
 }
 
+function renderFeatureTags(tags: string[]): void {
+  const container = document.getElementById('detail-feature-tags');
+  if (!container) return;
+  container.textContent = '';
+  if (!tags || tags.length === 0) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+  for (const tag of tags) {
+    const badge = document.createElement('span');
+    badge.className = 'feature-tag';
+    badge.textContent = tag;
+    container.append(badge);
+  }
+}
+
 function renderDefinitionList(id: string, entries: Array<{ name: string; value: string }>): void {
   const list = document.getElementById(id);
   if (!list) return;
@@ -99,7 +125,7 @@ function renderDefinitionList(id: string, entries: Array<{ name: string; value: 
 function adaptSkill(item: SkillItem): DetailData {
   const command = `gh skills install ${REPO_IDENTIFIER} ${item.id}`;
   return {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     description: item.description,
     label: item.hasAssets ? `${item.assetCount} assets` : 'skill',
@@ -109,15 +135,19 @@ function adaptSkill(item: SkillItem): DetailData {
     listingLabel: 'skills',
     installTitle: 'Install this skill',
     installCommand: command,
+    sourceUrl: getGitHubUrl(item.path),
     sourcePath: `awesome-copilot/${item.path}`,
     downloadHref: `/skills/#file=${encodeURIComponent(item.skillFile)}`,
-    shareHref: `/skill/?slug=${encodeURIComponent(item.id)}`,
+    shareHref: `/skill/${encodeURIComponent(item.id)}/`,
+    filePath: item.skillFile,
+    zipFiles: item.files.map((f) => ({ name: f.name, path: f.path })),
     tags: [item.category, item.hasAssets ? 'assets' : 'no-assets', `${item.files.length} files`].filter(Boolean),
     features: [
       { title: 'Category', value: item.category || '(none)' },
       { title: 'Assets', value: item.hasAssets ? `${item.assetCount} bundled asset${item.assetCount === 1 ? '' : 's'}` : '(none)' },
       { title: 'Files', value: `${item.files.length} file${item.files.length === 1 ? '' : 's'}` },
     ],
+    featureTags: [],
     specs: [
       { name: 'name', value: item.name },
       { name: 'skillFile', value: item.skillFile },
@@ -133,8 +163,14 @@ function adaptSkill(item: SkillItem): DetailData {
 }
 
 function adaptHook(item: HookItem): DetailData {
+  const zipFiles: ZipFileEntry[] = item.readmeFile
+    ? [{ name: 'README.md', path: item.readmeFile }]
+    : [];
+  for (const asset of item.assets) {
+    zipFiles.push({ name: asset, path: `${item.path}/${asset}` });
+  }
   return {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     description: item.description,
     label: item.hooks.length === 1 ? item.hooks[0] : `${item.hooks.length} events`,
@@ -144,15 +180,19 @@ function adaptHook(item: HookItem): DetailData {
     listingLabel: 'hooks',
     installTitle: 'Use this hook bundle',
     installCommand: `cp -R ${item.path} .github/copilot/hooks/`,
+    sourceUrl: getGitHubUrl(item.path),
     sourcePath: `awesome-copilot/${item.path}`,
     downloadHref: `/hooks/#file=${encodeURIComponent(item.readmeFile ?? item.path)}`,
-    shareHref: `/hook/?slug=${encodeURIComponent(item.id)}`,
+    shareHref: `/hook/${encodeURIComponent(item.id)}/`,
+    filePath: item.readmeFile ?? item.path,
+    zipFiles: zipFiles.length > 0 ? zipFiles : null,
     tags: [...item.tags.slice(0, 6), ...item.hooks.slice(0, 2)],
     features: [
       { title: 'Events', value: joinOrNone(item.hooks) },
       { title: 'Tags', value: joinOrNone(item.tags) },
       { title: 'Assets', value: item.assets.length ? `${item.assets.length} bundled asset${item.assets.length === 1 ? '' : 's'}` : '(none)' },
     ],
+    featureTags: [],
     specs: [
       { name: 'name', value: item.title },
       { name: 'events', value: joinOrNone(item.hooks) },
@@ -169,7 +209,7 @@ function adaptHook(item: HookItem): DetailData {
 
 function adaptWorkflow(item: WorkflowItem): DetailData {
   return {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     description: item.description,
     label: item.triggers.length === 1 ? item.triggers[0] : `${item.triggers.length} triggers`,
@@ -179,15 +219,19 @@ function adaptWorkflow(item: WorkflowItem): DetailData {
     listingLabel: 'workflows',
     installTitle: 'Use this workflow',
     installCommand: `cp ${item.path} .github/workflows/${item.id}.md`,
+    sourceUrl: getGitHubUrl(item.path),
     sourcePath: `awesome-copilot/${item.path}`,
     downloadHref: `/workflows/#file=${encodeURIComponent(item.path)}`,
-    shareHref: `/workflow/?slug=${encodeURIComponent(item.id)}`,
+    shareHref: `/workflow/${encodeURIComponent(item.id)}/`,
+    filePath: item.path,
+    zipFiles: null,
     tags: item.triggers,
     features: [
       { title: 'Triggers', value: joinOrNone(item.triggers) },
       { title: 'Source', value: item.path },
       { title: 'Updated', value: item.lastUpdated || '(unknown)' },
     ],
+    featureTags: [],
     specs: [
       { name: 'name', value: item.title },
       { name: 'triggers', value: joinOrNone(item.triggers) },
@@ -212,7 +256,7 @@ function pluginAuthor(item: PluginItem): string {
 function adaptPlugin(item: PluginItem): DetailData {
   const repository = item.repository || item.homepage || `https://github.com/${REPO_IDENTIFIER}/tree/main/${item.path}`;
   return {
-    slug: item.id,
+    id: item.id,
     title: item.name,
     description: item.description,
     label: item.external ? 'external' : 'plugin',
@@ -222,15 +266,19 @@ function adaptPlugin(item: PluginItem): DetailData {
     listingLabel: 'plugins',
     installTitle: 'Install this plugin',
     installCommand: item.external ? `copilot plugin install ${item.name}` : `copilot plugin install ${item.name}@awesome-copilot`,
+    sourceUrl: repository,
     sourcePath: repository,
     downloadHref: repository,
-    shareHref: `/plugin/?slug=${encodeURIComponent(item.id)}`,
+    shareHref: `/plugin/${encodeURIComponent(item.id)}/`,
+    filePath: '',
+    zipFiles: null,
     tags: item.tags.slice(0, 8),
     features: [
       { title: 'Resources', value: `${item.itemCount} bundled resource${item.itemCount === 1 ? '' : 's'}` },
       { title: 'Source', value: item.external ? 'external' : 'awesome-copilot' },
       { title: 'Author', value: pluginAuthor(item) },
     ],
+    featureTags: [],
     specs: [
       { name: 'name', value: item.name },
       { name: 'resources', value: String(item.itemCount) },
@@ -248,7 +296,7 @@ function adaptPlugin(item: PluginItem): DetailData {
 function adaptTool(item: ToolItem): DetailData {
   const primaryLink = item.links.github || item.links.marketplace || item.links.vscode || item.links.pypi || item.links.blog || LISTING_HREFS.tool;
   return {
-    slug: item.id,
+    id: item.id,
     title: item.name,
     description: item.description,
     label: item.featured ? 'featured' : item.category,
@@ -258,15 +306,18 @@ function adaptTool(item: ToolItem): DetailData {
     listingLabel: 'tools',
     installTitle: 'Configure this tool',
     installCommand: item.configuration?.content?.trim() || 'See the project documentation for setup details.',
+    sourceUrl: primaryLink,
     sourcePath: primaryLink,
     downloadHref: primaryLink,
-    shareHref: `/tool/?slug=${encodeURIComponent(item.id)}`,
+    shareHref: `/tool/${encodeURIComponent(item.id)}/`,
+    filePath: '',
+    zipFiles: null,
     tags: [item.category, ...item.tags].slice(0, 8),
     features: [
       { title: 'Category', value: item.category },
       { title: 'Requirements', value: joinOrNone(item.requirements) },
-      { title: 'Features', value: joinOrNone(item.features) },
     ],
+    featureTags: item.features,
     specs: [
       { name: 'name', value: item.name },
       { name: 'category', value: item.category },
@@ -310,13 +361,73 @@ function renderDetail(detail: DetailData, kind: ResourceKind): void {
 
   for (const code of document.querySelectorAll<HTMLElement>('[data-install-command]')) code.textContent = detail.installCommand;
   setHref('Back to listing', detail.listingHref);
-  setHref('View source listing', detail.listingHref);
-  setHref('Download resource', detail.downloadHref);
-  setHref('Share resource', detail.shareHref);
+  setHref('View source listing', detail.sourceUrl);
+  initDetailActions(detail, kind);
   renderFeatureCards(detail.features);
+  renderFeatureTags(detail.featureTags);
   renderDefinitionList('detail-specs', detail.specs);
   renderDefinitionList('detail-metadata', detail.metadata);
   renderTags(detail.tags);
+}
+
+function initDetailActions(detail: DetailData, kind: ResourceKind): void {
+  const downloadBtn = document.getElementById('detail-download-btn') as HTMLButtonElement | null;
+  const shareBtn = document.getElementById('detail-share-btn') as HTMLButtonElement | null;
+  const heroInstallBtn = document.getElementById('hero-install-btn') as HTMLButtonElement | null;
+  const dialog = document.getElementById('install-modal') as HTMLDialogElement | null;
+  const vscodeLink = document.getElementById('install-modal-vscode') as HTMLAnchorElement | null;
+  const insidersLink = document.getElementById('install-modal-insiders') as HTMLAnchorElement | null;
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', async () => {
+      if (detail.zipFiles && detail.zipFiles.length > 0) {
+        const originalText = downloadBtn.textContent;
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = 'Preparing…';
+        try {
+          await downloadZipBundle(detail.id, detail.zipFiles);
+          showToast('Download started!', 'success');
+        } catch {
+          showToast('Download failed', 'error');
+        } finally {
+          downloadBtn.disabled = false;
+          downloadBtn.textContent = originalText;
+        }
+      } else if (detail.filePath) {
+        const ok = await downloadFile(detail.filePath);
+        showToast(ok ? 'Download started!' : 'Download failed', ok ? 'success' : 'error');
+      } else if (detail.sourceUrl) {
+        window.open(detail.sourceUrl, '_blank');
+      }
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      if (detail.filePath) {
+        const ok = await shareFile(detail.filePath);
+        showToast(ok ? 'Link copied!' : 'Failed to copy', ok ? 'success' : 'error');
+      } else {
+        const url = `${window.location.origin}${detail.shareHref}`;
+        try { await navigator.clipboard.writeText(url); showToast('Link copied!', 'success'); }
+        catch { showToast('Failed to copy', 'error'); }
+      }
+    });
+  }
+
+  if (heroInstallBtn && dialog && detail.filePath) {
+    const vscodeUrl = getVSCodeProtocolUrl(kind, detail.filePath, false);
+    const insidersUrl = getVSCodeProtocolUrl(kind, detail.filePath, true);
+
+    if (vscodeUrl) {
+      if (vscodeLink) vscodeLink.href = vscodeUrl;
+      if (insidersLink) insidersLink.href = insidersUrl || '#';
+
+      heroInstallBtn.addEventListener('click', () => {
+        dialog.showModal();
+      });
+    }
+  }
 }
 
 function renderError(kind: ResourceKind, message: string): void {
@@ -327,9 +438,9 @@ function renderError(kind: ResourceKind, message: string): void {
 }
 
 export async function initResourceDetail(kind: ResourceKind): Promise<void> {
-  const slug = new URLSearchParams(window.location.search).get('slug');
-  if (!slug) {
-    renderError(kind, `Missing ${kind} slug. Go back to the listing and choose a resource.`);
+  const rawId = window.location.pathname.split('/').filter(Boolean).pop() || '';
+  if (!rawId) {
+    renderError(kind, `Missing ${kind} id. Go back to the listing and choose a resource.`);
     return;
   }
 
@@ -337,9 +448,9 @@ export async function initResourceDetail(kind: ResourceKind): Promise<void> {
     const response = await fetch(`${import.meta.env.BASE_URL}${DATA_URLS[kind]}`);
     if (!response.ok) throw new Error(`Failed to load ${kind} data (${response.status})`);
     const data = await response.json() as { items: Array<{ id: string }> };
-    const raw = data.items.find(item => item.id === slug);
+    const raw = data.items.find(item => item.id === rawId);
     if (!raw) {
-      renderError(kind, `No ${kind} found for slug "${slug}".`);
+      renderError(kind, `No ${kind} found for id "${rawId}".`);
       return;
     }
     renderDetail(adapt(kind, raw), kind);

@@ -38,15 +38,25 @@ const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
           <Icon name="search" size={16} />
         </label>
 
-        <label class="console-select-control console-select-control--wide" for="filter-tag">
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-tag">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="tag">tag: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="filter-tag" data-filter-param="tag" multiple aria-label="Filter hooks by tag">
             {tags.map((tag) => <option value={tag}>{tag}</option>)}
           </select>
         </label>
 
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-hook">
+          <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="hook">hook: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
+          <select id="filter-hook" data-filter-param="hook" aria-label="Filter hooks by event">
+            <option value="">All Events</option>
+          </select>
+        </label>
+
         <label class="console-select-control console-select-control--sort" for="sort-select">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort hooks">
             <option value="title">Name (A-Z)</option>
             <option value="lastUpdated">Recently Updated</option>
@@ -78,26 +88,46 @@ const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
 
   function toClientItem(item: HookItem): CatalogClientItem {
     return {
-      slug: item.id,
+      id: item.id,
       title: item.title,
       label: item.hooks.length === 1 ? item.hooks[0] : `${item.hooks.length} events`,
       description: item.description,
       tags: [...item.tags.slice(0, 4), ...item.hooks.slice(0, 2)],
       accent: stableAccent(item.id),
-      href: `/hook/?slug=${encodeURIComponent(item.id)}`,
+      href: `/hook/${encodeURIComponent(item.id)}/`,
       detail: item.readmeFile ?? item.path,
       sortDate: item.lastUpdated,
-      filters: { tag: item.tags },
+      filters: { tag: item.tags, hook: item.hooks },
       searchText: `${item.title} ${item.description} ${item.tags.join(' ')} ${item.hooks.join(' ')}`,
     };
   }
 
-  initResourceCatalog<HookItem>({
-    dataUrl: 'data/hooks.json', gridSelector: '#hook-grid', countSelector: '#resource-count', emptySelector: '#empty-state',
-    searchInputSelector: '#hook-search', searchResultsSelector: '#hook-search-results', searchStatusSelector: '#hook-search-status',
-    loadMoreSelector: '#hook-load-more', loadSentinelSelector: '#hook-load-sentinel', clearSelector: '#filter-clear', emptyClearSelector: '#empty-clear',
-    resourceName: 'hook', resourceNamePlural: 'hooks', defaultSort: 'title',
-    filterConfigs: [{ param: 'tag', label: 'Tag', type: 'multi' }, { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' }],
-    toClientItem,
-  });
+  (async () => {
+    // Populate hook event filter options
+    const hookSelect = document.getElementById('filter-hook') as HTMLSelectElement | null;
+    if (hookSelect) {
+      try {
+        const response = await fetch('/data/hooks.json');
+        const data = await response.json();
+        const hooks = [...new Set(data.items.flatMap((item: any) => item.hooks))].sort();
+        hookSelect.innerHTML = '<option value="">All Events</option>' +
+          hooks.map((h: string) => `<option value="${h}">${h}</option>`).join('');
+      } catch (e) {
+        console.error('Failed to load hook events:', e);
+      }
+    }
+
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    initResourceCatalog<HookItem>({
+      dataUrl: 'data/hooks.json', gridSelector: '#hook-grid', countSelector: '#resource-count', emptySelector: '#empty-state',
+      searchInputSelector: '#hook-search', searchResultsSelector: '#hook-search-results', searchStatusSelector: '#hook-search-status',
+      loadMoreSelector: '#hook-load-more', loadSentinelSelector: '#hook-load-sentinel', clearSelector: '#filter-clear', emptyClearSelector: '#empty-clear',
+      resourceName: 'hook', resourceNamePlural: 'hooks', defaultSort: 'title',
+      filterConfigs: [{ param: 'tag', label: 'Tag', type: 'multi' }, { param: 'hook', label: 'Hook', type: 'single' }, { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' }],
+      toClientItem,
+    });
+  })();
 </script>

@@ -7,18 +7,19 @@
 
 import type { ResultItem } from '../types';
 import type { PluginItem } from '../upstream-types';
+import { stableAccent } from '../../scripts/resource-catalog';
 import { rawUrl } from './config';
 
 export function adaptPlugin(item: PluginItem): ResultItem {
   const tags = [...(item.tags ?? [])];
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.name,
     label: 'Plugin',
     description: item.description,
     tags,
-    accent: 'blue',
+    accent: stableAccent(item.id),
     detail: item.path,
     items: item.itemCount,
     contains: item.items.map(i => i.kind),

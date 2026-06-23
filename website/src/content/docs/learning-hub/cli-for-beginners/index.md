@@ -8,7 +8,6 @@ lastUpdated: 2026-03-20
 
 ![GitHub Copilot CLI for Beginners](/images/learning-hub/copilot-cli-for-beginners/overview/copilot-banner.png)
 
-# GitHub Copilot CLI for Beginners
 
 > **✨ Learn to supercharge your development workflow with AI-powered command-line assistance.**
 

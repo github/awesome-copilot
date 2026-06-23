@@ -25,7 +25,7 @@ const lastUpdated = item.detail ? item.detail : '';
   role="listitem"
   data-result-index={index}
   data-path={item.detail ?? ''}
-  data-slug={item.slug ?? ''}
+  data-id={item.id ?? ''}
   style={`--card-accent: var(--color-${accentLabel})`}
 >
   <!-- Header area -->
@@ -128,7 +128,6 @@ const lastUpdated = item.detail ? item.detail : '';
   }
 
   .resource-card:hover {
-    border-color: var(--card-accent, var(--color-primary));
     box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
     transform: translateY(-1px);
   }

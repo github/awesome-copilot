@@ -48,29 +48,22 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
           <Icon name="search" size={16} />
         </label>
 
-        <div
-          class="console-select-control console-select-control--wide console-select-control--active"
-          data-filter-param="extension"
-          role="button"
-          tabindex="0"
-          aria-label="Filter by extension"
-          aria-haspopup="listbox"
-        >
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-extension">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="extension">extension: all</span></span>
           <Icon name="keyboard-arrow-down" size={16} />
-        </div>
+          <select id="filter-extension" data-filter-param="extension" multiple aria-label="Filter instructions by extension">
+            <option value="">All Extensions</option>
+          </select>
+        </label>
 
-        <div
-          class="console-select-control console-select-control--sort"
-          data-filter-param="sort"
-          role="button"
-          tabindex="0"
-          aria-label="Sort results"
-          aria-haspopup="listbox"
-        >
+        <label class="console-select-control console-select-control--sort" for="sort-select">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: Name (A-Z)</span></span>
           <Icon name="keyboard-arrow-down" size={16} />
-        </div>
+          <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort instructions">
+            <option value="title">Name (A-Z)</option>
+            <option value="lastUpdated">Recently Updated</option>
+          </select>
+        </label>
 
         <button class="console-reset-control" type="button" aria-label="Clear filters" id="filter-clear"><Icon name="delete" size={15} /></button>
       </div>
@@ -113,7 +106,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
     type FilterConfig,
     type ActiveFilters,
   } from '../scripts/filters';
-  import { getQueryParam } from '../scripts/url-state';
+  import { getQueryParam, updateQueryParams } from '../scripts/url-state';
   import type { Accent } from '../lib/types';
 
   const INSTRUCTION_ACCENTS: Accent[] = ['purple', 'blue', 'green', 'yellow'];
@@ -138,7 +131,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
   }
 
   type InstructionClientItem = {
-    slug: string;
+    id: string;
     title: string;
     label: string;
     description: string;
@@ -180,7 +173,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
 
   function toClientItem(item: InstructionRaw): InstructionClientItem {
     return {
-      slug: item.id,
+      id: item.id,
       title: item.title,
       label: buildLabel(item),
       description: item.description,
@@ -242,12 +235,11 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
       .map((item) => {
         const accent = escapeHtml(item.accent ?? 'purple');
         const path = escapeHtml(item.detail ?? '');
-        const slug = item.slug ?? '';
+        const id = item.id ?? '';
         return `
-          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-slug="${escapeHtml(slug)}" href="/instruction/?slug=${encodeURIComponent(slug)}">
+          <a class="resource-card resource-card--${accent}" role="listitem" data-path="${path}" data-id="${escapeHtml(id)}" href="/instruction/${encodeURIComponent(id)}/">
             <span class="resource-card__topline">
               <span class="badge badge--${accent}">${escapeHtml(item.label)}</span>
-              <span class="resource-card__arrow"><svg aria-hidden="true" class="icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
             </span>
             <span class="resource-card__body">
               <span class="resource-card__title">${escapeHtml(item.title)}</span>
@@ -255,7 +247,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
             </span>
             <span class="resource-card__footer">
               <span class="resource-card__tags">${item.tags.slice(0, 3).map(tag => `<span class="badge badge--neutral">${escapeHtml(tag)}</span>`).join('')}</span>
-              <span class="resource-card__cta">Open instruction details<svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
+              <span class="resource-card__cta">Open details <svg aria-hidden="true" class="icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="shape-rendering:crispEdges"><path d="M4 11h11V8h3v2h2v4h-2v2h-3v-3H4v-2Z"/></svg></span>
             </span>
           </a>`;
       })
@@ -286,6 +278,12 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
     const extensions = [...new Set(items.flatMap(i => i.filterExtension))].sort();
     const extOptions = extensions.map(e => ({ value: e, label: `.${e}` }));
 
+    const extSelect = document.getElementById('filter-extension') as HTMLSelectElement | null;
+    if (extSelect) {
+      extSelect.innerHTML = '<option value="">All Extensions</option>' +
+        extOptions.map(opt => `<option value="${escapeHtml(opt.value)}">${escapeHtml(opt.label)}</option>`).join('');
+    }
+
     const filterConfigs: FilterConfig[] = [
       { param: 'extension', label: 'Extension', type: 'multi', options: extOptions },
       { param: 'sort', label: 'Sort', type: 'single', options: [
@@ -293,6 +291,25 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
         { value: 'lastUpdated', label: 'Recently Updated' },
       ]},
     ];
+
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    // Wire event listeners for selects
+    const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+
+    extSelect?.addEventListener('change', () => {
+      const selected = Array.from(extSelect.selectedOptions).map(o => o.value).filter(Boolean);
+      updateQueryParams({ setAll: { extension: selected } });
+      applyAndRender();
+    });
+
+    sortSelect?.addEventListener('change', () => {
+      const value = sortSelect.value;
+      updateQueryParams({ set: { sort: value || null } });
+      applyAndRender();
+    });
 
     const engine = createSearch<InstructionClientItem>(items);
     let currentItems: InstructionClientItem[] = [];
@@ -372,24 +389,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
       observer.observe(loadSentinel);
     }
 
-    /* ── Multi-select for extension filter ──── */
-    document.querySelectorAll<HTMLElement>('.console-select-control[data-filter-param]').forEach((el) => {
-      const param = el.dataset.filterParam!;
-      el.addEventListener('click', () => {
-        const config = filterConfigs.find(c => c.param === param);
-        if (!config || !config.options.length) return;
 
-        if (config.type === 'single') {
-          const current = getQueryParam(param) || '';
-          const idx = config.options.findIndex(o => o.value === current);
-          const next = config.options[(idx + 1) % config.options.length];
-          const url = new URL(window.location.href);
-          url.searchParams.set(param, next.value);
-          history.replaceState(null, '', url.toString());
-          applyAndRender();
-        }
-      });
-    });
 
     function doClear(): void {
       clearAllFilters(filterConfigs);
@@ -510,8 +510,9 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
   .filter-clear {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     border: 2px solid var(--color-green);
     border-radius: 0;
     background: transparent;
@@ -525,6 +526,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
     transition: background var(--motion-fast);
   }
   .filter-clear:hover { background: var(--color-green); color: var(--color-black); }
+  .filter-clear:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 3px; }
 
   /* ── Resource card interactivity ──────── */
   .resource-card {

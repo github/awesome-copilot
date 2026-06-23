@@ -74,7 +74,7 @@ This chapter covers five workflows that developers typically use. **However, you
 
 This example uses the `@` symbol to reference a file, giving Copilot CLI direct access to its contents for review.
 
-```bash
+```bash frame="none"
 copilot
 
 > Review @samples/book-app-project/book_app.py for code quality
@@ -108,7 +108,7 @@ copilot
 
 Reference an entire directory with `@` to let Copilot CLI scan every file in the project at once.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/ Review this entire project. Create a markdown checklist of issues found, categorized by severity
@@ -118,7 +118,7 @@ copilot
 
 Use a multi-turn conversation to drill deeper. Start with a broad review, then ask follow-up questions without restarting.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/book_app.py Review this file for:
@@ -141,7 +141,7 @@ copilot
 
 Ask Copilot CLI to structure its output in a specific format (here, a severity-categorized markdown checklist you can paste into an issue).
 
-```bash
+```bash frame="none"
 copilot
 
 > Review @samples/book-app-project/ and create a markdown checklist of issues found, categorized by:
@@ -172,7 +172,7 @@ git diff --staged    # Shows staged changes
 
 The `/review` command invokes the built-in **code-review agent**, which is optimized for analyzing staged and unstaged changes with high signal-to-noise output. Use a slash command to trigger a specialized built-in agent instead of writing a free-form prompt.
 
-```bash
+```bash frame="none"
 copilot
 
 > /review
@@ -201,7 +201,7 @@ copilot
 
 Start with straightforward improvements. Try these on the book app. Each prompt uses an `@` file reference paired with a specific refactoring instruction so Copilot CLI knows exactly what to change.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/book_app.py The command handling uses if/elif chains. Refactor it to use a dictionary dispatch pattern.
@@ -230,7 +230,7 @@ copilot
 
 Reference multiple files with `@` in a single prompt so Copilot CLI can move code between them as part of the refactor.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/utils.py @samples/book-app-project/book_app.py
@@ -241,7 +241,7 @@ copilot
 
 Provide two related files and describe the cross-cutting concern so Copilot CLI can suggest a consistent fix across both.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/utils.py @samples/book-app-project/books.py
@@ -252,7 +252,7 @@ copilot
 
 Use a detailed bullet list to specify exactly what each docstring should contain.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Add comprehensive docstrings to all methods:
@@ -266,7 +266,7 @@ copilot
 
 Chain two related requests in a multi-turn conversation. First generate tests, then refactor with those tests as a safety net.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Before refactoring, generate tests for current behavior
@@ -294,7 +294,7 @@ copilot
 
 Start by describing what's wrong. Here are common debugging patterns you can try with the buggy book app. Each prompt pairs an `@` file reference with a clear symptom description so Copilot CLI can locate and diagnose the bug.
 
-```bash
+```bash frame="none"
 copilot
 
 # Pattern: "Expected X but got Y"
@@ -326,7 +326,7 @@ copilot
 
 This is where context-aware debugging shines. Try this scenario with the buggy book app. Provide the whole file via `@` and describe only the user-reported symptom. Copilot CLI will trace the root cause and may spot additional bugs nearby.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-buggy/books_buggy.py
@@ -356,7 +356,7 @@ return [b for b in self.books if author.lower() in b.author.lower()]
 
 While debugging your own code is important, understanding security vulnerabilities in production applications is critical. Try this example: Point Copilot CLI at an unfamiliar file and ask it to audit for security issues.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/buggy-code/python/user_service.py Find all security vulnerabilities in this Python user service
@@ -376,7 +376,7 @@ This file demonstrates real-world security patterns you'll encounter in producti
 
 Paste a stack trace directly into your prompt along with an `@` file reference so Copilot CLI can map the error to the source code.
 
-```bash
+```bash frame="none"
 copilot
 
 > I'm getting this error:
@@ -390,7 +390,7 @@ copilot
 
 Describe the exact input and observed output to give Copilot CLI a concrete, reproducible test case to reason about.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-buggy/books_buggy.py The remove_book function has a bug. When I try to remove "Dune",
@@ -401,7 +401,7 @@ copilot
 
 Reference multiple files and ask Copilot CLI to follow the data flow across them to locate where the issue originates.
 
-```bash
+```bash frame="none"
 copilot
 
 > Users report that the book list numbering starts at 0 instead of 1.
@@ -413,7 +413,7 @@ copilot
 
 Include a data file alongside the code that reads it so Copilot CLI understands the full picture when suggesting error-handling improvements.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/data.json @samples/book-app-project/books.py
@@ -441,7 +441,7 @@ Manually writing tests, developers typically create 2-3 basic tests:
 
 Watch what happens when you ask Copilot CLI to generate comprehensive tests! This prompt uses a structured bullet list with an `@` file reference to guide Copilot CLI toward thorough test coverage:
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Generate comprehensive pytest tests. Include tests for:
@@ -517,7 +517,7 @@ class TestBookCollection:
 
 Target a single function and enumerate the input categories you want tested so Copilot CLI generates focused, thorough unit tests.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/utils.py Generate comprehensive pytest tests for get_book_details covering:
@@ -532,7 +532,7 @@ copilot
 
 Ask Copilot CLI a plain-English question about your toolchain. It can generate the right shell command for you.
 
-```bash
+```bash frame="none"
 copilot
 
 > How do I run the tests? Show me the pytest command.
@@ -547,7 +547,7 @@ copilot
 
 List advanced or tricky scenarios you want covered so Copilot CLI goes beyond the happy path.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Generate tests for these scenarios:
@@ -562,7 +562,7 @@ copilot
 
 Ask for *additional* tests for a single function so Copilot CLI generates new cases that complement what you already have.
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py
@@ -649,7 +649,7 @@ Include:
 
 If you're working with a branch in Copilot CLI's interactive mode, you can use the `/pr` command to work with pull requests. Use `/pr` to view a PR, create a new PR, fix an existing PR, or let Copilot CLI auto-decide based on the branch state.
 
-```bash
+```bash frame="none"
 copilot
 
 > /pr [view|create|fix|auto]
@@ -669,7 +669,7 @@ $(git diff main..HEAD)"
 
 The `/delegate` command hands off work to the Copilot coding agent on GitHub. Use the `/delegate` slash command (or the `&` shortcut) to offload a well-defined task to a background agent.
 
-```bash
+```bash frame="none"
 copilot
 
 > /delegate Add input validation to the login form
@@ -690,7 +690,7 @@ This is great for well-defined tasks you want completed while you focus on other
 
 The `/diff` command shows all changes made during your current session. Use this slash command to see a visual diff of everything Copilot CLI has modified before you commit.
 
-```bash
+```bash frame="none"
 copilot
 
 # After making some changes...
@@ -708,7 +708,7 @@ copilot
 
 When you need to investigate a library, understand best practices, or explore an unfamiliar topic, use `/research` to run a deep research investigation before writing any code:
 
-```bash
+```bash frame="none"
 copilot
 
 > /research What are the best Python libraries for validating user input in CLI apps?
@@ -724,7 +724,7 @@ Copilot searches GitHub repositories and web sources, then returns a summary wit
 
 Here's a complete workflow for fixing a reported bug:
 
-```bash
+```bash frame="none"
 
 # 1. Understand the bug report
 copilot
@@ -811,7 +811,7 @@ The hands-on examples focused on `find_book_by_title` and code reviews. Now prac
 
 **Sample prompts for each step:**
 
-```bash
+```bash frame="none"
 copilot
 
 # Step 1: Review
@@ -864,7 +864,7 @@ The exercise shows developers how to use GitHub Copilot CLI to create issues, ge
 
 **Review seems incomplete** - Be more specific about what to look for:
 
-```bash
+```bash frame="none"
 copilot
 
 # Instead of:
@@ -876,7 +876,7 @@ copilot
 
 **Tests don't match my framework** - Specify the framework:
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/books.py Generate tests using pytest (not unittest)
@@ -884,7 +884,7 @@ copilot
 
 **Refactoring changes behavior** - Ask Copilot CLI to preserve behavior:
 
-```bash
+```bash frame="none"
 copilot
 
 > @samples/book-app-project/book_app.py Refactor command handling to use dictionary dispatch. IMPORTANT: Maintain identical external behavior - no breaking changes

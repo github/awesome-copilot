@@ -31,6 +31,8 @@ const ctaLabel = label ?? title;
 
 <style>
   .retro-card {
+    display: flex;
+    height: 100%;
     background: var(--color-bg-elevated);
   }
 
@@ -38,8 +40,11 @@ const ctaLabel = label ?? title;
     position: relative;
     display: grid;
     grid-template-columns: 1fr auto;
+    grid-template-rows: 1fr;
     gap: 1rem;
-    align-items: start;
+    align-items: stretch;
+    flex: 1;
+    height: 100%;
     min-height: 9.75rem;
     border-top: 4px solid var(--color-subtle);
     border-bottom: 4px solid var(--color-subtle);
@@ -74,7 +79,8 @@ const ctaLabel = label ?? title;
   }
 
   .retro-card__body {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 0.6rem;
   }
 
@@ -97,7 +103,7 @@ const ctaLabel = label ?? title;
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
-    align-self: end;
+    margin-top: auto;
     color: var(--color-primary);
     font-size: 0.88rem;
     font-weight: 800;

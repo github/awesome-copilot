@@ -58,7 +58,7 @@ Learn what skills are, why they matter, and how they differ from agents and MCP.
 ## *New to Skills?* Start Here!
 
 1. **See what skills are already available:**
-   ```bash
+   ```bash frame="none"
    copilot
    > /skills list
    ```
@@ -73,7 +73,7 @@ Learn what skills are, why they matter, and how they differ from agents and MCP.
 
 Agent Skills are folders containing instructions, scripts, and resources that Copilot **automatically loads when relevant** to your task. Copilot reads your prompt, checks if any skills match, and applies the relevant instructions automatically.
 
-```bash
+```bash frame="none"
 copilot
 
 > Check books.py against our quality checklist
@@ -97,7 +97,7 @@ copilot
 
 While auto-triggering is the primary way skills work, you can also **invoke skills directly** using their name as a slash command:
 
-```bash
+```bash frame="none"
 > /generate-tests Create tests for the user authentication module
 
 > /code-checklist Check books.py for code quality issues
@@ -111,7 +111,7 @@ This gives you explicit control when you want to ensure a specific skill is used
 
 You can invoke **more than one skill in a single message**, and the skill slash command can appear anywhere in your prompt — not just at the beginning. This is handy when you want two different checks done in one go:
 
-```bash
+```bash frame="none"
 > Check @samples/book-app-project/book_app.py with /code-checklist and also run /generate-tests for it
 
 > Review the auth module /security-audit then /code-checklist the result
@@ -131,7 +131,7 @@ Copilot will apply each named skill in the same response, saving you from sendin
 
 You can ask Copilot directly:
 
-```bash
+```bash frame="none"
 > What skills did you use for that response?
 
 > What skills do you have available for security reviews?
@@ -165,7 +165,7 @@ Before diving into how to create skills, let's see *why* they're worth learning.
 
 Every code review, you might forget something:
 
-```bash
+```bash frame="none"
 copilot
 
 > Review this code for issues
@@ -174,7 +174,7 @@ copilot
 
 Or you write a long prompt every time:
 
-```bash
+```bash frame="none"
 > Review this code checking for bare except clauses, missing type hints,
 > mutable default arguments, missing context managers for file I/O,
 > functions over 50 lines, print statements in production code...
@@ -186,7 +186,7 @@ Time: **30+ seconds** to type. Consistency: **varies by memory**.
 
 With a `code-checklist` skill installed, just ask naturally:
 
-```bash
+```bash frame="none"
 copilot
 
 > Check the book collection code for quality issues
@@ -245,7 +245,7 @@ copilot
 
 Imagine your team has a 10-point PR checklist. Without a skill, every developer must remember all 10 points, and someone always forgets one of them. With a `pr-review` skill, the entire team gets consistent reviews:
 
-```bash
+```bash frame="none"
 copilot
 
 > Can you review this PR?
@@ -371,7 +371,7 @@ Provide issues as a numbered list with severity:
 
 Let's build a security audit skill that checks for OWASP Top 10 vulnerabilities:
 
-```bash
+```bash frame="none"
 # Create skill directory
 mkdir -p .github/skills/security-audit
 
@@ -463,7 +463,7 @@ description: Use for security reviews, vulnerability scanning,
 
 Skills and agents work together. The agent provides expertise, the skill provides specific instructions:
 
-```bash
+```bash frame="none"
 # Start with a code-reviewer agent
 copilot --agent code-reviewer
 
@@ -498,7 +498,7 @@ Use the `/skills` command to manage your installed skills:
 
 ### Example: View Your Skills
 
-```bash
+```bash frame="none"
 copilot
 
 > /skills list
@@ -534,7 +534,7 @@ Description: Security-focused code review checking OWASP Top 10 vulnerabilities
 
 After creating or editing a skill's SKILL.md file, run `/skills reload` to pick up the changes without restarting Copilot:
 
-```bash
+```bash frame="none"
 # Edit your skill file
 # Then in Copilot:
 > /skills reload
@@ -553,7 +553,7 @@ Skills reloaded successfully.
 
 The `/plugin` command lets you browse and install these packages:
 
-```bash
+```bash frame="none"
 copilot
 
 > /plugin list
@@ -760,7 +760,7 @@ Example:
 ```
 
 **Test it:**
-```bash
+```bash frame="none"
 copilot
 > @samples/book-app-project/data.json Summarize the books in this collection
 # The skill should auto-trigger based on the description match
@@ -833,7 +833,7 @@ copilot
 Run `/skills reload` after creating or editing skills to ensure changes are picked up.
 
 **Testing if a skill loads** - Ask Copilot directly:
-```bash
+```bash frame="none"
 > What skills do you have available for checking code quality?
 # Copilot will describe relevant skills it found
 ```

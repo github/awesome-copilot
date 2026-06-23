@@ -6,6 +6,7 @@ export interface Props {
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
   ariaLabel?: string;
+  id?: string;
 }
 
 const {
@@ -15,6 +16,7 @@ const {
   type = 'button',
   disabled = false,
   ariaLabel,
+  id,
 } = Astro.props;
 ---
 
@@ -24,6 +26,7 @@ const {
       class:list={['button', `button--${variant}`, `button--${size}`]}
       href={href}
       aria-label={ariaLabel}
+      id={id}
     >
       <slot />
     </a>
@@ -33,6 +36,7 @@ const {
       type={type}
       disabled={disabled}
       aria-label={ariaLabel}
+      id={id}
     >
       <slot />
     </button>

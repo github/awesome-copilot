@@ -54,7 +54,7 @@ Get started with built-in and custom agents right away.
 Never used or made an agent? Here's all you need to know to get started for this course.
 
 1. **Try a *built-in* agent right now:**
-   ```bash
+   ```bash frame="none"
    copilot
    > /plan Add input validation for book year in the book app
    ```
@@ -82,7 +82,7 @@ Never used or made an agent? Here's all you need to know to get started for this
 
 **Built-in agents in action** - Examples of invoking Plan, Code-review, Explore, and Task
 
-```bash
+```bash frame="none"
 copilot
 
 # Invoke the Plan agent to create an implementation plan
@@ -175,7 +175,7 @@ For more community agents, see [github/awesome-copilot](https://github.com/githu
 Inside interactive mode, list agents using `/agent` and select the agent to start working with. 
 Select an agent to continue your conversation with.
 
-```bash
+```bash frame="none"
 copilot
 > /agent
 ```
@@ -186,7 +186,7 @@ To change to a different agent, or to return to default mode, use the `/agent` c
 
 Launch straight into a new session with an agent.
 
-```bash
+```bash frame="none"
 copilot --agent python-reviewer
 > Review @samples/book-app-project/books.py
 ```
@@ -225,7 +225,7 @@ This is where agents prove their value. Watch the difference:
 
 ### Without an Agent (Generic Copilot)
 
-```bash
+```bash frame="none"
 copilot
 
 > Add a function to search books by year range in the book app
@@ -247,7 +247,7 @@ Basic. Works. But missing a lot.
 
 ### With the Python Reviewer Agent
 
-```bash
+```bash frame="none"
 copilot
 
 > /agent
@@ -318,7 +318,7 @@ The real power comes when specialists work together on a feature.
 
 ### Example: Building a Simple Feature
 
-```bash
+```bash frame="none"
 copilot
 
 > I want to add a "search by year range" feature to the book app
@@ -416,7 +416,7 @@ Agents are specialists you invoke on demand. **Project configuration files** are
 
 The fastest way to get started is to let Copilot generate configuration files for you:
 
-```bash
+```bash frame="none"
 copilot
 > /init
 ```
@@ -556,7 +556,7 @@ Create your own agents and see them in action.
 
 ## ▶️ Try It Yourself
 
-```bash
+```bash frame="none"
 
 # Create the agents directory (if it doesn't exist)
 mkdir -p .github/agents
@@ -688,7 +688,7 @@ You are a technical writer who creates clear Python documentation.
 > 💡 **Note:** You should already have `samples/book-app-project/data.json` in your local copy of this repo. If it is missing, download the original version from the source repo:
 > [data.json](https://github.com/github/copilot-cli-for-beginners/blob/main/samples/book-app-project/data.json)
 
-```bash
+```bash frame="none"
 copilot
 > /agent
 # Select "data-validator" from the list
@@ -732,7 +732,7 @@ Test each instruction file on the book app code.
 
 List available agents:
 
-```bash
+```bash frame="none"
 copilot
 > /agent
 # Shows all available agents
@@ -745,7 +745,7 @@ copilot
 
 **Custom instructions not loading** - Run `/init` in your project to set up project-specific instructions:
 
-```bash
+```bash frame="none"
 copilot
 > /init
 ```

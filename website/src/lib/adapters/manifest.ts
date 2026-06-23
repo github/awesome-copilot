@@ -17,12 +17,11 @@ export interface ManifestSummary {
 const SECTION_CONFIG: Record<string, { icon: string; accent: Accent; href: string }> = {
   agents:       { icon: 'agent',       accent: 'purple',  href: '/agents/' },
   instructions: { icon: 'instruction', accent: 'blue',    href: '/instructions/' },
-  skills:       { icon: 'skill',       accent: 'green',   href: '/skills/' },
-  hooks:        { icon: 'hook',        accent: 'yellow',  href: '/hooks/' },
-  workflows:    { icon: 'workflow',    accent: 'yellow',  href: '/workflows/' },
+  skills:       { icon: 'skill',       accent: 'blue',    href: '/skills/' },
+  hooks:        { icon: 'hook',        accent: 'purple',  href: '/hooks/' },
+  workflows:    { icon: 'workflow',    accent: 'purple',  href: '/workflows/' },
   plugins:      { icon: 'plugin',      accent: 'blue',    href: '/plugins/' },
   tools:        { icon: 'tool',        accent: 'purple',  href: '/tools/' },
-  contributors: { icon: 'user',        accent: 'green',   href: '/contributors/' },
 };
 
 const SECTION_LABELS: Record<string, string> = {
@@ -33,7 +32,6 @@ const SECTION_LABELS: Record<string, string> = {
   workflows:    'Workflows',
   plugins:      'Plugins',
   tools:        'Tools',
-  contributors: 'Contributors',
 };
 
 const SECTION_DESCRIPTIONS: Record<string, string> = {
@@ -44,7 +42,6 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
   workflows:    'AI-powered repository automations for GitHub Actions',
   plugins:      'Curated plugin bundles of agents and skills',
   tools:        'MCP servers, editor extensions, and CLI tools',
-  contributors: 'People who have contributed to Awesome GitHub Copilot',
 };
 
 export function adaptManifest(manifest: ManifestItem): ManifestSummary {

@@ -2,23 +2,21 @@ import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 import pagefindResources from "./src/integrations/pagefind-resources";
+import { rehypeImageDimensions } from "./src/markdown/rehype-image-dimensions.mjs";
 
 const site = "https://awesome-copilot.github.com/";
 const siteDescription =
   "Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience";
-// Social preview image used for all Open Graph / Twitter cards (e.g. LinkedIn, which is
-// Open Graph-driven). socialImageWidth/Height MUST match the actual pixels of social-image.png.
-// If a page ever overrides og:image, also override og:image:width/height and twitter:image
-// (Head.astro derives og:image:secure_url from twitter:image first).
 const socialImageUrl = new URL("/images/social-image.png", site).toString();
-const socialImageWidth = "2400";
-const socialImageHeight = "1260";
 
 // https://astro.build/config
 export default defineConfig({
   site,
   base: "/",
   output: "static",
+  markdown: {
+    rehypePlugins: [[rehypeImageDimensions, { publicDir: new URL("./public/", import.meta.url) }]],
+  },
   integrations: [
     starlight({
       title: "Awesome GitHub Copilot",
@@ -36,20 +34,6 @@ export default defineConfig({
         {
           tag: "meta",
           attrs: {
-            property: "og:image:width",
-            content: socialImageWidth,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
-            property: "og:image:height",
-            content: socialImageHeight,
-          },
-        },
-        {
-          tag: "meta",
-          attrs: {
             property: "og:image:alt",
             content: siteDescription,
           },
@@ -62,20 +46,30 @@ export default defineConfig({
           },
         },
       ],
-      customCss: [
-        "./src/styles/starlight-overrides.css",
-        "./src/styles/global.css",
-      ],
+      customCss: ["./src/styles/global.css"],
       editLink: {
         baseUrl:
           "https://github.com/github/awesome-copilot/edit/staged/website/",
       },
       sidebar: [
         {
+          label: "Browse Resources",
+          items: [
+            { label: "Home", link: "/" },
+            { label: "Agents", link: "/agents/" },
+            { label: "Instructions", link: "/instructions/" },
+            { label: "Skills", link: "/skills/" },
+            { label: "Hooks", link: "/hooks/" },
+            { label: "Workflows", link: "/workflows/" },
+            { label: "Canvas Extensions", link: "/extensions/" },
+            { label: "Plugins", link: "/plugins/" },
+            { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
+          ],
+        },
+        {
           label: "Fundamentals",
           items: [
-            "learning-hub/github-copilot-app",
-            "learning-hub/working-with-canvas-extensions",
             "learning-hub/what-are-agents-skills-instructions",
             "learning-hub/agents-and-subagents",
             "learning-hub/understanding-copilot-context",
@@ -119,21 +113,6 @@ export default defineConfig({
               label: "Cookbook",
               link: "/learning-hub/cookbook/",
             },
-          ],
-        },
-        {
-          label: "Browse Resources",
-          items: [
-            { label: "Home", link: "/" },
-            { label: "Agents", link: "/agents/" },
-            { label: "Instructions", link: "/instructions/" },
-            { label: "Skills", link: "/skills/" },
-            { label: "Hooks", link: "/hooks/" },
-            { label: "Workflows", link: "/workflows/" },
-            { label: "Canvas Extensions", link: "/extensions/" },
-            { label: "Plugins", link: "/plugins/" },
-            { label: "Tools", link: "/tools/" },
-            { label: "Contributors", link: "/contributors/" },
           ],
         },
       ],

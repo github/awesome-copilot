@@ -55,7 +55,7 @@ export function renderWorkflowsHtml(
     .map((item) => {
       return `
         <article class="resource-item resource-card resource-card--${getStableAccent(item)}" data-path="${escapeHtml(item.path)}" role="listitem">
-          <button type="button" class="resource-card__preview resource-preview">
+          <button type="button" class="resource-card__preview resource-preview" aria-label="Preview ${escapeHtml(item.title)}">
             <div class="resource-card__topline">
               <span class="badge badge--purple">workflow</span>
             </div>

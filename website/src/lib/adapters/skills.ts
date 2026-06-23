@@ -7,18 +7,19 @@
 
 import type { ResultItem, ResourceFile } from '../types';
 import type { SkillItem } from '../upstream-types';
+import { stableAccent } from '../../scripts/resource-catalog';
 import { rawUrl } from './config';
 
 export function adaptSkill(item: SkillItem): ResultItem {
   const tags = buildTags(item);
 
   const result: ResultItem = {
-    slug: item.id,
+    id: item.id,
     title: item.title,
     label: 'Skill',
     description: item.description,
     tags,
-    accent: 'green',
+    accent: stableAccent(item.id),
     detail: item.skillFile,
     category: item.category,
     resourceFiles: buildResourceFiles(item),

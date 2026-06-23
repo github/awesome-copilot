@@ -37,8 +37,9 @@ const scheduledCount = rawItems.filter((item) => item.triggers.includes('schedul
           <Icon name="search" size={16} />
         </label>
 
-        <label class="console-select-control console-select-control--wide" for="filter-trigger">
+        <label class="console-select-control console-select-control--wide console-select-control--active" for="filter-trigger">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt">&gt;</span> <span class="filter-display" data-param="trigger">trigger: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="filter-trigger" data-filter-param="trigger" multiple aria-label="Filter workflows by trigger">
             {triggers.map((trigger) => <option value={trigger}>{trigger}</option>)}
           </select>
@@ -46,6 +47,7 @@ const scheduledCount = rawItems.filter((item) => item.triggers.includes('schedul
 
         <label class="console-select-control console-select-control--sort" for="sort-select">
           <span class="console-control-copy"><span aria-hidden="true" class="console-prompt console-prompt--muted">&gt;</span> <span class="filter-display" data-param="sort">sort: all</span></span>
+          <Icon name="keyboard-arrow-down" size={16} />
           <select id="sort-select" data-filter-param="sort" data-default-value="title" aria-label="Sort workflows">
             <option value="title">Name (A-Z)</option>
             <option value="lastUpdated">Recently Updated</option>
@@ -85,13 +87,13 @@ const scheduledCount = rawItems.filter((item) => item.triggers.includes('schedul
 
   function toClientItem(item: WorkflowItem): CatalogClientItem {
     return {
-      slug: item.id,
+      id: item.id,
       title: item.title,
       label: item.triggers.length === 1 ? item.triggers[0] : `${item.triggers.length} triggers`,
       description: item.description,
       tags: item.triggers,
       accent: stableAccent(item.id),
-      href: `/workflow/?slug=${encodeURIComponent(item.id)}`,
+      href: `/workflow/${encodeURIComponent(item.id)}/`,
       detail: item.path,
       sortDate: item.lastUpdated,
       filters: { trigger: item.triggers },
@@ -99,25 +101,31 @@ const scheduledCount = rawItems.filter((item) => item.triggers.includes('schedul
     };
   }
 
-  initResourceCatalog<WorkflowItem>({
-    dataUrl: 'data/workflows.json',
-    gridSelector: '#workflow-grid',
-    countSelector: '#resource-count',
-    emptySelector: '#empty-state',
-    searchInputSelector: '#workflow-search',
-    searchResultsSelector: '#workflow-search-results',
-    searchStatusSelector: '#workflow-search-status',
-    loadMoreSelector: '#workflow-load-more',
-    loadSentinelSelector: '#workflow-load-sentinel',
-    clearSelector: '#filter-clear',
-    emptyClearSelector: '#empty-clear',
-    resourceName: 'workflow',
-    resourceNamePlural: 'workflows',
-    defaultSort: 'title',
-    filterConfigs: [
-      { param: 'trigger', label: 'Trigger', type: 'multi' },
-      { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
-    ],
-    toClientItem,
-  });
+  (async () => {
+    // Initialize custom dropdowns for single-select controls
+    const { initCustomDropdowns } = await import('../scripts/custom-dropdown');
+    initCustomDropdowns();
+
+    initResourceCatalog<WorkflowItem>({
+      dataUrl: 'data/workflows.json',
+      gridSelector: '#workflow-grid',
+      countSelector: '#resource-count',
+      emptySelector: '#empty-state',
+      searchInputSelector: '#workflow-search',
+      searchResultsSelector: '#workflow-search-results',
+      searchStatusSelector: '#workflow-search-status',
+      loadMoreSelector: '#workflow-load-more',
+      loadSentinelSelector: '#workflow-load-sentinel',
+      clearSelector: '#filter-clear',
+      emptyClearSelector: '#empty-clear',
+      resourceName: 'workflow',
+      resourceNamePlural: 'workflows',
+      defaultSort: 'title',
+      filterConfigs: [
+        { param: 'trigger', label: 'Trigger', type: 'multi' },
+        { param: 'sort', label: 'Sort', type: 'single', defaultValue: 'title' },
+      ],
+      toClientItem,
+    });
+  })();
 </script>
