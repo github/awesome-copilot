@@ -12,6 +12,7 @@ import {
   updateQueryParams,
 } from '../utils';
 import { openCardDetailsModal, setupModal } from '../modal';
+import { clearSelectValues, getSelectValues, setSelectValues } from './select-utils';
 import {
   renderHooksHtml,
   sortHooks,
@@ -37,26 +38,6 @@ let currentFilters = {
 let currentSort: HookSortOption = 'title';
 let resourceListHandlersReady = false;
 let modalReady = false;
-
-function getSelectValues(select: HTMLSelectElement | null): string[] {
-  if (!select) return [];
-  return Array.from(select.selectedOptions).map((option) => option.value);
-}
-
-function setSelectValues(select: HTMLSelectElement | null, values: string[]): void {
-  if (!select) return;
-  const selected = new Set(values);
-  Array.from(select.options).forEach((option) => {
-    option.selected = selected.has(option.value);
-  });
-}
-
-function clearSelectValues(select: HTMLSelectElement | null): void {
-  if (!select) return;
-  Array.from(select.options).forEach((option) => {
-    option.selected = false;
-  });
-}
 
 function sortItems(items: Hook[]): Hook[] {
   return sortHooks(items, currentSort);

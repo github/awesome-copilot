@@ -153,7 +153,11 @@ function setSelectedGalleryImage(url: string, extensionName: string): void {
   gallery?.querySelectorAll<HTMLButtonElement>(".extension-details-thumbnail-btn").forEach((button) => {
     const isActive = button.dataset.galleryImageUrl === url;
     button.classList.toggle("active", isActive);
-    button.toggleAttribute("aria-current", isActive);
+    if (isActive) {
+      button.setAttribute("aria-current", "true");
+    } else {
+      button.removeAttribute("aria-current");
+    }
   });
 }
 
@@ -298,13 +302,14 @@ function setupActionHandlers(list: HTMLElement | null): void {
 
     const thumbnailButton = target.closest(
       ".resource-thumbnail-btn"
-    ) as HTMLButtonElement | null;
+    ) as HTMLElement | null;
     if (thumbnailButton) {
       event.preventDefault();
       event.stopPropagation();
       const extensionId = thumbnailButton.dataset.extensionId;
       if (!extensionId) return;
-      openDetailsModal(extensionId, undefined, thumbnailButton);
+      const previewButton = thumbnailButton.closest(".resource-preview") as HTMLElement | null;
+      openDetailsModal(extensionId, undefined, previewButton || undefined);
       return;
     }
 
@@ -316,9 +321,10 @@ function setupActionHandlers(list: HTMLElement | null): void {
     }
 
     const card = target.closest(".resource-item") as HTMLElement | null;
+    const previewButton = card?.querySelector(".resource-preview") as HTMLElement | null;
     const extensionId = card?.dataset.extensionId;
     if (extensionId) {
-      openDetailsModal(extensionId, undefined, card || undefined);
+      openDetailsModal(extensionId, undefined, previewButton || undefined);
     }
   });
 
@@ -332,8 +338,9 @@ function setupActionHandlers(list: HTMLElement | null): void {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       const extensionId = card.dataset.extensionId;
+      const previewButton = card.querySelector(".resource-preview") as HTMLElement | null;
       if (extensionId) {
-        openDetailsModal(extensionId, undefined, card);
+        openDetailsModal(extensionId, undefined, previewButton || undefined);
       }
     }
   });
