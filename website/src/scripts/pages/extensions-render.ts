@@ -113,7 +113,7 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
               title="Copy install URL"
               ${installUrl ? "" : "disabled"}
             >
-              Install
+              Copy URL
             </button>
             ${
               sourceUrl
