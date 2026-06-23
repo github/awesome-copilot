@@ -1,0 +1,135 @@
+name: Validate Canvas Extensions
+
+on:
+  pull_request:
+    branches: [staged]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "extensions/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate changed canvas extensions
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Collect changed extension directories from the PR diff
+            const { execSync } = require('child_process');
+            const changedFiles = execSync(
+              `git diff --name-only origin/${{ github.base_ref }}...HEAD`
+            ).toString().trim().split('\n').filter(Boolean);
+
+            const EXTENSIONS_DIR = 'extensions';
+            const EXTERNAL_ASSETS_DIR = 'external-assets';
+
+            const changedExtDirs = new Set();
+            for (const file of changedFiles) {
+              const parts = file.split('/');
+              if (parts[0] === EXTENSIONS_DIR && parts.length >= 2) {
+                const extName = parts[1];
+                // Skip the external-assets directory — it's not a canvas extension
+                // Also skip external.json and other files at extensions root level
+                if (extName !== EXTERNAL_ASSETS_DIR && !extName.includes('.')) {
+                  changedExtDirs.add(path.join(EXTENSIONS_DIR, extName));
+                }
+              }
+            }
+
+            if (changedExtDirs.size === 0) {
+              console.log('No canvas extension directories changed — skipping validation.');
+              return;
+            }
+
+            console.log(`Validating ${changedExtDirs.size} extension(s): ${[...changedExtDirs].join(', ')}`);
+
+            const errors = [];
+
+            for (const extDir of changedExtDirs) {
+              if (!fs.existsSync(extDir)) {
+                // Directory was deleted — skip
+                console.log(`${extDir} no longer exists (deleted?), skipping.`);
+                continue;
+              }
+
+              const extName = path.basename(extDir);
+
+              // Rule 1: must contain extension.mjs
+              const mainFile = path.join(extDir, 'extension.mjs');
+              if (!fs.existsSync(mainFile)) {
+                errors.push(
+                  `**\`${extDir}\`**: missing required \`extension.mjs\`. ` +
+                  `Canvas extensions must have their entry point named \`extension.mjs\`.`
+                );
+              }
+
+              // Rule 2: must contain assets/preview.png
+              const previewFile = path.join(extDir, 'assets', 'preview.png');
+              if (!fs.existsSync(previewFile)) {
+                errors.push(
+                  `**\`${extDir}\`**: missing required \`assets/preview.png\`. ` +
+                  `Canvas extensions must include a screenshot at \`assets/preview.png\` ` +
+                  `so reviewers and users can preview the extension before installing it.`
+                );
+              }
+            }
+
+            if (errors.length === 0) {
+              console.log('✅ All changed canvas extensions pass validation.');
+              return;
+            }
+
+            const isFork = context.payload.pull_request.head.repo.fork;
+            const body = [
+              '❌ **Canvas extension validation failed**',
+              '',
+              'The following issue(s) were found in changed canvas extension(s):',
+              '',
+              ...errors.map(e => `- ${e}`),
+              '',
+              '---',
+              '',
+              '### Required structure for canvas extensions',
+              '',
+              'Each extension folder under `extensions/` must contain:',
+              '',
+              '| Path | Required | Description |',
+              '|------|----------|-------------|',
+              '| `extension.mjs` | ✅ | Entry point for the canvas extension |',
+              '| `assets/preview.png` | ✅ | Screenshot shown on the website and in the marketplace |',
+              '',
+              'Please add the missing file(s) and push an update to this PR.',
+            ].join('\n');
+
+            if (!isFork) {
+              try {
+                await github.rest.pulls.createReview({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  event: 'REQUEST_CHANGES',
+                  body
+                });
+              } catch (error) {
+                core.warning(`Could not post PR review: ${error.message}`);
+                core.warning(body);
+              }
+            } else {
+              core.warning('PR is from a fork — skipping createReview to avoid permission errors.');
+              core.warning(body);
+            }
+
+            core.setFailed(`Canvas extension validation failed with ${errors.length} error(s).`);

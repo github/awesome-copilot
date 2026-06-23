@@ -42,27 +42,7 @@ jobs:
               }
             };
 
-            async function ensureLabel(name, { color, description }) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color,
-                  description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function syncManagedLabels(issueNumber, desiredLabels) {
-              await Promise.all(
-                Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config))
-              );
-
               const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,

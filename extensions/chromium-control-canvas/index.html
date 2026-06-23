@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chromium</title>
+<style>
+  :root {
+    color-scheme: dark light;
+    --bg: #0b0f14;
+    --panel: #11161d;
+    --panel-2: #171d25;
+    --panel-3: #1d242e;
+    --border: #2a313c;
+    --border-strong: #3a4350;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --faint: #6e7681;
+    --accent: #2f81f7;
+    --green: #238636;
+    --green-hi: #2ea043;
+    --danger: #f85149;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Indeterminate progress bar, shown while a request is in flight. */
+  .progress {
+    height: 2px;
+    background: transparent;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  body.busy .progress::after {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 40%;
+    background: var(--accent);
+    animation: slide 1s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0%   { margin-left: -40%; }
+    100% { margin-left: 100%; }
+  }
+
+  .toolbar {
+    padding: 8px 8px 6px;
+    border-bottom: 1px solid rgba(48, 54, 61, .65);
+    background:
+      radial-gradient(circle at top left, rgba(47, 129, 247, .12), transparent 38%),
+      var(--bg);
+  }
+  .control-card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: rgba(17, 22, 29, .92);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .18);
+  }
+  .chrome-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .nav {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel-2);
+  }
+  .icon-btn {
+    width: 26px; height: 26px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font: inherit; font-size: 14px; line-height: 1;
+    cursor: pointer; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; color: var(--muted);
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .icon-btn:hover { background: var(--panel-3); border-color: var(--border); }
+  .icon-btn:active { background: var(--border); }
+
+  .address {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 10px;
+    height: 30px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  .address:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(47, 129, 247, .25);
+  }
+  .scheme { font-size: 12px; flex: 0 0 auto; color: var(--muted); }
+  .scheme.secure { color: var(--green-hi); }
+  input#url {
+    flex: 1; min-width: 0;
+    font: inherit; border: 0; outline: none;
+    background: transparent; color: var(--text);
+  }
+  input#url::placeholder { color: var(--faint); }
+
+  .btn {
+    font: inherit; cursor: pointer; height: 30px; padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    transition: background .12s ease, transform .06s ease, border-color .12s ease;
+  }
+  .btn:hover { background: var(--border); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--green); border-color: var(--green-hi); font-weight: 600; }
+  .btn.primary:hover { background: var(--green-hi); }
+  .btn.subtle {
+    color: var(--muted);
+    background: var(--panel-2);
+    border-color: var(--border);
+  }
+  .btn.subtle:hover {
+    color: var(--text);
+    background: var(--panel-2);
+    border-color: var(--border);
+  }
+
+  main {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    gap: 10px; padding: 10px;
+    overflow-y: auto;
+  }
+
+  .meta {
+    display: flex; align-items: center; gap: 8px;
+    min-width: 0;
+    padding: 0 4px 1px;
+  }
+  .badge {
+    flex: 0 0 auto;
+    font-size: 11px; font-weight: 600; letter-spacing: .02em;
+    text-transform: uppercase;
+    padding: 2px 7px; border-radius: 999px;
+    border: 1px solid var(--border-strong); color: var(--muted);
+    background: var(--panel);
+  }
+  .badge.persistent { color: var(--muted); border-color: var(--border-strong); }
+  .badge.cdp { color: var(--accent); border-color: rgba(47,129,247,.4); }
+  .page-title {
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: var(--muted);
+    font-size: 11.5px;
+  }
+
+  .status {
+    font-size: 12px; color: var(--muted); min-height: 16px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .status.error { color: var(--danger); }
+
+  .card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--panel); overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+  }
+  .card-head a { color: var(--accent); text-decoration: none; }
+  .card-head a:hover { text-decoration: underline; }
+  .card-body img { width: 100%; display: block; }
+  .empty {
+    font-size: 12px; color: var(--faint);
+    padding: 22px 16px; text-align: center;
+  }
+
+  .hint {
+    margin-top: auto;
+    font-size: 12px; color: var(--muted); line-height: 1.55;
+    border-top: 1px solid var(--border); padding-top: 10px;
+  }
+  code {
+    background: var(--panel-2); padding: 1px 5px; border-radius: 5px;
+    font-size: 11.5px; color: var(--text);
+  }
+
+  .spinner {
+    width: 12px; height: 12px; flex: 0 0 auto;
+    border: 2px solid var(--border-strong); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .7s linear infinite;
+    display: none;
+  }
+  body.busy .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="progress"></div>
+
+<div class="toolbar">
+  <div class="control-card">
+    <div class="chrome-row">
+      <div class="nav" aria-label="Browser controls">
+        <button class="icon-btn" id="back" aria-label="Back" title="Back">←</button>
+        <button class="icon-btn" id="forward" aria-label="Forward" title="Forward">→</button>
+        <button class="icon-btn" id="reload" aria-label="Reload" title="Reload">⟳</button>
+      </div>
+      <div class="address">
+        <span class="scheme" id="scheme" title="Connection">🌐</span>
+        <input id="url" type="text" placeholder="Search or enter address" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn primary" id="go">Go</button>
+      <button class="btn subtle" id="shot">Capture</button>
+    </div>
+    <div class="meta">
+      <span class="badge" id="badge" title="Connection mode">…</span>
+      <span class="page-title" id="title">about:blank</span>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="status" id="status"><span class="spinner"></span><span id="status-text"></span></div>
+
+  <div class="card">
+    <div class="card-head">
+      <span id="shot-name">Screenshot</span>
+      <a id="shot-open" href="#" target="_blank" rel="noopener" style="display:none">Open ↗</a>
+    </div>
+    <div class="card-body" id="preview">
+      <div class="empty">
+        This panel drives a separate <strong>Chromium window</strong>. Navigate above and
+        a snapshot of the page shows up here. Log in by hand in that window; the profile
+        persists. The agent can also <code>snapshot</code>, <code>click</code>, and
+        <code>type</code>.
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">
+    The preview updates after you navigate from this panel. Agent <code>click</code> and
+    <code>type</code> actions go straight to the page and bypass this panel, so the
+    preview can lag during agent work — focus the panel to resync.
+  </div>
+</main>
+
+<script>
+const urlEl = document.getElementById("url");
+const titleEl = document.getElementById("title");
+const statusEl = document.getElementById("status");
+const statusTextEl = document.getElementById("status-text");
+const schemeEl = document.getElementById("scheme");
+const badgeEl = document.getElementById("badge");
+const previewEl = document.getElementById("preview");
+const shotNameEl = document.getElementById("shot-name");
+const shotOpenEl = document.getElementById("shot-open");
+
+const TOKEN = "__TOKEN__";
+const AUTH = { "x-canvas-token": TOKEN };
+
+let inFlight = 0;
+let currentUrl = "about:blank";
+function busy(on) {
+  inFlight = Math.max(0, inFlight + (on ? 1 : -1));
+  document.body.classList.toggle("busy", inFlight > 0);
+}
+
+function setStatus(msg, isError) {
+  statusTextEl.textContent = msg || "";
+  statusEl.classList.toggle("error", !!isError);
+}
+
+function setScheme(url) {
+  const secure = /^https:\/\//i.test(url || "");
+  schemeEl.textContent = secure ? "🔒" : "🌐";
+  schemeEl.classList.toggle("secure", secure);
+}
+
+function setBadge(mode) {
+  if (!mode) return;
+  badgeEl.textContent = mode === "cdp" ? "attached" : "persistent";
+  badgeEl.classList.remove("persistent", "cdp");
+  badgeEl.classList.add(mode === "cdp" ? "cdp" : "persistent");
+  badgeEl.title = mode === "cdp"
+    ? "Attached to an existing Chrome over CDP; closing the panel only disconnects."
+    : "Persistent profile — logins you complete by hand in the window survive restarts.";
+}
+
+function shotUrl(name) {
+  const params = new URLSearchParams({ token: TOKEN, t: String(Date.now()) });
+  return "/shot/" + encodeURIComponent(name) + "?" + params.toString();
+}
+
+function render(state) {
+  if (!state) return;
+  if (state.mode) setBadge(state.mode);
+  if (state.url && document.activeElement !== urlEl) {
+    urlEl.value = state.url === "about:blank" ? "" : state.url;
+  }
+  setScheme(state.url);
+  if (state.url) currentUrl = state.url;
+  titleEl.textContent = state.title || state.url || "about:blank";
+  titleEl.title = state.url || "";
+  setStatus(state.error ? "Error: " + state.error : "", !!state.error);
+}
+
+async function capturePreview(announce) {
+  try {
+    const res = await fetch("/screenshot", { method: "POST", headers: { ...AUTH } });
+    const data = await res.json();
+    if (data.error) { if (announce) setStatus("Error: " + data.error, true); return; }
+    const src = shotUrl(data.name);
+    previewEl.innerHTML = "";
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = data.name;
+    previewEl.appendChild(img);
+    shotNameEl.textContent = data.name;
+    shotOpenEl.href = src;
+    shotOpenEl.style.display = "";
+    if (announce) {
+      const kb = data.size ? " (" + Math.round(data.size / 1024) + " KB)" : "";
+      setStatus("Captured " + data.name + kb);
+    }
+  } catch (err) {
+    if (announce) setStatus(String(err && err.message ? err.message : err), true);
+  }
+}
+
+async function call(path, body) {
+  const opts = body
+    ? { method: "POST", headers: { "Content-Type": "application/json", ...AUTH }, body: JSON.stringify(body) }
+    : { method: "POST", headers: { ...AUTH } };
+  busy(true);
+  setStatus("Loading…");
+  try {
+    const res = await fetch(path, opts);
+    const state = await res.json();
+    render(state);
+    // Couple capture to navigation so the preview reflects the current page
+    // without a manual screenshot click.
+    if (!state || !state.error) await capturePreview(false);
+  } catch (err) {
+    setStatus(String(err && err.message ? err.message : err), true);
+  } finally {
+    busy(false);
+  }
+}
+
+document.getElementById("go").addEventListener("click", () => call("/navigate", { url: urlEl.value }));
+urlEl.addEventListener("keydown", (e) => { if (e.key === "Enter") call("/navigate", { url: urlEl.value }); });
+document.getElementById("back").addEventListener("click", () => call("/back"));
+document.getElementById("forward").addEventListener("click", () => call("/forward"));
+document.getElementById("reload").addEventListener("click", () => call("/reload"));
+
+document.getElementById("shot").addEventListener("click", async () => {
+  busy(true);
+  setStatus("Capturing screenshot…");
+  try {
+    await capturePreview(true);
+  } finally {
+    busy(false);
+  }
+});
+
+async function refreshState() {
+  try { render(await (await fetch("/state", { headers: { ...AUTH } })).json()); } catch (_) {}
+}
+// The panel can't see the Chromium window, so it goes stale if you browse by
+// hand there or the agent acts on the page. Resync state and preview whenever
+// the panel regains focus (skip the blank-page case).
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  refreshState();
+  if (currentUrl && currentUrl !== "about:blank") capturePreview(false);
+});
+refreshState();
+</script>
+</body>
+</html>

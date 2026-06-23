@@ -1,0 +1,235 @@
+name: External Plugin PR Quality Gates
+
+on:
+  pull_request_target:
+    branches: [staged]
+    paths:
+      - "plugins/external.json"
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+
+concurrency:
+  group: external-plugin-pr-quality-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  detect-changed-plugins:
+    runs-on: ubuntu-latest
+    outputs:
+      changed-plugins: ${{ steps.detect.outputs.changed-plugins }}
+      changed-count: ${{ steps.detect.outputs.changed-count }}
+      should-run: ${{ steps.detect.outputs.should-run }}
+    steps:
+      - name: Detect changed external plugins
+        id: detect
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            const filePath = 'plugins/external.json';
+            const baseRef = context.payload.pull_request.base.sha;
+            const headRef = context.payload.pull_request.head.sha;
+
+            function normalizePath(value) {
+              if (!value || value === '/') {
+                return '';
+              }
+              return String(value).trim().replace(/^\/+|\/+$/g, '').toLowerCase();
+            }
+
+            function toIdentity(plugin) {
+              return [
+                String(plugin?.name ?? '').trim().toLowerCase(),
+                String(plugin?.source?.repo ?? '').trim().toLowerCase(),
+                normalizePath(plugin?.source?.path),
+              ].join('|');
+            }
+
+            async function readExternalJson(ref) {
+              const response = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: filePath,
+                ref,
+              });
+
+              const encoded = response.data?.content ?? '';
+              const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+              return JSON.parse(decoded);
+            }
+
+            const basePlugins = await readExternalJson(baseRef);
+            const headPlugins = await readExternalJson(headRef);
+            const baseByIdentity = new Map(basePlugins.map((plugin) => [toIdentity(plugin), plugin]));
+
+            const changedPlugins = headPlugins.filter((plugin) => {
+              const identity = toIdentity(plugin);
+              const basePlugin = baseByIdentity.get(identity);
+              return !basePlugin || JSON.stringify(basePlugin) !== JSON.stringify(plugin);
+            });
+
+            core.setOutput('changed-plugins', JSON.stringify(changedPlugins));
+            core.setOutput('changed-count', String(changedPlugins.length));
+            core.setOutput('should-run', changedPlugins.length > 0 ? 'true' : 'false');
+
+  run-quality-gates:
+    runs-on: ubuntu-latest
+    needs: detect-changed-plugins
+    if: needs.detect-changed-plugins.outputs.should-run == 'true'
+    outputs:
+      quality-result: ${{ steps.quality.outputs.quality-result }}
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+          persist-credentials: false
+          submodules: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Run external plugin PR quality gates
+        id: quality
+        env:
+          CHANGED_PLUGINS_JSON: ${{ needs.detect-changed-plugins.outputs.changed-plugins }}
+        run: |
+          result=$(node ./eng/external-plugin-pr-quality-gates.mjs --plugins-json "$CHANGED_PLUGINS_JSON")
+          {
+            echo 'quality-result<<EOF'
+            echo "$result"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+  sync-pr-state:
+    runs-on: ubuntu-latest
+    needs: [detect-changed-plugins, run-quality-gates]
+    if: always()
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout staged branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: staged
+
+      - name: Sync labels and PR status comment
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        env:
+          DETECT_JOB_RESULT: ${{ needs.detect-changed-plugins.result }}
+          SHOULD_RUN: ${{ needs.detect-changed-plugins.outputs.should-run }}
+          CHANGED_COUNT: ${{ needs.detect-changed-plugins.outputs.changed-count }}
+          QUALITY_RESULT_JSON: ${{ needs.run-quality-gates.outputs.quality-result }}
+          QUALITY_JOB_RESULT: ${{ needs.run-quality-gates.result }}
+        with:
+          script: |
+            const path = require('path');
+            const { pathToFileURL } = require('url');
+
+            const intakeState = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-intake-state.mjs')).href);
+            const marker = '<!-- external-plugin-pr-quality -->';
+
+            const detectJobResult = process.env.DETECT_JOB_RESULT;
+            const shouldRun = process.env.SHOULD_RUN === 'true';
+            const changedCount = Number.parseInt(process.env.CHANGED_COUNT || '0', 10);
+            const qualityJobResult = process.env.QUALITY_JOB_RESULT;
+
+            let qualityResult = {
+              overall_status: 'not_run',
+              failure_class: 'none',
+              checked_plugins: [],
+              summary: 'No changed external plugin entries were detected in this PR.',
+            };
+
+            if (detectJobResult === 'failure' || detectJobResult === 'cancelled') {
+              qualityResult = {
+                overall_status: 'infra_error',
+                failure_class: 'infra',
+                checked_plugins: [],
+                summary: 'External plugin PR change detection failed unexpectedly. Re-run this workflow.',
+              };
+            } else if (shouldRun) {
+              if (qualityJobResult === 'failure' || qualityJobResult === 'cancelled') {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  failure_class: 'infra',
+                  checked_plugins: [],
+                  summary: 'External plugin PR quality checks failed unexpectedly. Re-run this workflow.',
+                };
+              } else if (process.env.QUALITY_RESULT_JSON) {
+                qualityResult = JSON.parse(process.env.QUALITY_RESULT_JSON);
+              } else {
+                qualityResult = {
+                  overall_status: 'infra_error',
+                  failure_class: 'infra',
+                  checked_plugins: [],
+                  summary: 'External plugin PR quality checks did not return a result payload.',
+                };
+              }
+            }
+
+            const stateLabel = qualityResult.failure_class === 'submitter_fixes'
+              ? 'requires-submitter-fixes'
+              : qualityResult.overall_status === 'pass' || !shouldRun
+                ? 'ready-for-review'
+                : 'awaiting-review';
+
+            const desiredLabels = new Set(['external-plugin', stateLabel]);
+            await intakeState.syncExternalPluginIntakeLabels({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              desiredLabels,
+            });
+
+            const checkedPlugins = Array.isArray(qualityResult.checked_plugins) ? qualityResult.checked_plugins : [];
+            const header = qualityResult.failure_class === 'submitter_fixes'
+              ? '## ⚠️ External plugin PR checks require submitter fixes'
+              : qualityResult.overall_status === 'pass' || !shouldRun
+                ? '## ✅ External plugin PR checks passed'
+                : '## ⚠️ External plugin PR checks need maintainer follow-up';
+
+            const rows = checkedPlugins.length > 0
+              ? checkedPlugins.map((entry) => {
+                  const name = String(entry?.name || 'unknown');
+                  const quality = entry?.quality || {};
+                  const sourceUrl = String(entry?.source_tree_url || '');
+                  const locator = String(entry?.source?.sha || entry?.source?.ref || 'repository');
+                  const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
+                  return `| ${name} | ${quality.skill_validator_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
+                })
+              : ['| _none_ | not_run | not_run | not_run | _n/a_ |'];
+
+            const body = [
+              marker,
+              header,
+              '',
+              `- **Changed entries detected:** ${changedCount}`,
+              `- **Workflow state label:** \`${stateLabel}\``,
+              '',
+              '### Per-plugin quality summary',
+              '',
+              '| Plugin | skill-validator | install smoke test | overall | source tree |',
+              '|---|---|---|---|---|',
+              ...rows,
+              '',
+              String(qualityResult.summary || '').trim() || '_No summary provided._',
+            ].join('\n');
+
+            await intakeState.upsertExternalPluginIntakeComment({
+              github,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issueNumber: context.issue.number,
+              marker,
+              body,
+            });

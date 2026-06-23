@@ -961,6 +961,35 @@ class WebConfig {
 }
 ```
 
+### Trailing Slash URL Matching Removed
+
+`PathMatchConfigurer#setUseTrailingSlashMatch(true)` is **removed** in Spring Framework 7 / Spring Boot 4.
+There is no replacement configuration knob — `/foo` and `/foo/` are no longer treated as the same route.
+
+**Migration:** register Spring Framework's `UrlHandlerFilter` as a
+`FilterRegistrationBean` so it runs ahead of the security chain. `wrapRequest()` makes it forward transparently (no
+redirect), preserving the old behavior end-to-end:
+
+```java
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.web.filter.UrlHandlerFilter;
+
+@Configuration
+class WebConfig {
+
+    // After ForwardedHeaderFilter, before ServletRequestPathFilter and security filters.
+    private static final int BEFORE_SECURITY_FILTER_ORDER = -101;
+
+    @Bean
+    FilterRegistrationBean<UrlHandlerFilter> trailingSlashHandlerFilter() {
+        UrlHandlerFilter filter = UrlHandlerFilter.trailingSlashHandler("/**").wrapRequest().build();
+        FilterRegistrationBean<UrlHandlerFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setOrder(BEFORE_SECURITY_FILTER_ORDER);
+        return registration;
+    }
+}
+```
+
 ### Jersey and Jackson 3 Incompatibility
 
 **Jersey 4.0 limitation:** Spring Boot 4.0 supports Jersey 4.0, which **does not yet support Jackson 3**.
