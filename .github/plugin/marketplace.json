@@ -230,6 +230,30 @@
       "version": "1.0.0"
     },
     {
+      "name": "datadog",
+      "description": "Use Datadog directly in Copilot / VS Code through a preconfigured Datadog MCP server. Query logs, metrics, traces, dashboards, and more through natural conversation.",
+      "version": "0.7.15",
+      "author": {
+        "name": "Datadog",
+        "url": "https://www.datadoghq.com/"
+      },
+      "repository": "https://github.com/datadog-labs/vscode-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "agent",
+        "copilot",
+        "datadog",
+        "monitoring",
+        "observability",
+        "vscode"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "datadog-labs/vscode-plugin",
+        "sha": "b003fcad48c3a935ffe04b6218f5cf58fe2b6760"
+      }
+    },
+    {
       "name": "dataverse",
       "description": "Build and manage Microsoft Dataverse solutions using natural language. Includes table/column creation, solution lifecycle, data operations, and MCP server configuration.",
       "version": "1.0.0",
