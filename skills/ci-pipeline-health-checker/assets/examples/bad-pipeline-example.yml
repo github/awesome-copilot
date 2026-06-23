@@ -1,0 +1,26 @@
+name: Django CI Pipeline
+
+on: [push]
+
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+    # Alert 1: Missing timeout-minutes in the job scope! If it hangs, it will run until it exceeds the account limits.
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          # Alert 2: Missing cache parameter for pip here!
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt # Will download everything from scratch on every push
+
+      - name: Run Tests
+        run: |
+          python manage.py test --noinput

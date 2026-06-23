@@ -1,0 +1,39 @@
+name: Optimized Django CI Pipeline
+
+on:
+  push:
+    branches: [ main, staged ]
+  pull_request:
+    branches: [ main, staged ]
+
+# Correction 1: Security - Principle of Least Privilege for the GITHUB_TOKEN
+permissions:
+  contents: read
+
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+    # Correction 2: Sets a strict timeout to prevent the runner from getting stuck in infinite loops
+    timeout-minutes: 10 
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          # Correction 3: Enables the runner's native cache for the pip package manager
+          cache: 'pip' 
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Tests
+        # Correction 4: Applies timeout also to the individual script if necessary
+        timeout-minutes: 5 
+        run: |
+          python manage.py test --noinput
