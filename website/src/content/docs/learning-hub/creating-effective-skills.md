@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-08
+lastUpdated: 2026-06-23
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -135,6 +135,24 @@ The `description` field is critical for agent discovery. Write it so that agents
 ❌ **Poor**: `'Commit helper'`
 
 Include trigger keywords and contextual cues that help agents match the skill to user intent.
+
+### Optional Fields
+
+**argument-hint** *(v1.0.64+)*: A short label that appears in the slash-command input placeholder to guide the user on what argument to provide. For example, a `generate-tests` skill might set:
+
+```yaml
+argument-hint: 'Enter function or file to test'
+```
+
+When the user types `/generate-tests` in VS Code Chat, the hint appears as placeholder text in the input box, making the expected input immediately obvious.
+
+```yaml
+---
+name: generate-tests
+description: 'Generate comprehensive unit tests for the selected code, covering happy path, edge cases, and error conditions'
+argument-hint: 'Enter function, class, or file to test'
+---
+```
 
 ## Real Examples from the Repository
 
