@@ -3,7 +3,7 @@ title: 'Installing and Using Plugins'
 description: 'Learn how to find, install, and manage plugins that extend GitHub Copilot CLI with reusable agents, skills, hooks, and integrations.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-04-27
+lastUpdated: 2026-06-23
 estimatedReadingTime: '8 minutes'
 tags:
   - plugins
@@ -33,8 +33,15 @@ A plugin bundles one or more of the following components:
 | **Hooks** | Event handlers that intercept agent behavior | `hooks.json` or `hooks/` |
 | **MCP Servers** | Model Context Protocol integrations for external tools | `.mcp.json` or `.github/mcp.json` |
 | **LSP Servers** | Language Server Protocol integrations | `lsp.json` or `.github/lsp.json` |
+| **Extensions** | Canvas or other session extensions bundled with the plugin | `extensions/` (v1.0.62+) |
 
 A plugin might include all of these or just one — for example, a plugin could provide a single specialized agent, or an entire development toolkit with multiple agents, skills, hooks, and MCP server configurations working together.
+
+### Extensions in Plugins (v1.0.62+)
+
+Starting with v1.0.62, plugins can ship **extensions** — canvas providers or other session extensions that become available immediately when the plugin is installed. This means a plugin can not only provide agents and skills but also add new canvas types or interactive surfaces to your Copilot sessions.
+
+Extensions bundled in plugins are loaded automatically alongside other plugin components — no extra configuration needed beyond installing the plugin.
 
 ### Example: What a Plugin Looks Like
 

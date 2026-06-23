@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-07
+lastUpdated: 2026-06-23
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -66,6 +66,7 @@ MCP servers are configured per-workspace. GitHub Copilot CLI discovers server de
 | File | Scope | Notes |
 |------|-------|-------|
 | `.mcp.json` | Repository root | Preferred for repo-shared configuration |
+| `.github/mcp.json` | Repository root (alternate) | Auto-loaded from the `.github/` directory (v1.0.61+) |
 | `.vscode/mcp.json` | VS Code workspace | VS Code–compatible workspace config |
 | `devcontainer.json` | Dev container | Available when running inside a container |
 
@@ -118,6 +119,18 @@ This guided flow is the recommended way to add new MCP servers, especially for s
 **env**: Environment variables passed to the server process. Use these for connection strings, API keys, and configuration—never hardcode secrets in the JSON file.
 
 **type** (remote servers): The transport type for remote MCP servers (`http` or `sse`). This field can now be omitted — the CLI defaults to `http` when no type is specified, simplifying remote server configuration.
+
+**deferTools** (v1.0.63+): When set to `true`, keeps the server's tools always available in the agent's context even when tool search is enabled. By default, tool search can hide infrequently-used tools to reduce context overhead; `deferTools` overrides this and ensures the server's tools are never hidden.
+
+```json
+{
+  "my-always-on-server": {
+    "command": "npx",
+    "args": ["-y", "@my-org/mcp-server"],
+    "deferTools": true
+  }
+}
+```
 
 ### Managing Persistent MCP Configuration via Server RPCs
 

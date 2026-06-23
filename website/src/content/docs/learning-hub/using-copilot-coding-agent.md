@@ -3,7 +3,7 @@ title: 'Using the Copilot Coding Agent'
 description: 'Learn how to use GitHub Copilot coding agent to autonomously work on issues, generate pull requests, and automate development tasks.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-13
+lastUpdated: 2026-06-23
 estimatedReadingTime: '12 minutes'
 tags:
   - coding-agent
@@ -138,12 +138,18 @@ Custom agents let you give the coding agent a specialized persona, toolset, and 
 
 **Where custom agents live**: Agent profiles are stored as `.agent.md` files in `.github/agents/` in your repository. For organization-wide agents, place them in the root `agents/` directory.
 
+> **Tip (v1.0.62+)**: Custom agents in **nested** `.github/agents/` or `.claude/agents/` directories are automatically discovered when a session is started from a subdirectory of the repository root. This is useful for monorepos where each package or service can have its own tailored agents without polluting the repository-root agents directory.
+
 ```
 .github/
 └── agents/
     ├── api-architect.agent.md
     ├── test-specialist.agent.md
     └── security-reviewer.agent.md
+
+# Also discovered when starting from packages/backend/:
+packages/backend/.github/agents/
+    └── backend-specialist.agent.md
 ```
 
 **Selecting an agent on GitHub.com**: When prompting the coding agent or assigning it to an issue, use the dropdown menu in the agents panel to select your custom agent instead of the default.
