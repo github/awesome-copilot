@@ -1,5 +1,5 @@
 ---
-name: brightdata-rapid-agent
+name: Bright Data Rapid Agent
 description: Real-time web research via Bright Data MCP (free tier) — search, discover, and scrape
 tools: ['execute', 'read', 'edit', 'search', 'brightdata/*']
 mcp-servers:
