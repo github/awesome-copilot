@@ -184,8 +184,9 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     if (target.closest('.resource-actions')) return;
 
     const item = target.closest('.resource-item') as HTMLElement | null;
+    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
     const skillId = item?.dataset.skillId;
-    if (skillId) openSkillDetailsModal(skillId, item || undefined);
+    if (skillId) openSkillDetailsModal(skillId, button);
   });
 
   document.addEventListener('click', (event) => {

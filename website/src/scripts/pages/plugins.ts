@@ -212,9 +212,10 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     }
 
     const item = target.closest('.resource-item') as HTMLElement | null;
+    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
     const path = item?.dataset.path;
     if (path) {
-      openPluginDetailsModal(path, item || undefined);
+      openPluginDetailsModal(path, button);
     }
   });
 

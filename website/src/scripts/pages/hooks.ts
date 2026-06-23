@@ -199,9 +199,10 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     }
 
     const item = target.closest('.resource-item') as HTMLElement | null;
+    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
     const hookId = item?.dataset.hookId;
     if (hookId) {
-      openHookDetailsModal(hookId, item || undefined);
+      openHookDetailsModal(hookId, button);
     }
   });
 
