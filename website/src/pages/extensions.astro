@@ -5,6 +5,7 @@ import ContributeCTA from '../components/ContributeCTA.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import PageHeader from '../components/PageHeader.astro';
 import BackToTop from '../components/BackToTop.astro';
+import Modal from '../components/Modal.astro';
 import { renderExtensionsHtml, sortExtensions } from '../scripts/pages/extensions-render';
 
 const initialItems = sortExtensions(extensionsData.items, 'title');
@@ -41,23 +42,13 @@ const initialItems = sortExtensions(extensionsData.items, 'title');
           </div>
         </div>
         <div class="resource-list" id="resource-list" role="list" set:html={renderExtensionsHtml(initialItems)}></div>
-        <div id="extension-preview-modal" class="extension-preview-modal hidden" aria-hidden="true">
-          <div class="extension-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="extension-preview-title">
-            <div class="extension-preview-header">
-              <h3 id="extension-preview-title" class="extension-preview-title">Extension preview</h3>
-              <button id="extension-preview-close" class="btn btn-secondary extension-preview-close" type="button" aria-label="Close preview">Close</button>
-            </div>
-            <div class="extension-preview-body">
-              <img id="extension-preview-image" class="extension-preview-image" src="" alt="" />
-            </div>
-          </div>
-        </div>
         <ContributeCTA resourceType="extensions" />
       </div>
     </div>
   </div>
 
   <BackToTop />
+  <Modal />
   <EmbeddedPageData filename="extensions.json" data={extensionsData} />
 
   <script>
@@ -65,9 +56,4 @@ const initialItems = sortExtensions(extensionsData.items, 'title');
     import '../scripts/pages/extensions';
   </script>
 
-  <style>
-    .extensions-page .resource-preview {
-      cursor: default;
-    }
-  </style>
 </StarlightPage>

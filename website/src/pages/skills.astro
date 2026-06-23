@@ -1,10 +1,10 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
+import Modal from '../components/Modal.astro';
 import skillsData from '../../public/data/skills.json';
 import { renderSkillsHtml, sortSkills } from '../scripts/pages/skills-render';
 
@@ -12,7 +12,7 @@ const initialItems = sortSkills(skillsData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Skills', description: 'Self-contained agent skills with instructions and bundled resources', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content">
+  <div id="main-content" class="skills-page listing-cards-page">
     <PageHeader title="Skills" description="Self-contained agent skills with instructions and bundled resources" icon="lightning" />
 
     <div class="page-content">
@@ -42,8 +42,8 @@ const initialItems = sortSkills(skillsData.items, 'title');
     </div>
   </div>
 
-  <Modal />
   <BackToTop />
+  <Modal />
 
   <EmbeddedPageData filename="skills.json" data={skillsData} />
   <script>

@@ -2,18 +2,18 @@
  * Plugins page functionality
  */
 import {
-  createChoices,
-  getChoicesValues,
-  setChoicesValues,
-  type Choices,
-} from '../choices';
-import {
+  copyToClipboard,
+  escapeHtml,
   fetchData,
+  formatRelativeTime,
+  getGitHubUrl,
   getQueryParam,
   getQueryParamValues,
+  showToast,
   updateQueryParams,
 } from '../utils';
-import { setupModal, openFileModal } from '../modal';
+import { openCardDetailsModal, setupModal } from '../modal';
+import { clearSelectValues, getSelectValues, setSelectValues } from './select-utils';
 import {
   renderPluginsHtml,
   sortPlugins,
@@ -32,12 +32,18 @@ interface PluginSource {
   path?: string;
 }
 
+interface PluginItem {
+  kind: string;
+  path: string;
+}
+
 interface Plugin extends RenderablePlugin {
   id: string;
   name: string;
   path: string;
   tags?: string[];
   itemCount: number;
+  items?: PluginItem[];
   external?: boolean;
   repository?: string | null;
   homepage?: string | null;
@@ -53,14 +59,15 @@ interface PluginsData {
   };
 }
 
-const resourceType = 'plugin';
 let allItems: Plugin[] = [];
-let tagSelect: Choices;
+let pluginByPath = new Map<string, Plugin>();
+let tagSelectEl: HTMLSelectElement | null = null;
 let currentSort: PluginSortOption = 'title';
 let currentFilters = {
   tags: [] as string[],
 };
 let resourceListHandlersReady = false;
+let modalReady = false;
 
 function sortItems(items: Plugin[]): Plugin[] {
   return sortPlugins(items, currentSort);
@@ -79,7 +86,7 @@ function applyFiltersAndRender(): void {
   let results = [...allItems];
 
   if (currentFilters.tags.length > 0) {
-    results = results.filter(item => item.tags?.some(tag => currentFilters.tags.includes(tag)));
+    results = results.filter((item) => item.tags?.some((tag) => currentFilters.tags.includes(tag)));
   }
 
   results = sortItems(results);
@@ -95,6 +102,87 @@ function renderItems(items: Plugin[]): void {
   list.innerHTML = renderPluginsHtml(items);
 }
 
+function getPluginRepositoryUrl(item: Plugin): string {
+  if (item.external && item.repository) return item.repository;
+  if (item.homepage) return item.homepage;
+  if (item.repository) return item.repository;
+  return getGitHubUrl(item.path);
+}
+
+function getPluginItemLabel(item: PluginItem): string {
+  const normalizedPath = item.path.replace(/^\.\//, '');
+  return `${item.kind}: ${normalizedPath}`;
+}
+
+function openPluginDetailsModal(path: string, trigger?: HTMLElement): void {
+  const item = pluginByPath.get(path);
+  if (!item) {
+    return;
+  }
+
+  const metaParts: string[] = [];
+  metaParts.push(
+    `<span class="resource-tag">${
+      item.external ? 'External plugin' : `${item.itemCount} items`
+    }</span>`
+  );
+
+  if (item.author?.name) {
+    metaParts.push(`<span class="resource-tag">by ${escapeHtml(item.author.name)}</span>`);
+  }
+
+  if (item.lastUpdated) {
+    metaParts.push(
+      `<span class="last-updated">Updated ${escapeHtml(
+        formatRelativeTime(item.lastUpdated)
+      )}</span>`
+    );
+  }
+
+  const tagHtml = (item.tags || [])
+    .map((tagText) => `<span class="resource-tag">${escapeHtml(tagText)}</span>`)
+    .join('');
+
+  const includedItems = item.items || [];
+  const includedItemHtml = includedItems
+    .slice(0, 24)
+    .map(
+      (pluginItem) =>
+        `<span class="resource-tag tag-plugin-item">${escapeHtml(getPluginItemLabel(pluginItem))}</span>`
+    )
+    .join('');
+  const includedMoreHtml =
+    includedItems.length > 24
+      ? `<span class="resource-tag">+${includedItems.length - 24} more</span>`
+      : '';
+
+  const actions = [
+    item.external
+      ? ''
+      : `<button id="plugin-details-install" class="btn btn-primary" type="button" data-plugin-name="${escapeHtml(
+          item.name
+        )}">Copy Install</button>`,
+    item.external
+      ? `<a class="btn btn-secondary" href="${escapeHtml(
+          getPluginRepositoryUrl(item)
+        )}" target="_blank" rel="noopener noreferrer">Repository</a>`
+      : `<button class="btn btn-secondary" type="button" data-open-file-path="${escapeHtml(
+          item.path
+        )}" data-open-file-type="plugin">Source</button>`,
+  ].filter(Boolean);
+
+  openCardDetailsModal({
+    title: item.name,
+    description: item.description || 'No description',
+    previewIcon: '🔌',
+    previewText: 'Plugin metadata and install options',
+    metaHtml: metaParts.join(''),
+    tagsHtml: [tagHtml, includedItemHtml, includedMoreHtml].filter(Boolean).join(''),
+    actionsHtml: actions.join(''),
+    trigger,
+  });
+}
+
 function setupResourceListHandlers(list: HTMLElement | null): void {
   if (!list || resourceListHandlersReady) return;
 
@@ -105,10 +193,24 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     }
 
     const item = target.closest('.resource-item') as HTMLElement | null;
+    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
     const path = item?.dataset.path;
     if (path) {
-      openFileModal(path, resourceType);
+      openPluginDetailsModal(path, button);
     }
+  });
+
+  document.addEventListener('click', async (event) => {
+    const target = event.target as HTMLElement;
+    const installButton = target.closest(
+      '#plugin-details-install'
+    ) as HTMLButtonElement | null;
+    if (!installButton) return;
+    const pluginName = installButton.dataset.pluginName || '';
+    if (!pluginName) return;
+    const command = `copilot plugin install ${pluginName}@awesome-copilot`;
+    const success = await copyToClipboard(command);
+    showToast(success ? 'Install command copied!' : 'Failed to copy', success ? 'success' : 'error');
   });
 
   resourceListHandlersReady = true;
@@ -125,7 +227,12 @@ function syncUrlState(): void {
 export async function initPluginsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const clearFiltersBtn = document.getElementById('clear-filters');
-  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
+  const sortSelect = document.getElementById('sort-select') as HTMLSelectElement | null;
+
+  if (!modalReady) {
+    setupModal();
+    modalReady = true;
+  }
 
   setupResourceListHandlers(list as HTMLElement | null);
 
@@ -136,20 +243,29 @@ export async function initPluginsPage(): Promise<void> {
   }
 
   allItems = data.items;
+  pluginByPath = new Map(allItems.map((item) => [item.path, item]));
 
-  tagSelect = createChoices('#filter-tag', { placeholderValue: 'All Tags' });
-  tagSelect.setChoices(data.filters.tags.map(t => ({ value: t, label: t })), 'value', 'label', true);
+  tagSelectEl = document.getElementById('filter-tag') as HTMLSelectElement | null;
+  if (tagSelectEl) {
+    tagSelectEl.innerHTML = '';
+    data.filters.tags.forEach((tag) => {
+      const option = document.createElement('option');
+      option.value = tag;
+      option.textContent = tag;
+      tagSelectEl?.appendChild(option);
+    });
+  }
 
-  const initialTags = getQueryParamValues('tag').filter(tag => data.filters.tags.includes(tag));
+  const initialTags = getQueryParamValues('tag').filter((tag) => data.filters.tags.includes(tag));
   const initialSort = getQueryParam('sort');
 
   if (initialTags.length > 0) {
     currentFilters.tags = initialTags;
-    setChoicesValues(tagSelect, initialTags);
+    setSelectValues(tagSelectEl, initialTags);
   }
 
-  document.getElementById('filter-tag')?.addEventListener('change', () => {
-    currentFilters.tags = getChoicesValues(tagSelect);
+  tagSelectEl?.addEventListener('change', () => {
+    currentFilters.tags = getSelectValues(tagSelectEl);
     applyFiltersAndRender();
     syncUrlState();
   });
@@ -167,7 +283,7 @@ export async function initPluginsPage(): Promise<void> {
   clearFiltersBtn?.addEventListener('click', () => {
     currentFilters = { tags: [] };
     currentSort = 'title';
-    tagSelect.removeActiveItems();
+    clearSelectValues(tagSelectEl);
     if (sortSelect) sortSelect.value = 'title';
     applyFiltersAndRender();
     syncUrlState();
@@ -175,7 +291,6 @@ export async function initPluginsPage(): Promise<void> {
 
   applyFiltersAndRender();
   syncUrlState();
-  setupModal();
 }
 
 // Auto-initialize when DOM is ready
