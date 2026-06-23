@@ -231,7 +231,7 @@ The public-submission policy builds on those rules and also requires `license` p
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are labeled `requires-submitter-fixes` with a comment explaining what must be fixed before maintainer review.
 3. **Automated quality gates** run after metadata validation:
-   - `skill-validator check --plugin` against the submitted plugin path/ref/sha
+   - `vally lint` against the submitted plugin path/ref/sha
    - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
 4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
 5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
@@ -246,7 +246,7 @@ The public-submission policy builds on those rules and also requires `license` p
 When a pull request updates `plugins/external.json` (for example, version updates for a previously approved listing), automation runs PR quality checks and posts the result directly on the PR:
 
 1. **Detect changed entries**: automation identifies added/updated external plugin entries in the PR.
-2. **Run quality gates**: automation runs install smoke tests and `skill-validator` checks against each changed plugin source ref/SHA/path.
+2. **Run quality gates**: automation runs install smoke tests and `vally lint` checks against each changed plugin source ref/SHA/path.
 3. **Post source links**: automation updates a bot comment with per-plugin results and direct GitHub tree links to each plugin source location.
 4. **Sync workflow-state labels on the PR**:
    - `ready-for-review` when all checks pass

@@ -423,11 +423,11 @@ export function parseMarkReadyForReviewCommand(body) {
 function normalizeQualityGateResult(rawResult) {
   const defaults = {
     overall_status: "not_run",
-    skill_validator_status: "not_run",
+    vally_lint_status: "not_run",
     smoke_status: "not_run",
     failure_class: "none",
     summary: "",
-    skill_validator_output: "",
+    vally_lint_output: "",
     smoke_output: "",
   };
 
@@ -442,7 +442,7 @@ function normalizeQualityGateResult(rawResult) {
 }
 
 function buildQualityGatesCommentSection(qualityResult) {
-  const skillState = qualityResult.skill_validator_status || "not_run";
+  const vallyState = qualityResult.vally_lint_status || "not_run";
   const smokeState = qualityResult.smoke_status || "not_run";
   const summaryText = String(qualityResult.summary || "").trim() || "_No quality gate details were provided._";
 
@@ -451,21 +451,21 @@ function buildQualityGatesCommentSection(qualityResult) {
     "",
     "| Gate | Status |",
     "|---|---|",
-    `| skill-validator | ${skillState} |`,
+    `| vally lint | ${vallyState} |`,
     `| install smoke test | ${smokeState} |`,
     "",
     summaryText,
   ];
 
-  const skillOutput = String(qualityResult.skill_validator_output || "").trim();
-  if (skillOutput) {
+  const vallyOutput = String(qualityResult.vally_lint_output || "").trim();
+  if (vallyOutput) {
     sections.push(
       "",
       "<details>",
-      "<summary>skill-validator output</summary>",
+      "<summary>vally lint output</summary>",
       "",
       "```text",
-      skillOutput,
+      vallyOutput,
       "```",
       "",
       "</details>",
