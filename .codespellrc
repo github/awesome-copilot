@@ -56,9 +56,9 @@
 
 # ans - bash and powershell variable short for answer
 
-# Vally - Name of product
+# Vally/vally - Name of product
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans,Vally
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans,Vally,vally
 
 # Skip certain files and directories
 
