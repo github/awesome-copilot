@@ -1,0 +1,46 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResourceDetailPage from '../../components/ResourceDetailPage.astro';
+import hooksData from '../../../public/data/hooks.json';
+import type { HookItem, HooksData } from '../../lib/upstream-types';
+import { parseFrontmatter } from '../../lib/frontmatter';
+
+export function getStaticPaths() {
+  return (hooksData as HooksData).items.map((item: HookItem) => ({
+    params: { id: item.id },
+  }));
+}
+
+const { id } = Astro.params;
+const item = (hooksData as HooksData).items.find((i: HookItem) => i.id === id);
+const repoRoot = path.resolve(process.cwd(), '..');
+  let markdownHtml = '';
+  let frontmatterText: string | null = null;
+  if (item) {
+    const mdPath = item.readmeFile
+      ? path.resolve(repoRoot, item.readmeFile)
+      : path.resolve(repoRoot, item.path, 'README.md');
+    try {
+      const md = fs.readFileSync(mdPath, 'utf-8');
+      const parsed = parseFrontmatter(md);
+      frontmatterText = parsed.frontmatter;
+      markdownHtml = marked.parse(parsed.body) as string;
+    } catch {
+      markdownHtml = '';
+    }
+  }
+---
+
+<BaseLayout title="Hook · Awesome Copilot" description="Explore and install a GitHub Copilot hook.">
+  <ResourceDetailPage kind="hook" plural="hooks" title="Hooks" description="Fetching hook details on demand." markdownHtml={markdownHtml} frontmatter={frontmatterText} />
+</BaseLayout>
+
+<script>
+  import { initCopyButtons, initResourceDetail } from '../../scripts/resource-detail';
+
+  initCopyButtons();
+  initResourceDetail('hook');
+</script>

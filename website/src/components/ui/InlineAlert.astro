@@ -1,0 +1,81 @@
+---
+import Icon from './Icon.astro';
+
+export type AlertType = 'success' | 'warning' | 'error';
+
+export interface Props {
+  type: AlertType;
+  title: string;
+}
+
+const { type, title } = Astro.props;
+
+const iconMap: Record<AlertType, string> = {
+  success: 'task_alt',
+  warning: 'warning',
+  error: 'error',
+};
+
+const iconName = iconMap[type];
+---
+
+<div class:list={['inline-alert', `inline-alert--${type}`]} role="alert">
+  <Icon name={iconName} size={24} aria-hidden="true" />
+  <div class="inline-alert__content">
+    <p class="inline-alert__title">{title}</p>
+    <p class="inline-alert__body">
+      <slot />
+    </p>
+  </div>
+</div>
+
+<style>
+  .inline-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-2);
+    padding: 1rem;
+    font-family: var(--font-mono);
+  }
+
+  .inline-alert--success {
+    border-color: var(--color-green);
+    color: var(--color-green);
+  }
+
+  .inline-alert--warning {
+    border-color: var(--color-yellow);
+    color: var(--color-yellow);
+  }
+
+  .inline-alert--error {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+  }
+
+  .inline-alert__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .inline-alert__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: inherit;
+  }
+
+  .inline-alert__body {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--color-muted);
+  }
+</style>

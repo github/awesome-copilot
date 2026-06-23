@@ -1,0 +1,44 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResourceDetailPage from '../../components/ResourceDetailPage.astro';
+import workflowsData from '../../../public/data/workflows.json';
+import type { WorkflowItem, WorkflowsData } from '../../lib/upstream-types';
+import { parseFrontmatter } from '../../lib/frontmatter';
+
+export function getStaticPaths() {
+  return (workflowsData as WorkflowsData).items.map((item: WorkflowItem) => ({
+    params: { id: item.id },
+  }));
+}
+
+const { id } = Astro.params;
+const item = (workflowsData as WorkflowsData).items.find((i: WorkflowItem) => i.id === id);
+const repoRoot = path.resolve(process.cwd(), '..');
+  let markdownHtml = '';
+  let frontmatterText: string | null = null;
+  if (item) {
+    const mdPath = path.resolve(repoRoot, item.path);
+    try {
+      const md = fs.readFileSync(mdPath, 'utf-8');
+      const parsed = parseFrontmatter(md);
+      frontmatterText = parsed.frontmatter;
+      markdownHtml = marked.parse(parsed.body) as string;
+    } catch {
+      markdownHtml = '';
+    }
+  }
+---
+
+<BaseLayout title="Workflow · Awesome Copilot" description="Explore and install a GitHub agentic workflow.">
+  <ResourceDetailPage kind="workflow" plural="workflows" title="Workflows" description="Fetching workflow details on demand." markdownHtml={markdownHtml} frontmatter={frontmatterText} />
+</BaseLayout>
+
+<script>
+  import { initCopyButtons, initResourceDetail } from '../../scripts/resource-detail';
+
+  initCopyButtons();
+  initResourceDetail('workflow');
+</script>

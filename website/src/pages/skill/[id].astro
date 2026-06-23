@@ -1,0 +1,894 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Badge from '../../components/ui/Badge.astro';
+import Button from '../../components/ui/Button.astro';
+import Container from '../../components/ui/Container.astro';
+import CopyButton from '../../components/ui/CopyButton.astro';
+import Icon from '../../components/ui/Icon.astro';
+import InstallModal from '../../components/InstallModal.astro';
+import skillsData from '../../../public/data/skills.json';
+import type { SkillItem } from '../../lib/upstream-types';
+
+const repoRoot = path.resolve(process.cwd(), '..');
+
+export function getStaticPaths() {
+  return skillsData.items.map((skill: SkillItem) => ({
+    params: { id: skill.id },
+    props: { skill }
+  }));
+}
+
+function parseFrontmatter(content: string): { frontmatter: string | null; body: string } {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+  if (!match) return { frontmatter: null, body: content };
+  return { frontmatter: match[1].trim(), body: match[2] };
+}
+
+function splitSections(body: string): { title: string; body: string }[] {
+  const sections: { title: string; body: string }[] = [];
+  const lines = body.split('\n');
+  let current: { title: string; body: string } | null = null;
+
+  for (const line of lines) {
+    const headingMatch = line.match(/^##\s+(.+)/);
+    if (headingMatch) {
+      if (current) sections.push({ title: current.title, body: current.body.trimEnd() });
+      current = { title: headingMatch[1], body: '' };
+    } else if (current) {
+      current.body += line + '\n';
+    }
+  }
+  if (current) sections.push({ title: current.title, body: current.body.trimEnd() });
+
+  return sections;
+}
+
+function readFileContents(skillPath: string, fileName: string): string | null {
+  try {
+    return fs.readFileSync(path.resolve(repoRoot, skillPath, fileName), 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+const { skill } = Astro.props;
+const skillPath = skill.path;
+const skillFilePath = skill.skillFile;
+const installCommand = `npx awesome-copilot add ${skillPath}`;
+const sourcePath = `awesome-copilot/${skillPath}`;
+
+function getFileType(filePath: string): string {
+  if (filePath.endsWith('SKILL.md')) return 'skill';
+  if (filePath.includes('/scripts/')) return 'script';
+  if (filePath.includes('/templates/')) return 'template';
+  if (filePath.includes('/references/')) return 'reference';
+  if (filePath.includes('/assets/')) return 'asset';
+  if (filePath.includes('/evals/')) return 'eval';
+  return 'file';
+}
+
+function getFileDescription(filePath: string, type: string): string {
+  const name = filePath.split('/').pop() ?? filePath;
+  if (type === 'skill') return 'Main skill definition';
+  if (type === 'script') return `Executable script: ${name}`;
+  if (type === 'template') return `Template file: ${name}`;
+  if (type === 'reference') return `Reference: ${name}`;
+  if (type === 'asset') return `Bundled asset: ${name}`;
+  if (type === 'eval') return `Evaluation: ${name}`;
+  return name;
+}
+
+const resourceFiles = skill.files.map((file) => ({
+  path: file.name,
+  type: getFileType(file.path),
+  description: getFileDescription(file.path, getFileType(file.path)),
+}));
+
+const fileExplorerFolders = ['script', 'template', 'reference', 'asset', 'eval'].map((type) => ({
+  type,
+  name: `${type === 'eval' ? 'evals' : `${type}s`}`,
+  files: resourceFiles.filter((file) => file.type === type),
+})).filter((folder) => folder.files.length > 0);
+
+const skillFile = resourceFiles.find((file) => file.type === 'skill');
+
+const rawSkillMd = readFileContents(skillPath, 'SKILL.md');
+const parsedSkill = rawSkillMd ? parseFrontmatter(rawSkillMd) : null;
+const parsedContent = parsedSkill?.body.trim() ?? '';
+const skillBody = parsedContent || skill.description;
+const skillBodyHtml = parsedContent ? marked.parse(parsedContent) : `<p>${skill.description}</p>`;
+const skillSections = parsedContent ? splitSections(parsedContent) : [];
+
+const previewFiles = [
+  {
+    path: 'SKILL.md',
+    title: 'SKILL.md preview',
+    language: 'markdown',
+    description: skillFile?.description ?? 'Main skill definition',
+    code: rawSkillMd || `---\nname: ${skill.id}\ndescription: ${skill.description}\n---\n\n${skill.description}`,
+    frontmatter: parsedSkill?.frontmatter ?? `name: ${skill.id}\ndescription: ${skill.description}`,
+    html: skillBodyHtml,
+    sections: skillSections.map((s) => ({ title: s.title, html: marked.parse(s.body) as string })),
+  },
+  ...resourceFiles
+    .filter((file) => file.type !== 'skill')
+    .map((file) => {
+      const content = readFileContents(skillPath, file.path);
+      const isMarkdown = file.path.endsWith('.md');
+      const html = content && isMarkdown ? marked.parse(content) : null;
+      return {
+        path: file.path,
+        title: `${file.path} preview`,
+        language: file.path.endsWith('.json') ? 'json' : file.path.endsWith('.ts') ? 'typescript' : file.path.endsWith('.py') ? 'python' : 'markdown',
+        description: file.description,
+        code: content || `# ${file.path}\n\nFile content not available.`,
+        frontmatter: null,
+        html,
+        sections: [] as { title: string; html: string }[],
+      };
+    })
+];
+---
+<BaseLayout title={`${skill.title} · Skill · Awesome Copilot`} description={skill.description}>
+  <section class="skill-detail" aria-labelledby="skill-title">
+    <Container>
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/skills">Skills</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{skill.title}</span>
+      </nav>
+
+      <div class="detail-layout">
+        <main class="detail-main">
+          <header class="hero-panel pixel-panel" data-resource-path={skillFilePath}>
+            <p class="terminal-line">cat ./{skillFilePath}</p>
+            <div class="title-stack">
+              <Badge tone={skill.hasAssets ? 'green' : 'blue'}>{skill.hasAssets ? `${skill.assetCount} assets` : 'skill'}</Badge>
+              <h1 id="skill-title">{skill.title}</h1>
+              <p>{skill.description}</p>
+            </div>
+            <div class="hero-actions" aria-label="Primary actions">
+              <Button id="hero-install-btn" variant="primary"><Icon name="download" size={15} /> Install skill</Button>
+              <Button href="/skills" variant="secondary"><Icon name="arrow-left" size={15} /> Back to skills</Button>
+            </div>
+          </header>
+
+          <section class="file-explorer-panel pixel-panel" aria-labelledby="file-explorer-title">
+            <div class="file-explorer__bar">
+              <h2 id="file-explorer-title">File Explorer</h2>
+              <span>{skill.files.length} files</span>
+            </div>
+            <div class="file-tree" aria-label="Skill package file tree">
+              {fileExplorerFolders.map((folder) => (
+                <div class="file-tree__group">
+                  <button class="file-tree__folder" type="button" aria-expanded="false" data-folder-toggle>
+                    <span class="file-tree__chevron" aria-hidden="true">›</span>
+                    <span class="folder-icon" aria-hidden="true"></span>
+                    <span class="file-tree__name">{folder.name}</span>
+                    <span class="file-tree__meta">{folder.files.length}</span>
+                  </button>
+                  <div class="file-tree__children" hidden>
+                    {folder.files.map((file) => (
+                      <button class="file-tree__file file-tree__file--nested" type="button" data-file-path={file.path} aria-selected="false">
+                        <span class="file-tree__spacer" aria-hidden="true"></span>
+                        <Icon name="docs" size={17} />
+                        <span class="file-tree__name">{file.path.split('/').at(-1)}</span>
+                        <span class="file-tree__meta">{file.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button class="file-tree__file file-tree__file--selected" type="button" data-file-path="SKILL.md" aria-selected="true">
+                <span class="file-tree__spacer" aria-hidden="true"></span>
+                <Icon name="docs" size={17} />
+                <span class="file-tree__name">SKILL.md</span>
+                <span class="file-tree__meta">{skillFile?.description ?? 'Main skill definition'}</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="content-panel pixel-panel" aria-labelledby="markdown-title">
+            <div class="file-header">
+              <p class="panel-kicker" data-preview-path>{skillFilePath}</p>
+              <div class="file-header__actions">
+                <span>readonly</span>
+                <CopyButton class="copy-button--preview" ariaLabel="Copy current file preview" label="Copy file" iconSize={16} />
+              </div>
+            </div>
+            <h2 id="markdown-title" data-preview-title>SKILL.md preview</h2>
+            {previewFiles.map((file, index) => (
+              <div class="markdown-preview" data-file-preview={file.path} hidden={index !== 0}>
+                {file.html ? (
+                  <>
+                    <pre class="preview-source" hidden><code>{file.code}</code></pre>
+                    <div class="markdown-body">
+                      {file.frontmatter ? <div class="frontmatter-block">{`---\n${file.frontmatter}\n---`}</div> : null}
+                      <div set:html={file.html} />
+                    </div>
+                  </>
+                ) : (
+                  <pre><code>{file.code}</code></pre>
+                )}
+              </div>
+            ))}
+          </section>
+
+          <section class="content-panel pixel-panel" aria-labelledby="usage-title">
+            <p class="panel-kicker">Usage</p>
+            <h2 id="usage-title">Install the complete skill directory</h2>
+            <div class="terminal-card">
+              <div class="terminal-card__bar">
+                <Badge tone="neutral">npx</Badge>
+                <div class="terminal-card__actions">
+                  <CopyButton ariaLabel="Copy install command" />
+                </div>
+              </div>
+              <pre><code>{installCommand}</code></pre>
+            </div>
+            <p class="helper-copy">Use this from your project root. The installer should preserve the whole skill directory, not just the markdown file.</p>
+          </section>
+        </main>
+
+        <aside class="detail-sidebar" aria-label="Skill actions and metadata">
+          <section class="sidebar-card pixel-panel" aria-labelledby="source-title">
+            <p class="panel-kicker">Source</p>
+            <h2 id="source-title">Repository</h2>
+            <p class="source-owner"><Icon name="github" size={18} /> awesome-copilot</p>
+            <Button href={`https://github.com/github/awesome-copilot/tree/main/${skill.path}`} variant="secondary" size="sm" target="_blank" rel="noopener noreferrer"><Icon name="open" size={14} /> View source listing</Button>
+          </section>
+
+          <section id="install" class="sidebar-card pixel-panel" aria-labelledby="install-title">
+            <p class="panel-kicker">Install command</p>
+            <h2 id="install-title">Add this skill</h2>
+            <div class="terminal-card terminal-card--compact">
+              <div class="terminal-card__bar">
+                <Badge tone="neutral">npx</Badge>
+                <CopyButton ariaLabel="Copy install command" />
+              </div>
+              <pre><code>{installCommand}</code></pre>
+            </div>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="actions-title">
+            <p class="panel-kicker">Quick actions</p>
+            <h2 id="actions-title">Get this skill</h2>
+            <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download skill ZIP" data-file-path={skill.skillFile}><Icon name="download" size={14} /> Download ZIP</Button>
+            <Button variant="secondary" size="sm" id="detail-share-btn" ariaLabel="Share skill" data-file-path={skill.skillFile}><Icon name="share" size={14} /> Share</Button>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="useful-title">
+            <p class="panel-kicker">Useful for</p>
+            <h2 id="useful-title">Best fit</h2>
+            <div class="tag-list">{skill.category ? <Badge tone="neutral">{skill.category}</Badge> : null}{skill.hasAssets ? <Badge tone="neutral">assets</Badge> : null}<Badge tone="neutral">{skill.files.length} files</Badge></div>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="metadata-title">
+            <p class="panel-kicker">Metadata</p>
+            <h2 id="metadata-title">Resource details</h2>
+            <dl class="metadata-list">
+              <div><dt>type</dt><dd>skill</dd></div>
+              <div><dt>path</dt><dd>{sourcePath}</dd></div>
+              <div><dt>version</dt><dd>1.0.0</dd></div>
+              <div><dt>license</dt><dd>MIT</dd></div>
+              <div><dt>status</dt><dd>{skill.hasAssets ? 'bundled' : 'single file'}</dd></div>
+            </dl>
+          </section>
+        </aside>
+      </div>
+    </Container>
+  </section>
+  <script id="skill-files-data" type="application/json" set:html={JSON.stringify(skill.files)}></script>
+</BaseLayout>
+<InstallModal resourceType="skill" />
+
+<style>
+  .skill-detail { padding-block: 1.75rem 3rem; }
+
+  .breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+    margin-bottom: 1.25rem;
+    color: var(--color-muted);
+    font-size: 0.96rem;
+    font-weight: 800;
+  }
+
+  .breadcrumbs a { color: var(--color-green); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+  .breadcrumbs a:focus-visible { outline: 3px solid var(--color-green); outline-offset: 4px; }
+
+  .detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 28rem);
+    gap: clamp(1rem, 2vw, 1.5rem);
+    align-items: start;
+  }
+
+  .detail-main,
+  .detail-sidebar { display: grid; gap: 1.25rem; }
+
+  .detail-sidebar {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .pixel-panel {
+    position: relative;
+    overflow: hidden;
+    border: 4px solid var(--color-border-soft);
+    border-radius: 0;
+    background: linear-gradient(180deg, rgb(255 255 255 / 2%), transparent), var(--color-bg-elevated);
+    box-shadow: 4px 4px 0 var(--color-black);
+  }
+
+  .hero-panel {
+    display: grid;
+    gap: 1.35rem;
+    overflow: visible;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border-top: 4px solid var(--color-subtle);
+    border-bottom: 4px solid var(--color-subtle);
+    border-left: none;
+    border-right: none;
+  }
+
+  .hero-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-left: 4px solid var(--color-subtle);
+    border-right: 4px solid var(--color-subtle);
+    margin-left: -4px;
+    margin-right: -4px;
+    pointer-events: none;
+  }
+
+  .terminal-line,
+  .panel-kicker {
+    margin: 0;
+    color: var(--color-green);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 900;
+  }
+
+  .terminal-line::before { content: '> '; }
+
+  .title-stack { display: grid; gap: 0.8rem; max-width: 52rem; }
+  h1, h2, h3, h4 { margin: 0; font-family: var(--font-heading); color: var(--color-text); }
+  h1 { font-size: clamp(2.2rem, 5vw, 4.15rem); letter-spacing: -0.055em; line-height: 0.98; }
+  h2 { font-size: clamp(1.35rem, 2vw, 1.75rem); letter-spacing: -0.035em; }
+  h3 { font-size: 1.08rem; letter-spacing: -0.02em; }
+  h4 { font-size: 1rem; letter-spacing: -0.02em; }
+  .title-stack p,
+  .content-panel > p,
+  .sidebar-card > p:not(.panel-kicker),
+  .helper-copy {
+    margin: 0;
+    color: var(--color-muted);
+    font-size: 1.02rem;
+    line-height: 1.65;
+  }
+
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  .content-panel,
+  .sidebar-card {
+    display: grid;
+    gap: 1rem;
+    padding: 1.15rem;
+  }
+
+  .file-explorer-panel {
+    display: grid;
+    gap: 0;
+    padding: 0;
+  }
+
+  .file-explorer__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 2px solid var(--color-border-soft);
+    padding: 0.85rem 1rem;
+    color: var(--color-muted);
+  }
+
+  .file-explorer__bar h2 {
+    color: var(--color-muted);
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .file-explorer__bar span {
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  .file-tree {
+    display: grid;
+    gap: 0.12rem;
+    padding: 0.85rem;
+    border-top: 1px solid rgb(255 255 255 / 6%);
+    background: transparent;
+  }
+
+  [hidden] { display: none !important; }
+
+  .file-tree__folder,
+  .file-tree__file {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.25rem 1.35rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.75rem;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 0.35rem 0.6rem;
+    color: var(--color-text);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.98rem;
+    text-align: left;
+    transition: background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast);
+  }
+
+  .file-tree__folder { color: var(--color-text); }
+  .file-tree__children {
+    display: grid;
+    gap: 0.12rem;
+    margin-left: 1.2rem;
+    padding-left: 0.65rem;
+    border-left: 1px dashed rgb(144 255 177 / 22%);
+  }
+
+  .file-tree__children[hidden] { display: none !important; }
+  .file-tree__file--nested { grid-template-columns: 1rem 1.25rem minmax(0, 1fr) auto; }
+
+  .file-tree__folder:hover,
+  .file-tree__file:hover,
+  .file-tree__folder:focus-visible,
+  .file-tree__file:focus-visible,
+  .file-tree__file--selected {
+    border-color: var(--color-border-soft);
+    background: rgb(29 35 38 / 74%);
+  }
+
+  .file-tree__folder:focus-visible,
+  .file-tree__file:focus-visible {
+    outline: none;
+  }
+
+  .file-tree__folder[aria-expanded='true'] .file-tree__chevron { transform: rotate(90deg); }
+
+  .file-tree__file--selected {
+    background: rgb(29 35 38 / 92%);
+  }
+
+  .file-tree__chevron {
+    color: var(--color-muted);
+    font-size: 1.3rem;
+    line-height: 1;
+    transition: transform var(--motion-fast);
+  }
+
+  .file-tree__spacer { width: 1.25rem; }
+
+  .folder-icon {
+    position: relative;
+    width: 1.05rem;
+    height: 0.8rem;
+    border: 2px solid var(--color-yellow);
+    border-radius: 2px;
+    color: var(--color-yellow);
+  }
+
+  .folder-icon::before {
+    content: "";
+    position: absolute;
+    top: -0.38rem;
+    left: -2px;
+    width: 0.55rem;
+    height: 0.34rem;
+    border: 2px solid currentColor;
+    border-bottom: 0;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .file-tree__file :global(.icon) { color: var(--color-blue); }
+  .file-tree__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-tree__file--selected .file-tree__name { color: var(--color-text); }
+  .file-tree__meta {
+    color: var(--color-muted);
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .markdown-preview,
+  .terminal-card {
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-bg);
+  }
+
+  .frontmatter-block {
+    color: var(--color-muted);
+    font: inherit;
+    line-height: 1.6;
+    margin: 0.5rem 0 1rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .terminal-card--compact { min-width: 0; }
+
+  .terminal-card__bar,
+  .file-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    border-bottom: 2px solid var(--color-border-soft);
+    padding: 0.75rem 0.9rem;
+    color: var(--color-muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  .terminal-card__actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 0.55rem; align-items: center; }
+
+  .file-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: end;
+    gap: 0.65rem;
+  }
+
+  pre {
+    overflow-x: auto;
+    margin: 0;
+    background: var(--color-black);
+    color: var(--color-text);
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .markdown-body {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+  }
+
+  .markdown-body > article { display: grid; gap: 0.35rem; }
+  .section-body { color: var(--color-muted); line-height: 1.6; font-size: 0.98rem; }
+  .section-body :global(h3),
+  .section-body :global(h4) { margin: 1.25rem 0 0.5rem; color: var(--color-text); }
+  .section-body :global(h3:first-child),
+  .section-body :global(h4:first-child) { margin-top: 0; }
+  .section-body :global(p) { margin: 0.5rem 0; }
+  .section-body :global(ul),
+  .section-body :global(ol) { margin: 0.5rem 0; padding-left: 1.5rem; }
+  .section-body :global(li) { margin: 0.25rem 0; }
+  .section-body :global(code) {
+    background: var(--color-surface-2);
+    color: var(--color-primary);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 2px;
+  }
+  .section-body :global(pre) {
+    background: var(--color-surface-2);
+    border: 2px solid var(--color-border-soft);
+    overflow-x: auto;
+    padding: 0.8rem;
+    margin: 0.75rem 0;
+  }
+  .section-body :global(pre code) {
+    background: none;
+    color: var(--color-muted);
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .section-body :global(blockquote) {
+    border-left: 3px solid var(--color-primary);
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--color-muted);
+  }
+  .section-body :global(hr) {
+    border: none;
+    border-top: 2px solid var(--color-border-soft);
+    margin: 1.5rem 0;
+  }
+  .section-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  .section-body :global(th),
+  .section-body :global(td) {
+    border: 2px solid var(--color-border-soft);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .section-body :global(th) {
+    background: var(--color-surface-2);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .markdown-body :global(h1),
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4) { margin: 1.25rem 0 0.5rem; color: var(--color-text); }
+  .markdown-body :global(h1:first-child),
+  .markdown-body :global(h2:first-child),
+  .markdown-body :global(h3:first-child),
+  .markdown-body :global(h4:first-child) { margin-top: 0; }
+  .markdown-body :global(p) { margin: 0.5rem 0; }
+  .markdown-body :global(ul),
+  .markdown-body :global(ol) { margin: 0.5rem 0; padding-left: 1.5rem; }
+  .markdown-body :global(li) { margin: 0.25rem 0; }
+  .markdown-body :global(code) {
+    background: var(--color-surface-2);
+    color: var(--color-primary);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 2px;
+  }
+  .markdown-body :global(pre) {
+    background: var(--color-surface-2);
+    border: 2px solid var(--color-border-soft);
+    overflow-x: auto;
+    padding: 0.8rem;
+    margin: 0.75rem 0;
+  }
+  .markdown-body :global(pre code) {
+    background: none;
+    color: var(--color-muted);
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .markdown-body :global(blockquote) {
+    border-left: 3px solid var(--color-primary);
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--color-muted);
+  }
+  .markdown-body :global(hr) {
+    border: none;
+    border-top: 2px solid var(--color-border-soft);
+    margin: 1.5rem 0;
+  }
+  .markdown-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  .markdown-body :global(th),
+  .markdown-body :global(td) {
+    border: 2px solid var(--color-border-soft);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .markdown-body :global(th) {
+    background: var(--color-surface-2);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+  .markdown-body :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .section-body :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .metadata-list {
+    display: grid;
+    margin: 0;
+    border: 2px solid var(--color-border-soft);
+  }
+
+  .metadata-list div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.28fr) 1fr;
+    border-bottom: 2px solid var(--color-border-soft);
+  }
+
+  .metadata-list div:last-child { border-bottom: 0; }
+
+  dt, dd { padding: 0.9rem; }
+  dt {
+    color: var(--color-primary);
+    background: rgb(169 112 255 / 10%);
+    font-family: var(--font-mono);
+    font-weight: 900;
+    text-transform: lowercase;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text);
+    font-size: 0.98rem;
+    overflow-wrap: anywhere;
+  }
+
+  .sidebar-card { border-width: 3px; box-shadow: 3px 3px 0 var(--color-black); }
+  .sidebar-card h2 { font-size: 1.16rem; }
+  .sidebar-card pre { padding: 0.9rem; font-size: 0.9rem; }
+  .sidebar-card :global(.button) { width: 100%; justify-self: stretch; }
+  .source-owner { display: flex; align-items: center; gap: 0.5rem; }
+  .source-owner :global(.icon) { color: var(--color-text); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+
+  @media (max-width: 980px) {
+    .detail-layout { grid-template-columns: 1fr; }
+    .detail-sidebar { position: static; }
+  }
+
+  @media (max-width: 700px) {
+    .file-header { align-items: flex-start; flex-direction: column; }
+    .file-header__actions { justify-content: start; width: 100%; }
+    :global(.copy-button) { width: 100%; }
+    :global(.copy-button) :global(.icon) { font-size: 1.4rem; line-height: 1; }
+    .file-tree__folder,
+    .file-tree__file { grid-template-columns: 1rem 1.25rem minmax(0, 1fr); }
+    .file-tree__meta { grid-column: 3; }
+    .metadata-list div { grid-template-columns: 1fr; }
+    dt { padding-bottom: 0.2rem; }
+    dd { padding-top: 0.2rem; }
+  }
+</style>
+
+<script>
+  import { downloadZipBundle, shareFile, showToast, getVSCodeProtocolUrl } from '../../scripts/utils';
+
+  const skillId = document.location.pathname.split('/').filter(Boolean).at(-1) ?? '';
+  const folderButtons = document.querySelectorAll<HTMLButtonElement>('[data-folder-toggle]');
+  const fileButtons = document.querySelectorAll<HTMLButtonElement>('[data-file-path]');
+  const previewPanels = document.querySelectorAll<HTMLElement>('[data-file-preview]');
+  const previewPath = document.querySelector<HTMLElement>('[data-preview-path]');
+  const previewTitle = document.querySelector<HTMLElement>('[data-preview-title]');
+  const copyButtons = document.querySelectorAll<HTMLButtonElement>('[data-copy-code]');
+  let skillFiles: Array<{ name: string; path: string }> = [];
+  try {
+    const filesData = document.getElementById('skill-files-data')?.textContent;
+    if (filesData) skillFiles = JSON.parse(filesData);
+  } catch { /* ignore */ }
+
+  folderButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      const children = button.closest('.file-tree__group')?.querySelector<HTMLElement>('.file-tree__children');
+
+      button.setAttribute('aria-expanded', String(!isExpanded));
+      if (children) children.hidden = isExpanded;
+    });
+  });
+
+  fileButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const path = button.dataset.filePath;
+      if (!path) return;
+
+      fileButtons.forEach((fileButton) => {
+        fileButton.classList.remove('file-tree__file--selected');
+        fileButton.setAttribute('aria-selected', 'false');
+      });
+
+      button.classList.add('file-tree__file--selected');
+      button.setAttribute('aria-selected', 'true');
+
+      previewPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.filePreview !== path;
+      });
+
+      if (previewPath) previewPath.textContent = `skills/${skillId}/${path}`;
+      if (previewTitle) previewTitle.textContent = `${path} preview`;
+    });
+  });
+
+  copyButtons.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const source = button.closest('.terminal-card') ?? button.closest('.content-panel');
+      const code = source?.querySelector<HTMLElement>('.markdown-preview:not([hidden]) code, code')?.textContent?.trim();
+      if (!code) return;
+
+      const label = button.querySelector('span');
+      const previousLabel = label?.textContent ?? 'Copy';
+
+      try {
+        await navigator.clipboard.writeText(code);
+        button.dataset.copied = 'true';
+        if (label) label.textContent = 'Copied';
+
+        window.setTimeout(() => {
+          button.dataset.copied = 'false';
+          if (label) label.textContent = previousLabel;
+        }, 1600);
+      } catch {
+        if (label) label.textContent = 'Failed';
+
+        window.setTimeout(() => {
+          if (label) label.textContent = previousLabel;
+        }, 1600);
+      }
+    });
+  });
+
+  const downloadBtn = document.getElementById('detail-download-btn') as HTMLButtonElement | null;
+  const shareBtn = document.getElementById('detail-share-btn') as HTMLButtonElement | null;
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', async () => {
+      if (skillFiles.length > 0) {
+        const originalText = downloadBtn.textContent;
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = 'Preparing…';
+        try {
+          await downloadZipBundle(skillId, skillFiles);
+          showToast('Download started!', 'success');
+        } catch {
+          showToast('Download failed', 'error');
+        } finally {
+          downloadBtn.disabled = false;
+          downloadBtn.textContent = originalText;
+        }
+      }
+    });
+  }
+
+  if (shareBtn) {
+    shareBtn.addEventListener('click', async () => {
+      const filePath = shareBtn.dataset.filePath;
+      if (!filePath) return;
+      const ok = await shareFile(filePath);
+      showToast(ok ? 'Link copied!' : 'Failed to copy', ok ? 'success' : 'error');
+    });
+  }
+
+  const heroInstallBtn = document.getElementById('hero-install-btn') as HTMLButtonElement | null;
+  const dialog = document.getElementById('install-modal') as HTMLDialogElement | null;
+  const vscodeLink = document.getElementById('install-modal-vscode') as HTMLAnchorElement | null;
+  const insidersLink = document.getElementById('install-modal-insiders') as HTMLAnchorElement | null;
+  const installPath = document.querySelector<HTMLElement>('.hero-panel')?.dataset.resourcePath || '';
+
+  if (installPath) {
+    const vscodeUrl = getVSCodeProtocolUrl('skill', installPath, false);
+    const insidersUrl = getVSCodeProtocolUrl('skill', installPath, true);
+
+    if (heroInstallBtn && dialog && vscodeUrl) {
+      if (vscodeLink) vscodeLink.href = vscodeUrl;
+      if (insidersLink) insidersLink.href = insidersUrl || '#';
+
+      heroInstallBtn.addEventListener('click', () => {
+        dialog.showModal();
+      });
+    }
+  }
+</script>

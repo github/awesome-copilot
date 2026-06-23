@@ -1,0 +1,458 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { marked } from 'marked';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/ui/Button.astro';
+import Container from '../../components/ui/Container.astro';
+import Icon from '../../components/ui/Icon.astro';
+import InstallModal from '../../components/InstallModal.astro';
+import CopyButton from '../../components/ui/CopyButton.astro';
+import agentsData from '../../../public/data/agents.json';
+import type { AgentItem, AgentsData } from '../../lib/upstream-types';
+import { parseFrontmatter } from '../../lib/frontmatter';
+
+export function getStaticPaths() {
+  return (agentsData as AgentsData).items.map((item: AgentItem) => ({
+    params: { id: item.id },
+  }));
+}
+
+const { id } = Astro.params;
+const item = (agentsData as AgentsData).items.find((i: AgentItem) => i.id === id);
+const repoRoot = path.resolve(process.cwd(), '..');
+  let markdownHtml = '';
+  let frontmatterText: string | null = null;
+  if (item) {
+    const mdPath = path.resolve(repoRoot, item.path);
+    try {
+      const md = fs.readFileSync(mdPath, 'utf-8');
+      const parsed = parseFrontmatter(md);
+      frontmatterText = parsed.frontmatter;
+      markdownHtml = marked.parse(parsed.body) as string;
+    } catch {
+      markdownHtml = '';
+    }
+  }
+---
+
+<BaseLayout title="Agent · Awesome Copilot" description="Explore and install a GitHub Copilot agent.">
+  <section class="agent-detail" aria-labelledby="agent-title">
+    <Container>
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a><span aria-hidden="true">/</span><a href="/agents/">Agents</a><span aria-hidden="true">/</span><span id="breadcrumb-current" aria-current="page">Loading agent</span>
+      </nav>
+
+      <div class="detail-layout">
+        <main class="detail-main">
+          <header class="hero-panel pixel-panel">
+            <p class="terminal-line" id="agent-terminal-line">cat ./agents/loading.agent.md</p>
+            <div class="title-stack">
+              <span class="detail-badge detail-badge--neutral" id="agent-label">loading</span>
+              <h1 id="agent-title">Loading agent</h1>
+              <p id="agent-description">Fetching agent details on demand.</p>
+            </div>
+            <div class="hero-actions" aria-label="Primary actions">
+              <Button id="hero-install-btn" variant="primary"><Icon name="download" size={15} /> Install agent</Button>
+              <Button href="/agents/" variant="secondary"><Icon name="arrow-left" size={15} /> Back to agents</Button>
+            </div>
+          </header>
+
+          <section class="content-panel pixel-panel" aria-labelledby="overview-title">
+            <p class="panel-kicker">At a glance</p>
+            <h2 id="overview-title">Execution profile</h2>
+            <p id="agent-overview">Loading agent execution profile.</p>
+            <div class="feature-grid" aria-label="Agent capabilities">
+              <article><Icon name="robot" size={18} /><h3>Model</h3><p id="agent-model">loading</p></article>
+              <article><Icon name="tools" size={18} /><h3>Tools</h3><p id="agent-tools">loading</p></article>
+              <article><Icon name="share" size={18} /><h3>Handoffs</h3><p id="agent-handoffs">loading</p></article>
+            </div>
+          </section>
+
+          {markdownHtml ? (
+            <section class="content-panel pixel-panel markdown-panel" aria-labelledby="markdown-title">
+              <div class="file-header"><p class="panel-kicker">{item ? item.path : 'agents/loading.agent.md'}</p><span>readonly</span></div>
+              <h2 id="markdown-title">Documentation</h2>
+              <div class="markdown-preview">
+                <div class="markdown-body">
+                  {frontmatterText ? <div class="frontmatter-block">{`---\n${frontmatterText}\n---`}</div> : null}
+                  <div set:html={markdownHtml} />
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          <section class="content-panel pixel-panel" aria-labelledby="usage-title">
+            <p class="panel-kicker">Usage</p>
+            <h2 id="usage-title">Install and run from your workspace</h2>
+            <div class="terminal-card">
+              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">npx</span>              <div class="terminal-card__actions"><CopyButton ariaLabel="Copy install command" /></div></div>
+              <pre><code data-install-command>npx awesome-copilot add agents/loading.agent.md</code></pre>
+            </div>
+            <p class="helper-copy">Use this command from your project root, then open the agent from your Copilot setup.</p>
+          </section>
+
+          <section class="content-panel pixel-panel" aria-labelledby="file-title">
+            <div class="file-header"><p class="panel-kicker" id="agent-path">agents/loading.agent.md</p><span>readonly</span></div>
+            <h2 id="file-title">Agent file preview</h2>
+            <dl class="spec-table">
+              <div><dt>name</dt><dd id="spec-name">loading</dd></div>
+              <div><dt>model</dt><dd id="spec-model">loading</dd></div>
+              <div><dt>tools</dt><dd id="spec-tools">loading</dd></div>
+              <div><dt>handoffs</dt><dd id="spec-handoffs">loading</dd></div>
+            </dl>
+          </section>
+        </main>
+
+        <aside class="detail-sidebar" aria-label="Agent actions and metadata">
+          <section class="sidebar-card pixel-panel" aria-labelledby="source-title">
+            <p class="panel-kicker">Source</p><h2 id="source-title">Repository</h2><p class="source-owner"><Icon name="github" size={18} /> awesome-copilot</p>
+            <Button href="#" variant="secondary" size="sm" id="source-listing-btn" ariaLabel="View source listing"><Icon name="open" size={14} /> View source listing</Button>
+          </section>
+
+          <section id="install" class="sidebar-card pixel-panel" aria-labelledby="install-title">
+            <p class="panel-kicker">Install command</p><h2 id="install-title">Add this agent</h2>
+            <div class="terminal-card terminal-card--compact">
+              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">npx</span><CopyButton ariaLabel="Copy install command" /></div>
+              <pre><code data-install-command>npx awesome-copilot add agents/loading.agent.md</code></pre>
+            </div>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="actions-title">
+            <p class="panel-kicker">Quick actions</p><h2 id="actions-title">Get this agent</h2>
+            <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download agent"><Icon name="download" size={14} /> Download</Button>
+            <Button variant="secondary" size="sm" id="detail-share-btn" ariaLabel="Share agent"><Icon name="share" size={14} /> Share</Button>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="useful-title">
+            <p class="panel-kicker">Useful for</p><h2 id="useful-title">Best fit</h2><div class="tag-list" id="agent-tags"></div>
+          </section>
+
+          <section class="sidebar-card pixel-panel" aria-labelledby="metadata-title">
+            <p class="panel-kicker">Metadata</p><h2 id="metadata-title">Resource details</h2>
+            <dl class="metadata-list"><div><dt>type</dt><dd>agent</dd></div><div><dt>path</dt><dd id="metadata-path">loading</dd></div><div><dt>status</dt><dd id="metadata-status">loading</dd></div></dl>
+          </section>
+        </aside>
+      </div>
+    </Container>
+  </section>
+  <InstallModal resourceType="agent" />
+</BaseLayout>
+
+<style>
+  .agent-detail { padding-block: 1.75rem 3rem; }
+  .breadcrumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 1.25rem; color: var(--color-muted); font-size: 0.96rem; font-weight: 800; }
+  .breadcrumbs a { color: var(--color-green); text-decoration: none; }
+  .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
+  .breadcrumbs a:focus-visible { outline: 3px solid var(--color-green); outline-offset: 4px; }
+  .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(19rem, 28rem); gap: clamp(1rem, 2vw, 1.5rem); align-items: start; }
+  .detail-main, .detail-sidebar { display: grid; gap: 1.25rem; }
+  .detail-sidebar { position: sticky; top: 1rem; }
+  .pixel-panel { position: relative; overflow: hidden; border: 4px solid var(--color-border-soft); border-radius: 0; background: linear-gradient(180deg, rgb(255 255 255 / 2%), transparent), var(--color-bg-elevated); box-shadow: 4px 4px 0 var(--color-black); }
+  .hero-panel { display: grid; gap: 1.35rem; overflow: visible; padding: clamp(1.25rem, 3vw, 2rem); border-top: 4px solid var(--color-subtle); border-bottom: 4px solid var(--color-subtle); border-left: none; border-right: none; }
+  .hero-panel::before { content: ""; position: absolute; inset: 0; border-left: 4px solid var(--color-subtle); border-right: 4px solid var(--color-subtle); margin-left: -4px; margin-right: -4px; pointer-events: none; }
+  .terminal-line, .panel-kicker { margin: 0; color: var(--color-green); font-family: var(--font-mono); font-size: 0.9rem; font-weight: 900; }
+  .terminal-line::before { content: '> '; }
+  .title-stack { display: grid; gap: 0.8rem; max-width: 52rem; }
+  h1, h2, h3 { margin: 0; font-family: var(--font-heading); color: var(--color-text); }
+  h1 { font-size: clamp(2.2rem, 5vw, 4.15rem); letter-spacing: -0.055em; line-height: 0.98; }
+  h2 { font-size: clamp(1.35rem, 2vw, 1.75rem); letter-spacing: -0.035em; }
+  h3 { font-size: 1.08rem; letter-spacing: -0.02em; }
+  .title-stack p, .content-panel > p, .sidebar-card > p:not(.panel-kicker), .helper-copy { margin: 0; color: var(--color-muted); font-size: 1.02rem; line-height: 1.65; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .content-panel, .sidebar-card { display: grid; gap: 1rem; padding: 1.15rem; }
+  .detail-badge { display: inline-flex; width: fit-content; align-items: center; border: 2px solid currentColor; border-radius: 0; box-shadow: 2px 2px 0 var(--color-black); font-family: var(--font-mono); font-size: 0.78rem; font-weight: 900; letter-spacing: 0.03em; line-height: 1; padding: 0.35rem 0.5rem; text-transform: uppercase; }
+  .detail-badge--neutral { color: var(--color-muted); background: var(--color-surface-2); }
+  .detail-badge--purple { color: var(--color-primary); background: rgb(169 112 255 / 12%); }
+  .detail-badge--blue { color: var(--color-blue); background: rgb(92 211 255 / 12%); }
+  .detail-badge--green { color: var(--color-green); background: rgb(144 255 177 / 12%); }
+  .detail-badge--yellow { color: var(--color-yellow); background: rgb(255 214 102 / 12%); }
+  .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  .feature-grid article { display: grid; align-content: start; gap: 0.45rem; border: 2px solid var(--color-border-soft); background: var(--color-bg); box-shadow: 2px 2px 0 var(--color-black); padding: 1rem; }
+  .feature-grid article :global(.icon) { color: var(--color-green); }
+  .feature-grid p { margin: 0; color: var(--color-muted); font-size: 0.96rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .terminal-card { border: 2px solid var(--color-border-soft); background: var(--color-bg); }
+  .terminal-card--compact { min-width: 0; }
+  .terminal-card__bar, .file-header { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-bottom: 2px solid var(--color-border-soft); padding: 0.75rem 0.9rem; color: var(--color-muted); font-family: var(--font-mono); font-size: 0.9rem; font-weight: 800; }
+  .terminal-card__actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 0.55rem; align-items: center; }
+  pre { overflow-x: auto; margin: 0; background: var(--color-black); color: var(--color-text); padding: 1rem; font-family: var(--font-mono); font-size: 0.98rem; line-height: 1.55; }
+  .spec-table, .metadata-list { display: grid; margin: 0; border: 2px solid var(--color-border-soft); }
+  .spec-table div, .metadata-list div { display: grid; grid-template-columns: minmax(7rem, 0.28fr) 1fr; border-bottom: 2px solid var(--color-border-soft); }
+  .spec-table div:last-child, .metadata-list div:last-child { border-bottom: 0; }
+  dt, dd { padding: 0.9rem; }
+  dt { color: var(--color-primary); background: rgb(169 112 255 / 10%); font-family: var(--font-mono); font-weight: 900; text-transform: lowercase; }
+  dd { margin: 0; color: var(--color-text); font-size: 0.98rem; overflow-wrap: anywhere; }
+  .sidebar-card { border-width: 3px; box-shadow: 3px 3px 0 var(--color-black); }
+  .sidebar-card h2 { font-size: 1.16rem; }
+  .sidebar-card pre { padding: 0.9rem; font-size: 0.9rem; }
+  .sidebar-card :global(.button) { width: 100%; justify-self: stretch; }
+  .source-owner { display: flex; align-items: center; gap: 0.5rem; }
+  .source-owner :global(.icon) { color: var(--color-text); }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+  .markdown-body { display: grid; gap: 0.25rem; padding: 1rem; }
+  .markdown-body :global(h1),
+  .markdown-body :global(h2),
+  .markdown-body :global(h3),
+  .markdown-body :global(h4) { margin: 1.25rem 0 0.5rem; color: var(--color-text); }
+  .markdown-body :global(h1:first-child),
+  .markdown-body :global(h2:first-child),
+  .markdown-body :global(h3:first-child),
+  .markdown-body :global(h4:first-child) { margin-top: 0; }
+  .markdown-body :global(p) { margin: 0.5rem 0; }
+  .markdown-body :global(ul),
+  .markdown-body :global(ol) { margin: 0.5rem 0; padding-left: 1.5rem; }
+  .markdown-body :global(li) { margin: 0.25rem 0; }
+  .markdown-body :global(code) {
+    background: var(--color-surface-2);
+    color: var(--color-primary);
+    padding: 0.15rem 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    border-radius: 2px;
+  }
+  .markdown-body :global(pre) {
+    background: var(--color-surface-2);
+    border: 2px solid var(--color-border-soft);
+    overflow-x: auto;
+    padding: 0.8rem;
+    margin: 0.75rem 0;
+  }
+  .markdown-body :global(pre code) {
+    background: none;
+    color: var(--color-muted);
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .markdown-body :global(blockquote) {
+    border-left: 3px solid var(--color-primary);
+    margin: 0.75rem 0;
+    padding: 0.25rem 0 0.25rem 1rem;
+    color: var(--color-muted);
+  }
+  .markdown-body :global(hr) {
+    border: none;
+    border-top: 2px solid var(--color-border-soft);
+    margin: 1.5rem 0;
+  }
+  .markdown-body :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+  }
+  .markdown-body :global(th),
+  .markdown-body :global(td) {
+    border: 2px solid var(--color-border-soft);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+  .markdown-body :global(th) {
+    background: var(--color-surface-2);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+  .markdown-body :global(a) {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  .frontmatter-block {
+    color: var(--color-muted);
+    font: inherit;
+    line-height: 1.6;
+    margin: 0.5rem 0 1rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .markdown-preview {
+    border: 2px solid var(--color-border-soft);
+    background: var(--color-bg);
+  }
+
+  @media (max-width: 980px) { .detail-layout { grid-template-columns: 1fr; } .detail-sidebar { position: static; } }
+  @media (max-width: 700px) { .feature-grid { grid-template-columns: 1fr; } .spec-table div, .metadata-list div { grid-template-columns: 1fr; } dt { padding-bottom: 0.2rem; } dd { padding-top: 0.2rem; } }
+</style>
+
+<script>
+  import { adaptAgent } from '../../lib/adapters/agents';
+  import type { AgentItem, AgentsData } from '../../lib/upstream-types';
+  import { downloadFile, getGitHubUrl, getVSCodeProtocolUrl, shareFile, showToast } from '../../scripts/utils';
+
+  const id = window.location.pathname.split('/').filter(Boolean).pop() || '';
+
+  function setText(id: string, value: string): void {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+
+  function setHref(label: string, href: string): void {
+    const link = document.querySelector<HTMLAnchorElement>(`a[aria-label="${label}"]`);
+    if (link) link.href = href;
+  }
+
+  function joinOrNone(values: string[] | undefined): string {
+    return values?.length ? values.join(', ') : '(none)';
+  }
+
+  function formatCount(count: number, singular: string, plural = `${singular}s`): string {
+    return `${count} ${count === 1 ? singular : plural}`;
+  }
+
+  function buildAgentOverview(rawAgent: AgentItem, model: string): string {
+    const modelSummary = model === '(none)'
+      ? 'No explicit model is declared'
+      : `Configured for ${model}`;
+    const toolSummary = `${formatCount(rawAgent.tools.length, 'tool')} available`;
+    const handoffSummary = rawAgent.hasHandoffs
+      ? `${formatCount(rawAgent.handoffs.length, 'handoff')} enabled`
+      : 'no handoffs declared';
+
+    return `${modelSummary}. ${toolSummary}, ${handoffSummary}.`;
+  }
+
+  function renderTags(tags: string[]): void {
+    const tagList = document.getElementById('agent-tags');
+    if (!tagList) return;
+    tagList.textContent = '';
+    for (const tag of tags) {
+      const badge = document.createElement('span');
+      badge.className = 'detail-badge detail-badge--neutral';
+      badge.textContent = tag;
+      tagList.append(badge);
+    }
+  }
+
+  function renderAgent(rawAgent: AgentItem): void {
+    const agent = adaptAgent(rawAgent);
+    const agentPath = rawAgent.path;
+    const installCommand = `npx awesome-copilot add ${agentPath}`;
+    const sourcePath = `awesome-copilot/${agentPath}`;
+    const model = agent.model ?? '(none)';
+    const tools = joinOrNone(agent.tools);
+    const handoffs = joinOrNone(agent.handoffs);
+
+    document.title = `${agent.title} · Agent · Awesome Copilot`;
+    document.querySelector('meta[name="description"]')?.setAttribute('content', agent.description);
+
+    setText('breadcrumb-current', agent.title);
+    setText('agent-terminal-line', `cat ./${agentPath}`);
+    setText('agent-title', agent.title);
+    setText('agent-description', agent.description);
+    setText('agent-overview', buildAgentOverview(rawAgent, model));
+    setText('agent-model', model);
+    setText('agent-tools', tools);
+    setText('agent-handoffs', handoffs);
+    setText('agent-path', agentPath);
+    setText('spec-name', agent.title);
+    setText('spec-model', model);
+    setText('spec-tools', tools);
+    setText('spec-handoffs', handoffs);
+    setText('metadata-path', sourcePath);
+    setText('metadata-status', agent.label);
+
+    const label = document.getElementById('agent-label');
+    if (label) {
+      label.textContent = agent.label;
+      label.className = `detail-badge detail-badge--${agent.accent}`;
+    }
+
+    for (const code of document.querySelectorAll<HTMLElement>('[data-install-command]')) {
+      code.textContent = installCommand;
+    }
+
+    setHref('Download agent file', `/agents/#file=${encodeURIComponent(agentPath)}`);
+    setHref('Share agent', `/agent/${encodeURIComponent(rawAgent.id)}/`);
+    renderTags(agent.tags);
+
+    const sourceListingBtn = document.getElementById('source-listing-btn') as HTMLAnchorElement | null;
+    if (sourceListingBtn) sourceListingBtn.href = getGitHubUrl(agentPath);
+
+    installDetailActions(agentPath);
+  }
+
+  function installDetailActions(agentPath: string): void {
+    const downloadBtn = document.getElementById('detail-download-btn') as HTMLButtonElement | null;
+    const shareBtn = document.getElementById('detail-share-btn') as HTMLButtonElement | null;
+    const heroInstallBtn = document.getElementById('hero-install-btn') as HTMLButtonElement | null;
+    const dialog = document.getElementById('install-modal') as HTMLDialogElement | null;
+    const vscodeLink = document.getElementById('install-modal-vscode') as HTMLAnchorElement | null;
+    const insidersLink = document.getElementById('install-modal-insiders') as HTMLAnchorElement | null;
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', async () => {
+        const ok = await downloadFile(agentPath);
+        showToast(ok ? 'Download started!' : 'Download failed', ok ? 'success' : 'error');
+      });
+    }
+
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        const ok = await shareFile(agentPath);
+        showToast(ok ? 'Link copied!' : 'Failed to copy', ok ? 'success' : 'error');
+      });
+    }
+
+    const vscodeUrl = getVSCodeProtocolUrl('agent', agentPath, false);
+    const insidersUrl = getVSCodeProtocolUrl('agent', agentPath, true);
+
+    if (vscodeLink && vscodeUrl) vscodeLink.href = vscodeUrl;
+    if (insidersLink && insidersUrl) insidersLink.href = insidersUrl;
+
+    if (heroInstallBtn && dialog) {
+      heroInstallBtn.addEventListener('click', () => dialog.showModal());
+    }
+  }
+
+  function renderError(message: string): void {
+    setText('breadcrumb-current', 'Agent not found');
+    setText('agent-title', 'Agent not found');
+    setText('agent-description', message);
+    setText('agent-overview', message);
+  }
+
+  async function loadAgent(): Promise<void> {
+    if (!id) {
+      renderError('Missing agent id. Go back to the agents listing and choose an agent.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}data/agents.json`);
+      if (!response.ok) throw new Error(`Failed to load agents data (${response.status})`);
+      const data = (await response.json()) as AgentsData;
+      const rawAgent = data.items.find((item) => item.id === id);
+      if (!rawAgent) {
+        renderError(`No agent found for id "${id}".`);
+        return;
+      }
+      renderAgent(rawAgent);
+    } catch (error) {
+      renderError(error instanceof Error ? error.message : 'Failed to load agent details.');
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-code]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const code = button.closest('.terminal-card')?.querySelector('code')?.textContent?.trim();
+      if (!code) return;
+      const label = button.querySelector('span');
+      const previousLabel = label?.textContent ?? 'Copy';
+      try {
+        await navigator.clipboard.writeText(code);
+        button.dataset.copied = 'true';
+        if (label) label.textContent = 'Copied';
+        window.setTimeout(() => {
+          button.dataset.copied = 'false';
+          if (label) label.textContent = previousLabel;
+        }, 1600);
+      } catch {
+        if (label) label.textContent = 'Failed';
+        window.setTimeout(() => {
+          if (label) label.textContent = previousLabel;
+        }, 1600);
+      }
+    });
+  });
+
+  loadAgent();
+</script>
