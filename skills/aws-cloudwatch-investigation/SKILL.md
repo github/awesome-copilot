@@ -1,5 +1,5 @@
 ---
-name: aws-cloudwatch-investigation
+name: AWS CloudWatch Investigation
 description: >
   Reusable investigation patterns for AWS CloudWatch: Logs Insights query templates,
   alarm-to-deployment correlation, blast-radius narrowing decision tree, and
