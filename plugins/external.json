@@ -1,5 +1,32 @@
 [
   {
+    "name": "agent-council",
+    "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
+    "version": "0.1.3",
+    "author": {
+      "name": "Parth Sangani",
+      "url": "https://github.com/Avyayalaya"
+    },
+    "repository": "https://github.com/Avyayalaya/agent-council",
+    "license": "MIT",
+    "keywords": [
+      "quality-gate",
+      "multi-agent",
+      "adjudication",
+      "council",
+      "llm-as-judge",
+      "agent-orchestration",
+      "review",
+      "claude-code",
+      "mcp"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "Avyayalaya/agent-council",
+      "ref": "v0.1.3"
+    }
+  },
+  {
     "name": "ai-ready",
     "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
     "version": "1.0.0",
