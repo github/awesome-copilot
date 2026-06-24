@@ -56,7 +56,9 @@
 
 # ans - bash and powershell variable short for answer
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans
+# mor - Merchant of Record (MoR) abbreviation used by the Subotiz billing plugin
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans,mor
 
 # Skip certain files and directories
 
