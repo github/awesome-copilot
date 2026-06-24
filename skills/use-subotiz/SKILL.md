@@ -32,6 +32,34 @@ Apply this skill when the user:
 
 When unsure about parameters or an endpoint not listed above, call `get_llm_doc` (condensed) or `get_llm_full_doc` (full) before guessing.
 
+## Example Workflow
+
+Set the API key for the environment you target before any call:
+
+```bash
+export SUBOTIZ_API_KEY="sk_live_..."          # production → subotiz
+export SUBOTIZ_SANDBOX_API_KEY="sk_test_..."  # sandbox    → subotiz-sandbox
+```
+
+Read-only investigation — "show a customer's active subscriptions and recent payments":
+
+```text
+list_customer(email="alex@example.com")              # resolve the customer id
+list_subscription(customer_id="cus_123", status="active")
+list_trades(customer_id="cus_123", limit=5)
+list_refund(trade_id="trd_456")                      # only if a refund is in question
+```
+
+Creating a billable resource — restate the payload, get explicit confirmation, then call:
+
+```text
+# 1. Confirm with the user first (never auto-create):
+#    create_product "Pro Plan" -> create_price 2900 USD / month
+# 2. Only after an explicit "yes":
+create_product(name="Pro Plan", description="Pro tier")
+create_price(product_id="prod_789", unit_amount=2900, currency="USD", recurring_interval="month")
+```
+
 ## Safety Rules (payment-grade)
 
 Subotiz handles real money. Treat write operations as high-risk:
