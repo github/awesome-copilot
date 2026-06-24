@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration
-description: Orchestrates MSAL.JS authentication library migrations across the full version chain — browser (v2→v3→v4→v5), Angular (v2→v3→v4→v5), Node (v2→v3→v5), and React (v3→v5). Detects which MSAL packages and versions are in use, classifies the required migration hops, and routes to the appropriate sub-skill for each hop. Use when a developer needs to upgrade any @azure/msal-* JavaScript package to the latest secure version.
+description: 'Orchestrates MSAL.JS authentication library migrations across the full version chain — browser (v2→v3→v4→v5), Angular (v2→v3→v4→v5), Node (v2→v3→v5), and React (v3→v5). Detects which MSAL packages and versions are in use, classifies the required migration hops, and routes to the appropriate sub-skill for each hop. Use when a developer needs to upgrade any @azure/msal-* JavaScript package to the latest secure version.'
 metadata:
   version: "1.0.0"
 allowed-tools:

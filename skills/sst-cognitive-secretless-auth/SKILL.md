@@ -1,6 +1,6 @@
 ---
 name: sst-cognitive-secretless-auth
-description: Helps migrate Azure Cognitive Services and Azure AI Services from API key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating credential leakage risk and aligning with security best practices.
+description: 'Helps migrate Azure Cognitive Services and Azure AI Services from API key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating credential leakage risk and aligning with security best practices.'
 metadata:
   version: "1.0.0"
 ---

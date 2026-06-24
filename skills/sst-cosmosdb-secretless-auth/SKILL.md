@@ -1,6 +1,6 @@
 ---
 name: sst-cosmosdb-secretless-auth
-description: Helps migrate Azure Cosmos DB from primary/secondary key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating long-lived credentials from your Cosmos DB configuration.
+description: 'Helps migrate Azure Cosmos DB from primary/secondary key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating long-lived credentials from your Cosmos DB configuration.'
 metadata:
   version: "1.0.0"
 ---

@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-browser-v2-to-v3
-description: A specialized migration skill for @azure/msal-browser v2 to v3 — adds required async initialization, updates claims-based caching defaults, and addresses browser support changes.
+description: 'A specialized migration skill for @azure/msal-browser v2 to v3 — adds required async initialization, updates claims-based caching defaults, and addresses browser support changes.'
 metadata:
   version: "1.0.0"
 allowed-tools:

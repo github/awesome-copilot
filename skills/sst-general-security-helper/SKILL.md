@@ -1,6 +1,6 @@
 ---
 name: sst-general-security-helper
-description: A general-purpose security skill that uses public Microsoft SFI documentation to help developers understand and address security concerns, even when no dedicated skill exists.
+description: 'A general-purpose security skill that uses public Microsoft SFI documentation to help developers understand and address security concerns, even when no dedicated skill exists.'
 metadata:
   version: "1.0.0"
 ---

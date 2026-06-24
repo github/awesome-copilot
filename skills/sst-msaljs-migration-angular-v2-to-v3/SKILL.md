@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-angular-v2-to-v3
-description: A specialized migration skill for @azure/msal-angular v2 to v3 — addresses initialization changes, Angular 15-18 and rxjs 7 requirements, and popup initialization requirements.
+description: 'A specialized migration skill for @azure/msal-angular v2 to v3 — addresses initialization changes, Angular 15-18 and rxjs 7 requirements, and popup initialization requirements.'
 metadata:
   version: "1.0.0"
 allowed-tools:

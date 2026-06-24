@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-node-v2-to-v3
-description: A specialized migration skill for @azure/msal-node v2 to v3 — addresses NodeStorage export removal.
+description: 'A specialized migration skill for @azure/msal-node v2 to v3 — addresses NodeStorage export removal.'
 metadata:
   version: "1.0.0"
 allowed-tools:

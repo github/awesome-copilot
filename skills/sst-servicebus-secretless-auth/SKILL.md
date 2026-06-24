@@ -1,6 +1,6 @@
 ---
 name: sst-servicebus-secretless-auth
-description: Helps migrate Azure Service Bus from SAS key/connection string authentication to Microsoft Entra ID (Managed Identity) authentication. Covers infrastructure changes, RBAC assignment, client code updates across .NET/Python/Java, validation, and rollback.
+description: 'Helps migrate Azure Service Bus from SAS key/connection string authentication to Microsoft Entra ID (Managed Identity) authentication. Covers infrastructure changes, RBAC assignment, client code updates across .NET/Python/Java, validation, and rollback.'
 metadata:
   version: "1.0.0"
 ---

@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-react-v3-to-v5
-description: A specialized migration skill for @azure/msal-react v3 to v5 — detects and migrates Create React App to Vite (CRA is deprecated and incompatible with React 19), addresses React 19.2.1+ requirement, InteractionStatus consolidation, LOGIN_SUCCESS payload type change, and logout state clearing fix.
+description: 'A specialized migration skill for @azure/msal-react v3 to v5 — detects and migrates Create React App to Vite (CRA is deprecated and incompatible with React 19), addresses React 19.2.1+ requirement, InteractionStatus consolidation, LOGIN_SUCCESS payload type change, and logout state clearing fix.'
 metadata:
   version: "1.0.0"
 allowed-tools:

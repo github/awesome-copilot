@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-angular-v3-to-v4
-description: A specialized migration skill for @azure/msal-angular v3 to v4 — addresses Angular 19 support and localStorage encryption initialization requirements.
+description: 'A specialized migration skill for @azure/msal-angular v3 to v4 — addresses Angular 19 support and localStorage encryption initialization requirements.'
 metadata:
   version: "1.0.0"
 allowed-tools:

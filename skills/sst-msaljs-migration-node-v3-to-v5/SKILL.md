@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-node-v3-to-v5
-description: A specialized migration skill for @azure/msal-node v3 to v5 — removes proxy/customAgent config, updates protocolMode location, and addresses Node.js version requirements.
+description: 'A specialized migration skill for @azure/msal-node v3 to v5 — removes proxy/customAgent config, updates protocolMode location, and addresses Node.js version requirements.'
 metadata:
   version: "1.0.0"
 allowed-tools:

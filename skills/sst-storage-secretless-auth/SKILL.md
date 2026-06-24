@@ -1,6 +1,6 @@
 ---
 name: sst-storage-secretless-auth
-description: Helps migrate Azure Storage Accounts from access key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating credential leakage risk and aligning with security best practices.
+description: 'Helps migrate Azure Storage Accounts from access key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating credential leakage risk and aligning with security best practices.'
 metadata:
   version: "1.0.0"
 ---

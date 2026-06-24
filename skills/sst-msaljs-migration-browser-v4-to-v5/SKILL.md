@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-browser-v4-to-v5
-description: A specialized migration skill for @azure/msal-browser v4 to v5 — implements COOP redirect bridge, updates removed APIs, consolidates event types, and applies configuration changes to resolve the authentication vulnerability.
+description: 'A specialized migration skill for @azure/msal-browser v4 to v5 — implements COOP redirect bridge, updates removed APIs, consolidates event types, and applies configuration changes to resolve the authentication vulnerability.'
 metadata:
   version: "1.0.0"
 allowed-tools:

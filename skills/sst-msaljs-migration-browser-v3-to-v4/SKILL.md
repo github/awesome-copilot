@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-browser-v3-to-v4
-description: A specialized migration skill for @azure/msal-browser v3 to v4 — updates loadExternalTokens to async, renames allowNativeBroker to allowPlatformBroker, and addresses localStorage encryption behavioral change.
+description: 'A specialized migration skill for @azure/msal-browser v3 to v4 — updates loadExternalTokens to async, renames allowNativeBroker to allowPlatformBroker, and addresses localStorage encryption behavioral change.'
 metadata:
   version: "1.0.0"
 allowed-tools:

@@ -1,6 +1,6 @@
 ---
 name: sst-sql-secretless-auth
-description: Helps developers migrate Azure SQL Database connections from SQL authentication (username/password) to Microsoft Entra ID authentication using Managed Identity — eliminating stored credentials and strengthening identity security.
+description: 'Helps developers migrate Azure SQL Database connections from SQL authentication (username/password) to Microsoft Entra ID authentication using Managed Identity — eliminating stored credentials and strengthening identity security.'
 metadata:
   version: "1.0.0"
 ---

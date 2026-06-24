@@ -1,6 +1,6 @@
 ---
 name: sst-eventhub-secretless-auth
-description: Helps developers migrate Azure Event Hubs from SAS key/connection string authentication to Microsoft Entra ID (Managed Identity) authentication, eliminating shared secrets and strengthening identity security.
+description: 'Helps developers migrate Azure Event Hubs from SAS key/connection string authentication to Microsoft Entra ID (Managed Identity) authentication, eliminating shared secrets and strengthening identity security.'
 metadata:
   version: "1.0.0"
 ---

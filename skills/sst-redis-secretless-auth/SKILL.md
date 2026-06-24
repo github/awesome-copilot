@@ -1,6 +1,6 @@
 ---
 name: sst-redis-secretless-auth
-description: Helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating shared secrets and aligning with identity-based security best practices.
+description: 'Helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — eliminating shared secrets and aligning with identity-based security best practices.'
 metadata:
   version: "1.0.0"
 ---

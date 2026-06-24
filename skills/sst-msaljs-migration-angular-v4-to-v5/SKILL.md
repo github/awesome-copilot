@@ -1,6 +1,6 @@
 ---
 name: sst-msaljs-migration-angular-v4-to-v5
-description: A specialized migration skill for @azure/msal-angular v4 to v5 — addresses Angular 19 requirement, strict protectedResourceMap matching, inject(TOKEN) syntax changes, handleRedirectObservable options, and logout() removal.
+description: 'A specialized migration skill for @azure/msal-angular v4 to v5 — addresses Angular 19 requirement, strict protectedResourceMap matching, inject(TOKEN) syntax changes, handleRedirectObservable options, and logout() removal.'
 metadata:
   version: "1.0.0"
 allowed-tools:
