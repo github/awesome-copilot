@@ -291,7 +291,7 @@ function setupActionHandlers(list: HTMLElement | null): void {
     }
     const success = await copyToClipboard(installUrl);
     showToast(
-      success ? "Install URL copied!" : "Failed to copy install URL",
+      success ? "Extension URL copied!" : "Failed to copy extension URL",
       success ? "success" : "error"
     );
     return;

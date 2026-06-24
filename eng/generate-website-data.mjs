@@ -1018,7 +1018,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const canvasEntries = canvases.length > 0
       ? canvases
       : [{ id: dir.name, displayName: formatDisplayName(dir.name), description: extensionDescription }];
-    const installUrl = `https://github.com/github/awesome-copilot/tree/${commitSha}/${relPath.replace(
+    const installUrl = `https://github.com/github/awesome-copilot/tree/main/${relPath.replace(
       /\\/g,
       "/"
     )}`;
