@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-07
+lastUpdated: 2026-06-23
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -93,15 +93,15 @@ Example `.mcp.json` or `.vscode/mcp.json`:
 
 ### Installing MCP Servers from the Registry
 
-GitHub Copilot CLI can install MCP servers directly from the official registry with guided configuration — no manual JSON editing required. During an interactive session, run:
+GitHub Copilot CLI provides a registry-based install flow that lets you browse and install MCP servers with guided configuration — no manual JSON editing required. In v1.0.64+, use the `/mcp registry` sub-command to browse available servers:
 
 ```
-/mcp install
+/mcp registry
 ```
 
 A picker will list available servers from the registry. After selecting one, the CLI prompts for any required configuration values (connection strings, API keys, etc.) and writes the completed entry to your persistent MCP config automatically.
 
-You can also install a specific server by name without the picker:
+You can also install a specific server by name directly:
 
 ```
 /mcp install @modelcontextprotocol/server-postgres
@@ -118,6 +118,8 @@ This guided flow is the recommended way to add new MCP servers, especially for s
 **env**: Environment variables passed to the server process. Use these for connection strings, API keys, and configuration—never hardcode secrets in the JSON file.
 
 **type** (remote servers): The transport type for remote MCP servers (`http` or `sse`). This field can now be omitted — the CLI defaults to `http` when no type is specified, simplifying remote server configuration.
+
+**deferTools** *(optional, v1.0.63+)*: When set to `false`, the server's tools are always available even when tool search is enabled. By default, tool search can hide rarely-used MCP tools to reduce context noise; setting `deferTools: false` on a server prevents its tools from being deferred, keeping them permanently in the tool list.
 
 ### Managing Persistent MCP Configuration via Server RPCs
 
