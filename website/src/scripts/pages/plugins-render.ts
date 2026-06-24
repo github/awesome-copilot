@@ -3,6 +3,7 @@ import {
   getGitHubUrl,
   sanitizeUrl,
 } from '../utils';
+import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 interface PluginAuthor {
   name: string;
@@ -57,12 +58,7 @@ function getExternalPluginUrl(plugin: RenderablePlugin): string {
 
 export function renderPluginsHtml(items: RenderablePlugin[]): string {
   if (items.length === 0) {
-    return `
-      <div class="empty-state">
-        <h3>No plugins found</h3>
-        <p>Try different tags or clear the current filters</p>
-      </div>
-    `;
+    return renderEmptyStateHtml('No plugins found', 'Try different tags or clear the current filters');
   }
 
   return items
@@ -78,25 +74,27 @@ export function renderPluginsHtml(items: RenderablePlugin[]): string {
       const githubHref = isExternal
         ? escapeHtml(getExternalPluginUrl(item))
         : getGitHubUrl(item.path);
-      return `
-        <article class="resource-item${isExternal ? ' resource-item-external' : ''}" data-path="${escapeHtml(item.path)}" role="listitem">
-          <button type="button" class="resource-preview">
-            <div class="resource-info">
-              <div class="resource-title">${escapeHtml(item.name)}</div>
-              <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-              <div class="resource-meta">
-                ${metaTag}
-                ${authorTag}
-                ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
-                ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
-              </div>
-            </div>
-          </button>
-          <div class="resource-actions">
-            <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
-          </div>
-        </article>
+      const metaHtml = `
+        ${metaTag}
+        ${authorTag}
+        ${item.tags?.slice(0, 4).map((tag) => `<span class="resource-tag">${escapeHtml(tag)}</span>`).join('') || ''}
+        ${item.tags && item.tags.length > 4 ? `<span class="resource-tag">+${item.tags.length - 4} more</span>` : ''}
       `;
+
+      const actionsHtml = `
+        <a href="${githubHref}" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="${isExternal ? 'View repository' : 'View on GitHub'}">${isExternal ? 'Repository' : 'GitHub'}</a>
+      `;
+
+      return renderSharedCardHtml({
+        title: item.name,
+        description: item.description || 'No description',
+        articleClassName: isExternal ? 'resource-item-external' : '',
+        articleAttributes: {
+          'data-path': item.path,
+        },
+        metaHtml,
+        actionsHtml,
+      });
     })
     .join('');
 }

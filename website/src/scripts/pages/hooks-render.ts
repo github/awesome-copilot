@@ -3,6 +3,7 @@ import {
   getGitHubUrl,
   getLastUpdatedHtml,
 } from "../utils";
+import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
 
 export interface RenderableHook {
   id: string;
@@ -35,70 +36,55 @@ export function sortHooks<T extends RenderableHook>(
 
 export function renderHooksHtml(items: RenderableHook[]): string {
   if (items.length === 0) {
-    return `
-      <div class="empty-state">
-        <h3>No hooks found</h3>
-        <p>Try adjusting the selected filters.</p>
-      </div>
-    `;
+    return renderEmptyStateHtml("No hooks found", "Try adjusting the selected filters.");
   }
 
   return items
     .map((item) => {
-      return `
-        <article class="resource-item" data-path="${escapeHtml(
-          item.readmeFile
-        )}" data-hook-id="${escapeHtml(item.id)}" role="listitem">
-          <button type="button" class="resource-preview">
-            <div class="resource-info">
-              <div class="resource-title">${escapeHtml(item.title)}</div>
-              <div class="resource-description">${escapeHtml(
-                item.description || "No description"
-              )}</div>
-              <div class="resource-meta">
-                ${item.hooks
-                  .map(
-                    (hook) =>
-                      `<span class="resource-tag tag-hook">${escapeHtml(
-                        hook
-                      )}</span>`
-                  )
-                  .join("")}
-                ${item.tags
-                  .map(
-                    (tag) =>
-                      `<span class="resource-tag tag-tag">${escapeHtml(
-                        tag
-                      )}</span>`
-                  )
-                  .join("")}
-                ${
-                  item.assets.length > 0
-                    ? `<span class="resource-tag tag-assets">${
-                        item.assets.length
-                      } asset${item.assets.length === 1 ? "" : "s"}</span>`
-                    : ""
-                }
-                ${getLastUpdatedHtml(item.lastUpdated)}
-              </div>
-            </div>
-          </button>
-          <div class="resource-actions">
-            <button class="btn btn-primary download-hook-btn" data-hook-id="${escapeHtml(
-              item.id
-            )}" title="Download as ZIP">
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/>
-                <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/>
-              </svg>
-              Download
-            </button>
-            <a href="${getGitHubUrl(
-              item.path
-            )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
-          </div>
-        </article>
+      const metaHtml = `
+        ${item.hooks
+          .map(
+            (hook) => `<span class="resource-tag tag-hook">${escapeHtml(hook)}</span>`
+          )
+          .join("")}
+        ${item.tags
+          .map((tag) => `<span class="resource-tag tag-tag">${escapeHtml(tag)}</span>`)
+          .join("")}
+        ${
+          item.assets.length > 0
+            ? `<span class="resource-tag tag-assets">${item.assets.length} asset${
+                item.assets.length === 1 ? "" : "s"
+              }</span>`
+            : ""
+        }
+        ${getLastUpdatedHtml(item.lastUpdated)}
       `;
+
+      const actionsHtml = `
+        <button class="btn btn-primary download-hook-btn" data-hook-id="${escapeHtml(
+          item.id
+        )}" title="Download as ZIP">
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+            <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/>
+            <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/>
+          </svg>
+          Download
+        </button>
+        <a href="${getGitHubUrl(
+          item.path
+        )}" class="btn btn-secondary" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">GitHub</a>
+      `;
+
+      return renderSharedCardHtml({
+        title: item.title,
+        description: item.description || "No description",
+        articleAttributes: {
+          "data-path": item.readmeFile,
+          "data-hook-id": item.id,
+        },
+        metaHtml,
+        actionsHtml,
+      });
     })
     .join("");
 }
