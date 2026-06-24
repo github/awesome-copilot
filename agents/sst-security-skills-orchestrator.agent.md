@@ -1,6 +1,6 @@
 ---
-name: sst-security-skills-orchestrator
-description: An orchestrator agent that helps developers improve the security posture of their applications by routing to specialized security guidance skills aligned with Microsoft's Secure Future Initiative.
+name: 'Security Skills Orchestrator'
+description: 'An orchestrator agent that helps developers improve the security posture of their applications by routing to specialized security guidance skills aligned with Microsoft''s Secure Future Initiative.'
 tools: ["*"]
 ---
 
