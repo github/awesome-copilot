@@ -554,6 +554,18 @@ export function setupDropdownCloseHandlers(): void {
           e.preventDefault();
           const isOpen = dropdown.classList.toggle("open");
           toggle.setAttribute("aria-expanded", String(isOpen));
+
+          if (isOpen) {
+            document
+              .querySelectorAll('.install-dropdown[data-install-scope="list"].open')
+              .forEach((openDropdown) => {
+                if (openDropdown === dropdown) return;
+                openDropdown.classList.remove("open");
+                openDropdown.querySelector(".install-btn-toggle")
+                  ?.setAttribute("aria-expanded", "false");
+              });
+          }
+
           return;
         }
 
