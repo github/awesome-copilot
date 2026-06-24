@@ -1,0 +1,27 @@
+{
+  "name": "subotiz",
+  "description": "Connect Copilot to Subotiz — a global subscription growth engine and Merchant-of-Record platform. Manage usage-based billing, subscriptions, global payments, tax compliance, invoices, refunds and revenue operations across 180+ countries and 150+ currencies via natural language.",
+  "version": "0.0.3",
+  "keywords": [
+    "subotiz",
+    "payments",
+    "subscriptions",
+    "usage-based-billing",
+    "invoices",
+    "refunds",
+    "merchant-of-record",
+    "mor",
+    "tax-compliance",
+    "mcp"
+  ],
+  "author": {
+    "name": "Subotiz",
+    "url": "https://www.subotiz.com"
+  },
+  "homepage": "https://www.subotiz.com",
+  "repository": "https://github.com/github/awesome-copilot",
+  "license": "MIT",
+  "skills": [
+    "./skills/use-subotiz/"
+  ]
+}

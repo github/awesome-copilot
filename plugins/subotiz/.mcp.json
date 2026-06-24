@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "subotiz": {
+      "url": "https://api.subotiz.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SUBOTIZ_API_KEY}"
+      }
+    },
+    "subotiz-sandbox": {
+      "url": "https://api.sandbox.subotiz.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SUBOTIZ_SANDBOX_API_KEY}"
+      }
+    }
+  }
+}

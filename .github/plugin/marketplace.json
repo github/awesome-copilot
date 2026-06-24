@@ -920,6 +920,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "subotiz",
+      "source": "subotiz",
+      "description": "Connect Copilot to Subotiz — a global subscription growth engine and Merchant-of-Record platform. Manage usage-based billing, subscriptions, global payments, tax compliance, invoices, refunds and revenue operations across 180+ countries and 150+ currencies via natural language.",
+      "version": "0.0.3"
+    },
+    {
       "name": "swift-mcp-development",
       "source": "swift-mcp-development",
       "description": "Comprehensive collection for building Model Context Protocol servers in Swift using the official MCP Swift SDK with modern concurrency features.",
