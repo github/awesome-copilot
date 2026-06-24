@@ -3,88 +3,108 @@ import http from "node:http";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXTENSION_NAME = "accessibility-kanban";
-const STATE_FILE = "signalbox-accessibility-kanban-state.json";
+const STATE_FILE_PREFIX = "repository-issues-kanban-state";
 const COLUMNS = ["backlog", "plan", "ready", "implement", "done"];
 const VALID_COLUMNS = new Set(COLUMNS);
 
-const defaultIssues = [
-  {
-    number: 39,
-    title: "Add keyboard trap prevention for modal-like interactions",
-    url: "https://github.com/sethjuarez/SignalBox/issues/39",
-    labels: ["signalbox-mvp", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "high",
-  },
-  {
-    number: 38,
-    title: "Ensure color contrast meets WCAG AA for all text",
-    url: "https://github.com/sethjuarez/SignalBox/issues/38",
-    labels: ["signalbox-mvp", "product-polish", "accessibility"],
-    column: "backlog",
-    priority: "high",
-  },
-  {
-    number: 37,
-    title: "Add aria-live region for form submission feedback",
-    url: "https://github.com/sethjuarez/SignalBox/issues/37",
-    labels: ["signalbox-mvp", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "high",
-  },
-  {
-    number: 36,
-    title: "Add focus-visible outline to all interactive elements",
-    url: "https://github.com/sethjuarez/SignalBox/issues/36",
-    labels: ["signalbox-mvp", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "high",
-  },
-  {
-    number: 35,
-    title: "Add aria-hidden to decorative SVG icons in AuthPage",
-    url: "https://github.com/sethjuarez/SignalBox/issues/35",
-    labels: ["signalbox-mvp", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "medium",
-  },
-  {
-    number: 20,
-    title: "Audit and fix form field label association and aria-describedby",
-    url: "https://github.com/sethjuarez/SignalBox/issues/20",
-    labels: ["signalbox-mvp", "frontend", "product-polish", "accessibility"],
-    column: "backlog",
-    priority: "medium",
-  },
-  {
-    number: 19,
-    title: "Ensure consistent keyboard focus styles across the intake form",
-    url: "https://github.com/sethjuarez/SignalBox/issues/19",
-    labels: ["enhancement", "good first issue", "ready-for-implementation", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "medium",
-  },
-  {
-    number: 17,
-    title: "Add accessible client-side validation errors to the intake form",
-    url: "https://github.com/sethjuarez/SignalBox/issues/17",
-    labels: ["enhancement", "good first issue", "ready-for-implementation", "frontend", "accessibility"],
-    column: "backlog",
-    priority: "medium",
-  },
-  {
-    number: 16,
-    title: "Improve page landmark and heading structure for screen reader navigation",
-    url: "https://github.com/sethjuarez/SignalBox/issues/16",
-    labels: ["good first issue", "signalbox-mvp", "frontend", "product-polish", "accessibility"],
-    column: "backlog",
-    priority: "medium",
-  },
-];
+let repoInfoCache = null;
+let githubTokenCache;
+let sessionRef = null;
+
+function getWorkspaceCwd() {
+  return sessionRef?.workspacePath || process.cwd();
+}
+
+// ─── Repo resolution ───
+
+function runCommand(command, args, cwd = process.cwd()) {
+  try {
+    const result = spawnSync(command, args, { cwd, encoding: "utf8" });
+    if (result.status === 0 && !result.error) {
+      return (result.stdout || "").trim();
+    }
+  } catch {
+    // Ignore and fall through to empty string.
+  }
+  return "";
+}
+
+function normalizeRepo(repo) {
+  if (typeof repo !== "string") return null;
+  const cleaned = repo
+    .trim()
+    .replace(/^https?:\/\/github\.com\//i, "")
+    .replace(/\.git$/i, "");
+  if (!/^[^/\s]+\/[^/\s]+$/.test(cleaned)) return null;
+  return cleaned;
+}
+
+function parseRepoFromRemoteUrl(remoteUrl) {
+  if (!remoteUrl) return null;
+  const cleaned = remoteUrl.trim().replace(/\.git$/i, "");
+
+  const sshMatch = cleaned.match(/^[^@]+@[^:]+:([^/]+\/[^/]+)$/);
+  if (sshMatch) return sshMatch[1];
+
+  const httpMatch = cleaned.match(/^https?:\/\/[^/]+\/([^/]+\/[^/]+)$/i);
+  if (httpMatch) return httpMatch[1];
+
+  const fallbackMatch = cleaned.match(/[:/]([^/:]+\/[^/:]+)$/);
+  return fallbackMatch ? fallbackMatch[1] : null;
+}
+
+function candidateCwds(preferredCwd) {
+  const candidates = [
+    preferredCwd,
+    sessionRef?.workspacePath,
+    __dirname,
+    path.dirname(__dirname),
+    path.dirname(path.dirname(__dirname)),
+    path.dirname(path.dirname(path.dirname(__dirname))),
+    process.cwd(),
+  ].filter(Boolean);
+  return [...new Set(candidates)];
+}
+
+function resolveRepoFromGit(cwd) {
+  const gitRoot = runCommand("git", ["rev-parse", "--show-toplevel"], cwd);
+  if (!gitRoot) return null;
+
+  const fromGh = normalizeRepo(runCommand("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"], gitRoot));
+  if (fromGh) return fromGh;
+
+  const remoteUrl = runCommand("git", ["remote", "get-url", "origin"], gitRoot) || runCommand("git", ["config", "--get", "remote.origin.url"], gitRoot);
+  return normalizeRepo(parseRepoFromRemoteUrl(remoteUrl));
+}
+
+function resolveCurrentRepoInfo(cwd = getWorkspaceCwd()) {
+  const fromEnv = normalizeRepo(process.env.GITHUB_REPOSITORY || "");
+  if (fromEnv) return { repo: fromEnv, error: null };
+
+  for (const candidate of candidateCwds(cwd)) {
+    const repo = resolveRepoFromGit(candidate);
+    if (repo) return { repo, error: null };
+  }
+
+  return {
+    repo: "unknown/unknown",
+    error: "Unable to detect the current repository from this workspace.",
+  };
+}
+
+function getRepoInfo() {
+  const cwd = getWorkspaceCwd();
+  if (!repoInfoCache || repoInfoCache.cwd !== cwd) {
+    const resolved = resolveCurrentRepoInfo(cwd);
+    repoInfoCache = { ...resolved, cwd };
+  }
+  return repoInfoCache;
+}
 
 // ─── State persistence ───
 
@@ -92,43 +112,107 @@ function copilotHome() {
   return process.env.COPILOT_HOME || path.join(os.homedir(), ".copilot");
 }
 
-function getStatePath() {
-  return path.join(copilotHome(), "extensions", EXTENSION_NAME, "artifacts", STATE_FILE);
+function stateFileName(repo) {
+  const key = String(repo || "unknown-unknown")
+    .toLowerCase()
+    .replace(/[^\w.-]+/g, "-");
+  return `${STATE_FILE_PREFIX}-${key}.json`;
 }
 
-function defaultState() {
+function getStatePath(repo) {
+  return path.join(copilotHome(), "extensions", EXTENSION_NAME, "artifacts", stateFileName(repo));
+}
+
+function ensureStateDirectory(repo) {
+  fs.mkdirSync(path.dirname(getStatePath(repo)), { recursive: true });
+}
+
+function defaultState(repoInfo = getRepoInfo()) {
   return {
-    repo: "sethjuarez/SignalBox",
+    repo: repoInfo.repo,
+    error: repoInfo.error,
     updatedAt: new Date().toISOString(),
     generation: Date.now(),
     columns: COLUMNS,
-    issues: defaultIssues.map((issue, index) => ({ ...issue, order: index })),
+    availableLabels: [],
+    selectedLabels: [],
+    issues: [],
   };
 }
 
-function ensureStateDirectory() {
-  fs.mkdirSync(path.dirname(getStatePath()), { recursive: true });
+function normalizeLabelList(labels) {
+  const unique = new Set();
+  for (const label of Array.isArray(labels) ? labels : []) {
+    if (typeof label === "string" && label.trim()) unique.add(label.trim());
+  }
+  return [...unique];
 }
 
-function loadState() {
+function computeAvailableLabels(issues) {
+  const labels = new Set();
+  for (const issue of Array.isArray(issues) ? issues : []) {
+    for (const label of normalizeLabelList(issue.labels)) labels.add(label);
+  }
+  return [...labels].sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeIssue(issue, repo, idx) {
+  if (!issue || !Number.isInteger(issue.number) || !issue.title) return null;
+  return {
+    number: issue.number,
+    title: issue.title,
+    url: issue.url || `https://github.com/${repo}/issues/${issue.number}`,
+    labels: normalizeLabelList(issue.labels),
+    column: VALID_COLUMNS.has(issue.column) ? issue.column : "backlog",
+    priority: issue.priority || "medium",
+    order: Number.isInteger(issue.order) ? issue.order : idx,
+    agentStatus: typeof issue.agentStatus === "string" ? issue.agentStatus : "",
+    agentActive: Boolean(issue.agentActive),
+    logs: Array.isArray(issue.logs) ? issue.logs : [],
+  };
+}
+
+function normalizeState(rawState, repoInfo = getRepoInfo()) {
+  const repo = repoInfo.repo;
+  const issues = Array.isArray(rawState?.issues)
+    ? rawState.issues.map((issue, idx) => normalizeIssue(issue, repo, idx)).filter(Boolean)
+    : [];
+  const availableLabels = computeAvailableLabels(issues);
+
+  return {
+    repo,
+    error: repoInfo.error || rawState?.error || null,
+    updatedAt: rawState?.updatedAt || new Date().toISOString(),
+    generation: rawState?.generation || Date.now(),
+    columns: Array.isArray(rawState?.columns) && rawState.columns.length ? rawState.columns : COLUMNS,
+    availableLabels,
+    selectedLabels: normalizeLabelList(rawState?.selectedLabels).filter((label) => availableLabels.includes(label)),
+    issues,
+  };
+}
+
+function loadState(repo) {
   try {
-    return JSON.parse(fs.readFileSync(getStatePath(), "utf8"));
+    return JSON.parse(fs.readFileSync(getStatePath(repo), "utf8"));
   } catch {
     return null;
   }
 }
 
 function saveState(state) {
-  ensureStateDirectory();
-  fs.writeFileSync(getStatePath(), JSON.stringify({ ...state, updatedAt: new Date().toISOString() }, null, 2));
+  ensureStateDirectory(state.repo);
+  fs.writeFileSync(
+    getStatePath(state.repo),
+    JSON.stringify({ ...state, updatedAt: new Date().toISOString() }, null, 2),
+  );
 }
 
 function currentState() {
-  const state = loadState();
-  if (state) return state;
-  const initial = defaultState();
-  saveState(initial);
-  return initial;
+  const repoInfo = getRepoInfo();
+  const loaded = loadState(repoInfo.repo);
+  const normalized = normalizeState(loaded || defaultState(repoInfo), repoInfo);
+  if (!loaded) saveState(normalized);
+  return normalized;
 }
 
 // ─── Issue operations ───
@@ -142,16 +226,18 @@ function moveIssue(issueNumber, column) {
   if (!issue) {
     throw new CanvasError("not_found", `Issue #${issueNumber} not found on the board`);
   }
+
   const prevColumn = issue.column;
   issue.column = column;
   issue.order = state.issues.filter((i) => i.column === column).length;
-  // Clear agent status when moved to done or backlog
+
   if (column === "done" || column === "backlog") {
     issue.agentActive = false;
     issue.agentStatus = column === "done" ? "Complete" : "";
   }
+
   saveState(state);
-  broadcast("state", currentState());
+  broadcast("state", state);
   return { issue, prevColumn };
 }
 
@@ -161,10 +247,9 @@ function updateIssueStatus(issueNumber, status, logEntry) {
   if (!issue) {
     throw new CanvasError("not_found", `Issue #${issueNumber} not found on the board`);
   }
-  // Don't update agent status on issues that have been reset to backlog
-  if (issue.column === "backlog") {
-    return issue;
-  }
+
+  if (issue.column === "backlog") return issue;
+
   if (status !== undefined) issue.agentStatus = status;
   if (logEntry) {
     if (!issue.logs) issue.logs = [];
@@ -172,7 +257,7 @@ function updateIssueStatus(issueNumber, status, logEntry) {
   }
   issue.agentActive = true;
   saveState(state);
-  broadcast("state", currentState());
+  broadcast("state", state);
   return issue;
 }
 
@@ -182,35 +267,184 @@ function clearAgentStatus(issueNumber) {
   if (!issue) return;
   issue.agentActive = false;
   saveState(state);
-  broadcast("state", currentState());
+  broadcast("state", state);
 }
 
 function replaceIssues(issues) {
   const existing = currentState();
   const existingByNumber = new Map(existing.issues.map((i) => [i.number, i]));
+
+  const nextIssues = (Array.isArray(issues) ? issues : [])
+    .filter((i) => i && Number.isInteger(i.number) && i.title)
+    .map((issue, idx) => {
+      const prev = existingByNumber.get(issue.number);
+      const labels = Array.isArray(issue.labels)
+        ? issue.labels.map((l) => (typeof l === "string" ? l : l?.name)).filter(Boolean)
+        : [];
+      return {
+        number: issue.number,
+        title: issue.title,
+        url: issue.url || `https://github.com/${existing.repo}/issues/${issue.number}`,
+        labels: normalizeLabelList(labels),
+        column: VALID_COLUMNS.has(issue.column) ? issue.column : prev?.column || "backlog",
+        priority: issue.priority || prev?.priority || "medium",
+        order: Number.isInteger(issue.order) ? issue.order : prev?.order ?? idx,
+        agentStatus: prev?.agentStatus || "",
+        agentActive: Boolean(prev?.agentActive),
+        logs: Array.isArray(prev?.logs) ? prev.logs : [],
+      };
+    });
+
+  const availableLabels = computeAvailableLabels(nextIssues);
   const next = {
     ...existing,
-    issues: issues
-      .filter((i) => i && Number.isInteger(i.number) && i.title)
-      .map((issue, idx) => {
-        const prev = existingByNumber.get(issue.number);
-        const labels = Array.isArray(issue.labels)
-          ? issue.labels.map((l) => (typeof l === "string" ? l : l.name)).filter(Boolean)
-          : [];
-        return {
-          number: issue.number,
-          title: issue.title,
-          url: issue.url || `https://github.com/sethjuarez/SignalBox/issues/${issue.number}`,
-          labels,
-          column: VALID_COLUMNS.has(issue.column) ? issue.column : prev?.column || "backlog",
-          priority: issue.priority || prev?.priority || "medium",
-          order: Number.isInteger(issue.order) ? issue.order : prev?.order ?? idx,
-        };
-      }),
+    issues: nextIssues,
+    availableLabels,
+    selectedLabels: normalizeLabelList(existing.selectedLabels).filter((label) => availableLabels.includes(label)),
+    error: getRepoInfo().error,
   };
   saveState(next);
-  broadcast("state", currentState());
-  return currentState();
+  broadcast("state", next);
+  return next;
+}
+
+function setSelectedLabels(labels) {
+  const state = currentState();
+  state.selectedLabels = normalizeLabelList(labels).filter((label) => state.availableLabels.includes(label));
+  saveState(state);
+  broadcast("state", state);
+  return state;
+}
+
+function resetBoard() {
+  const state = currentState();
+  const reset = {
+    ...state,
+    selectedLabels: [],
+    issues: state.issues.map((issue, idx) => ({
+      ...issue,
+      column: "backlog",
+      order: idx,
+      agentStatus: "",
+      agentActive: false,
+      logs: [],
+    })),
+  };
+  saveState(reset);
+  broadcast("state", reset);
+  return reset;
+}
+
+// ─── GitHub issue sync ───
+
+function resolveGitHubToken(cwd = getWorkspaceCwd()) {
+  if (githubTokenCache !== undefined) return githubTokenCache;
+  githubTokenCache = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || runCommand("gh", ["auth", "token"], cwd) || "";
+  return githubTokenCache;
+}
+
+function mapGitHubIssue(issue) {
+  return {
+    number: issue.number,
+    title: issue.title,
+    url: issue.html_url,
+    labels: (issue.labels || []).map((label) => (typeof label === "string" ? label : label.name)).filter(Boolean),
+  };
+}
+
+async function fetchOpenIssues(repo) {
+  if (!repo || repo === "unknown/unknown") {
+    throw new CanvasError("repo_unavailable", "Current repository could not be detected.");
+  }
+
+  const [owner, repoName] = repo.split("/");
+  const token = resolveGitHubToken();
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "User-Agent": "repository-issues-kanban",
+  };
+  if (token) headers.Authorization = `token ${token}`;
+
+  const allIssues = [];
+  let page = 1;
+  while (page <= 10) {
+    const params = new URLSearchParams({
+      state: "open",
+      per_page: "100",
+      page: String(page),
+    });
+
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repoName}/issues?${params}`, { headers });
+    if (!response.ok) {
+      const body = await response.text();
+      throw new CanvasError("github_api_error", `GitHub API request failed (${response.status}): ${body.slice(0, 200)}`);
+    }
+
+    const pageItems = await response.json();
+    const mapped = pageItems
+      .filter((item) => !item.pull_request)
+      .map(mapGitHubIssue);
+    allIssues.push(...mapped);
+
+    if (pageItems.length < 100) break;
+    page += 1;
+  }
+
+  return allIssues;
+}
+
+function mergeFetchedIssues(existingState, fetchedIssues) {
+  const existingByNumber = new Map(existingState.issues.map((issue) => [issue.number, issue]));
+
+  const mergedIssues = fetchedIssues.map((issue, idx) => {
+    const prev = existingByNumber.get(issue.number);
+    return {
+      number: issue.number,
+      title: issue.title,
+      url: issue.url || `https://github.com/${existingState.repo}/issues/${issue.number}`,
+      labels: normalizeLabelList(issue.labels),
+      column: VALID_COLUMNS.has(prev?.column) ? prev.column : "backlog",
+      priority: prev?.priority || "medium",
+      order: Number.isInteger(prev?.order) ? prev.order : idx,
+      agentStatus: prev?.agentStatus || "",
+      agentActive: Boolean(prev?.agentActive),
+      logs: Array.isArray(prev?.logs) ? prev.logs : [],
+    };
+  });
+
+  const availableLabels = computeAvailableLabels(mergedIssues);
+  return {
+    ...existingState,
+    issues: mergedIssues,
+    availableLabels,
+    selectedLabels: normalizeLabelList(existingState.selectedLabels).filter((label) => availableLabels.includes(label)),
+    error: getRepoInfo().error,
+  };
+}
+
+async function refreshIssuesSafe() {
+  const state = currentState();
+  if (state.repo === "unknown/unknown") {
+    saveState(state);
+    broadcast("state", state);
+    return state;
+  }
+
+  try {
+    const fetchedIssues = await fetchOpenIssues(state.repo);
+    const merged = mergeFetchedIssues(state, fetchedIssues);
+    saveState(merged);
+    broadcast("state", merged);
+    return merged;
+  } catch (error) {
+    const failed = {
+      ...state,
+      error: error instanceof Error ? error.message : String(error),
+    };
+    saveState(failed);
+    broadcast("state", failed);
+    return failed;
+  }
 }
 
 // ─── SSE ───
@@ -252,7 +486,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && url.pathname === "/api/state") {
-    json(res, 200, currentState());
+    json(res, 200, await refreshIssuesSafe());
     return;
   }
 
@@ -260,18 +494,11 @@ const server = http.createServer(async (req, res) => {
     const input = await readJson(req);
     const { issue, prevColumn } = moveIssue(input.issue_number, input.column);
 
-    // When an issue moves INTO "plan", send a prompt to the agent
     if (input.column === "plan" && prevColumn !== "plan") {
-      if (issue.number === 35) {
-        // Fast path for demo — issue 35 is trivial, skip full analysis
-        session.send({
-          prompt: `The accessibility kanban board just moved issue #35 ("Add aria-hidden to decorative SVG icons in AuthPage") into the Plan column. This is a simple fix — just add aria-hidden="true" to the two decorative blur divs and the Microsoft logo SVG in src/components/AuthPage.tsx. Use the kanban_update_status tool to post a brief status update ("Analyzing..."), then after a moment post the plan summary, then move the issue to "ready" using kanban_move_issue. Keep it quick — no need to read the GitHub issue or deeply analyze the codebase. The plan is: add aria-hidden="true" to lines ~47-48 (decorative background circles) and the SVG element at lines ~6-17.`,
-        });
-      } else {
-        session.send({
-          prompt: `The accessibility kanban board just moved issue #${issue.number} ("${issue.title}") into the Plan column. Please start planning the implementation for this issue in a background agent. Read the issue details from GitHub, analyze the codebase to understand what needs to change, and produce a concrete implementation plan. When planning is complete, move the issue to "ready" on the canvas using the move_issue canvas action.`,
-        });
-      }
+      const repo = currentState().repo;
+      session.send({
+        prompt: `The Repository Issues Kanban just moved issue #${issue.number} ("${issue.title}") in ${repo} into the Plan column. Start planning the implementation for this issue in a background agent. Read the GitHub issue details, analyze the repository, and produce a concrete implementation plan. Use the kanban_update_status tool to post progress and then move the issue to "ready" with kanban_move_issue when planning is complete.`,
+      });
     }
 
     json(res, 200, { issue, state: currentState() });
@@ -286,20 +513,28 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/filters") {
+    const input = await readJson(req);
+    const state = setSelectedLabels(input.labels);
+    json(res, 200, state);
+    return;
+  }
+
   if (req.method === "GET" && url.pathname.startsWith("/api/logs/")) {
     const num = parseInt(url.pathname.split("/").pop(), 10);
     const state = currentState();
     const issue = state.issues.find((i) => i.number === num);
-    if (!issue) { json(res, 404, { error: "not found" }); return; }
+    if (!issue) {
+      json(res, 404, { error: "not found" });
+      return;
+    }
     json(res, 200, { issue_number: num, title: issue.title, logs: issue.logs || [] });
     return;
   }
 
   if (req.method === "POST" && url.pathname === "/api/reset") {
-    const s = defaultState();
-    saveState(s);
-    broadcast("state", currentState());
-    json(res, 200, currentState());
+    resetBoard();
+    json(res, 200, await refreshIssuesSafe());
     return;
   }
 
@@ -314,26 +549,28 @@ const server = http.createServer(async (req, res) => {
 });
 
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-function getPort() { return server.address().port; }
+function getPort() {
+  return server.address().port;
+}
 
 // ─── Canvas declaration ───
 
 const canvas = createCanvas({
   id: "accessibility-kanban",
-  displayName: "Accessibility Kanban",
-  description: "Kanban board for triaging open SignalBox accessibility issues into backlog, plan, ready, implement, and done lanes. Moving an issue to plan triggers a background planning agent.",
+  displayName: "Repository Issues Kanban",
+  description: "Kanban board for triaging open issues from the current repository into backlog, plan, ready, implement, and done lanes.",
   actions: [
     {
       name: "get_state",
-      description: "Get the current Kanban board state including all issues and their columns.",
+      description: "Get the current board state including open repository issues and selected label filters.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      handler() {
-        return currentState();
+      async handler() {
+        return refreshIssuesSafe();
       },
     },
     {
       name: "move_issue",
-      description: "Move an issue to a different column on the Kanban board.",
+      description: "Move an issue to a different column on the kanban board.",
       inputSchema: {
         type: "object",
         properties: {
@@ -350,7 +587,7 @@ const canvas = createCanvas({
     },
     {
       name: "refresh_issues",
-      description: "Replace the board with fresh issue data supplied by the agent.",
+      description: "Replace the board with issue data supplied by the agent.",
       inputSchema: {
         type: "object",
         properties: {
@@ -362,7 +599,15 @@ const canvas = createCanvas({
                 number: { type: "number" },
                 title: { type: "string" },
                 url: { type: "string" },
-                labels: { type: "array", items: { oneOf: [{ type: "string" }, { type: "object", properties: { name: { type: "string" } }, required: ["name"] }] } },
+                labels: {
+                  type: "array",
+                  items: {
+                    oneOf: [
+                      { type: "string" },
+                      { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
+                    ],
+                  },
+                },
                 column: { type: "string", enum: COLUMNS },
                 priority: { type: "string" },
                 order: { type: "number" },
@@ -380,24 +625,37 @@ const canvas = createCanvas({
       },
     },
     {
+      name: "set_filters",
+      description: "Set selected label filters (OR semantics).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          labels: { type: "array", items: { type: "string" } },
+        },
+        required: ["labels"],
+        additionalProperties: false,
+      },
+      handler({ input }) {
+        return setSelectedLabels(input.labels);
+      },
+    },
+    {
       name: "reset_state",
-      description: "Reset the board to the default issue list with everything in backlog.",
+      description: "Reset all cards to backlog and clear label filters, then refresh from live repo issues.",
       inputSchema: { type: "object", properties: {}, additionalProperties: false },
-      handler() {
-        const s = defaultState();
-        saveState(s);
-        broadcast("state", currentState());
-        return currentState();
+      async handler() {
+        resetBoard();
+        return refreshIssuesSafe();
       },
     },
   ],
-  open() {
-    const state = currentState();
+  async open() {
+    const state = await refreshIssuesSafe();
     broadcast("state", state);
     return {
       url: `http://127.0.0.1:${getPort()}`,
-      title: "Accessibility Kanban",
-      status: `${state.issues.length} issues across ${COLUMNS.length} columns`,
+      title: "Repository Issues Kanban",
+      status: `${state.issues.length} open issues in ${state.repo}`,
     };
   },
 });
@@ -409,7 +667,7 @@ const session = await joinSession({
   tools: [
     {
       name: "kanban_move_issue",
-      description: "Move an issue on the accessibility Kanban board to a new column (backlog, plan, ready, implement, done). Use after completing a planning or implementation step to advance the issue.",
+      description: "Move an issue on the repository issues kanban board to a new column (backlog, plan, ready, implement, done).",
       parameters: {
         type: "object",
         properties: {
@@ -425,14 +683,14 @@ const session = await joinSession({
     },
     {
       name: "kanban_update_status",
-      description: "Update the agent status line and log on a Kanban card. Use this to report progress while planning or implementing an issue. The status appears under the card title and a glow indicates active work.",
+      description: "Update the agent status line and log on a kanban card while planning or implementing an issue.",
       parameters: {
         type: "object",
         properties: {
           issue_number: { type: "number", description: "GitHub issue number" },
-          status: { type: "string", description: "Short status text shown on the card (e.g. 'Reading issue...', 'Analyzing codebase...', 'Plan complete')" },
-          log: { type: "string", description: "Detailed log entry appended to the issue's agent log (viewable in modal)" },
-          done: { type: "boolean", description: "Set true to stop the active glow (agent finished working)" },
+          status: { type: "string", description: "Short status text shown on the card." },
+          log: { type: "string", description: "Detailed log entry appended to the issue's agent log." },
+          done: { type: "boolean", description: "Set true to stop the active glow." },
         },
         required: ["issue_number", "status"],
       },
@@ -444,3 +702,5 @@ const session = await joinSession({
     },
   ],
 });
+
+sessionRef = session;
