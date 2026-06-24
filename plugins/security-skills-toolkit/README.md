@@ -63,7 +63,7 @@ If the marketplace is not yet registered, add it first:
 
 ### Use the orchestrator
 
-The toolkit's entry point is the **Security Skills Orchestrator** (`sst-security-skills-orchestrator`) agent. Start `copilot` in your repo and describe a security concern in plain language — Copilot CLI will route to the orchestrator.
+The toolkit's entry point is the `sst-security-skills-orchestrator` agent. Start `copilot` in your repo and describe a security concern in plain language — Copilot CLI will route to the orchestrator.
 
 Example prompts:
 
@@ -87,10 +87,10 @@ My Dockerfile uses a vulnerable base image. Help me plan a safer update.
 I'm not sure what's risky in this repo. Help me find credential or auth issues and plan how to address them.
 ```
 
-You can also reference the **Security Skills Orchestrator** (`sst-security-skills-orchestrator`) agent by name explicitly in your prompt. Example prompt:
+You can also reference the orchestrator by name explicitly in your prompt. Example prompt:
 
 ```text
-Use the Security Skills Orchestrator to help me plan a migration from Azure Storage access keys to managed identity.
+Use the sst-security-skills-orchestrator to help me plan a migration from Azure Storage access keys to managed identity.
 ```
 
 Or browse and pick it from the agent list:
@@ -287,7 +287,7 @@ users actually get them, validate, materialize the plugin, and install it from a
      ```
      /plugin list
      ```
-   - `/agent` lists the **Security Skills Orchestrator** (`sst-security-skills-orchestrator`) agent:
+   - `/agent` lists the `sst-security-skills-orchestrator` agent:
      ```
      /agent
      ```
