@@ -5,6 +5,7 @@ import {
   getInstallDropdownHtml,
   getLastUpdatedHtml,
 } from '../utils';
+import { renderEmptyStateHtml, renderSharedCardHtml } from './card-render';
 
 export interface RenderableInstruction {
   title: string;
@@ -36,12 +37,7 @@ export function renderInstructionsHtml(
   items: RenderableInstruction[]
 ): string {
   if (items.length === 0) {
-    return `
-      <div class="empty-state">
-        <h3>No instructions found</h3>
-        <p>Try adjusting the selected filters.</p>
-      </div>
-    `;
+    return renderEmptyStateHtml('No instructions found', 'Try adjusting the selected filters.');
   }
 
   return items
@@ -50,29 +46,30 @@ export function renderInstructionsHtml(
         ? item.applyTo.join(', ')
         : item.applyTo;
 
-      return `
-        <article class="resource-item" data-path="${escapeHtml(item.path)}" role="listitem">
-          <button type="button" class="resource-preview">
-            <div class="resource-info">
-              <div class="resource-title">${escapeHtml(item.title)}</div>
-              <div class="resource-description">${escapeHtml(item.description || 'No description')}</div>
-              <div class="resource-meta">
-                ${applyToText ? `<span class="resource-tag">applies to: ${escapeHtml(applyToText)}</span>` : ''}
-                ${item.extensions?.slice(0, 4).map((extension) => `<span class="resource-tag tag-extension">${escapeHtml(extension)}</span>`).join('') || ''}
-                ${item.extensions && item.extensions.length > 4 ? `<span class="resource-tag">+${item.extensions.length - 4} more</span>` : ''}
-                ${getLastUpdatedHtml(item.lastUpdated)}
-              </div>
-            </div>
-          </button>
-          <div class="resource-actions">
-            ${getInstallDropdownHtml('instructions', item.path, true)}
-            ${getActionButtonsHtml(item.path, true)}
-            <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary btn-small" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">
-              GitHub
-            </a>
-          </div>
-        </article>
+      const metaHtml = `
+        ${applyToText ? `<span class="resource-tag">applies to: ${escapeHtml(applyToText)}</span>` : ''}
+        ${item.extensions?.slice(0, 4).map((extension) => `<span class="resource-tag tag-extension">${escapeHtml(extension)}</span>`).join('') || ''}
+        ${item.extensions && item.extensions.length > 4 ? `<span class="resource-tag">+${item.extensions.length - 4} more</span>` : ''}
+        ${getLastUpdatedHtml(item.lastUpdated)}
       `;
+
+      const actionsHtml = `
+        ${getInstallDropdownHtml('instructions', item.path, true)}
+        ${getActionButtonsHtml(item.path, true)}
+        <a href="${getGitHubUrl(item.path)}" class="btn btn-secondary btn-small" target="_blank" onclick="event.stopPropagation()" title="View on GitHub">
+          GitHub
+        </a>
+      `;
+
+      return renderSharedCardHtml({
+        title: item.title,
+        description: item.description || 'No description',
+        articleAttributes: {
+          'data-path': item.path,
+        },
+        metaHtml,
+        actionsHtml,
+      });
     })
     .join('');
 }

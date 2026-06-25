@@ -1,10 +1,10 @@
 ---
 import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
-import Modal from '../components/Modal.astro';
 import ContributeCTA from '../components/ContributeCTA.astro';
 import PageHeader from '../components/PageHeader.astro';
 import EmbeddedPageData from '../components/EmbeddedPageData.astro';
 import BackToTop from '../components/BackToTop.astro';
+import Modal from '../components/Modal.astro';
 import hooksData from '../../public/data/hooks.json';
 import { renderHooksHtml, sortHooks } from '../scripts/pages/hooks-render';
 
@@ -12,7 +12,7 @@ const initialItems = sortHooks(hooksData.items, 'title');
 ---
 
 <StarlightPage frontmatter={{ title: 'Hooks', description: 'Automated workflows triggered by Copilot coding agent events', template: 'splash', prev: false, next: false, editUrl: false }}>
-  <div id="main-content">
+  <div id="main-content" class="hooks-page listing-cards-page">
     <PageHeader title="Hooks" description="Automated workflows triggered by Copilot coding agent events" icon="hook" />
 
     <div class="page-content">
@@ -47,8 +47,8 @@ const initialItems = sortHooks(hooksData.items, 'title');
     </div>
   </div>
 
-  <Modal />
   <BackToTop />
+  <Modal />
 
   <EmbeddedPageData filename="hooks.json" data={hooksData} />
   <script>

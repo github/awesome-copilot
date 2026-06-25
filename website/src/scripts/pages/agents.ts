@@ -2,13 +2,16 @@
  * Agents page functionality
  */
 import {
+  escapeHtml,
   fetchData,
+  formatRelativeTime,
   getQueryParam,
-  setupDropdownCloseHandlers,
+  getVSCodeInstallUrl,
   setupActionHandlers,
+  setupDropdownCloseHandlers,
   updateQueryParams,
 } from '../utils';
-import { setupModal, openFileModal } from '../modal';
+import { openCardDetailsModal, setupModal } from '../modal';
 import {
   renderAgentsHtml,
   sortAgents,
@@ -17,6 +20,7 @@ import {
 } from './agents-render';
 
 interface Agent extends RenderableAgent {
+  id?: string;
   lastUpdated?: string | null;
 }
 
@@ -25,8 +29,10 @@ interface AgentsData {
 }
 
 let allItems: Agent[] = [];
+let agentByPath = new Map<string, Agent>();
 let currentSort: AgentSortOption = 'title';
 let resourceListHandlersReady = false;
+let modalReady = false;
 
 function applyFiltersAndRender(): void {
   const countEl = document.getElementById('results-count');
@@ -45,6 +51,70 @@ function renderItems(items: Agent[]): void {
   list.innerHTML = renderAgentsHtml(items);
 }
 
+function openAgentDetailsModal(path: string, trigger?: HTMLElement): void {
+  const item = agentByPath.get(path);
+  if (!item) {
+    return;
+  }
+
+  const metaParts: string[] = [];
+  if (item.model) {
+    metaParts.push(
+      `<span class="resource-tag tag-model">${escapeHtml(
+        Array.isArray(item.model) ? item.model.join(', ') : item.model
+      )}</span>`
+    );
+  }
+
+  if (item.hasHandoffs) {
+    metaParts.push('<span class="resource-tag tag-handoffs">handoffs</span>');
+  }
+
+  if (item.lastUpdated) {
+    metaParts.push(
+      `<span class="last-updated">Updated ${escapeHtml(
+        formatRelativeTime(item.lastUpdated)
+      )}</span>`
+    );
+  }
+
+  const toolItems = item.tools || [];
+  const displayTools = toolItems.slice(0, 24);
+  const tagParts = displayTools.map(
+    (tool) => `<span class="resource-tag">${escapeHtml(tool)}</span>`
+  );
+  if (toolItems.length > displayTools.length) {
+    tagParts.push(
+      `<span class="resource-tag">+${toolItems.length - displayTools.length} more</span>`
+    );
+  }
+
+  const vscodeUrl = getVSCodeInstallUrl('agent', path, false);
+  const insidersUrl = getVSCodeInstallUrl('agent', path, true);
+  const actions = [
+    vscodeUrl
+      ? `<a class="btn btn-primary btn-small" href="${escapeHtml(vscodeUrl)}" target="_blank" rel="noopener noreferrer">Install (VS Code)</a>`
+      : '',
+    insidersUrl
+      ? `<a class="btn btn-secondary btn-small" href="${escapeHtml(insidersUrl)}" target="_blank" rel="noopener noreferrer">Install (Insiders)</a>`
+      : '',
+    `<button class="btn btn-secondary btn-small" type="button" data-open-file-path="${escapeHtml(
+      path
+    )}" data-open-file-type="agent">Source</button>`,
+  ].filter(Boolean);
+
+  openCardDetailsModal({
+    title: item.title,
+    description: item.description || 'No description',
+    previewIcon: '🤖',
+    previewText: 'Agent metadata and install options',
+    metaHtml: metaParts.join(''),
+    tagsHtml: tagParts.join(''),
+    actionsHtml: actions.join(''),
+    trigger,
+  });
+}
+
 function setupResourceListHandlers(list: HTMLElement | null): void {
   if (!list || resourceListHandlersReady) return;
 
@@ -55,9 +125,10 @@ function setupResourceListHandlers(list: HTMLElement | null): void {
     }
 
     const item = target.closest('.resource-item') as HTMLElement | null;
+    const button = item?.querySelector('.resource-preview') as HTMLElement | undefined;
     const path = item?.dataset.path;
     if (path) {
-      openFileModal(path, 'agent');
+      openAgentDetailsModal(path, button);
     }
   });
 
@@ -78,6 +149,11 @@ export async function initAgentsPage(): Promise<void> {
   const list = document.getElementById('resource-list');
   const sortSelect = document.getElementById('sort-select') as HTMLSelectElement;
 
+  if (!modalReady) {
+    setupModal();
+    modalReady = true;
+  }
+
   setupResourceListHandlers(list as HTMLElement | null);
 
   const data = await fetchData<AgentsData>('agents.json');
@@ -87,6 +163,7 @@ export async function initAgentsPage(): Promise<void> {
   }
 
   allItems = data.items;
+  agentByPath = new Map(allItems.map((item) => [item.path, item]));
 
   const initialSort = getQueryParam('sort');
   if (initialSort === 'lastUpdated') {
@@ -101,7 +178,6 @@ export async function initAgentsPage(): Promise<void> {
   });
 
   applyFiltersAndRender();
-  setupModal();
   setupDropdownCloseHandlers();
   setupActionHandlers();
 }
