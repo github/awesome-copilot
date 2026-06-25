@@ -868,7 +868,6 @@ body:has(#main-content) {
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
-  z-index: 1000;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px);
@@ -1875,6 +1874,11 @@ body:has(#main-content) {
   transform: translateX(4px);
   box-shadow: var(--shadow);
   border-radius: 0px var(--border-radius-lg) var(--border-radius-lg) 0px;
+  z-index: 1;
+}
+
+.resource-item:has(.install-dropdown.open) {
+  z-index: 2;
 }
 
 .resource-item:hover::before,
