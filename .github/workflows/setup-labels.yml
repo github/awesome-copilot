@@ -18,7 +18,7 @@ jobs:
               // Intent labels for PR categorization
               'targets-main': {
                 color: 'B60205',
-                description: 'PR targets main instead of staged'
+                description: 'PR targets staged instead of main'
               },
               'branched-main': {
                 color: 'D93F0B',

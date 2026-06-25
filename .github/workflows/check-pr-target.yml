@@ -15,7 +15,7 @@ jobs:
   check-target:
     runs-on: ubuntu-latest
     steps:
-      - name: Reject PR targeting main
+      - name: Reject PR targeting staged
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
         with:
           script: |
@@ -39,16 +39,16 @@ jobs:
 
             const latestBotState = latestBotReview?.state;
 
-            if (pull.base.ref === 'main') {
+            if (pull.base.ref === 'staged') {
               if (latestBotState !== 'CHANGES_REQUESTED') {
                 const requestChangesBody = [
-                  '⚠️ **This PR targets `main`, but PRs should target `staged`.**',
+                  '⚠️ **This PR targets `staged`, but PRs should target `main`.**',
                   '',
-                  'The `main` branch is auto-published from `staged` and should not receive direct PRs.',
-                  'Please close this PR and re-open it against the `staged` branch.',
+                  'The `staged` branch is no longer the contributor branch.',
+                  'Please change the base branch to `main`.',
                   '',
                   'You can change the base branch using the **Edit** button at the top of this PR,',
-                  'or run: `gh pr edit ${{ github.event.pull_request.number }} --base staged`'
+                  'or run: `gh pr edit ${{ github.event.pull_request.number }} --base main`'
                 ].join('\n');
 
                 await github.rest.pulls.createReview({
@@ -67,7 +67,7 @@ jobs:
               const approveBody = [
                 '✅ Base branch is now set correctly.',
                 '',
-                'Removing the prior block because this PR no longer targets `main`.'
+                'Removing the prior block because this PR no longer targets `staged`.'
               ].join('\n');
 
               await github.rest.pulls.createReview({

@@ -30,7 +30,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
 
       - name: Evaluate issue guard rails
         id: guard
@@ -86,7 +86,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
 
       - name: Merge evaluation and sync labels/comments
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0

@@ -7,7 +7,7 @@
 - [ ] The content is clearly structured and follows the example format.
 - [ ] I have tested my instructions, prompt, agent, skill, workflow, or canvas extension with GitHub Copilot.
 - [ ] I have run `npm start` and verified that `README.md` is up to date.
-- [ ] I am targeting the `staged` branch for this pull request.
+- [ ] I am targeting the `main` branch for this pull request.
 
 ---
 

@@ -196,7 +196,7 @@ gh aw compile --validate --no-emit workflows/my-new-workflow.md
 1. Fork the repository and create a new branch
 2. Add your workflow `.md` file to the `workflows/` directory
 3. Run `npm run build` to update the README
-4. Submit a pull request targeting the `staged` branch
+4. Submit a pull request targeting the `main` branch
 
 > **Important:** Only submit the `.md` source file. Do not include compiled `.lock.yml` or `.yml` files — CI will block them.
 
