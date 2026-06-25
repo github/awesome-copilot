@@ -45,6 +45,14 @@ if converged == true:
     call task_complete with proof (HeadOid, LatestCopilotReview.commitOid, submittedAt)
     DONE — exit the loop
 else:
+    # non-converged = a fresh Copilot finding OR an unresolved human thread.
+    # round = how many times step 1 (01-request-review) has fired so far.
+    if round > 0 and round mod 10 == 0:        # 10, 20, 30, ...
+        RUN THE RECAP GATE (see "Round cap & recap gate" below) BEFORE looping:
+            recap ALL prior rounds, then pick CONTINUE / REVERT-AND-SHIP / HAND-OFF.
+            CONTINUE        -> fall through and start another round
+            REVERT-AND-SHIP -> drop drifted commits, ship the in-scope result, exit
+            HAND-OFF        -> escalate to the user with the recap, exit
     GO BACK TO STEP 1 — start another round
     (re-trigger via 01-request-review.ps1, wait via 02-wait,
      list via 03-list-threads, triage, fix, push, reply+resolve,
@@ -52,9 +60,13 @@ else:
 ```
 
 A non-converged result is **never** terminal *on its own* — each round
-addresses Copilot's findings on the previous round's HEAD, and the loop
-terminates only when Copilot has nothing new to say AND every open
-thread has a reply from the agent. But "never terminal" must not be
+addresses the open review feedback on the previous round's HEAD,
+whether that's a **Copilot finding or a human review comment** (this
+skill handles both). The loop terminates only when there are **no new
+review comments from either source** AND **every open thread — Copilot
+or human — has a reply from the agent** (a thread the agent escalated
+to the user counts as replied; it stays open in `OpenThreadCount` as an
+explicit hand-off, not as loop work). But "never terminal" must not be
 read as "infinite": a bot-review loop has no guaranteed fixed point and
 can drift into over-engineering or oscillation. The scripts deliberately
 carry **no max-rounds counter** — capping is a reasoning decision the
@@ -93,6 +105,14 @@ parent agent runs a **recap gate** as reasoning (no script): default
 **STOP at every 10th round** (10, 20, 30, …) **before** looping back to
 step 1, recap all prior rounds, and decide whether the loop is still
 serving the PR's original scope.
+
+A **round** is **one execution of [step 1](01-request-review.md)** —
+i.e., one Copilot-review trigger at the top of the loop. Nothing in the
+scripts tracks this number; the parent agent owns the count in its own
+working context and increments it each time it (re-)requests a review.
+The cap therefore counts **review rounds**, not sub-agent calls, tool
+calls, or individual fix edits — so a round that triages five threads
+still counts as one.
 
 This exists because an unbounded bot-review loop is the failure mode
 this skill was built to survive: a real run drifted for 156 rounds —
