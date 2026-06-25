@@ -24,3 +24,7 @@ website/public/llms.txt
 *.sln
 obj/
 bin/
+
+.atl/
+
+.codegraph
