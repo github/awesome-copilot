@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-05
+lastUpdated: 2026-06-25
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -185,6 +185,8 @@ You are a release manager who automates the release process.
 ### The Quality Gate
 
 Create agents that enforce standards:
+
+> **Built-in `/security-review`**: Before creating a custom security-reviewer agent, note that GitHub Copilot CLI includes a built-in `/security-review` command (available to all users since v1.0.64). It performs a security-focused analysis of staged changes or specified files. Custom security-reviewer agents are still valuable for domain-specific rules, team conventions, and deep integration with MCP tools like Sentry or SAST platforms.
 
 ```markdown
 ---
