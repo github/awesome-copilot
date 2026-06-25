@@ -49,6 +49,57 @@ Use these generic, cliche substitutes in all documentation and examples:
 | **File paths** | `accounts/acme.mjs`, `config/reports.json` |
 | **Project names** | My Project, Sample App, Demo Tool |
 
+## Match the Placeholder to the Context
+
+A placeholder is only correct if it is **plausible in the surrounding context**. A generic name that violates OS conventions, tooling norms, or the workflow being described is just as misleading as a real value. Pick substitutes that fit the platform, the tool, and the role the value plays.
+
+### Choose Paths That Match the Platform
+
+| OS / context | Use | Avoid |
+| --- | --- | --- |
+| Windows, per-user data | `C:\Users\<user>\AppData\Local\AcmeApp\` | `/home/user/...`, `~/.config/...` |
+| Windows, per-machine shared data | `C:\ProgramData\AcmeApp\` | `C:\Users\<user>\...` |
+| Windows, temporary | `%TEMP%\acme\` or `C:\Users\<user>\AppData\Local\Temp\acme\` | `/tmp/acme/` |
+| POSIX, per-user data | `~/.config/acme/`, `~/.local/share/acme/` | `C:\Users\<user>\...` |
+| POSIX, temporary | `/tmp/acme/` | `%TEMP%\acme\` |
+| Cross-platform examples | Show both, or use `<config-dir>/acme/` | Picking one silently |
+
+When the surrounding text or code is OS-specific (a `.bat` file, a `.jsx` running on Windows, a `bash` snippet), the path placeholder must match that OS. When the docs are platform-neutral, either show both forms or use a clearly abstract token (`<install-dir>`, `<config-dir>`).
+
+### Match the Scope to the Workflow
+
+The placeholder must sit in a location that makes sense for the kind of data it represents:
+
+| Data role | Plausible placeholder location |
+| --- | --- |
+| Per-user logs and runtime output | User-profile folder (`C:\Users\<user>\AppData\Local\<App>\logs\`, `~/.local/state/<app>/`) |
+| Per-user settings | User config folder (`%APPDATA%\<App>\`, `~/.config/<app>/`) |
+| Machine-wide shared state | `C:\ProgramData\<App>\`, `/var/lib/<app>/` |
+| Project-local working files | Repository-relative paths (`./build/`, `./tmp/`) |
+| Generated output artifacts | Project output folder (`./dist/`, `./out/`) |
+
+A user-driven script that writes a debug log should not place that log in `C:\ProgramData\…` (machine-shared); a service that maintains shared state should not place it in `~/.config/…` (per-user). Pick the location a real implementation of that role would pick.
+
+### Match the Identifier to the Domain
+
+When the example uses an identifier (account name, project name, dataset key), choose a placeholder consistent with the surrounding domain vocabulary.
+
+- A CRM example: `acme-corp`, `northwind-traders`.
+- A geographic dataset example: `springfield`, `region-west`.
+- A developer tooling example: `demo-app`, `sample-project`.
+
+Do not mix domains (`acme-corp` inside a geographic-data example reads as wrong even though both names are approved generically).
+
+### Self-Check
+
+Before committing a placeholder, ask:
+
+- Does the path syntax match the OS shown in the same code block?
+- Does the location match the **role** of the data (user vs. machine, runtime vs. config, local vs. shared)?
+- Does the identifier match the **domain** of the surrounding example?
+
+If any answer is no, swap the placeholder for one that fits.
+
 ## How to Apply This Rule
 
 ### When Adding a Feature

@@ -42,27 +42,7 @@ jobs:
               }
             };
 
-            async function ensureLabel(name, { color, description }) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color,
-                  description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function syncManagedLabels(issueNumber, desiredLabels) {
-              await Promise.all(
-                Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config))
-              );
-
               const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -214,7 +194,7 @@ jobs:
               exitCode !== '0'
                 ? '> **Note:** The validator returned a non-zero exit code. Please review the findings above before merge.'
                 : '',
-            ].filter(Boolean).join('\n');
+            ].join('\n');
 
             // Find existing comment with our marker
             const { data: comments } = await github.rest.issues.listComments({

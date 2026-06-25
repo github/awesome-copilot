@@ -1,6 +1,6 @@
 ---
 name: x-twitter-scraper
-description: 'Build GitHub Copilot workflows with Xquik X API SDKs, REST endpoints, MCP tools, signed webhooks, tweet search, user lookup, follower exports, media actions, and agent automation.'
+description: 'Build GitHub Copilot workflows with Xquik X API SDKs, REST endpoints, MCP tools, TweetClaw OpenClaw plugin installs, signed webhooks, tweet search, user lookup, follower exports, media actions, and agent automation.'
 ---
 
 # X Twitter Scraper
@@ -15,6 +15,7 @@ Use this skill when a user wants to integrate Xquik into an app, script, data pi
 - Create account monitors and verify HMAC-signed webhook events.
 - Add TypeScript, Python, Go, Java, Kotlin, C#, Ruby, PHP, CLI, or Terraform clients.
 - Connect agent runtimes through the Xquik MCP server.
+- Install TweetClaw when the workflow belongs inside OpenClaw and needs plugin-managed approvals for X account actions.
 
 ## Source Checks
 
@@ -23,15 +24,17 @@ Before writing code, inspect the current Xquik source material:
 - REST API docs: https://docs.xquik.com/api-reference/overview
 - SDK index: https://docs.xquik.com/sdks
 - OpenAPI spec: https://xquik.com/openapi.json
-- MCP server docs: https://docs.xquik.com/mcp
+- MCP server docs: https://docs.xquik.com/mcp/overview
 - Skill repo: https://github.com/Xquik-dev/x-twitter-scraper
+- TweetClaw OpenClaw plugin: https://github.com/Xquik-dev/tweetclaw
+- TweetClaw npm registry metadata: https://registry.npmjs.org/@xquik%2Ftweetclaw
 
 Do not invent endpoint names, request fields, response fields, scopes, pricing, limits, or package names. Read the relevant SDK README and API reference page first.
 
 ## Implementation Flow
 
 1. Identify the workflow: search, lookup, extraction, monitor, webhook, media, write action, billing, or MCP.
-2. Choose the integration surface: generated SDK for application code, REST for custom clients, MCP for agents, or webhooks for event delivery.
+2. Choose the integration surface: generated SDK for application code, REST for custom clients, MCP for agents, TweetClaw for OpenClaw plugin workflows, or webhooks for event delivery.
 3. Confirm authentication requirements from the docs and use environment variables for API keys.
 4. Use typed request and response models when an SDK exists for the user's language.
 5. Add retries and pagination according to the SDK or API docs.
@@ -64,6 +67,14 @@ When adding webhook handlers:
 ## MCP Pattern
 
 Use the MCP server when the user wants an agent to explore or call Xquik tools directly. Keep application code on REST or SDK clients when the app needs stable typed contracts, tests, or internal abstractions.
+
+## OpenClaw Plugin Pattern
+
+Use TweetClaw when the user is working in OpenClaw, wants installable plugin metadata, or needs an approval-reviewed path for account-changing X actions. Keep application services on REST or SDK clients when the project needs typed contracts, server-side abstractions, or long-lived backend jobs outside OpenClaw.
+
+Before suggesting install commands or tool names, read the TweetClaw README and package metadata. Do not assume the published npm version matches source HEAD.
+
+Treat create, reply, quote, like, bookmark, retweet, follow, delete, media, and monitor actions as approval-worthy unless the current TweetClaw docs state a narrower policy. Keep read-only tweet search, reply search, profile lookup, follower export, and evidence collection low risk, while still respecting rate limits and account authorization.
 
 ## Safety And Accuracy
 

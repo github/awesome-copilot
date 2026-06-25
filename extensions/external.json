@@ -1,0 +1,25 @@
+[
+  {
+    "id": "coffilot",
+    "name": "Coffilot",
+    "description": "Java-focused Copilot canvas extension from jdubois.",
+    "keywords": [
+      "java",
+      "canvas",
+      "productivity"
+    ],
+    "screenshots": {
+      "icon": {
+        "path": "extensions/external-assets/coffilot-preview.png",
+        "type": "image/png"
+      },
+      "gallery": {
+        "path": "extensions/external-assets/coffilot-preview.png",
+        "type": "image/png"
+      }
+    },
+    "installUrl": "https://github.com/jdubois/coffilot",
+    "sourceUrl": "https://github.com/jdubois/coffilot",
+    "imagePath": "extensions/external-assets/coffilot-preview.png"
+  }
+]

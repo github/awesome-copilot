@@ -2,7 +2,7 @@ name: Build Website
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     paths:
       - website
       - agents

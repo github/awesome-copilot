@@ -3,7 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-08
+lastUpdated: 2026-06-19
 ---
 
 ![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
@@ -430,6 +430,7 @@ Copilot will scan your project and create tailored instruction files. You can ed
 | `AGENTS.md` | Project root or nested | **Cross-platform standard** - works with Copilot and other AI assistants |
 | `.github/copilot-instructions.md` | Project | GitHub Copilot specific |
 | `.github/instructions/*.instructions.md` | Project | Granular, topic-specific instructions |
+| `~/.copilot/instructions/**/*.instructions.md` | User (all projects) | Personal instructions that apply everywhere, across all your repos |
 | `CLAUDE.md`, `GEMINI.md` | Project root | Supported for compatibility |
 
 > 🎯 **Just getting started?** Use `AGENTS.md` for project instructions. You can explore the other formats later as needed.

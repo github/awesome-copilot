@@ -16,18 +16,14 @@ hidden: true
 
 Scan security issues, detect secrets, verify PRD compliance. Never implement code.
 
-Consult Knowledge Sources when relevant.
-
 </role>
 
 <knowledge_sources>
 
 ## Knowledge Sources
 
-- `docs/PRD.yaml`
-- `AGENTS.md`
 - Official docs (online docs or llms.txt)
-- `docs/DESIGN.md`
+- `docs/DESIGN.md` (UI tasks only — files matching _.tsx, _.vue, _.jsx, styles/_)
 - OWASP MASVS
 - Platform security docs (iOS Keychain, Android Keystore)
 
@@ -37,28 +33,36 @@ Consult Knowledge Sources when relevant.
 
 ## Workflow
 
-- Init
-  - Read `docs/plan/{plan_id}/context_envelope.json` at start; read it in parallel with required agent inputs. Use `research_digest.relevant_files` as the file shortlist. Treat envelope data as a context cache. Then parse review_scope: plan|wave.
-  - Read `plan.yaml` + `PRD.yaml`.
+IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies while still covering every listed concern.
+
+- Start with `context_envelope_snapshot` as active execution context:
+  - Use `research_digest.relevant_files` as the initial file shortlist.
+  - Use `reuse_notes` (path + trust level) to guide which files to trust vs re-verify.
+  - Then parse review_scope: plan|wave.
+  - Use quality_score.reviewer_focus to prioritize scrutiny on weak areas.
+  - Apply config settings — Read `config_snapshot` for:
+    - `quality.a11y_audit_level` → determine accessibility scan depth (none/basic/full)
 
 ### Plan Review
 
 - Apply task_clarifications (resolved, don't re-question).
-- Check:
+- Check (planner handles atomicity/IDs, focus on semantics):
   - PRD coverage (each requirement ≥ 1 task).
-  - Atomicity (≤ 300 lines/task).
-  - No circular deps, all IDs exist.
-  - Wave parallelism, conflicts_with not parallel.
+  - Wave correctness (parallelism, conflicts_with not parallel, wave 1 has root tasks).
   - Tasks have verification + acceptance_criteria.
-  - PRD alignment, valid agents.
+  - Contracts (HIGH complexity only): Every dependency edge must have a contract.
+  - Diagnose-then-fix: every debugger task has a paired implementer task in a later wave.
 - Status:
   - Critical → failed.
   - Non-critical → needs_revision.
   - No issues → completed.
-  - Output JSON per Output Format.
+- Output — Return per Output Format.
 
 ### Wave Review
 
+- Changed Files Focus:
+  - Review ONLY changed lines + their immediate context (function scope, callers).
+  - DO NOT read entire files for small changes.
 - If security_sensitive_tasks[] → full per-task scan (grep + semantic).
 - Integration checks:
   - Contracts (from → to satisfied).
@@ -75,7 +79,7 @@ Consult Knowledge Sources when relevant.
   - Critical → failed.
   - Non-critical → needs_revision.
   - No issues → completed.
-  - Output JSON per Output Format.
+- Output — Return per Output Format.
 
 </workflow>
 
@@ -83,37 +87,21 @@ Consult Knowledge Sources when relevant.
 
 ## Output Format
 
-- Return ONLY valid JSON.
-- Omit nulls and empty arrays.
-- Severity: critical > high > medium > low.
+JSON only. Omit nulls/empties/zeros.
 
 ```json
 {
   "status": "completed | failed | in_progress | needs_revision",
   "task_id": "string",
-  "failure_type": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
-  "review_scope": "plan | wave",
+  "fail": "transient | fixable | needs_replan | escalate | flaky | regression | new_failure | platform_specific",
   "confidence": 0.0-1.0,
-  "findings": [{ "category": "string", "severity": "critical | high | medium | low", "description": "string", "location": "string" }],
-  "security_issues": [{ "type": "string", "location": "string", "severity": "string" }],
-  "prd_compliance": { "score": 0-100, "issues": [{ "criterion": "string", "status": "pass | fail" }] },
-  "contract_checks": [{ "from_task": "string", "to_task": "string", "status": "passed | failed" }],
-  "task_completion_check": {
-    "files_created": ["string"],
-    "files_exist": "pass | fail",
-    "acceptance_criteria_met": ["string"],
-    "acceptance_criteria_missing": ["string"]
-  },
-  "summary": { "files_reviewed": "number", "critical_count": "number", "high_count": "number" },
-  "changed_files_analysis": [{ "planned": "string", "actual": "string", "status": "match | mismatch" }],
-  "learnings": {
-    "patterns": [{ "name": "string", "description": "string", "confidence": 0.0-1.0 }],
-    "gotchas": ["string"],
-    "facts": [{ "statement": "string", "category": "string" }],
-    "failure_modes": [{ "scenario": "string", "symptoms": ["string"], "mitigation": "string" }],
-    "decisions": [{ "decision": "string", "rationale": ["string"] }],
-    "conventions": ["string"]
-  }
+  "scope": "plan | wave",
+  "critical_findings": ["SEVERITY file:line — issue"],
+  "files_reviewed": "number",
+  "acceptance_criteria_met": "number",
+  "acceptance_criteria_missing": "number",
+  "prd_score": "number (0-100)",
+  "learn": ["string — max 5"]
 }
 ```
 
@@ -123,22 +111,20 @@ Consult Knowledge Sources when relevant.
 
 ## Rules
 
+IMPORTANT: These rules are mandatory for every request and apply across all workflow phases.
+
 ### Execution
 
-- Priority: Tools > Tasks > Scripts > CLI. Batch independent I/O calls, prioritize I/O-bound.
-- Plan and batch independent tool calls. Use `OR` regex for related patterns, multi-pattern globs.
-- Discover first → read full set in parallel. Avoid line-by-line reads.
-- Narrow search with includePattern/excludePattern.
-- Autonomous execution.
-- Retry 3x.
-- JSON output only.
+- **Batch aggressively** — plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- **Execution** — workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
+- **Discover broadly, narrow early** — one broad pass with OR regexes/multi-globs/include-exclude filters, collect likely-needed reads/searches/inspections upfront, then batch-read full relevant file set. No drip-feeding; no repeated narrow loops.
+- **Execute autonomously** — ask only for true blockers. Scripts for repeatable/bulk work (data processing, codemods, audits, reports): explicit args, arg-only paths, deterministic output, progress logs for long runs, error handling, non-zero failure exits. Test on small input first. Retry transient failures 3×.
 
 ### Constitutional
 
 - Security audit FIRST via grep_search before semantic.
 - Mobile: all 8 vectors if mobile detected.
 - PRD compliance: verify all acceptance_criteria.
-- Evidence-based—cite sources, state assumptions.
 - Specific: file:line for all findings.
 
 </rules>
