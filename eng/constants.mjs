@@ -180,8 +180,12 @@ const vscodeInstallImage =
 const vscodeInsidersInstallImage =
   "https://img.shields.io/badge/VS_Code_Insiders-Install-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white";
 
-const repoBaseUrl =
-  "https://raw.githubusercontent.com/github/awesome-copilot/main";
+const SOURCE_CONTENT_BRANCH = "main";
+const PUBLISHED_ARTIFACT_BRANCH = "marketplace";
+const sourceContentBaseUrl =
+  `https://raw.githubusercontent.com/github/awesome-copilot/${SOURCE_CONTENT_BRANCH}`;
+const publishedArtifactBaseUrl =
+  `https://raw.githubusercontent.com/github/awesome-copilot/${PUBLISHED_ARTIFACT_BRANCH}`;
 
 const AKA_INSTALL_URLS = {
   instructions: "https://aka.ms/awesome-copilot/install/instructions",
@@ -218,13 +222,16 @@ export {
   INSTRUCTIONS_DIR,
   MAX_PLUGIN_ITEMS,
   PLUGINS_DIR,
-  repoBaseUrl,
+  PUBLISHED_ARTIFACT_BRANCH,
   ROOT_FOLDER,
+  SOURCE_CONTENT_BRANCH,
   SKILL_DESCRIPTION_MAX_LENGTH,
   SKILL_DESCRIPTION_MIN_LENGTH,
   SKILL_NAME_MAX_LENGTH,
   SKILL_NAME_MIN_LENGTH,
   SKILLS_DIR,
+  sourceContentBaseUrl,
+  publishedArtifactBaseUrl,
   TEMPLATES,
   vscodeInsidersInstallImage,
   vscodeInstallImage,
