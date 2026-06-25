@@ -1,6 +1,6 @@
 ---
 name: pptx-denote
-description: A skill that allows you to remove all the slide notes in a PowerPoint presentation using the `python-pptx` library.
+description: A skill that allows you to remove all the slide notes in a PowerPoint presentation using the 'python-pptx' library.
 ---
 
 # Remove slide notes from a PowerPoint presentation
