@@ -46,8 +46,10 @@ if converged == true:
     DONE — exit the loop
 else:
     # non-converged = a fresh Copilot finding OR an unresolved human thread.
-    # round = how many times step 1 (01-request-review) has fired so far.
-    if round > 0 and round mod 10 == 0:        # 10, 20, 30, ...
+    # round = count of Copilot review submissions in the PR's history,
+    #         read deterministically from the API (NOT a mental tally):
+    #             pwsh ./scripts/09-review-round.ps1 -PrNumber <n>   -> {Round, RecapDue}
+    if RecapDue == true:                        # Round is 10, 20, 30, ...
         RUN THE RECAP GATE (see "Round cap & recap gate" below) BEFORE looping:
             recap ALL prior rounds, then pick CONTINUE / REVERT-AND-SHIP / HAND-OFF.
             CONTINUE        -> fall through and start another round
@@ -68,10 +70,13 @@ or human — has a reply from the agent** (a thread the agent escalated
 to the user counts as replied; it stays open in `OpenThreadCount` as an
 explicit hand-off, not as loop work). But "never terminal" must not be
 read as "infinite": a bot-review loop has no guaranteed fixed point and
-can drift into over-engineering or oscillation. The scripts deliberately
-carry **no max-rounds counter** — capping is a reasoning decision the
-parent owns at the [round-cap recap gate](#round-cap--recap-gate-circuit-breaker)
-below (and oscillation — the same finding re-raised across rounds — is
+can drift into over-engineering or oscillation. No script *enforces* a
+cap or stops the loop — capping is a reasoning decision the parent owns
+at the [round-cap recap gate](#round-cap--recap-gate-circuit-breaker)
+below. What *is* scripted is the round **count** itself
+([09-review-round.ps1](#round-cap--recap-gate-circuit-breaker)), so the
+gate's trigger is deterministic rather than a fallible mental tally
+(and oscillation — the same finding re-raised across rounds — is
 broken earlier per
 [04-triage.md](04-triage.md#conflicting-comments--break-oscillation-early)).
 
@@ -99,20 +104,34 @@ the convergence proof.
 
 ## Round cap & recap gate (circuit breaker)
 
-The loop has no built-in max-rounds counter on purpose — a hard number
-can't tell a *productive* round from a *drifting* one. Instead the
-parent agent runs a **recap gate** as reasoning (no script): default
-**STOP at every 10th round** (10, 20, 30, …) **before** looping back to
-step 1, recap all prior rounds, and decide whether the loop is still
-serving the PR's original scope.
+No script *enforces* a max-rounds cap or stops the loop — a hard number
+can't tell a *productive* round from a *drifting* one. Instead the parent
+agent runs a **recap gate** as reasoning: default **STOP at every 10th
+round** (10, 20, 30, …) **before** looping back to step 1, recap all
+prior rounds, and decide whether the loop is still serving the PR's
+original scope.
 
-A **round** is **one execution of [step 1](01-request-review.md)** —
-i.e., one Copilot-review trigger at the top of the loop. Nothing in the
-scripts tracks this number; the parent agent owns the count in its own
-working context and increments it each time it (re-)requests a review.
-The cap therefore counts **review rounds**, not sub-agent calls, tool
-calls, or individual fix edits — so a round that triages five threads
-still counts as one.
+What *is* scripted is the **count**, so the gate's trigger is
+deterministic instead of a fallible mental tally. A **round** is **one
+execution of [step 1](01-request-review.md)** — one Copilot-review
+trigger at the top of the loop — which produces exactly one Copilot
+review submission. [`09-review-round.ps1`](../scripts/09-review-round.ps1)
+counts those submissions straight from the PR's API history and reports
+whether the cadence is hit:
+
+```pwsh
+pwsh ./scripts/09-review-round.ps1 -PrNumber <n>
+# {"PrNumber":<n>,...,"Round":20,"RecapInterval":10,"RecapDue":true}
+```
+
+Run it at the top of the non-converged branch and gate on `RecapDue`.
+Because the count is **derived from history, not remembered**, it can't
+drift even across a 100+ round run — the exact failure this gate exists
+to catch. The cap counts **review rounds** (Copilot review submissions),
+not sub-agent calls, tool calls, or individual fix edits — so a round
+that triages five threads still counts as one. The cadence is the
+`-RecapInterval` knob (default 10). The script reports the trigger only;
+it never decides the verdict.
 
 This exists because an unbounded bot-review loop is the failure mode
 this skill was built to survive: a real run drifted for 156 rounds —
@@ -148,10 +167,13 @@ early, every 10 rounds, instead of once at the end.
 | **REVERT-AND-SHIP** | One or more rounds drifted (over-engineering / wrong-direction / oscillation) but the in-scope fixes are sound. | `git revert` (or drop) only the drifted commits, keep the in-scope ones, run step 6 build/test, then ship the clean result. Record which rounds were reverted in the convergence proof. |
 | **HAND-OFF** | Drift is entangled with in-scope work, the right fix is a redesign, or the change belongs in a separate PR. | Stop the loop, reply on the relevant threads, and escalate to the user with the recap and a recommendation (separate PR / redesign). Do **not** keep looping. |
 
-The gate is **agent reasoning, not a new script** — deliberately, to
-avoid adding the very over-engineering the 156-round run taught us to
-fear. The recap is cheap (read the per-round commits + the PR base
-diff); the cost of *skipping* it is another runaway loop.
+The **trigger** is scripted but the **verdict** is agent reasoning —
+deliberately. [`09-review-round.ps1`](../scripts/09-review-round.ps1)
+makes the *count* deterministic (so the gate can't be missed), but
+*which verdict to pick* stays a judgment call: no number can tell a
+productive round from a drifting one. The recap is cheap (read the
+per-round commits + the PR base diff); the cost of *skipping* it is
+another runaway loop.
 
 
 
