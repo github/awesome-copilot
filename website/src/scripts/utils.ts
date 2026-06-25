@@ -100,6 +100,15 @@ export interface ZipDownloadFile {
   path: string;
 }
 
+function targetInstallPath(repoPath: string): string {
+  if (repoPath.startsWith('agents/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('instructions/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('skills/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('hooks/')) return `.github/${repoPath}`;
+  if (repoPath.startsWith('workflows/')) return `.github/${repoPath}`;
+  return repoPath;
+}
+
 function triggerBlobDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -121,7 +130,6 @@ export async function downloadZipBundle(
 
   const JSZip = await loadJSZip();
   const zip = new JSZip();
-  const folder = zip.folder(bundleName);
 
   const fetchPromises = files.map(async (file) => {
     try {
@@ -129,7 +137,7 @@ export async function downloadZipBundle(
       if (!response.ok) return null;
 
       return {
-        name: file.name,
+        zipPath: targetInstallPath(file.path),
         content: await response.text(),
       };
     } catch {
@@ -141,8 +149,8 @@ export async function downloadZipBundle(
   let addedFiles = 0;
 
   for (const result of results) {
-    if (result && folder) {
-      folder.file(result.name, result.content);
+    if (result) {
+      zip.file(result.zipPath, result.content);
       addedFiles++;
     }
   }

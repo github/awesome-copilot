@@ -9,6 +9,7 @@ import Container from '../../components/ui/Container.astro';
 import CopyButton from '../../components/ui/CopyButton.astro';
 import Icon from '../../components/ui/Icon.astro';
 import InstallModal from '../../components/InstallModal.astro';
+import ShareModal from '../../components/ShareModal.astro';
 import skillsData from '../../../public/data/skills.json';
 import type { SkillItem } from '../../lib/upstream-types';
 
@@ -57,7 +58,7 @@ function readFileContents(skillPath: string, fileName: string): string | null {
 const { skill } = Astro.props;
 const skillPath = skill.path;
 const skillFilePath = skill.skillFile;
-const installCommand = `npx awesome-copilot add ${skillPath}`;
+const installCommand = `gh skills install github/awesome-copilot ${skill.id}`;
 const sourcePath = `awesome-copilot/${skillPath}`;
 
 function getFileType(filePath: string): string {
@@ -224,14 +225,14 @@ const previewFiles = [
             <h2 id="usage-title">Install the complete skill directory</h2>
             <div class="terminal-card">
               <div class="terminal-card__bar">
-                <Badge tone="neutral">npx</Badge>
+                <Badge tone="neutral">gh</Badge>
                 <div class="terminal-card__actions">
                   <CopyButton ariaLabel="Copy install command" />
                 </div>
               </div>
               <pre><code>{installCommand}</code></pre>
             </div>
-            <p class="helper-copy">Use this from your project root. The installer should preserve the whole skill directory, not just the markdown file.</p>
+            <p class="helper-copy">Use this from your project root to install the full skill bundle, including any packaged assets.</p>
           </section>
         </main>
 
@@ -284,6 +285,7 @@ const previewFiles = [
     </Container>
   </section>
   <script id="skill-files-data" type="application/json" set:html={JSON.stringify(skill.files)}></script>
+<ShareModal />
 </BaseLayout>
 <InstallModal resourceType="skill" />
 
@@ -303,7 +305,7 @@ const previewFiles = [
 
   .breadcrumbs a { color: var(--color-green); text-decoration: none; }
   .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
-  .breadcrumbs a:focus-visible { outline: 3px solid var(--color-green); outline-offset: 4px; }
+  .breadcrumbs a:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; }
 
   .detail-layout {
     display: grid;
@@ -766,7 +768,8 @@ const previewFiles = [
 </style>
 
 <script>
-  import { downloadZipBundle, shareFile, showToast, getVSCodeProtocolUrl } from '../../scripts/utils';
+  import { downloadZipBundle, showToast, getVSCodeProtocolUrl } from '../../scripts/utils';
+  import { openShareModal } from '../../scripts/share-modal';
 
   const skillId = document.location.pathname.split('/').filter(Boolean).at(-1) ?? '';
   const folderButtons = document.querySelectorAll<HTMLButtonElement>('[data-folder-toggle]');
@@ -864,11 +867,19 @@ const previewFiles = [
   }
 
   if (shareBtn) {
-    shareBtn.addEventListener('click', async () => {
-      const filePath = shareBtn.dataset.filePath;
-      if (!filePath) return;
-      const ok = await shareFile(filePath);
-      showToast(ok ? 'Link copied!' : 'Failed to copy', ok ? 'success' : 'error');
+    shareBtn.addEventListener('click', () => {
+      const title = document.querySelector('h1')?.textContent || 'Skill';
+      const description = document.querySelector('.hero-panel p')?.textContent || '';
+      const opened = openShareModal(
+        {
+          title,
+          description,
+          url: window.location.href,
+          badge: 'skill',
+        },
+        shareBtn
+      );
+      if (!opened) showToast('Share dialog unavailable', 'error');
     });
   }
 

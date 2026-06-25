@@ -4,6 +4,7 @@ import Container from './ui/Container.astro';
 import CopyButton from './ui/CopyButton.astro';
 import Icon from './ui/Icon.astro';
 import InstallModal from './InstallModal.astro';
+import ShareModal from './ShareModal.astro';
 
 interface Props {
   kind: string;
@@ -92,7 +93,7 @@ const { kind, plural, title, description, markdownHtml, frontmatter } = Astro.pr
 
         <section class="sidebar-card pixel-panel" aria-labelledby="actions-title">
           <p class="panel-kicker">Quick actions</p><h2 id="actions-title">Get this resource</h2>
-          <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download resource"><Icon name="download" size={14} /> Download</Button>
+          <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download resource ZIP"><Icon name="download" size={14} /> Download ZIP</Button>
           <Button variant="secondary" size="sm" id="detail-share-btn" ariaLabel="Share resource"><Icon name="share" size={14} /> Share</Button>
         </section>
 
@@ -109,13 +110,14 @@ const { kind, plural, title, description, markdownHtml, frontmatter } = Astro.pr
   </Container>
 </section>
 <InstallModal resourceType={kind} />
+<ShareModal />
 
 <style>
   .agent-detail { padding-block: 1.75rem 3rem; }
   .breadcrumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 1.25rem; color: var(--color-muted); font-size: 0.96rem; font-weight: 800; }
   .breadcrumbs a { color: var(--color-green); text-decoration: none; }
   .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
-  .breadcrumbs a:focus-visible { outline: 3px solid var(--color-green); outline-offset: 4px; }
+  .breadcrumbs a:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; }
   .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(19rem, 28rem); gap: clamp(1rem, 2vw, 1.5rem); align-items: start; }
   .detail-main, .detail-sidebar { display: grid; gap: 1.25rem; }
   .detail-sidebar { position: sticky; top: 1rem; }
@@ -138,9 +140,12 @@ const { kind, plural, title, description, markdownHtml, frontmatter } = Astro.pr
   .detail-badge--blue { color: var(--color-blue); background: rgb(92 211 255 / 12%); }
   .detail-badge--green { color: var(--color-green); background: rgb(144 255 177 / 12%); }
   .detail-badge--yellow { color: var(--color-yellow); background: rgb(255 214 102 / 12%); }
-  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.85rem; }
-  .feature-grid article { display: grid; align-content: start; gap: 0.45rem; border: 2px solid var(--color-border-soft); background: var(--color-bg); box-shadow: 2px 2px 0 var(--color-black); padding: 1rem; }
-  .feature-grid p { margin: 0; color: var(--color-muted); font-size: 0.96rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.85rem; }
+  .feature-grid :global(article) { display: grid; align-content: start; gap: 0.7rem; min-height: 9rem; border: 2px solid var(--color-border-soft); background: var(--color-black); box-shadow: 2px 2px 0 var(--color-black); padding: 1rem; }
+  .feature-grid :global(.feature-card__heading) { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+  .feature-grid :global(h3) { margin: 0; font-size: 1rem; line-height: 1.2; }
+  .feature-grid :global(.icon) { color: var(--color-green); display: inline-block; flex: none; shape-rendering: crispEdges; }
+  .feature-grid :global(p) { margin: 0; color: var(--color-muted); font-size: 0.96rem; line-height: 1.5; overflow-wrap: anywhere; }
   .feature-tags { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }
   .feature-tags .feature-tag {
     display: inline-flex;

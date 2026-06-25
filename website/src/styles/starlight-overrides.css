@@ -200,7 +200,7 @@ main:has(#main-content) > .content-panel:has(h1#_top) {
 
 /* Keyboard focus ring for pill filters */
 #starlight__search .pagefind-ui__filter-checkbox:focus-visible + .pagefind-ui__filter-label {
-  outline: 2px solid var(--sl-color-accent);
+  outline: 2px solid rgb(255 255 255 / 35%);
   outline-offset: 2px;
 }
 
@@ -308,18 +308,10 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[ar
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] :is(a, summary):focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
-  border-color: var(--color-primary) !important;
-  background: var(--color-primary) !important;
-  color: var(--color-black) !important;
-  box-shadow: none;
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
-html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) nav[aria-label="Main"] :is(a, summary):focus-visible :is(span, .group-label, .large, svg) {
-  color: var(--color-black) !important;
-  fill: currentColor !important;
-}
 
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .content-panel {
@@ -695,8 +687,8 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .right-sidebar-panel a[aria-current="true"] {

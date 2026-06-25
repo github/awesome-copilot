@@ -71,9 +71,8 @@ img {
 
 /* ── Focus ─────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 4px;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
 /* ── Selection ─────────────────────────────────────────────── */
@@ -93,33 +92,6 @@ img {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-.skip-link {
-  position: fixed;
-  left: 1rem;
-  top: 1rem;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateY(-150%);
-  min-height: 2.75rem;
-  border: 2px solid var(--color-green);
-  border-radius: var(--radius-1);
-  background: var(--color-bg);
-  color: var(--color-green);
-  padding: 0.65rem 0.9rem;
-  transition: transform var(--motion-fast);
-}
-
-.skip-link:focus {
-  transform: translateY(0);
-}
-
-.skip-link:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 4px;
 }
 
 /* ── Utility: container ────────────────────────────────────── */
@@ -188,7 +160,6 @@ img {
 
 .console-stat-card {
   --stat-border: var(--color-subtle);
-  --stat-glow: rgb(144 255 177 / 12%);
   position: relative;
   display: grid;
   align-content: center;
@@ -197,10 +168,7 @@ img {
   min-height: 6rem;
   border: 4px solid var(--stat-border);
   border-radius: 0;
-  background:
-    linear-gradient(90deg, var(--stat-glow) 0 0.42rem, transparent 0.42rem),
-    linear-gradient(180deg, rgb(255 255 255 / 4%) 0 0.35rem, transparent 0.35rem),
-    var(--color-surface-2);
+  background: var(--color-surface-2);
   box-shadow: 4px 4px 0 var(--color-black);
   padding: 1rem 1rem 0.9rem 1.2rem;
   image-rendering: pixelated;
@@ -209,11 +177,7 @@ img {
 
 .console-stat-card--active {
   --stat-border: var(--color-subtle);
-  --stat-glow: rgb(144 255 177 / 12%);
-  background:
-    linear-gradient(90deg, var(--stat-glow) 0 0.42rem, transparent 0.42rem),
-    linear-gradient(180deg, rgb(255 255 255 / 4%) 0 0.35rem, transparent 0.35rem),
-    var(--color-surface-2);
+  background: var(--color-surface-2);
   box-shadow: 4px 4px 0 var(--color-black);
 }
 
@@ -288,8 +252,8 @@ img {
 .console-select-control:focus-visible,
 .console-toggle:focus-visible,
 .console-reset-control:focus-visible {
-  outline: 3px solid var(--color-green);
-  outline-offset: 3px;
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
 .console-search-control input {
@@ -476,12 +440,11 @@ img {
 
 .copy-button:focus-visible,
 .button[data-copy]:focus-visible {
-  outline: 3px solid rgb(255 255 255 / 18%);
-  outline-offset: 3px;
-  box-shadow: 3px 3px 0 var(--color-black), var(--focus-ring);
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
-.copy-button--preview:focus-visible { outline-color: rgb(255 255 255 / 18%); }
+.copy-button--preview:focus-visible { outline-color: rgb(255 255 255 / 35%); }
 
 .copy-button:active,
 .button[data-copy]:active {
@@ -587,7 +550,7 @@ img {
   box-shadow: 5px 5px 0 var(--color-black);
 }
 
-.resource-card:focus-visible { outline: 3px solid var(--card-accent); outline-offset: 4px; box-shadow: 5px 5px 0 var(--color-black); }
+.resource-card:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; box-shadow: 5px 5px 0 var(--color-black); }
 .resource-card--purple { --card-accent: var(--color-primary); --card-accent-rgb: 169 112 255; }
 .resource-card--blue { --card-accent: var(--color-blue); --card-accent-rgb: 45 140 255; }
 .resource-card--green { --card-accent: var(--color-green); --card-accent-rgb: 144 255 177; }
@@ -667,8 +630,8 @@ img {
 }
 
 .btn:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
 .btn-primary {
@@ -719,7 +682,7 @@ img {
 }
 .resource-card__cta {
   margin-left: auto;
-  color: var(--card-accent);
+  color: var(--color-muted);
   flex: 0 0 auto;
   font-size: 0.86rem;
   font-weight: 900;
@@ -838,8 +801,8 @@ img {
 }
 
 .filter-clear:focus-visible {
-  outline: 3px solid var(--color-primary);
-  outline-offset: 3px;
+  outline: 2px solid rgb(255 255 255 / 35%);
+  outline-offset: 2px;
 }
 
 .agent-load-sentinel {

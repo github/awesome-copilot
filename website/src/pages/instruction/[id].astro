@@ -8,6 +8,7 @@ import Container from '../../components/ui/Container.astro';
 import Icon from '../../components/ui/Icon.astro';
 import InstallModal from '../../components/InstallModal.astro';
 import CopyButton from '../../components/ui/CopyButton.astro';
+import ShareModal from '../../components/ShareModal.astro';
 import instructionsData from '../../../public/data/instructions.json';
 import type { InstructionItem, InstructionsData } from '../../lib/upstream-types';
 import { parseFrontmatter } from '../../lib/frontmatter';
@@ -86,10 +87,10 @@ const repoRoot = path.resolve(process.cwd(), '..');
             <p class="panel-kicker">Usage</p>
             <h2 id="usage-title">Install and run from your workspace</h2>
             <div class="terminal-card">
-              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">npx</span>              <div class="terminal-card__actions"><CopyButton ariaLabel="Copy install command" /></div></div>
-              <pre><code data-install-command>npx awesome-copilot add instructions/loading.instructions.md</code></pre>
+              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">sh</span>              <div class="terminal-card__actions"><CopyButton ariaLabel="Copy install command" /></div></div>
+              <pre><code data-install-command>mkdir -p .github/instructions && cp instructions/loading.instructions.md .github/instructions/loading.instructions.md</code></pre>
             </div>
-            <p class="helper-copy">Use this command from your project root, then apply the instruction from your Copilot setup.</p>
+            <p class="helper-copy">Use the VS Code install buttons when available, or copy the instruction file into `.github/instructions/` from your project root.</p>
           </section>
 
           <section class="content-panel pixel-panel" aria-labelledby="file-title">
@@ -113,14 +114,14 @@ const repoRoot = path.resolve(process.cwd(), '..');
           <section id="install" class="sidebar-card pixel-panel" aria-labelledby="install-title">
             <p class="panel-kicker">Install command</p><h2 id="install-title">Add this instruction</h2>
             <div class="terminal-card terminal-card--compact">
-              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">npx</span><CopyButton ariaLabel="Copy install command" /></div>
-              <pre><code data-install-command>npx awesome-copilot add instructions/loading.instructions.md</code></pre>
+              <div class="terminal-card__bar"><span class="detail-badge detail-badge--neutral">sh</span><CopyButton ariaLabel="Copy install command" /></div>
+              <pre><code data-install-command>mkdir -p .github/instructions && cp instructions/loading.instructions.md .github/instructions/loading.instructions.md</code></pre>
             </div>
           </section>
 
           <section class="sidebar-card pixel-panel" aria-labelledby="actions-title">
             <p class="panel-kicker">Quick actions</p><h2 id="actions-title">Get this instruction</h2>
-            <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download instruction"><Icon name="download" size={14} /> Download</Button>
+            <Button variant="secondary" size="sm" id="detail-download-btn" ariaLabel="Download instruction ZIP"><Icon name="download" size={14} /> Download ZIP</Button>
             <Button variant="secondary" size="sm" id="detail-share-btn" ariaLabel="Share instruction"><Icon name="share" size={14} /> Share</Button>
           </section>
 
@@ -137,6 +138,7 @@ const repoRoot = path.resolve(process.cwd(), '..');
     </Container>
   </section>
   <InstallModal resourceType="instruction" />
+  <ShareModal />
 </BaseLayout>
 
 <style>
@@ -144,7 +146,7 @@ const repoRoot = path.resolve(process.cwd(), '..');
   .breadcrumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 0.55rem; margin-bottom: 1.25rem; color: var(--color-muted); font-size: 0.96rem; font-weight: 800; }
   .breadcrumbs a { color: var(--color-green); text-decoration: none; }
   .breadcrumbs a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
-  .breadcrumbs a:focus-visible { outline: 3px solid var(--color-green); outline-offset: 4px; }
+  .breadcrumbs a:focus-visible { outline: 2px solid rgb(255 255 255 / 35%); outline-offset: 2px; }
   .detail-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(19rem, 28rem); gap: clamp(1rem, 2vw, 1.5rem); align-items: start; }
   .detail-main, .detail-sidebar { display: grid; gap: 1.25rem; }
   .detail-sidebar { position: sticky; top: 1rem; }
@@ -276,7 +278,8 @@ const repoRoot = path.resolve(process.cwd(), '..');
 <script>
   import { adaptInstruction } from '../../lib/adapters/instructions';
   import type { InstructionItem, InstructionsData } from '../../lib/upstream-types';
-  import { downloadFile, getGitHubUrl, getVSCodeProtocolUrl, shareFile, showToast } from '../../scripts/utils';
+  import { downloadZipBundle, getGitHubUrl, getVSCodeProtocolUrl, showToast } from '../../scripts/utils';
+  import { openShareModal } from '../../scripts/share-modal';
 
   const id = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
@@ -330,7 +333,7 @@ const repoRoot = path.resolve(process.cwd(), '..');
   function renderInstruction(rawInstruction: InstructionItem): void {
     const instruction = adaptInstruction(rawInstruction);
     const instructionPath = rawInstruction.path;
-    const installCommand = `npx awesome-copilot add ${instructionPath}`;
+    const installCommand = `mkdir -p .github/instructions && cp ${instructionPath} .github/${instructionPath}`;
     const sourcePath = `awesome-copilot/${instructionPath}`;
     const applyTo = resolveApplyTo(rawInstruction);
     const extensions = joinOrNone(rawInstruction.extensions);
@@ -373,10 +376,10 @@ const repoRoot = path.resolve(process.cwd(), '..');
     const sourceListingBtn = document.getElementById('source-listing-btn') as HTMLAnchorElement | null;
     if (sourceListingBtn) sourceListingBtn.href = getGitHubUrl(instructionPath);
 
-    installDetailActions(instructionPath);
+    installDetailActions(instructionPath, id);
   }
 
-  function installDetailActions(instructionPath: string): void {
+  function installDetailActions(instructionPath: string, instructionId: string): void {
     const downloadBtn = document.getElementById('detail-download-btn') as HTMLButtonElement | null;
     const shareBtn = document.getElementById('detail-share-btn') as HTMLButtonElement | null;
     const heroInstallBtn = document.getElementById('hero-install-btn') as HTMLButtonElement | null;
@@ -386,15 +389,35 @@ const repoRoot = path.resolve(process.cwd(), '..');
 
     if (downloadBtn) {
       downloadBtn.addEventListener('click', async () => {
-        const ok = await downloadFile(instructionPath);
-        showToast(ok ? 'Download started!' : 'Download failed', ok ? 'success' : 'error');
+        const originalText = downloadBtn.textContent;
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = 'Preparing…';
+        try {
+          await downloadZipBundle(instructionId, [{ name: instructionPath, path: instructionPath }]);
+          showToast('Download started!', 'success');
+        } catch {
+          showToast('Download failed', 'error');
+        } finally {
+          downloadBtn.disabled = false;
+          downloadBtn.textContent = originalText;
+        }
       });
     }
 
     if (shareBtn) {
-      shareBtn.addEventListener('click', async () => {
-        const ok = await shareFile(instructionPath);
-        showToast(ok ? 'Link copied!' : 'Failed to copy', ok ? 'success' : 'error');
+      shareBtn.addEventListener('click', () => {
+        const title = document.getElementById('instruction-title')?.textContent || 'Instruction';
+        const description = document.getElementById('instruction-description')?.textContent || '';
+        const opened = openShareModal(
+          {
+            title,
+            description,
+            url: window.location.href,
+            badge: 'instruction',
+          },
+          shareBtn
+        );
+        if (!opened) showToast('Share dialog unavailable', 'error');
       });
     }
 

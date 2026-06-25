@@ -7,6 +7,7 @@ import ResourceDetailPage from '../../components/ResourceDetailPage.astro';
 import hooksData from '../../../public/data/hooks.json';
 import type { HookItem, HooksData } from '../../lib/upstream-types';
 import { parseFrontmatter } from '../../lib/frontmatter';
+import { SITE } from '../../config/site';
 
 export function getStaticPaths() {
   return (hooksData as HooksData).items.map((item: HookItem) => ({
@@ -32,9 +33,16 @@ const repoRoot = path.resolve(process.cwd(), '..');
       markdownHtml = '';
     }
   }
+const canonicalUrl = item ? new URL(`/hook/${item.id}/`, SITE.url).toString() : undefined;
 ---
 
-<BaseLayout title="Hook · Awesome Copilot" description="Explore and install a GitHub Copilot hook.">
+<BaseLayout
+  title={item ? `${item.title} · Hook · Awesome Copilot` : 'Hook · Awesome Copilot'}
+  description={item?.description ?? 'Explore and install a GitHub Copilot hook.'}
+  canonicalUrl={canonicalUrl}
+  socialTitle={item ? `${item.title} · Hook` : 'Hook · Awesome Copilot'}
+  socialDescription={item?.description ?? 'Explore and install a GitHub Copilot hook.'}
+>
   <ResourceDetailPage kind="hook" plural="hooks" title="Hooks" description="Fetching hook details on demand." markdownHtml={markdownHtml} frontmatter={frontmatterText} />
 </BaseLayout>
 

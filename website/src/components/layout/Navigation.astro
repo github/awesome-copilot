@@ -180,8 +180,14 @@ function isNavItemActive(itemHref: string, pathname: string): boolean {
   }
 
   .menu-button:focus-visible {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 4px;
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
+  }
+
+  .site-header > :global(.bit-btn .bit-btn-inner) {
+    min-height: 2.4rem;
+    padding: 0.42rem 0.74rem;
+    font-size: 0.8rem;
   }
 
   @media (max-width: 1100px) {

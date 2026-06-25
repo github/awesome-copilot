@@ -56,9 +56,32 @@ const {
       rel="stylesheet"
     />
     <title>{title}</title>
+    <style is:inline>
+      /* Critical CSS for stat cards to prevent FOUC */
+      .console-stat-card {
+        --stat-border: var(--color-subtle);
+        position: relative;
+        display: grid;
+        align-content: center;
+        gap: 0.3rem;
+        width: 9.15rem;
+        min-height: 6rem;
+        border: 4px solid var(--stat-border);
+        border-radius: 0;
+        background: var(--color-surface-2);
+        box-shadow: 4px 4px 0 var(--color-black);
+        padding: 1rem 1rem 0.9rem 1.2rem;
+        image-rendering: pixelated;
+        shape-rendering: crispEdges;
+      }
+      .console-stat-card--active {
+        --stat-border: var(--color-subtle);
+        background: var(--color-surface-2);
+        box-shadow: 4px 4px 0 var(--color-black);
+      }
+    </style>
   </head>
   <body id="top">
-    <a class="skip-link" href="#main-content">Skip to content</a>
     <Navigation />
     <main id="main-content">
       <slot />

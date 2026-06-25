@@ -26,50 +26,36 @@
       Share this page or copy the canonical link.
     </p>
 
-    <div class="share-modal-layout">
-      <section class="share-modal-preview" aria-label="Social preview example">
-        <p class="share-modal-preview-label">Preview</p>
-        <article class="share-preview-card">
-          <span id="share-preview-badge" class="share-preview-badge">RESOURCE</span>
-          <h3 id="share-preview-title">Awesome GitHub Copilot</h3>
-          <p id="share-preview-description">
-            Community-contributed agents, instructions, and skills to enhance your GitHub Copilot experience.
-          </p>
-          <p id="share-preview-url" class="share-preview-url">awesome-copilot.github.com</p>
-        </article>
-      </section>
+    <section class="share-modal-actions" aria-label="Share targets">
+      <a id="share-modal-x" class="share-target share-target--x" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M18.244 2H21.5l-7.11 8.128L22.75 22h-6.547l-5.126-6.709L5.21 22H1.952l7.605-8.693L1.5 2h6.713l4.634 6.117L18.244 2Zm-1.142 18h1.804L7.228 3.896H5.292L17.102 20Z"/>
+        </svg>
+        <span>Share on X</span>
+      </a>
 
-      <section class="share-modal-actions" aria-label="Share targets">
-        <a id="share-modal-x" class="share-target share-target--x" href="#" target="_blank" rel="noreferrer">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-            <path d="M18.244 2H21.5l-7.11 8.128L22.75 22h-6.547l-5.126-6.709L5.21 22H1.952l7.605-8.693L1.5 2h6.713l4.634 6.117L18.244 2Zm-1.142 18h1.804L7.228 3.896H5.292L17.102 20Z"/>
-          </svg>
-          <span>Share on X</span>
-        </a>
+      <a id="share-modal-whatsapp" class="share-target share-target--whatsapp" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M12.04 2C6.52 2 2.04 6.48 2.04 12c0 1.77.46 3.5 1.34 5.02L2 22l5.12-1.33A9.94 9.94 0 0 0 12.04 22c5.52 0 10-4.48 10-10s-4.48-10-10-10Zm0 18.18a8.13 8.13 0 0 1-4.14-1.13l-.3-.18-3.04.79.81-2.96-.2-.31a8.13 8.13 0 1 1 6.87 3.79Zm4.46-6.05c-.24-.12-1.4-.69-1.62-.77-.22-.08-.38-.12-.54.12-.16.24-.62.77-.76.93-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.95-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.36.1-.48.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.48-.4-.4-.54-.4h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.68 2.56 4.08 3.59.57.24 1.02.38 1.37.48.58.18 1.1.16 1.52.1.46-.07 1.4-.57 1.6-1.12.2-.55.2-1.02.14-1.12-.06-.1-.22-.16-.46-.28Z"/>
+        </svg>
+        <span>Share on WhatsApp</span>
+      </a>
 
-        <a id="share-modal-whatsapp" class="share-target share-target--whatsapp" href="#" target="_blank" rel="noreferrer">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-            <path d="M12.04 2C6.52 2 2.04 6.48 2.04 12c0 1.77.46 3.5 1.34 5.02L2 22l5.12-1.33A9.94 9.94 0 0 0 12.04 22c5.52 0 10-4.48 10-10s-4.48-10-10-10Zm0 18.18a8.13 8.13 0 0 1-4.14-1.13l-.3-.18-3.04.79.81-2.96-.2-.31a8.13 8.13 0 1 1 6.87 3.79Zm4.46-6.05c-.24-.12-1.4-.69-1.62-.77-.22-.08-.38-.12-.54.12-.16.24-.62.77-.76.93-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.95-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.01-.36.1-.48.1-.1.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.48-.4-.4-.54-.4h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.68 2.56 4.08 3.59.57.24 1.02.38 1.37.48.58.18 1.1.16 1.52.1.46-.07 1.4-.57 1.6-1.12.2-.55.2-1.02.14-1.12-.06-.1-.22-.16-.46-.28Z"/>
-          </svg>
-          <span>Share on WhatsApp</span>
-        </a>
+      <a id="share-modal-linkedin" class="share-target share-target--linkedin" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+          <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.5 8h4V23h-4V8Zm6.5 0h3.83v2.05h.05c.53-1 1.84-2.05 3.79-2.05 4.05 0 4.8 2.67 4.8 6.14V23h-4v-6.95c0-1.66-.03-3.79-2.31-3.79-2.31 0-2.67 1.8-2.67 3.67V23H7V8Z"/>
+        </svg>
+        <span>Share on LinkedIn</span>
+      </a>
 
-        <a id="share-modal-linkedin" class="share-target share-target--linkedin" href="#" target="_blank" rel="noreferrer">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-            <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.5 8h4V23h-4V8Zm6.5 0h3.83v2.05h.05c.53-1 1.84-2.05 3.79-2.05 4.05 0 4.8 2.67 4.8 6.14V23h-4v-6.95c0-1.66-.03-3.79-2.31-3.79-2.31 0-2.67 1.8-2.67 3.67V23H7V8Z"/>
-          </svg>
-          <span>Share on LinkedIn</span>
-        </a>
-
-        <button id="share-modal-copy" type="button" class="share-target share-target--copy">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-            <path d="M9 9.75A2.75 2.75 0 0 1 11.75 7h6.5A2.75 2.75 0 0 1 21 9.75v8.5A2.75 2.75 0 0 1 18.25 21h-6.5A2.75 2.75 0 0 1 9 18.25v-8.5Z" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M15 7V5.75A2.75 2.75 0 0 0 12.25 3h-6.5A2.75 2.75 0 0 0 3 5.75v8.5A2.75 2.75 0 0 0 5.75 17H9" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          <span>Copy link</span>
-        </button>
-      </section>
-    </div>
+      <button id="share-modal-copy" type="button" class="share-target share-target--copy">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M9 9.75A2.75 2.75 0 0 1 11.75 7h6.5A2.75 2.75 0 0 1 21 9.75v8.5A2.75 2.75 0 0 1 18.25 21h-6.5A2.75 2.75 0 0 1 9 18.25v-8.5Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M15 7V5.75A2.75 2.75 0 0 0 12.25 3h-6.5A2.75 2.75 0 0 0 3 5.75v8.5A2.75 2.75 0 0 0 5.75 17H9" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <span>Copy link</span>
+      </button>
+    </section>
   </div>
 </dialog>
 
@@ -79,7 +65,7 @@
     padding: 0;
     background: transparent;
     max-width: 100%;
-    width: min(720px, calc(100vw - 24px));
+    width: min(420px, calc(100vw - 24px));
   }
 
   .share-modal-dialog::backdrop {
@@ -151,78 +137,9 @@
     font-size: 0.95rem;
   }
 
-  .share-modal-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-    gap: 1rem;
-  }
-
-  .share-modal-preview,
   .share-modal-actions {
     display: grid;
     gap: 0.75rem;
-  }
-
-  .share-modal-preview-label {
-    margin: 0;
-    color: var(--color-muted);
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .share-preview-card {
-    display: grid;
-    gap: 0.75rem;
-    border: 3px solid var(--color-border-soft);
-    background:
-      linear-gradient(180deg, rgb(169 112 255 / 10%), transparent 45%),
-      var(--color-bg);
-    box-shadow: 3px 3px 0 var(--color-black);
-    padding: 1rem;
-  }
-
-  .share-preview-badge {
-    display: inline-flex;
-    width: fit-content;
-    align-items: center;
-    border: 2px solid currentColor;
-    background: rgb(92 211 255 / 10%);
-    box-shadow: 2px 2px 0 var(--color-black);
-    color: var(--color-blue);
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    padding: 0.35rem 0.5rem;
-    text-transform: uppercase;
-  }
-
-  .share-preview-card h3,
-  .share-preview-card p {
-    margin: 0;
-  }
-
-  .share-preview-card h3 {
-    color: var(--color-text);
-    font-family: var(--font-heading);
-    font-size: 1.2rem;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-  }
-
-  .share-preview-card p {
-    color: var(--color-muted);
-    line-height: 1.55;
-    overflow-wrap: anywhere;
-  }
-
-  .share-preview-url {
-    color: var(--color-green) !important;
-    font-family: var(--font-mono);
-    font-size: 0.88rem;
   }
 
   .share-target {
@@ -261,15 +178,5 @@
 
   .share-target--copy svg {
     color: var(--color-primary);
-  }
-
-  @media (max-width: 720px) {
-    .share-modal-panel {
-      padding: 20px;
-    }
-
-    .share-modal-layout {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

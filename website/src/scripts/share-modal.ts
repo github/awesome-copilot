@@ -1,5 +1,5 @@
 import { SITE } from "../config/site";
-import { copyToClipboard, truncate } from "./utils";
+import { copyToClipboard } from "./utils";
 
 export interface ShareModalData {
   title: string;
@@ -80,10 +80,6 @@ export function openShareModal(
   const dialog = document.getElementById("share-modal") as HTMLDialogElement | null;
   const title = document.getElementById("share-modal-title");
   const description = document.getElementById("share-modal-desc");
-  const previewBadge = document.getElementById("share-preview-badge");
-  const previewTitle = document.getElementById("share-preview-title");
-  const previewDescription = document.getElementById("share-preview-description");
-  const previewUrl = document.getElementById("share-preview-url");
   const copyBtn = document.getElementById(
     "share-modal-copy"
   ) as HTMLButtonElement | null;
@@ -99,10 +95,6 @@ export function openShareModal(
     !dialog ||
     !title ||
     !description ||
-    !previewBadge ||
-    !previewTitle ||
-    !previewDescription ||
-    !previewUrl ||
     !copyBtn ||
     !xLink ||
     !whatsappLink ||
@@ -119,10 +111,6 @@ export function openShareModal(
 
   title.textContent = `Share ${payload.title}`;
   description.textContent = "Share this page on your preferred network or copy the canonical link.";
-  previewBadge.textContent = (payload.badge ?? "Resource").toUpperCase();
-  previewTitle.textContent = payload.title;
-  previewDescription.textContent = truncate(payload.description, 180);
-  previewUrl.textContent = shareUrl.replace(/^https?:\/\//, "");
 
   xLink.href = links.x;
   whatsappLink.href = links.whatsapp;
