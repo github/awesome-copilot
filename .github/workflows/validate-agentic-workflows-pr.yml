@@ -2,7 +2,7 @@ name: Validate Agentic Workflow Contributions
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - "workflows/**"

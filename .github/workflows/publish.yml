@@ -2,11 +2,10 @@ name: Publish distribution branches
 
 on:
   push:
-    branches: [staged]
+    branches: [main]
 
 env:
-  SOURCE_BRANCH: staged
-  LEGACY_PUBLISHED_BRANCH: main
+  SOURCE_BRANCH: main
   MARKETPLACE_BRANCH: marketplace
   WEBSITE_DEPLOY_REF: main
 
@@ -58,17 +57,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           snapshot_dir="$(mktemp -d)"
-          main_worktree_dir="$(mktemp -d)"
           marketplace_worktree_dir="$(mktemp -d)"
-          main_publish_ref="refs/heads/publish-${LEGACY_PUBLISHED_BRANCH}"
           marketplace_publish_ref="refs/heads/publish-${MARKETPLACE_BRANCH}"
-          main_base_sha=""
           marketplace_base_sha=""
 
           cleanup() {
-            git worktree remove --force "${main_worktree_dir}" 2>/dev/null || true
             git worktree remove --force "${marketplace_worktree_dir}" 2>/dev/null || true
-            git update-ref -d "${main_publish_ref}" 2>/dev/null || true
             git update-ref -d "${marketplace_publish_ref}" 2>/dev/null || true
             rm -rf "${snapshot_dir}"
           }
@@ -83,10 +77,9 @@ jobs:
             local branch="$1"
             local worktree_dir="$2"
             local publish_ref="$3"
-            local base_sha=""
 
             git fetch origin "${branch}"
-            base_sha="$(git rev-parse "origin/${branch}")"
+            marketplace_base_sha="$(git rev-parse "origin/${branch}")"
             git worktree add --force --detach "${worktree_dir}" "origin/${branch}"
 
             rsync -a --delete \
@@ -101,37 +94,22 @@ jobs:
               git commit -m "chore: publish from ${SOURCE_BRANCH}" --allow-empty
               git update-ref "${publish_ref}" HEAD
             )
-
-            if [[ "${branch}" == "${LEGACY_PUBLISHED_BRANCH}" ]]; then
-              main_base_sha="${base_sha}"
-            elif [[ "${branch}" == "${MARKETPLACE_BRANCH}" ]]; then
-              marketplace_base_sha="${base_sha}"
-            fi
           }
 
-          publish_branch "${LEGACY_PUBLISHED_BRANCH}" "${main_worktree_dir}" "${main_publish_ref}"
           publish_branch "${MARKETPLACE_BRANCH}" "${marketplace_worktree_dir}" "${marketplace_publish_ref}"
 
-          git fetch origin "${LEGACY_PUBLISHED_BRANCH}" "${MARKETPLACE_BRANCH}"
-          current_main_tip="$(git rev-parse "origin/${LEGACY_PUBLISHED_BRANCH}")"
+          git fetch origin "${MARKETPLACE_BRANCH}"
           current_marketplace_tip="$(git rev-parse "origin/${MARKETPLACE_BRANCH}")"
-          drift_detected=false
-          if [[ "${current_main_tip}" != "${main_base_sha}" ]]; then
-            echo "Remote branch tip changed: ${LEGACY_PUBLISHED_BRANCH} expected ${main_base_sha}, got ${current_main_tip}"
-            drift_detected=true
-          fi
           if [[ "${current_marketplace_tip}" != "${marketplace_base_sha}" ]]; then
             echo "Remote branch tip changed: ${MARKETPLACE_BRANCH} expected ${marketplace_base_sha}, got ${current_marketplace_tip}"
-            drift_detected=true
-          fi
-          if [[ "${drift_detected}" == true ]]; then
             echo "Concurrent branch update detected during publish. Please rerun the publish workflow."
             exit 1
           fi
 
           git push origin --atomic \
-            "${main_publish_ref}:${LEGACY_PUBLISHED_BRANCH}" \
             "${marketplace_publish_ref}:${MARKETPLACE_BRANCH}"
+
+          echo "Successfully published to ${MARKETPLACE_BRANCH}"
 
       - name: Dispatch website deployment
         run: gh workflow run deploy-website.yml --ref "${WEBSITE_DEPLOY_REF}"
