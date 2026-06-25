@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-24
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -414,6 +414,14 @@ The model picker opens in a **full-screen view** with inline reasoning effort ad
 
 ### CLI Session Commands
 
+The `/settings` command (v1.0.61+) opens an interactive dialog to browse and edit all user settings in one place. Use it to discover available settings, toggle options, and update values without manually editing your config file:
+
+```
+/settings
+```
+
+The settings dialog supports search — type to filter settings by name. Changes take effect immediately.
+
 GitHub Copilot CLI has two commands for managing session state, with distinct behaviours:
 
 | Command | Behaviour |
@@ -485,6 +493,14 @@ The `/cd` command changes the working directory for the current session. Each se
 
 This is useful when you have multiple backgrounded sessions each focused on a different project directory.
 
+The `/worktree` command (v1.0.61+, also aliased `/move`) creates a new git worktree and switches into it, moving any uncommitted changes along. This lets you start working on a parallel branch without leaving your current terminal session:
+
+```
+/worktree my-feature-branch
+```
+
+After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
+
 The `/share html` command exports the current session — including conversation history and any research reports — as a **self-contained interactive HTML file**:
 
 ```
@@ -502,6 +518,14 @@ The `/chronicle` command opens an interactive timeline of everything the agent h
 Chronicle tracks which files were created, modified, or deleted during the session alongside the conversation that led to those changes. Use it to review what happened before a `/rewind`, audit what the agent changed, or share a summary of session activity with teammates.
 
 > **Note**: Session history, file tracking, and the `/chronicle` command were previously experimental features. As of v1.0.40, they are available to all users without enabling experimental mode.
+
+The `/diagnose` command (v1.0.64+) analyzes the current session's logs and surfaces diagnostic information to help troubleshoot unexpected behavior, performance issues, or errors:
+
+```
+/diagnose
+```
+
+Use `/diagnose` when a session is behaving unexpectedly — it inspects session logs and reports what it finds, making it easier to share diagnostics with support or understand what happened internally.
 
 **Keyboard shortcuts for queuing messages**: Use **Ctrl+Q** or **Ctrl+Enter** to queue a message (send it while the agent is still working). **Ctrl+D** no longer queues messages — it now has its default terminal behavior. If you have muscle memory for Ctrl+D queuing, switch to Ctrl+Q.
 
@@ -525,7 +549,7 @@ The `/context` command shows a visualization of the current conversation's conte
 /context
 ```
 
-The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session:
+The `/usage` command displays session metrics such as the number of tokens consumed, API calls made, and any quota information for the current session. In v1.0.64+, `/usage` also shows per-model token totals when you have used multiple models in a session:
 
 ```
 /usage
