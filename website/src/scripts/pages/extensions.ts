@@ -12,9 +12,11 @@ import {
   copyToClipboard,
   fetchData,
   formatRelativeTime,
+  getGitHubHandle,
   getGitHubUrl,
   getQueryParam,
   getQueryParamValues,
+  sanitizeUrl,
   showToast,
   updateQueryParams,
 } from "../utils";
@@ -177,6 +179,24 @@ function openDetailsModal(
   const metaParts: string[] = [];
   if (item.external) {
     metaParts.push('<span class="resource-tag">External</span>');
+  }
+  if (item.author?.name) {
+    const authorName = item.author.name;
+    const authorUrl = item.author.url;
+    const authorHandle = authorUrl
+      ? getGitHubHandle(authorUrl, authorName)
+      : authorName;
+    metaParts.push(
+      authorUrl
+        ? `<span class="resource-author">by <a href="${escapeHtml(
+            sanitizeUrl(authorUrl)
+          )}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
+            authorName
+          )}">${escapeHtml(authorHandle)}</a></span>`
+        : `<span class="resource-author">by ${escapeHtml(
+            authorName
+          )}</span>`
+    );
   }
   if (item.lastUpdated) {
     metaParts.push(

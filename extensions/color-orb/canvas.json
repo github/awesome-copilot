@@ -3,6 +3,10 @@
   "name": "Color Orb",
   "description": "A visual orb that users can ask the agent to recolor while showing a live activity log in the canvas.",
   "version": "1.0.0",
+  "author": {
+    "name": "Aaron Powell",
+    "url": "https://github.com/aaronpowell"
+  },
   "keywords": [
     "agent-actions",
     "color-picker",
