@@ -1,5 +1,5 @@
 ---
-name: Adversarial PR Reviewer
+name: adversarial-pr-reviewer
 description: Reviews PR diffs for bugs, logic errors, and security flaws, then adversarially challenges each finding to eliminate false positives before reporting.
 ---
 

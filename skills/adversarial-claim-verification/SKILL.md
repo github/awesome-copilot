@@ -1,5 +1,5 @@
 ---
-name: Adversarial Claim Verification
+name: adversarial-claim-verification
 description: |
   A reusable verification pattern that stress-tests AI-generated findings
   by attempting to refute each claim before reporting it. Applicable to
