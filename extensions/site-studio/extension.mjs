@@ -22,7 +22,7 @@ const SECTION_TEMPLATE = [
 ];
 
 const VALID_STATUS = new Set(["Not Started", "In Progress", "Built", "Review", "Approved", "Needs Changes"]);
-const VALID_CHANGE_TYPES = new Set(["file_modified", "file_added", "file_deleted", "status_change", "commit", "milestone"]);
+const VALID_CHANGE_TYPES = new Set(["file_modified", "file_added", "file_deleted", "status_change", "commit", "milestone", "ai_request"]);
 const STATUS_ORDER = ["Not Started", "In Progress", "Built", "Review", "Approved", "Needs Changes"];
 const SECTION_FIELD_SUGGESTIONS = {
     "design-system": [
@@ -408,7 +408,7 @@ function readBranchFromGit() {
     const candidates = [workspacePath, process.cwd(), REPO_ROOT_FALLBACK].filter((value, index, all) => value && all.indexOf(value) === index);
     for (const cwd of candidates) {
         try {
-            const branch = execSync("git --no-pager rev-parse --abbrev-ref HEAD", { cwd, stdio: ["ignore", "pipe", "ignore"] })
+            const branch = execSync("git --no-pager rev-parse --abbrev-ref HEAD", { cwd, stdio: ["ignore", "pipe", "ignore"], timeout: 2000, maxBuffer: 1024 * 1024 })
                 .toString()
                 .trim();
             if (branch) {
@@ -558,12 +558,21 @@ function createInitialState() {
     };
 }
 
-async function persistState() {
+let persistQueue = Promise.resolve();
+function persistState() {
     if (!stateCache) {
-        return;
+        return persistQueue;
     }
-    await mkdir(ARTIFACTS_DIR, { recursive: true });
-    await writeFile(STATE_FILE, JSON.stringify(stateCache, null, 2), "utf8");
+    // Snapshot synchronously and serialize writes so concurrent mutations
+    // persist in call order — a slow earlier write can't clobber a newer one.
+    const snapshot = JSON.stringify(stateCache, null, 2);
+    persistQueue = persistQueue
+        .catch(() => {})
+        .then(async () => {
+            await mkdir(ARTIFACTS_DIR, { recursive: true });
+            await writeFile(STATE_FILE, snapshot, "utf8");
+        });
+    return persistQueue;
 }
 
 function normalizeState(raw) {
@@ -697,11 +706,19 @@ function markMilestone(title, description, sectionsAffected) {
     return milestone;
 }
 
+const UNSAFE_FIELD_NAMES = new Set(["__proto__", "prototype", "constructor"]);
+function isUnsafeFieldName(name) {
+    return UNSAFE_FIELD_NAMES.has(name);
+}
+
 function upsertSectionContent(sectionId, field, value, mark = "draft", author = "agent") {
     const section = findSectionOrThrow(sectionId);
     const normalizedField = safeString(field).trim();
     if (!normalizedField) {
         throw new CanvasError("invalid_field", "Field name is required.");
+    }
+    if (isUnsafeFieldName(normalizedField)) {
+        throw new CanvasError("invalid_field", `Field name "${normalizedField}" is not allowed.`);
     }
     const normalizedValue = safeString(value, "");
     validateFieldValue(section.id, normalizedField, normalizedValue, mark);
@@ -731,7 +748,7 @@ function deleteSectionContent(sectionId, field, author = "agent") {
     if (!normalizedField) {
         throw new CanvasError("invalid_field", "Field name is required.");
     }
-    if (!section.content || !(normalizedField in section.content)) {
+    if (!section.content || !Object.prototype.hasOwnProperty.call(section.content, normalizedField)) {
         return { section, field: normalizedField, removed: false };
     }
     delete section.content[normalizedField];
@@ -825,9 +842,17 @@ function sendJson(res, code, payload) {
     res.end(JSON.stringify(payload));
 }
 
+const MAX_BODY_BYTES = 1024 * 1024;
+
 async function readBodyJson(req) {
     const chunks = [];
+    let received = 0;
     for await (const chunk of req) {
+        received += chunk.length;
+        if (received > MAX_BODY_BYTES) {
+            req.destroy();
+            throw new CanvasError("payload_too_large", "Request body exceeds the maximum allowed size.");
+        }
         chunks.push(chunk);
     }
     if (!chunks.length) {
@@ -1236,7 +1261,7 @@ function renderHtml(instanceId) {
       const aiAssist = '<div class="ai-assist">' +
         '<span class="ai-tip-wrap">' +
         '<span class="ai-label">✨ Generate with AI</span>' +
-        '<span class="ai-info" aria-hidden="true">ⓘ</span>' +
+        '<span class="ai-info" role="img" tabindex="0" aria-label="' + esc(aiTip) + '">ⓘ</span>' +
         '<span class="ai-tip-bubble" role="tooltip">' + esc(aiTip) + '</span>' +
         '</span>' +
         '<label class="switch" title="' + esc(aiTip) + '">' +
@@ -1534,6 +1559,9 @@ async function handleApi(req, res, instanceId) {
     }
     if (req.method === "GET" && pathname === "/events") {
         const entry = servers.get(instanceId);
+        if (!entry) {
+            return sendJson(res, 404, { error: "Canvas instance is not available." });
+        }
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
