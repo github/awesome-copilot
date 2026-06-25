@@ -50,10 +50,9 @@ function ensureDataDir() {
  */
 function extractTitle(filePath, frontmatter) {
   if (frontmatter?.name) {
-    return frontmatter.name
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+    // Use frontmatter name as-is — preserves original capitalisation and hyphens
+    // from the YAML frontmatter (e.g. ".NET Self-Learning Architect")
+    return frontmatter.name;
   }
   // Fallback to filename
   const basename = path.basename(filePath);
