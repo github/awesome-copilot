@@ -13,11 +13,11 @@
  * All DOM access is guarded — safe to import at build time.
  */
 
-import { FuzzySearch, type Searchable } from '../lib/search/fuzzy';
-import { getQueryParam, updateQueryParams } from './url-state';
-import { debounce, handleSearchKeyboard } from './modal-client';
+import { FuzzySearch, type Searchable } from "../lib/search/fuzzy";
+import { getQueryParam, updateQueryParams } from "./url-state";
+import { debounce, handleSearchKeyboard } from "./modal-client";
 
-const IS_CLIENT = typeof document !== 'undefined';
+const IS_CLIENT = typeof document !== "undefined";
 
 export interface SearchConfig {
   /** The <input> element that triggers the search. */
@@ -36,13 +36,22 @@ export interface SearchConfig {
 
 export interface SearchResultHandler<T extends Searchable> {
   /** Render a single result item as an HTML string. */
-  render: (item: T, index: number, query: string, highlight: (text: string, q: string) => string) => string;
+  render: (
+    item: T,
+    index: number,
+    query: string,
+    highlight: (text: string, q: string) => string,
+  ) => string;
   /** Called when user navigates to a result via keyboard. */
   onNavigate?: (index: number) => void;
   /** Called when user selects a result (Enter or click). */
   onSelect: (item: T, index: number) => void;
   /** Build status text for accessible live region. */
-  statusText?: (query: string, resultCount: number, totalCount: number) => string;
+  statusText?: (
+    query: string,
+    resultCount: number,
+    totalCount: number,
+  ) => string;
 }
 
 /**
@@ -68,7 +77,7 @@ export function initSearch<T extends Searchable>(
     : null;
 
   if (!input || !resultsContainer) {
-    console.warn('initSearch: input or results container not found', {
+    console.warn("initSearch: input or results container not found", {
       inputSelector: config.inputSelector,
       resultsSelector: config.resultsSelector,
     });
@@ -86,16 +95,20 @@ export function initSearch<T extends Searchable>(
 
     // Build HTML
     const html = results
-      .map((item, idx) => handler.render(item, idx, query, engine.highlight.bind(engine)))
-      .join('');
+      .map((item, idx) =>
+        handler.render(item, idx, query, engine.highlight.bind(engine)),
+      )
+      .join("");
 
     resultsContainer.innerHTML = html;
 
     // Wire click handlers on result items
-    const items = resultsContainer.querySelectorAll<HTMLElement>('[data-result-index]');
+    const items = resultsContainer.querySelectorAll<HTMLElement>(
+      "[data-result-index]",
+    );
     items.forEach((el) => {
-      el.addEventListener('click', () => {
-        const idx = parseInt(el.getAttribute('data-result-index') ?? '-1', 10);
+      el.addEventListener("click", () => {
+        const idx = parseInt(el.getAttribute("data-result-index") ?? "-1", 10);
         if (idx >= 0 && idx < results.length) {
           handler.onSelect(results[idx], idx);
         }
@@ -113,7 +126,8 @@ export function initSearch<T extends Searchable>(
 
     // Show/hide results
     if (resultsContainer instanceof HTMLElement) {
-      resultsContainer.style.display = results.length > 0 && query.length >= minLength ? '' : 'none';
+      resultsContainer.style.display =
+        results.length > 0 && query.length >= minLength ? "" : "none";
     }
   }
 
@@ -147,14 +161,14 @@ export function initSearch<T extends Searchable>(
     if (newIdx !== activeIdx) {
       // Remove previous highlight
       if (activeIdx >= 0 && results[activeIdx]) {
-        results[activeIdx].classList.remove('search-result--active');
-        results[activeIdx].setAttribute('aria-selected', 'false');
+        results[activeIdx].classList.remove("search-result--active");
+        results[activeIdx].setAttribute("aria-selected", "false");
       }
       // Add new highlight
       if (newIdx >= 0 && results[newIdx]) {
-        results[newIdx].classList.add('search-result--active');
-        results[newIdx].setAttribute('aria-selected', 'true');
-        results[newIdx].scrollIntoView({ block: 'nearest' });
+        results[newIdx].classList.add("search-result--active");
+        results[newIdx].setAttribute("aria-selected", "true");
+        results[newIdx].scrollIntoView({ block: "nearest" });
         if (handler.onNavigate) handler.onNavigate(newIdx);
       }
       activeIdx = newIdx;
@@ -162,22 +176,24 @@ export function initSearch<T extends Searchable>(
   }
 
   /* ── Wire events ─────────────────────────────────────────── */
-  input.addEventListener('input', handleInput);
-  input.addEventListener('keydown', handleKeydown);
+  input.addEventListener("input", handleInput);
+  input.addEventListener("keydown", handleKeydown);
 
   // Click outside results closes them
-  document.addEventListener('click', (e) => {
+  const handleDocumentClick = (e: MouseEvent) => {
     if (!(e.target instanceof HTMLElement)) return;
     if (!resultsContainer?.contains(e.target) && e.target !== input) {
       if (resultsContainer instanceof HTMLElement) {
-        resultsContainer.style.display = 'none';
+        resultsContainer.style.display = "none";
       }
       activeIdx = -1;
     }
-  });
+  };
+
+  document.addEventListener("click", handleDocumentClick);
 
   /* ── Hydrate from URL on init ────────────────────────────── */
-  const initialQuery = getQueryParam('q');
+  const initialQuery = getQueryParam("q");
   if (initialQuery) {
     input.value = initialQuery;
     renderResults(initialQuery);
@@ -185,15 +201,18 @@ export function initSearch<T extends Searchable>(
 
   /* ── Cleanup ─────────────────────────────────────────────── */
   return () => {
-    input.removeEventListener('input', handleInput);
-    input.removeEventListener('keydown', handleKeydown);
+    input.removeEventListener("input", handleInput);
+    input.removeEventListener("keydown", handleKeydown);
+    document.removeEventListener("click", handleDocumentClick);
   };
 }
 
 /**
  * Create a default FuzzySearch instance ready for wiring.
  */
-export function createSearch<T extends Searchable>(items?: T[]): FuzzySearch<T> {
+export function createSearch<T extends Searchable>(
+  items?: T[],
+): FuzzySearch<T> {
   const engine = new FuzzySearch<T>();
   if (items) engine.setItems(items);
   return engine;
