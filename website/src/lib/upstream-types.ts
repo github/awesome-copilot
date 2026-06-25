@@ -60,11 +60,12 @@ export interface SkillItem {
   assets: string[];
   hasAssets: boolean;
   assetCount: number;
-  category: string;
+  category?: string;
   path: string;
   skillFile: string;
   files: SkillFile[];
   lastUpdated: string;
+  searchText?: string;
 }
 
 export interface SkillsData {
@@ -81,7 +82,7 @@ export interface HookItem {
   tags: string[];
   assets: string[];
   path: string;
-  readmeFile?: string;         // may be missing
+  readmeFile?: string; // may be missing
   lastUpdated: string;
 }
 
@@ -111,6 +112,18 @@ export interface PluginKindItem {
   path: string;
 }
 
+export interface PluginAuthor {
+  name: string;
+  url?: string;
+}
+
+export interface PluginSource {
+  source?: string;
+  repo?: string;
+  path?: string;
+  ref?: string;
+}
+
 export interface PluginItem {
   id: string;
   name: string;
@@ -122,9 +135,11 @@ export interface PluginItem {
   external?: boolean;
   repository?: string;
   homepage?: string;
-  author?: string;
+  author?: string | PluginAuthor;
   license?: string;
-  source?: string;
+  source?: string | PluginSource;
+  lastUpdated?: string | null;
+  searchText?: string;
 }
 
 export interface PluginsData {

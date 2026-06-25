@@ -10,7 +10,6 @@ import skillsData from '../../public/data/skills.json';
 const rawItems = skillsData.items;
 const assetEnabledCount = rawItems.filter((item) => item.hasAssets).length;
 const bundledFileCount = rawItems.reduce((total, item) => total + item.files.length, 0);
-const categories = [...new Set(rawItems.map((item) => item.category).filter(Boolean))].sort();
 ---
 
 <BaseLayout title="Skills · Awesome GitHub Copilot" description="Self-contained agent skills with instructions and bundled resources">

@@ -99,7 +99,6 @@ const skillFile = resourceFiles.find((file) => file.type === 'skill');
 const rawSkillMd = readFileContents(skillPath, 'SKILL.md');
 const parsedSkill = rawSkillMd ? parseFrontmatter(rawSkillMd) : null;
 const parsedContent = parsedSkill?.body.trim() ?? '';
-const skillBody = parsedContent || skill.description;
 const skillBodyHtml = parsedContent ? marked.parse(parsedContent) : `<p>${skill.description}</p>`;
 const skillSections = parsedContent ? splitSections(parsedContent) : [];
 
@@ -284,7 +283,7 @@ const previewFiles = [
       </div>
     </Container>
   </section>
-  <script id="skill-files-data" type="application/json" set:html={JSON.stringify(skill.files)}></script>
+  <script is:inline id="skill-files-data" type="application/json" set:html={JSON.stringify(skill.files)}></script>
 <ShareModal />
 </BaseLayout>
 <InstallModal resourceType="skill" />
@@ -468,10 +467,7 @@ const previewFiles = [
     background: rgb(29 35 38 / 74%);
   }
 
-  .file-tree__folder:focus-visible,
-  .file-tree__file:focus-visible {
-    outline: none;
-  }
+
 
   .file-tree__folder[aria-expanded='true'] .file-tree__chevron { transform: rotate(90deg); }
 

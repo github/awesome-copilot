@@ -7,6 +7,8 @@ export interface Props {
   disabled?: boolean;
   ariaLabel?: string;
   id?: string;
+  target?: '_self' | '_blank' | '_parent' | '_top';
+  rel?: string;
 }
 
 const {
@@ -17,6 +19,8 @@ const {
   disabled = false,
   ariaLabel,
   id,
+  target,
+  rel,
 } = Astro.props;
 ---
 
@@ -25,6 +29,8 @@ const {
     <a
       class:list={['button', `button--${variant}`, `button--${size}`]}
       href={href}
+      target={target}
+      rel={rel}
       aria-label={ariaLabel}
       id={id}
     >

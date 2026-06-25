@@ -9,7 +9,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Container from '../components/ui/Container.astro';
 import Card from '../components/ui/Card.astro';
-import Badge from '../components/ui/Badge.astro';
 import Icon from '../components/ui/Icon.astro';
 import instructionsData from '../../public/data/instructions.json';
 
@@ -17,7 +16,6 @@ const rawItems = instructionsData.items;
 
 const withExtensions = rawItems.filter(i => (i.extensions ?? []).length > 0).length;
 const withApplyTo = rawItems.filter(i => (i.applyTo ?? '').length > 0 && i.applyTo !== '**').length;
-const extensionCount = instructionsData.filters?.extensions?.length ?? 0;
 const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g, '\\u003c');
 ---
 
@@ -90,7 +88,7 @@ const serializedInstructionsData = JSON.stringify(instructionsData).replace(/</g
       <!-- Search results dropdown -->
       <div id="instruction-search-results" class="search-results-dropdown" role="listbox" aria-label="Search results"></div>
       <div id="instruction-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></div>
-      <script id="instructions-data" type="application/json" set:html={serializedInstructionsData}></script>
+      <script is:inline id="instructions-data" type="application/json" set:html={serializedInstructionsData}></script>
 
     </Container>
   </section>

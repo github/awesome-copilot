@@ -424,16 +424,30 @@ const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
     color: var(--color-danger);
   }
 
+  .console-tag-selector {
+    position: relative;
+  }
+
+  .console-tag-selector:focus-within {
+    border-color: var(--color-subtle);
+    background: rgb(255 255 255 / 3%);
+    box-shadow: 4px 4px 0 var(--color-black);
+  }
+
   .console-tag-selector input {
     flex: 1;
     min-width: 6rem;
     border: none;
-    outline: none;
     background: transparent;
     color: var(--color-text);
     font-size: 0.9rem;
     line-height: 1.35;
     padding: 0.25rem 0;
+  }
+
+  .console-tag-selector input:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 35%);
+    outline-offset: 2px;
   }
 
   .console-tag-selector input::placeholder {
