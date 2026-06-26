@@ -3,7 +3,7 @@ title: 'Working with Canvas Extensions'
 description: 'Create and iterate on GitHub Copilot app canvases using /create-canvas, then shape them into reusable project or personal extensions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-06-26
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -132,6 +132,12 @@ Treat the first `/create-canvas` result as version one. Then refine in-place:
 - Keep capability names clear and action-oriented
 
 The fastest loop is: **use the canvas**, note friction, and ask the agent for a targeted update.
+
+## Canvas persistence across restarts
+
+Since v1.0.65, open canvases are **automatically resumed when you restart Copilot CLI**. If a session with an active canvas was running when you exited, the canvas reopens in the right panel the next time you resume that session — no need to manually re-open or recreate it.
+
+This means long-running canvas workflows (like a multi-day planning board or a persistent triage surface) survive CLI restarts without losing state. Canvas content is preserved in extension-scoped storage as long as the extension is still loaded.
 
 ## Next steps
 
