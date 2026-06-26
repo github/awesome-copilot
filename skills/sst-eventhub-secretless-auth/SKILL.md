@@ -75,6 +75,7 @@ Both paths lead to the same outcome: clear migration steps to Managed Identity a
 ## Getting Started
 
 ### Start from a Repository Scan
+
 1. **Identify the repository path**: Determine which repository contains your Event Hub service code
 2. **Scan for Event Hub violations** (follow the identification logic below)
 3. Identify all potential violations across IaC and client-side code

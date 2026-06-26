@@ -247,12 +247,14 @@ before merging to production.
 ## Step 4: Edge Cases
 
 ### Multiple Concerns
+
 If the developer has multiple security concerns:
 1. Process one at a time
 2. Ask which to start with
 3. Maintain context across concerns for the summary report
 
 ### Skill Failure
+
 If a specialized skill encounters an error:
 1. Log the error in the summary report
 2. Provide relevant public documentation links as manual fallback
@@ -260,11 +262,13 @@ If a specialized skill encounters an error:
 4. Do NOT retry the same skill more than once — if it fails twice, provide manual guidance
 
 ### Vague Requests
+
 If the developer's concern is too vague to classify:
 1. Ask clarifying questions (what service? what's the current pattern? what's the goal?)
 2. If still unclear after two rounds of questions, route to `sst-general-security-helper` — it can work exploratively with the developer
 
 ### No Code Changes Needed
+
 Some concerns may require portal changes, CLI commands, or cross-team coordination rather than code changes. The routed skill will handle this — your job is just to get the developer to the right skill.
 
 ---
@@ -286,10 +290,12 @@ Close with something like: "Nice work! We tackled {description of concern} today
 ## Additional Guidance
 
 ### Error Escalation
+
 - If the same error occurs twice, stop and do NOT retry. Suggest the developer open a GitHub issue on the toolkit repository.
 - If a skill reports failure, provide relevant public documentation links as manual fallback.
 
 ### Feedback
+
 - Encourage developers to provide feedback on skill effectiveness.
 - Note any concerns where the generic skill was used — these are candidates for future dedicated skills.
 

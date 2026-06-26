@@ -134,6 +134,7 @@ new PublicClientApplication(
 ```
 
 #### BEFORE (v2) — synchronous construction
+
 ```typescript
 import { PublicClientApplication } from "@azure/msal-browser";
 
@@ -154,6 +155,7 @@ msalInstance.handleRedirectPromise().then((response) => {
 ```
 
 #### AFTER (v3) — Option A: explicit `initialize()` call
+
 ```typescript
 import { PublicClientApplication } from "@azure/msal-browser";
 
@@ -175,6 +177,7 @@ msalInstance.handleRedirectPromise().then((response) => {
 ```
 
 #### AFTER (v3) — Option B: factory method (preferred for new code)
+
 ```typescript
 import { PublicClientApplication } from "@azure/msal-browser";
 
@@ -261,6 +264,7 @@ msalInstance.acquireTokenSilent({
 > Which do you prefer?"
 
 #### BEFORE (v2) — claims-based caching enabled by default (implicit)
+
 ```typescript
 const msalConfig = {
   auth: {
@@ -270,6 +274,7 @@ const msalConfig = {
 ```
 
 #### AFTER (v3) — to restore v2 caching behavior
+
 ```typescript
 const msalConfig = {
   auth: {
@@ -308,6 +313,7 @@ cryptoOptions
 ```
 
 #### BEFORE (v2) — crypto polyfill/config
+
 ```typescript
 const msalConfig = {
   auth: { clientId: "your-client-id" },
@@ -326,6 +332,7 @@ if (!window.crypto && window.msCrypto) {
 ```
 
 #### AFTER (v3) — removed
+
 ```typescript
 const msalConfig = {
   auth: { clientId: "your-client-id" },
@@ -387,6 +394,7 @@ Also check for:
 Also search `.html`, `.ejs`, `.hbs`, `.cshtml`, `.pug`, and similar template files.
 
 #### BEFORE (v2) — CDN script tag
+
 ```html
 <script
   type="text/javascript"
@@ -399,6 +407,7 @@ Also search `.html`, `.ejs`, `.hbs`, `.cshtml`, `.pug`, and similar template fil
 ```
 
 #### AFTER (v3) — npm package with bundler
+
 ```typescript
 // Install: npm install @azure/msal-browser@^3.0.0
 import { PublicClientApplication } from "@azure/msal-browser";
@@ -426,6 +435,7 @@ Update `@azure/msal-browser` to v3 in all relevant package files.
 - `.npmrc` if registry overrides exist
 
 #### BEFORE
+
 ```json
 {
   "dependencies": {
@@ -435,6 +445,7 @@ Update `@azure/msal-browser` to v3 in all relevant package files.
 ```
 
 #### AFTER
+
 ```json
 {
   "dependencies": {
@@ -454,6 +465,7 @@ Update `@azure/msal-browser` to v3 in all relevant package files.
 **If TypeScript is used, check `tsconfig.json`:**
 
 #### BEFORE (v2-era tsconfig)
+
 ```json
 {
   "compilerOptions": {
@@ -464,6 +476,7 @@ Update `@azure/msal-browser` to v3 in all relevant package files.
 ```
 
 #### AFTER (v3-compatible tsconfig)
+
 ```json
 {
   "compilerOptions": {

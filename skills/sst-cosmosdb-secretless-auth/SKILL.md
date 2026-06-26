@@ -105,6 +105,7 @@ Use this skill when:
 ## Key Concepts: Cosmos DB Authentication
 
 ### Before
+
 ```csharp
 // Key-based authentication
 var connectionString = "AccountEndpoint=https://myaccount.documents.azure.com:443/;AccountKey=<YOUR_ACCOUNT_KEY>";
@@ -114,6 +115,7 @@ var client = new CosmosClient(connectionString);
 **Risk**: Primary/secondary keys are long-lived credentials that, if leaked, grant full access to your Cosmos DB account.
 
 ### After
+
 ```csharp
 // Managed Identity authentication
 var endpoint = "https://myaccount.documents.azure.com:443/";
