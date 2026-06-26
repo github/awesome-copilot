@@ -53,12 +53,15 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service doc):**
+
 - [Configure role-based access control for Microsoft Entra ID (Cosmos DB for NoSQL)](https://learn.microsoft.com/azure/cosmos-db/how-to-setup-rbac) — built-in data-plane roles, role assignment, and disabling key-based auth (`#disable-key-based-authentication`).
 
 Use the **How** doc as the source of truth for:
+
 - Built-in **data-plane role definition IDs** (Cosmos DB Built-in Data Reader / Contributor) and how role assignments are created
 - The **`disableLocalAuth`** property on `Microsoft.DocumentDB/databaseAccounts`
 - SDK **package names and minimum versions** per language
@@ -75,6 +78,7 @@ Use the **Why** doc as the source of truth for which SFI objective applies and t
 ## When to Use This Skill
 
 Use this skill when:
+
 - Your application connects to Cosmos DB using `AccountKey=` in connection strings
 - You have `CosmosClient` instantiation using key-based constructors
 - You want to eliminate Cosmos DB keys from Key Vault, environment variables, or appsettings
@@ -94,6 +98,7 @@ Use this skill when:
 | 6. **Validation** | Pre-flight checks and rollback plan | Checklists and guidance |
 
 **What you should do**:
+
 - Review and test all generated changes in a non-production environment
 - Ensure managed identity is assigned to your compute resources (VM, App Service, AKS, etc.)
 - Verify RBAC roles grant appropriate permissions (reader vs. contributor)
@@ -203,6 +208,7 @@ resource roleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignment
 ```
 
 **Notes**:
+
 - `principalId`: The object ID of your managed identity (system-assigned or user-assigned)
 - `scope`: Can be account-level (entire account) or database-level (specific database)
 - Use `00000000-0000-0000-0000-000000000001` for read-only access
@@ -230,6 +236,7 @@ var client = new CosmosClient(endpoint, credential);
 ```
 
 **NuGet packages**:
+
 - `Microsoft.Azure.Cosmos` (latest)
 - `Azure.Identity` (1.10.0+)
 
@@ -255,6 +262,7 @@ client = CosmosClient(url, credential=credential)
 ```
 
 **Packages**:
+
 - `azure-cosmos` (4.5.0+)
 - `azure-identity` (1.14.0+)
 
@@ -282,6 +290,7 @@ CosmosClient client = new CosmosClientBuilder()
 ```
 
 **Maven dependencies**:
+
 - `com.azure:azure-cosmos` (4.45.0+)
 - `com.azure:azure-identity` (1.10.0+)
 
@@ -306,6 +315,7 @@ CosmosClient client = new CosmosClientBuilder()
 ```
 
 **Remove**:
+
 - `AccountKey=` from connection strings
 - Key Vault references for Cosmos DB keys (if applicable)
 - Environment variables storing keys
@@ -474,10 +484,12 @@ This skill follows these quality lenses:
 ### Scenario: Application uses Cosmos DB SQL API — key-based auth migrated to Entra ID
 
 **Input state:**
+
 - Application connects to Cosmos DB account configured with **SQL API** (Core API)
 - Client code uses `CosmosClient(endpoint, accountKey)` with a stored account key
 
 **Key decision points:**
+
 1. API compatibility gate: SQL API confirmed → proceed with migration (source: scope/gate section)
 2. RBAC setup: Cosmos DB uses its own **data plane RBAC** (NOT Azure RBAC) — create `sqlRoleAssignment` with built-in Data Contributor role `00000000-0000-0000-0000-000000000002` scoped to the account (source: Step 3 RBAC section)
 3. Client code swap: replace `CosmosClient(endpoint, accountKey)` with `CosmosClient(endpoint, new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned))` and remove `AccountKey` from config (source: Step 4 client code section)

@@ -47,6 +47,7 @@ it applies; do not draft a plan or propose edits.
 - [Migrating from MSAL Node v2 to MSAL v3](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v2-migration.md) — the breaking change(s) for the v2→v3 hop (the `NodeStorage` export removal).
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
@@ -81,12 +82,14 @@ grep -rn "NodeStorage" --include="*.ts" --include="*.js" --include="*.tsx" --inc
 ```
 
 Look for patterns like:
+
 - `import { NodeStorage } from "@azure/msal-node"`
 - `import { ..., NodeStorage, ... } from "@azure/msal-node"`
 - `const { NodeStorage } = require("@azure/msal-node")`
 - Any reference to `NodeStorage` from msal-node
 
 **If found:**
+
 1. Show the developer every occurrence with file paths and line numbers
 2. Explain that `NodeStorage` was internal and has no public replacement
 3. Suggest: "Open an issue at https://github.com/AzureAD/microsoft-authentication-library-for-js/issues describing your use case. The MSAL team can recommend an alternative."

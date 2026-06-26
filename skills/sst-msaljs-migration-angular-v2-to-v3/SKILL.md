@@ -24,6 +24,7 @@ You are a **migration partner** for `@azure/msal-angular` v2 to v3 — helping d
 **You are not a script executor. You are a co-creative engineer.** Use your judgment, stay curious, and act with care.
 
 **Your approach:**
+
 - Explain *why* each change matters before applying fixes
 - Ask before making changes: "I found [issue]. I'm going to [action]. Sound good?"
 - Be honest about confidence — especially when code patterns are unusual or unfamiliar
@@ -58,6 +59,7 @@ it applies; do not draft a plan or propose edits.
 - [Migrating from MSAL 2.x to MSAL 3.x (msal-browser)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v2-migration.md) — the underlying browser changes this hop depends on.
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
@@ -73,6 +75,7 @@ Use the fetched guide as the source of truth for:
 This skill handles the **`@azure/msal-angular` v2 → v3 hop** — one link in the MSAL.JS security migration chain.
 
 **What changed in msal-angular v3:**
+
 1. **Initialization requirement** — MSAL v3 requires explicitly initializing the application object. Redirect apps get this for free through `MsalRedirectComponent` and `handleRedirectObservable`. But **popup-only apps must now either bootstrap `MsalRedirectComponent` or call `handleRedirectObservable` manually** — this is the most impactful breaking change.
 2. **Angular 15–18 required** — msal-angular v3 is not backwards compatible with Angular versions earlier than 15.
 3. **rxjs 7 required** — rxjs@7 is now a hard requirement. `rxjs-compat` is not needed.
@@ -169,6 +172,7 @@ This is the **most important** step — and the one most likely to cause runtime
 ### Understanding the Change
 
 In msal-angular v3, the application object **must be initialized** before use. This initialization is handled automatically by:
+
 - `MsalRedirectComponent` — bootstrapped in the app module
 - `handleRedirectObservable` — called during app initialization
 

@@ -47,6 +47,7 @@ it applies; do not draft a plan or propose edits.
 - [Migrating from MSAL Node v3 to v5](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v5-migration.md) — the breaking changes (Node 20+ requirement, `proxyUrl` / `customAgentOptions` removal, `protocolMode` moved to system options, `fromNativeBroker`→`fromPlatformBroker`), and minimum versions for the v3→v5 hop.
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
@@ -87,12 +88,14 @@ grep -rn '"engines"' --include="package.json" -A 5
 ```
 
 Look for patterns like:
+
 - `"node": ">=16"`
 - `"node": ">=18"`
 - `"node": "^16 || ^18"`
 - Any minimum below `20`
 
 **If the engines field specifies a Node version below 20:**
+
 1. Show the developer the current `engines` value
 2. Warn: "msal-node v5 requires Node 20+. Your `engines` field allows Node [current min], which is no longer supported."
 3. Ask: "Should I update the `engines` field to require `>=20`?"
@@ -110,6 +113,7 @@ grep -rn "proxyUrl\|customAgentOptions" --include="*.ts" --include="*.js" --incl
 ```
 
 Look for patterns like:
+
 - `system: { proxyUrl: "..." }`
 - `system: { customAgentOptions: { ... } }`
 - `proxyUrl:` in MSAL configuration objects
@@ -131,6 +135,7 @@ const msalConfig = {
 **After (v5):** ❌ No drop-in replacement. The developer must implement a custom `HttpClient` that satisfies `INetworkModule`.
 
 **If found:**
+
 1. Show the developer every occurrence with file paths and line numbers
 2. Explain: "`proxyUrl` and `customAgentOptions` were removed from `NodeSystemOptions` in v5. You need to implement a custom `HttpClient` that implements `INetworkModule` to handle proxy configuration."
 3. Point the developer to the reference sample: `samples/msal-node-samples/custom-INetworkModule-and-network-tracing/README.md` in the [msal-node GitHub repo](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/custom-INetworkModule-and-network-tracing)
@@ -148,6 +153,7 @@ grep -rn "protocolMode" --include="*.ts" --include="*.js" --include="*.tsx" --in
 ```
 
 Look for patterns like:
+
 - `auth: { ..., protocolMode: "OIDC" }`
 - `auth: { ..., protocolMode: ProtocolMode.OIDC }`
 - `protocolMode` set anywhere within an `auth` config object
@@ -175,6 +181,7 @@ const msalConfig = {
 ```
 
 **If found:**
+
 1. Show the developer each occurrence
 2. Confirm: "I found `protocolMode` in the `auth` config. I'll move it to the `system` config block. Sound good?"
 3. Move the property — remove from `auth`, add to `system` (create the `system` block if it doesn't exist)
@@ -191,6 +198,7 @@ grep -rn "skipAuthorityMetadataFlag" --include="*.ts" --include="*.js" --include
 ```
 
 **If found:**
+
 1. Show the developer each occurrence
 2. Explain: "`skipAuthorityMetadataFlag` was removed in v5. Authority metadata resolution is now handled internally."
 3. Remove the property from the configuration object
@@ -207,6 +215,7 @@ grep -rn "encodeExtraQueryParams" --include="*.ts" --include="*.js" --include="*
 ```
 
 **If found:**
+
 1. Show the developer each occurrence
 2. Explain: "`encodeExtraQueryParams` was removed in v5 because all extra query parameters are now automatically encoded."
 3. Remove the property from the configuration/request object
@@ -223,12 +232,14 @@ grep -rn "fromNativeBroker" --include="*.ts" --include="*.js" --include="*.tsx" 
 ```
 
 Look for patterns like:
+
 - `result.fromNativeBroker`
 - `authResult.fromNativeBroker`
 - Destructuring: `const { fromNativeBroker } = result`
 - Type references or interface extensions using `fromNativeBroker`
 
 **If found:**
+
 1. Show the developer each occurrence
 2. Rename all references from `fromNativeBroker` to `fromPlatformBroker`
 
@@ -285,5 +296,3 @@ Next steps:
 - ✅ ALWAYS scan before bumping the version
 - ✅ ALWAYS report scan results for every breaking change, even when clean
 - ✅ ALWAYS point developers to the custom `INetworkModule` sample when proxy/agent issues are found
-
-

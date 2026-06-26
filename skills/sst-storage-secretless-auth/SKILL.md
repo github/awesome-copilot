@@ -53,14 +53,17 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
+
 - [Authorize access to data in Azure Storage](https://learn.microsoft.com/azure/storage/common/authorize-data-access) — the recommended authorization approach and which option to use per service (blob / queue / table / file).
 - [Authorize access to blobs using Microsoft Entra ID](https://learn.microsoft.com/azure/storage/blobs/authorize-access-azure-active-directory) — the built-in Storage data-plane RBAC roles.
 - [Prevent Shared Key authorization](https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent) — disabling shared-key access (the cutover step).
 
 Use the **How** docs as the source of truth for:
+
 - Built-in **Storage data-plane RBAC role names and role IDs** (e.g. Storage Blob Data Reader / Contributor / Owner)
 - The **`allowSharedKeyAccess`** property and how to disable shared-key auth
 - SDK **package names and minimum versions** per language
@@ -156,6 +159,7 @@ resource aksCluster 'Microsoft.ContainerService/managedClusters@2023-07-01' = {
 Grant the Managed Identity appropriate roles on the Storage Account:
 
 **Common Storage Roles:**
+
 - **Storage Blob Data Owner** (`b7e6dc6d-f1e8-4753-8033-0f276bb0955b`) — Full access to blobs (read, write, delete, manage ACLs)
 - **Storage Blob Data Contributor** (`ba92f5b4-2d11-453d-a403-e96b0029c9fe`) — Read, write, and delete blobs
 - **Storage Blob Data Reader** (`2a2b9908-6ea1-4ae2-8e65-a410df84e7d1`) — Read-only access to blobs
@@ -215,6 +219,7 @@ az role assignment create \
 ### 2.1 Search for Access Key Patterns
 
 **Connection String Patterns (search your codebase):**
+
 - `AccountKey=`
 - `SharedAccessSignature=`
 - `UseDevelopmentStorage=true`
@@ -223,11 +228,13 @@ az role assignment create \
 - `AzureWebJobsStorage` (for Functions)
 
 **Code Patterns to Find:**
+
 - `.NET`: `new BlobServiceClient(connectionString)`
 - `Python`: `BlobServiceClient.from_connection_string()`
 - `Java`: Connection strings in `BlobServiceClientBuilder`
 
 **What to Look For:**
+
 - Environment variables or Key Vault secrets storing connection strings
 - Application configuration files with `AccountKey=`
 - Deployment pipelines injecting connection strings
@@ -546,6 +553,7 @@ az storage account update \
 ```
 
 **What This Does:**
+
 - Disables access key-based authentication for data plane operations
 - Storage account keys still exist but cannot be used to access data
 - Only Entra ID (RBAC) and **User Delegation SAS** tokens (signed with Entra ID credentials) are allowed — see Step 3.5
@@ -605,11 +613,13 @@ az storage account update \
 ```
 
 **When to Rollback:**
+
 - Application errors indicating authentication failures
 - Dependency services not yet migrated to Managed Identity
 - Third-party tools requiring access key authentication
 
 **After Rollback:**
+
 - Investigate and fix the root cause
 - Test Managed Identity authentication in a non-production environment
 - Retry disabling shared key access after validation
@@ -623,6 +633,7 @@ az storage account update \
 **Cause:** Missing RBAC role assignment or incorrect role scope.
 
 **Solution:**
+
 1. Verify the Managed Identity has the correct role (e.g., Storage Blob Data Contributor)
 2. Check the role is assigned at the correct scope (Storage Account or container level)
 3. Wait 5-10 minutes for RBAC propagation (can take time in Azure AD)
@@ -641,6 +652,7 @@ az role assignment list --scope /subscriptions/<sub-id>/resourceGroups/<rg-name>
 **Cause:** Application is running in an environment without Managed Identity enabled, or environment variables are misconfigured.
 
 **Solution:**
+
 1. Verify Managed Identity is enabled on the resource (App Service, VM, etc.)
 2. Check for typos in User-Assigned Identity client ID
 3. For local development, use Azure CLI authentication or environment variables (not in production)
@@ -778,11 +790,13 @@ Test thoroughly in non-production environments before deploying to production.
 ### Scenario: Application uses Service SAS tokens for blob access
 
 **Input state:**
+
 - .NET application generates Service SAS tokens using `BlobSasBuilder` with `StorageSharedKeyCredential`
 - Storage account has `allowSharedKeyAccess: true` (current)
 - Plan is to disable shared key access after migration
 
 **Key decision points:**
+
 1. Step 3.5 SAS migration: Service SAS is signed with account key → will break when keys are disabled. Must switch to **User Delegation SAS** (source: Step 3.5 section)
 2. User Delegation SAS requirements: signed with Entra ID, max lifetime 7 days, supported on Blob Storage and ADLS Gen2 only (source: Step 3.5 key requirements)
 3. Code change: replace `StorageSharedKeyCredential` with `BlobServiceClient.GetUserDelegationKeyAsync()` call using `ManagedIdentityCredential` (source: Step 3.5 .NET example)

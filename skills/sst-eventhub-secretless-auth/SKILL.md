@@ -13,6 +13,7 @@ metadata:
 This skill helps you migrate Azure Event Hubs from SAS key / connection string authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/). Eliminating shared secrets like SAS keys reduces secret exposure risk and strengthens your identity security posture.
 
 **Your approach:**
+
 - Understand *why* Managed Identity matters before diving into changes
 - Provide code examples and infrastructure templates grounded in public Azure documentation
 - Flag anything uncertain rather than guessing
@@ -40,13 +41,16 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
+
 - [Authenticate a managed identity with Microsoft Entra ID to access Event Hubs resources](https://learn.microsoft.com/azure/event-hubs/authenticate-managed-identity) — enabling managed identity, RBAC role assignment, and SDK usage.
 - [Authenticate access to Event Hubs with shared access signatures](https://learn.microsoft.com/azure/event-hubs/authenticate-shared-access-signature#disable-local-or-sas-key-authentication) — disabling local / SAS-key authentication (the cutover step).
 
 Use the **How** docs as the source of truth for:
+
 - Built-in **Event Hubs data-plane RBAC role names** (Azure Event Hubs Data Owner / Sender / Receiver)
 - The **`disableLocalAuth`** property on the Event Hubs namespace
 - SDK **package names and minimum versions** per language
@@ -71,7 +75,6 @@ Help developers migrate Event Hub authentication from SAS keys to Managed Identi
 
 Both paths lead to the same outcome: clear migration steps to Managed Identity authentication.
 
-
 ## Getting Started
 
 ### Start from a Repository Scan
@@ -80,8 +83,6 @@ Both paths lead to the same outcome: clear migration steps to Managed Identity a
 2. **Scan for Event Hub violations** (follow the identification logic below)
 3. Identify all potential violations across IaC and client-side code
 4. Proceed with comprehensive migration
-
-
 
 ## Migration Overview
 
@@ -103,10 +104,12 @@ This migration has 3 main steps, plus an opt-in step:
 ### 1. Scan the repository for both IaC and client-side code:
 
 **IaC Files** — Bicep modules, ARM templates, and Terraform configs that define `Microsoft.EventHub/namespaces` resources:
+
 - Look for files containing `Microsoft.EventHub/namespaces` or `azurerm_eventhub_namespace`
 - Check for Event Hub connection string references in config files
 
 **Client-Side Code** — Application code using Event Hub SDKs:
+
 - .NET: `Azure.Messaging.EventHubs`, `EventHubProducerClient`, `EventHubConsumerClient`, `EventProcessorClient`
 - Java: `com.azure.messaging.eventhubs`
 - Python: `azure.eventhub`
@@ -115,18 +118,21 @@ This migration has 3 main steps, plus an opt-in step:
 ### 2. Violation Rules
 
 **For Bicep / ARM Templates:**
+
 - `disableLocalAuth` is not set to `true`
 - No managed identity configuration (`identity` block missing or `type` not set)
 - No RBAC role assignments for Event Hub data roles
 - Using connection string outputs or references
 
 **For Client-Side Code:**
+
 - Constructing Event Hub clients with connection strings (e.g., `EventHubProducerClient(connectionString, ...)`)
 - Using `EventHubsConnectionStringProperties` to parse connection strings
 - Storing Event Hub connection strings in app settings or key vault references
 - NOT using token-based credential types (e.g., `ManagedIdentityCredential`, `DefaultAzureCredential`, `WorkloadIdentityCredential`)
 
 **For Configuration Files:**
+
 - `appsettings.json`, `web.config`, or environment variable files containing Event Hub connection strings
 - Key Vault references to Event Hub connection string secrets (these should migrate to MSI-based access)
 
@@ -472,5 +478,3 @@ Before considering the migration complete, verify:
 | SFI Pillar 1: Protect identities and secrets | [Pillar overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
 | Zero Trust principles | [Zero Trust overview](https://learn.microsoft.com/security/zero-trust/) |
 | Cross-tenant workload identity | [Workload identity federation](https://learn.microsoft.com/azure/active-directory/develop/workload-identity-federation) |
-
-

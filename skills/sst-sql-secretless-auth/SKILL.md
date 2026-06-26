@@ -119,6 +119,7 @@ Steps 1–8 mirror the canonical guide. Step 0 is a skill-only preflight that ru
 ```
 
 **Key Concepts:**
+
 - **Managed Identity**: Azure resource's automatically managed identity in Entra ID (no secrets to manage)
 - **Contained Database User**: Database-level principal mapped to Entra identity (no server-level login required)
 - **Access Token**: Time-limited JWT token with `aud: https://database.windows.net`
@@ -406,6 +407,7 @@ ALTER ROLE db_datawriter ADD MEMBER [my-app-managed-identity];
 ```
 
 **Key Points:**
+
 - `[my-app-managed-identity]` must match the **name** of your Managed Identity resource in Azure (not the Object ID)
 - For non-unique display names, use the `WITH OBJECT_ID = '...'` form to disambiguate (Graph permissions still required)
 - `FROM EXTERNAL PROVIDER` tells SQL this is an Entra principal
@@ -459,6 +461,7 @@ WHERE name = 'my-app-managed-identity';
 ```
 
 Expected output:
+
 - `type_desc`: `EXTERNAL_USER`
 - `authentication_type_desc`: `EXTERNAL`
 
@@ -504,6 +507,7 @@ await connection.OpenAsync();
 ```
 
 **Connection String Properties:**
+
 - `Authentication=Active Directory Managed Identity` — uses system-assigned or user-assigned managed identity
 - For **user-assigned** MI, add: `User Id=<client-id-of-user-assigned-MI>`
 
@@ -1083,6 +1087,7 @@ If you need to temporarily exempt a SQL server (e.g., during migration or for em
 This skill guides migration from SQL authentication to Microsoft Entra ID (Managed Identity) authentication for Azure SQL Database — a security best practice aligned with [Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's Secure Future Initiative.
 
 **Key Takeaways:**
+
 - SQL authentication (username/password) is insecure and lacks centralized identity governance
 - Managed Identity eliminates secrets and integrates with Entra ID for centralized access control
 - For production workloads, `ManagedIdentityCredential` provides explicit, predictable authentication
@@ -1091,6 +1096,7 @@ This skill guides migration from SQL authentication to Microsoft Entra ID (Manag
 
 **Next Steps:**
 0. Verify alignment with the canonical guide (Step 0 — preflight; see [Source of Truth: Canonical Migration Guide](#source-of-truth-canonical-migration-guide))
+
 1. Identify your logins and users via SQL Auditing (Step 1)
 2. Enable Microsoft Entra authentication — assign admin in mixed mode (Step 2 / IaC)
 3. Identify and document existing permissions in SQL (Step 3)
@@ -1101,6 +1107,7 @@ This skill guides migration from SQL authentication to Microsoft Entra ID (Manag
 8. Enforce Entra-only at scale via Azure Policy (Step 8)
 
 Skill addenda (not part of the canonical 8-step flow):
+
 - Remove SQL secrets from configuration (between Step 5 and Step 6)
 - Monitor & iterate (after Step 8)
 
@@ -1119,11 +1126,13 @@ Skill addenda (not part of the canonical 8-step flow):
 ### Scenario: .NET app uses Microsoft.Data.SqlClient — full Entra auth migration proceeds
 
 **Input state:**
+
 - Application references `Microsoft.Data.SqlClient` (v5.2.2+) in `.csproj`
 - Connection string: `Server=mySqlServer.database.windows.net;Database=myDb;User Id=sqladmin;Password=<YOUR_PASSWORD>;`
 - Managed Identity is enabled on the hosting resource
 
 **Key decision points:**
+
 1. Audit-based discovery (source: Step 1): SQL Auditing query identifies the existing SQL Auth caller for this app and the SQL principal it authenticates as — this is the principal whose Step 3 permission inventory drives the new Entra user's grants.
 2. Driver compatibility gate (source: Step 5 Prerequisites): `Microsoft.Data.SqlClient` detected → gate passes, proceed with migration
 3. Database user setup (source: Steps 3 + 4): inventory the predecessor SQL principal's role memberships and explicit grants per Step 3, then in Step 4 execute `CREATE USER [my-app-identity] FROM EXTERNAL PROVIDER` and mirror those grants on the new Entra user. Use built-in roles only when the inventory matches them exactly.

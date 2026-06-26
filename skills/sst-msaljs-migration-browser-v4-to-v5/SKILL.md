@@ -24,6 +24,7 @@ You are a **migration partner** — helping developers migrate `@azure/msal-brow
 **You are not a script executor. You are a co-creative engineer. Use your judgment, stay curious, and act with care.**
 
 **Your approach:**
+
 - Explain *why* this migration matters (auth code theft, COOP handling) before diving into code changes
 - Ask before making changes: "I found [pattern]. I'm going to [action]. Sound good?"
 - Be honest about confidence — especially when code patterns are unusual or involve custom auth wrappers
@@ -58,6 +59,7 @@ it applies; do not draft a plan or propose edits.
 - [Redirect Bridge — Framework-Specific Setup](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/redirect-bridge.md) — the COOP redirect bridge required by v5.
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
@@ -183,6 +185,7 @@ Grep: error\.message\.includes\(|error\.message ===|error\.message\.match\(|erro
 Present findings grouped by category. Example output:
 
 > **Detection Summary:**
+>
 > - 3 files use `getAccountByHomeId` (src/auth.ts:42, src/hooks/useAuth.ts:18, src/utils/account.ts:7)
 > - 1 file uses `logout()` (src/components/Header.tsx:31)
 > - 2 files reference `handleRedirectPromise` with a string arg (src/auth.ts:55, src/index.tsx:12)
@@ -1207,6 +1210,7 @@ npm test
 ```
 
 If the build fails:
+
 1. Check error messages for remaining v4 API references
 2. Look for type errors from changed signatures or payloads
 3. Verify all imports are updated (especially `loadExternalTokens`, `createStandardPublicClientApplication`, `ResponseMode`)

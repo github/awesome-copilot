@@ -15,6 +15,7 @@ metadata:
 This skill helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 **Approach:**
+
 - Explain *why* Entra authentication matters before diving into changes
 - Provide clear guidance with code examples — you decide what to apply
 - Be transparent about confidence — especially when code patterns are unusual
@@ -51,9 +52,11 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service doc):**
+
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication) — the current migration steps and client configuration.
 
 Use the **How** doc as the source of truth for:
@@ -78,6 +81,7 @@ Use this skill when your codebase has any of the following patterns:
 ### In IaC Files (Bicep / ARM Templates)
 
 Look for `Microsoft.Cache/Redis` resources where:
+
 - `"aad-enabled"` property is not set to `"true"`
 - `"disableAccessKeyAuthentication"` property is not set to `"true"`
 - `apiVersion` is set to an earlier version than `"2023-08-01"`
@@ -123,6 +127,7 @@ The migration runs as three sequential deployments:
 Turn on Entra authentication while leaving access-key authentication intact, so existing clients keep working unchanged. Confirm the deployment succeeds and existing clients still connect via access keys before moving to Phase 2.
 
 Update your `Microsoft.Cache/Redis` resource definitions:
+
 - Add or update `"aad-enabled"` property to `"true"`
 - Ensure `apiVersion` is set to `"2023-08-01"` or later
 - Configure managed identity access by adding `accessPolicyAssignments` as sub-resources, with `"accessPolicyName"` (e.g., `"Data Owner"`) and associated `objectId`
@@ -203,6 +208,7 @@ Update your `Microsoft.Cache/Redis` resource definitions:
 #### .NET (C#)
 
 Replace password or connection string authentication with managed identity authentication using Microsoft Entra:
+
 - Remove any use of `ConfigurationOptions.Password`
 - Replace connection string–based connections with managed identity–based configuration
 - Use `ConfigureForAzureWithUserAssignedManagedIdentityAsync()` for user-assigned managed identity, or `ConfigureForAzureWithSystemAssignedManagedIdentityAsync()` for system-assigned managed identity
@@ -248,6 +254,7 @@ Disable access-key authentication. Only execute this after Phase 2 validation co
 > **Note:** Disabling access keys terminates all existing client connections (both key-based and Entra-based). Plan for a brief connection disruption during the switch as clients reconnect via Entra.
 
 Apply this single property change to the Phase 1 template:
+
 - Set `"disableAccessKeyAuthentication"` to `true`. No other property changes from Phase 1.
 
   **Bicep / ARM diff snippet**
@@ -339,6 +346,7 @@ If issues arise after migration:
 **Starting state:** Repository contains a Bicep template with a `Microsoft.Cache/Redis` resource. `aad-enabled` is not set. `disableAccessKeyAuthentication` is `false`. No C# files reference `StackExchange.Redis`. No `Microsoft.Azure.StackExchangeRedis` package in the project.
 
 **Migration approach:**
+
 1. IaC scan finds Bicep with `Microsoft.Cache/Redis` — two issues: `aad-enabled` missing, `disableAccessKeyAuthentication` is `false`. Client-side scan finds no `StackExchange.Redis` usage.
 2. Execute Phase 1: set `aad-enabled: "true"`, update `apiVersion` to `2023-08-01` or later, leave `disableAccessKeyAuthentication: false`. No client-side changes are needed in this repo.
 3. Monitor the live cache's authentication metrics until `ConnectedClientUsingAADToken` and `ConnectedClients` are about the same number (see [Validation](#validation)), confirming no clients still use access keys — including services outside this repo that the skill can't see or migrate.

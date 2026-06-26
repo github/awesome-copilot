@@ -24,6 +24,7 @@ You are a **migration partner** for `@azure/msal-react` v3 to v5 — helping dev
 **You are not a script executor. You are a co-creative engineer. Use your judgment, stay curious, and act with care.**
 
 **Your approach:**
+
 - Explain *why* each change matters before applying fixes
 - Ask before making changes: "I found [issue]. I'm going to [action]. Sound good?"
 - Be honest about confidence — especially when code patterns are unusual or unfamiliar
@@ -58,6 +59,7 @@ it applies; do not draft a plan or propose edits.
 - [Migrating from MSAL v4 to MSAL v5 (msal-browser)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md) and [Redirect Bridge](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/redirect-bridge.md) — the underlying browser v5 changes (required redirect bridge) this hop depends on.
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
@@ -96,6 +98,7 @@ If `@azure/msal-react` is **not found** in any `package.json`, inform the develo
 `@azure/msal-react` v5 requires `@azure/msal-browser` v5 as a peer dependency. The `sst-msaljs-migration-browser-v4-to-v5` skill should be run **before** (or in conjunction with) this skill.
 
 **Before proceeding, verify the developer's msal-browser version:**
+
 1. Check `package.json` for `@azure/msal-browser` version
 2. If it is still on v3 or v4, advise: "You need to upgrade `@azure/msal-browser` to v5 first. Would you like to run the `sst-msaljs-migration-browser-v4-to-v5` skill?"
 3. Reference: [msal-browser v4 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v4-migration.md)
@@ -131,6 +134,7 @@ Scan `package.json` for the React dependency version.
 ```
 
 **Evaluate:**
+
 - If React version is `>=19.2.1` → proceed
 - If React version is `<19.2.1` (React 16, 17, 18, or 19.0–19.1) → **warn the developer**
 
@@ -317,6 +321,7 @@ Grep: process\.env\.REACT_APP_
 #### 8. Remove CRA-specific environment variables
 
 Remove these from `.env` files — they are CRA-specific and not used by Vite:
+
 - `SKIP_PREFLIGHT_CHECK`
 - `DISABLE_ESLINT_PLUGIN`
 
@@ -347,6 +352,7 @@ npm run build
 If the build succeeds, the CRA→Vite migration is complete. Proceed to Step 2.
 
 If the build fails, common issues:
+
 - **JSX in `.js` files:** Rename to `.jsx`
 - **`process.env` references remaining:** Search and replace with `import.meta.env`
 - **Missing `index.html` script tag:** Verify the entry point is correct
@@ -377,11 +383,13 @@ If not on v5, advise the developer to run the `sst-msaljs-migration-browser-v4-t
 ### What Changed
 
 In msal-react v3, there were three separate `InteractionStatus` values for different authentication flows:
+
 - `InteractionStatus.Login` — for interactive login flows
 - `InteractionStatus.SsoSilent` — for silent SSO flows
 - `InteractionStatus.AcquireToken` — for token acquisition
 
 In msal-react v5, these have been **consolidated**:
+
 - `InteractionStatus.Login` → **removed** (use `InteractionStatus.AcquireToken`)
 - `InteractionStatus.SsoSilent` → **removed** (use `InteractionStatus.AcquireToken`)
 - `InteractionStatus.AcquireToken` — now covers all three scenarios
@@ -646,11 +654,13 @@ After all code changes are complete:
 ### Scan the codebase for migration targets:
 
 **package.json:**
+
 - `@azure/msal-react` with version `^3.x.x` or `~3.x.x`
 - `@azure/msal-browser` with version `^3.x.x`, `^4.x.x`
 - `react` with version `<19.2.1`
 
 **Source files (`.ts`, `.tsx`, `.js`, `.jsx`):**
+
 - `InteractionStatus.Login` — must be replaced
 - `InteractionStatus.SsoSilent` — must be replaced
 - `InteractionStatus.AcquireToken` — review for compound conditions that can be simplified
@@ -659,6 +669,7 @@ After all code changes are complete:
 - `EventType.LOGIN_SUCCESS` with `AuthenticationResult` cast — must be updated to `AccountInfo`
 
 **Test files:**
+
 - Mocks or assertions involving `InteractionStatus.Login` or `InteractionStatus.SsoSilent`
 - Test scenarios for logout behavior
 

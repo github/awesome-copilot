@@ -54,14 +54,17 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
+
 - [Authenticate requests to Foundry Tools](https://learn.microsoft.com/azure/ai-services/authentication) — Microsoft Entra ID authentication patterns, token scopes, and SDK credential usage.
 - [RBAC for Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/concepts/rbac-azure-ai-foundry) and [Authentication and authorization in Microsoft Foundry](https://learn.microsoft.com/azure/foundry/concepts/authentication-authorization-foundry#built-in-roles-overview) — current built-in role names and role-definition GUIDs (these were recently renamed).
 - The resource's **Keys and Endpoint** page / the relevant service doc — the current endpoint host format.
 
 Use the **How** docs as the source of truth for:
+
 - The resource **`kind`** to recommend (`AIServices` vs the single-service kinds; `CognitiveServices` is deprecated)
 - Current **endpoint** host format (e.g. `*.services.ai.azure.com`)
 - Built-in **role names and role-definition GUIDs**
@@ -345,6 +348,7 @@ var config = SpeechConfig.FromAuthorizationToken(tokenProvider.Token, "your-regi
 ```
 
 **Remove from:**
+
 - Environment variables (`COGNITIVE_SERVICES_API_KEY`, `AZURE_OPENAI_API_KEY`)
 - Azure App Configuration / Key Vault secrets (if storing API key)
 - Hardcoded strings in code
@@ -542,11 +546,13 @@ Deploy following your organization's change management process.
 ### Scenario: Application uses Azure OpenAI requiring token-based auth pattern
 
 **Input state:**
+
 - Python application calls Azure OpenAI via `openai` SDK with `api_key` parameter
 - Service kind: OpenAI (not TextAnalytics, ComputerVision, or Speech)
 - Managed Identity already enabled on the hosting resource
 
 **Key decision points:**
+
 1. Service-kind SDK selection (source: Step 3 per-service-kind section): OpenAI uses **token-based** auth — call `credential.get_token("https://cognitiveservices.azure.com/.default")` and pass the token string as `azure_ad_token`, NOT `ManagedIdentityCredential` passed directly to client
 2. This differs from TextAnalytics/ComputerVision which pass the credential object directly to the client constructor (credential-based pattern)
 3. RBAC role: `Cognitive Services User` is sufficient for inference; `Cognitive Services Contributor` only if the app manages deployments (source: Step 2)

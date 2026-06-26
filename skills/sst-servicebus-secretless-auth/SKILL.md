@@ -36,13 +36,16 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
+
 - [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
+
 - [Use managed identities to access Azure Service Bus resources](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-managed-service-identity) — RBAC roles, role assignment (portal / CLI), and SDK usage.
 - [Disable local authentication for Azure Service Bus](https://learn.microsoft.com/azure/service-bus-messaging/disable-local-authentication) — disabling SAS / local auth (the cutover step).
 
 Use the **How** docs as the source of truth for:
+
 - Built-in **Service Bus data-plane RBAC role names** (Azure Service Bus Data Owner / Sender / Receiver)
 - The **`disableLocalAuth`** property on the Service Bus namespace
 - SDK **package names and minimum versions** per language
@@ -59,6 +62,7 @@ Use the **Why** doc as the source of truth for which SFI objective applies and t
 ## When to Use This Skill
 
 Use this skill when your codebase:
+
 - Creates `ServiceBusClient` using a connection string or SAS key
 - Stores Service Bus connection strings in configuration, environment variables, or Key Vault
 - Has `disableLocalAuth` set to `false` (or unset) on Service Bus namespaces
@@ -91,6 +95,7 @@ Use this skill when your codebase:
 > **Recommended: Use `ManagedIdentityCredential` in production.**
 >
 > For a security-focused migration, [`ManagedIdentityCredential`](https://learn.microsoft.com/dotnet/api/azure.identity.managedidentitycredential) is the recommended choice for production environments:
+>
 > - ✅ **Explicit** — targets only the managed identity credential, no fallback chain
 > - ✅ **Fails fast** — immediately surfaces misconfigurations instead of silently trying other credential types
 > - ✅ **Least privilege** — uses only the intended identity, reducing attack surface
@@ -98,6 +103,7 @@ Use this skill when your codebase:
 > **Alternative: `DefaultAzureCredential`** is a convenient option for development or simpler scenarios. It attempts multiple credential types in a [configurable chain](https://learn.microsoft.com/dotnet/azure/sdk/authentication/credential-chains), which is helpful for local development but can mask misconfigurations in production.
 >
 > **For local development:**
+>
 > - Use `AzureCliCredential` or `VisualStudioCredential` explicitly
 > - Or use `DefaultAzureCredential` which automatically discovers local credentials
 >
@@ -363,6 +369,7 @@ ServiceBusSenderClient sender = builder.sender()
 ```
 
 **Remove from:**
+
 - Environment variables (`SERVICEBUS_CONNECTION_STRING`, `AZURE_SERVICEBUS_CONNECTION_STRING`)
 - Azure App Configuration / Key Vault secrets (if storing connection strings)
 - Hardcoded strings in code
@@ -471,6 +478,7 @@ Azure Service Bus supports **Federated Identity Credentials (FIC)** for cross-te
    ```
 
 **Documentation:**
+
 - [Workload Identity Federation](https://learn.microsoft.com/entra/workload-id/workload-identity-federation)
 - [Service Bus Authentication Across Tenants](https://learn.microsoft.com/azure/service-bus-messaging/authenticate-application)
 
@@ -632,11 +640,13 @@ If you need to temporarily exempt a namespace (e.g., during migration or for eme
 ### Scenario: Application sends messages only — needs sender-specific RBAC role
 
 **Input state:**
+
 - .NET application uses `ServiceBusClient` with connection string to send messages to queues
 - No message receive or session operations in codebase
 - Service Bus namespace: `your-servicebus-namespace`
 
 **Key decision points:**
+
 1. RBAC role selection (source: Step 2 role table): send-only access → **Azure Service Bus Data Sender** (`69a216fc-...`), not Data Owner or Data Receiver
 2. Deployment order matters (source: recommended deployment order): assign RBAC first → update app code → validate → then disable local auth. Do NOT disable local auth before code is deployed
 3. Connection string removal: wait until after 7-day monitoring period post-deployment (source: deployment order section)

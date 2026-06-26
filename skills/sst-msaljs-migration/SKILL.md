@@ -64,6 +64,7 @@ Identify which packages are present and their current versions:
 For each detected package, determine how many hops are needed to reach the latest version. Each hop must be executed **sequentially** — do not skip versions.
 
 **Example:** If a repo has `@azure/msal-browser@^2.30.0` and `@azure/msal-angular@^2.4.0`:
+
 1. Hop 1: browser v2→v3 + angular v2→v3 (can be done together since angular v3 depends on browser v3)
 2. Hop 2: browser v3→v4 + angular v3→v4
 3. Hop 3: browser v4→v5 + angular v4→v5
@@ -92,6 +93,7 @@ For each required hop, invoke the corresponding `sst-msaljs-migration-*` skill *
 ## Step 4: Verify and Commit
 
 After each hop:
+
 1. Run the project's test suite (`npm test` / `yarn test` / `pnpm test`)
 2. Verify the build succeeds (`npm run build` / equivalent)
 3. Commit the hop as a discrete, reviewable change

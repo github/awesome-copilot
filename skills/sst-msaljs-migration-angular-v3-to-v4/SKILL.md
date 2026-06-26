@@ -54,6 +54,7 @@ it applies; do not draft a plan or propose edits.
 - [Migrating from MSAL v3 to MSAL v4 (msal-browser)](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) — the underlying browser changes this hop depends on.
 
 Use the fetched guide as the source of truth for:
+
 - The current set of **breaking changes** and **removed/renamed APIs** for this hop
 - **Minimum package / framework versions** required
 - The **recommended code change** for each breaking change
