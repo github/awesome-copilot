@@ -3,10 +3,7 @@ title: '04 · Create Specialized AI Assistants'
 description: 'Mirror the source chapter on custom agents and custom instructions for GitHub Copilot CLI.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-19
----
-
-![Chapter 04: Agents and Custom Instructions](/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
+lastUpdated: 2026-06-26(/images/learning-hub/copilot-cli-for-beginners/04/chapter-header.png)
 
 > **What if you could hire a Python code reviewer, testing expert, and security reviewer... all in one tool?**
 
@@ -192,6 +189,8 @@ copilot --agent python-reviewer
 ```
 
 > 💡 **Switching agents**: You can switch to a different agent at any time by using `/agent` or `--agent` again. To return to the standard Copilot CLI experience, use `/agent` and select **no agent**.
+
+> 💡 **Agent mode is session-scoped**: The agent you select applies only to the current session. When you start a new session with `/new`, `/clear`, or by opening a fresh terminal, Copilot returns to its default mode — your agent selection does not carry over automatically. This means each session starts with a clean slate, which is a good habit to keep your work focused.
 
 ---
 
