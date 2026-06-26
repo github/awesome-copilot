@@ -232,7 +232,7 @@ using Azure.Identity;
 using Azure.AI.TextAnalytics;
 
 var endpoint = new Uri("https://your-service.services.ai.azure.com/");
-var credential = new ManagedIdentityCredential(); // ✅ Managed Identity
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned); // ✅ Managed Identity
 var client = new TextAnalyticsClient(endpoint, credential);
 ```
 
@@ -243,7 +243,7 @@ using Azure.Identity;
 using Azure.AI.OpenAI;
 
 var endpoint = new Uri("https://your-openai.openai.azure.com/");
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var client = new OpenAIClient(endpoint, credential);
 ```
 
@@ -294,7 +294,7 @@ using Azure.Identity;
 using Azure.AI.Vision.ImageAnalysis;
 
 var endpoint = new Uri("https://your-vision.services.ai.azure.com/");
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var client = new ImageAnalysisClient(endpoint, credential);
 ```
 
@@ -305,7 +305,7 @@ using Azure.Identity;
 using Microsoft.CognitiveServices.Speech;
 
 var endpoint = "wss://your-speech.services.ai.azure.com/";
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 
 // Get token for Speech Services
 var tokenProvider = new Azure.Core.AccessToken(

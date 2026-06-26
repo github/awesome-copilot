@@ -279,14 +279,14 @@ using Azure.Storage.Blobs;
 
 // ✅ Correct: Use ManagedIdentityCredential
 var blobServiceUri = new Uri(configuration["AzureStorage:BlobServiceUri"]);
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var blobServiceClient = new BlobServiceClient(blobServiceUri, credential);
 ```
 
 **For User-Assigned Identity:**
 ```csharp
 var clientId = configuration["ManagedIdentity:ClientId"];
-var credential = new ManagedIdentityCredential(clientId);
+var credential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId));
 var blobServiceClient = new BlobServiceClient(blobServiceUri, credential);
 ```
 
@@ -296,7 +296,7 @@ var blobServiceClient = new BlobServiceClient(blobServiceUri, credential);
 services.AddSingleton(sp => {
     var config = sp.GetRequiredService<IConfiguration>();
     var blobServiceUri = new Uri(config["AzureStorage:BlobServiceUri"]);
-    var credential = new ManagedIdentityCredential();
+    var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
     return new BlobServiceClient(blobServiceUri, credential);
 });
 ```
@@ -456,7 +456,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
 
 // Authenticate with Managed Identity
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var blobServiceClient = new BlobServiceClient(
     new Uri("https://<account>.blob.core.windows.net"), credential);
 
@@ -650,7 +650,7 @@ az role assignment list --scope /subscriptions/<sub-id>/resourceGroups/<rg-name>
 ```csharp
 // For local dev ONLY — not production code
 var credential = new ChainedTokenCredential(
-    new ManagedIdentityCredential(),
+    new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned),
     new AzureCliCredential()
 );
 ```

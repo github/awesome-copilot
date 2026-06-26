@@ -243,7 +243,7 @@ var producer = new EventHubProducerClient(connectionString, eventHubName);
 using Azure.Identity;
 using Azure.Messaging.EventHubs.Producer;
 
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var fullyQualifiedNamespace = "<namespace>.servicebus.windows.net";
 var producer = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credential);
 ```
@@ -251,7 +251,7 @@ var producer = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName,
 **User-assigned MSI (specify the client ID):**
 
 ```csharp
-var credential = new ManagedIdentityCredential("<your-managed-identity-client-id>");
+var credential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId("<your-managed-identity-client-id>"));
 var producer = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, credential);
 ```
 

@@ -515,7 +515,7 @@ using Azure.Identity;
 using Microsoft.Data.SqlClient;
 
 // Get access token using ManagedIdentityCredential (recommended for production)
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var tokenRequestContext = new TokenRequestContext(new[] { "https://database.windows.net/.default" });
 var accessToken = await credential.GetTokenAsync(tokenRequestContext);
 

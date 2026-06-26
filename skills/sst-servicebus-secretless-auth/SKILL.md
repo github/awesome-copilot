@@ -104,7 +104,7 @@ Use this skill when your codebase:
 > **Example (Recommended Production Pattern):**
 > ```csharp
 > // Production: explicit managed identity
-> var credential = new ManagedIdentityCredential();
+> var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 > var client = new ServiceBusClient(fullyQualifiedNamespace, credential);
 > ```
 >
@@ -237,7 +237,7 @@ using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 
 var fullyQualifiedNamespace = "your-namespace.servicebus.windows.net";
-var credential = new ManagedIdentityCredential(); // ✅ Managed Identity
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned); // ✅ Managed Identity
 var client = new ServiceBusClient(fullyQualifiedNamespace, credential);
 var sender = client.CreateSender("queue-name");
 ```
@@ -250,7 +250,7 @@ using Azure.Messaging.ServiceBus;
 
 var fullyQualifiedNamespace = "your-namespace.servicebus.windows.net";
 var clientId = configuration["ManagedIdentity:ClientId"];
-var credential = new ManagedIdentityCredential(clientId); // ✅ User-assigned MI
+var credential = new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(clientId)); // ✅ User-assigned MI
 var client = new ServiceBusClient(fullyQualifiedNamespace, credential);
 ```
 
@@ -261,7 +261,7 @@ using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 
 var fullyQualifiedNamespace = "your-namespace.servicebus.windows.net";
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var client = new ServiceBusClient(fullyQualifiedNamespace, credential);
 var receiver = client.CreateReceiver("queue-name");
 
@@ -466,7 +466,7 @@ Azure Service Bus supports **Federated Identity Credentials (FIC)** for cross-te
 3. **In Application Code:**
    ```csharp
    // Use the Managed Identity from Tenant A, which federates to Tenant B
-   var credential = new ManagedIdentityCredential();
+   var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
    var client = new ServiceBusClient("namespace-in-tenantB.servicebus.windows.net", credential);
    ```
 

@@ -117,7 +117,7 @@ var client = new CosmosClient(connectionString);
 ```csharp
 // Managed Identity authentication
 var endpoint = "https://myaccount.documents.azure.com:443/";
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var client = new CosmosClient(endpoint, credential);
 ```
 
@@ -223,7 +223,7 @@ using Azure.Identity;
 using Microsoft.Azure.Cosmos;
 
 var endpoint = configuration["CosmosDb:Endpoint"]; // e.g., "https://myaccount.documents.azure.com:443/"
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 var client = new CosmosClient(endpoint, credential);
 ```
 
@@ -317,7 +317,7 @@ For local development (not production), you have two options:
 #if DEBUG
 var credential = new AzureCliCredential();
 #else
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 #endif
 ```
 
@@ -332,7 +332,7 @@ az account set --subscription <your-subscription-id>
 #if DEBUG
 var credential = new DefaultAzureCredential();
 #else
-var credential = new ManagedIdentityCredential();
+var credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
 #endif
 ```
 
@@ -478,7 +478,7 @@ This skill follows these quality lenses:
 **Key decision points:**
 1. API compatibility gate: SQL API confirmed → proceed with migration (source: scope/gate section)
 2. RBAC setup: Cosmos DB uses its own **data plane RBAC** (NOT Azure RBAC) — create `sqlRoleAssignment` with built-in Data Contributor role `00000000-0000-0000-0000-000000000002` scoped to the account (source: Step 3 RBAC section)
-3. Client code swap: replace `CosmosClient(endpoint, accountKey)` with `CosmosClient(endpoint, new ManagedIdentityCredential())` and remove `AccountKey` from config (source: Step 4 client code section)
+3. Client code swap: replace `CosmosClient(endpoint, accountKey)` with `CosmosClient(endpoint, new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned))` and remove `AccountKey` from config (source: Step 4 client code section)
 
 **Sample output** (at Step 3 / RBAC + client code decision):
 > API confirmed: **SQL API**. Proceeding with Cosmos DB data plane RBAC setup.
@@ -490,7 +490,7 @@ This skill follows these quality lenses:
 > // Before:
 > var client = new CosmosClient(endpoint, accountKey);
 > // After:
-> var client = new CosmosClient(endpoint, new ManagedIdentityCredential());
+> var client = new CosmosClient(endpoint, new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned));
 > ```
 >
 > **Config cleanup:** Remove `AccountKey` from connection string and Key Vault references.
