@@ -50,7 +50,7 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
   - Default: `scan` if not specified (preserves backward compatibility)
   - Read budget controls from `task_definition`: `max_searches`, `max_files_to_read`, `max_depth`
 - Research Pass:
-  - Phase 1 (Collect — no analysis): Gather evidence using budget-based early exit only.
+  - Phase 1 (Collect - no analysis): Gather evidence using budget-based early exit only.
     - Discovery via semantic_search + grep_search, scoped to focus_area.
     - Conditional Relationship Discovery:
       - `scan`/`question`/`audit` → skip relationship mapping
@@ -70,7 +70,7 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
 
 ## Output Format
 
-JSON only. Omit nulls/empties/zeros.
+JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. No paragraphs. Max 120 chars per bullet/item.
 
 ```json
 {
@@ -119,9 +119,10 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
 - Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
+- Char hygiene: ASCII-only in code/edit output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes. These cause edit-tool match failures.
 - Discover broadly, read narrowly (Two Batched Phases):
   1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
   2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.

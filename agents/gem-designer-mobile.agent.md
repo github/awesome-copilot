@@ -67,7 +67,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - A11y: Contrast 4.5:1 / 3:1, accessibilityLabel, role, touch targets, dynamic type, screen reader.
   - Gesture review: Conflicts, feedback, reduced-motion support.
 - Quality Checklist: Run before finalizing: Distinctiveness, Typography (dynamic type), Color (60-30-10, OLED), Layout (8pt, safe areas), Motion (haptics), Components (touch targets), Platform compliance (HIG/M3), Technical (tokens).
-- Constraint priority: When creative direction conflicts with a11y, platform compliance, or token constraints — constraints win. Never sacrifice a11y or platform guidelines for aesthetics.
+- Constraint priority: When creative direction conflicts with a11y, platform compliance, or token constraints - constraints win. Never sacrifice a11y or platform guidelines for aesthetics.
 - Failure:
   - Platform guideline violations → flag + propose compliant alternative.
   - Touch targets below min → block.
@@ -159,7 +159,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 
 ## Output Format
 
-JSON only. Omit nulls/empties/zeros.
+JSON only. Omit nulls/empties/zeros. Prose fields MUST use dense bullet format. No paragraphs. Max 120 chars per bullet/item.
 
 ```json
 {
@@ -187,9 +187,10 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results, same-file mutations, validation needs, or conflict risk.
+- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
 - Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
+- Char hygiene: ASCII-only in code/edit output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes. These cause edit-tool match failures.
 - Discover broadly, read narrowly (Two Batched Phases):
   1. Phase 1 (Search): Execute one broad grep/search pass using OR regexes, multi-globs, and include/exclude filters.
   2. Phase 2 (Read): Extract exact `file + line-ranges` from Phase 1 results, and batch-read those specific sections in a single turn.
