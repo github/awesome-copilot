@@ -596,6 +596,32 @@
     }
   },
   {
+    "name": "ui5-modernization",
+    "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
+    "version": "0.1.6",
+    "author": {
+      "name": "SAP SE",
+      "url": "https://www.sap.com"
+    },
+    "repository": "https://github.com/UI5/plugins-coding-agents",
+    "homepage": "https://github.com/UI5/plugins-coding-agents",
+    "license": "Apache-2.0",
+    "keywords": [
+      "ui5",
+      "sapui5",
+      "openui5",
+      "modernization",
+      "linter",
+      "upgrade"
+    ],
+    "source": {
+      "source": "github",
+      "repo": "UI5/plugins-coding-agents",
+      "path": "plugins/ui5-modernization",
+      "ref": "v0.1.6"
+    }
+  },
+  {
     "name": "ui5-typescript-conversion",
     "description": "SAPUI5 / OpenUI5 plugin for GitHub CoPilot. Convert JavaScript based UI5 projects to TypeScript.",
     "version": "0.1.4",
