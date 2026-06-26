@@ -26,37 +26,6 @@ jobs:
             const rereview = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-rereview.mjs')).href);
             const validation = await import(pathToFileURL(path.join(process.env.GITHUB_WORKSPACE, 'eng', 'external-plugin-validation.mjs')).href);
 
-            const managedLabels = {
-              [rereview.REREVIEW_LABELS.due]: {
-                color: 'FBCA04',
-                description: 'Approved external plugin is due for six-month re-review'
-              },
-              [rereview.REREVIEW_LABELS.followUp]: {
-                color: 'D4C5F9',
-                description: 'Six-month re-review needs maintainer follow-up before a final decision'
-              },
-              [rereview.REREVIEW_LABELS.removed]: {
-                color: 'B60205',
-                description: 'External plugin was removed from the marketplace after re-review'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function removeLabel(issueNumber, label) {
               try {
                 await github.rest.issues.removeLabel({
@@ -89,8 +58,6 @@ jobs:
               const diff = Date.parse(threshold.toISOString()) - Date.parse(closedAt);
               return Math.max(0, Math.floor(Math.abs(diff) / (1000 * 60 * 60 * 24)));
             }
-
-            await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
 
             const { plugins, errors } = validation.readExternalPlugins({ policy: 'marketplace' });
             if (errors.length > 0) {
@@ -208,7 +175,7 @@ jobs:
               '',
               `- \`${rereview.REREVIEW_COMMANDS.keep}\` — renew the plugin for another six months`,
               `- \`${rereview.REREVIEW_COMMANDS.needsChanges}\` — keep the plugin in the due queue while follow-up work happens`,
-              `- \`${rereview.REREVIEW_COMMANDS.remove}\` — open or update a PR against \`staged\` that removes the plugin from the marketplace`,
+              `- \`${rereview.REREVIEW_COMMANDS.remove}\` — open or update a PR against \`main\` that removes the plugin from the marketplace`,
               '',
               `- **Threshold date used by this run:** ${formatDate(threshold.toISOString())}`,
               '',

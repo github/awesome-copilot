@@ -62,30 +62,20 @@ export default defineConfig({
           },
         },
       ],
-      customCss: ["./src/styles/starlight-overrides.css", "./src/styles/global.css"],
+      customCss: [
+        "./src/styles/starlight-overrides.css",
+        "./src/styles/global.css",
+      ],
       editLink: {
         baseUrl:
           "https://github.com/github/awesome-copilot/edit/staged/website/",
       },
       sidebar: [
         {
-          label: "Browse Resources",
-          items: [
-            { label: "Home", link: "/" },
-            { label: "Agents", link: "/agents/" },
-            { label: "Instructions", link: "/instructions/" },
-            { label: "Skills", link: "/skills/" },
-            { label: "Hooks", link: "/hooks/" },
-            { label: "Workflows", link: "/workflows/" },
-            { label: "Canvas Extensions", link: "/extensions/" },
-            { label: "Plugins", link: "/plugins/" },
-            { label: "Tools", link: "/tools/" },
-            { label: "Contributors", link: "/contributors/" },
-          ],
-        },
-        {
           label: "Fundamentals",
           items: [
+            "learning-hub/github-copilot-app",
+            "learning-hub/working-with-canvas-extensions",
             "learning-hub/what-are-agents-skills-instructions",
             "learning-hub/agents-and-subagents",
             "learning-hub/understanding-copilot-context",
@@ -129,6 +119,21 @@ export default defineConfig({
               label: "Cookbook",
               link: "/learning-hub/cookbook/",
             },
+          ],
+        },
+        {
+          label: "Browse Resources",
+          items: [
+            { label: "Home", link: "/" },
+            { label: "Agents", link: "/agents/" },
+            { label: "Instructions", link: "/instructions/" },
+            { label: "Skills", link: "/skills/" },
+            { label: "Hooks", link: "/hooks/" },
+            { label: "Workflows", link: "/workflows/" },
+            { label: "Canvas Extensions", link: "/extensions/" },
+            { label: "Plugins", link: "/plugins/" },
+            { label: "Tools", link: "/tools/" },
+            { label: "Contributors", link: "/contributors/" },
           ],
         },
       ],

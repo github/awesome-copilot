@@ -20,10 +20,10 @@ jobs:
       !github.event.issue.pull_request &&
       contains(github.event.comment.body, '/re-review-')
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -180,34 +180,6 @@ jobs:
           PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
         with:
           script: |
-            const managedLabels = {
-              're-review-due': {
-                color: 'FBCA04',
-                description: 'Approved external plugin is due for six-month re-review'
-              },
-              're-review-follow-up': {
-                color: 'D4C5F9',
-                description: 'Six-month re-review needs maintainer follow-up before a final decision'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
-            await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -254,7 +226,7 @@ jobs:
           git commit -m "Remove external plugin ${plugin_name} after six-month re-review"
           git push --force-with-lease origin "$branch"
 
-          pr_url=$(gh pr list --head "$branch" --base staged --json url --jq '.[0].url')
+          pr_url=$(gh pr list --head "$branch" --base main --json url --jq '.[0].url')
           if [ -z "$pr_url" ]; then
             pr_body=$(printf '%s\n' \
               '## Summary' \
@@ -263,7 +235,7 @@ jobs:
               '- regenerate marketplace outputs after the six-month re-review decision' \
               "- closes #${issue_number} review follow-up for this listing")
             pr_url=$(gh pr create \
-              --base staged \
+              --base main \
               --head "$branch" \
               --title "[external-plugin] Remove ${plugin_name} after re-review" \
               --body "$pr_body")
@@ -339,7 +311,7 @@ jobs:
                 issue_number: context.issue.number,
                 labels: ['re-review-due', 're-review-follow-up']
               });
-              body = `Opened the removal PR for **${pluginName}**: ${prUrl}. The issue remains approved and due for re-review until that removal lands in \`staged\`.`;
+              body = `Opened the removal PR for **${pluginName}**: ${prUrl}. The issue remains approved and due for re-review until that removal lands in \`main\`.`;
             }
 
             await github.rest.issues.createComment({

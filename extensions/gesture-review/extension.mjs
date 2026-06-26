@@ -1,18 +1,15 @@
 import http from "node:http";
 import { execFile } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { dirname } from "node:path";
 import { createCanvas, joinSession } from "@github/copilot-sdk/extension";
 
-// This file lives inside the repo worktree, so its directory is a safe cwd for
-// git/gh regardless of where the extension host process was launched from.
-const extensionDir = dirname(fileURLToPath(import.meta.url));
+// The extension should query PRs from the active workspace repository.
 
 // In-memory state
 let currentPR = null;
 let prList = [];
 let gestureState = "idle"; // idle | detecting | approved | rejected
 let lastDecision = null;
+let lastLoadError = null;
 const sseClients = new Set();
 let loadPRsPromise = null; // in-flight guard for loadOpenPRs
 let cachedHTML = null; // cached HTML string
@@ -21,6 +18,13 @@ function broadcast(event, data) {
 	for (const res of sseClients) {
 		res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 	}
+}
+
+function normalizeErrorMessage(error) {
+	if (!error) return "Unknown error loading pull requests.";
+	const message = typeof error === "string" ? error : error.message || String(error);
+	const singleLine = message.split(/\r?\n/)[0].trim();
+	return singleLine || "Unknown error loading pull requests.";
 }
 
 // --- Load open PRs from the repo via the gh CLI ---
@@ -40,6 +44,7 @@ function loadOpenPRs() {
 	if (loadPRsPromise) return loadPRsPromise;
 
 	loadPRsPromise = new Promise((resolve) => {
+		const repoCwd = process.cwd();
 		execFile(
 			"gh",
 			[
@@ -52,16 +57,22 @@ function loadOpenPRs() {
 				"--json",
 				"number,title,author,additions,deletions,body",
 			],
-			{ cwd: extensionDir, maxBuffer: 1024 * 1024 },
+			{ cwd: repoCwd, maxBuffer: 1024 * 1024 },
 			(err, stdout) => {
 				loadPRsPromise = null;
 				if (err) {
-					console.error("gesture-review: failed to load PRs:", err.message);
+					lastLoadError = normalizeErrorMessage(err);
+					prList = [];
+					currentPR = null;
+					console.error("gesture-review: failed to load PRs:", lastLoadError);
+					broadcast("prlist", prList);
+					broadcast("load_error", { message: lastLoadError });
 					resolve(false);
 					return;
 				}
 				try {
 					const raw = JSON.parse(stdout);
+					lastLoadError = null;
 					prList = raw.map((pr) => ({
 						title: pr.title,
 						number: pr.number,
@@ -76,9 +87,12 @@ function loadOpenPRs() {
 					}
 					broadcast("prlist", prList);
 					if (currentPR) broadcast("pr", currentPR);
+					broadcast("load_error", null);
 					resolve(true);
 				} catch (e) {
-					console.error("gesture-review: failed to parse PRs:", e.message);
+					lastLoadError = normalizeErrorMessage(e);
+					console.error("gesture-review: failed to parse PRs:", lastLoadError);
+					broadcast("load_error", { message: lastLoadError });
 					resolve(false);
 				}
 			},
@@ -112,6 +126,11 @@ const server = http.createServer((req, res) => {
 			res.write(`event: pr\ndata: ${JSON.stringify(currentPR)}\n\n`);
 		}
 		res.write(`event: state\ndata: ${JSON.stringify({ state: gestureState })}\n\n`);
+		if (lastLoadError) {
+			res.write(
+				`event: load_error\ndata: ${JSON.stringify({ message: lastLoadError })}\n\n`,
+			);
+		}
 		sseClients.add(res);
 		req.on("close", () => sseClients.delete(res));
 		return;
@@ -179,7 +198,7 @@ const canvas = createCanvas({
 	id: "gesture-review",
 	displayName: "Gesture PR Review",
 	description:
-		"Interactive PR review using hand gestures. Shows a live camera feed and detects thumbs up (approve) or thumbs down (reject) via MediaPipe hand tracking.",
+		"Users review pull requests with a live camera feed and approve or reject using thumbs-up/thumbs-down gestures.",
 	actions: [
 		{
 			name: "show_pr",
@@ -635,11 +654,13 @@ function getHTML() {
   let allPRs = [];
   let currentIndex = 0;
   let decisions = {}; // number -> 'approved' | 'rejected'
+  let prLoadError = null;
 
   // --- SSE ---
   const es = new EventSource('/events');
   es.addEventListener('prlist', (e) => {
     allPRs = JSON.parse(e.data);
+    if (allPRs.length > 0) prLoadError = null;
     // Keep index in range, then show the current PR (or auto-select the first
     // undecided one) so the drawer is usable the moment the canvas loads.
     if (currentIndex >= allPRs.length) currentIndex = 0;
@@ -669,6 +690,11 @@ function getHTML() {
       activeGesture = null;
       updateUI();
     }
+  });
+  es.addEventListener('load_error', (e) => {
+    const payload = e.data ? JSON.parse(e.data) : null;
+    prLoadError = payload?.message || null;
+    updateUI();
   });
 
   function showPR(pr) {
@@ -791,14 +817,33 @@ function getHTML() {
     });
   }
 
+  async function loadScriptWithFallback(sources, timeoutMs = 10000) {
+    let lastErr;
+    for (const src of sources) {
+      try {
+        await loadScript(src, timeoutMs);
+        return;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('Script load failed');
+  }
+
   async function initMediaPipe() {
     const INIT_TIMEOUT = 30000;
     try {
       // Load MediaPipe scripts dynamically with timeout
       setLoadingProgress(40, 'Downloading hand tracking library...');
-      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js', 15000);
+      await loadScriptWithFallback([
+        'https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js',
+        'https://unpkg.com/@mediapipe/hands/hands.js'
+      ], 15000);
       setLoadingProgress(60, 'Downloading camera utilities...');
-      await loadScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js', 15000);
+      await loadScriptWithFallback([
+        'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js',
+        'https://unpkg.com/@mediapipe/camera_utils/camera_utils.js'
+      ], 15000);
 
       setLoadingProgress(70, 'Initializing hand detection model...');
 
@@ -1173,7 +1218,9 @@ function getHTML() {
   function updateUI() {
     if (!decided) {
       cameraWrap.className = 'camera-wrap';
-      statusBar.textContent = currentPR ? 'Show thumbs up or thumbs down...' : 'Waiting for a PR...';
+      statusBar.textContent = currentPR
+        ? 'Show thumbs up or thumbs down...'
+        : (prLoadError ? ('Unable to load PRs: ' + prLoadError) : 'Waiting for a PR...');
       statusBar.className = 'status-bar';
     }
   }

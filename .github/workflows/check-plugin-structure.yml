@@ -2,7 +2,7 @@ name: Check Plugin Structure
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     paths:
       - "plugins/**"
 
@@ -93,8 +93,8 @@ jobs:
                   if (files.length > 0) {
                     errors.push(
                       `${pluginPath}/${subdir}/ contains ${files.length} file(s): ${files.join(', ')}. ` +
-                      `Plugin directories on staged should only contain .github/plugin/plugin.json and README.md. ` +
-                      `Agent, command, and skill files are materialized automatically during publish to main.`
+                      `Plugin directories on main should only contain .github/plugin/plugin.json and README.md. ` +
+                      `Agent, command, and skill files are materialized automatically during publish to marketplace.`
                     );
                   }
                 }
@@ -120,11 +120,11 @@ jobs:
               const body = [
                 '⚠️ **Materialized files or symlinks detected in plugin directories**',
                 '',
-                'Plugin directories on the `staged` branch should only contain:',
+                'Plugin directories on the `main` branch should only contain:',
                 '- `.github/plugin/plugin.json` (metadata)',
                 '- `README.md`',
                 '',
-                'Agent, command, and skill files are copied in automatically when publishing to `main`.',
+                'Agent, command, and skill files are copied in automatically when publishing to `marketplace`.',
                 '',
                 '**Issues found:**',
                 ...errors.map(e => `- ${e}`),
@@ -133,12 +133,12 @@ jobs:
                 '',
                 '### How to fix',
                 '',
-                'It looks like your branch may be based on `main` (which contains materialized files). Here are two options:',
+                'It looks like your branch may include materialized plugin files that should not be on `main`. Here are two options:',
                 '',
-                '**Option 1: Rebase onto `staged`** (recommended if you have few commits)',
+                '**Option 1: Rebase to drop materialized files** (recommended if you have few commits)',
                 '```bash',
-                `git fetch origin staged`,
-                `git rebase --onto origin/staged origin/main ${prBranch}`,
+                `git fetch origin main`,
+                `git rebase --onto origin/main origin/main ${prBranch}`,
                 `git push --force-with-lease`,
                 '```',
                 '',
@@ -179,7 +179,7 @@ jobs:
                 core.warning(body);
               }
 
-              core.setFailed('Plugin directories contain materialized files or symlinks that should not be on staged');
+              core.setFailed('Plugin directories contain materialized files or symlinks that should not be on main');
             } else {
               console.log('✅ All plugin directories are clean');
             }

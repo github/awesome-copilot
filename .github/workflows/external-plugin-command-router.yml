@@ -23,10 +23,10 @@ jobs:
       !github.event.issue.pull_request &&
       (startsWith(github.event.comment.body, '/approve') || startsWith(github.event.comment.body, '/reject'))
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -207,7 +207,7 @@ jobs:
           pr_url=""
           pr_number=""
           if git diff --quiet; then
-            pr_number=$(gh pr list --head "$branch" --base staged --json number --jq '.[0].number')
+            pr_number=$(gh pr list --head "$branch" --base main --json number --jq '.[0].number')
             if [ -n "$pr_number" ]; then
               pr_url=$(gh pr view "$pr_number" --json url --jq '.url')
             fi
@@ -227,7 +227,7 @@ jobs:
           git commit -m "${title_action} external plugin ${plugin_name}"
           git push --force-with-lease origin "$branch"
 
-          pr_number=$(gh pr list --head "$branch" --base staged --json number --jq '.[0].number')
+          pr_number=$(gh pr list --head "$branch" --base main --json number --jq '.[0].number')
           pr_body=$(cat <<EOF
           ## Summary
 
@@ -249,7 +249,7 @@ jobs:
             pr_url=$(gh pr view "$pr_number" --json url --jq '.url')
           else
             pr_url=$(gh pr create \
-              --base staged \
+              --base main \
               --head "$branch" \
               --title "[external-plugin] ${title_action} ${plugin_name}" \
               --body "$pr_body")
@@ -275,49 +275,6 @@ jobs:
           PR_NUMBER: ${{ steps.approval_pr.outputs.pr-number }}
         with:
           script: |
-            const managedLabels = {
-              'external-plugin': {
-                color: 'FEF2C0',
-                description: 'Public external plugin submission'
-              },
-              'awaiting-review': {
-                color: 'FBCA04',
-                description: 'Submission is waiting for automated intake validation'
-              },
-              'ready-for-review': {
-                color: '0E8A16',
-                description: 'Submission passed intake validation and is ready for maintainer review'
-              },
-              'requires-submitter-fixes': {
-                color: 'D93F0B',
-                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
-              },
-              'approved': {
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              },
-              'rejected': {
-                color: 'B60205',
-                description: 'Submission was rejected or failed intake validation'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function removeLabel(issueNumber, name) {
               try {
                 await github.rest.issues.removeLabel({
@@ -334,7 +291,14 @@ jobs:
             }
 
             async function syncIssueLabels(issueNumber, desiredLabels) {
-              await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
+              const managedLabels = {
+                'external-plugin': true,
+                'awaiting-review': true,
+                'ready-for-review': true,
+                'requires-submitter-fixes': true,
+                'approved': true,
+                'rejected': true
+              };
 
               const currentLabels = await github.paginate(github.rest.issues.listLabelsOnIssue, {
                 owner: context.repo.owner,
@@ -378,8 +342,8 @@ jobs:
               `- **Catalog action:** ${action}`,
               `- **Source repository:** \`${process.env.SOURCE_REPO}\``,
               prUrl
-                ? `- **PR against \`staged\`:** ${prUrl}`
-                : '- **PR against `staged`:** No new PR was needed because the approved listing is already present.'
+              ? `- **PR against \`main\`:** ${prUrl}`
+              : '- **PR against `main`:** No new PR was needed because the approved listing is already present.'
             ].join('\n');
 
             await syncIssueLabels(issueNumber, new Set(['external-plugin', 'approved']));
@@ -438,49 +402,6 @@ jobs:
           PLUGIN_NAME: ${{ steps.parse.outputs.plugin-name }}
         with:
           script: |
-            const managedLabels = {
-              'external-plugin': {
-                color: 'FEF2C0',
-                description: 'Public external plugin submission'
-              },
-              'awaiting-review': {
-                color: 'FBCA04',
-                description: 'Submission is waiting for automated intake validation'
-              },
-              'ready-for-review': {
-                color: '0E8A16',
-                description: 'Submission passed intake validation and is ready for maintainer review'
-              },
-              'requires-submitter-fixes': {
-                color: 'D93F0B',
-                description: 'Submission has quality-gate findings that submitter must fix before maintainer review'
-              },
-              'approved': {
-                color: '1D76DB',
-                description: 'Submission was approved by a maintainer'
-              },
-              'rejected': {
-                color: 'B60205',
-                description: 'Submission was rejected or failed intake validation'
-              }
-            };
-
-            async function ensureLabel(name, config) {
-              try {
-                await github.rest.issues.createLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  name,
-                  color: config.color,
-                  description: config.description
-                });
-              } catch (error) {
-                if (error.status !== 422) {
-                  throw error;
-                }
-              }
-            }
-
             async function removeLabel(name) {
               try {
                 await github.rest.issues.removeLabel({
@@ -496,7 +417,6 @@ jobs:
               }
             }
 
-            await Promise.all(Object.entries(managedLabels).map(([name, config]) => ensureLabel(name, config)));
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -567,10 +487,10 @@ jobs:
       !github.event.issue.pull_request &&
       startsWith(github.event.comment.body, '/mark-ready-for-review')
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
 
       - name: Apply explicit ready-for-review override
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
@@ -686,10 +606,10 @@ jobs:
       issue-state: ${{ steps.evaluate.outputs.issue-state }}
       issue-labels: ${{ steps.evaluate.outputs.issue-labels }}
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
 
       - name: Validate command and evaluate intake
         id: evaluate
@@ -796,10 +716,10 @@ jobs:
     needs: [rerun-intake-parse, rerun-intake-quality-gates]
     if: always() && needs.rerun-intake-parse.outputs.should-run == 'true'
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
 
       - name: Apply merged intake evaluation
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
