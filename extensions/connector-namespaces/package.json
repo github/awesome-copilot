@@ -1,0 +1,19 @@
+{
+  "name": "connector-namespaces",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "extension.mjs",
+  "description": "Browse and add MCP connectors from your Azure Connector Namespace to your Copilot session — search by name or category, then add connectors to enable their tools.",
+  "keywords": [
+    "azure",
+    "connector-namespace",
+    "mcp",
+    "mcp-connectors",
+    "model-context-protocol",
+    "tool-discovery"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  }
+}

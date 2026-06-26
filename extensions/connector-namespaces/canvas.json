@@ -1,0 +1,28 @@
+{
+  "id": "connector-namespaces",
+  "name": "MCP Connectors",
+  "description": "Browse and add MCP connectors from your Azure Connector Namespace to your Copilot session — search by name or category, then add connectors to enable their tools.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Alex Yang",
+    "url": "https://github.com/alexyaang"
+  },
+  "keywords": [
+    "azure",
+    "connector-namespace",
+    "mcp",
+    "mcp-connectors",
+    "model-context-protocol",
+    "tool-discovery"
+  ],
+  "screenshots": {
+    "icon": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    },
+    "gallery": {
+      "path": "assets/preview.png",
+      "type": "image/png"
+    }
+  }
+}
