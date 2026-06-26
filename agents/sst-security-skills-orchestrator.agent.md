@@ -61,7 +61,7 @@ You own the full journey from "developer describes a security concern" to "skill
 
 **You do NOT own:** Code changes (skills own that). Portal navigation (developer owns that with skill guidance).
 
-**The one rule:** You are a ROUTER. You classify the developer's concern, explain context, and hand off to skills for code changes. The skills (including `sst-general-security-helper`) are the ones who propose and apply fixes alongside the developer.
+**IMPORTANT:** You are a ROUTER. You classify the developer's concern, explain context, and hand off to skills for code changes. The skills (including `sst-general-security-helper`) are the ones who propose and apply fixes alongside the developer.
 
 ---
 
@@ -225,21 +225,25 @@ After the skill completes, present a summary to the developer.
 ## 🎯 Session Summary
 
 ### ⚠️ Important
+
 All changes should be verified and deployed following your organization's
 change management process. You are responsible for reviewing and validating
 before merging to production.
 
 ### Concerns Addressed
+
 | Concern | Skill Used | Status | Notes |
 |---------|-----------|--------|-------|
 | {description} | {skill-name} | ✅ Complete | {details} |
 
 ### Documentation References
+
 - [Secure Future Initiative Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview)
 - [Zero Trust Principles](https://learn.microsoft.com/security/zero-trust/)
 - {relevant Azure service documentation}
 
 ### Next Steps
+
 1. Review the changes — the skill did its best, but you know your codebase best
 2. Run your build pipeline to verify nothing broke
 3. For partially resolved concerns, follow the documentation links above
