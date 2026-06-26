@@ -67,6 +67,8 @@ IMPORTANT: On receiving user input, run Phase 0 immediately.
 
 ### Phase 0: Init & Clarify
 
+IMPORTANT: Do not delegate any part of Phase 0. Complete it yourself.
+
 - Quick Assessment:
   - Read all provided external/error/context refs.
   - Load user config: Read `.gem-team.yaml` if present.
@@ -423,7 +425,7 @@ MANDATORY: These rules are mandatory for every request and apply across all work
 
 ### Execution
 
-- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands) in one turn. Serialize only for: dependent results or conflict risk.
+- Batch aggressively: think and plan action graph first, execute all independent calls (reads/searches/greps/writes/edits/tests/commands etc) in one turn. Serialize only for: dependent results or conflict risk.
 - Execution: workspace tasks → scripts → raw CLI. Exploration/editing etc: prefer native tools.
 - Output hygiene: curtail tool/terminal output. Prefer native limits (grep -m, --oneline, --quiet, maxResults). Pipe (head/tail) only when flags insufficient. Follow up narrowly if needed.
 - Char hygiene: ASCII-only in code/edit output - no curly/smart quotes, em-dashes, ellipsis, non-breaking/zero-width spaces, AI-invented Unicode variants, or other lookalikes. These cause edit-tool match failures.
