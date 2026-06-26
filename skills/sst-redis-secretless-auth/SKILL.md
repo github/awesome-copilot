@@ -8,7 +8,9 @@ metadata:
 > **Disclaimer**: This is an AI-powered assistant. Always review generated code
 > and infrastructure changes carefully before deploying.
 
-# Redis Managed Identity Migration
+# Azure Cache for Redis — Managed Identity Migration
+
+> **Scope:** Azure Cache for Redis only. Azure Managed Redis is a separate service and is not covered here.
 
 This skill helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
