@@ -12,7 +12,7 @@ metadata:
 
 ## Overview
 
-This skill helps you migrate Azure Service Bus from SAS key/connection string authentication to **Microsoft Entra ID (Managed Identity) authentication** — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure Service Bus from SAS key/connection string authentication to **Microsoft Entra ID (Managed Identity) authentication** — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 Eliminating shared secrets (SAS keys, connection strings) and using managed identities for Azure resource authentication reduces credential exposure, removes secret rotation burden, and enforces explicit identity verification for every access request.
 
@@ -36,7 +36,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
 - [Use managed identities to access Azure Service Bus resources](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-managed-service-identity) — RBAC roles, role assignment (portal / CLI), and SDK usage.
@@ -76,7 +76,7 @@ Use this skill when your codebase:
 
 | **Aspect** | **Details** |
 |------------|-------------|
-| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
+| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
 | **Services Affected** | Azure Service Bus (Queues, Topics, Subscriptions) |
 | **Root Cause** | Service code uses SAS keys or connection strings for authentication instead of Managed Identity |
 | **Migration Goal** | Replace SAS/connection string authentication with Microsoft Entra ID (Managed Identity) and disable local auth on the Service Bus namespace |
@@ -611,8 +611,8 @@ If you need to temporarily exempt a namespace (e.g., during migration or for eme
 - [Azure Service Bus Authentication Documentation](https://learn.microsoft.com/azure/service-bus-messaging/authenticate-application)
 - [Managed Identity for Service Bus](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-managed-service-identity)
 - [Azure Service Bus RBAC Roles](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-managed-service-identity#azure-built-in-roles-for-azure-service-bus)
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview)
-- [Adopt standard SDKs for identity](https://learn.microsoft.com/en-us/security/zero-trust/sfi/adopt-standard-sdk-identity)
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview)
+- [Adopt standard SDKs for identity](https://learn.microsoft.com/security/zero-trust/sfi/adopt-standard-sdk-identity)
 - [Zero Trust Principles](https://learn.microsoft.com/security/zero-trust/)
 - [Azure Identity best practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices)
 - [Azure Identity client library for .NET](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme)

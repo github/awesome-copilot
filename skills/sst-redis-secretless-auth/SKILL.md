@@ -10,7 +10,7 @@ metadata:
 
 # Redis Managed Identity Migration
 
-This skill helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 **Approach:**
 - Explain *why* Entra authentication matters before diving into changes
@@ -26,7 +26,7 @@ This skill helps you migrate Azure Cache for Redis from access key authenticatio
 |--------|---------|
 | **What** | Migrate Azure Cache for Redis from access key authentication to Microsoft Entra ID using managed identities |
 | **Why** | Access keys are shared secrets — they can be leaked, don't expire automatically, and grant broad access. Managed identities eliminate these risks. |
-| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
+| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
 | **Scope** | Infrastructure as Code (Bicep/ARM) and client-side code (.NET with `StackExchange.Redis`; other languages per the fetched doc) |
 
 ## Engagement Mode: Explain Before Proposing
@@ -49,7 +49,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service doc):**
 - [Use Microsoft Entra for cache authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication) — the current migration steps and client configuration.
@@ -348,12 +348,12 @@ If issues arise after migration:
 
 ## Related Resources
 
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview)
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview)
 - [Secure Future Initiative Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview)
 - [Zero Trust Principles](https://learn.microsoft.com/security/zero-trust/)
 - [Use Microsoft Entra for Azure Cache for Redis authentication](https://learn.microsoft.com/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication)
 - [Azure Identity management best practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices)
 - [Microsoft.Azure.StackExchangeRedis NuGet package](https://www.nuget.org/packages/Microsoft.Azure.StackExchangeRedis)
-- [Adopt standard SDKs for identity (SFI)](https://learn.microsoft.com/en-us/security/zero-trust/sfi/adopt-standard-sdk-identity)
+- [Adopt standard SDKs for identity (SFI)](https://learn.microsoft.com/security/zero-trust/sfi/adopt-standard-sdk-identity)
 
 ---

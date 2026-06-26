@@ -14,13 +14,13 @@ metadata:
 
 ## Overview
 
-This skill helps you migrate Azure Cognitive Services and Azure AI Services from API key-based authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure Cognitive Services and Azure AI Services from API key-based authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 Eliminating API key authentication reduces credential leakage risk, simplifies secret management, and enforces the Zero Trust principle of verifying explicitly. Microsoft's public Azure AI Services documentation [supports Microsoft Entra ID authentication](https://learn.microsoft.com/azure/ai-services/authentication) as the recommended approach for authorizing requests against Cognitive Services APIs.
 
 This skill provides guidance, code samples, and step-by-step instructions. You are responsible for testing, validating, and deploying changes in your environment.
 
-| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
+| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
 |---|---|
 
 | Step | Action | Tools/Artifacts |
@@ -54,7 +54,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
 - [Authenticate requests to Foundry Tools](https://learn.microsoft.com/azure/ai-services/authentication) — Microsoft Entra ID authentication patterns, token scopes, and SDK credential usage.
@@ -517,7 +517,7 @@ Deploy following your organization's change management process.
 
 | Resource | Link |
 |----------|------|
-| **SFI Pillar 1: Protect identities and secrets** | [https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| **SFI Pillar 1: Protect identities and secrets** | [https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
 | **Zero Trust Principles** | [https://learn.microsoft.com/security/zero-trust/](https://learn.microsoft.com/security/zero-trust/) |
 | **Azure AI Services Authentication** | [https://learn.microsoft.com/azure/ai-services/authentication](https://learn.microsoft.com/azure/ai-services/authentication) |
 | **Managed Identity for Azure AI Services** | [https://learn.microsoft.com/azure/ai-services/authentication#authenticate-with-azure-active-directory](https://learn.microsoft.com/azure/ai-services/authentication#authenticate-with-azure-active-directory) |

@@ -12,7 +12,7 @@ metadata:
 
 ## Overview
 
-This skill helps you address security concerns that don't have a dedicated specialist skill in the toolkit — a flexible guide aligned with Microsoft's [Secure Future Initiative](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you address security concerns that don't have a dedicated specialist skill in the toolkit — a flexible guide aligned with Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 When a developer describes a security concern that doesn't map to a dedicated skill (like `sst-storage-secretless-auth` or `sst-msaljs-migration`), this skill:
 
@@ -94,18 +94,18 @@ To help the developer, identify the relevant SFI pillar and fetch public guidanc
 
 | SFI Pillar | When to Use | Overview URL |
 |------------|-------------|--------------|
-| **Pillar 1: Protect identities and secrets** | Credential management, authentication, managed identities | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
-| **Pillar 2: Protect tenants and isolate systems** | Resource isolation, tenant security, legacy systems | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-tenant-overview) |
-| **Pillar 3: Protect networks** | Network isolation, private endpoints | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-network-overview) |
-| **Pillar 4: Protect engineering systems** | Supply chain, secure pipelines, source code access | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-engineering-overview) |
-| **Pillar 5: Monitor and detect threats** | Logging, monitoring, anomaly detection, AI security | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-threat-overview) |
-| **Pillar 6: Accelerate response and remediation** | Vulnerability management, incident response | [Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-response-overview) |
+| **Pillar 1: Protect identities and secrets** | Credential management, authentication, managed identities | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| **Pillar 2: Protect tenants and isolate systems** | Resource isolation, tenant security, legacy systems | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-tenant-overview) |
+| **Pillar 3: Protect networks** | Network isolation, private endpoints | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-network-overview) |
+| **Pillar 4: Protect engineering systems** | Supply chain, secure pipelines, source code access | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-engineering-overview) |
+| **Pillar 5: Monitor and detect threats** | Logging, monitoring, anomaly detection, AI security | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-threat-overview) |
+| **Pillar 6: Accelerate response and remediation** | Vulnerability management, incident response | [Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-response-overview) |
 
 2. **Fetch the pillar page** — read the overview for the matched pillar to find specific sub-actions
 3. **Fetch the sub-action page** — read the detailed guidance for the most relevant sub-action
 4. **Fetch Azure-specific docs** — find the service-specific public documentation for the developer's technology stack
 
-If any URL fails, re-discover from the [SFI Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview).
+If any URL fails, re-discover from the [SFI Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview).
 
 ### If documentation is present and actionable
 
@@ -118,7 +118,7 @@ Proceed to Phase 1 and Phase 2 normally. You have what you need.
 You MUST:
 1. Tell the developer directly: *"I couldn't find enough public documentation for this specific concern to make reliable suggestions. I'd rather be honest about that than guess and risk bad changes."*
 2. Share what documentation you did find — even partial guidance helps
-3. Point them to the [SFI Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and relevant Azure service docs
+3. Point them to the [SFI Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and relevant Azure service docs
 4. Offer to analyze their codebase for general security patterns if they provide more context
 
 You MUST NOT:
@@ -277,7 +277,7 @@ I've put together a plan with step-by-step instructions grounded in the docs.
 
 ## Related Resources
 
-- [Secure Future Initiative Overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview)
+- [Secure Future Initiative Overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview)
 - [Zero Trust Principles](https://learn.microsoft.com/security/zero-trust/)
 - [Azure Identity Best Practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices)
 - [Azure Security Benchmark](https://learn.microsoft.com/security/benchmark/azure/)

@@ -14,7 +14,7 @@ metadata:
 
 ## Overview
 
-This skill helps you migrate Azure SQL Database connections from SQL authentication (username/password) to Microsoft Entra ID authentication using Managed Identity — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure SQL Database connections from SQL authentication (username/password) to Microsoft Entra ID authentication using Managed Identity — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 Eliminating stored credentials and leveraging Azure's identity platform strengthens identity security, centralizes access governance, and removes the risk of credential leakage.
 
@@ -57,7 +57,7 @@ it applies; do not draft a plan or propose edits.
 |------------|----------------|
 | **Problem** | Azure SQL Database connection uses SQL authentication (User Id/Password in connection string) instead of Microsoft Entra ID authentication |
 | **Risk** | SQL credentials can be compromised, leaked, or rotated improperly; no centralized identity governance |
-| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
+| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
 | **Migration Goal** | Replace SQL username/password authentication with Managed Identity token-based authentication |
 | **Scope** | IaC (SQL server & database config), application code (connection strings & authentication), configuration (secret removal) |
 
@@ -1073,14 +1073,14 @@ If you need to temporarily exempt a SQL server (e.g., during migration or for em
 | **Managed Identity Overview** | [Managed identities for Azure resources](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview) |
 | **Azure Identity Client Library (.NET)** | [Azure.Identity documentation](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme) |
 | **Azure Identity Best Practices** | [Identity management best practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices) |
-| **SFI Pillar 1: Protect identities and secrets** | [Secure Future Initiative — Identity](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| **SFI Pillar 1: Protect identities and secrets** | [Secure Future Initiative — Identity](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
 | **Zero Trust Principles** | [Zero Trust security model](https://learn.microsoft.com/security/zero-trust/) |
 
 ---
 
 ## Summary
 
-This skill guides migration from SQL authentication to Microsoft Entra ID (Managed Identity) authentication for Azure SQL Database — a security best practice aligned with [Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's Secure Future Initiative.
+This skill guides migration from SQL authentication to Microsoft Entra ID (Managed Identity) authentication for Azure SQL Database — a security best practice aligned with [Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's Secure Future Initiative.
 
 **Key Takeaways:**
 - SQL authentication (username/password) is insecure and lacks centralized identity governance

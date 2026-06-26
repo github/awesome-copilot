@@ -29,7 +29,7 @@ This skill operates as your **AI pair programmer** for Cosmos DB credential migr
 
 ## Overview
 
-This skill helps you migrate Azure Cosmos DB from primary/secondary key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure Cosmos DB from primary/secondary key authentication to Microsoft Entra ID (Managed Identity) authentication — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 Primary/secondary keys are long-lived credentials that grant full access to your Cosmos DB account if leaked. Managed identities replace these with short-lived, automatically rotated tokens — eliminating secrets from your code, config, and deployment pipeline.
 
@@ -53,7 +53,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service doc):**
 - [Configure role-based access control for Microsoft Entra ID (Cosmos DB for NoSQL)](https://learn.microsoft.com/azure/cosmos-db/how-to-setup-rbac) — built-in data-plane roles, role assignment, and disabling key-based auth (`#disable-key-based-authentication`).
@@ -437,8 +437,8 @@ If you need to temporarily exempt a Cosmos DB account (e.g., during migration or
 | **Azure Identity SDK (.NET)** | [Azure.Identity client library](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme) |
 | **Azure Identity SDK (Python)** | [azure-identity client library](https://learn.microsoft.com/python/api/overview/azure/identity-readme) |
 | **Azure Identity best practices** | [Identity management best practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices) |
-| **SFI Pillar 1: Protect identities and secrets** | [Secure Future Initiative — Identity](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
-| **Adopt standard SDKs for identity** | [SFI sub-action](https://learn.microsoft.com/en-us/security/zero-trust/sfi/adopt-standard-sdk-identity) |
+| **SFI Pillar 1: Protect identities and secrets** | [Secure Future Initiative — Identity](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| **Adopt standard SDKs for identity** | [SFI sub-action](https://learn.microsoft.com/security/zero-trust/sfi/adopt-standard-sdk-identity) |
 | **Zero Trust principles** | [Zero Trust overview](https://learn.microsoft.com/security/zero-trust/) |
 
 ---

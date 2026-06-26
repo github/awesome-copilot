@@ -14,13 +14,13 @@ metadata:
 
 ## Overview
 
-This skill helps you migrate Azure Storage Accounts from access key-based authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
+This skill helps you migrate Azure Storage Accounts from access key-based authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/).
 
 Eliminating shared access keys reduces credential leakage risk, simplifies secret management, and enforces the Zero Trust principle of verifying explicitly. Microsoft's public Azure Storage documentation [recommends using Microsoft Entra ID with managed identities](https://learn.microsoft.com/azure/storage/common/authorize-data-access) for authorizing requests against blob, queue, and table data.
 
 This skill provides guidance, code samples, and step-by-step instructions. You are responsible for testing, validating, and deploying changes in your environment.
 
-| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
+| **Security Principle** | [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — eliminate shared secrets, authenticate with managed identities. See also: [Zero Trust: Verify explicitly](https://learn.microsoft.com/security/zero-trust/) |
 |---|---|
 
 | Step | Action | Tools/Artifacts |
@@ -53,7 +53,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
 - [Authorize access to data in Azure Storage](https://learn.microsoft.com/azure/storage/common/authorize-data-access) — the recommended authorization approach and which option to use per service (blob / queue / table / file).
@@ -438,7 +438,7 @@ If your application generates or uses **Shared Access Signature (SAS) tokens**, 
 
 > **User Delegation SAS** is the only SAS type that remains functional when `allowSharedKeyAccess` is set to `false`. It is signed with Entra ID credentials instead of the storage account key, making it the **preferred and most secure SAS method**.
 
-For full details, see: [Create a user delegation SAS](https://learn.microsoft.com/en-us/rest/api/storageservices/create-user-delegation-sas)
+For full details, see: [Create a user delegation SAS](https://learn.microsoft.com/rest/api/storageservices/create-user-delegation-sas)
 
 ### Why User Delegation SAS?
 
@@ -743,7 +743,7 @@ For details on how to prevent shared key authorization, see: [Prevent Shared Key
 
 | Resource | Link |
 |----------|------|
-| **SFI Pillar 1: Protect identities and secrets** | [https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| **SFI Pillar 1: Protect identities and secrets** | [https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
 | **Zero Trust Principles** | [https://learn.microsoft.com/security/zero-trust/](https://learn.microsoft.com/security/zero-trust/) |
 | **Azure Storage Entra ID Auth Docs** | [https://learn.microsoft.com/azure/storage/common/authorize-data-access](https://learn.microsoft.com/azure/storage/common/authorize-data-access) |
 | **Managed Identity Overview** | [https://learn.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview](https://learn.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview) |
@@ -759,7 +759,7 @@ For details on how to prevent shared key authorization, see: [Prevent Shared Key
 
 ## Summary
 
-This skill guides you through migrating Azure Storage Accounts from access key authentication to Microsoft Entra ID (Managed Identity), eliminating credential leakage risks and aligning with [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) and Zero Trust security principles. Follow the migration steps: enable Managed Identity, assign RBAC roles, validate no key usage, update client code to use token-based credentials, and disable shared key access on the Storage Account.
+This skill guides you through migrating Azure Storage Accounts from access key authentication to Microsoft Entra ID (Managed Identity), eliminating credential leakage risks and aligning with [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) and Zero Trust security principles. Follow the migration steps: enable Managed Identity, assign RBAC roles, validate no key usage, update client code to use token-based credentials, and disable shared key access on the Storage Account.
 
 Test thoroughly in non-production environments before deploying to production.
 

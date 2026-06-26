@@ -1183,7 +1183,7 @@ try {
 }
 ```
 
-> For a complete list of error codes, see the [MSAL.js Error Codes documentation](https://learn.microsoft.com/en-us/entra/identity-platform/msal-error-handling-js).
+> For a complete list of error codes, see the [MSAL.js Error Codes documentation](https://learn.microsoft.com/entra/identity-platform/msal-error-handling-js).
 
 #### Console Logs Are Hashed
 
@@ -1267,4 +1267,4 @@ Before marking migration complete, verify with the developer:
 | MSAL Browser v5 Docs | [msal-browser README](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) |
 | COOP Redirect Bridge | [MSAL.js Redirect Bridge documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/redirect-bridge.md) |
 | Redirect Bridge — Framework Setup | [redirect-bridge.md](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/redirect-bridge.md) |
-| Error Code Lookup | [MSAL.js Error Codes](https://learn.microsoft.com/en-us/entra/identity-platform/msal-error-handling-js) |
+| Error Code Lookup | [MSAL.js Error Codes](https://learn.microsoft.com/entra/identity-platform/msal-error-handling-js) |

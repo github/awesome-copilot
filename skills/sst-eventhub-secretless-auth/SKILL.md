@@ -10,7 +10,7 @@ metadata:
 
 # Event Hub Managed Identity Migration Skill
 
-This skill helps you migrate Azure Event Hubs from SAS key / connection string authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/). Eliminating shared secrets like SAS keys reduces secret exposure risk and strengthens your identity security posture.
+This skill helps you migrate Azure Event Hubs from SAS key / connection string authentication to Microsoft Entra ID (Managed Identity) — a security best practice aligned with [**Pillar 1: Protect identities and secrets**](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) of Microsoft's [Secure Future Initiative](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-overview) and [Zero Trust principles](https://learn.microsoft.com/security/zero-trust/). Eliminating shared secrets like SAS keys reduces secret exposure risk and strengthens your identity security posture.
 
 **Your approach:**
 - Understand *why* Managed Identity matters before diving into changes
@@ -40,7 +40,7 @@ it applies; do not draft a plan or propose edits.
 **Do this before anything else** — before scanning the codebase, proposing changes, or following any step below. Fetch the docs below and reuse them as you work through this skill. Treat them as the source of truth: if a live doc and any value written into this skill disagree, **the live doc wins**.
 
 **Why — the security goal (SFI, kept current by the SFI team):**
-- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
+- [SFI Pillar 1: Protect identities and secrets](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) — the goal this migration serves: eliminate shared secrets and authenticate with managed identities. Use it for the rationale and current pillar objectives.
 
 **How — the remediation steps (service docs):**
 - [Authenticate a managed identity with Microsoft Entra ID to access Event Hubs resources](https://learn.microsoft.com/azure/event-hubs/authenticate-managed-identity) — enabling managed identity, RBAC role assignment, and SDK usage.
@@ -468,7 +468,7 @@ Before considering the migration complete, verify:
 | Disable local auth | [Disable local authentication](https://learn.microsoft.com/azure/event-hubs/authenticate-shared-access-signature#disable-local-or-sas-key-authentication) |
 | Azure Identity client library (.NET) | [Azure.Identity overview](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme) |
 | Azure identity best practices | [Identity management best practices](https://learn.microsoft.com/azure/security/fundamentals/identity-management-best-practices) |
-| SFI Pillar 1: Protect identities and secrets | [Pillar overview](https://learn.microsoft.com/en-us/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
+| SFI Pillar 1: Protect identities and secrets | [Pillar overview](https://learn.microsoft.com/security/zero-trust/sfi/secure-future-initiative-identity-overview) |
 | Zero Trust principles | [Zero Trust overview](https://learn.microsoft.com/security/zero-trust/) |
 | Cross-tenant workload identity | [Workload identity federation](https://learn.microsoft.com/azure/active-directory/develop/workload-identity-federation) |
 
