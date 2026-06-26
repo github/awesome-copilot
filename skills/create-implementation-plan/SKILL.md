@@ -60,6 +60,34 @@ All implementation plans must strictly adhere to the following template. Each se
 - All identifier prefixes must follow the specified format
 - Tables must include all required columns
 - No placeholder text may remain in the final output
+- **Identifiers must be unique.** Every declaration of `REQ-NNN`, `SEC-NNN`, `CON-NNN`, `GUD-NNN`, `PAT-NNN`, `GOAL-NNN`, `TASK-NNN`, `ALT-NNN`, `DEP-NNN`, `FILE-NNN`, `TEST-NNN`, `RISK-NNN`, and `ASSUMPTION-NNN` must appear exactly once across the plan. `DEP-*` may appear in multiple sections (for example, Requirements and Dependencies) as a reference; that is not a declaration collision.
+
+## Identifier Uniqueness Check
+
+Run these checks before finalizing the plan. The first two must return zero rows. The third is informational.
+
+```bash
+# Set PLAN_FILE to the plan being validated.
+PLAN_FILE="/plan/<purpose>-<component>-<version>.md"
+
+# 1) Duplicate TASK / GOAL declarations in table rows.
+grep -oE '\| (TASK|GOAL)-[0-9]+ \|' "$PLAN_FILE" \
+  | sed -E 's/.*((TASK|GOAL)-[0-9]+).*/\1/' \
+  | sort | uniq -d
+
+# 2) Duplicate declaration IDs in bullet-style spec lines.
+grep -oE '^- \*\*(REQ|SEC|CON|GUD|RISK|ASSUMPTION|TASK|GOAL|FILE|TEST|PAT|ALT|DEP)-[0-9]+\*\*:' "$PLAN_FILE" \
+  | sed -E 's/^- \*\*([A-Z]+-[0-9]+)\*\*:.*/\1/' \
+  | sort | uniq -d
+
+# 3) Broad duplicate scan (diagnostic only; may include valid references).
+grep -oE '(REQ|SEC|CON|GUD|RISK|ASSUMPTION|TASK|GOAL|FILE|TEST|PAT|ALT|DEP)-[0-9]+' "$PLAN_FILE" \
+  | sort | uniq -d
+```
+
+Prerequisites: a POSIX-compatible shell (`sh` / `bash`) with `grep`, `sed`, `sort`, and `uniq`. On Windows without these tools, use equivalent platform-native commands and preserve the same declaration-vs-reference logic.
+
+If check (1) or (2) returns any row, re-number the duplicate so each identifier is declared exactly once, then re-run the checks until both are empty.
 
 ## Status
 
