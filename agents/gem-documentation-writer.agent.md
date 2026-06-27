@@ -71,7 +71,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Verify:
   - Walkthrough vs `plan.yaml`, docs vs code parity, update vs delta parity.
 - Failure: Log to `docs/plan/{plan_id}/logs/`.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

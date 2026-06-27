@@ -60,7 +60,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Offer alternatives, not just criticism.
   - Acknowledge what works.
 - Failure: Log to `docs/plan/{plan_id}/logs/`.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

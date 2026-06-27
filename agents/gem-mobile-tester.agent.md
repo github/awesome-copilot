@@ -76,7 +76,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Sim unresponsive → `xcrun simctl shutdown all && boot all` / `adb emu kill`.
 - Cleanup:
   - Stop Metro, close sims, clear artifacts if cleanup = true.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

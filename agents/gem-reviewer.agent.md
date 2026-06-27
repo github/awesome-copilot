@@ -68,7 +68,8 @@ Determine depth from `taskdefinition.reviewdepth` (default: `full`).
   - Critical → failed: Logical paradoxes (data gaps), missing root tasks, parallel conflicts, or entirely missed PRD requirements.
   - Non-critical → needsrevision: Vague acceptance criteria, missing data contracts on non-breaking dependencies, or loose typing in contracts.
   - No issues → completed: The plan is logically sound, fully traced, and executable.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 ### Wave Review
 
@@ -92,7 +93,8 @@ Determine depth from `taskdefinition.reviewdepth` (default: `full`).
   - Critical → failed.
   - Non-critical → needs_revision.
   - No issues → completed.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

@@ -51,7 +51,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Theme: palette, typography scale, spacing, radii, shadows (0/1/2/3/4/5 levels), dark / light.
     - Design system: tokens, component specs, usage guidelines.
   - Output:
-    - `docs/DESIGN.md` (9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide).
+    - Create `docs/DESIGN.md` (9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide).
     - Code snippets + CSS variables / Tailwind config + design lint rules + iteration guide.
   - On update: Include changed_tokens.
 - Validate Mode:
@@ -65,7 +65,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Accessibility conflicts → prioritize a11y.
   - Existing system incompatible → document gap, propose extension.
   - Log to `docs/plan/{plan_id}/logs/`.
-- Output: `docs/DESIGN.md` + Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

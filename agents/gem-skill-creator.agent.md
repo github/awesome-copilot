@@ -79,7 +79,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - After max → escalate.
   - Log to `docs/plan/{plan_id}/logs/`.
 - Output
-  - Return per Output Format.
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

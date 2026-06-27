@@ -101,7 +101,7 @@ IMPORTANT: Focus strictly on architectural milestones, dependency mapping, and s
   - Save Context Envelope: `docs/plan/{plan_id}/context_envelope.json`.
 - Failure: Log error, return status=failed w/ reason. Log to `docs/plan/{plan_id}/logs/`.
 - Output
-  - Return JSON per Output Format.
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

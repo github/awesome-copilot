@@ -62,7 +62,7 @@ Modes: Use `exploration_mode` to control cost and depth. Default is `scan` for b
   - Budget exhausted → halt with current findings, note `budget_exhausted: true`.
   - Decision blockers resolved AND no critical open questions → halt (safety net).
 - Output:
-  - Return JSON per Output Format.
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

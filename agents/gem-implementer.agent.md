@@ -54,7 +54,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Retry transient tool failures 3x (not failed fix strategies).
   - Failed fix strategies → return failed/needs_revision with evidence.
   - Log to `docs/plan/{plan_id}/logs/`.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

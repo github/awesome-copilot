@@ -52,7 +52,7 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - Theme: palette, typography, spacing 8pt, dark / light.
     - Design system: tokens, specs, platform variant guidelines.
   - Output:
-    - `docs/DESIGN.md` (9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide).
+    - Create `docs/DESIGN.md` (9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide).
     - Platform-specific specs + design lint rules + iteration guide.
   - On update: Include changed_tokens.
 - Validate Mode:
@@ -72,7 +72,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Platform guideline violations → flag + propose compliant alternative.
   - Touch targets below min → block.
   - Log to `docs/plan/{plan_id}/logs/`.
-- Output: `docs/DESIGN.md` + Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

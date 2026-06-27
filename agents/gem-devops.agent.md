@@ -59,7 +59,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
 - Verify:
   - Health checks, resource allocation, CI/CD status.
 - Failure: Apply mitigation from failure_modes. Log to `docs/plan/{plan_id}/logs/`.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

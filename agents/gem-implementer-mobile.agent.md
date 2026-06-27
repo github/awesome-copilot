@@ -58,7 +58,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
   - Retry 3x, log "Retry N/3".
   - After max → mitigate or escalate.
   - Log to `docs/plan/{plan_id}/logs/`.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 

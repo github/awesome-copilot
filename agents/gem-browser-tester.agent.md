@@ -64,7 +64,8 @@ IMPORTANT: Batch/join dependency-free steps; serialize only true dependencies wh
     - If not found → run audit, then write results to repo memory under the same key.
 - Failure: Classify per enum; retry only transient; skip hard assertions unless retryable.
 - Cleanup: Close contexts, remove orphans, stop traces, persist evidence.
-- Output: Return per Output Format.
+- Output
+  - Return minimal JSON per `output_format` below.
 
 </workflow>
 
