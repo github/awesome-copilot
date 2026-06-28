@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-25
+lastUpdated: 2026-06-28
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -600,6 +600,18 @@ The `/autopilot` command (v1.0.45+) is a quick in-session toggle that switches b
 ```
 
 Use `/autopilot` when you want to flip between supervised and unsupervised operation mid-session without typing out the full `/allow-all on` or `/allow-all off` commands.
+
+The `/every` command (also aliased `/loop` since v1.0.64) schedules a recurring prompt at a fixed interval within the current session. The `/after` command runs a prompt once after a specified delay:
+
+```
+/every 1h Summarize what I've accomplished and suggest next steps
+/loop 30m Check if any tests are failing and fix them   # /loop is an alias for /every (v1.0.64+)
+/after 2h /compact                                      # compact the session after 2 hours
+```
+
+Both commands accept human-readable durations (e.g., `30m`, `1h`, `2h30m`) and can invoke other slash commands as their payload. For example, `/every 1d /chronicle standup` triggers a standup report once a day. Use these for long-running sessions where you want Copilot to check in, run status reports, or manage context automatically.
+
+> **Experimental**: `/every`, `/loop`, and `/after` are in the experimental feature set. They appear in the `/experimental` slash command list — enable experimental features if they are not already visible in your current session.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
 
