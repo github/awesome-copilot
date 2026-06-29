@@ -3,7 +3,7 @@ title: 'Understanding MCP Servers'
 description: 'Learn how Model Context Protocol servers extend GitHub Copilot with access to external tools, databases, and APIs.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-24
+lastUpdated: 2026-06-26
 estimatedReadingTime: '8 minutes'
 tags:
   - mcp
@@ -284,6 +284,8 @@ For example, a PostgreSQL server that can't connect because `DATABASE_URL` is no
 /mcp show              # list all servers and their status
 /mcp show postgres     # inspect a specific server
 ```
+
+**Toggling servers on and off** (v1.0.66+): From the `/mcp` list view, you can **enable or disable individual MCP servers** without editing your config file. Select a server in the list and toggle it — disabled servers won't start in future sessions and their tools won't be available to agents. This is useful for temporarily disabling a server that's causing slowdowns or errors without removing it from your configuration entirely.
 
 **Common causes and fixes**:
 
