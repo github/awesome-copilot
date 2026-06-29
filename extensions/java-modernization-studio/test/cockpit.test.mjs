@@ -1331,6 +1331,73 @@ test("server: handler unknown route 404s", async () => {
     assert.equal(res.statusCode, 404);
 });
 
+test("server: broadcast drops a client whose write fails (no leak, no repeat throw)", () => {
+    const live = [];
+    const dead = {
+        write() {
+            throw new Error("EPIPE: client gone");
+        },
+    };
+    const rec = { sseClients: new Set([dead, { write: (s) => live.push(s) }]) };
+    broadcast(rec, { type: "state", state: { ok: true } });
+    assert.ok(!rec.sseClients.has(dead), "a client whose write throws is removed from the Set");
+    assert.equal(rec.sseClients.size, 1, "the healthy client is retained");
+    assert.equal(live.length, 1, "the healthy client still receives the frame");
+    // A later broadcast must not keep throwing now that the dead client is gone.
+    assert.doesNotThrow(() => broadcast(rec, { type: "state", state: { ok: true } }));
+    assert.equal(live.length, 2);
+});
+
+test("server: POST /action rejects malformed JSON with 400 and dispatches nothing", async () => {
+    const rec = { repoPath: "/repo", sseClients: new Set() };
+    let sent = 0;
+    const handler = makeHandler(rec, { instanceId: "i", sendPrompt: async () => sent++ });
+    const req = new EventEmitter();
+    req.method = "POST";
+    req.url = "/action";
+    const res = fakeRes();
+    const pending = handler(req, res);
+    req.emit("data", "{ not valid json ");
+    req.emit("end");
+    await pending;
+    assert.equal(res.statusCode, 400);
+    assert.match(res.headers["content-type"], /application\/json/);
+    const json = JSON.parse(res.body);
+    assert.equal(json.ok, false);
+    assert.match(json.error, /invalid JSON/i);
+    assert.equal(sent, 0, "a malformed body dispatches no action");
+});
+
+test("server: POST /action rejects a missing/invalid kind with 400", async () => {
+    const rec = { repoPath: "/repo", sseClients: new Set() };
+    let sent = 0;
+    const handler = makeHandler(rec, { instanceId: "i", sendPrompt: async () => sent++ });
+    const res = await invokePost(handler, "/action", { payload: {} }); // no kind
+    assert.equal(res.statusCode, 400);
+    assert.match(res.headers["content-type"], /application\/json/);
+    const json = JSON.parse(res.body);
+    assert.equal(json.ok, false);
+    assert.match(json.error, /kind/i);
+    assert.equal(sent, 0, "a kindless request dispatches no action");
+});
+
+test("server: a handler exception returns 500 with a JSON content-type", async () => {
+    // A throwing repoPath getter makes buildState (GET /state) reject, exercising
+    // the handler's outer catch — which must still label the error body as JSON.
+    const rec = {
+        sseClients: new Set(),
+        get repoPath() {
+            throw new Error("boom");
+        },
+    };
+    const handler = makeHandler(rec, { instanceId: "i", sendPrompt: async () => {} });
+    const { res } = await invokeGet(handler, "/state");
+    assert.equal(res.statusCode, 500);
+    assert.match(res.headers["content-type"], /application\/json/);
+    const json = JSON.parse(res.body);
+    assert.equal(json.ok, false);
+});
+
 test("server: recheck_env runs the doctor, caches it, and broadcasts (no agent prompt)", async () => {
     await withRepo({ "pom.xml": "<project/>" }, async (dir) => {
         let runs = 0;

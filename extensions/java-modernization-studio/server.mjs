@@ -55,7 +55,9 @@ export function broadcast(rec, payload) {
         try {
             res.write(data);
         } catch {
-            /* client gone */
+            // Client disconnected uncleanly: drop it so we don't keep throwing on
+            // every future broadcast (dead clients would otherwise leak in the Set).
+            rec.sseClients.delete(res);
         }
     }
 }
@@ -263,11 +265,20 @@ export function makeHandler(rec, { instanceId, initialTab, sendPrompt, runTurn, 
                     res.end(JSON.stringify({ ok: false, error: "request body too large" }));
                     return;
                 }
-                let parsed = {};
+                let parsed;
                 try {
                     parsed = JSON.parse(body || "{}");
                 } catch {
-                    /* keep {} */
+                    res.statusCode = 400;
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ ok: false, error: "invalid JSON body" }));
+                    return;
+                }
+                if (!parsed || typeof parsed.kind !== "string" || !parsed.kind) {
+                    res.statusCode = 400;
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ ok: false, error: "missing or invalid 'kind'" }));
+                    return;
                 }
                 const result = await dispatchAction(rec, parsed.kind, parsed.payload, { sendPrompt, runTurn, log });
                 res.setHeader("Content-Type", "application/json");
@@ -277,7 +288,10 @@ export function makeHandler(rec, { instanceId, initialTab, sendPrompt, runTurn, 
             res.statusCode = 404;
             res.end("not found");
         } catch (e) {
-            res.statusCode = 500;
+            if (!res.headersSent) {
+                res.statusCode = 500;
+                res.setHeader("Content-Type", "application/json");
+            }
             res.end(JSON.stringify({ ok: false, error: e.message }));
         }
     };
