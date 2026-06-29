@@ -170,9 +170,9 @@ When adding a new agent, instruction, skill, hook, workflow, or plugin:
 6. After issue edits, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates without opening a new submission issue
 7. Maintainers can explicitly override a quality-gate blocker with `/mark-ready-for-review [optional reason]`, which moves the issue to `ready-for-review`
 8. Maintainers make the decision with `/approve` or `/reject <reason>` issue comments once the issue is in `ready-for-review`; approved issues are closed and used as the six-month re-review anchor
-9. Approval automation creates or updates the PR against `staged`, updates `plugins/external.json`, and regenerates marketplace outputs
+9. Approval automation creates or updates the PR against `main`, updates `plugins/external.json`, and regenerates marketplace outputs
 10. Nightly re-review automation finds closed `external-plugin` + `approved` issues that are at least six months old, applies `re-review-due`, and opens or updates a tracking issue for maintainers
-11. Maintainers complete re-review on the original approved submission issue with `/re-review-keep`, `/re-review-needs-changes`, or `/re-review-remove`; keep resets the issue `closed_at`, and remove opens a PR against `staged`
+11. Maintainers complete re-review on the original approved submission issue with `/re-review-keep`, `/re-review-needs-changes`, or `/re-review-remove`; keep resets the issue `closed_at`, and remove opens a PR against `main`
 
 ### Testing Instructions
 
@@ -215,7 +215,7 @@ Before committing:
 
 When creating a pull request:
 
-> **Important:** All pull requests should target the **`staged`** branch, not `main`.
+> **Important:** All pull requests should target the **`main`** branch, not `staged`.
 
 1. **README updates**: New files should automatically be added to the README when you run `npm run build`
 2. **Front matter validation**: Ensure all markdown files have the required front matter fields

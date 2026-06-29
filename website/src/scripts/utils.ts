@@ -390,6 +390,31 @@ export function sanitizeUrl(url: string | null | undefined): string {
 }
 
 /**
+ * Derive a GitHub @handle from a profile URL
+ * (e.g. "https://github.com/aaronpowell" -> "@aaronpowell").
+ * Falls back to the provided value when the URL is not a github.com profile.
+ */
+export function getGitHubHandle(
+  url: string | null | undefined,
+  fallback = ""
+): string {
+  if (!url) return fallback;
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    if (host === "github.com") {
+      const segments = parsed.pathname.split("/").filter(Boolean);
+      if (segments.length === 1) {
+        return `@${segments[0]}`;
+      }
+    }
+  } catch {
+    // Invalid URL
+  }
+  return fallback;
+}
+
+/**
  * Truncate text with ellipsis
  */
 export function truncate(text: string | undefined, maxLength: number): string {
@@ -554,6 +579,18 @@ export function setupDropdownCloseHandlers(): void {
           e.preventDefault();
           const isOpen = dropdown.classList.toggle("open");
           toggle.setAttribute("aria-expanded", String(isOpen));
+
+          if (isOpen) {
+            document
+              .querySelectorAll('.install-dropdown[data-install-scope="list"].open')
+              .forEach((openDropdown) => {
+                if (openDropdown === dropdown) return;
+                openDropdown.classList.remove("open");
+                openDropdown.querySelector(".install-btn-toggle")
+                  ?.setAttribute("aria-expanded", "false");
+              });
+          }
+
           return;
         }
 

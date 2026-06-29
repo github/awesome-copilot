@@ -175,7 +175,7 @@ jobs:
               '',
               `- \`${rereview.REREVIEW_COMMANDS.keep}\` — renew the plugin for another six months`,
               `- \`${rereview.REREVIEW_COMMANDS.needsChanges}\` — keep the plugin in the due queue while follow-up work happens`,
-              `- \`${rereview.REREVIEW_COMMANDS.remove}\` — open or update a PR against \`staged\` that removes the plugin from the marketplace`,
+              `- \`${rereview.REREVIEW_COMMANDS.remove}\` — open or update a PR against \`main\` that removes the plugin from the marketplace`,
               '',
               `- **Threshold date used by this run:** ${formatDate(threshold.toISOString())}`,
               '',
