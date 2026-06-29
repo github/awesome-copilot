@@ -195,7 +195,7 @@ jobs:
           comment_ids=$(
             gh api "repos/${{ github.repository }}/issues/$number/comments" --paginate \
               --arg marker "$marker" \
-              --jq '.[] | select((.body // "") | contains($marker)) | .id'
+              --jq '.[] | select(.user.login == "github-actions[bot]" and ((.body // "") | contains($marker))) | .id'
           )
           comment_id=$(printf "%s\n" "$comment_ids" | sed -n '1p')
 
