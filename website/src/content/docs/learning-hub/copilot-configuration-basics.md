@@ -3,7 +3,7 @@ title: 'Copilot Configuration Basics'
 description: 'Learn how to configure GitHub Copilot at user, workspace, and repository levels to optimize your AI-assisted development experience.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-27
+lastUpdated: 2026-06-29
 estimatedReadingTime: '10 minutes'
 tags:
   - configuration
@@ -518,14 +518,18 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
-The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. This is useful for self-paced automation — running a check every few minutes, polling for results, or periodically summarizing progress during a long session:
+The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. The companion `/after` command runs a prompt once after a specified delay. Both are useful for self-paced automation — polling for results, periodically summarizing progress, or triggering other slash commands on a timer:
 
 ```
 /every 5m Check if there are any new test failures and summarize them
 /loop 30s Check if the build is done
+/after 2h /compact                        # compact the session after 2 hours
+/every 1d /chronicle standup              # daily standup report via /chronicle
 ```
 
-The interval can be specified in seconds (`s`), minutes (`m`), or hours (`h`). To see and manage all your scheduled prompts, use `/every` with no argument — it opens the schedule manager. To cancel a running schedule, use `/every stop` or press the stop option in the schedule manager.
+The interval can be specified in seconds (`s`), minutes (`m`), or hours (`h`), and both commands can invoke other slash commands as their payload. To see and manage all your scheduled prompts, use `/every` with no argument — it opens the schedule manager. To cancel a running schedule, use `/every stop` or **Ctrl+C**.
+
+> **Experimental**: `/every`, `/loop`, and `/after` are part of the experimental feature set. They appear in the `/experimental` slash command list — enable experimental features if they are not already visible in your current session.
 
 > **Note**: Scheduled prompts run in the background of the current session and use your active model. They share the session context window, so very frequent scheduling with long responses may consume context rapidly. Use `/compact` if context usage becomes a concern.
 
@@ -636,16 +640,6 @@ Use `/autopilot` when you want to flip between supervised and unsupervised opera
 > **Enhanced autopilot (v1.0.64+)**: When autopilot mode is active — including when launched with `--autopilot` at startup or during automatic continuation turns — the agent automatically handles elicitation dialogs, `ask_user` prompts, sampling requests, and permission prompts without surfacing them as interactive dialogs. This means long-running automated sessions can proceed end-to-end without manual confirmation steps.
 
 > **Read-only `gh` CLI commands (v1.0.46+)**: Read-only `gh` commands — such as `gh issue list`, `gh pr view`, `gh run status`, and other commands that don't write to GitHub — are **automatically approved** without a permission prompt. Only commands that write to GitHub (like creating issues, merging PRs) still require explicit approval. This reduces friction during exploratory sessions where you frequently check issue or PR status.
-
-The `/every` command (v1.0.64+, also aliased `/loop`) schedules a prompt to run on a repeating interval within the current session. Use it to build self-paced loops — for example, polling for CI results, summarising new activity periodically, or automating a batch task that runs on a timer:
-
-```
-/every 5m check if CI has finished and summarize the result
-/every 1h summarize new issues opened since the last run
-/loop 10m run the test suite and report failures     # /loop is an alias for /every
-```
-
-The scheduled prompt runs at the specified interval until you cancel with **Ctrl+C** or stop it with `/every stop`. Each run includes fresh context from the current session. You can manage active schedules from `/settings`.
 
 The `--effort` flag (shorthand for `--reasoning-effort`) controls how much computational reasoning the model applies to a request:
 
