@@ -518,7 +518,7 @@ This creates a branch named from your task description and begins working on it 
 
 After the command runs, the session is inside the new worktree. Use this when you want to work on a second task in parallel without stashing changes or opening a new terminal. In v1.0.64+ you can also use the experimental `--worktree` flag at startup (`copilot -w [name]`) to create or reuse a worktree under `<repo>.worktrees/` before the session begins.
 
-The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. This is useful for self-paced automation — running a check every few minutes, polling for results, or periodically summarising progress during a long session:
+The `/every` command (also available as `/loop` since v1.0.64) schedules a recurring prompt to run automatically at a specified interval. This is useful for self-paced automation — running a check every few minutes, polling for results, or periodically summarizing progress during a long session:
 
 ```
 /every 5m Check if there are any new test failures and summarize them
