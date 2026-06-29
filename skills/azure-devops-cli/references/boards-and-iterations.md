@@ -56,9 +56,9 @@ az boards work-item create \
   --type Bug \
   --discussion "Initial investigation completed"
 
-# For a long --discussion body on Windows, see "Posting long comments on Windows"
-# in SKILL.md. Short version: use azps.ps1 in PowerShell, or fall back to
-# 'az devops invoke' with --in-file when no native --file-path flag is available.
+# For a long --discussion body on Windows, see references/long-comments-on-windows.md.
+# Short version: use azps.ps1 in PowerShell, or fall back to 'az devops invoke'
+# with --in-file when no native --file-path flag is available.
 
 # Open in browser after creation
 az boards work-item create --title "Bug" --type Bug --open
@@ -91,7 +91,7 @@ az boards work-item update \
 
 # Long comment on Windows: read the body into a PowerShell variable and call
 # azps.ps1 instead of az.cmd, or fall back to 'az devops invoke' with --in-file.
-# Full guidance in SKILL.md under "Posting long comments on Windows".
+# Full guidance in references/long-comments-on-windows.md.
 #
 # PowerShell example:
 #   $body = Get-Content -Raw .\comment.md
