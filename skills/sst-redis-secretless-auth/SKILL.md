@@ -169,7 +169,7 @@ Update your `Microsoft.Cache/Redis` resource definitions:
           "metadata": {
             "description": "Specify human readable name of principal Id of the Microsoft Entra Application name or Managed Identity name used for built-in policy assignment."
           }
-        },
+        }
       },
       "resources": [
         {
