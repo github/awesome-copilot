@@ -64,30 +64,37 @@ Follow this sequence for every trade. Do not skip resolution or quoting, and nev
 
 ## Example
 
-A market-style sell, "swap 100 USDC for WETH on Base" (chainId 8453). The addresses below are placeholders; always take the real ones from `resolve_token`.
+A market-style sell, "swap 100 USDC for WETH on Base". The argument names and response shapes below follow the Ophis MCP tool schemas; the addresses are placeholders, so always take the real ones from `resolve_token`.
 
 ```text
 parse_intent("swap 100 USDC for WETH on Base")
-  -> { sellToken: "USDC", buyToken: "WETH", amount: "100", chain: "Base" }
+  -> { intent: "swap", entities: [
+        { type: "amount", value: "100" }, { type: "sellToken", value: "USDC" },
+        { type: "buyToken", value: "WETH" }, { type: "chain", value: "Base" } ] }
+# Read the entity values, then map the symbols and chain name to ids yourself.
 
-list_chains()                 # confirm 8453 is in `tradeable`
-resolve_token(8453, "USDC")   # -> canonical.address = <USDC>, canonical.decimals = 6
-resolve_token(8453, "WETH")   # -> canonical.address = <WETH>, canonical.decimals = 18
+list_chains()                # confirm Base, chainId 8453, is in `tradeable`
+resolve_token(8453, "USDC")  # -> canonical.address = <USDC>, canonical.decimals = 6
+resolve_token(8453, "WETH")  # -> canonical.address = <WETH>, canonical.decimals = 18
 
-# Amounts are atoms = whole units x 10^decimals:
-#   100 USDC (6 decimals) -> 100000000
+# Amounts are atoms = whole units x 10^decimals:  100 USDC (6 dp) -> "100000000"
 
-get_quote(kind="sell", sellToken=<USDC>, buyToken=<WETH>,
-          sellAmount="100000000", from="<your wallet>")
+get_quote(chainId=8453, sellToken=<USDC>, buyToken=<WETH>, kind="sell",
+          amount="100000000", from="<your wallet>")
+  -> { quote: { sellAmount, buyAmount, feeAmount, validTo } }
 
-build_order(owner="<your wallet>", sellToken=<USDC>, buyToken=<WETH>,
-            kind="sell", sellAmount="100000000", slippageBips=75)
-  -> { order, signing, fullAppData, appDataHash }
+# Minimum received = quote.buyAmount adjusted down for slippage (here 75 bps).
+build_order(chainId=8453, owner="<your wallet>", sellToken=<USDC>, buyToken=<WETH>,
+            kind="sell", sellAmount="100000000", buyAmount="<min from quote>",
+            slippageBips=75)
+  -> { order, signing: { domain, types, primaryType: "Order" }, fullAppData, appDataHash }
 
-# Verify order.buyAmount with WETH's 18 decimals and confirm the buy token
-# ADDRESS. On approval, sign `signing` (EIP-712) locally, then submit.
+# Check order.buyAmount against WETH's 18 decimals and confirm the buy token
+# ADDRESS. Then sign the `order` object as EIP-712 typed data using `signing`
+# (domain + types + primaryType). The receiver is pinned to owner.
 
-submit_order(order, signature="0x...", from="<your wallet>", fullAppData)
+submit_order(chainId=8453, order=order, signature="0x...", from="<your wallet>",
+             fullAppData=fullAppData)
   -> orderUID
 ```
 
