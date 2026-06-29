@@ -80,7 +80,7 @@ Use this skill when your codebase has any of the following patterns:
 
 ### In IaC Files (Bicep / ARM Templates)
 
-Look for `Microsoft.Cache/Redis` resources where:
+Look for `Microsoft.Cache/redis` resources where:
 
 - `"aad-enabled"` property is not set to `"true"`
 - `"disableAccessKeyAuthentication"` property is not set to `"true"`
@@ -126,7 +126,7 @@ The migration runs as three sequential deployments:
 
 Turn on Entra authentication while leaving access-key authentication intact, so existing clients keep working unchanged. Confirm the deployment succeeds and existing clients still connect via access keys before moving to Phase 2.
 
-Update your `Microsoft.Cache/Redis` resource definitions:
+Update your `Microsoft.Cache/redis` resource definitions:
 
 - Add or update `"aad-enabled"` property to `"true"`
 - Ensure `apiVersion` is set to `"2023-08-01"` or later
@@ -343,11 +343,11 @@ If issues arise after migration:
 
 ### Scenario: IaC-only — no client-side Redis code
 
-**Starting state:** Repository contains a Bicep template with a `Microsoft.Cache/Redis` resource. `aad-enabled` is not set. `disableAccessKeyAuthentication` is `false`. No C# files reference `StackExchange.Redis`. No `Microsoft.Azure.StackExchangeRedis` package in the project.
+**Starting state:** Repository contains a Bicep template with a `Microsoft.Cache/redis` resource. `aad-enabled` is not set. `disableAccessKeyAuthentication` is `false`. No C# files reference `StackExchange.Redis`. No `Microsoft.Azure.StackExchangeRedis` package in the project.
 
 **Migration approach:**
 
-1. IaC scan finds Bicep with `Microsoft.Cache/Redis` — two issues: `aad-enabled` missing, `disableAccessKeyAuthentication` is `false`. Client-side scan finds no `StackExchange.Redis` usage.
+1. IaC scan finds Bicep with `Microsoft.Cache/redis` — two issues: `aad-enabled` missing, `disableAccessKeyAuthentication` is `false`. Client-side scan finds no `StackExchange.Redis` usage.
 2. Execute Phase 1: set `aad-enabled: "true"`, update `apiVersion` to `2023-08-01` or later, leave `disableAccessKeyAuthentication: false`. No client-side changes are needed in this repo.
 3. Monitor the live cache's authentication metrics until `ConnectedClientUsingAADToken` and `ConnectedClients` are about the same number (see [Validation](#validation)), confirming no clients still use access keys — including services outside this repo that the skill can't see or migrate.
 4. Execute Phase 3: set `disableAccessKeyAuthentication: true` once that gate holds.
