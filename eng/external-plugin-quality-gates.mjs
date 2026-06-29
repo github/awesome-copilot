@@ -7,6 +7,7 @@ import { spawnSync } from "child_process";
 
 const MAX_OUTPUT_LENGTH = 12000;
 const SKILL_VALIDATOR_ARCHIVE_URL = "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz";
+const SKILL_VALIDATOR_SHA256 = "2de54c6532e964723dab6760df49520f2a1f444cf9f19befcf2729223fd98143";
 
 const INFRA_ERROR_PATTERNS = [
   /\b401\b/,
@@ -140,6 +141,11 @@ function downloadSkillValidator(workDir) {
   const download = runCommand("curl", ["-fsSL", SKILL_VALIDATOR_ARCHIVE_URL, "-o", archivePath]);
   if (download.exitCode !== 0) {
     throw new Error(`Failed to download skill-validator: ${download.output}`);
+  }
+
+  const verify = runCommand("sh", ["-c", `echo "${SKILL_VALIDATOR_SHA256}  ${archivePath}" | sha256sum -c -`]);
+  if (verify.exitCode !== 0) {
+    throw new Error(`skill-validator integrity check failed — binary may have been tampered with`);
   }
 
   const untar = runCommand("tar", ["-xzf", archivePath, "-C", validatorDir]);

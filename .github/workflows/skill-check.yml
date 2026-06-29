@@ -38,11 +38,14 @@ jobs:
 
       - name: Download skill-validator
         if: steps.cache-sv.outputs.cache-hit != 'true'
+        env:
+          SKILL_VALIDATOR_SHA256: 2de54c6532e964723dab6760df49520f2a1f444cf9f19befcf2729223fd98143
         run: |
           mkdir -p .skill-validator
           curl -fsSL \
             "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
             -o .skill-validator/skill-validator-linux-x64.tar.gz
+          echo "${SKILL_VALIDATOR_SHA256}  .skill-validator/skill-validator-linux-x64.tar.gz" | sha256sum -c -
           tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
           rm .skill-validator/skill-validator-linux-x64.tar.gz
           chmod +x .skill-validator/skill-validator

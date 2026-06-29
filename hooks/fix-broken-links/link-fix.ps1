@@ -199,6 +199,7 @@ function Get-PromptSafeUrl {
   if ($null -eq $Url) { return '' }
   $safe = $Url -replace '[\r\n]+', ' '
   $safe = $safe -replace '[`$()]', ''
+  $safe = $safe -replace '<', '&lt;'  # prevent </url> tag breakout
   return $safe
 }
 

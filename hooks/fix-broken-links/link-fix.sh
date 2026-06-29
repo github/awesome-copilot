@@ -219,6 +219,7 @@ sanitize_prompt_url() {
   s="${s//$'\n'/ }"
   s="${s//\`/\\\`}"
   s="${s//\$/\\\$}"
+  s="${s//</&lt;}"   # prevent </url> tag breakout
   printf '%s' "$s"
 }
 
