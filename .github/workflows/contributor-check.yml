@@ -31,13 +31,17 @@ jobs:
 
       - name: Fetch AGT check scripts
         env:
-          AGT_REF: v3.4.0
+          AGT_REF: 3925faee9a004b0265fa0b941650f64255950409 # v3.4.0 pinned to immutable commit SHA
+          CONTRIBUTOR_CHECK_SHA256: b8e46b39622bd4005f77d908f7eb6c0e53f1ccd2cf719cd8ee78eda8d73e1ccc
+          CREDENTIAL_AUDIT_SHA256: 9650675038e7720a6d5cdd8be058fa38b2e004cc1e6f7bc81c48ed100e4680e1
         run: |
           mkdir -p /tmp/agt
           curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/contributor_check.py" \
             -o /tmp/agt/contributor_check.py
           curl -fsSL "https://raw.githubusercontent.com/microsoft/agent-governance-toolkit/${AGT_REF}/scripts/credential_audit.py" \
             -o /tmp/agt/credential_audit.py
+          echo "${CONTRIBUTOR_CHECK_SHA256}  /tmp/agt/contributor_check.py" | sha256sum -c -
+          echo "${CREDENTIAL_AUDIT_SHA256}  /tmp/agt/credential_audit.py" | sha256sum -c -
 
       - name: Determine author
         id: author
