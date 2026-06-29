@@ -62,6 +62,35 @@ Follow this sequence for every trade. Do not skip resolution or quoting, and nev
 7. **Sign.** Sign the unsigned order with the agent's own wallet (EIP-712 typed data). Never send a private key to the MCP server; signing happens locally in the agent.
 8. **Submit.** Call `submit_order` with the signed order. This is the only step that changes state. Report the resulting order id or status to the user.
 
+## Example
+
+A market-style sell, "swap 100 USDC for WETH on Base" (chainId 8453). The addresses below are placeholders; always take the real ones from `resolve_token`.
+
+```text
+parse_intent("swap 100 USDC for WETH on Base")
+  -> { sellToken: "USDC", buyToken: "WETH", amount: "100", chain: "Base" }
+
+list_chains()                 # confirm 8453 is in `tradeable`
+resolve_token(8453, "USDC")   # -> canonical.address = <USDC>, canonical.decimals = 6
+resolve_token(8453, "WETH")   # -> canonical.address = <WETH>, canonical.decimals = 18
+
+# Amounts are atoms = whole units x 10^decimals:
+#   100 USDC (6 decimals) -> 100000000
+
+get_quote(kind="sell", sellToken=<USDC>, buyToken=<WETH>,
+          sellAmount="100000000", from="<your wallet>")
+
+build_order(owner="<your wallet>", sellToken=<USDC>, buyToken=<WETH>,
+            kind="sell", sellAmount="100000000", slippageBips=75)
+  -> { order, signing, fullAppData, appDataHash }
+
+# Verify order.buyAmount with WETH's 18 decimals and confirm the buy token
+# ADDRESS. On approval, sign `signing` (EIP-712) locally, then submit.
+
+submit_order(order, signature="0x...", from="<your wallet>", fullAppData)
+  -> orderUID
+```
+
 ## Guidelines
 
 1. **Resolve, never assume addresses.** Always go through `resolve_token`. If it fails closed, surface that to the user rather than substituting a guessed token.
