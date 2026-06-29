@@ -3,6 +3,7 @@
 // module can be exercised by tests without a live session.
 
 import { createServer } from "node:http";
+import { randomBytes } from "node:crypto";
 import { scanRepo } from "./scan.mjs";
 import { renderHtml } from "./renderer.mjs";
 import { buildPrompt, ACTION_LABELS } from "./prompts.mjs";
@@ -218,9 +219,23 @@ export function makeHandler(rec, { instanceId, initialTab, sendPrompt, runTurn, 
     return async function handler(req, res) {
         const url = new URL(req.url, "http://127.0.0.1");
         try {
+            // Per-instance secret: real instances (createInstanceServer) mint a token
+            // that the host embeds in the iframe URL. Reject any loopback request that
+            // doesn't present it, so other local processes can't read repo state or
+            // dispatch agent actions just by guessing the random port. When no token is
+            // set (direct makeHandler unit tests) the guard is a no-op.
+            if (rec.token) {
+                const provided = url.searchParams.get("token");
+                if (provided !== rec.token) {
+                    res.statusCode = 403;
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ ok: false, error: "forbidden" }));
+                    return;
+                }
+            }
             if (req.method === "GET" && url.pathname === "/") {
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
-                res.end(renderHtml({ instanceId, initialTab }));
+                res.end(renderHtml({ instanceId, initialTab, token: rec.token }));
                 return;
             }
             if (req.method === "GET" && url.pathname === "/state") {
@@ -273,18 +288,33 @@ export function makeHandler(rec, { instanceId, initialTab, sendPrompt, runTurn, 
  * @returns {Promise<object>} rec with { server, url, repoPath, sseClients }
  */
 export async function createInstanceServer({ instanceId, repoPath, initialTab, sendPrompt, runTurn, log, runDoctor: runDoctorImpl }) {
-    const rec = { server: null, url: "", repoPath, sseClients: new Set(), doctor: null, autopilot: null };
+    const rec = { server: null, url: "", repoPath, sseClients: new Set(), doctor: null, autopilot: null, token: randomBytes(16).toString("hex") };
     // Wire the environment doctor (injectable for tests); real instances probe the
     // local toolchain, cached and only recomputed on explicit recheck.
     rec.runDoctor = typeof runDoctorImpl === "function" ? runDoctorImpl : (scan) => runDoctor(scan, {});
     const handler = makeHandler(rec, { instanceId, initialTab, sendPrompt, runTurn, log });
     const server = createServer((req, res) => {
-        handler(req, res);
+        // The handler is async: if it rejects, surface a 500 and log it rather than
+        // letting it become an unhandled rejection that can crash the extension.
+        handler(req, res).catch((err) => {
+            if (log) log("Java Modernization Studio server error: " + (err && err.message ? err.message : err), { level: "error" });
+            try {
+                if (!res.headersSent) {
+                    res.statusCode = 500;
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ ok: false, error: "internal error" }));
+                } else {
+                    res.end();
+                }
+            } catch {
+                /* response already torn down */
+            }
+        });
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const addr = server.address();
     const port = typeof addr === "object" && addr ? addr.port : 0;
     rec.server = server;
-    rec.url = "http://127.0.0.1:" + port + "/";
+    rec.url = "http://127.0.0.1:" + port + "/?token=" + rec.token;
     return rec;
 }

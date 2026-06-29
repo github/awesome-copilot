@@ -199,6 +199,10 @@ ul.aplog li { display: block; }
 
 function clientMain() {
     const boot = window.__APPMOD__ || {};
+    // The host embeds a per-instance token in the iframe URL; echo it back on every
+    // request so the loopback server accepts us. Empty in unit harnesses (no guard).
+    const apiToken = boot.token || "";
+    const tokenQuery = apiToken ? "?token=" + encodeURIComponent(apiToken) : "";
     let state = null;
     let activeTab = boot.initialTab || "overview";
     let pending = null;
@@ -930,7 +934,7 @@ function clientMain() {
 
     async function loadState() {
         try {
-            const r = await fetch("/state");
+            const r = await fetch("/state" + tokenQuery);
             state = await r.json();
             render();
         } catch (e) {
@@ -945,7 +949,7 @@ function clientMain() {
         // blocking "pending" banner that freezes the whole view for a one-shot send.
         const isAutopilot = kind.indexOf("autopilot_") === 0;
         try {
-            const r = await fetch("/action", {
+            const r = await fetch("/action" + tokenQuery, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ kind, payload }),
@@ -986,7 +990,7 @@ function clientMain() {
 
     // live updates: server pushes a fresh snapshot when the agent finishes a turn
     try {
-        const ev = new EventSource("/events");
+        const ev = new EventSource("/events" + tokenQuery);
         // Resync whenever the stream (re)connects. If the provider restarted while an
         // action was in flight, its "done" broadcast was lost; re-fetching state here
         // clears any stuck spinner and shows the real result.
@@ -1004,10 +1008,10 @@ function clientMain() {
     loadState();
 }
 
-export function renderHtml({ instanceId, initialTab } = {}) {
+export function renderHtml({ instanceId, initialTab, token } = {}) {
     // Escape `<` so a stray "</script>" in any field can't break out of the inline
     // <script> tag below. (instanceId is runtime-validated, but stay robust anyway.)
-    const boot = JSON.stringify({ instanceId: instanceId || "", initialTab: initialTab || "overview" }).replace(/</g, "\\u003c");
+    const boot = JSON.stringify({ instanceId: instanceId || "", initialTab: initialTab || "overview", token: token || "" }).replace(/</g, "\\u003c");
     return (
         "<!doctype html><html><head><meta charset=\"utf-8\" />" +
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />" +

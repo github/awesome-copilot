@@ -1278,6 +1278,33 @@ test("server: handler POST /action runs dispatch", async () => {
     assert.equal(sent.length, 1);
 });
 
+test("server: token guard forbids requests without the per-instance token", async () => {
+    const rec = { repoPath: "/repo", sseClients: new Set(), token: "s3cret" };
+    const sent = [];
+    const handler = makeHandler(rec, { instanceId: "i", sendPrompt: async (p) => sent.push(p) });
+    for (const path of ["/", "/state", "/events"]) {
+        const { res } = await invokeGet(handler, path);
+        assert.equal(res.statusCode, 403, path + " without a token must be forbidden");
+    }
+    const post = await invokePost(handler, "/action", { kind: "run_cve" });
+    assert.equal(post.statusCode, 403, "/action without a token must be forbidden");
+    assert.equal(sent.length, 0, "no action is dispatched for an unauthenticated request");
+    assert.equal(rec.sseClients.size, 0, "no SSE client is registered for an unauthenticated request");
+});
+
+test("server: token guard allows requests carrying the correct token", async () => {
+    const rec = { repoPath: "/repo", sseClients: new Set(), token: "s3cret" };
+    const sent = [];
+    const handler = makeHandler(rec, { instanceId: "i", sendPrompt: async (p) => sent.push(p) });
+    const { req } = await invokeGet(handler, "/events?token=s3cret");
+    assert.equal(rec.sseClients.size, 1, "a valid token registers the SSE client");
+    req.emit("close");
+    const post = await invokePost(handler, "/action?token=s3cret", { kind: "run_cve" });
+    const json = JSON.parse(post.body);
+    assert.equal(json.ok, true);
+    assert.equal(sent.length, 1);
+});
+
 test("server: POST /action rejects an oversized request body (413)", async () => {
     const rec = { repoPath: "/repo", sseClients: new Set() };
     const sent = [];
@@ -1335,18 +1362,21 @@ test("server: createInstanceServer binds a loopback socket end-to-end", async ()
             runDoctor: async () => ({ overall: "ready", groups: [] }),
         });
         try {
-            assert.match(rec.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
+            assert.match(rec.url, /^http:\/\/127\.0\.0\.1:\d+\/\?token=[a-f0-9]+$/);
+            const u = new URL(rec.url);
+            const base = u.origin;
+            const q = "?token=" + u.searchParams.get("token");
 
             const home = await fetch(rec.url);
             assert.equal(home.status, 200);
             assert.match(await home.text(), /Java Modernization Studio/);
 
-            const state = await (await fetch(rec.url + "state")).json();
+            const state = await (await fetch(base + "/state" + q)).json();
             assert.equal(state.ok, true);
             assert.equal(state.assessment.buildTool, "Maven");
             assert.equal(state.doctor.overall, "ready", "doctor report is attached to state");
 
-            const action = await fetch(rec.url + "action", {
+            const action = await fetch(base + "/action" + q, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ kind: "generate_tests" }),
@@ -1354,6 +1384,11 @@ test("server: createInstanceServer binds a loopback socket end-to-end", async ()
             const aj = await action.json();
             assert.equal(aj.ok, true);
             assert.equal(sent.length, 1);
+
+            // A request that omits the per-instance token must be refused, even though
+            // it reached the right loopback port.
+            const unauth = await fetch(base + "/state");
+            assert.equal(unauth.status, 403, "missing token is rejected at the socket");
         } finally {
             await new Promise((r) => rec.server.close(() => r()));
         }
