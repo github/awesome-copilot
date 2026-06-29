@@ -60,11 +60,11 @@ All implementation plans must strictly adhere to the following template. Each se
 - All identifier prefixes must follow the specified format
 - Tables must include all required columns
 - No placeholder text may remain in the final output
-- **Identifiers must be unique.** Every declaration of `REQ-NNN`, `SEC-NNN`, `CON-NNN`, `GUD-NNN`, `PAT-NNN`, `GOAL-NNN`, `TASK-NNN`, `ALT-NNN`, `DEP-NNN`, `FILE-NNN`, `TEST-NNN`, `RISK-NNN`, and `ASSUMPTION-NNN` must appear exactly once across the plan. `DEP-*` may appear in multiple sections (for example, Requirements and Dependencies) as a reference; that is not a declaration collision.
+- **Identifiers must be uniquely declared.** Every identifier (`REQ-NNN`, `SEC-NNN`, `CON-NNN`, `GUD-NNN`, `PAT-NNN`, `GOAL-NNN`, `TASK-NNN`, `ALT-NNN`, `DEP-NNN`, `FILE-NNN`, `TEST-NNN`, `RISK-NNN`, `ASSUMPTION-NNN`) must be **declared exactly once**. A declaration is where the identifier introduces a row: the leading cell in a TASK/GOAL table row, or the bolded prefix in a bullet line like `- **REQ-001**: ...`. The same identifier may then appear any number of times as a **reference** elsewhere in the plan (a `TASK` body citing a `REQ`, one `TASK` citing another `TASK`, the Dependencies section pointing at a `DEP` already declared upstream, etc.). References are expected and not collisions.
 
 ## Identifier Uniqueness Check
 
-Run these checks before finalizing the plan. The first two must return zero rows. The third is informational.
+Run these checks before finalizing the plan. Checks (1) and (2) target declarations and must return zero rows. Check (3) is a broad informational scan: it will surface valid references too, so use it for awareness rather than as a gate.
 
 ```bash
 # Set PLAN_FILE to the plan being validated.
