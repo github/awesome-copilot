@@ -87,10 +87,10 @@ get_quote(chainId=8453, sellToken=<USDC>, buyToken=<WETH>, kind="sell",
 build_order(chainId=8453, owner="<your wallet>", sellToken=<USDC>, buyToken=<WETH>,
             kind="sell", sellAmount="100000000", buyAmount="<min from quote>",
             slippageBips=75)
-  -> { order, signing: { domain, types, primaryType: "Order" }, fullAppData, appDataHash }
+  -> { order, signing: { domain, types, primaryType: "Order" }, fullAppData, appDataHash, partnerFee }
 
 # Confirm with the user before signing (hard rule 5): the buy token ADDRESS, the
-# minimum received (order.buyAmount at WETH's 18 decimals), the slippage, the fee,
+# minimum received (order.buyAmount at WETH's 18 decimals), the slippage, the fee (partnerFee; order.feeAmount is 0),
 # and the validity window. Only on explicit approval, sign the `order` object as
 # EIP-712 typed data using `signing` (domain + types + primaryType); the receiver
 # is pinned to owner. If the user does not approve, stop.
