@@ -1402,8 +1402,8 @@ test("server: createInstanceServer binds a loopback socket end-to-end", async ()
 function planSim(steps) {
     const model = steps.map((s) => ({ section: null, rank: null, status: "pending", ...s }));
     const activeRank = () => {
-        const nd = model.filter((s) => s.status !== "done" && s.rank != null);
-        return nd.length ? Math.min(...nd.map((s) => s.rank)) : null;
+        const notDone = model.filter((s) => s.status !== "done" && s.rank != null);
+        return notDone.length ? Math.min(...notDone.map((s) => s.rank)) : null;
     };
     return {
         model,
@@ -1414,8 +1414,8 @@ function planSim(steps) {
             ordering: { activeRank: activeRank() },
         }),
         markNextDone() {
-            const nd = model.find((s) => s.status !== "done");
-            if (nd) nd.status = "done";
+            const notDone = model.find((s) => s.status !== "done");
+            if (notDone) notDone.status = "done";
         },
     };
 }

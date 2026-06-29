@@ -141,7 +141,7 @@ export const PREDEFINED_TASKS = [
 // with particular focus on Spring Boot apps.
 export const JAVA_UPGRADE_TARGETS = [11, 17, 21, 25];
 
-// Day-to-day Java utilities invokable in Copilot Chat with the `#` prefix.
+// Day-to-day Java utilities you can invoke in Copilot Chat with the `#` prefix.
 export const APPMOD_TOOLS = {
     cve: {
         id: "appmod-validate-cves-for-java",
