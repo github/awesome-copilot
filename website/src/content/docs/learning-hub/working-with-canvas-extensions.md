@@ -3,7 +3,7 @@ title: 'Working with Canvas Extensions'
 description: 'Create and iterate on GitHub Copilot app canvases using /create-canvas, then shape them into reusable project or personal extensions.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-06-17
+lastUpdated: 2026-06-29
 estimatedReadingTime: '8 minutes'
 tags:
   - copilot-app
@@ -121,6 +121,10 @@ Use these extension folders as concrete references:
 - [`Agent Arcade`](../../extensions/#agent-arcade-canvas): retro arcade canvas with agent-callable controls for choosing or restarting mini-games while agents work.
 
 These examples show different complexity levels, from focused workflow boards to richer UI + automation integrations.
+
+## Canvas persistence across restarts
+
+Open canvases are automatically restored when you restart Copilot CLI and resume an existing session (v1.0.65+). If you had a canvas open when you closed the CLI, it reopens the next time you start that session — no need to recreate it with `/create-canvas` again. This means canvas-based workflows resume exactly where you left off, including the current canvas state and any previously generated UI.
 
 ## Iterating after first creation
 

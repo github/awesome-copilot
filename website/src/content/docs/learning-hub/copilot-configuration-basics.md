@@ -591,6 +591,8 @@ The `/usage` command displays session metrics such as the number of tokens consu
 /usage
 ```
 
+**Pay-as-you-go additional usage budget** (v1.0.64+): If your Copilot plan includes a pay-as-you-go additional usage allowance, the remaining budget is shown at session startup so you can see your spending headroom at a glance. The display refreshes automatically if a request is rejected for hitting the spend limit, and shows a clear message when the limit is fully reached — helping you stay aware of usage without leaving the session.
+
 The `/compact` command summarizes the conversation history to free up context window space while preserving the thread of the conversation. Use it when your context is getting full but you do not want to start a fresh session:
 
 ```
