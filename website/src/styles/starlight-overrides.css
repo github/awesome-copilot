@@ -388,14 +388,14 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-ma
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content a:not(:where(.not-content *)) {
-  color: var(--learning-hub-accent);
-  text-decoration-color: rgb(var(--learning-hub-accent-rgb) / 45%);
+  color: var(--learning-hub-accent-alt);
+  text-decoration-color: rgb(var(--learning-hub-accent-alt-rgb) / 45%);
   text-underline-offset: 0.2em;
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content a:hover:not(:where(.not-content *)) {
-  color: var(--color-primary);
-  text-decoration-color: var(--color-primary);
+  color: var(--color-blue);
+  text-decoration-color: var(--color-blue);
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content pre:not(:where(.not-content *)),
@@ -552,7 +552,7 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-ma
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content th:not(:where(.not-content *)) {
   border-bottom: 2px solid var(--color-border);
   background: rgb(var(--learning-hub-accent-rgb) / 12%);
-  color: var(--learning-hub-accent);
+  color: var(--color-text);
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 900;
@@ -581,7 +581,7 @@ html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-ma
   background: var(--color-bg-elevated);
   padding: 0.15rem 0.4rem;
   font-size: 0.85rem;
-  color: var(--learning-hub-accent);
+  color: var(--color-text);
 }
 
 html[data-has-sidebar]:has(link[rel="canonical"][href*="/learning-hub/"]) .sl-markdown-content blockquote:not(:where(.not-content *)),

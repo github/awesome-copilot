@@ -20,6 +20,14 @@ interface Props {
 
 const { resources, searchEntries } = Astro.props;
 
+/** Pick one representative per resource type for the hero preview so icons differ. */
+function pickHeroPreview(entries: SearchResultEntry[]): SearchResultEntry[] {
+  const types = ['agent', 'skill', 'hook'];
+  return types
+    .map((t) => entries.find((e) => e.type === t))
+    .filter((e): e is SearchResultEntry => e !== undefined);
+}
+
 /** Icon name per section — maps manifest icon keys to Icon component names. */
 const SECTION_ICON_MAP: Record<string, string> = {
   agent: 'agents',
@@ -54,9 +62,9 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
           </div>
 
           <div class="quick-results" aria-label="Search result examples">
-            {searchEntries.slice(0, 3).map((entry, i) => (
+            {pickHeroPreview(searchEntries).map((entry, i) => (
               <a class:list={['quick-result', `quick-result--${RESULT_ACCENT[i] ?? 'purple'}`]} href={entry.route}>
-                <Icon name={SECTION_ICON_MAP[entry.label.toLowerCase()] ?? 'terminal'} size={18} />
+                <Icon name={SECTION_ICON_MAP[entry.label.toLowerCase()] ?? 'terminal'} size={28} />
                 <span>
                   <strong>&gt; {entry.title}</strong>
                   <small>{entry.description.length > 42 ? `${entry.description.slice(0, 42)}...` : entry.description}</small>
@@ -116,8 +124,8 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     max-width: 1440px;
     margin-inline: auto;
     display: grid;
-    gap: clamp(2rem, 4vw, 3rem);
-    padding: clamp(2.8rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem) 2rem;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    padding: clamp(2.8rem, 5vw, 4rem) clamp(1rem, 3vw, 2.5rem) 0;
   }
 
   .hero-shell {
@@ -125,20 +133,22 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
     align-items: center;
     gap: clamp(2rem, 5vw, 5rem);
-    min-height: clamp(31rem, 47vw, 39rem);
+    min-height: clamp(30rem, 46vw, 38rem);
     border-bottom: 1px solid var(--color-border-soft);
-    padding-bottom: clamp(2rem, 4vw, 3.5rem);
+    padding-bottom: clamp(0.5rem, 1.5vw, 1.5rem);
   }
 
   .hero-copy {
     display: grid;
     gap: 1rem;
     z-index: 1;
+    min-width: 0;
     max-width: 58rem;
   }
 
   .terminal-label {
     width: fit-content;
+    max-width: 100%;
     margin: 0;
     border: 2px solid rgb(255 192 87 / 55%);
     border-radius: 0;
@@ -148,6 +158,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     padding: 0.4rem 0.8rem;
     font-size: clamp(0.78rem, 1.4vw, 0.9rem);
     font-weight: 800;
+    overflow-wrap: anywhere;
   }
 
   h1 {
@@ -159,6 +170,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     letter-spacing: -0.04em;
     line-height: 1.05;
     text-wrap: balance;
+    overflow-wrap: anywhere;
     text-shadow:
       0 3px 0 rgb(0 0 0 / 40%),
       3px 0 0 rgb(0 0 0 / 25%);
@@ -189,6 +201,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     align-items: center;
     gap: 0.85rem;
     width: min(100%, 45rem);
+    min-width: 0;
     min-height: 3.5rem;
     margin-top: 0.75rem;
     border-top: 2px solid rgb(169 112 255 / 16%);
@@ -207,6 +220,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
   }
 
   .placeholder {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -266,9 +280,10 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
   .hero-visual {
     position: relative;
     display: grid;
-    place-items: center;
+    align-content: center;
+    justify-items: center;
     align-self: stretch;
-    min-height: 29rem;
+    min-height: 26rem;
     overflow: hidden;
     padding-left: 2.5rem;
   }
@@ -304,11 +319,8 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
   .pixel-star--three { right: 10%; top: 32%; color: var(--color-blue); }
 
   .status-console {
-    position: absolute;
+    position: relative;
     z-index: 1;
-    left: 50%;
-    bottom: 2%;
-    transform: translateX(-50%);
     display: grid;
     gap: 0.45rem;
     min-width: min(100%, 25rem);
@@ -316,6 +328,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     border-radius: 0;
     background: rgb(5 7 7 / 88%);
     padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
   }
 
   .status-console p {
@@ -341,6 +354,7 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.25rem;
+    width: 100%;
     max-width: 1440px;
     margin-inline: auto;
     padding-block: 2rem;
@@ -350,7 +364,6 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     .hero-shell { grid-template-columns: 1fr; }
     .hero-visual { min-height: 24rem; }
     .mascot { width: min(58%, 24rem); }
-    .status-console { left: 50%; transform: translateX(-50%); }
     .resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
@@ -366,9 +379,6 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     .hero-visual { min-height: 21rem; }
     .mascot { width: min(76%, 22rem); }
     .status-console {
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 1rem;
       min-width: 0;
       width: calc(100% - 2rem);
     }
@@ -378,6 +388,21 @@ const RESULT_ACCENT: Accent[] = ['purple', 'blue', 'green'];
     .hero-console { padding-inline: 1rem; }
     .hero-shell { min-height: auto; }
     .hero-visual { display: none; }
-    .resource-grid { grid-template-columns: 1fr; }
+    .command-search {
+      gap: 0.65rem;
+      padding-inline: 0.85rem;
+    }
+    .placeholder {
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-overflow: clip;
+    }
+    .resource-grid {
+      grid-template-columns: 1fr;
+      justify-items: center;
+    }
+    .resource-grid > * {
+      width: min(100%, 30rem);
+    }
   }
 </style>

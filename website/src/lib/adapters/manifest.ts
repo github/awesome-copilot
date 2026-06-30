@@ -15,13 +15,13 @@ export interface ManifestSummary {
 }
 
 const SECTION_CONFIG: Record<string, { icon: string; accent: Accent; href: string }> = {
-  agents:       { icon: 'agent',       accent: 'purple',  href: '/agents/' },
-  instructions: { icon: 'instruction', accent: 'blue',    href: '/instructions/' },
-  skills:       { icon: 'skill',       accent: 'blue',    href: '/skills/' },
-  hooks:        { icon: 'hook',        accent: 'purple',  href: '/hooks/' },
-  workflows:    { icon: 'workflow',    accent: 'purple',  href: '/workflows/' },
-  plugins:      { icon: 'plugin',      accent: 'blue',    href: '/plugins/' },
-  tools:        { icon: 'tool',        accent: 'purple',  href: '/tools/' },
+  agents:       { icon: 'agent',       accent: 'green',  href: '/agents/' },
+  instructions: { icon: 'instruction', accent: 'blue',   href: '/instructions/' },
+  skills:       { icon: 'skill',       accent: 'purple', href: '/skills/' },
+  hooks:        { icon: 'hook',        accent: 'yellow', href: '/hooks/' },
+  workflows:    { icon: 'workflow',    accent: 'cyan',   href: '/workflows/' },
+  plugins:      { icon: 'plugin',      accent: 'orange', href: '/plugins/' },
+  tools:        { icon: 'tool',        accent: 'danger', href: '/tools/' },
 };
 
 const SECTION_LABELS: Record<string, string> = {

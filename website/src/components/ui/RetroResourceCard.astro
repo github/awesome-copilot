@@ -14,9 +14,20 @@ interface Props {
 
 const { title, description, href, icon, accent, label } = Astro.props;
 const ctaLabel = label ?? title;
+
+const ACCENT_CSS: Record<Accent, string> = {
+  purple: 'var(--color-primary)',
+  blue:   'var(--color-blue)',
+  green:  'var(--color-green)',
+  yellow: 'var(--color-yellow)',
+  danger: 'var(--color-danger)',
+  cyan:   'var(--color-cyan)',
+  orange: 'var(--color-orange)',
+  neutral:'var(--color-muted)',
+};
 ---
 
-<article class="retro-card">
+<article class="retro-card" style={`--card-accent: ${ACCENT_CSS[accent]}`}>
   <a href={href} class="retro-card__link">
     <div class="retro-card__body">
       <h3>{title}</h3>
@@ -33,6 +44,8 @@ const ctaLabel = label ?? title;
   .retro-card {
     display: flex;
     height: 100%;
+    min-width: 0;
+    padding-inline: 4px;
     background: var(--color-bg-elevated);
   }
 
@@ -45,9 +58,10 @@ const ctaLabel = label ?? title;
     align-items: stretch;
     flex: 1;
     height: 100%;
+    min-width: 0;
     min-height: 9.75rem;
-    border-top: 4px solid var(--color-subtle);
-    border-bottom: 4px solid var(--color-subtle);
+    border-top: 2px solid var(--color-border-soft);
+    border-bottom: 2px solid var(--color-border-soft);
     border-left: none;
     border-right: none;
     border-radius: 0;
@@ -55,22 +69,28 @@ const ctaLabel = label ?? title;
     background: var(--color-bg-elevated);
     color: inherit;
     text-decoration: none;
-    transition: background var(--motion-fast);
+    transition: background var(--motion-fast), border-color var(--motion-fast);
   }
 
   .retro-card__link::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-left: 4px solid var(--color-subtle);
-    border-right: 4px solid var(--color-subtle);
-    margin-left: -4px;
-    margin-right: -4px;
+    border-left: 2px solid var(--color-border-soft);
+    border-right: 2px solid var(--color-border-soft);
+    margin-left: -2px;
+    margin-right: -2px;
     pointer-events: none;
+    transition: border-color var(--motion-fast);
   }
 
   .retro-card__link:hover {
     background: rgb(255 255 255 / 4%);
+    border-color: var(--color-border);
+  }
+
+  .retro-card__link:hover::before {
+    border-color: var(--color-border);
   }
 
   .retro-card__link:focus-visible {
@@ -82,6 +102,7 @@ const ctaLabel = label ?? title;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
+    min-width: 0;
   }
 
   h3 {
@@ -90,6 +111,7 @@ const ctaLabel = label ?? title;
     font-size: 1.15rem;
     letter-spacing: -0.02em;
     color: var(--color-text);
+    overflow-wrap: anywhere;
   }
 
   p {
@@ -97,6 +119,7 @@ const ctaLabel = label ?? title;
     color: var(--color-muted);
     font-size: 0.8rem;
     line-height: 1.4;
+    overflow-wrap: anywhere;
   }
 
   .retro-card__learn {
@@ -104,7 +127,7 @@ const ctaLabel = label ?? title;
     align-items: center;
     gap: 0.2rem;
     margin-top: auto;
-    color: var(--color-primary);
+    color: var(--card-accent, var(--color-primary));
     font-size: 0.88rem;
     font-weight: 800;
     text-decoration: underline;
@@ -124,14 +147,8 @@ const ctaLabel = label ?? title;
     align-self: start;
     justify-self: end;
     line-height: 0;
+    color: var(--card-accent, var(--color-muted));
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-soft);
   }
-
-  .retro-card__glyph :global(.icon) {
-    display: block;
-  }
-
-  .retro-card__glyph--purple { color: var(--color-primary); background: rgb(169 112 255 / 12%); }
-  .retro-card__glyph--blue { color: var(--color-blue); background: rgb(45 140 255 / 12%); }
-  .retro-card__glyph--green { color: var(--color-green); background: rgb(144 255 177 / 12%); }
-  .retro-card__glyph--yellow { color: var(--color-yellow); background: rgb(255 192 87 / 12%); }
 </style>
