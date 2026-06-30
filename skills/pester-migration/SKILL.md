@@ -58,8 +58,8 @@ Tell the source version from the **test code** with these heuristics:
 Install the target version when ready:
 
 ```powershell
-# Latest stable v5
-Install-Module Pester -Force -SkipPublisherCheck
+# Latest stable v5 — pin the major so this keeps installing v5 even after v6 goes GA
+Install-Module Pester -MaximumVersion 5.99.99 -Force -SkipPublisherCheck
 
 # Pester 6 (still a release candidate as of mid-2026 — needs -AllowPrerelease)
 Install-Module Pester -AllowPrerelease -Force -SkipPublisherCheck
@@ -77,7 +77,9 @@ Run this loop for each major jump. **Do not jump two majors at once** — go v4�
    known-good (or known) starting point so you can tell migration regressions apart from
    pre-existing failures.
    ```powershell
-   Invoke-Pester -Path ./tests -Output Detailed   # v5+/v6 simple syntax
+   # Bare Invoke-Pester works on every major; exact parameters differ
+   # (v3/v4: -Script/-OutputFile; v5+/v6: -Path/-Output).
+   Invoke-Pester
    ```
 2. **Read the reference** for this jump (table above) so you know the full scope before editing.
 3. **Edit file by file.** Apply the mechanical changes (see per-jump cheat sheets below and in the
@@ -121,9 +123,11 @@ Full details, scoping rules, and the parameter→config table: [references/v4-to
 
 ### v5 → v6 (most common fixes)
 ```powershell
-# 1. Mock assertions: removed verbs
-Assert-MockCalled Get-Thing -Times 1 -Exactly   →  Should -Invoke Get-Thing -Times 1 -Exactly
-Assert-VerifiableMock                            →  Should -InvokeVerifiable
+# 1. Mock assertions: removed verbs — rename (old -> new):
+#    Assert-MockCalled     -> Should -Invoke
+#    Assert-VerifiableMock -> Should -InvokeVerifiable
+Should -Invoke Get-Thing -Times 1 -Exactly
+Should -InvokeVerifiable
 
 # 2. Add a default mock — unmatched calls no longer run the real command
 Mock Get-Thing { 'default' }

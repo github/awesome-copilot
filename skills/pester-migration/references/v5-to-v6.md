@@ -123,8 +123,10 @@ Deprecated in v5, removed in v6.
 - **Symptom:** `The term 'Assert-MockCalled' is not recognized ...`
 - **Fix:**
   ```powershell
-  Assert-MockCalled Get-Thing -Times 1 -Exactly   →  Should -Invoke Get-Thing -Times 1 -Exactly
-  Assert-VerifiableMock                            →  Should -InvokeVerifiable
+  # Assert-MockCalled     -> Should -Invoke
+  # Assert-VerifiableMock -> Should -InvokeVerifiable
+  Should -Invoke Get-Thing -Times 1 -Exactly
+  Should -InvokeVerifiable
   ```
 
 ### Mocks no longer fall through to the real command

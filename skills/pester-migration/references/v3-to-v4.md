@@ -40,8 +40,10 @@ The `Contain` assertion was renamed to `FileContentMatch` (it tests file **conte
 old name made ambiguous against collection containment).
 
 ```powershell
-'app.config' | Should Contain 'setting'        →  'app.config' | Should -FileContentMatch 'setting'
-'app.config' | Should Not Contain 'secret'     →  'app.config' | Should -Not -FileContentMatch 'secret'
+# Should Contain      -> Should -FileContentMatch
+# Should Not Contain  -> Should -Not -FileContentMatch
+'app.config' | Should -FileContentMatch 'setting'
+'app.config' | Should -Not -FileContentMatch 'secret'
 ```
 
 A simple regex-based migration script from the official guide (verify results — it can produce
