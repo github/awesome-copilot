@@ -5,6 +5,7 @@
  * contributors, linking to the full /contributors/ page.
  */
 import fs from 'node:fs';
+import path from 'node:path';
 import BitButton from '../ui/8BitButton.astro';
 import Container from '../ui/Container.astro';
 import Icon from '../ui/Icon.astro';
@@ -22,7 +23,7 @@ interface AllContributorsRc {
   contributors: AllContributor[];
 }
 
-const rcPath = new URL('../../../../.all-contributorsrc', import.meta.url);
+const rcPath = path.resolve(process.cwd(), '../.all-contributorsrc');
 const rc = JSON.parse(fs.readFileSync(rcPath, 'utf-8')) as AllContributorsRc;
 
 const PREVIEW_COUNT = 24;
@@ -105,8 +106,8 @@ const total = rc.contributors.length;
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
   }
 
   .contributor {
@@ -117,10 +118,10 @@ const total = rc.contributors.length;
   .contributor__link {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 0.9rem;
     width: 100%;
     height: 100%;
-    padding: 0.6rem 0.75rem;
+    padding: 0.9rem 1rem;
     border: 2px solid var(--color-subtle);
     border-radius: 0;
     background: var(--color-bg-elevated);
@@ -140,11 +141,10 @@ const total = rc.contributors.length;
 
   .contributor__avatar {
     flex: none;
-    width: 40px;
-    height: 40px;
+    width: 52px;
+    height: 52px;
     display: grid;
     place-items: center;
-    border: 2px solid var(--color-subtle);
     overflow: hidden;
     background: var(--color-bg);
   }
@@ -165,7 +165,7 @@ const total = rc.contributors.length;
 
   .contributor__name {
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--color-text);
     white-space: nowrap;
@@ -175,18 +175,18 @@ const total = rc.contributors.length;
 
   .contributor__handle {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.74rem;
     color: var(--color-muted);
   }
 
   .contributor__count {
     margin-top: 0.15rem;
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--color-green);
+    color: var(--color-muted);
   }
 
   .contributors__foot {
