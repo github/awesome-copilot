@@ -5,7 +5,12 @@
  * for the Learning Hub cookbook page.
  */
 
-import type { SamplesData, Cookbook, CookbookRecipe, CookbookLanguage } from '../upstream-types';
+import type {
+  SamplesData,
+  Cookbook,
+  CookbookRecipe,
+  CookbookLanguage,
+} from "../upstream-types";
 
 export interface CookbookRecipeEntry {
   id: string;
@@ -67,15 +72,24 @@ export function adaptSamples(data: SamplesData): {
   };
 }
 
-function adaptRecipe(recipe: CookbookRecipe, cookbook: Cookbook): CookbookRecipeEntry {
+function adaptRecipe(
+  recipe: CookbookRecipe,
+  cookbook: Cookbook,
+): CookbookRecipeEntry {
   return {
     id: recipe.id,
     name: recipe.name,
-    description: recipe.description ?? '',
+    description: recipe.description ?? "",
     tags: recipe.tags ?? [],
     cookbookId: cookbook.id,
     cookbookName: cookbook.name,
-    languages: Array.isArray(recipe.languages) ? recipe.languages : [],
+    // `languages` is not declared in the upstream CookbookRecipe type but may be
+    // present at runtime. Cast through `unknown` to avoid modifying the shared type.
+    languages: Array.isArray(
+      (recipe as unknown as Record<string, unknown>).languages,
+    )
+      ? ((recipe as unknown as Record<string, unknown>).languages as string[])
+      : [],
     external: !!(recipe as any).external,
     url: recipe.url ?? null,
     variants: recipe.variants ?? {},

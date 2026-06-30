@@ -5,13 +5,12 @@
  * Handles null models, empty handoffs/tools, and missing optional fields.
  */
 
-import type { Accent, ResultItem, ResourceFile } from '../types';
-import type { AgentItem } from '../upstream-types';
-import { rawUrl, githubBlobUrl } from './config';
+import type { ResultItem, ResourceFile } from "../types";
+import type { AgentItem } from "../upstream-types";
+import { stableAccent } from "../../scripts/resource-catalog";
 
 /** Maximum number of tools shown as tags before a "+N more" overflow. */
 const MAX_TOOL_TAGS = 3;
-const AGENT_ACCENTS: Accent[] = ['purple', 'blue', 'neutral', 'green', 'yellow'];
 
 export function adaptAgent(item: AgentItem): ResultItem {
   const tags = buildTags(item);
@@ -22,12 +21,16 @@ export function adaptAgent(item: AgentItem): ResultItem {
     label: buildLabel(item),
     description: item.description,
     tags,
-    accent: getStableAccent(item),
+    accent: stableAccent(item.id || item.filename || item.title),
     detail: item.path,
-    model: Array.isArray(item.model) ? item.model.join(', ') : (item.model ?? undefined),
+    model: Array.isArray(item.model)
+      ? item.model.join(", ")
+      : (item.model ?? undefined),
     tools: item.tools.length > 0 ? item.tools : undefined,
-    handoffs: item.hasHandoffs ? item.handoffs.map(h => h.label || h.agent).filter(Boolean) : undefined,
-    actions: buildActions(item),
+    // handoffs is string[] in the upstream schema; use the strings directly.
+    handoffs:
+      item.hasHandoffs && item.handoffs.length > 0 ? item.handoffs : undefined,
+    actions: buildActions(),
     resourceFiles: buildResourceFiles(item),
   };
 
@@ -35,19 +38,10 @@ export function adaptAgent(item: AgentItem): ResultItem {
 }
 
 function buildLabel(item: AgentItem): string {
-  if (item.hasHandoffs) return 'handoff enabled';
-  if (item.tools.length > 0) return 'tool-enabled';
-  if (item.model) return 'model configured';
-  return 'agent';
-}
-
-function getStableAccent(item: AgentItem): Accent {
-  const source = item.id || item.filename || item.title;
-  let hash = 0;
-  for (const char of source) {
-    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  }
-  return AGENT_ACCENTS[hash % AGENT_ACCENTS.length];
+  if (item.hasHandoffs) return "handoff enabled";
+  if (item.tools.length > 0) return "tool-enabled";
+  if (item.model) return "model configured";
+  return "agent";
 }
 
 function buildTags(item: AgentItem): string[] {
@@ -55,11 +49,11 @@ function buildTags(item: AgentItem): string[] {
 
   // Model tag
   if (item.model && Array.isArray(item.model) && item.model.length > 0) {
-    tags.push(item.model.join(', '));
-  } else if (typeof item.model === 'string' && item.model) {
+    tags.push(item.model.join(", "));
+  } else if (typeof item.model === "string" && item.model) {
     tags.push(item.model);
   } else {
-    tags.push('(none)');
+    tags.push("(none)");
   }
 
   // Tool tags — show up to MAX_TOOL_TAGS
@@ -71,14 +65,14 @@ function buildTags(item: AgentItem): string[] {
 
   // Handoff flag
   if (item.hasHandoffs) {
-    tags.push('handoffs');
+    tags.push("handoffs");
   }
 
   return tags;
 }
 
-function buildActions(_item: AgentItem): string[] {
-  return ['install', 'download', 'share', 'github'];
+function buildActions(): string[] {
+  return ["install", "download", "share", "github"];
 }
 
 function buildResourceFiles(item: AgentItem): ResourceFile[] {
@@ -86,7 +80,7 @@ function buildResourceFiles(item: AgentItem): ResourceFile[] {
   if (item.path) {
     files.push({
       path: item.path,
-      type: 'reference',
+      type: "reference",
       description: item.filename || item.path,
     });
   }

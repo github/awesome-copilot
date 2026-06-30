@@ -5,10 +5,9 @@
  * and no file-backed modal.  Local plugins expose their bundled items.
  */
 
-import type { ResultItem } from '../types';
-import type { PluginItem } from '../upstream-types';
-import { stableAccent } from '../../scripts/resource-catalog';
-import { rawUrl } from './config';
+import type { ResultItem } from "../types";
+import type { PluginItem } from "../upstream-types";
+import { stableAccent } from "../../scripts/resource-catalog";
 
 export function adaptPlugin(item: PluginItem): ResultItem {
   const tags = [...(item.tags ?? [])];
@@ -16,14 +15,18 @@ export function adaptPlugin(item: PluginItem): ResultItem {
   const result: ResultItem = {
     id: item.id,
     title: item.name,
-    label: 'Plugin',
+    label: "Plugin",
     description: item.description,
     tags,
     accent: stableAccent(item.id),
     detail: item.path,
     items: item.itemCount,
-    contains: item.items.map(i => i.kind),
-    author: item.author ?? undefined,
+    contains: item.items.map((i) => i.kind),
+    // Upstream author can be a string or a PluginAuthor object; normalise to string.
+    author:
+      typeof item.author === "string"
+        ? item.author
+        : (item.author?.name ?? undefined),
     license: item.license ?? undefined,
     actions: buildActions(item),
   };
@@ -32,8 +35,8 @@ export function adaptPlugin(item: PluginItem): ResultItem {
 }
 
 function buildActions(item: PluginItem): string[] {
-  if (item.external) return ['view-repo'];
-  return ['install', 'github'];
+  if (item.external) return ["view-repo"];
+  return ["install", "github"];
 }
 
 /** Convenience: adapt an entire array. */
