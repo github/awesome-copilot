@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "main": "extension.mjs",
+  "author": {
+    "name": "Ayan Gupta",
+    "url": "https://github.com/ayangupt"
+  },
   "dependencies": {
     "@github/copilot-sdk": "1.0.4"
   },
