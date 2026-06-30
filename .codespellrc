@@ -58,7 +58,9 @@
 
 # GUD - "Guideline" identifier prefix in the create-implementation-plan skill spec (alongside REQ, SEC, CON, PAT, etc.)
 
-ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans,gud
+# Vally/vally - Name of product
+
+ignore-words-list = numer,wit,aks,edn,ser,ois,gir,rouge,categor,aline,ative,afterall,deques,dateA,dateB,TE,FillIn,alle,vai,LOD,InOut,pixelX,aNULL,Wee,Sherif,queston,Vertexes,nin,FO,CAF,Parth,ans,gud,Vally,vally
 
 # Skip certain files and directories
 

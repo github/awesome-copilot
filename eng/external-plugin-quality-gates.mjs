@@ -3,10 +3,11 @@
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { Writable } from "stream";
 import { spawnSync } from "child_process";
+import { runLint, LintConsoleReporter } from "@microsoft/vally";
 
 const MAX_OUTPUT_LENGTH = 12000;
-const SKILL_VALIDATOR_ARCHIVE_URL = "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz";
 
 const INFRA_ERROR_PATTERNS = [
   /\b401\b/,
@@ -132,35 +133,10 @@ function cloneSubmissionRepository(workDir, plugin) {
   return repoDir;
 }
 
-function downloadSkillValidator(workDir) {
-  const validatorDir = path.join(workDir, "skill-validator");
-  ensureDirectory(validatorDir);
-  const archivePath = path.join(validatorDir, "skill-validator-linux-x64.tar.gz");
-
-  const download = runCommand("curl", ["-fsSL", SKILL_VALIDATOR_ARCHIVE_URL, "-o", archivePath]);
-  if (download.exitCode !== 0) {
-    throw new Error(`Failed to download skill-validator: ${download.output}`);
-  }
-
-  const untar = runCommand("tar", ["-xzf", archivePath, "-C", validatorDir]);
-  if (untar.exitCode !== 0) {
-    throw new Error(`Failed to extract skill-validator: ${untar.output}`);
-  }
-
-  const binaryPath = path.join(validatorDir, "skill-validator");
-  if (!fs.existsSync(binaryPath)) {
-    throw new Error("skill-validator binary was not found after extraction");
-  }
-
-  runCommand("chmod", ["+x", binaryPath]);
-  return binaryPath;
-}
-
 // Ordered list of candidate locations for plugin.json, from most to least specific.
-// The skill-validator --plugin mode expects plugin.json at the plugin root, but
-// both the Copilot CLI and many external repos use nested conventions. We read the
-// manifest ourselves so skill/agent paths can be resolved from the plugin root
-// consistently, regardless of where the manifest lives.
+// Both the Copilot CLI and many external repos use nested conventions. We read the
+// manifest ourselves so skill paths can be resolved from the plugin root consistently,
+// regardless of where the manifest lives.
 // NOTE: Keep in sync with EXTERNAL_PLUGIN_ROOT_MANIFEST_PATHS in external-plugin-validation.mjs
 const PLUGIN_JSON_CANDIDATES = [
   [".github", "plugin", "plugin.json"],
@@ -178,72 +154,66 @@ function findPluginJson(pluginRoot) {
   return null;
 }
 
-function buildSkillValidatorArgs(pluginRoot) {
+function buildVallyLintArgs(pluginRoot) {
   const pluginJsonPath = findPluginJson(pluginRoot);
   if (!pluginJsonPath) {
-    // No recognised plugin.json location found — let the validator fail with its
-    // own diagnostic (covers exotic layouts and surfaces the real error to submitters).
-    return ["check", "--verbose", "--plugin", pluginRoot];
+    // No recognised plugin.json location — lint the whole plugin root and let
+    // vally surface the real error to the submitter.
+    return [pluginRoot];
   }
 
   let pluginJson;
   try {
     pluginJson = JSON.parse(fs.readFileSync(pluginJsonPath, "utf8"));
   } catch {
-    // Malformed plugin.json — let the validator surface the parse error.
-    return ["check", "--verbose", "--plugin", pluginRoot];
+    // Malformed plugin.json — fall back to linting the full root.
+    return [pluginRoot];
   }
 
-  const args = ["check", "--verbose"];
-
-  // Paths in plugin.json are relative to the plugin root regardless of where
-  // plugin.json itself lives. Use [].concat() to accept both string and array values.
+  // Collect skill directory paths from plugin.json.
   const skillPaths = [].concat(pluginJson.skills ?? [])
     .map((s) => path.resolve(pluginRoot, s))
-    .filter((p) => fs.existsSync(p));
-
-  // Agent entries may be directory paths or explicit file paths; normalise to directories
-  // so AgentDiscovery.DiscoverAgentsInDirectory can discover agents within them.
-  // Deduplicate in case multiple file entries share the same parent directory.
-  const agentPaths = [...new Set(
-    [].concat(pluginJson.agents ?? [])
-      .map((a) => {
-        const resolved = path.resolve(pluginRoot, a);
-        if (fs.existsSync(resolved) && fs.statSync(resolved).isFile()) {
-          return path.dirname(resolved);
-        }
-        return resolved;
-      })
-      .filter((p) => fs.existsSync(p))
-  )];
+    .filter((p) => fs.existsSync(p) && fs.statSync(p).isDirectory());
 
   if (skillPaths.length > 0) {
-    args.push("--skills", ...skillPaths);
-  }
-  if (agentPaths.length > 0) {
-    args.push("--agents", ...agentPaths);
+    return skillPaths;
   }
 
-  if (skillPaths.length === 0 && agentPaths.length === 0) {
-    // plugin.json found but no resolvable skills/agents — fall back to --plugin so the
-    // validator can surface the specific validation error to the submitter.
-    return ["check", "--verbose", "--plugin", pluginRoot];
-  }
-
-  return args;
+  // No resolvable skill directories — lint the full plugin root so vally can
+  // surface the specific validation error to the submitter.
+  return [pluginRoot];
 }
 
-function runSkillValidatorGate(workDir, pluginRoot) {
+async function runVallyLintGate(pluginRoot) {
   try {
-    const validatorBinary = downloadSkillValidator(workDir);
-    const args = buildSkillValidatorArgs(pluginRoot);
-    const check = runCommand(validatorBinary, args);
+    const targets = buildVallyLintArgs(pluginRoot);
 
-    if (check.exitCode === 0) {
-      return { status: "pass", output: check.output };
+    let combinedOutput = "";
+    let anyFailure = false;
+
+    for (const target of targets) {
+      const chunks = [];
+      const captureStream = new Writable({
+        write(chunk, _encoding, callback) {
+          chunks.push(chunk.toString());
+          callback();
+        },
+      });
+
+      const result = await runLint({ rootPath: target });
+      const reporter = new LintConsoleReporter({ verbose: true, stream: captureStream });
+      await reporter.report(result);
+
+      combinedOutput += chunks.join("") + "\n";
+      if (!result.passed) {
+        anyFailure = true;
+      }
     }
 
-    return { status: "fail", output: check.output };
+    return {
+      status: anyFailure ? "fail" : "pass",
+      output: truncateOutput(combinedOutput),
+    };
   } catch (error) {
     return {
       status: "infra_error",
@@ -358,15 +328,15 @@ function toFailureClass(overallStatus) {
   return "none";
 }
 
-export function runExternalPluginQualityGates(plugin) {
+export async function runExternalPluginQualityGates(plugin) {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "external-plugin-quality-"));
   const result = {
     overall_status: "not_run",
-    skill_validator_status: "not_run",
+    vally_lint_status: "not_run",
     smoke_status: "not_run",
     failure_class: "none",
     summary: "",
-    skill_validator_output: "",
+    vally_lint_output: "",
     smoke_output: "",
   };
 
@@ -376,7 +346,7 @@ export function runExternalPluginQualityGates(plugin) {
     const pluginRoot = normalizedPluginPath ? path.join(repoDir, normalizedPluginPath) : repoDir;
 
     if (!fs.existsSync(pluginRoot) || !fs.statSync(pluginRoot).isDirectory()) {
-      result.skill_validator_status = "fail";
+      result.vally_lint_status = "fail";
       result.smoke_status = "fail";
       result.overall_status = "fail";
       result.failure_class = "submitter_fixes";
@@ -384,18 +354,18 @@ export function runExternalPluginQualityGates(plugin) {
       return result;
     }
 
-    const skillResult = runSkillValidatorGate(workDir, pluginRoot);
-    result.skill_validator_status = skillResult.status;
-    result.skill_validator_output = skillResult.output;
+    const vallyResult = await runVallyLintGate(pluginRoot);
+    result.vally_lint_status = vallyResult.status;
+    result.vally_lint_output = vallyResult.output;
 
     const smokeResult = runInstallSmokeGate(workDir, plugin);
     result.smoke_status = smokeResult.status;
     result.smoke_output = smokeResult.output;
 
-    result.overall_status = toOverallStatus(result.skill_validator_status, result.smoke_status);
+    result.overall_status = toOverallStatus(result.vally_lint_status, result.smoke_status);
     result.failure_class = toFailureClass(result.overall_status);
     result.summary = [
-      `- skill-validator: ${result.skill_validator_status}`,
+      `- vally lint: ${result.vally_lint_status}`,
       `- install smoke test: ${result.smoke_status}`,
       `- overall: ${result.overall_status}`,
     ].join("\n");
@@ -405,7 +375,7 @@ export function runExternalPluginQualityGates(plugin) {
     result.overall_status = "infra_error";
     result.failure_class = "infra";
     result.summary = truncateOutput(error.message);
-    result.skill_validator_output = truncateOutput(error.stack || error.message);
+    result.vally_lint_output = truncateOutput(error.stack || error.message);
     return result;
   } finally {
     fs.rmSync(workDir, { recursive: true, force: true });
@@ -434,6 +404,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   const plugin = JSON.parse(args["plugin-json"]);
-  const result = runExternalPluginQualityGates(plugin);
+  const result = await runExternalPluginQualityGates(plugin);
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }

@@ -95,6 +95,9 @@ jobs:
       - name: Install GitHub Copilot CLI
         run: npm install -g @github/copilot
 
+      - name: Install @microsoft/vally
+        run: npm install @microsoft/vally
+
       - name: Run external plugin PR quality gates
         id: quality
         env:
@@ -205,7 +208,7 @@ jobs:
                   const sourceUrl = String(entry?.source_tree_url || '');
                   const locator = String(entry?.source?.sha || entry?.source?.ref || 'repository');
                   const sourceCell = sourceUrl ? `[${locator}](${sourceUrl})` : locator;
-                  return `| ${name} | ${quality.skill_validator_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
+                  return `| ${name} | ${quality.vally_lint_status || 'not_run'} | ${quality.smoke_status || 'not_run'} | ${quality.overall_status || 'not_run'} | ${sourceCell} |`;
                 })
               : ['| _none_ | not_run | not_run | not_run | _n/a_ |'];
 
@@ -218,7 +221,7 @@ jobs:
               '',
               '### Per-plugin quality summary',
               '',
-              '| Plugin | skill-validator | install smoke test | overall | source tree |',
+              '| Plugin | vally lint | install smoke test | overall | source tree |',
               '|---|---|---|---|---|',
               ...rows,
               '',
