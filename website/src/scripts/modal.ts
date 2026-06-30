@@ -1,7 +1,22 @@
 /**
- * Modal functionality for file viewing
+ * File-viewer modal.
+ *
+ * Responsibilities (intentionally broad — split candidates are noted inline):
+ * - Fetching raw file content from GitHub (openFileModal)
+ * - Rendering Markdown with syntax highlighting (renderCurrentFileContent)
+ * - Skill file-switcher dropdown (configureSkillFileSwitcher)
+ * - Plugin detail view (openPluginModal / renderLocalPluginModal / renderExternalPluginModal)
+ * - Focus trap & keyboard navigation (handleModalKeydown)
+ * - Install-dropdown wiring (setupInstallDropdown)
+ * - URL hash ↔ modal state sync (handleHashChange / updateHash)
+ * - Copy / download / share / title-update side-effects (setupModal)
+ *
+ * Security note: Markdown is rendered via a private `Marked` instance that strips
+ * raw HTML blocks. Community-contributed files are fetched verbatim from GitHub raw
+ * URLs, so we cannot assume they are safe. See `_safeMarked` below.
  */
 
+import { Marked } from "marked";
 import {
   fetchFileContent,
   fetchData,
@@ -17,6 +32,29 @@ import {
   sanitizeUrl,
   REPO_IDENTIFIER,
 } from "./utils";
+import fm from "front-matter";
+
+/**
+ * Private Marked instance that strips raw HTML blocks before rendering.
+ *
+ * Why: community-contributed Markdown files are fetched verbatim from GitHub
+ * raw URLs without sanitization. `marked` does not sanitize HTML by default,
+ * so a file containing `<script>` or `<img onerror=…>` would execute in the
+ * user's browser once injected via `container.innerHTML`.
+ *
+ * Fix: overriding the `html` renderer to return an empty string drops all raw
+ * HTML blocks from the output. Standard Markdown elements (headings, code
+ * fences, lists, links, etc.) are unaffected.
+ */
+const _safeMarked = new Marked({
+  renderer: {
+    // Return empty string for raw HTML blocks and inline HTML.
+    // This prevents `<script>`, `<style>`, and similar tags from reaching the DOM.
+    html(): string {
+      return "";
+    },
+  },
+});
 
 type ModalViewMode = "rendered" | "raw";
 
@@ -75,7 +113,7 @@ const RESOURCE_TYPE_TO_JSON: Record<string, string> = {
  */
 async function resolveResourceTitle(
   filePath: string,
-  type: string
+  type: string,
 ): Promise<string> {
   const fallback = filePath.split("/").pop() || filePath;
   const jsonFile = RESOURCE_TYPE_TO_JSON[type];
@@ -98,8 +136,8 @@ async function resolveResourceTitle(
     type === "skill"
       ? getCollectionRootPath(filePath, "skills")
       : type === "hook"
-      ? getCollectionRootPath(filePath, "hooks")
-      : filePath.substring(0, filePath.lastIndexOf("/"));
+        ? getCollectionRootPath(filePath, "hooks")
+        : filePath.substring(0, filePath.lastIndexOf("/"));
 
   if (collectionRootPath) {
     const parentItem = data.items.find((i) => i.path === collectionRootPath);
@@ -119,7 +157,7 @@ function isMarkdownFile(filePath: string): boolean {
 
 function getCollectionRootPath(
   filePath: string,
-  collectionName: string
+  collectionName: string,
 ): string | null {
   const segments = filePath.split("/");
   const collectionIndex = segments.indexOf(collectionName);
@@ -142,7 +180,7 @@ async function getSkillsData(): Promise<SkillsData | null> {
 }
 
 async function getSkillItemByFilePath(
-  filePath: string
+  filePath: string,
 ): Promise<SkillItem | null> {
   if (getResourceType(filePath) !== "skill") return null;
 
@@ -157,7 +195,7 @@ async function getSkillItemByFilePath(
       (item) =>
         item.path === rootPath ||
         item.skillFile === filePath ||
-        item.files.some((file) => file.path === filePath)
+        item.files.some((file) => file.path === filePath),
     ) || null
   );
 }
@@ -290,7 +328,7 @@ function getLanguageForFile(filePath: string): string {
 
 async function renderHighlightedCode(
   content: string,
-  filePath: string
+  filePath: string,
 ): Promise<void> {
   try {
     const { codeToHtml } = await import("shiki");
@@ -341,7 +379,7 @@ async function renderCurrentFileContent(): Promise<void> {
 
   if (!currentFileContent) {
     renderPlainText(
-      "Failed to load file content. Click the button below to view on GitHub."
+      "Failed to load file content. Click the button below to view on GitHub.",
     );
     return;
   }
@@ -350,12 +388,12 @@ async function renderCurrentFileContent(): Promise<void> {
     const container = ensureDivContent("modal-rendered-content");
     if (!container) return;
 
-    const [{ marked }, { default: fm }] = await Promise.all([
-      import("marked"),
-      import("front-matter"),
-    ]);
-    const { body: markdownBody } = fm<string>(currentFileContent);
-    container.innerHTML = marked(markdownBody, { async: false });
+    // Strip YAML front matter before rendering — the body is the Markdown content.
+    const { body: markdownBody } = fm(currentFileContent);
+    // Use _safeMarked (html renderer returns '') to prevent XSS from raw HTML in community files.
+    container.innerHTML = _safeMarked.parse(markdownBody, {
+      async: false,
+    }) as string;
   } else {
     await renderHighlightedCode(currentFileContent, currentFilePath);
   }
@@ -390,10 +428,10 @@ async function configureSkillFileSwitcher(filePath: string): Promise<void> {
         `<button type="button" class="modal-file-menu-item${
           file.path === filePath ? " active" : ""
         }" data-path="${escapeHtml(
-          file.path
+          file.path,
         )}" role="menuitemradio" aria-checked="${
           file.path === filePath ? "true" : "false"
-        }">${escapeHtml(file.name)}</button>`
+        }">${escapeHtml(file.name)}</button>`,
     )
     .join("");
   switcher.classList.remove("hidden");
@@ -454,19 +492,6 @@ interface PluginsData {
 
 let pluginsCache: PluginsData | null = null;
 
-interface OpenCardDetailsRequest {
-  title: string;
-  description: string;
-  previewIcon?: string;
-  previewText?: string;
-  metaHtml?: string;
-  tagsHtml?: string;
-  actionsHtml?: string;
-  detailsHtml?: string;
-  contentClassName?: string;
-  trigger?: HTMLElement;
-}
-
 /**
  * Get all focusable elements within a container
  */
@@ -481,7 +506,7 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
   ].join(", ");
 
   return Array.from(
-    container.querySelectorAll<HTMLElement>(focusableSelectors)
+    container.querySelectorAll<HTMLElement>(focusableSelectors),
   ).filter((el) => el.offsetParent !== null); // Filter out hidden elements
 }
 
@@ -559,7 +584,7 @@ export function setupModal(): void {
       const success = await copyToClipboard(currentFileContent);
       showToast(
         success ? "Copied to clipboard!" : "Failed to copy",
-        success ? "success" : "error"
+        success ? "success" : "error",
       );
     }
   });
@@ -576,7 +601,7 @@ export function setupModal(): void {
       const success = await copyToClipboard(command);
       showToast(
         success ? "Install command copied!" : "Failed to copy",
-        success ? "success" : "error"
+        success ? "success" : "error",
       );
       if (success) {
         installCommandBtn.innerHTML =
@@ -611,7 +636,7 @@ export function setupModal(): void {
       const success = await downloadFile(currentFilePath);
       showToast(
         success ? "Download started!" : "Download failed",
-        success ? "success" : "error"
+        success ? "success" : "error",
       );
     }
   });
@@ -621,7 +646,7 @@ export function setupModal(): void {
       const success = await shareFile(currentFilePath);
       showToast(
         success ? "Link copied to clipboard!" : "Failed to copy link",
-        success ? "success" : "error"
+        success ? "success" : "error",
       );
     }
   });
@@ -651,7 +676,7 @@ export function setupModal(): void {
     if (isOpen) {
       fileMenu
         ?.querySelector<HTMLElement>(
-          ".modal-file-menu-item.active, .modal-file-menu-item"
+          ".modal-file-menu-item.active, .modal-file-menu-item",
         )
         ?.focus();
     }
@@ -674,7 +699,7 @@ export function setupModal(): void {
 
   fileMenu?.addEventListener("click", async (event) => {
     const target = (event.target as HTMLElement).closest<HTMLButtonElement>(
-      ".modal-file-menu-item"
+      ".modal-file-menu-item",
     );
     const targetPath = target?.dataset.path;
     if (!target || !targetPath || !currentFileType) return;
@@ -683,13 +708,13 @@ export function setupModal(): void {
       targetPath,
       currentFileType,
       true,
-      triggerElement || undefined
+      triggerElement || undefined,
     );
   });
 
   fileMenu?.addEventListener("keydown", async (event) => {
     const items = Array.from(
-      fileMenu.querySelectorAll<HTMLButtonElement>(".modal-file-menu-item")
+      fileMenu.querySelectorAll<HTMLButtonElement>(".modal-file-menu-item"),
     );
     const currentIndex = items.findIndex((item) => item === event.target);
 
@@ -727,7 +752,7 @@ export function setupModal(): void {
             targetPath,
             currentFileType,
             true,
-            triggerElement || undefined
+            triggerElement || undefined,
           );
         }
         break;
@@ -744,19 +769,6 @@ export function setupModal(): void {
     if (fileDropdown && !fileDropdown.contains(e.target as Node)) {
       setFileMenuOpen(false);
     }
-  });
-
-  document.addEventListener("click", async (event) => {
-    const target = event.target as HTMLElement;
-    const openFileButton = target.closest<HTMLElement>("[data-open-file-path]");
-    if (!openFileButton) return;
-
-    const filePath = openFileButton.dataset.openFilePath;
-    if (!filePath) return;
-
-    event.preventDefault();
-    const fileType = openFileButton.dataset.openFileType || getResourceType(filePath);
-    await openFileModal(filePath, fileType, true, openFileButton);
   });
 
   // Check for deep link on initial load
@@ -797,7 +809,7 @@ function updateHash(filePath: string | null): void {
       history.pushState(
         null,
         "",
-        window.location.pathname + window.location.search
+        window.location.pathname + window.location.search,
       );
     }
   }
@@ -811,10 +823,10 @@ export function setupInstallDropdown(containerId: string): void {
   if (!container) return;
 
   const toggle = container.querySelector<HTMLButtonElement>(
-    ".install-btn-toggle"
+    ".install-btn-toggle",
   );
   const menuItems = container.querySelectorAll<HTMLAnchorElement>(
-    ".install-dropdown-menu a"
+    ".install-dropdown-menu a",
   );
 
   toggle?.addEventListener("click", (e) => {
@@ -910,27 +922,25 @@ export async function openFileModal(
   filePath: string,
   type: string,
   updateUrl = true,
-  trigger?: HTMLElement
+  trigger?: HTMLElement,
 ): Promise<void> {
   const modal = document.getElementById("file-modal");
   const title = document.getElementById("modal-title");
   const installDropdown = document.getElementById("install-dropdown");
   const installBtnMain = document.getElementById(
-    "install-btn-main"
+    "install-btn-main",
   ) as HTMLAnchorElement | null;
   const installVscode = document.getElementById(
-    "install-vscode"
+    "install-vscode",
   ) as HTMLAnchorElement | null;
   const installInsiders = document.getElementById(
-    "install-insiders"
+    "install-insiders",
   ) as HTMLAnchorElement | null;
   const copyBtn = document.getElementById("copy-btn");
   const installCommandBtn = document.getElementById("install-command-btn");
   const downloadBtn = document.getElementById("download-btn");
   const closeBtn = document.getElementById("close-modal");
   if (!modal || !title) return;
-
-  modal.classList.remove("details-mode");
 
   currentFilePath = filePath;
   currentFileType = type;
@@ -975,7 +985,7 @@ export async function openFileModal(
       modalContent,
       installDropdown,
       copyBtn,
-      downloadBtn
+      downloadBtn,
     );
     return;
   }
@@ -986,7 +996,7 @@ export async function openFileModal(
   if (downloadBtn) {
     downloadBtn.setAttribute(
       "aria-label",
-      type === "skill" ? "Download skill as ZIP" : "Download file"
+      type === "skill" ? "Download skill as ZIP" : "Download file",
     );
   }
   // Show copy install button only for skills
@@ -1027,85 +1037,6 @@ export async function openFileModal(
   await renderCurrentFileContent();
 }
 
-export function openCardDetailsModal({
-  title,
-  description,
-  previewIcon = "📄",
-  previewText = "",
-  metaHtml = "",
-  tagsHtml = "",
-  actionsHtml = "",
-  detailsHtml = "",
-  contentClassName = "modal-card-details",
-  trigger,
-}: OpenCardDetailsRequest): void {
-  const modal = document.getElementById("file-modal");
-  const modalTitle = document.getElementById("modal-title");
-  const closeBtn = document.getElementById("close-modal");
-  const modalBody = getModalBody();
-
-  if (!modal || !modalTitle || !modalBody) return;
-
-  triggerElement = trigger || (document.activeElement as HTMLElement);
-  if (!originalDocumentTitle) {
-    originalDocumentTitle = document.title;
-  }
-
-  currentFilePath = null;
-  currentFileContent = null;
-  currentFileType = "details";
-  currentViewMode = "raw";
-  hideSkillFileSwitcher();
-
-  modal.classList.add("details-mode");
-  modalTitle.textContent = title;
-  document.title = `${title} | Awesome GitHub Copilot`;
-
-  const content = ensureDivContent(contentClassName);
-  if (!content) return;
-
-  content.innerHTML =
-    detailsHtml ||
-    `
-      <div class="resource-details-body modal-card-details-body">
-        <div class="resource-details-preview">
-          <div class="resource-details-preview-icon" aria-hidden="true">${escapeHtml(previewIcon)}</div>
-          ${
-            previewText
-              ? `<p class="resource-details-preview-text">${escapeHtml(previewText)}</p>`
-              : ""
-          }
-        </div>
-        <div class="resource-details-content">
-          <p class="resource-details-description">${escapeHtml(description)}</p>
-          ${
-            metaHtml
-              ? `<div class="resource-meta resource-details-meta">${metaHtml}</div>`
-              : ""
-          }
-          ${
-            tagsHtml
-              ? `<div class="resource-keywords resource-details-tags">${tagsHtml}</div>`
-              : ""
-          }
-          ${
-            actionsHtml
-              ? `<div class="resource-actions resource-details-actions">${actionsHtml}</div>`
-              : ""
-          }
-        </div>
-      </div>
-    `;
-
-  modalBody.scrollTop = 0;
-  modal.classList.remove("hidden");
-  modal.classList.add("visible");
-
-  setTimeout(() => {
-    closeBtn?.focus();
-  }, 0);
-}
-
 /**
  * Open plugin modal with item list
  */
@@ -1115,7 +1046,7 @@ async function openPluginModal(
   modalContent: HTMLElement,
   installDropdown: HTMLElement | null,
   copyBtn: HTMLElement | null,
-  downloadBtn: HTMLElement | null
+  downloadBtn: HTMLElement | null,
 ): Promise<void> {
   // Hide install dropdown and copy/download for plugins
   if (installDropdown) installDropdown.style.display = "none";
@@ -1185,7 +1116,7 @@ function getExternalPluginUrl(plugin: Plugin): string {
  */
 function renderExternalPluginModal(
   plugin: Plugin,
-  modalContent: HTMLElement
+  modalContent: HTMLElement,
 ): void {
   const authorHtml = plugin.author?.name
     ? `<div class="external-plugin-meta-row">
@@ -1193,9 +1124,9 @@ function renderExternalPluginModal(
         <span class="external-plugin-meta-value">${
           plugin.author.url
             ? `<a href="${sanitizeUrl(
-                plugin.author.url
+                plugin.author.url,
               )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
-                plugin.author.name
+                plugin.author.name,
               )}</a>`
             : escapeHtml(plugin.author.name)
         }</span>
@@ -1206,10 +1137,10 @@ function renderExternalPluginModal(
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">Repository</span>
         <span class="external-plugin-meta-value"><a href="${sanitizeUrl(
-          plugin.repository
+          plugin.repository,
         )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
-        plugin.repository
-      )}</a></span>
+          plugin.repository,
+        )}</a></span>
       </div>`
     : "";
 
@@ -1218,10 +1149,10 @@ function renderExternalPluginModal(
       ? `<div class="external-plugin-meta-row">
           <span class="external-plugin-meta-label">Homepage</span>
           <span class="external-plugin-meta-value"><a href="${sanitizeUrl(
-            plugin.homepage
+            plugin.homepage,
           )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
-          plugin.homepage
-        )}</a></span>
+            plugin.homepage,
+          )}</a></span>
         </div>`
       : "";
 
@@ -1229,7 +1160,7 @@ function renderExternalPluginModal(
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">License</span>
         <span class="external-plugin-meta-value">${escapeHtml(
-          plugin.license
+          plugin.license,
         )}</span>
       </div>`
     : "";
@@ -1238,10 +1169,10 @@ function renderExternalPluginModal(
     ? `<div class="external-plugin-meta-row">
         <span class="external-plugin-meta-label">Source</span>
         <span class="external-plugin-meta-value">GitHub: ${escapeHtml(
-          plugin.source.repo
+          plugin.source.repo,
         )}${
-        plugin.source.path ? ` (${escapeHtml(plugin.source.path)})` : ""
-      }</span>
+          plugin.source.path ? ` (${escapeHtml(plugin.source.path)})` : ""
+        }</span>
       </div>`
     : "";
 
@@ -1250,7 +1181,7 @@ function renderExternalPluginModal(
   modalContent.innerHTML = `
     <div class="collection-view">
       <div class="collection-description">${escapeHtml(
-        plugin.description || ""
+        plugin.description || "",
       )}</div>
       ${
         plugin.tags && plugin.tags.length > 0
@@ -1258,7 +1189,7 @@ function renderExternalPluginModal(
               <span class="resource-tag resource-tag-external">🔗 External Plugin</span>
               ${plugin.tags
                 .map(
-                  (t) => `<span class="resource-tag">${escapeHtml(t)}</span>`
+                  (t) => `<span class="resource-tag">${escapeHtml(t)}</span>`,
                 )
                 .join("")}
             </div>`
@@ -1275,7 +1206,7 @@ function renderExternalPluginModal(
       </div>
       <div class="external-plugin-cta">
         <a href="${sanitizeUrl(
-          repoUrl
+          repoUrl,
         )}" class="btn btn-primary external-plugin-repo-btn" target="_blank" rel="noopener noreferrer">
           View Repository →
         </a>
@@ -1292,12 +1223,12 @@ function renderExternalPluginModal(
  */
 function renderLocalPluginModal(
   plugin: Plugin,
-  modalContent: HTMLElement
+  modalContent: HTMLElement,
 ): void {
   modalContent.innerHTML = `
     <div class="collection-view">
       <div class="collection-description">${escapeHtml(
-        plugin.description || ""
+        plugin.description || "",
       )}</div>
       ${
         plugin.tags && plugin.tags.length > 0
@@ -1318,26 +1249,26 @@ function renderLocalPluginModal(
           .map(
             (item) => `
           <div class="collection-item" data-path="${escapeHtml(
-            item.path
+            item.path,
           )}" data-type="${escapeHtml(item.kind)}">
             <span class="collection-item-icon">${getResourceIconSvg(
-              item.kind
+              item.kind,
             )}</span>
             <div class="collection-item-info">
               <div class="collection-item-name">${escapeHtml(
-                item.path.split("/").pop() || item.path
+                item.path.split("/").pop() || item.path,
               )}</div>
               ${
                 item.usage
                   ? `<div class="collection-item-usage">${escapeHtml(
-                      item.usage
+                      item.usage,
                     )}</div>`
                   : ""
               }
             </div>
             <span class="collection-item-type">${escapeHtml(item.kind)}</span>
           </div>
-        `
+        `,
           )
           .join("")}
       </div>
@@ -1352,7 +1283,7 @@ function renderLocalPluginModal(
 
       switch (itemType) {
         case "agent":
-         // path = path.replace(".md", ".agent.md");
+          // path = path.replace(".md", ".agent.md");
           break;
         case "skill":
           path = `${path}/SKILL.md`;

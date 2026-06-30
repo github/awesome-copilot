@@ -28,9 +28,9 @@
     function toggleVisibility() {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
       if (scrollY > 400) {
-        button.classList.add('visible');
+        button!.classList.add('visible');
       } else {
-        button.classList.remove('visible');
+        button!.classList.remove('visible');
       }
     }
 

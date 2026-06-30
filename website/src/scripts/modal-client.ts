@@ -1,21 +1,21 @@
 /**
- * Modal state management.
+ * File-viewer modal — state management only.
  *
- * Manages open/close of the file-viewer modal, including:
- * - Opening on `#file=path` hash
- * - Closing on hash removal
- * - Focus trap, Escape close, focus restoration
- * - Exposes hooks for pages to wire up
+ * This module owns:
+ * - Open / close state with subscriber notifications
+ * - URL hash ↔ modal state sync (#file=path)
+ * - Focus restoration to the triggering element on close
+ * - Escape-key and hash-change listeners (registered by initModalFromHash)
  *
- * Pure state management — the actual rendering is handled by the page
- * component or a dedicated modal renderer (PR3+).
+ * It does NOT own rendering, fetching, search keyboard handling, or debounce.
+ * Those live in modal.ts, search-client.ts, and utils.ts respectively.
  *
- * Safe for server-side execution: all DOM access is guarded.
+ * Safe for server-side execution: all DOM access is guarded by IS_CLIENT.
  */
 
-import { getFileHash, setFileHash, clearFileHash } from './url-state';
+import { getFileHash, setFileHash, clearFileHash } from "./url-state";
 
-const IS_CLIENT = typeof window !== 'undefined';
+const IS_CLIENT = typeof window !== "undefined";
 
 /* ── State ──────────────────────────────────────────────────── */
 
@@ -32,7 +32,7 @@ let state: ModalState = {
   trigger: null,
 };
 
-/** Subscribers notified on state change. */
+/** Subscribers notified on every state change. */
 type Listener = (state: ModalState) => void;
 const listeners: Set<Listener> = new Set();
 
@@ -42,6 +42,7 @@ export function getModalState(): ModalState {
   return { ...state };
 }
 
+/** Subscribe to state changes. Returns an unsubscribe function. */
 export function subscribe(listener: Listener): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
@@ -58,36 +59,22 @@ function notify(): void {
  * Syncs the URL hash and notifies subscribers.
  */
 export function openModal(filePath: string, trigger?: HTMLElement): void {
-  state = {
-    open: true,
-    filePath,
-    trigger: trigger ?? null,
-  };
-
-  if (IS_CLIENT) {
-    setFileHash(filePath);
-  }
-
+  state = { open: true, filePath, trigger: trigger ?? null };
+  if (IS_CLIENT) setFileHash(filePath);
   notify();
 }
 
 /**
- * Close the modal and restore focus to the triggering element.
+ * Close the modal and restore keyboard focus to the triggering element.
  */
 export function closeModal(): void {
   const triggerEl = state.trigger;
-
-  state = {
-    open: false,
-    filePath: null,
-    trigger: null,
-  };
+  state = { open: false, filePath: null, trigger: null };
 
   if (IS_CLIENT) {
     clearFileHash();
-
-    // Restore focus to the element that opened the modal
-    if (triggerEl && typeof triggerEl.focus === 'function') {
+    // Defer focus restoration one frame so the modal has time to hide first.
+    if (triggerEl && typeof triggerEl.focus === "function") {
       requestAnimationFrame(() => triggerEl.focus());
     }
   }
@@ -96,24 +83,25 @@ export function closeModal(): void {
 }
 
 /**
- * Initialize: check for `#file=` on page load and auto-open.
- * Call this once per page that supports file modals.
+ * Initialize modal-from-hash behaviour.
+ *
+ * Reads the current URL hash on load, then watches for hash changes caused by
+ * back/forward navigation. Also registers an Escape-key listener.
+ *
+ * Call once per page. Returns a cleanup function that removes the listeners —
+ * useful in tests or if the page is torn down (e.g. view transitions).
  */
-export function initModalFromHash(): void {
-  if (!IS_CLIENT) return;
+export function initModalFromHash(): () => void {
+  if (!IS_CLIENT) return () => {};
 
   const filePath = getFileHash();
   if (filePath) {
-    state = {
-      open: true,
-      filePath,
-      trigger: null,
-    };
+    state = { open: true, filePath, trigger: null };
     notify();
   }
 
-  // Listen for hash changes (back/forward navigation)
-  window.addEventListener('hashchange', () => {
+  // Sync modal state when the URL hash changes (browser back/forward).
+  const onHashChange = (): void => {
     const hashFile = getFileHash();
     if (hashFile) {
       if (hashFile !== state.filePath) {
@@ -124,67 +112,21 @@ export function initModalFromHash(): void {
       state = { open: false, filePath: null, trigger: null };
       notify();
     }
-  });
+  };
 
-  // Escape key closes the modal
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.open) {
+  // Escape closes the modal while it is open.
+  const onKeydown = (e: KeyboardEvent): void => {
+    if (e.key === "Escape" && state.open) {
       e.preventDefault();
       closeModal();
     }
-  });
-}
+  };
 
-/**
- * Handle keyboard navigation within search results.
- * Returns the new active index after processing the key event.
- *
- * @param e          - The keyboard event
- * @param currentIdx - Current active result index (-1 if none)
- * @param maxIdx     - Maximum valid index (results.length - 1)
- * @param onSelect   - Called when Enter is pressed on a valid result
- * @returns The new index, or -1 if nothing changed
- */
-export function handleSearchKeyboard(
-  e: KeyboardEvent,
-  currentIdx: number,
-  maxIdx: number,
-  onSelect: (index: number) => void,
-): number {
-  if (maxIdx < 0) return -1;
+  window.addEventListener("hashchange", onHashChange);
+  document.addEventListener("keydown", onKeydown);
 
-  switch (e.key) {
-    case 'ArrowDown':
-      e.preventDefault();
-      return Math.min(currentIdx + 1, maxIdx);
-    case 'ArrowUp':
-      e.preventDefault();
-      return Math.max(currentIdx - 1, 0);
-    case 'Enter':
-      if (currentIdx >= 0) {
-        e.preventDefault();
-        onSelect(currentIdx);
-      }
-      return currentIdx;
-    default:
-      return currentIdx;
-  }
-}
-
-/**
- * Debounce helper.  Returns a debounced version of `fn` that
- * delays execution by `delay` ms.
- */
-export function debounce<T extends (...args: any[]) => void>(
-  fn: T,
-  delay: number,
-): (...args: Parameters<T>) => void {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  return (...args: Parameters<T>) => {
-    if (timer !== undefined) clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = undefined;
-      fn(...args);
-    }, delay);
+  return () => {
+    window.removeEventListener("hashchange", onHashChange);
+    document.removeEventListener("keydown", onKeydown);
   };
 }

@@ -16,13 +16,18 @@ export interface Props {
 
 const { item, index = 0 } = Astro.props;
 
-// Compute human-readable accent colour label
+// Accent colour token used for the card border and badge.
 const accentLabel = item.accent ?? 'purple';
-const lastUpdated = item.detail ? item.detail : '';
 ---
+<!--
+  The card is a focusable listitem. Keyboard users can press Space or Enter to open
+  the file-viewer modal (the JS click handler fires on the card element).
+-->
 <div
   class="resource-card"
   role="listitem"
+  tabindex="0"
+  aria-label={`Open ${item.title}`}
   data-result-index={index}
   data-path={item.detail ?? ''}
   data-id={item.id ?? ''}
@@ -41,9 +46,10 @@ const lastUpdated = item.detail ? item.detail : '';
           class="action-btn"
           data-action="install"
           data-path={item.detail ?? ''}
-          title="Install"
+          title="Install in VS Code"
+          aria-label={`Install ${item.title} in VS Code`}
         >
-          <Icon name="download" size={14} />
+          <Icon name="vscode" size={14} />
         </button>
       )}
       {item.actions?.includes('download') && (
@@ -51,7 +57,8 @@ const lastUpdated = item.detail ? item.detail : '';
           class="action-btn"
           data-action="download"
           data-path={item.detail ?? ''}
-          title="Download"
+          title="Download file"
+          aria-label={`Download ${item.title}`}
         >
           <Icon name="download" size={14} />
         </button>
@@ -61,7 +68,8 @@ const lastUpdated = item.detail ? item.detail : '';
           class="action-btn"
           data-action="share"
           data-path={item.detail ?? ''}
-          title="Share link"
+          title="Copy share link"
+          aria-label={`Share ${item.title}`}
         >
           <Icon name="share" size={14} />
         </button>
@@ -73,6 +81,7 @@ const lastUpdated = item.detail ? item.detail : '';
           target="_blank"
           rel="noopener noreferrer"
           title="View on GitHub"
+          aria-label={`View ${item.title} on GitHub (opens in new tab)`}
         >
           <Icon name="github" size={14} />
         </a>
@@ -108,6 +117,24 @@ const lastUpdated = item.detail ? item.detail : '';
   </div>
 </div>
 
+<script>
+  /**
+   * Keyboard activation for resource cards.
+   *
+   * Cards are focusable divs (tabindex="0") wired with JS click handlers by the
+   * catalog page. Native buttons fire on Space/Enter automatically; divs do not,
+   * so we replicate that behaviour here so keyboard users can open the modal.
+   */
+  document.querySelectorAll<HTMLDivElement>('.resource-card[tabindex]').forEach((card) => {
+    card.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault(); // prevent page scroll on Space
+        card.click();
+      }
+    });
+  });
+</script>
+
 <style>
   .resource-card {
     position: relative;
@@ -130,6 +157,13 @@ const lastUpdated = item.detail ? item.detail : '';
   .resource-card:hover {
     box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
     transform: translateY(-1px);
+  }
+
+  /* Keyboard focus matches hover treatment so intent is always visible. */
+  .resource-card:focus-visible {
+    outline: 2px solid var(--card-accent);
+    outline-offset: 2px;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 30%);
   }
 
   /* ── Header ─────────────────────────────── */

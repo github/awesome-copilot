@@ -4,7 +4,6 @@ export interface Props {
 }
 
 const { resourceType } = Astro.props;
-const label = resourceType;
 ---
 
 <dialog
@@ -27,7 +26,7 @@ const label = resourceType;
         </svg>
       </button>
     </div>
-    <p class="install-modal-desc">Choose your VS Code edition to install this {label}.</p>
+    <p class="install-modal-desc">Choose your VS Code edition to install this {resourceType}.</p>
     <div class="install-modal-actions">
       <a
         id="install-modal-vscode"
