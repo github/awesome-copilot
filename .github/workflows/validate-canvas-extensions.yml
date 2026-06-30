@@ -46,18 +46,26 @@ jobs:
           # rejecting anything containing shell metacharacters ($, (, ), spaces, etc.).
           declare -A seen_dirs=()
           changed_extensions=()
+          errors=()
 
           while IFS= read -r -d '' file; do
             case "$file" in
               extensions/*)
                 ext_name="${file#extensions/}"
                 ext_name="${ext_name%%/*}"
+
+                if [ "$ext_name" = "external-assets" ]; then
+                  continue
+                fi
+
                 # Allowlist: extension directory names must be lowercase alphanumeric + hyphens only.
-                # Any name that does not match (e.g. $(id), spaces, slashes) is silently skipped —
-                # it cannot be a valid extension and cannot produce a valid canvas.json.
-                if [[ "$ext_name" =~ ^[a-z0-9][a-z0-9-]*$ ]] && \
-                   [ "$ext_name" != "external-assets" ] && \
-                   [ -z "${seen_dirs[$ext_name]+x}" ]; then
+                # Fail for disallowed names so a PR cannot bypass validation by using a nonconforming folder.
+                if [[ ! "$ext_name" =~ ^[a-z0-9][a-z0-9-]*$ ]]; then
+                  errors+=("\`extensions/$ext_name\`: invalid extension directory name (must match ^[a-z0-9][a-z0-9-]*$).")
+                  continue
+                fi
+
+                if [ -z "${seen_dirs[$ext_name]+x}" ]; then
                   seen_dirs["$ext_name"]=1
                   changed_extensions+=("extensions/$ext_name")
                 fi
@@ -66,13 +74,18 @@ jobs:
           done < <(git diff --name-only -z "origin/${{ github.base_ref }}...HEAD")
 
           if [ "${#changed_extensions[@]}" -eq 0 ]; then
+            if [ "${#errors[@]}" -ne 0 ]; then
+              echo "❌ Canvas extension validation failed:"
+              for error in "${errors[@]}"; do
+                echo "- $error"
+              done
+              exit 1
+            fi
             echo "No canvas extension directories changed — skipping validation."
             exit 0
           fi
 
           echo "Validating ${#changed_extensions[@]} extension(s): ${changed_extensions[*]}"
-
-          errors=()
 
           for ext_dir in "${changed_extensions[@]}"; do
             if [ ! -d "$ext_dir" ]; then
