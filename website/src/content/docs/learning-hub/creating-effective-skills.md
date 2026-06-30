@@ -3,7 +3,7 @@ title: 'Creating Effective Skills'
 description: 'Master the art of writing reusable, shareable skill folders that deliver consistent results across your team.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-08
+lastUpdated: 2026-06-25
 estimatedReadingTime: '9 minutes'
 tags:
   - skills
@@ -135,6 +135,24 @@ The `description` field is critical for agent discovery. Write it so that agents
 ❌ **Poor**: `'Commit helper'`
 
 Include trigger keywords and contextual cues that help agents match the skill to user intent.
+
+### Optional Fields
+
+**argument-hint** *(v1.0.64+)*: A short label that appears in the slash-command input placeholder to guide the user on what argument to provide. For example, a `generate-tests` skill might set:
+
+```yaml
+argument-hint: 'Enter function or file to test'
+```
+
+When the user types `/generate-tests` in VS Code Chat, the hint appears as placeholder text in the input box, making the expected input immediately obvious.
+
+```yaml
+---
+name: generate-tests
+description: 'Generate comprehensive unit tests for the selected code, covering happy path, edge cases, and error conditions'
+argument-hint: 'Enter function, class, or file to test'
+---
+```
 
 ## Real Examples from the Repository
 
@@ -351,6 +369,19 @@ A: Skills can be invoked in several ways:
 - **Slash command**: Type the skill name anywhere in your message (e.g., `/generate-tests fix the failing tests`). Since v1.0.44, slash commands can appear mid-input — you don't have to start with them.
 - **Multiple skills in one message**: You can invoke multiple skills in a single message (e.g., `/generate-tests and then /conventional-commit`). Both skills will be executed in sequence.
 - **Agent discovery**: Agents can also discover and invoke skills automatically based on the skill's `description` and the user's intent — no slash command required.
+
+**Q: How do I manage skills from the CLI?**
+
+A: The `copilot skill` subcommand (v1.0.65+) lets you list, add, and remove skills directly from the terminal without editing config files manually:
+
+```bash
+copilot skill list                      # list all currently loaded skills
+copilot skill add ./my-skill/           # add a skill from a local directory
+copilot skill add https://example.com/skill.zip  # add a skill from a URL
+copilot skill remove my-skill           # remove an installed skill by name
+```
+
+You can also run `/skill` (or the existing `/skills`) inside an interactive session to see what's loaded. The `copilot skill` subcommand is the recommended way to install skills that aren't packaged inside a plugin.
 
 **Q: How are skills different from prompts?**
 

@@ -2,7 +2,7 @@ name: Vally Lint — PR Gate
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - "skills/**"

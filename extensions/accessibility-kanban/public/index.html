@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Accessibility Kanban</title>
+<title>Repository Issues Kanban</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
@@ -56,7 +56,7 @@ header {
 }
 
 header .breadcrumb {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--meta);
   font-weight: 400;
 }
@@ -69,6 +69,7 @@ header .breadcrumb .sep {
 header .breadcrumb .current {
   color: var(--text);
   font-weight: 600;
+  font-size: 13px;
 }
 
 header .spacer { flex: 1; }
@@ -90,6 +91,55 @@ header .reset-btn {
 header .reset-btn:hover {
   border-color: var(--coral);
   color: var(--coral);
+}
+
+header .label-filter-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 50%;
+  overflow-x: auto;
+  padding: 2px 0;
+}
+
+.label-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--meta);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.label-chip:hover {
+  border-color: var(--azure);
+  color: var(--azure);
+}
+
+.label-chip.selected {
+  border-color: var(--azure);
+  color: var(--azure);
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.label-filter-empty {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--meta);
+}
+
+.error-banner {
+  margin: 8px 12px 0;
+  border: 1px solid rgba(255, 127, 80, 0.3);
+  background: rgba(255, 127, 80, 0.08);
+  color: #9a3412;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .board {
@@ -364,11 +414,14 @@ header .reset-btn:hover {
 <div class="board-wrap">
 <header>
   <div class="breadcrumb">
-    SignalBox<span class="sep">/</span><span class="current">Accessibility Sprint</span>
+    <span id="repo-name">Current Repository</span><span class="sep">/</span><span class="current">Issues Kanban</span>
   </div>
   <span class="spacer"></span>
+  <div class="label-filter-container" id="label-filters"></div>
+  <button class="reset-btn" id="clear-filters-btn">Clear Labels</button>
   <button class="reset-btn" id="reset-btn">Reset</button>
 </header>
+<div class="error-banner" id="error-banner" hidden></div>
 <div class="board" id="board"></div>
 </div>
 
@@ -387,18 +440,67 @@ header .reset-btn:hover {
 const COLUMNS = ["backlog", "plan", "ready", "implement", "done"];
 const COL_LABELS = { backlog: "Backlog", plan: "Plan", ready: "Ready", implement: "Implement", done: "Done" };
 
-let state = { issues: [] };
+let state = { repo: "", issues: [], availableLabels: [], selectedLabels: [], error: null };
 let dragState = null;
 
 // ─── Rendering ───
 
+function issueMatchesFilter(issue) {
+  if (!state.selectedLabels || state.selectedLabels.length === 0) return true;
+  const labels = Array.isArray(issue.labels) ? issue.labels : [];
+  return labels.some((label) => state.selectedLabels.includes(label));
+}
+
+function updateHeader() {
+  const repoEl = document.getElementById("repo-name");
+  repoEl.textContent = state.repo || "Current Repository";
+}
+
+function updateErrorBanner() {
+  const banner = document.getElementById("error-banner");
+  const message = state.error;
+  if (message) {
+    banner.hidden = false;
+    banner.textContent = message;
+    return;
+  }
+  banner.hidden = true;
+  banner.textContent = "";
+}
+
+function renderLabelFilters() {
+  const host = document.getElementById("label-filters");
+  host.innerHTML = "";
+
+  const labels = Array.isArray(state.availableLabels) ? state.availableLabels : [];
+  if (labels.length === 0) {
+    host.innerHTML = '<span class="label-filter-empty">No labels</span>';
+    return;
+  }
+
+  labels.forEach((label) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "label-chip";
+    chip.textContent = label;
+    if (state.selectedLabels.includes(label)) chip.classList.add("selected");
+    chip.addEventListener("click", () => toggleLabel(label));
+    host.appendChild(chip);
+  });
+}
+
 function render() {
+  updateHeader();
+  updateErrorBanner();
+  renderLabelFilters();
+
   const board = document.getElementById("board");
   board.innerHTML = "";
 
   COLUMNS.forEach((col) => {
     const issues = state.issues
       .filter((i) => i.column === col)
+      .filter(issueMatchesFilter)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
 
     const colEl = document.createElement("div");
@@ -453,7 +555,7 @@ function render() {
 }
 
 function escHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // ─── Log Modal ───
@@ -582,6 +684,27 @@ async function moveIssue(issueNumber, column) {
   }
 }
 
+async function setSelectedLabels(labels) {
+  try {
+    const resp = await fetch("/api/filters", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ labels }),
+    });
+    state = await resp.json();
+    render();
+  } catch (err) {
+    console.error("Updating filters failed:", err);
+  }
+}
+
+function toggleLabel(label) {
+  const selected = new Set(state.selectedLabels || []);
+  if (selected.has(label)) selected.delete(label);
+  else selected.add(label);
+  setSelectedLabels([...selected]);
+}
+
 // ─── SSE ───
 
 function connectSSE() {
@@ -618,6 +741,10 @@ async function init() {
     } catch (err) {
       console.error("Reset failed:", err);
     }
+  });
+
+  document.getElementById("clear-filters-btn").addEventListener("click", () => {
+    setSelectedLabels([]);
   });
 }
 

@@ -2,7 +2,7 @@ name: Validate Canvas Extensions
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
