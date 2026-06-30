@@ -117,10 +117,7 @@ jobs:
             )
 
             for screenshot_path in "${screenshot_paths[@]}"; do
-              # Allowlist: screenshot paths must follow assets/<name>.<ext> — no .., no shell metacharacters.
-              # This mirrors the schema regex and guards against a crafted canvas.json producing an
-              # unexpected value from node stdout that could bypass the schema check.
-              if [[ ! "$screenshot_path" =~ ^assets/([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.[A-Za-z0-9]+$ ]]; then
+              if [[ ! "$screenshot_path" =~ ^assets/([A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*\.(png|jpe?g|gif|webp|svg)$ ]]; then
                 errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` is not a valid assets path.")
                 continue
               fi
