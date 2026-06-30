@@ -27,19 +27,16 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Validate changed canvas extensions
         run: |
           set -euo pipefail
 
-          # Validate the schema file itself is parseable JSON whenever it is present
-          if [ -f ".schemas/canvas.schema.json" ]; then
-            if ! node -e "JSON.parse(require('fs').readFileSync('.schemas/canvas.schema.json','utf8'))" 2>/dev/null; then
-              echo "❌ .schemas/canvas.schema.json is not valid JSON"
-              exit 1
-            fi
-            echo "✅ .schemas/canvas.schema.json is valid JSON"
+          # Validate schema structure once, even for schema-only PRs.
+          if ! node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json; then
+            echo "❌ .schemas/canvas.schema.json failed schema compilation"
+            exit 1
           fi
 
           # Collect changed extension directories.
@@ -96,7 +93,7 @@ jobs:
               errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
             fi
 
-            if ! schema_output="$(npx ajv-cli validate --spec=draft7 --strict=false -s .schemas/canvas.schema.json -d "$ext_dir/canvas.json" 2>&1)"; then
+            if ! schema_output="$(node ./eng/validate-json-schema.mjs --schema .schemas/canvas.schema.json --data "$ext_dir/canvas.json" 2>&1)"; then
               condensed_output="$(echo "$schema_output" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
               errors+=("\`$ext_dir/canvas.json\`: schema validation failed against \`.schemas/canvas.schema.json\` ($condensed_output).")
               continue

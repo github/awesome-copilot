@@ -38,7 +38,8 @@
   "author": "GitHub",
   "license": "MIT",
   "devDependencies": {
-    "ajv-cli": "^5.0.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "all-contributors-cli": "^6.26.1"
   },
   "dependencies": {
