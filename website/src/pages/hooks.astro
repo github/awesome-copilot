@@ -111,7 +111,8 @@ const tags = [...new Set(rawItems.flatMap((item) => item.tags))].sort();
         const data = await response.json();
         const hooks = [...new Set(data.items.flatMap((item: any) => item.hooks))].sort();
         hookSelect.innerHTML = '<option value="">All Events</option>' +
-          hooks.map((h: string) => `<option value="${h}">${h}</option>`).join('');
+          // Cast to string[] — flatMap on untyped JSON data produces unknown[].
+          (hooks as string[]).map((h) => `<option value="${h}">${h}</option>`).join('');
       } catch (e) {
         console.error('Failed to load hook events:', e);
       }

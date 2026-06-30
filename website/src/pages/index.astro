@@ -61,6 +61,8 @@ const searchEntries: SearchResultEntry[] = adaptSearchIndex(searchIndexData as S
     route: string;
     label: string;
     path: string;
+    // Index signature required by the Searchable constraint in FuzzySearch.
+    [key: string]: unknown;
   }
 
   const items: GlobalSearchItem[] = entries.map((e) => ({

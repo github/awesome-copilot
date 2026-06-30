@@ -88,7 +88,7 @@ const bundledFileCount = rawItems.reduce((total, item) => total + item.files.len
       title: item.title,
       label,
       description: item.description || 'No description',
-      tags: [item.category, item.hasAssets ? 'assets' : 'single file', `${item.files.length} files`].filter(Boolean),
+      tags: ([item.category, item.hasAssets ? 'assets' : 'single file', `${item.files.length} files`].filter(Boolean) as string[]),
       accent: stableAccent(item.id),
       href: `/skill/${encodeURIComponent(item.id)}/`,
       detail: item.skillFile,
