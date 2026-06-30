@@ -3,7 +3,14 @@
   "title": "Canvas Extension Manifest",
   "description": "Schema for extensions/<name>/canvas.json files",
   "type": "object",
-  "required": ["id", "name", "description", "version", "keywords", "screenshots"],
+  "required": [
+    "id",
+    "name",
+    "description",
+    "version",
+    "keywords",
+    "screenshots"
+  ],
   "additionalProperties": false,
   "properties": {
     "id": {
@@ -33,7 +40,9 @@
     "author": {
       "type": "object",
       "description": "Optional author metadata",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -64,7 +73,10 @@
     "screenshots": {
       "type": "object",
       "description": "Screenshot metadata for icon and gallery cards",
-      "required": ["icon", "gallery"],
+      "required": [
+        "icon",
+        "gallery"
+      ],
       "additionalProperties": false,
       "properties": {
         "icon": {
@@ -79,13 +91,16 @@
   "definitions": {
     "screenshot": {
       "type": "object",
-      "required": ["path", "type"],
+      "required": [
+        "path",
+        "type"
+      ],
       "additionalProperties": false,
       "properties": {
         "path": {
           "type": "string",
           "description": "Path relative to the extension root",
-          "pattern": "^assets/[A-Za-z0-9._/-]+\\.(png|jpg|jpeg|gif|webp|svg)$",
+          "pattern": "^assets/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+(?:\\.[A-Za-z0-9_-]+)*\\.(png|jpg|jpeg|gif|webp|svg)$",
           "minLength": 1,
           "maxLength": 200
         },
