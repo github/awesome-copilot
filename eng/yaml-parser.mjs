@@ -1,6 +1,7 @@
 // YAML parser for frontmatter parsing using vfile-matter
 import fs from "fs";
-import yaml from "js-yaml";
+import * as _yaml from "js-yaml";
+const yaml = _yaml.default ?? _yaml;
 import path from "path";
 import { VFile } from "vfile";
 import { matter } from "vfile-matter";
