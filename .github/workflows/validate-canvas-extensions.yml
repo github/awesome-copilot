@@ -6,130 +6,87 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - "extensions/**"
+      - ".schemas/canvas.schema.json"
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
-      - name: Validate changed canvas extensions
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          script: |
-            const fs = require('fs');
-            const path = require('path');
+          node-version: "22"
+          cache: "npm"
 
-            // Collect changed extension directories from the PR diff
-            const { execSync } = require('child_process');
-            const changedFiles = execSync(
-              `git diff --name-only origin/${{ github.base_ref }}...HEAD`
-            ).toString().trim().split('\n').filter(Boolean);
+      - name: Validate changed canvas extensions
+        run: |
+          set -euo pipefail
 
-            const EXTENSIONS_DIR = 'extensions';
-            const EXTERNAL_ASSETS_DIR = 'external-assets';
+          mapfile -t changed_extensions < <(
+            git diff --name-only "origin/${{ github.base_ref }}...HEAD" |
+            awk -F/ '$1 == "extensions" && $2 != "" && $2 != "external-assets" && $2 !~ /\./ { print "extensions/" $2 }' |
+            sort -u
+          )
 
-            const changedExtDirs = new Set();
-            for (const file of changedFiles) {
-              const parts = file.split('/');
-              if (parts[0] === EXTENSIONS_DIR && parts.length >= 2) {
-                const extName = parts[1];
-                // Skip the external-assets directory — it's not a canvas extension
-                // Also skip external.json and other files at extensions root level
-                if (extName !== EXTERNAL_ASSETS_DIR && !extName.includes('.')) {
-                  changedExtDirs.add(path.join(EXTENSIONS_DIR, extName));
-                }
-              }
-            }
+          if [ "${#changed_extensions[@]}" -eq 0 ]; then
+            echo "No canvas extension directories changed — skipping validation."
+            exit 0
+          fi
 
-            if (changedExtDirs.size === 0) {
-              console.log('No canvas extension directories changed — skipping validation.');
-              return;
-            }
+          echo "Validating ${#changed_extensions[@]} extension(s): ${changed_extensions[*]}"
 
-            console.log(`Validating ${changedExtDirs.size} extension(s): ${[...changedExtDirs].join(', ')}`);
+          errors=()
 
-            const errors = [];
+          for ext_dir in "${changed_extensions[@]}"; do
+            if [ ! -d "$ext_dir" ]; then
+              echo "$ext_dir no longer exists (deleted?), skipping."
+              continue
+            fi
 
-            for (const extDir of changedExtDirs) {
-              if (!fs.existsSync(extDir)) {
-                // Directory was deleted — skip
-                console.log(`${extDir} no longer exists (deleted?), skipping.`);
-                continue;
-              }
+            if [ ! -f "$ext_dir/extension.mjs" ]; then
+              errors+=("\`$ext_dir\`: missing required \`extension.mjs\`.")
+            fi
 
-              const extName = path.basename(extDir);
+            if [ ! -f "$ext_dir/canvas.json" ]; then
+              errors+=("\`$ext_dir\`: missing required \`canvas.json\`.")
+              continue
+            fi
 
-              // Rule 1: must contain extension.mjs
-              const mainFile = path.join(extDir, 'extension.mjs');
-              if (!fs.existsSync(mainFile)) {
-                errors.push(
-                  `**\`${extDir}\`**: missing required \`extension.mjs\`. ` +
-                  `Canvas extensions must have their entry point named \`extension.mjs\`.`
-                );
-              }
+            if [ ! -f "$ext_dir/assets/preview.png" ]; then
+              errors+=("\`$ext_dir\`: missing required \`assets/preview.png\`.")
+            fi
 
-              // Rule 2: must contain assets/preview.png
-              const previewFile = path.join(extDir, 'assets', 'preview.png');
-              if (!fs.existsSync(previewFile)) {
-                errors.push(
-                  `**\`${extDir}\`**: missing required \`assets/preview.png\`. ` +
-                  `Canvas extensions must include a screenshot at \`assets/preview.png\` ` +
-                  `so reviewers and users can preview the extension before installing it.`
-                );
-              }
-            }
+            if ! schema_output="$(npx --yes ajv-cli@5 validate --spec=draft7 --strict=false -s .schemas/canvas.schema.json -d "$ext_dir/canvas.json" 2>&1)"; then
+              condensed_output="$(echo "$schema_output" | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
+              errors+=("\`$ext_dir/canvas.json\`: schema validation failed against \`.schemas/canvas.schema.json\` ($condensed_output).")
+              continue
+            fi
 
-            if (errors.length === 0) {
-              console.log('✅ All changed canvas extensions pass validation.');
-              return;
-            }
+            mapfile -t screenshot_paths < <(
+              node -e 'const fs = require("fs"); const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8")); const paths = [manifest?.screenshots?.icon?.path, manifest?.screenshots?.gallery?.path].filter((value) => typeof value === "string" && value.trim().length > 0); for (const value of [...new Set(paths)]) { console.log(value); }' "$ext_dir/canvas.json"
+            )
 
-            const isFork = context.payload.pull_request.head.repo.fork;
-            const body = [
-              '❌ **Canvas extension validation failed**',
-              '',
-              'The following issue(s) were found in changed canvas extension(s):',
-              '',
-              ...errors.map(e => `- ${e}`),
-              '',
-              '---',
-              '',
-              '### Required structure for canvas extensions',
-              '',
-              'Each extension folder under `extensions/` must contain:',
-              '',
-              '| Path | Required | Description |',
-              '|------|----------|-------------|',
-              '| `extension.mjs` | ✅ | Entry point for the canvas extension |',
-              '| `assets/preview.png` | ✅ | Screenshot shown on the website and in the marketplace |',
-              '',
-              'Please add the missing file(s) and push an update to this PR.',
-            ].join('\n');
+            for screenshot_path in "${screenshot_paths[@]}"; do
+              if [ ! -f "$ext_dir/$screenshot_path" ]; then
+                errors+=("\`$ext_dir/canvas.json\`: screenshot path \`$screenshot_path\` does not exist in the extension directory.")
+              fi
+            done
+          done
 
-            if (!isFork) {
-              try {
-                await github.rest.pulls.createReview({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  pull_number: context.issue.number,
-                  event: 'REQUEST_CHANGES',
-                  body
-                });
-              } catch (error) {
-                core.warning(`Could not post PR review: ${error.message}`);
-                core.warning(body);
-              }
-            } else {
-              core.warning('PR is from a fork — skipping createReview to avoid permission errors.');
-              core.warning(body);
-            }
+          if [ "${#errors[@]}" -ne 0 ]; then
+            echo "❌ Canvas extension validation failed:"
+            for error in "${errors[@]}"; do
+              echo "- $error"
+            done
+            exit 1
+          fi
 
-            core.setFailed(`Canvas extension validation failed with ${errors.length} error(s).`);
+          echo "✅ All changed canvas extensions passed validation."

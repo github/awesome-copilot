@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Canvas Extension Manifest",
+  "description": "Schema for extensions/<name>/canvas.json files",
+  "type": "object",
+  "required": ["id", "name", "description", "version", "keywords", "screenshots"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the canvas extension",
+      "pattern": "^[a-z0-9-]+$",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name for the extension",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-friendly description of what the extension does",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of the extension metadata",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "author": {
+      "type": "object",
+      "description": "Optional author metadata",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        }
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Keywords used for search and filtering",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    },
+    "screenshots": {
+      "type": "object",
+      "description": "Screenshot metadata for icon and gallery cards",
+      "required": ["icon", "gallery"],
+      "additionalProperties": false,
+      "properties": {
+        "icon": {
+          "$ref": "#/definitions/screenshot"
+        },
+        "gallery": {
+          "$ref": "#/definitions/screenshot"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "screenshot": {
+      "type": "object",
+      "required": ["path", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path relative to the extension root",
+          "pattern": "^assets/[A-Za-z0-9._/-]+\\.(png|jpg|jpeg|gif|webp|svg)$",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "type": {
+          "type": "string",
+          "description": "MIME type for the referenced image",
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml"
+          ]
+        }
+      }
+    }
+  }
+}
