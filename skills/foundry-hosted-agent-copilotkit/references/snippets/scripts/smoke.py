@@ -115,9 +115,19 @@ def main() -> int:
     events2 = run_turn(t2, "r1", [{"id": "m1", "role": "user", "content": f"Approve {record_id}."}])
     confirm_start = find(events2, type="TOOL_CALL_START", toolCallName="confirm_changes")
     check("C2 confirm_changes tool call appears (HITL pause)", confirm_start is not None)
+    # The hosted agent's Responses stream emits a `function_call` (the model's
+    # intent to call the gated tool) immediately followed by an
+    # `mcp_approval_request` for the SAME call — so a TOOL_CALL_START named
+    # "approve_record" legitimately appears even though it's paused. What must
+    # NOT appear is a TOOL_CALL_RESULT for that same tool_call_id (there is no
+    # `function_call_output` for a gated call until it's approved). Match by
+    # id, not name — ToolCallResultEvent carries no toolCallName field at all,
+    # so checking TOOL_CALL_RESULT + toolCallName here would trivially "pass"
+    # regardless of whether the tool actually ran.
+    approve_start = find(events2, type="TOOL_CALL_START", toolCallName="approve_record")
     check(
-        "C2 the underlying tool has NO TOOL_CALL_RESULT yet (paused, not executed)",
-        find(events2, type="TOOL_CALL_RESULT", toolCallName="approve_record") is None,
+        "C2 approve_record has NO TOOL_CALL_RESULT yet (paused, not executed)",
+        approve_start is None or find(events2, type="TOOL_CALL_RESULT", toolCallId=approve_start["toolCallId"]) is None,
     )
     if not confirm_start:
         print("Cannot continue: no confirm_changes call to approve/reject.")

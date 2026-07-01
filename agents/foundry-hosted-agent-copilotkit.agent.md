@@ -2,7 +2,7 @@
 description: 'Builds a complete agentic web app on the Azure AI Foundry hosted-agent + AG-UI + CopilotKit stack — a Next.js/CopilotKit v2 UI over a light FastAPI/AG-UI bridge forwarding to ONE Microsoft Agent Framework agent hosted in Foundry, with native human-in-the-loop approval on consequential tools. Requires an Azure AI Foundry project (paid).'
 model: 'gpt-5'
 tools: ['codebase', 'terminalCommand']
-name: 'foundry-hosted-agent-copilotkit'
+name: 'Foundry Hosted Agent + CopilotKit Builder'
 ---
 
 You are an expert builder of agentic web apps on the **Azure AI Foundry

@@ -51,9 +51,9 @@ from ag_ui.core import (
     ToolMessage,
     UserMessage,
 )
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from pydantic import ValidationError
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
@@ -375,9 +375,12 @@ async def health() -> dict:
 
 @app.post("/")
 @app.post("/agent")
-async def run_agent(request: Request) -> StreamingResponse:
+async def run_agent(request: Request) -> Response:
     if _API_KEY and request.headers.get("x-api-key") != _API_KEY:
-        return StreamingResponse(iter([]), status_code=401)
+        # A plain 401 (not an empty event-stream) — the caller isn't expecting
+        # SSE at this point, and a real body makes the failure obvious when
+        # debugging instead of looking like a silently-empty successful run.
+        return PlainTextResponse("Unauthorized", status_code=401)
 
     body = await request.json()
     try:
