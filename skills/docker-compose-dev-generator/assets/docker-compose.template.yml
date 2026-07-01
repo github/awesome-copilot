@@ -1,0 +1,62 @@
+version: '3.8'
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  pg_data:
+    driver: local
+
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: dev-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-developer}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_dev_password}
+      POSTGRES_DB: ${DB_NAME:-app_dev_db}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: dev-backend
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - dev-network
+    depends_on:
+      database:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: dev-frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - dev-network
+    depends_on:
+      - backend
