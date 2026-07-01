@@ -15,5 +15,6 @@
     "modernization-cockpit",
     "validation-gates"
   ],
-  "logo": "assets/preview.png"
+  "logo": "assets/preview.png",
+  "extensions": "."
 }
