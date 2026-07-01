@@ -387,6 +387,6 @@ async def run_agent(request: Request) -> Response:
         run_input = RunAgentInput.model_validate(body)
     except ValidationError as exc:
         logger.error("Invalid RunAgentInput: %s", exc)
-        raise
+        return PlainTextResponse("Invalid RunAgentInput", status_code=422)
 
     return StreamingResponse(_sse_stream(run_input), media_type="text/event-stream")
