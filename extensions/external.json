@@ -22,5 +22,31 @@
     "installUrl": "https://github.com/jdubois/coffilot",
     "sourceUrl": "https://github.com/jdubois/coffilot",
     "imagePath": "extensions/external-assets/coffilot-preview.png"
+  },
+  {
+    "id": "vox",
+    "name": "Vox",
+    "description": "Hands-free voice panel for Copilot: talk to the agent out loud and hear it reply, with a reactive listening orb. Voice in, voice out.",
+    "author": { "name": "aasis21", "url": "https://github.com/aasis21" },
+    "keywords": [
+      "voice",
+      "text-to-speech",
+      "speech-to-text",
+      "accessibility",
+      "hands-free"
+    ],
+    "screenshots": {
+      "icon": {
+        "path": "extensions/external-assets/vox-preview.png",
+        "type": "image/png"
+      },
+      "gallery": {
+        "path": "extensions/external-assets/vox-preview.png",
+        "type": "image/png"
+      }
+    },
+    "installUrl": "https://github.com/aasis21/vox",
+    "sourceUrl": "https://github.com/aasis21/vox",
+    "imagePath": "extensions/external-assets/vox-preview.png"
   }
 ]
