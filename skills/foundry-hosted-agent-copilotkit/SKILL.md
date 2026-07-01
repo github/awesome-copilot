@@ -57,16 +57,31 @@ Read all four reference docs before writing any code; they encode the
 load-bearing rules, the framework traps, and the Definition of Done that keep
 this stack correct.
 
-> **This skill is a design + rulebook, not a runnable template.** It ships no
-> `bridge_app.py`, no `route.ts`, no `Makefile` — you write every file from the
-> architecture below. Package APIs on this stack move fast; always confirm the
-> exact class/function names, hook signatures, and route-handler mode against
-> your **currently installed** package versions (`pip show` / `npm ls` /
-> reading `.d.ts` or the package's own bundled docs) before trusting any name
-> in this skill verbatim — treat every concrete symbol here as "true as of
-> when this was written," not as a guarantee.
+> **This skill is a design + rulebook with copy-adapt starter code, not an
+> installable template.** [`references/snippets/`](references/snippets/README.md)
+> has a verified-working
+> minimum (real hosted agent, real bridge, real CopilotKit UI, a real
+> Playwright browser E2E — all passed) for a generic example domain; copy it
+> in and rename the domain-specific parts (see
+> [`references/snippets/README.md`](references/snippets/README.md)) instead of writing the bridge/agent/HITL
+> plumbing from scratch. Package APIs on this stack move fast; always confirm
+> the exact class/function names, hook signatures, and route-handler mode
+> against your **currently installed** package versions (`pip show` / `npm ls`
+> / reading `.d.ts` or the package's own bundled docs) before trusting any
+> name in this skill or the snippets verbatim — treat every concrete symbol
+> here as "true as of when this was written," not as a guarantee.
 
 ## 1. Scaffold (always start here)
+
+**Copy `references/snippets/` into your new project first** (see
+`references/snippets/README.md` for the file → destination mapping), then
+rename the example "records"/`REC-...` domain to your actual domain in
+`src/agent.py`, `backend/hosted_proxy.py`, and the frontend components. This
+gets you a working read tool + gated tool + bridge + HITL UI + structural
+check + smoke test + browser E2E in one step, instead of deriving the AG-UI
+event translation, the CopilotKit hook names, and the HITL wiring from
+scratch — that derivation is the single biggest source of wasted time on this
+stack.
 
 **Bootstrap `hosted/` (the Foundry hosted-agent project) with the `azd` Foundry
 extension's own scaffolder — do not hand-write it:**
@@ -78,15 +93,16 @@ azd ai agent init -m <manifest-url>       # e.g. an agent-framework/responses/*/
 
 This generates the real, currently-correct `hosted/` tree for your installed
 extension version: `main.py`/`responses/main.py`, `agent.yaml`, `azure.yaml`,
-`requirements.txt`, `Dockerfile`, and a full `infra/` (Bicep). Read the
-generated `main.py` to see the CURRENT correct import paths and server class
-name — `ResponsesHostServer` may live in a package named
-`agent-framework-foundry-hosting` (separate from `agent-framework-foundry`),
-and `FoundryChatClient` may be importable from either `agent_framework.foundry`
-or `agent_framework_foundry` depending on version. Do not guess; read the
+`requirements.txt`, `Dockerfile`, and a full `infra/` (Bicep). Compare it
+against `references/snippets/hosted/responses/main.py` — read the generated
+`main.py` to see the CURRENT correct import paths and server class name
+(`ResponsesHostServer` may live in a package named
+`agent-framework-foundry-hosting`, separate from `agent-framework-foundry`;
+`FoundryChatClient` may be importable from either `agent_framework.foundry`
+or `agent_framework_foundry` depending on version). Do not guess; read the
 generated scaffold and `pip show` the installed packages.
 
-Then create the rest of the app around it (lowercase-hyphen app name), per the
+Then place the rest of the app around it (lowercase-hyphen app name), per the
 architecture in `references/architecture.md`:
 
 ```
@@ -139,14 +155,14 @@ version's own bundled docs/types):
 
 ## 3. Prove it
 
-Write your own `verify.sh` (structural: bridge forwards HITL, `FoundryChatClient`
-used, HITL contract consistent, agent name consistent, MCR base images) and
-`smoke.py`/similar (the bridge against the REAL agent running locally via
+Copy and adapt `references/snippets/scripts/{verify.sh,smoke.py,browser_e2e.js}`
+(structural check; the bridge against the REAL agent running locally via
 `azd ai agent run` — read works, action PAUSES, approve executes, reject
-doesn't). Needs `az login` + a provisioned Foundry project. Both must pass
-before you consider the app done, followed by a **live browser E2E** (e.g.
-Playwright) against the real local stack, and — once you deploy — the same
-proof against the deployed hosted agent, since all logic is server-side.
+doesn't; a real Playwright browser E2E of the same). Needs `az login` + a
+provisioned Foundry project, and `npm install playwright && npx playwright
+install chromium` for the browser test. Both scripts must pass before you
+consider the app done, and — once you deploy — the same proof against the
+deployed hosted agent, since all logic is server-side.
 
 ## Load-bearing rules (why the architecture is shaped this way)
 
@@ -169,7 +185,9 @@ proof against the deployed hosted agent, since all logic is server-side.
      (`_is_confirm_changes_response`, `_resolve_approval_responses`,
      `_collect_approval_responses`, `_try_execute_function_calls`) before
      committing to this path.
-  2. **Hand-rolled (verified working end-to-end on a real local hosted agent):**
+  2. **Hand-rolled (verified working end-to-end on a real local hosted agent
+     — a ready-to-copy implementation is in
+     `references/snippets/backend/{bridge_app.py,hosted_proxy.py,hosted_client.py}`):**
      write a small FastAPI endpoint that speaks the AG-UI wire protocol
      directly, using the `ag-ui-protocol` Python package's own
      `ag_ui.core` event/model classes (`RunAgentInput`, `RunStartedEvent`,
@@ -231,6 +249,8 @@ proxy — treat it as extra work, not a given.
   subpath with hooks `useAgent`, `useAgentContext`, `useFrontendTool`,
   `useRenderTool`, `useHumanInTheLoop`, and a **provider component named
   `CopilotKit`** (not `CopilotKitProvider`, which is an internal subset).
+  `references/snippets/frontend/package.json.snippet` has the last-known-good
+  pinned versions — start there instead of `npm install`ing latest blind.
 - **Bridge route:** catch-all `app/api/copilotkit/[[...slug]]/route.ts`. Import
   the runtime handler from `@copilotkit/runtime/v2` and check whether the
   client you're pairing it with defaults to single-route (one JSON-envelope
