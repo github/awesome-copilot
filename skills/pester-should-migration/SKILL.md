@@ -9,11 +9,8 @@ argument-hint: "File, folder, or test suite to migrate"
 Convert classic Pester v5 assertions (`Should -Be`, space then parameter) to the
 new Pester v6 `Should-*` assertions (`Should-Be`, hyphen, no space).
 
-> **Status: experimental / preview.** This skill is new and tracks **Pester 6, which is still
-> a release candidate** (`6.0.0-rc2` as of mid-2026) — the `Should-*` assertions may still shift
-> before the final release; check the [release notes](https://github.com/pester/Pester/releases).
-> It was authored and verified against **Pester 6.0.0-rc2**. Both assertion styles work side by
-> side, so migrate incrementally, review the diff, and keep your suite green.
+> **Status: experimental / preview.** Verified against Pester 6.0.0-rc2. The classic
+> `Should -Be` style still works in v6, so migrate incrementally and keep the suite green.
 
 > **Companion skill.** This skill covers the *optional* move to the new `Should-*` operators.
 > To upgrade a suite across major Pester versions (v3→v4→v5→v6 — the runtime, mocks, and config),
