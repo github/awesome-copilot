@@ -54,7 +54,10 @@ jobs:
                 ext_name="${file#extensions/}"
                 ext_name="${ext_name%%/*}"
 
-                if [ "$ext_name" = "external-assets" ]; then
+                # Skip the shared external-assets/ directory and any catalog files that
+                # live directly under extensions/ (e.g. external.json) — these are not
+                # extension directories. Top-level files are identified by a dot in the name.
+                if [ "$ext_name" = "external-assets" ] || [[ "$ext_name" == *.* ]]; then
                   continue
                 fi
 
