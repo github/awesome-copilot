@@ -11,6 +11,9 @@ what you actually have installed before trusting it.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | `python3 -m venv` fails (`ensurepip is not available`) or `pip`/`apt-get install python3-venv` needs sudo you don't have | sandboxed/managed dev environment without system Python tooling | check for `uv` (`which uv`) and use `uv venv` / `uv pip install` instead — it doesn't need `ensurepip` or root. |
+| `smoke.py`/`browser_e2e.js` fail (or pass for the wrong reason) when run back-to-back, or after an interrupted earlier attempt | the hosted agent's example in-memory store (`_RECORDS`/whatever dict you're using) is **process-lifetime** state — every approve/reject call, from any script, mutates the SAME shared data | restart the hosted agent process (`azd ai agent run` / `python main.py`) between independent verification passes to get back to the seeded starting state. Don't assume a fresh run starts clean if a previous script (or an interrupted tool call) already approved/rejected the same record ids. |
+| A new `azd ai agent run` fails with `Address already in use` (often with a confusing hypercorn traceback) | a previous local hosted-agent process from an earlier/interrupted session is still holding the port | find and stop the old process (`ss -ltnp \| grep 8088` or similar) before starting a new one. |
+| The very first request to a freshly-started local hosted agent 404s with `DeploymentNotFound`, even though the deployment demonstrably exists (`az cognitiveservices account deployment list` shows it) | occasional local-dev warm-up flake in the hosted runtime/SDK, not a real config problem | retry once, or restart the hosted agent process with the same env vars — this has been observed to resolve itself immediately on retry. |
 
 ## HITL / approval
 
@@ -21,6 +24,7 @@ what you actually have installed before trusting it.
 | Clicking Approve does nothing / tool never runs | assumed a specific resolve payload shape is framework-enforced | it isn't (see the CopilotKit bridge section below) — make sure your bridge's parser actually matches what the frontend's `respond(...)` sends. |
 | Approve works once, next message 400s with an orphaned tool-call id | stale/replayed approval payload re-sent to the hosted agent | don't replay raw history to the hosted agent; derive the next turn's input from the latest user text or the pending `mcp_approval_response`, chained via `previous_response_id`. |
 | Consequential tool runs WITHOUT asking | Tool missing `approval_mode="always_require"` | Decorate the consequential tool; check for at least one in your structural check. |
+| Approval card renders but shows the wrong/missing id or field when you renamed your gated tool's parameter (e.g. `record_id` → your own name) | the frontend's `ApprovalHitl.tsx` parses `function_arguments` and casts to a specific field name (`{ record_id?: string }` in the snippet) — this must match whatever parameter name your actual Python tool takes, since the bridge itself just forwards the model's raw arguments JSON verbatim | when you rename a gated tool's parameter, update the corresponding field name in the frontend's parsed-args cast to match — this is a presentation-only detail, not a bridge change. |
 
 ## AG-UI rendering (bridge-level)
 

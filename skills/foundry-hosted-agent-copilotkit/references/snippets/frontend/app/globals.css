@@ -1,0 +1,75 @@
+/* Minimal, framework-agnostic CSS for the .hitl-card / .tool-card class
+   names used by ApprovalHitl.tsx and ToolCards.tsx. No Tailwind or other
+   build-time CSS dependency required — plain CSS only. Import this from
+   your root layout (e.g. `import "./globals.css"` in app/layout.tsx). */
+
+body {
+  background: #ffffff;
+  color: #171717;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+}
+
+.hitl-card {
+  border: 2px solid #d97706;
+  background: #fffbeb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 8px 0;
+}
+
+.hitl-card--done {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.hitl-card__title {
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.hitl-card__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hitl-card__actions button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #999;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.hitl-card__actions button[data-testid="hitl-approve-button"] {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+
+.hitl-card__actions button[data-testid="hitl-reject-button"] {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.tool-card {
+  border: 1px solid #ccc;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 8px 0;
+}
+
+.tool-card__title {
+  font-weight: 600;
+  color: #334155;
+}
+
+.tool-card__result {
+  white-space: pre-wrap;
+  font-size: 13px;
+  margin-top: 6px;
+}

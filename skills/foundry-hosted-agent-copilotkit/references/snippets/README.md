@@ -32,6 +32,9 @@ adaptation — just don't start there.
 | [`backend/bridge_app.py`](backend/bridge_app.py) | `backend/bridge_app.py` | The ENTIRE bridge in one file: FastAPI AG-UI endpoint, the streaming Responses HTTP client (DIRECT local / platform deployed), the Responses→AG-UI translation, HITL forwarding, and an SSE keep-alive. |
 | [`backend/requirements.txt`](backend/requirements.txt) | `backend/requirements.txt` | Bridge-only deps (no agent-framework/foundry packages — the bridge runs no model). |
 | [CopilotKit catch-all route (`route.ts`)](frontend/app/api/copilotkit/[[...slug]]/route.ts) | `frontend/app/api/copilotkit/[[...slug]]/route.ts` | CopilotKit runtime handler pointed at the bridge. |
+| [`frontend/app/layout.tsx`](frontend/app/layout.tsx) | `frontend/app/layout.tsx` | Root layout: imports `globals.css`, wraps children in `Providers`. |
+| [`frontend/app/page.tsx`](frontend/app/page.tsx) | `frontend/app/page.tsx` | **The actual chat widget** (`CopilotChat`) — the one piece of UI every consumer needs; easy to miss since `providers.tsx` only wraps it. |
+| [`frontend/app/globals.css`](frontend/app/globals.css) | `frontend/app/globals.css` | Plain CSS for the `.hitl-card`/`.tool-card` class names `ApprovalHitl.tsx`/`ToolCards.tsx` use — without this they're functionally correct but visually unstyled. |
 | [`frontend/app/providers.tsx`](frontend/app/providers.tsx) | `frontend/app/providers.tsx` | `<CopilotKit>` provider + HITL/tool-card component registration. |
 | [`frontend/components/ApprovalHitl.tsx`](frontend/components/ApprovalHitl.tsx) | `frontend/components/` | `useHumanInTheLoop` example for the gated tool. |
 | [`frontend/components/ToolCards.tsx`](frontend/components/ToolCards.tsx) | `frontend/components/` | `useRenderTool` examples for both tools. |
