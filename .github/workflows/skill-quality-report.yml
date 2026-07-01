@@ -19,71 +19,37 @@ jobs:
         with:
           fetch-depth: 0 # full history for git-log author fallback
 
-      # ── Download & cache skill-validator ──────────────────────────
-      - name: Get cache key date
-        id: cache-date
-        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-
-      - name: Restore skill-validator from cache
-        id: cache-sv
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      - name: Setup Node.js
+        uses: actions/setup-node@3235b876344febd2b5f2414c5edc3a01b7f10a06 # v4.2.0
         with:
-          path: .skill-validator
-          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
-          restore-keys: |
-            skill-validator-linux-x64-
-
-      - name: Download skill-validator
-        if: steps.cache-sv.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p .skill-validator
-          curl -fsSL \
-            "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
-            -o .skill-validator/skill-validator-linux-x64.tar.gz
-          tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
-          rm .skill-validator/skill-validator-linux-x64.tar.gz
-          chmod +x .skill-validator/skill-validator
-
-      - name: Save skill-validator to cache
-        if: steps.cache-sv.outputs.cache-hit != 'true'
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: .skill-validator
-          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          node-version: 20
 
       # ── Run full scan ─────────────────────────────────────────────
-      - name: Run skill-validator check on all skills
+      - name: Run vally lint on all skills
         id: check-skills
         run: |
           set +e
           set -o pipefail
-          .skill-validator/skill-validator check \
-            --skills ./skills \
-            --verbose \
-            2>&1 | tee sv-skills-output.txt
+          npx --yes @microsoft/vally-cli lint ./skills --verbose 2>&1 | tee vally-skills-output.txt
           echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           set +o pipefail
           set -e
 
-      - name: Run skill-validator check on all agents
+      - name: Note agent scan status
         id: check-agents
         run: |
-          set +e
-          set -o pipefail
           AGENT_FILES=$(find agents -name '*.agent.md' -type f 2>/dev/null | tr '\n' ' ')
           if [ -n "$AGENT_FILES" ]; then
-            .skill-validator/skill-validator check \
-              --agents $AGENT_FILES \
-              --verbose \
-              2>&1 | tee sv-agents-output.txt
-            echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+            {
+              echo "ℹ️ Vally currently lints SKILL.md content."
+              echo "ℹ️ Agent files are detected but excluded from this scan:"
+              echo "$AGENT_FILES"
+            } > vally-agents-output.txt
           else
             echo "No agent files found."
-            echo "" > sv-agents-output.txt
+            echo "" > vally-agents-output.txt
             echo "exit_code=0" >> "$GITHUB_OUTPUT"
           fi
-          set +o pipefail
-          set -e
 
       # ── Build report with author attribution ──────────────────────
       - name: Build quality report
@@ -147,18 +113,18 @@ jobs:
               }
             }
 
-            // ── Parse skill-validator output ──────────────────────
+            // ── Parse vally lint output ───────────────────────────
             // The output is a text report; we preserve it as-is and
             // augment it with author info in the summary.
-            const skillsOutput = fs.readFileSync('sv-skills-output.txt', 'utf8').trim();
-            const agentsOutput = fs.existsSync('sv-agents-output.txt')
-              ? fs.readFileSync('sv-agents-output.txt', 'utf8').trim()
+            const skillsOutput = fs.readFileSync('vally-skills-output.txt', 'utf8').trim();
+            const agentsOutput = fs.existsSync('vally-agents-output.txt')
+              ? fs.readFileSync('vally-agents-output.txt', 'utf8').trim()
               : '';
 
             const codeowners = parseCodeowners();
 
             // Count findings
-            // The skill-validator uses emoji markers: ❌ for errors, ⚠ for warnings, ℹ for advisories
+            // Vally lint uses emoji markers: ❌ for errors, ⚠ for warnings, ℹ for advisories
             const combined = skillsOutput + '\n' + agentsOutput;
             const errorCount = (combined.match(/❌/g) || []).length;
             const warningCount = (combined.match(/⚠/g) || []).length;
@@ -179,7 +145,7 @@ jobs:
             } catch {}
 
             // ── Build author-attributed summary ───────────────────
-            // Extract per-resource blocks from output.  The validator
+            // Extract per-resource blocks from output.  The linter
             // prints skill names as headers — we annotate them with
             // the resolved owner.
             function annotateWithAuthors(output, kind) {
@@ -238,10 +204,10 @@ jobs:
               `| ℹ️ Advisories | ${advisoryCount} |`, '',
               '---',
             ];
-            const footer = `\n---\n\n_Generated by the [Skill Validator nightly scan](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/skill-quality-report.yml)._`;
+            const footer = `\n---\n\n_Generated by the [Vally lint nightly scan](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/skill-quality-report.yml)._`;
 
-            const skillsBlock = makeDetailsBlock('Skills', 'Full skill-validator output for skills', annotatedSkills);
-            const agentsBlock = makeDetailsBlock('Agents', 'Full skill-validator output for agents', annotatedAgents);
+            const skillsBlock = makeDetailsBlock('Skills', 'Full vally lint output for skills', annotatedSkills);
+            const agentsBlock = makeDetailsBlock('Agents', 'Agent scan notes', annotatedAgents);
 
             // Try full inline body first
             const fullBody = summaryLines.join('\n') + '\n\n' + skillsBlock + '\n\n' + agentsBlock + footer;
