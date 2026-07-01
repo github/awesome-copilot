@@ -16,14 +16,6 @@ jobs:
           script: |
             const labels = {
               // Intent labels for PR categorization
-              'targets-main': {
-                color: 'B60205',
-                description: 'PR targets main instead of staged'
-              },
-              'branched-main': {
-                color: 'D93F0B',
-                description: 'PR appears to include plugin files materialized from main'
-              },
               'skills': {
                 color: '1D76DB',
                 description: 'PR touches skills'

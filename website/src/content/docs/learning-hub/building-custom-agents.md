@@ -3,7 +3,7 @@ title: 'Building Custom Agents'
 description: 'Learn how to create specialized GitHub Copilot agents with custom personas, tool integrations, and domain expertise.'
 authors:
   - GitHub Copilot Learning Hub Team
-lastUpdated: 2026-05-05
+lastUpdated: 2026-06-26
 estimatedReadingTime: '10 minutes'
 tags:
   - agents
@@ -72,6 +72,18 @@ tools: ['codebase', 'terminal', 'github']
 **description** (required): A clear summary of what the agent does. This is shown in the agent picker and helps users find the right agent.
 
 **model** (recommended): The AI model that powers the agent. Choose based on the complexity of the task—use more capable models for nuanced reasoning.
+
+**reasoningEffort** *(v1.0.66+)*: Override the reasoning effort level for this agent. Accepted values are `low`, `medium`, and `high`. This lets you pin specific agents to a cost/quality tradeoff regardless of the user's global setting — for example, a quick code-formatting agent can use `low` effort, while a security reviewer uses `high`:
+
+```yaml
+---
+name: 'Security Reviewer'
+description: 'Thorough security audit for OWASP vulnerabilities'
+model: Claude Sonnet 4
+reasoningEffort: high
+tools: ['codebase', 'terminal', 'github']
+---
+```
 
 **tools** (recommended): An array of built-in tools and MCP servers the agent can access. Common tools include:
 
@@ -185,6 +197,8 @@ You are a release manager who automates the release process.
 ### The Quality Gate
 
 Create agents that enforce standards:
+
+> **Built-in `/security-review`**: Before creating a custom security-reviewer agent, note that GitHub Copilot CLI includes a built-in `/security-review` command (available to all users since v1.0.64). It performs a security-focused analysis of staged changes or specified files. Custom security-reviewer agents are still valuable for domain-specific rules, team conventions, and deep integration with MCP tools like Sentry or SAST platforms.
 
 ```markdown
 ---

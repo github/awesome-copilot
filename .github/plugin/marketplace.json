@@ -17,6 +17,33 @@
       "version": "1.0.0"
     },
     {
+      "name": "agent-council",
+      "description": "A runtime-portable 5-agent quality gate that adjudicates text artifacts before they ship. Five role-conditioned LLM deliberators run a 2-round async protocol with cross-read rebuttal and return one verdict — SHIP, REVISE, or HOLD — plus a structured revision brief and a full audit transcript.",
+      "version": "0.1.3",
+      "author": {
+        "name": "Parth Sangani",
+        "url": "https://github.com/Avyayalaya"
+      },
+      "repository": "https://github.com/Avyayalaya/agent-council",
+      "license": "MIT",
+      "keywords": [
+        "quality-gate",
+        "multi-agent",
+        "adjudication",
+        "council",
+        "llm-as-judge",
+        "agent-orchestration",
+        "review",
+        "claude-code",
+        "mcp"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "Avyayalaya/agent-council",
+        "ref": "v0.1.3"
+      }
+    },
+    {
       "name": "ai-ready",
       "description": "Analyze any repository and generate AI-ready configuration — AGENTS.md, copilot-instructions.md, CI workflows, issue templates, and more. Mines your PR review patterns and creates files customized to your stack.",
       "version": "1.0.0",
@@ -201,6 +228,30 @@
       "source": "database-data-management",
       "description": "Database administration, SQL optimization, and data management tools for PostgreSQL, SQL Server, and general database development best practices.",
       "version": "1.0.0"
+    },
+    {
+      "name": "datadog",
+      "description": "Use Datadog directly in Copilot / VS Code through a preconfigured Datadog MCP server. Query logs, metrics, traces, dashboards, and more through natural conversation.",
+      "version": "0.7.15",
+      "author": {
+        "name": "Datadog",
+        "url": "https://www.datadoghq.com/"
+      },
+      "repository": "https://github.com/datadog-labs/vscode-plugin",
+      "license": "Apache-2.0",
+      "keywords": [
+        "agent",
+        "copilot",
+        "datadog",
+        "monitoring",
+        "observability",
+        "vscode"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "datadog-labs/vscode-plugin",
+        "sha": "b003fcad48c3a935ffe04b6218f5cf58fe2b6760"
+      }
     },
     {
       "name": "dataverse",
@@ -417,6 +468,32 @@
       "source": "gem-team",
       "description": "Self-Learning Multi-agent orchestration framework for spec-driven development and automated verification.",
       "version": "1.66.0"
+    },
+    {
+      "name": "gh-skills-builder",
+      "description": "Repo: https://github.com/arilivigni/gh-skills-builder\nThis plugin is for people that want to create a GitHub Skills exercise which are self-paced learning GitHub within GitHub.\nhttps://learn.github.com/skills\nexamples:\nhttps://github.com/skills/agent-orchestration-build-your-ai-dream-team\nhttps://github.com/skills/agentic-workflows-that-read-the-room",
+      "version": "1.0.1",
+      "author": {
+        "name": "Ari LiVigni",
+        "url": "https://github.com/arilivigni"
+      },
+      "repository": "https://github.com/arilivigni/gh-skills-builder",
+      "license": "MIT",
+      "keywords": [
+        "github-learn",
+        "github-skills",
+        "github-skills-exercises",
+        "education",
+        "exercise-creation",
+        "agent-skills",
+        "custom-agents"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "arilivigni/gh-skills-builder",
+        "ref": "v1.0.1",
+        "sha": "198dadd8c1a8a9fd2820e121b4baad80b0729e75"
+      }
     },
     {
       "name": "git-ape",
@@ -923,6 +1000,32 @@
         "repo": "UI5/plugins-coding-agents",
         "path": "plugins/ui5",
         "sha": "80f2d93287054f9d30dd990e842e15bcfca581c9"
+      }
+    },
+    {
+      "name": "ui5-modernization",
+      "description": "Complete UI5 modernization toolkit with workflow and specialized fix patterns for modernizing SAPUI5/OpenUI5 applications",
+      "version": "0.1.6",
+      "author": {
+        "name": "SAP SE",
+        "url": "https://www.sap.com"
+      },
+      "repository": "https://github.com/UI5/plugins-coding-agents",
+      "homepage": "https://github.com/UI5/plugins-coding-agents",
+      "license": "Apache-2.0",
+      "keywords": [
+        "ui5",
+        "sapui5",
+        "openui5",
+        "modernization",
+        "linter",
+        "upgrade"
+      ],
+      "source": {
+        "source": "github",
+        "repo": "UI5/plugins-coding-agents",
+        "path": "plugins/ui5-modernization",
+        "ref": "v0.1.6"
       }
     },
     {

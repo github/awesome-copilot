@@ -102,6 +102,25 @@ function normalizeText(value, fallback = "") {
 }
 
 /**
+ * Normalize an author value (npm string form or { name, url } object) to
+ * { name, url? } | null. Returns null when no usable name is present.
+ */
+function normalizeAuthor(value) {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const name = value.trim();
+    return name ? { name } : null;
+  }
+  if (typeof value === "object") {
+    const name = normalizeText(value.name);
+    if (!name) return null;
+    const url = normalizeText(value.url);
+    return url ? { name, url } : { name };
+  }
+  return null;
+}
+
+/**
  * Find the latest git-modified date for any file under a directory.
  */
 function getDirectoryLastUpdated(gitDates, relativeDirPath) {
@@ -1002,6 +1021,10 @@ function generateCanvasManifest(gitDates, commitSha) {
     const packageJson = fs.existsSync(packageJsonPath)
       ? JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"))
       : {};
+    const canvasJsonPath = path.join(extensionDir, "canvas.json");
+    const canvasJson = fs.existsSync(canvasJsonPath)
+      ? JSON.parse(fs.readFileSync(canvasJsonPath, "utf-8"))
+      : {};
     const keywords = Array.isArray(packageJson.keywords)
       ? [...new Set(packageJson.keywords.filter((keyword) => typeof keyword === "string").map((keyword) => keyword.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b))
       : [];
@@ -1018,7 +1041,7 @@ function generateCanvasManifest(gitDates, commitSha) {
     const canvasEntries = canvases.length > 0
       ? canvases
       : [{ id: dir.name, displayName: formatDisplayName(dir.name), description: extensionDescription }];
-    const installUrl = `https://github.com/github/awesome-copilot/tree/${commitSha}/${relPath.replace(
+    const installUrl = `https://github.com/github/awesome-copilot/tree/main/${relPath.replace(
       /\\/g,
       "/"
     )}`;
@@ -1044,6 +1067,7 @@ function generateCanvasManifest(gitDates, commitSha) {
         installUrl,
         sourceUrl: null,
         external: false,
+        author: normalizeAuthor(canvasJson.author),
         keywords,
       });
     }
@@ -1116,6 +1140,7 @@ function generateCanvasManifest(gitDates, commitSha) {
             installUrl,
             sourceUrl: sourceUrl || null,
             external: true,
+            author: normalizeAuthor(ext?.author),
             keywords,
           });
         }
@@ -1199,6 +1224,7 @@ function writePerExtensionCanvasManifests(canvasManifestData) {
       name: item.name,
       description: item.description || "Canvas extension",
       version: item.version || "1.0.0",
+      ...(item.author ? { author: item.author } : {}),
       keywords: Array.isArray(item.keywords)
         ? [...new Set(item.keywords)].sort((a, b) => a.localeCompare(b))
         : [],
