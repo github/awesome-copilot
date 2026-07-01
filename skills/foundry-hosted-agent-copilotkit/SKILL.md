@@ -3,7 +3,7 @@ name: foundry-hosted-agent-copilotkit
 description: "Build a complete agentic web app on the Azure AI Foundry hosted-agent + AG-UI + CopilotKit stack: a Next.js/CopilotKit v2 chat UI over a light FastAPI/AG-UI bridge that forwards every turn to ONE Microsoft Agent Framework agent hosted in Azure AI Foundry, with native human-in-the-loop approval on consequential tools. Requires an Azure AI Foundry project (paid). Triggers: agentic app, CopilotKit app, AG-UI bridge, Foundry hosted agent, Microsoft Agent Framework, human-in-the-loop/HITL approval, approval_mode always_require, confirm_changes. Also for fixing the known traps: HITL approve-resume 400 'No tool output found', confirm_changes mis-wired, AG-UI snapshot cards vanishing, CopilotKit catch-all route 404/422, useSingleEndpoint, keyless Foundry 401 audience, Docker Hub rate-limit on ACR build."
 ---
 
-# Forgewright — Foundry hosted agent + AG-UI + CopilotKit apps
+# Foundry hosted agent + AG-UI + CopilotKit apps
 
 Build an agentic web app on the **hosted-agent-first** standard: ALL intelligence
 (`FoundryChatClient` + tools + HITL + history) runs in an **Azure AI Foundry HOSTED
@@ -49,23 +49,31 @@ passes for the patterns in scope. Never declare success on an unverified build.
 - `LOAD references/hosted-deploy.md` — Foundry hosted-agent deploy gotchas (azd,
   remote build, dependency pinning).
 
-The canonical, runnable template + scaffolding scripts live in the companion repo
-**[lordlinus/forgewright](https://github.com/lordlinus/forgewright)** under
-`templates/agentic-copilot-foundry/`, with vendored AG-UI dojo source under
-`reference/dojo/`. Read both before changing anything; do not reinvent the bridge,
-the patches, or the state machinery.
+Read all four reference docs before writing any code; they encode the
+load-bearing rules, the framework traps, and the Definition of Done that keep
+this stack correct — do not reinvent the bridge, the patches, or the state
+machinery from scratch each time.
 
 ## 1. Scaffold (always start here)
 
-Instantiate the canonical template into a new, runnable app (lowercase-hyphen name)
-and rewrite the agent-name tokens (`AGENT_NAME`, the CopilotKit agent, the route, the
-hosted yaml) so they stay consistent:
+Create the project with this layout (lowercase-hyphen app name), then wire it
+per the architecture in `references/architecture.md`:
 
-```bash
-scripts/new-app.sh <app-name> [target-dir]    # from the forgewright repo
+```
+<app-name>/
+  frontend/            # Next.js + CopilotKit v2
+    app/api/copilotkit/[[...slug]]/route.ts   # catch-all bridge route
+    components/                                # useAgent / useFrontendTool /
+                                                # useRenderTool / useHumanInTheLoop
+  backend/
+    bridge_app.py       # HostedProxyAgent — forwards turns + mcp_approval_response
+    src/agent.py         # build_hosted_agent() -> FoundryChatClient (Responses)
+  azure.yaml / infra/    # azd config to provision + publish the hosted agent
 ```
 
-The result already runs and already passes the bridge end-to-end smoke check.
+Keep the agent-name token (`AGENT_NAME`, the CopilotKit agent id, the route, the
+hosted yaml) consistent across every file. The result must run end-to-end and
+pass the checks in step 3 before you customize anything.
 
 ## 2. Customize to the user's prompt — extension points
 

@@ -2,8 +2,8 @@
 
 These are the AG-UI dojo "Microsoft Agent Framework Python" feature patterns,
 adapted to our standard (intelligence in the Foundry HOSTED agent; a light bridge;
-CopilotKit **v2** UI hooks). Canonical source is vendored under `reference/dojo/`:
-backend agents from `microsoft/agent-framework`
+CopilotKit **v2** UI hooks). Canonical source: backend agents from
+`microsoft/agent-framework`
 (`python/packages/ag-ui/agent_framework_ag_ui_examples/agents/*`) and the v2
 frontend pages from `ag-ui-protocol/ag-ui`
 (`apps/dojo/src/app/[integrationId]/feature/(v2)/*`).
