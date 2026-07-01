@@ -235,8 +235,8 @@
   },
   {
     "name": "dotnet-test",
-    "description": "Skills for running, writing, diagnosing, and migrating .NET tests: test execution, filtering, platform detection, coverage analysis, and MSTest workflows.",
-    "version": "0.1.0",
+    "description": "Polyglot unit-test generation via a multi-agent Research-Plan-Implement pipeline — writes and runs tests for .NET/C#, Python, TypeScript/JavaScript, Java, Go, Ruby, Rust, C++, Kotlin, Swift, and PowerShell. Plus .NET-focused test execution, coverage and CRAP analysis, testability review, platform detection, and MSTest/xUnit migration.",
+    "version": "0.2.0",
     "author": {
       "name": "Microsoft",
       "url": "https://www.microsoft.com"
@@ -244,13 +244,15 @@
     "homepage": "https://github.com/dotnet/skills",
     "keywords": [
       "dotnet",
+      "polyglot",
       "testing",
-      "mstest",
-      "xunit",
-      "nunit",
       "test-generation",
-      "coverage",
-      "migration"
+      "unit-tests",
+      "python",
+      "typescript",
+      "java",
+      "go",
+      "rust"
     ],
     "license": "MIT",
     "repository": "https://github.com/dotnet/skills",
