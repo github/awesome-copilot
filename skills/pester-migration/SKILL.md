@@ -5,11 +5,9 @@ description: 'Experimental (preview) Pester migration skill for upgrading PowerS
 
 # Pester Migration
 
-> **Status: experimental / preview.** This skill is new and the **v5→v6** guidance tracks
-> **Pester 6, which is still a release candidate** (`6.0.0-rc*` as of mid-2026) — those details may
-> shift before the final release; check the [release notes](https://github.com/pester/Pester/releases).
-> The **v3→v4** and **v4→v5** guidance covers shipped, stable releases. Always review the diff and
-> re-run your suite after applying any change.
+> **Experimental / preview.** The **v5→v6** guidance tracks Pester 6 while it is a release
+> candidate and may change; verify against the current
+> [release notes](https://github.com/pester/Pester/releases). v3→v4 and v4→v5 cover stable releases.
 
 Pester is the test framework for PowerShell. Test files end in `*.Tests.ps1` and use
 `Describe` / `Context` / `It` blocks with `Should` assertions. This skill upgrades an existing
@@ -26,9 +24,9 @@ Detailed, symptom-driven guides live in `references/` — load the one(s) for th
 
 | Reference | When to load |
 |---|---|
+| [v3-to-v4.md](references/v3-to-v4.md) | `Should Be` → `Should -Be`, `Contain` → `FileContentMatch`, `Assert-VerifiableMocks` → `Assert-VerifiableMock`, array-assertion edge cases. |
 | [v4-to-v5.md](references/v4-to-v5.md) | The big one. Discovery/Run phases, `BeforeAll` setup, `$PSScriptRoot`, `BeforeDiscovery`, `-ForEach`, mock scoping, `Should -Throw` wildcards, `Invoke-Pester` → `New-PesterConfiguration`. |
 | [v5-to-v6.md](references/v5-to-v6.md) | PowerShell 5.1/7.4+ only, per-file discovery+run, empty `-ForEach` throws, duplicate setup blocks throw, name `<...>` templates evaluate, `Assert-MockCalled` removed, mocks no longer fall through, code-coverage tracer, legacy `Invoke-Pester` params removed. |
-| [v3-to-v4.md](references/v3-to-v4.md) | `Should Be` → `Should -Be`, `Contain` → `FileContentMatch`, `Assert-VerifiableMocks` → `Assert-VerifiableMock`, array-assertion edge cases. |
 
 Canonical source: the official migration guides at https://pester.dev/docs/migrations/ — this skill
 mirrors them. When in doubt, prefer the website.
@@ -59,14 +57,15 @@ Install the target version when ready:
 
 ```powershell
 # Latest stable v5 — pin the major so this keeps installing v5 even after v6 goes GA
-Install-Module Pester -MaximumVersion 5.99.99 -Force -SkipPublisherCheck
+Install-Module Pester -MaximumVersion 5.99.99 -Force
 
-# Pester 6 (still a release candidate as of mid-2026 — needs -AllowPrerelease)
-Install-Module Pester -AllowPrerelease -Force -SkipPublisherCheck
+# Pester 6 (currently a release candidate — needs -AllowPrerelease)
+Install-Module Pester -AllowPrerelease -Force
 ```
 
-> On Windows, the OS ships an old built-in Pester 3.x that can't be updated in place — newer
-> versions install side-by-side, hence `-Force -SkipPublisherCheck`. See
+> On **Windows PowerShell 5.1** the OS ships a Microsoft-signed built-in Pester 3 that PowerShellGet
+> won't overwrite with the differently-signed newer Pester — add `-SkipPublisherCheck` there to
+> install side-by-side. Not needed on PowerShell 7+. See
 > https://pester.dev/docs/introduction/installation.
 
 ## Migration workflow
