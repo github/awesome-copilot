@@ -218,6 +218,12 @@
       "version": "1.0.0"
     },
     {
+      "name": "cowork-converter",
+      "source": "cowork-converter",
+      "description": "Convert a GitHub Copilot CLI / Claude Code plugin to a Microsoft 365 Copilot Cowork package (.zip). Handles skill discovery, shared-reference resolution, manifest generation, icon placeholders, validation, and zip packaging.",
+      "version": "1.0.0"
+    },
+    {
       "name": "csharp-dotnet-development",
       "source": "csharp-dotnet-development",
       "description": "Essential prompts, instructions, and chat modes for C# and .NET development including testing, documentation, and best practices.",
