@@ -3,7 +3,6 @@ import {
   getGitHubHandle,
   getGitHubUrl,
   getLastUpdatedHtml,
-  sanitizeUrl,
 } from "../utils";
 import { renderEmptyStateHtml, renderSharedCardHtml } from "./card-render";
 
@@ -106,15 +105,9 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
           ? getGitHubHandle(authorUrl, authorName)
           : authorName || "";
       const authorHtml = authorName
-        ? `<span class="resource-tag resource-author">by ${
-            authorUrl
-              ? `<a href="${escapeHtml(
-                  sanitizeUrl(authorUrl)
-                )}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(
-                  authorName
-                )}">${escapeHtml(authorHandle)}</a>`
-              : escapeHtml(authorName)
-          }</span>`
+        ? `<span class="resource-tag resource-author" title="${escapeHtml(
+            authorName
+          )}">by ${escapeHtml(authorHandle || authorName)}</span>`
         : "";
 
       const metaHtml = `
@@ -148,7 +141,6 @@ export function renderExtensionsHtml(items: RenderableExtension[]): string {
         infoExtraHtml,
         metaHtml,
         actionsHtml,
-        tabIndex: 0,
         articleAttributes: {
           id: item.id,
           "data-extension-id": item.id,
