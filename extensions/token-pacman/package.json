@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "main": "extension.mjs",
+  "dependencies": {
+    "@github/copilot-sdk": "latest"
+  },
   "description": "Visualizes live session AI-credit usage as a Pac-Man board with pellets, ghosts, fruit milestones, and game-over limits.",
   "keywords": [
     "ai-credits",

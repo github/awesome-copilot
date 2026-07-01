@@ -1,20 +1,7 @@
 import { createServer } from "node:http";
 import { createCanvas, joinSession } from "@github/copilot-sdk/extension";
 
-const state = {
-    credits: 0,
-    limit: 100,
-    character: "mr",
-    dead: false,
-    achievements: [],
-    fruit: null,
-    fruitVersion: 0,
-    entitlement: null,
-    runVersion: 0,
-};
-const clients = new Set();
 const servers = new Map();
-let eventNanoAiu = 0;
 
 const characters = {
     mr: { name: "Mr. Pac-Man", color: "#ffd43b" },
@@ -22,11 +9,26 @@ const characters = {
 };
 const milestoneThresholds = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
 
+function createState() {
+    return {
+        credits: 0,
+        limit: 100,
+        character: "mr",
+        dead: false,
+        achievements: [],
+        fruit: null,
+        fruitVersion: 0,
+        entitlement: null,
+        runVersion: 0,
+    };
+}
+
 function nextMilestone(credits) {
     return milestoneThresholds.find((threshold) => threshold > credits) || milestoneThresholds[milestoneThresholds.length - 1];
 }
 
-function snapshot() {
+function snapshot(entry) {
+    const { state } = entry;
     return {
         ...state,
         percent: Math.min(100, Math.round((state.credits / state.limit) * 100)),
@@ -35,12 +37,13 @@ function snapshot() {
     };
 }
 
-function broadcast() {
-    const message = `data: ${JSON.stringify(snapshot())}\n\n`;
-    for (const client of clients) client.write(message);
+function broadcast(entry) {
+    const message = `data: ${JSON.stringify(snapshot(entry))}\n\n`;
+    for (const client of entry.clients) client.write(message);
 }
 
-function applyUsage(totalCredits) {
+function applyUsage(entry, totalCredits) {
+    const { state } = entry;
     const safeTotal = Math.max(0, Number(totalCredits) || 0);
     const before = state.credits;
     state.credits = safeTotal;
@@ -57,24 +60,24 @@ function applyUsage(totalCredits) {
         state.achievements = state.achievements.slice(0, 5);
     }
     state.dead = state.credits >= state.limit;
-    broadcast();
+    broadcast(entry);
 }
 
-async function syncUsage() {
+async function syncUsage(entry) {
     const metrics = await session.rpc.usage.getMetrics();
-    const nanoAiu = Number(metrics.totalNanoAiu) || eventNanoAiu;
+    const nanoAiu = Number(metrics.totalNanoAiu) || entry.eventNanoAiu;
     const credits = nanoAiu > 0 ? nanoAiu / 1_000_000_000 : Number(metrics.totalPremiumRequestCost) || 0;
-    applyUsage(credits);
+    applyUsage(entry, credits);
 }
 
 // Pull the authenticated user's real Copilot entitlement (premium request quota).
-async function syncQuota() {
+async function syncQuota(entry) {
     try {
         const result = await session.connection.sendRequest("account.getQuota", {});
         const snaps = result?.quotaSnapshots || {};
         const snap = snaps.premium_interactions || snaps.chat || Object.values(snaps)[0];
         if (!snap) return;
-        state.entitlement = {
+        entry.state.entitlement = {
             type: snaps.premium_interactions ? "Premium requests" : (snaps.chat ? "Chat requests" : "Requests"),
             unlimited: !!snap.isUnlimitedEntitlement,
             max: Number(snap.entitlementRequests),
@@ -83,10 +86,16 @@ async function syncQuota() {
             overage: Number(snap.overage) || 0,
             resetDate: snap.resetDate || null,
         };
-        broadcast();
+        broadcast(entry);
     } catch (err) {
         await session.log(`Token Pac-Man: quota lookup unavailable (${err?.message || err})`, { level: "warning", ephemeral: true });
     }
+}
+
+function getOpenEntry(instanceId) {
+    const entry = servers.get(instanceId);
+    if (!entry) throw new Error("Token Pac-Man canvas is not open.");
+    return entry;
 }
 
 function json(res, status, body) {
@@ -302,31 +311,49 @@ const events=new EventSource('/events');events.onmessage=e=>paint(JSON.parse(e.d
 }
 
 async function startServer(instanceId) {
+    const entry = {
+        server: null,
+        url: null,
+        state: createState(),
+        clients: new Set(),
+        eventNanoAiu: 0,
+        quotaInterval: null,
+    };
     const server = createServer(async (req, res) => {
         if (req.url === "/events") {
             res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", Connection: "keep-alive" });
-            res.write(`data: ${JSON.stringify(snapshot())}\n\n`);
-            clients.add(res);
-            req.on("close", () => clients.delete(res));
+            res.write(`data: ${JSON.stringify(snapshot(entry))}\n\n`);
+            entry.clients.add(res);
+            req.on("close", () => entry.clients.delete(res));
             return;
         }
-        if (req.url === "/state") return json(res, 200, snapshot());
+        if (req.url === "/state") return json(res, 200, snapshot(entry));
         if (req.method === "POST") {
             let body = "";
             for await (const chunk of req) body += chunk;
-            const input = body ? JSON.parse(body) : {};
+            let input = {};
+            try {
+                input = body ? JSON.parse(body) : {};
+            } catch {
+                return json(res, 400, { error: "Invalid JSON request body." });
+            }
+
+            const { state } = entry;
             if (req.url === "/choose" && characters[input.character]) state.character = input.character;
             else if (req.url === "/limit" && Number(input.limit) > 0) { state.limit = Number(input.limit); state.dead = state.credits >= state.limit; state.runVersion += 1; }
-            else if (req.url === "/reset") { state.achievements = []; state.fruit = null; state.runVersion += 1; state.dead = state.credits >= state.limit; await syncUsage(); }
-            broadcast();
-            return json(res, 200, snapshot());
+            else if (req.url === "/reset") { state.achievements = []; state.fruit = null; state.runVersion += 1; state.dead = state.credits >= state.limit; await syncUsage(entry); }
+            broadcast(entry);
+            return json(res, 200, snapshot(entry));
         }
         res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
         res.end(renderHtml());
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const port = server.address().port;
-    return { server, url: `http://127.0.0.1:${port}/` };
+    entry.server = server;
+    entry.url = `http://127.0.0.1:${port}/`;
+    entry.quotaInterval = setInterval(() => { void syncQuota(entry); }, 60_000);
+    return entry;
 }
 
 const session = await joinSession({
@@ -336,29 +363,34 @@ const session = await joinSession({
         description: "Live Pac-Man-style token consumption tracker with character choice, fruit achievements, and API limit tracking.",
         inputSchema: { type: "object", properties: {} },
         actions: [
-            { name: "sync_usage", description: "Refresh the canvas from the active session's accumulated AI credit usage and the user's plan entitlement.", handler: async () => { await syncUsage(); await syncQuota(); return snapshot(); } },
-            { name: "set_limit", description: "Set the AI credit limit that triggers game over. Resyncs the pellet board to the new limit.", inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 0.01 } }, required: ["limit"] }, handler: async (ctx) => { state.limit = Number(ctx.input.limit); state.dead = state.credits >= state.limit; state.runVersion += 1; broadcast(); return snapshot(); } },
-            { name: "reset_run", description: "Start a fresh visible run by clearing fruit streaks and resetting the board, without changing your live session credit total.", handler: async () => { state.achievements = []; state.fruit = null; state.runVersion += 1; state.dead = state.credits >= state.limit; await syncUsage(); return snapshot(); } },
+            { name: "sync_usage", description: "Refresh the canvas from the active session's accumulated AI credit usage and the user's plan entitlement.", handler: async (ctx) => { const entry = getOpenEntry(ctx.instanceId); await syncUsage(entry); await syncQuota(entry); return snapshot(entry); } },
+            { name: "set_limit", description: "Set the AI credit limit that triggers game over. Resyncs the pellet board to the new limit.", inputSchema: { type: "object", properties: { limit: { type: "number", minimum: 0.01 } }, required: ["limit"] }, handler: async (ctx) => { const entry = getOpenEntry(ctx.instanceId); const { state } = entry; state.limit = Number(ctx.input.limit); state.dead = state.credits >= state.limit; state.runVersion += 1; broadcast(entry); return snapshot(entry); } },
+            { name: "reset_run", description: "Start a fresh visible run by clearing fruit streaks and resetting the board, without changing your live session credit total.", handler: async (ctx) => { const entry = getOpenEntry(ctx.instanceId); const { state } = entry; state.achievements = []; state.fruit = null; state.runVersion += 1; state.dead = state.credits >= state.limit; await syncUsage(entry); return snapshot(entry); } },
         ],
         open: async (ctx) => {
             let entry = servers.get(ctx.instanceId);
             if (!entry) { entry = await startServer(ctx.instanceId); servers.set(ctx.instanceId, entry); }
-            await syncUsage();
-            await syncQuota();
-            return { title: "Token Pac-Man", url: entry.url, status: state.dead ? "Session limit busted" : `${state.credits.toFixed(2)} session credits munched` };
+            await syncUsage(entry);
+            await syncQuota(entry);
+            return { title: "Token Pac-Man", url: entry.url, status: entry.state.dead ? "Session limit busted" : `${entry.state.credits.toFixed(2)} session credits munched` };
         },
         onClose: async (ctx) => {
             const entry = servers.get(ctx.instanceId);
-            if (entry) { servers.delete(ctx.instanceId); await new Promise((resolve) => entry.server.close(resolve)); }
+            if (entry) {
+                servers.delete(ctx.instanceId);
+                clearInterval(entry.quotaInterval);
+                entry.clients.clear();
+                await new Promise((resolve) => entry.server.close(resolve));
+            }
         },
     })],
 });
 
-await syncUsage();
-await syncQuota();
 session.on("assistant.usage", (event) => {
-    eventNanoAiu += Number(event.data?.copilotUsage?.totalNanoAiu) || 0;
-    void syncUsage();
-    void syncQuota();
+    const nanoAiu = Number(event.data?.copilotUsage?.totalNanoAiu) || 0;
+    for (const entry of servers.values()) {
+        entry.eventNanoAiu += nanoAiu;
+        void syncUsage(entry);
+        void syncQuota(entry);
+    }
 });
-setInterval(() => { void syncQuota(); }, 60_000);
