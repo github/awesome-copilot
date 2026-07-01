@@ -21,10 +21,10 @@ jobs:
     outputs:
       quality-result: ${{ steps.quality.outputs.quality-result }}
     steps:
-      - name: Checkout staged branch
+      - name: Checkout main branch
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
-          ref: staged
+          ref: main
           persist-credentials: false
           submodules: false
 
@@ -35,6 +35,9 @@ jobs:
 
       - name: Install GitHub Copilot CLI
         run: npm install -g @github/copilot
+
+      - name: Install @microsoft/vally
+        run: npm install @microsoft/vally
 
       - name: Run external plugin quality gates
         id: quality

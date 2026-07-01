@@ -4,6 +4,8 @@ description: "Daily check for new GitHub Copilot features and updates. Opens a P
 on:
   schedule: daily
   workflow_dispatch:
+permissions:
+  contents: read
 tools:
   bash: ["curl", "gh"]
   edit:
@@ -18,7 +20,7 @@ safe-outputs:
   create-pull-request:
     labels: [automated-update, copilot-updates]
     title-prefix: "[bot] "
-    base-branch: staged
+    base-branch: main
 ---
 
 # Check for Awesome GitHub Copilot Updates
@@ -77,10 +79,10 @@ If the new information can be added to existing pages, edit those pages to inclu
 
 ## Step 4 — Open a pull request
 
-Create a pull request with your changes, using the `staged` branch as the base branch. The PR title should summarize what was updated (e.g., "Add/plan command and model marketplace documentation"). The PR body should list:
+Create a pull request with your changes, using the `main` branch as the base branch. The PR title should summarize what was updated (e.g., "Add/plan command and model marketplace documentation"). The PR body should list:
 
 1. What new features or changes were found
 2. What sections of the guide were updated
 3. Links to the source announcements
 
-The PR should target the `staged` branch and include the labels `automated-update` and `copilot-updates`.
+The PR should target the `main` branch and include the labels `automated-update` and `copilot-updates`.

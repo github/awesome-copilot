@@ -1,8 +1,8 @@
-name: Skill Validator — PR Gate
+name: Vally Lint — PR Gate
 
 on:
   pull_request:
-    branches: [staged]
+    branches: [main]
     types: [opened, synchronize, reopened]
     paths:
       - "skills/**"
@@ -18,41 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 
-      # ── Download & cache skill-validator ──────────────────────────
-      - name: Get cache key date
-        id: cache-date
-        run: echo "date=$(date +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-
-      - name: Restore skill-validator from cache
-        id: cache-sv
-        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          path: .skill-validator
-          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
-          restore-keys: |
-            skill-validator-linux-x64-
-
-      - name: Download skill-validator
-        if: steps.cache-sv.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p .skill-validator
-          curl -fsSL \
-            "https://github.com/dotnet/skills/releases/download/skill-validator-nightly/skill-validator-linux-x64.tar.gz" \
-            -o .skill-validator/skill-validator-linux-x64.tar.gz
-          tar -xzf .skill-validator/skill-validator-linux-x64.tar.gz -C .skill-validator
-          rm .skill-validator/skill-validator-linux-x64.tar.gz
-          chmod +x .skill-validator/skill-validator
-
-      - name: Save skill-validator to cache
-        if: steps.cache-sv.outputs.cache-hit != 'true'
-        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
-        with:
-          path: .skill-validator
-          key: skill-validator-linux-x64-${{ steps.cache-date.outputs.date }}
+          node-version: 20
 
       # ── Detect changed skills & agents ────────────────────────────
       - name: Detect changed skills and agents
@@ -111,8 +84,8 @@ jobs:
 
           echo "Found $SKILL_COUNT skill dir(s) and $AGENT_COUNT agent file(s) to check."
 
-      # ── Run skill-validator check ─────────────────────────────────
-      - name: Run skill-validator check
+      # ── Run vally lint check ───────────────────────────────────────
+      - name: Run vally lint check
         id: check
         if: steps.detect.outputs.total != '0'
         env:
@@ -134,53 +107,58 @@ jobs:
             done <<< "$AGENT_FILES_RAW"
           fi
 
-          CMD=(.skill-validator/skill-validator check --verbose)
+          EXIT_CODE=0
+          : > vally-output.txt
 
-          if [ ${#SKILL_DIRS[@]} -gt 0 ]; then
-            CMD+=(--skills "${SKILL_DIRS[@]}")
+          if [ ${#SKILL_DIRS[@]} -eq 0 ] && [ ${#AGENT_FILES[@]} -eq 0 ]; then
+            echo "No skills or agents to validate." | tee -a vally-output.txt
           fi
+
+          for skill_dir in "${SKILL_DIRS[@]}"; do
+            echo "### Linting ${skill_dir}" | tee -a vally-output.txt
+            set +e
+            OUTPUT=$(npx --yes @microsoft/vally-cli lint "$skill_dir" --verbose 2>&1)
+            CMD_EXIT=$?
+            set -e
+            echo "$OUTPUT" | tee -a vally-output.txt
+            echo "" >> vally-output.txt
+
+            if [ "$CMD_EXIT" -ne 0 ]; then
+              EXIT_CODE=1
+            fi
+          done
 
           if [ ${#AGENT_FILES[@]} -gt 0 ]; then
-            CMD+=(--agents "${AGENT_FILES[@]}")
+            {
+              echo "### Agent files detected (not linted by vally)"
+              echo "ℹ️ Vally currently lints SKILL.md content. Agent files were detected but skipped:"
+              printf '%s\n' "${AGENT_FILES[@]}"
+              echo ""
+            } | tee -a vally-output.txt
           fi
 
-          printf 'Running: '
-          printf '%q ' "${CMD[@]}"
-          echo
-
-          # Capture output; don't fail the workflow (warn-only mode)
-          set +e
-          OUTPUT=$("${CMD[@]}" 2>&1)
-          EXIT_CODE=$?
-          set -e
-
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-
-          # Save output to file (multi-line safe)
-          echo "$OUTPUT" > sv-output.txt
-
-          echo "$OUTPUT"
 
       # ── Upload results for the commenting workflow ────────────────
       - name: Save metadata
         if: always()
         run: |
-          mkdir -p sv-results
-          echo "${{ github.event.pull_request.number }}" > sv-results/pr-number.txt
-          echo "${{ steps.detect.outputs.total }}" > sv-results/total.txt
-          echo "${{ steps.detect.outputs.skill_count }}" > sv-results/skill-count.txt
-          echo "${{ steps.detect.outputs.agent_count }}" > sv-results/agent-count.txt
-          echo "${{ steps.check.outputs.exit_code }}" > sv-results/exit-code.txt
-          if [ -f sv-output.txt ]; then
-            cp sv-output.txt sv-results/sv-output.txt
+          mkdir -p vally-results
+          echo "${{ github.event.pull_request.number }}" > vally-results/pr-number.txt
+          echo "${{ steps.detect.outputs.total }}" > vally-results/total.txt
+          echo "${{ steps.detect.outputs.skill_count }}" > vally-results/skill-count.txt
+          echo "${{ steps.detect.outputs.agent_count }}" > vally-results/agent-count.txt
+          echo "${{ steps.check.outputs.exit_code }}" > vally-results/exit-code.txt
+          if [ -f vally-output.txt ]; then
+            cp vally-output.txt vally-results/vally-output.txt
           fi
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: skill-validator-results
-          path: sv-results/
+          name: vally-lint-results
+          path: vally-results/
           retention-days: 1
 
       - name: Post skip notice if no skills changed

@@ -13,7 +13,7 @@ tools:
     toolsets: [default]
 safe-outputs:
   create-pull-request:
-    base-branch: staged
+    base-branch: main
     title-prefix: "[codeowner] "
     draft: false
   add-comment:
@@ -59,7 +59,7 @@ If **no files** match these directories, exit with a `noop` message: "No files i
 
 ### 4. Read the Current CODEOWNERS File
 
-Read the `CODEOWNERS` file from the root of the repository on the `staged` branch. Parse its existing entries so you can avoid creating duplicates.
+Read the `CODEOWNERS` file from the root of the repository on the `main` branch. Parse its existing entries so you can avoid creating duplicates.
 
 ### 5. Build the Updated CODEOWNERS File
 

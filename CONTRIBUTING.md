@@ -231,14 +231,14 @@ The public-submission policy builds on those rules and also requires `license` p
 1. **Open an issue** using the external plugin issue form. Automation applies the `external-plugin` and `awaiting-review` labels.
 2. **Automated intake validation** checks that the required fields are present and correctly formatted for a GitHub-hosted plugin. Invalid submissions are labeled `requires-submitter-fixes` with a comment explaining what must be fixed before maintainer review.
 3. **Automated quality gates** run after metadata validation:
-   - `skill-validator check --plugin` against the submitted plugin path/ref/sha
+   - `vally lint` against the submitted plugin path/ref/sha
    - install smoke test via Copilot CLI against an ephemeral marketplace entry generated from the submission
 4. **Ready for maintainer review**: if metadata validation and quality gates pass, automation removes `awaiting-review` and adds `ready-for-review`.
 5. **Submitter-fix blocker**: if metadata is valid but quality gates fail, automation applies `requires-submitter-fixes` instead of advancing to human review.
 6. **Requesting another intake pass**: after updating the issue body or source plugin, the issue author or a maintainer can comment `/rerun-intake` to re-run automated intake and quality gates on demand. Open issues re-trigger intake automatically on edit; closed maintainer-rejected issues need `/rerun-intake`. When the rerun is accepted, automation reacts to the command comment with 👀 so it is visible that processing started.
 7. **Maintainer override path**: a maintainer with write access can comment `/mark-ready-for-review [optional reason]` to explicitly move a `requires-submitter-fixes` issue to `ready-for-review`.
 8. **Maintainer decision**: once in `ready-for-review`, a maintainer with write access performs the manual review, then comments `/approve` or `/reject <reason>` on the issue. Commands from non-maintainers are ignored.
-9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `staged` that updates `plugins/external.json` and generated marketplace outputs.
+9. **Approval path**: on `/approve`, automation removes `ready-for-review`, adds `approved`, closes the issue, and opens or updates a PR against `main` that updates `plugins/external.json` and generated marketplace outputs.
 10. **Rejection path**: on `/reject <reason>`, automation removes `ready-for-review`, adds `rejected`, closes the issue, and records the reason in an issue comment. After addressing the feedback, update the same issue and use `/rerun-intake` to re-queue intake.
 
 ##### Updating listed external plugins via PR
@@ -246,7 +246,7 @@ The public-submission policy builds on those rules and also requires `license` p
 When a pull request updates `plugins/external.json` (for example, version updates for a previously approved listing), automation runs PR quality checks and posts the result directly on the PR:
 
 1. **Detect changed entries**: automation identifies added/updated external plugin entries in the PR.
-2. **Run quality gates**: automation runs install smoke tests and `skill-validator` checks against each changed plugin source ref/SHA/path.
+2. **Run quality gates**: automation runs install smoke tests and `vally lint` checks against each changed plugin source ref/SHA/path.
 3. **Post source links**: automation updates a bot comment with per-plugin results and direct GitHub tree links to each plugin source location.
 4. **Sync workflow-state labels on the PR**:
    - `ready-for-review` when all checks pass
@@ -281,7 +281,7 @@ Maintainers complete the re-review on the **original approved submission issue**
 
 - `/re-review-keep` — renew the listing for another six months by reopening and reclosing the approved issue, which resets the `closed_at` review anchor and removes the due labels
 - `/re-review-needs-changes` — keep the listing in the due queue while adding `re-review-follow-up` so maintainers can track extra investigation or remediation work
-- `/re-review-remove` — open or update a PR against `staged` that removes the plugin from `plugins/external.json` and regenerates marketplace outputs; the issue stays in the due queue until that removal lands
+- `/re-review-remove` — open or update a PR against `main` that removes the plugin from `plugins/external.json` and regenerates marketplace outputs; the issue stays in the due queue until that removal lands
 
 Approved submissions are converted into `plugins/external.json` entries following the [Claude Code plugin marketplace spec](https://code.claude.com/docs/en/plugin-marketplaces#plugin-entries). A typical GitHub-hosted entry looks like this:
 
@@ -402,18 +402,18 @@ Create a daily summary of open issues for the team.
 ## Submitting Your Contribution
 
 1. **Fork this repository**
-2. **Create a new branch** for your contribution from the `staged` branch. **This is critical** - ensure that a branch is created from `staged`, not `main`. Branches created from `main` will cause merge conflicts and delays in processing your contribution, or they may be outright rejected.
+2. **Create a new branch** for your contribution from the `main` branch. **This is critical** — ensure that a branch is created from `main`, not `staged`. Branches created from `staged` may include materialized plugin files that will cause conflicts and delays, or may be outright rejected.
 3. **Add your instruction, skills, agents, workflow, or plugin** following the guidelines above
 4. **Run the update script**: `npm start` to update the README with your new file (make sure you run `npm install` first if you haven't already)
    - A GitHub Actions workflow will verify that this step was performed correctly
    - If the README.md would be modified by running the script, the PR check will fail with a comment showing the required changes
-5. **Submit a pull request** targeting the `staged` branch with:
+5. **Submit a pull request** targeting the `main` branch with:
    - A clear title describing your contribution
    - A brief description of what your instruction/skill/agent does
    - Any relevant context or usage notes
 
 > [!IMPORTANT]
-> All pull requests should target the **`staged`** branch, not `main`.
+> All pull requests should target the **`main`** branch, not `staged`.
 
 > [!NOTE]
 > Branch migration tracking for source/published branch changes lives in [Issue #1368](https://github.com/github/awesome-copilot/issues/1368). Phase 2 migration work stays gated until maintainers confirm external tooling rollout is complete.

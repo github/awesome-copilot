@@ -799,7 +799,8 @@ function generatePluginsSection(pluginsDir) {
   }
 
   const publishedManifestUrl = `${publishedArtifactBaseUrl}/.github/plugin/marketplace.json`;
-  const sourceTreeUrl = "https://github.com/github/awesome-copilot/tree/HEAD/plugins";
+  const sourceTreeUrl =
+    "https://github.com/github/awesome-copilot/tree/main/plugins";
   const pluginLinkGuidance = [
     "",
     `- Published marketplace manifest (tool-facing): \`${publishedManifestUrl}\``,

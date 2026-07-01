@@ -3,6 +3,10 @@
   "name": "Backlog Swipe Triage",
   "description": "Quickly swipe through backlog issues to triage decisions like assign, needs-info, defer, close, or ignore.",
   "version": "1.0.0",
+  "author": {
+    "name": "James Montemagno",
+    "url": "https://github.com/jamesmontemagno"
+  },
   "keywords": [
     "agent-assignment",
     "backlog-triage",
