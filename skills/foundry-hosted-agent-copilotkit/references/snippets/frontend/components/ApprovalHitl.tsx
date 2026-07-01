@@ -12,7 +12,7 @@ import { AGENT_NAME } from "../lib/agent";
  * Resolves with `{ accepted, steps }` — this exact shape is a convention
  * THIS SNIPPET defines, not something CopilotKit enforces (`respond(result)`
  * accepts any value). Pick your own shape if you like, but keep the frontend
- * `respond(...)` call and your bridge's parser in sync — see hosted_proxy.py.
+ * `respond(...)` call and your bridge's parser in sync — see backend/bridge_app.py.
  */
 const confirmChangesArgs = z.object({
   function_name: z.string(),

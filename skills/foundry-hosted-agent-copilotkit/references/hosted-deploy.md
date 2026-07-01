@@ -48,10 +48,13 @@ azd up             # provision + remote-build the image + publish the agent
 ```
 
 `azd up` builds the image with **remote build** (so no local Docker needed) from
-the appropriate build context (make sure the shared `src/agent.py` is included in
-that context if it lives outside `hosted/`), provisions the model deployment
-declared in `hosted/azure.yaml`, and publishes the hosted agent described by
-`agent.yaml` / `agent.manifest.yaml`.
+the appropriate build context — if you keep `agent.py` next to `main.py`
+inside `hosted/responses/` (the recommended, flatter layout — see
+`architecture.md`), the default context (`.`) already includes it, and there
+is nothing extra to configure. Only widen the context if you have a genuine
+reason to import shared code from outside `hosted/`. `azd up` also
+provisions the model deployment declared in `hosted/azure.yaml`, and
+publishes the hosted agent described by `agent.yaml` / `agent.manifest.yaml`.
 
 ## Gotchas (also in troubleshooting.md)
 

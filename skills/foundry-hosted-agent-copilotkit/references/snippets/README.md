@@ -16,14 +16,21 @@ plumbing (the bridge translation, the HITL contract, the agent name wiring)
 intact unless you have a specific reason to change it, and re-verify after
 any change with your own structural check + smoke test + browser E2E.
 
+Kept intentionally FLAT and FEW files — resist the urge to split further:
+`agent.py` lives directly next to `main.py` in `hosted/responses/` (nothing
+else imports it, so there's no reason for a separate top-level `src/` plus a
+`sys.path` hack), and the whole bridge is ONE file (`bridge_app.py`) instead
+of three, since it's all one concern (translate the hosted agent's stream to
+AG-UI, forward HITL decisions). If you have an actual reason to split
+something out later (reused elsewhere, genuinely large), that's a fine
+adaptation — just don't start there.
+
 | File | Copy to | Purpose |
 | --- | --- | --- |
-| [`src/agent.py`](src/agent.py) | `src/agent.py` | The hosted brain: `build_hosted_agent()`, `FoundryChatClient`, one read tool, one gated tool. |
-| [`backend/bridge_app.py`](backend/bridge_app.py) | `backend/bridge_app.py` | FastAPI AG-UI endpoint; SSE keep-alive. |
-| [`backend/hosted_proxy.py`](backend/hosted_proxy.py) | `backend/hosted_proxy.py` | Translates the hosted agent's Responses stream to AG-UI events; forwards `mcp_approval_response`. |
-| [`backend/hosted_client.py`](backend/hosted_client.py) | `backend/hosted_client.py` | Streaming Responses HTTP driver (DIRECT local / platform deployed). |
-| [`backend/requirements.txt`](backend/requirements.txt) | `backend/requirements.txt` | Bridge-only deps (no agent-framework/foundry packages — the bridge runs no model). |
+| [`hosted/responses/agent.py`](hosted/responses/agent.py) | `hosted/responses/agent.py` | The hosted brain: `build_hosted_agent()`, `FoundryChatClient`, one read tool, one gated tool. |
 | [`hosted/responses/main.py`](hosted/responses/main.py) | `hosted/responses/main.py` | Entry point wrapping `build_hosted_agent()` in `ResponsesHostServer`. Prefer generating this (and `agent.yaml`/`azure.yaml`/`Dockerfile`/`infra/`) with `azd ai agent init` instead — this file is here mainly to show the import shape. |
+| [`backend/bridge_app.py`](backend/bridge_app.py) | `backend/bridge_app.py` | The ENTIRE bridge in one file: FastAPI AG-UI endpoint, the streaming Responses HTTP client (DIRECT local / platform deployed), the Responses→AG-UI translation, HITL forwarding, and an SSE keep-alive. |
+| [`backend/requirements.txt`](backend/requirements.txt) | `backend/requirements.txt` | Bridge-only deps (no agent-framework/foundry packages — the bridge runs no model). |
 | [`frontend/app/api/copilotkit/[[...slug]]/route.ts`](<frontend/app/api/copilotkit/[[...slug]]/route.ts>) | same path | CopilotKit runtime handler pointed at the bridge. |
 | [`frontend/app/providers.tsx`](frontend/app/providers.tsx) | `frontend/app/providers.tsx` | `<CopilotKit>` provider + HITL/tool-card component registration. |
 | [`frontend/components/ApprovalHitl.tsx`](frontend/components/ApprovalHitl.tsx) | `frontend/components/` | `useHumanInTheLoop` example for the gated tool. |
@@ -40,7 +47,10 @@ any change with your own structural check + smoke test + browser E2E.
   `hosted/infra/` — generate these with `azd ai agent init -m <manifest-url>`
   (`azd ai agent sample list` to discover manifests) so they match your
   installed `azd` Foundry extension version exactly, rather than trusting a
-  hand-copied Bicep/Dockerfile that can drift out of date.
+  hand-copied Bicep/Dockerfile that can drift out of date. Because `agent.py`
+  now lives inside `hosted/responses/` (not a separate top-level `src/`), the
+  generated `azure.yaml`'s Docker build `context` can stay `.` (the default)
+  instead of needing to reach up to a parent directory.
 - `backend/Dockerfile` — a one-line MCR-based Dockerfile running
   `uvicorn bridge_app:app`; write your own to match your bridge's actual
   dependencies (keep the MCR base image — see `troubleshooting.md`).

@@ -4,6 +4,11 @@
 build_hosted_agent() returns an agent_framework.Agent backed by FoundryChatClient
 (Responses protocol). This is the SAME code that runs locally via
 `azd ai agent run` and, once deployed, as the Azure AI Foundry hosted agent.
+It lives next to main.py (not in a separate top-level src/) because nothing
+else in this app imports it directly — the bridge talks to the running
+hosted agent over HTTP, not in-process. If you have a reason to reuse this
+module from somewhere else (a test script, another entry point), moving it
+to a shared location is a fine adaptation — just update main.py's import.
 
 This example domain is a generic "records" assistant:
 - list_pending_records(owner)  -> READ tool, no side effects.

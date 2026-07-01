@@ -11,7 +11,7 @@ import { AGENT_NAME } from "../lib/agent";
  * `useRenderTool` gives each named tool its own progress/result card.
  *
  * Rename `list_pending_records`/`approve_record` (and the parameter schemas)
- * to match whatever tools you defined in src/agent.py.
+ * to match whatever tools you defined in hosted/responses/agent.py.
  */
 export function ToolCards() {
   useRenderTool({

@@ -16,81 +16,77 @@ check_file() {
 }
 
 echo "== Layout =="
-check_file "src/agent.py"
-check_file "backend/bridge_app.py"
-check_file "backend/hosted_proxy.py"
-check_file "backend/hosted_client.py"
-check_file "backend/requirements.txt"
-check_file "backend/Dockerfile"
-check_file "hosted/azure.yaml"
+check_file "hosted/responses/agent.py"
 check_file "hosted/responses/main.py"
 check_file "hosted/responses/agent.yaml"
 check_file "hosted/responses/Dockerfile"
+check_file "hosted/azure.yaml"
+check_file "backend/bridge_app.py"
+check_file "backend/requirements.txt"
+check_file "backend/Dockerfile"
 check_file "frontend/package.json"
 check_file "frontend/app/providers.tsx"
 check_file "frontend/app/api/copilotkit/[[...slug]]/route.ts"
 check_file "frontend/components/ApprovalHitl.tsx"
 
-echo "== src/agent.py: FoundryChatClient + HITL tool =="
-if grep -q "FoundryChatClient" "$ROOT/src/agent.py"; then
+AGENT_PY="$ROOT/hosted/responses/agent.py"
+BRIDGE_PY="$ROOT/backend/bridge_app.py"
+
+echo "== hosted/responses/agent.py: FoundryChatClient + HITL tool =="
+if grep -q "FoundryChatClient" "$AGENT_PY"; then
   pass "uses FoundryChatClient (Responses) — required for hosted mcp_approval_response resume"
 else
   fail "does NOT use FoundryChatClient — Chat Completions 500s on hosted approve-resume"
 fi
-if grep -q 'approval_mode="always_require"' "$ROOT/src/agent.py"; then
+if grep -q 'approval_mode="always_require"' "$AGENT_PY"; then
   pass "at least one tool has approval_mode=\"always_require\""
 else
   fail "no consequential tool is gated with approval_mode=\"always_require\""
 fi
-if grep -q 'approval_mode="never_require"' "$ROOT/src/agent.py"; then
+if grep -q 'approval_mode="never_require"' "$AGENT_PY"; then
   pass "has at least one read (no side-effect) tool"
 else
   fail "no read-only tool found"
 fi
 
-echo "== backend/bridge_app.py + hosted_proxy.py: bridge forwards HITL =="
-if grep -q "run_turn" "$ROOT/backend/bridge_app.py" && grep -q "hosted_proxy" "$ROOT/backend/bridge_app.py"; then
-  pass "bridge_app.py mounts the hosted-proxy turn logic (hosted_proxy.run_turn)"
+echo "== backend/bridge_app.py: forwards HITL, translates the Responses stream =="
+if grep -q "mcp_approval_response" "$BRIDGE_PY"; then
+  pass "forwards mcp_approval_response on approve/reject (re-executes server-side)"
 else
-  fail "bridge_app.py does not appear to mount the hosted proxy"
+  fail "never sends mcp_approval_response — HITL approve would not re-execute"
 fi
-if grep -q "mcp_approval_response" "$ROOT/backend/hosted_proxy.py"; then
-  pass "hosted_proxy.py forwards mcp_approval_response on approve/reject (re-executes server-side)"
+if grep -q "confirm_changes" "$BRIDGE_PY"; then
+  pass "surfaces the gated tool as an approval-request card"
 else
-  fail "hosted_proxy.py never sends mcp_approval_response — HITL approve would not re-execute"
+  fail "does not surface an approval-request card"
 fi
-if grep -q "confirm_changes" "$ROOT/backend/hosted_proxy.py"; then
-  pass "hosted_proxy.py surfaces the gated tool as an approval-request card"
+if grep -qE 'headers\[.x-ms-user-isolation-key.\]|"x-ms-user-isolation-key":' "$BRIDGE_PY"; then
+  fail "sets x-ms-user-isolation-key — deployed agents use Entra isolation (400)"
 else
-  fail "hosted_proxy.py does not surface an approval-request card"
+  pass "does not send x-ms-user-isolation-key"
 fi
-if grep -qE 'headers\[.x-ms-user-isolation-key.\]|"x-ms-user-isolation-key":' "$ROOT/backend/hosted_client.py"; then
-  fail "hosted_client.py sets x-ms-user-isolation-key — deployed agents use Entra isolation (400)"
+if grep -q "ping" "$BRIDGE_PY"; then
+  pass "has an SSE keep-alive"
 else
-  pass "hosted_client.py does not send x-ms-user-isolation-key"
-fi
-if grep -q "ping" "$ROOT/backend/bridge_app.py"; then
-  pass "bridge_app.py has an SSE keep-alive"
-else
-  fail "bridge_app.py has no SSE keep-alive"
+  fail "has no SSE keep-alive"
 fi
 
 echo "== HITL contract consistency (your chosen shape, both sides) =="
-if grep -q '"accepted"' "$ROOT/backend/hosted_proxy.py" && grep -q "accepted" "$ROOT/frontend/components/ApprovalHitl.tsx"; then
+if grep -q '"accepted"' "$BRIDGE_PY" && grep -q "accepted" "$ROOT/frontend/components/ApprovalHitl.tsx"; then
   pass "backend detects \"accepted\" in the resolved payload; frontend responds with the same shape"
 else
   fail "HITL contract mismatch — the frontend respond(...) shape and the bridge's parser disagree"
 fi
 
-echo "== Agent name consistency (src/agent.py <-> hosted/*/agent.yaml) =="
-AGENT_PY_NAME=$(grep -oE 'AGENT_NAME = "[^"]+"' "$ROOT/src/agent.py" | head -1 | sed -E 's/AGENT_NAME = "([^"]+)"/\1/')
+echo "== Agent name consistency (agent.py <-> agent.yaml) =="
+AGENT_PY_NAME=$(grep -oE 'AGENT_NAME = "[^"]+"' "$AGENT_PY" | head -1 | sed -E 's/AGENT_NAME = "([^"]+)"/\1/')
 YAML_NAME=$(grep -oE '^name: [a-zA-Z0-9_.-]+' "$ROOT/hosted/responses/agent.yaml" | head -1 | sed -E 's/name: //')
-echo "  src/agent.py AGENT_NAME     = $AGENT_PY_NAME"
-echo "  hosted/responses/agent.yaml = $YAML_NAME"
+echo "  hosted/responses/agent.py   AGENT_NAME = $AGENT_PY_NAME"
+echo "  hosted/responses/agent.yaml name       = $YAML_NAME"
 if [ "$AGENT_PY_NAME" = "$YAML_NAME" ] && [ -n "$AGENT_PY_NAME" ]; then
-  pass "agent name is consistent between src/agent.py and agent.yaml"
+  pass "agent name is consistent between agent.py and agent.yaml"
 else
-  fail "agent name DRIFTS between src/agent.py and agent.yaml — see values printed above"
+  fail "agent name DRIFTS between agent.py and agent.yaml — see values printed above"
 fi
 
 echo "== Frontend: CopilotKit provider / route wiring =="

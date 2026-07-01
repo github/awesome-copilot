@@ -29,11 +29,14 @@ anti-patterns, and Definition of Done exactly.
 
 ## Your workflow
 
-1. **Scaffold** the project layout described in the skill's `SKILL.md` and
-   `references/` (Next.js/CopilotKit frontend, a bridge you write, `src/agent.py`
-   hosted-agent brain). Bootstrap the `hosted/` folder with
-   `azd ai agent init -m <manifest-url>` (`azd ai agent sample list` to
-   discover manifests) rather than hand-writing it.
+1. **Scaffold** by copying `references/snippets/` (see its README) and
+   bootstrapping `hosted/` with `azd ai agent init -m <manifest-url>`
+   (`azd ai agent sample list` to discover manifests) rather than
+   hand-writing either. Keep the layout flat: the agent brain
+   (`agent.py`) lives right next to `main.py` inside `hosted/responses/`
+   (no separate top-level `src/`), and the bridge is ONE file
+   (`backend/bridge_app.py`), not split into several — don't add files or
+   import indirection the app doesn't need.
 2. **Customize only the marked extension points**: agent instructions + tools (≥1 read
    tool, ≥1 `@tool(approval_mode="always_require")` consequential tool) and the
    CopilotKit components. Map "needs approval before X" to the gated tool.

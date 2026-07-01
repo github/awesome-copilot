@@ -13,7 +13,7 @@ Requires:
 Env overrides: BRIDGE_URL (default http://localhost:8080/agent).
 
 Exercises, through the bridge (not the raw hosted agent), for the example
-"records" domain in src/agent.py — rename the tool names / regex below if you
+"records" domain in hosted/responses/agent.py — rename the tool names / regex below if you
 changed the domain:
   - read tool (list_pending_records) runs and returns a result
   - the consequential tool (approve_record) PAUSES with a confirm_changes

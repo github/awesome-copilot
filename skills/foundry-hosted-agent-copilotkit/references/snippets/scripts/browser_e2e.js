@@ -2,7 +2,7 @@
 // stack: Next.js frontend (3000) -> bridge (8080) -> hosted Foundry agent
 // running locally via `azd ai agent run` (8088).
 //
-// Scenarios (for the example "records" domain in src/agent.py — rename the
+// Scenarios (for the example "records" domain in hosted/responses/agent.py — rename the
 // tool prompts / record ids below if you changed the domain):
 //  1. Read: "list pending records for alice" -> assistant text + tool-render
 //     card, no approval UI.

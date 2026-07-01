@@ -6,7 +6,7 @@
 // having to thread a custom id through every hook call site. Confirm this
 // default is still current for your installed version.
 //
-// The Foundry hosted agent's OWN identity (src/agent.py AGENT_NAME,
+// The Foundry hosted agent's OWN identity (hosted/responses/agent.py AGENT_NAME,
 // hosted/responses/agent.yaml, backend/bridge_app.py) is a SEPARATE constant
 // (e.g. "my-hosted-agent") — the two identifiers do not have to match.
 export const AGENT_NAME = "default";

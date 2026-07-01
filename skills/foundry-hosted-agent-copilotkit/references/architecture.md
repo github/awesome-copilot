@@ -4,10 +4,11 @@
 with a CopilotKit UI showing rich generative UI — tool-render cards, human-in-the-
 loop approval, shared/predictive state.
 
-> **No template ships with this skill.** Every symbol below (`HostedProxyAgent`,
-> `bridge_app.py`, etc.) is illustrative naming for a design you implement
-> yourself, verified live once (see `REVIEW_NOTES`-style evidence in your own
-> build), not a package or file you can import. Bootstrap `hosted/` with
+> **This skill ships copy-adapt starter code, not an installable template.**
+> `references/snippets/` has a verified-working minimum for every symbol
+> below (`bridge_app.py`, `agent.py`, etc.) — copy it in and adapt rather than
+> writing from scratch, but treat every concrete name as "true as of when
+> this was written," not a guarantee. Bootstrap `hosted/` with
 > `azd ai agent init -m <manifest-url>` (`azd ai agent sample list` to discover
 > manifests) rather than hand-writing it — this generates the currently-correct
 > `main.py`/`agent.yaml`/`azure.yaml`/`Dockerfile`/`infra/` for your installed
@@ -41,7 +42,7 @@ end-to-end against a real local hosted agent).
         │  POST .../agents/<name>/endpoint/protocols/openai/responses (stream)
         ▼
  FOUNDRY HOSTED AGENT  (the brain — azd → host: azure.ai.agent)
-   src/agent.py build_hosted_agent(): FoundryChatClient (Responses), store=False
+   hosted/responses/agent.py build_hosted_agent(): FoundryChatClient (Responses), store=False
    ALL @tools + @tool(approval_mode="always_require") HITL + history server-side
 ```
 
@@ -96,20 +97,24 @@ native `FoundryAgent` path now suffices before building any forwarder at all.
 
 ```
 <app>/
-├── src/
-│   └── agent.py        ONE agent. build_hosted_agent() → FoundryChatClient
-│                       (the single brain — same code local + deployed). Read tools
-│                       + ≥1 @tool(approval_mode="always_require").
-├── backend/            THE BRIDGE (deployed Container App) — you write this.
-│   └── bridge_app.py (+ helpers)  AG-UI endpoint that forwards turns + translates
-│                       Responses → AG-UI; surfaces an approval card; forwards
-│                       mcp_approval_response. + SSE keepalive + optional API key.
 ├── hosted/             Bootstrap via `azd ai agent init` — azd → Foundry HOSTED
 │   │                   agent (Responses) — the deployed brain.
-│   ├── azure.yaml      host: azure.ai.agent; azure.ai.agents pinned; context=root.
-│   └── responses/      main.py = ResponsesHostServer(build_hosted_agent()) — confirm
+│   ├── azure.yaml      host: azure.ai.agent; azure.ai.agents pinned; context=".".
+│   └── responses/
+│       ├── agent.py    ONE agent. build_hosted_agent() → FoundryChatClient
+│       │               (the single brain — same code local + deployed). Read tools
+│       │               + ≥1 @tool(approval_mode="always_require"). Lives right next
+│       │               to main.py — no separate top-level src/, since nothing else
+│       │               imports it (the bridge talks to it over HTTP, not in-process).
+│       └── main.py     ResponsesHostServer(build_hosted_agent()).run() — confirm
 │                       which package ships `ResponsesHostServer` for your installed
 │                       version (may be a separate `*-foundry-hosting` package).
+├── backend/            THE BRIDGE (deployed Container App) — you write this.
+│   └── bridge_app.py   ONE file: AG-UI endpoint + the streaming Responses HTTP
+│                       client + the translation + HITL forwarding + SSE keepalive.
+│                       Splitting this into separate proxy/client modules is a
+│                       reasonable adaptation once it grows a lot of domain logic,
+│                       but isn't necessary at this size — don't start there.
 ├── frontend/           Next.js + CopilotKit (useAgent/useFrontendTool/
 │                       useRenderTool/useHumanInTheLoop).
 └── scripts/            verify.sh (structural), smoke.py (E2E vs the real local agent),
