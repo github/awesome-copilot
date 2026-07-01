@@ -38,6 +38,8 @@
   "author": "GitHub",
   "license": "MIT",
   "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "@microsoft/vally": "^0.6.0",
     "all-contributors-cli": "^6.26.1"
   },
