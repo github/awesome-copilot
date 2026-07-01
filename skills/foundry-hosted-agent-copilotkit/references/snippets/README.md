@@ -31,7 +31,7 @@ adaptation — just don't start there.
 | [`hosted/responses/main.py`](hosted/responses/main.py) | `hosted/responses/main.py` | Entry point wrapping `build_hosted_agent()` in `ResponsesHostServer`. Prefer generating this (and `agent.yaml`/`azure.yaml`/`Dockerfile`/`infra/`) with `azd ai agent init` instead — this file is here mainly to show the import shape. |
 | [`backend/bridge_app.py`](backend/bridge_app.py) | `backend/bridge_app.py` | The ENTIRE bridge in one file: FastAPI AG-UI endpoint, the streaming Responses HTTP client (DIRECT local / platform deployed), the Responses→AG-UI translation, HITL forwarding, and an SSE keep-alive. |
 | [`backend/requirements.txt`](backend/requirements.txt) | `backend/requirements.txt` | Bridge-only deps (no agent-framework/foundry packages — the bridge runs no model). |
-| [`frontend/app/api/copilotkit/[[...slug]]/route.ts`](<frontend/app/api/copilotkit/[[...slug]]/route.ts>) | same path | CopilotKit runtime handler pointed at the bridge. |
+| [CopilotKit catch-all route (`route.ts`)](frontend/app/api/copilotkit/[[...slug]]/route.ts) | `frontend/app/api/copilotkit/[[...slug]]/route.ts` | CopilotKit runtime handler pointed at the bridge. |
 | [`frontend/app/providers.tsx`](frontend/app/providers.tsx) | `frontend/app/providers.tsx` | `<CopilotKit>` provider + HITL/tool-card component registration. |
 | [`frontend/components/ApprovalHitl.tsx`](frontend/components/ApprovalHitl.tsx) | `frontend/components/` | `useHumanInTheLoop` example for the gated tool. |
 | [`frontend/components/ToolCards.tsx`](frontend/components/ToolCards.tsx) | `frontend/components/` | `useRenderTool` examples for both tools. |
