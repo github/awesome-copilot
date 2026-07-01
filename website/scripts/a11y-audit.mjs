@@ -14,6 +14,15 @@ const distDir = path.join(websiteDir, 'dist');
 const axeMainPath = require.resolve('axe-core');
 const axeSourcePath = path.join(path.dirname(axeMainPath), 'axe.min.js');
 
+// Resolve Astro's CLI entry point so the preview server can be launched with `node <bin>`
+// directly — no shell and no `npx` shim. This keeps signal delivery / detached-PGID shutdown
+// predictable (see startPreviewServer) and works identically on Windows and POSIX (spawning a
+// .cmd shim without a shell throws EINVAL on modern Node).
+const astroPackageJsonPath = require.resolve('astro/package.json');
+const astroBinField = require(astroPackageJsonPath).bin;
+const astroBinRelative = typeof astroBinField === 'string' ? astroBinField : astroBinField.astro;
+const astroBinPath = path.join(path.dirname(astroPackageJsonPath), astroBinRelative);
+
 const routes = [
   '/',
   '/agents/',
@@ -90,10 +99,14 @@ function getPort() {
 }
 
 function startPreviewServer(port) {
-  const child = spawn('npx', ['astro', 'preview', '--port', String(port), '--host'], {
+  // Launch `node <astro-bin> preview` directly — no shell layer and no npx shim. A shell
+  // (shell:true) spawns an extra intermediate process that makes signal delivery / PGID-based
+  // shutdown (detached + process.kill(-pid) below) unreliable, and spawning the npx.cmd shim
+  // without a shell throws EINVAL on modern Node for Windows. Invoking the resolved bin with
+  // process.execPath sidesteps both problems on every platform.
+  const child = spawn(process.execPath, [astroBinPath, 'preview', '--port', String(port), '--host'], {
     cwd: websiteDir,
     detached: process.platform !== 'win32',
-    shell: true,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
@@ -195,7 +208,19 @@ async function auditSite(browser, baseUrl) {
       // 'load' (not 'networkidle') keeps the audit robust: cards are server-rendered
       // into the initial HTML, and lazy images / search-index requests can otherwise
       // keep the network busy indefinitely and stall navigation.
-      await page.goto(url, { waitUntil: 'load', timeout: 45_000 });
+      const response = await page.goto(url, { waitUntil: 'load', timeout: 45_000 });
+
+      // Fail fast on broken/missing routes. page.goto() resolves even for 4xx/5xx responses,
+      // so without this check axe would run against an error page and the guardrail could
+      // "pass" while silently masking a broken route.
+      if (!response) {
+        throw new Error(`No navigation response for ${url} (theme: ${theme}).`);
+      }
+
+      if (!response.ok()) {
+        throw new Error(`Route ${url} (theme: ${theme}) returned HTTP ${response.status()}.`);
+      }
+
       await page.waitForTimeout(500);
 
       // Disable CSS transitions/animations before switching themes. Theme changes animate
