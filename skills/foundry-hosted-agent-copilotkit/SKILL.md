@@ -237,7 +237,7 @@ deployed hosted agent, since all logic is server-side.
 - **`build_hosted_agent` → `FoundryChatClient` (Responses)** — the single brain, the
   SAME code locally (`azd ai agent run`) and deployed. Required so the hosted
   `mcp_approval_request`/`mcp_approval_response` re-executes the gated tool
-  (verified live on a real local agent: pending→reimbursed on approve, no
+  (verified live on a real local agent: pending→approved on approve, no
   change on reject). No mock client. The Responses `OpenAIChatClient` / Chat
   Completions path 500s on hosted approve-resume — do not use it here.
 
